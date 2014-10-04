@@ -27,7 +27,7 @@ import org.fede.calculator.money.series.DollarCPISeries;
 public interface Inflation {
     
     public static final Inflation USD_INFLATION = new CPIInflation(new CachedSeries(new DollarCPISeries()), Currency.getInstance("USD"));
-    public static final Inflation ARS_INFLATION = new ArgentinaInflation();//new CPIInflation(new ArgentinaCompoundCPISeries(), Currency.getInstance("ARS"));
+    public static final Inflation ARS_INFLATION = new ArgentinaInflation();
 
     MoneyAmount adjust(MoneyAmount amount, int fromYear, int toYear) throws NoIndexDataFoundException;
     MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoIndexDataFoundException;

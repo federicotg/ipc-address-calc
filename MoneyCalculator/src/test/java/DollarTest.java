@@ -17,7 +17,9 @@
 import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import java.text.NumberFormat;
 import java.util.Currency;
+import java.util.Locale;
 import static org.fede.calculator.money.ArgCurrency.*;
 import org.fede.calculator.money.CPIInflation;
 import org.fede.calculator.money.ForeignExchange;
@@ -177,14 +179,37 @@ public class DollarTest {
     public void jsonSeries() throws IOException, NoIndexDataFoundException {
         assertEquals(0, new BigDecimal("2.060").compareTo(new JSONIndexSeries("peso-dolar-libre.json").getIndex(1987, 5)));
     }
-    
-    
+
     @Test
     public void fx() throws NoIndexDataFoundException {
         MoneyAmount pesos10 = new MoneyAmount(new BigDecimal("10"), Currency.getInstance("ARS"));
         MoneyAmount xDollars = ForeignExchange.INSTANCE.exchangeAmountIntoCurrency(pesos10, Currency.getInstance("USD"), 1981, 6);
-        System.out.println(xDollars);
+        
         assertEquals(0, new BigDecimal("0.00141844").compareTo(xDollars.getAmount()));
+        
+        //this.print("CqP", new CqPSeries());
+        //this.print("Indec", new IndecCPISeries());
+        
+    }
+
+    private void print(String name, IndexSeries s) {
+        NumberFormat nf = NumberFormat.getInstance(Locale.ENGLISH);
+        nf.setMaximumFractionDigits(20);
+        nf.setGroupingUsed(false);
+        System.out.print(name+"\n\n[");
+        for (int year = s.getFromYear(); year <= s.getToYear(); year++) {
+            for (int month = 1; month < 13; month++) {
+                try {
+                    System.out.print("{\"year\":\"" + year + "\",\"month\":\"" + month + "\",\"value\":\"" + nf.format(s.getIndex(year, month)) + "\"}");
+                    if (year <= s.getToYear() || month < 12) {
+                        System.out.println(",");
+                    }
+                } catch (NoIndexDataFoundException ex) {
+
+                }
+            }
+        }
+        System.out.print("]");
     }
 
 }

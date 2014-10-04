@@ -27,8 +27,6 @@ import org.fede.calculator.money.NoIndexDataFoundException;
  */
 public abstract class IndexSeriesSupport implements IndexSeries {
 
-     private static final BigDecimal MONTHS_IN_A_YEAR = new BigDecimal("12.00000");
-    
     @Override
     public final BigDecimal getIndex(Date day) throws NoIndexDataFoundException {
         Calendar cal = Calendar.getInstance();
@@ -36,16 +34,6 @@ public abstract class IndexSeriesSupport implements IndexSeries {
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH);
         return this.getIndex(year, month);
-    }
-    
-    @Override
-    public BigDecimal getIndex(int year) throws NoIndexDataFoundException {
-        BigDecimal sum = BigDecimal.ZERO;
-
-        for (int i = 1; i <= 12; i++) {
-            sum = sum.add(this.getIndex(year, i));
-        }
-        return sum.setScale(5).divide(MONTHS_IN_A_YEAR);
     }
 
 }

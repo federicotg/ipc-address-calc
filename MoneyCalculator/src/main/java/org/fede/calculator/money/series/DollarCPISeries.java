@@ -32,7 +32,6 @@ public final class DollarCPISeries extends IndexSeriesSupport {
     private final BlsCPISource source;
 
     public DollarCPISeries() {
-        //this(new WebServiceBlsCPISource());
         this(new URLConnectionBlsCPISource());
     }
 
