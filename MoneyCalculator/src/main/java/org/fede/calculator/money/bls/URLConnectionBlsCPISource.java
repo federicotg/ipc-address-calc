@@ -41,6 +41,8 @@ public class URLConnectionBlsCPISource implements BlsCPISource {
         String body = new ObjectMapper().writeValueAsString(blsRequest);
         URL url = new URL(BLS_REST_API);
         URLConnection con = url.openConnection();
+        con.setConnectTimeout(30000);
+        con.setReadTimeout(30000);
         con.setDoOutput(true);
         con.addRequestProperty("Content-Type", "application/json");
         con.addRequestProperty("Content-Length", String.valueOf(body.length()));
