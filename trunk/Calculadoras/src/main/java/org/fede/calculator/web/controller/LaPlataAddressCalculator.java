@@ -17,10 +17,10 @@
 package org.fede.calculator.web.controller;
 
 import java.util.logging.Logger;
+import javax.annotation.Resource;
 import javax.validation.Valid;
 import org.fede.calculator.service.LaPlataAddressService;
 import org.fede.calculator.web.dto.LaPlataAddressDTO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -38,7 +38,7 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class LaPlataAddressCalculator {
 
-    @Autowired
+    @Resource(name = "addressService")
     private LaPlataAddressService addressService;
     
     private static final Logger LOG = Logger.getLogger(LaPlataAddressCalculator.class.getName());
