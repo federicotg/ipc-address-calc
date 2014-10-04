@@ -76,6 +76,10 @@ public class MoneyAmount {
         }
     }
     
+    public Currency getCurrency(){
+        return this.currency;
+    }
+    
     public MoneyAmount movePoint(int n){
         return new MoneyAmount(this.amount.movePointRight(n), this.currency);
     }

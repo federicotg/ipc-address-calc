@@ -20,6 +20,7 @@ import static java.math.BigDecimal.ONE;
 import java.util.Currency;
 import static org.fede.calculator.money.ArgCurrency.*;
 import org.fede.calculator.money.CPIInflation;
+import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.series.CachedSeries;
 import org.fede.calculator.money.series.DollarCPISeries;
 import org.fede.calculator.money.series.IndexSeries;
@@ -175,6 +176,15 @@ public class DollarTest {
     @Test
     public void jsonSeries() throws IOException, NoIndexDataFoundException {
         assertEquals(0, new BigDecimal("2.060").compareTo(new JSONIndexSeries("peso-dolar-libre.json").getIndex(1987, 5)));
+    }
+    
+    
+    @Test
+    public void fx() throws NoIndexDataFoundException {
+        MoneyAmount pesos10 = new MoneyAmount(new BigDecimal("10"), Currency.getInstance("ARS"));
+        MoneyAmount xDollars = ForeignExchange.INSTANCE.exchangeAmountIntoCurrency(pesos10, Currency.getInstance("USD"), 1981, 6);
+        System.out.println(xDollars);
+        assertEquals(0, new BigDecimal("0.00141844").compareTo(xDollars.getAmount()));
     }
 
 }
