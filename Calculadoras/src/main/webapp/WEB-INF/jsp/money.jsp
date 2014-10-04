@@ -64,7 +64,7 @@
                     urlEncoded: false,
                     onSuccess: function (money, responseText) {
                         var str = accounting.formatMoney(money.amount, money.toCurrencySymbol + " ", 2, ".", ",");
-                        document.id('result' + money.fromIso4217).value = str;
+                        document.id('result' + money.currency.iso4217).value = str;
                     },
                     onError: function (text, error) {
                         alert(text + " - " + error);
@@ -82,7 +82,7 @@
                                 'fromMonth': form.elements["fromMonth"].value,
                                 'toYear': form.elements["toYear"].value,
                                 'toMonth': form.elements["toMonth"].value,
-                                'fromIso4217': form.elements["fromIso4217"].value
+                                'currency':{'iso4217': form.elements["fromIso4217"].value}
                             }));
                 };
                 var usdAction = function () {

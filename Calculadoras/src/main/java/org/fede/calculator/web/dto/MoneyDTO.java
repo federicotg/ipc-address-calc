@@ -42,9 +42,9 @@ public class MoneyDTO {
     private int toMonth = 1;
     private boolean valid;
     private String message;
-    private String fromCurrencySymbol;
     private String toCurrencySymbol;
-    private String fromIso4217;
+    private CurrencyDTO currency;
+    //private String fromIso4217;
 
     public BigDecimal getAmount() {
         return amount;
@@ -102,14 +102,6 @@ public class MoneyDTO {
         this.message = message;
     }
 
-    public String getFromCurrencySymbol() {
-        return fromCurrencySymbol;
-    }
-
-    public void setFromCurrencySymbol(String fromCurrencySymbol) {
-        this.fromCurrencySymbol = fromCurrencySymbol;
-    }
-
     public String getToCurrencySymbol() {
         return toCurrencySymbol;
     }
@@ -118,12 +110,12 @@ public class MoneyDTO {
         this.toCurrencySymbol = toCurrencySymbol;
     }
 
-    public String getFromIso4217() {
-        return fromIso4217;
+    public CurrencyDTO getCurrency() {
+        return currency;
     }
 
-    public void setFromIso4217(String fromIso4217) {
-        this.fromIso4217 = fromIso4217;
+    public void setCurrency(CurrencyDTO currency) {
+        this.currency = currency;
     }
 
 }

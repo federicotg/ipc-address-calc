@@ -29,8 +29,12 @@ import org.fede.calculator.web.dto.MoneyDTO;
  *
  * @author fede
  */
-
 public class USDMoneyService implements MoneyService {
+
+    private static final CurrencyDTO CURRENCY_DTO = new CurrencyDTO(
+            USD_INFLATION.getCurrency().getDisplayName(ES_AR),
+            USD_INFLATION.getCurrency().getSymbol(ES_AR),
+            USD_INFLATION.getCurrency().getCurrencyCode());
 
     @Override
     public MoneyDTO getMoney(MoneyDTO dto) throws NoIndexDataFoundException {
@@ -44,9 +48,8 @@ public class USDMoneyService implements MoneyService {
         answer.setToMonth(dto.getToMonth());
         answer.setToYear(dto.getToYear());
         answer.setValid(true);
-        answer.setFromIso4217(Currency.getInstance("USD").getCurrencyCode());
-        
-        answer.setFromCurrencySymbol(Currency.getInstance("USD").getSymbol(ES_AR));
+        answer.setCurrency(CURRENCY_DTO);
+
         answer.setToCurrencySymbol(Currency.getInstance("USD").getSymbol(ES_AR));
 
         return answer;
@@ -55,12 +58,8 @@ public class USDMoneyService implements MoneyService {
 
     @Override
     public CurrencyLimitsDTO getLimits() {
-        
-        CurrencyDTO currencyDTO = new CurrencyDTO(
-                USD_INFLATION.getCurrency().getDisplayName(ES_AR), 
-                USD_INFLATION.getCurrency().getSymbol(ES_AR),
-                USD_INFLATION.getCurrency().getCurrencyCode());
-        return new CurrencyLimitsDTO(currencyDTO, USD_INFLATION.getFromYear(), USD_INFLATION.getToYear());
+
+        return new CurrencyLimitsDTO(CURRENCY_DTO, USD_INFLATION.getFromYear(), USD_INFLATION.getToYear());
     }
 
 }

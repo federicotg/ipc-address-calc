@@ -26,6 +26,10 @@ public class CurrencyDTO {
     private String symbol;
     private String iso4217;
 
+    public CurrencyDTO() {
+        
+    }
+    
     public CurrencyDTO(String name, String symbol, String iso4217) {
         this.name = name;
         this.symbol = symbol;
