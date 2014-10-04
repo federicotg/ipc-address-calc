@@ -14,17 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import java.util.Currency;
 import static org.fede.calculator.money.ArgCurrency.*;
 import org.fede.calculator.money.CPIInflation;
-import org.fede.calculator.money.series.ARSForexSeries;
 import org.fede.calculator.money.series.CachedSeries;
 import org.fede.calculator.money.series.DollarCPISeries;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.Inflation;
+import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.series.JSONIndexSeries;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -68,7 +70,7 @@ public class DollarTest {
             fail(ex.getMessage());
         }
     }
-    
+
     @Test
     public void cachedSeries() {
         try {
@@ -95,22 +97,12 @@ public class DollarTest {
     }
 
     @Test
-    public void usdAbril1977() {
-        try {
-            BigDecimal x = new ARSForexSeries().getIndex(1977, 4);
-            assertEquals(0, new BigDecimal("375").compareTo(x));
-        } catch (Exception ex) {
-            fail(ex.getMessage());
-        }
-    }
-
-    @Test
     public void hundredUSDToday() {
         try {
             MoneyAmount oneHundred = new MoneyAmount(new BigDecimal("100"), "USD");
             MoneyAmount expected = new MoneyAmount(new BigDecimal("13.38774249192"), "USD");
-            MoneyAmount adjusted = /*Inflation.USD_INFLATION*/
-                    new CPIInflation(new CachedSeries(new DollarCPISeries(new MockBlsCPISource())), Currency.getInstance("USD"))
+            MoneyAmount adjusted
+                    = /*Inflation.USD_INFLATION*/ new CPIInflation(new CachedSeries(new DollarCPISeries(new MockBlsCPISource())), Currency.getInstance("USD"))
                     .adjust(oneHundred, 2013, 12, 1964, 12);
             //System.out.println(expected);
             //System.out.println(adjusted);
@@ -127,8 +119,8 @@ public class DollarTest {
         try {
             MoneyAmount oneHundred = new MoneyAmount(new BigDecimal("100"), "USD");
             MoneyAmount expected = new MoneyAmount(new BigDecimal("1362.3216374269"), "USD");
-            MoneyAmount adjusted = /*Inflation.USD_INFLATION*/
-                    new CPIInflation(new CachedSeries(new DollarCPISeries(new MockBlsCPISource())), Currency.getInstance("USD"))
+            MoneyAmount adjusted
+                    = /*Inflation.USD_INFLATION*/ new CPIInflation(new CachedSeries(new DollarCPISeries(new MockBlsCPISource())), Currency.getInstance("USD"))
                     .adjust(oneHundred, 1923, 2013);
             //System.out.println(expected);
             //System.out.println(adjusted);
@@ -159,8 +151,7 @@ public class DollarTest {
             final MoneyAmount oneHundred = new MoneyAmount(new BigDecimal("100"), "ARS");
 
             MoneyAmount adjusted = Inflation.ARS_INFLATION.adjust(oneHundred, 2014, 1, 1970, 1);
-            assertEquals(new MoneyAmount(new BigDecimal("5.06413639570361"), "ARS"), adjusted); 
-
+            assertEquals(new MoneyAmount(new BigDecimal("5.06413639570361"), "ARS"), adjusted);
 
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
@@ -169,7 +160,6 @@ public class DollarTest {
         }
     }
 
-    
     @Test
     public void conversions() {
         assertEquals(0, ONE.compareTo(PESO.convertTo(ONE, PESO)));
@@ -182,6 +172,9 @@ public class DollarTest {
         assertEquals(0, new BigDecimal("0.0000001").compareTo(LEY.convertTo(ONE, AUSTRAL)));
     }
 
-    
-    
+    @Test
+    public void jsonSeries() throws IOException, NoIndexDataFoundException {
+        assertEquals(0, new BigDecimal("2.060").compareTo(new JSONIndexSeries("peso-dolar-libre.json").getIndex(1987, 5)));
+    }
+
 }

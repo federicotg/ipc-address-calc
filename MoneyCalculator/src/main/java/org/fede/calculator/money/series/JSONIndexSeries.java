@@ -1,0 +1,69 @@
+/*
+ * Copyright (C) 2014 fede
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.fede.calculator.money.series;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.json.JSONDataPoint;
+
+/**
+ *
+ * @author fede
+ */
+public class JSONIndexSeries extends IndexSeriesSupport implements IndexSeries {
+
+    private List<JSONDataPoint> data;
+
+    public JSONIndexSeries(String name) {
+        try (InputStream is = JSONIndexSeries.class.getResourceAsStream("/" + name)) {
+            this.data = new ObjectMapper().readValue(is, new TypeReference<List<JSONDataPoint>>() {
+            });
+        } catch (IOException ioEx) {
+            throw new IllegalArgumentException("Could not read series named " + name, ioEx);
+        }
+    }
+
+    @Override
+    public BigDecimal getIndex(int year, int month) throws NoIndexDataFoundException {
+        int index = Collections.binarySearch(data, new JSONDataPoint(year, month));
+        if (index < 0 || index >= this.data.size()) {
+            throw new NoIndexDataFoundException("No data for specified year and month.");
+        }
+        return new BigDecimal(this.data.get(index).getValue());
+    }
+
+    @Override
+    public BigDecimal getIndex(int year) throws NoIndexDataFoundException {
+        return this.getIndex(year, 12);
+    }
+
+    @Override
+    public int getFromYear() {
+        return this.data.get(0).getYear();
+    }
+
+    @Override
+    public int getToYear() {
+        return this.data.get(this.data.size() - 1).getYear();
+    }
+}

@@ -18,11 +18,11 @@ package org.fede.calculator.money;
 
 import org.fede.calculator.money.series.DollarCPISeries;
 import org.fede.calculator.money.series.IndexSeries;
-import org.fede.calculator.money.series.ARSForexSeries;
 import org.fede.calculator.money.series.CachedSeries;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Currency;
+import org.fede.calculator.money.series.JSONIndexSeries;
 
 /**
  *
@@ -30,7 +30,7 @@ import java.util.Currency;
  */
 public class DollarBasedARSInflation implements Inflation {
 
-    private final IndexSeries forex = new ARSForexSeries();
+    private final IndexSeries forex = new JSONIndexSeries("peso-dolar-libre.json");
     private final Inflation inflation = new CPIInflation(new CachedSeries(new DollarCPISeries()), Currency.getInstance("USD"));
 
     @Override
