@@ -12,7 +12,7 @@
     <properties>
         <appengine.app.version>1</appengine.app.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <org.springframework.version>4.1.1.BUILD-SNAPSHOT</org.springframework.version>
+        <org.springframework.version>4.1.1.RELEASE</org.springframework.version>
         <com.google.appengine.version>1.9.12</com.google.appengine.version>
         <hibernate-validator-version>4.3.2.Final</hibernate-validator-version>
         <jackson2-version>2.4.2</jackson2-version>
@@ -116,15 +116,21 @@
         </dependency>
     </dependencies>
 
-<repositories>
-    <repository>
-    <id>com.springsource.repository.maven.snapshot</id>
-    <url>http://maven.springframework.org/snapshot/</url>
-    <snapshots>
-        <enabled>true</enabled>
-    </snapshots>
-</repository>
-</repositories>
+    <repositories>
+        <repository>
+            <id>com.springsource.repository.maven.snapshot</id>
+            <url>http://repo.spring.io/snapshot/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        
+        <repository>
+            <id>com.springsource.repository.maven.release</id>
+            <url>http://repo.spring.io/release/</url>
+        </repository>
+        
+    </repositories>
 
     <build>
         <!-- for hot reload of the web application-->
