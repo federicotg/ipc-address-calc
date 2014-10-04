@@ -27,4 +27,6 @@ public interface ForeignExchange {
     public static final ForeignExchange INSTANCE = new SimpleForeignExchange();
 
     MoneyAmount exchangeAmountIntoCurrency(MoneyAmount amount, Currency currency, int year, int month) throws NoIndexDataFoundException;
+    int getFromYear(Currency from, Currency to);
+    int getToYear(Currency from, Currency to);
 }

@@ -33,6 +33,30 @@ public class SimpleForeignExchange implements ForeignExchange {
 
     private static final BigDecimal ONE = BigDecimal.ONE.setScale(10);
 
+    @Override
+    public int getFromYear(Currency from, Currency to) {
+        IndexSeries s = this.getSeries(from, to);
+        if (s == null) {
+            s = this.getSeries(to, from);
+        }
+        if (s == null) {
+            throw new IllegalArgumentException("Unknown currency.");
+        }
+        return s.getFromYear();
+    }
+
+    @Override
+    public int getToYear(Currency from, Currency to) {
+        IndexSeries s = this.getSeries(from, to);
+        if (s == null) {
+            s = this.getSeries(to, from);
+        }
+        if (s == null) {
+            throw new IllegalArgumentException("Unknown currency.");
+        }
+        return s.getToYear();
+    }
+
     private static class CurrencyPair {
 
         private final Currency from;
@@ -69,17 +93,21 @@ public class SimpleForeignExchange implements ForeignExchange {
     @Override
     public MoneyAmount exchangeAmountIntoCurrency(MoneyAmount amount, Currency currency, int year, int month) throws NoIndexDataFoundException {
 
-        IndexSeries exchangeRate = this.exchangeRates.get(new CurrencyPair(currency, amount.getCurrency()));
+        IndexSeries exchangeRate = this.getSeries(currency, amount.getCurrency());
         if (exchangeRate != null) {
             return amount.exchange(currency, exchangeRate.getIndex(year, month));
         }
 
-        exchangeRate = this.exchangeRates.get(new CurrencyPair(amount.getCurrency(), currency));
+        exchangeRate = this.getSeries(amount.getCurrency(), currency);
         if (exchangeRate != null) {
             return amount.exchange(currency, ONE.divide(exchangeRate.getIndex(year, month), RoundingMode.HALF_UP));
         }
 
         throw new IllegalArgumentException("Unknown currency.");
+    }
+
+    private IndexSeries getSeries(Currency c1, Currency c2) {
+        return this.exchangeRates.get(new CurrencyPair(c1, c2));
     }
 
 }
