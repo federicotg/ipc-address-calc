@@ -21,6 +21,7 @@ body{
     font-size: 100%;
     background-color: ghostwhite;
     color: black;
+    font-family: sans-serif;
 }
 h1{
     font-size: 200%;
@@ -29,7 +30,7 @@ h2{
     font-size: 150%;
 }
 #main{
-    max-width:40em;
+    max-width:34em;
     margin: auto;
 }
 #main section {
@@ -48,4 +49,7 @@ navbar li {
     padding:0.4em;
 
     display:inline-block;
+}
+#sources{
+    color: gray;
 }

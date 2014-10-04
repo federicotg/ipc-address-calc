@@ -74,6 +74,7 @@
                     }
                 });
                 var buttonAction = function (form) {
+                    form.elements["result"+form.elements["fromIso4217"].value].value ="";
                     req.post(
                             JSON.stringify({
                                 'amount': form.elements["amount"].value,
@@ -147,12 +148,13 @@
                 </form:form>
             </section>
         </c:forEach>
-        <section>
+        <section id="sources">
             <h3>Fuentes</h3>
             <ul>
                 <li><a href="http://www.bls.gov/">Bureau of Labor Statistics of the U.S. Department of Labor</a>.</li>
                 <li>Instituto Nacional de Estadísticas y Censos (INDEC): <a href="http://www.indec.mecon.ar/nuevaweb/cuadros/10/ipc-var-dde1943.xls">1943-2006</a>.</li>
                 <li>IPCs provinciales <a href="http://elhombrecitodelsombrerogris.blogspot.com.ar/2010/12/nuevo-indice-de-precios-ipc-cqp.html">2007-2014</a>.</li>
+                <li>Proyecto <a href="https://code.google.com/p/ipc-address-calc/">ipc-address-calc</a>.</li>
             </ul>
         </section>
     </section>
