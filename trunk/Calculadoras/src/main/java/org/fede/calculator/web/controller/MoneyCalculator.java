@@ -85,7 +85,7 @@ public class MoneyCalculator {
             return dto;
         }
 
-        return this.moneyServices.get(money.getFromIso4217()).getMoney(money);
+        return this.moneyServices.get(money.getCurrency().getIso4217()).getMoney(money);
     }
 
 }

@@ -29,8 +29,12 @@ import org.fede.calculator.web.dto.MoneyDTO;
  *
  * @author fede
  */
-
 public class ARGMoneyService implements MoneyService {
+
+    private static final CurrencyDTO CURRENCY_DTO = new CurrencyDTO(
+            ARS_INFLATION.getCurrency().getDisplayName(ES_AR),
+            ARS_INFLATION.getCurrency().getSymbol(ES_AR),
+            ARS_INFLATION.getCurrency().getCurrencyCode());
 
     @Override
     public MoneyDTO getMoney(MoneyDTO dto) throws NoIndexDataFoundException {
@@ -45,12 +49,10 @@ public class ARGMoneyService implements MoneyService {
         answer.setToYear(dto.getToYear());
         answer.setValid(true);
 
-        ArgCurrency fromCurrency = ArgCurrency.whichCurrency(dto.getFromYear(), dto.getFromMonth());
         ArgCurrency toCurrency = ArgCurrency.whichCurrency(dto.getToYear(), dto.getToMonth());
 
-        answer.setFromCurrencySymbol(fromCurrency.getSymbol());
         answer.setToCurrencySymbol(toCurrency.getSymbol());
-        answer.setFromIso4217(Currency.getInstance("ARS").getCurrencyCode());
+        answer.setCurrency(CURRENCY_DTO);
         return answer;
 
     }
@@ -58,10 +60,7 @@ public class ARGMoneyService implements MoneyService {
     @Override
     public CurrencyLimitsDTO getLimits() {
         return new CurrencyLimitsDTO(
-                new CurrencyDTO(
-                        ARS_INFLATION.getCurrency().getDisplayName(ES_AR),
-                        ARS_INFLATION.getCurrency().getSymbol(ES_AR),
-                        ARS_INFLATION.getCurrency().getCurrencyCode()),
+                CURRENCY_DTO,
                 ARS_INFLATION.getFromYear(), ARS_INFLATION.getToYear());
 
     }
