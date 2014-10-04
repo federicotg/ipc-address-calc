@@ -177,6 +177,12 @@
             </form>   
             <div id="result" class="group">
             </div>
+            <section id="sources">
+                <h3>Fuentes</h3>
+                <ul>
+                    <li>Proyecto <a href="https://code.google.com/p/ipc-address-calc/">ipc-address-calc</a>.</li>
+                </ul>
+            </section>
         </section>
     </body>
 </html>
