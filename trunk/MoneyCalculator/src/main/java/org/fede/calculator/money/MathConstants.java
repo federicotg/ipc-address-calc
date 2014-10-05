@@ -16,23 +16,16 @@
  */
 package org.fede.calculator.money;
 
-import java.util.Currency;
-import org.fede.calculator.money.series.DollarCPISeries;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 /**
  *
  * @author fede
  */
-public interface Inflation {
-    
-    public static final Inflation USD_INFLATION = new CPIInflation(new DollarCPISeries(), Currency.getInstance("USD"));
-    public static final Inflation ARS_INFLATION = new ArgentinaInflation();
+public interface MathConstants {
 
-    MoneyAmount adjust(MoneyAmount amount, int fromYear, int toYear) throws NoIndexDataFoundException;
-    MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoIndexDataFoundException;
-    
-    int getFromYear();
-    int getToYear();
-    Currency getCurrency();
-    
+    static final MathContext CONTEXT = MathContext.DECIMAL128;
+    static final int SCALE = 20;
+    static final RoundingMode ROUNDING_MODE = CONTEXT.getRoundingMode();
 }
