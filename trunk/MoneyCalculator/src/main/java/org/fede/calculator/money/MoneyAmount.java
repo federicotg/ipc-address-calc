@@ -41,7 +41,7 @@ public class MoneyAmount {
 
     public MoneyAmount adjust(BigDecimal divisor, BigDecimal factor) {
         return new MoneyAmount(
-                this.amount.setScale(20).divide(divisor, RoundingMode.HALF_UP)
+                this.amount.setScale(5, RoundingMode.HALF_UP).divide(divisor, RoundingMode.HALF_UP)
                 .multiply(factor), this.currency);
     }
 

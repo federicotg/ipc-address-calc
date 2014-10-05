@@ -23,7 +23,9 @@ import java.util.Calendar;
 import org.fede.calculator.money.NoIndexDataFoundException;
 import org.fede.calculator.money.bls.BlsCPISource;
 import static org.fede.calculator.money.bls.BlsCPISource.CPI_SERIES_ID;
+import org.fede.calculator.money.bls.CachingBlsSource;
 import org.fede.calculator.money.bls.URLConnectionBlsCPISource;
+
 /**
  *
  * @author fede
@@ -33,7 +35,7 @@ public final class DollarCPISeries extends IndexSeriesSupport {
     private final BlsCPISource source;
 
     public DollarCPISeries() {
-        this(new URLConnectionBlsCPISource());
+        this(new CachingBlsSource(new URLConnectionBlsCPISource()));
     }
 
     public DollarCPISeries(BlsCPISource source) {

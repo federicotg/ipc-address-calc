@@ -36,7 +36,7 @@ public class DollarBasedARSInflation implements Inflation {
     @Override
     public MoneyAmount adjust(MoneyAmount amount, int fromYear, int toYear) throws NoIndexDataFoundException {
         amount.assertCurrency(Currency.getInstance("ARS"));
-        final BigDecimal arsToUsdFactor = BigDecimal.ONE.setScale(20).divide(forex.getIndex(fromYear), RoundingMode.HALF_UP);
+        final BigDecimal arsToUsdFactor = BigDecimal.ONE.setScale(5).divide(forex.getIndex(fromYear), RoundingMode.HALF_UP);
         final BigDecimal usdToArsFactor = forex.getIndex(toYear);
 
         MoneyAmount dollars = amount.exchange(Currency.getInstance("USD"), arsToUsdFactor);
@@ -48,7 +48,7 @@ public class DollarBasedARSInflation implements Inflation {
     public MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoIndexDataFoundException {
         amount.assertCurrency(Currency.getInstance("ARS"));
 
-        final BigDecimal arsToUsdFactor = BigDecimal.ONE.setScale(10).divide(forex.getIndex(fromYear, fromMonth), RoundingMode.HALF_UP);
+        final BigDecimal arsToUsdFactor = BigDecimal.ONE.setScale(5).divide(forex.getIndex(fromYear, fromMonth), RoundingMode.HALF_UP);
         final BigDecimal usdToArsFactor = forex.getIndex(toYear, toMonth);
 
         MoneyAmount dollars = amount.exchange(Currency.getInstance("USD"), arsToUsdFactor);
