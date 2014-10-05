@@ -19,6 +19,7 @@ package org.fede.calculator.money.series;
 import org.fede.calculator.money.bls.BlsResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Calendar;
 import org.fede.calculator.money.NoIndexDataFoundException;
 import org.fede.calculator.money.bls.BlsCPISource;
 import static org.fede.calculator.money.bls.BlsCPISource.CPI_SERIES_ID;
@@ -68,7 +69,9 @@ public final class DollarCPISeries extends IndexSeriesSupport {
 
     @Override
     public int getToYear() {
-        return 2014;
+        Calendar lastMonth = Calendar.getInstance();
+        lastMonth.add(Calendar.MONTH, -1);
+        return lastMonth.get(Calendar.YEAR);
     }
 
 }
