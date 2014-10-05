@@ -31,7 +31,7 @@ import org.fede.calculator.money.series.JSONIndexSeries;
  */
 public class SimpleForeignExchange implements ForeignExchange {
 
-    private static final BigDecimal ONE = BigDecimal.ONE.setScale(10);
+    private static final BigDecimal ONE = BigDecimal.ONE.setScale(5);
 
     @Override
     public int getFromYear(Currency from, Currency to) {
