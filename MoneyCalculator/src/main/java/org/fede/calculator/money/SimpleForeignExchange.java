@@ -29,9 +29,9 @@ import org.fede.calculator.money.series.JSONIndexSeries;
  *
  * @author fede
  */
-public class SimpleForeignExchange implements ForeignExchange {
+public class SimpleForeignExchange implements ForeignExchange, MathConstants {
 
-    private static final BigDecimal ONE = BigDecimal.ONE.setScale(5);
+    private static final BigDecimal ONE = BigDecimal.ONE.setScale(SCALE, ROUNDING_MODE);
 
     @Override
     public int getFromYear(Currency from, Currency to) {
@@ -100,7 +100,7 @@ public class SimpleForeignExchange implements ForeignExchange {
 
         exchangeRate = this.getSeries(amount.getCurrency(), currency);
         if (exchangeRate != null) {
-            return amount.exchange(currency, ONE.divide(exchangeRate.getIndex(year, month), RoundingMode.HALF_UP));
+            return amount.exchange(currency, ONE.divide(exchangeRate.getIndex(year, month), ROUNDING_MODE));
         }
 
         throw new IllegalArgumentException("Unknown currency.");

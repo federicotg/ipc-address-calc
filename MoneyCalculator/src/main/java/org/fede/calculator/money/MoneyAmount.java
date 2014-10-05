@@ -17,6 +17,8 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import static java.math.MathContext.DECIMAL128;
 import java.math.RoundingMode;
 import java.util.Currency;
 import java.util.Objects;
@@ -25,7 +27,7 @@ import java.util.Objects;
  *
  * @author fede
  */
-public class MoneyAmount {
+public class MoneyAmount implements  MathConstants {
 
     private Currency currency;
     private BigDecimal amount;
@@ -41,7 +43,7 @@ public class MoneyAmount {
 
     public MoneyAmount adjust(BigDecimal divisor, BigDecimal factor) {
         return new MoneyAmount(
-                this.amount.setScale(5, RoundingMode.HALF_UP).divide(divisor, RoundingMode.HALF_UP)
+                this.amount.setScale(SCALE, ROUNDING_MODE).divide(divisor, CONTEXT)
                 .multiply(factor), this.currency);
     }
 
@@ -84,10 +86,6 @@ public class MoneyAmount {
         return new MoneyAmount(this.amount.movePointRight(n), this.currency);
     }
     
-    public MoneyAmount movePointLeft(int n){
-        return new MoneyAmount(this.amount.movePointLeft(n), this.currency);
-    }
-
     public BigDecimal getAmount() {
         return amount;
     }

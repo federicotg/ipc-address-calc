@@ -17,10 +17,10 @@
 import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Currency;
 import java.util.Locale;
-import org.fede.calculator.money.ArgCurrency;
 import static org.fede.calculator.money.ArgCurrency.*;
 import org.fede.calculator.money.CPIInflation;
 import org.fede.calculator.money.ForeignExchange;
@@ -186,8 +186,7 @@ public class DollarTest {
     public void fx() throws NoIndexDataFoundException {
         MoneyAmount pesos10 = new MoneyAmount(new BigDecimal("10"), Currency.getInstance("ARS"));
         MoneyAmount xDollars = ForeignExchange.INSTANCE.exchangeAmountIntoCurrency(pesos10, Currency.getInstance("USD"), 1981, 6);
-
-        assertEquals(0, new BigDecimal("0.00141844").compareTo(xDollars.getAmount()));
+        assertEquals(new MoneyAmount(new BigDecimal("0.00141844"), "USD"), xDollars);
 
         //this.print("CqP", new CqPSeries());
         //this.print("Indec", new IndecCPISeries());
