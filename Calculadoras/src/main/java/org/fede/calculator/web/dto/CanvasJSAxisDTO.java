@@ -22,6 +22,8 @@ package org.fede.calculator.web.dto;
  */
 public class CanvasJSAxisDTO {
     private String title;
+    private String valueFormatString;
+    private boolean includeZero = true;
 
     public String getTitle() {
         return title;
@@ -29,6 +31,22 @@ public class CanvasJSAxisDTO {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getValueFormatString() {
+        return valueFormatString;
+    }
+
+    public void setValueFormatString(String valueFormatString) {
+        this.valueFormatString = valueFormatString;
+    }
+
+    public boolean isIncludeZero() {
+        return includeZero;
+    }
+
+    public void setIncludeZero(boolean includeZero) {
+        this.includeZero = includeZero;
     }
     
 }
