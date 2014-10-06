@@ -17,7 +17,6 @@
 import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
-import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Currency;
 import java.util.Locale;
@@ -214,20 +213,33 @@ public class DollarTest {
 
     //@Test
     public void historicDollar() throws NoIndexDataFoundException {
-        NumberFormat nf = NumberFormat.getCurrencyInstance();
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
+        nf.setGroupingUsed(false);
         final int todayYear = 2014;
         final int todayMonth = 8;
         final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
         final Currency ars = Currency.getInstance("ARS");
-
+        System.out.println("[");
         for (int year = ARS_INFLATION.getFromYear(); year <= ARS_INFLATION.getToYear(); year++) {
             for (int month = 1; month <= 12; month++) {
                 MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
                 MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchangeAmountIntoCurrency(oneDollarBackThen, ars, year, month);
                 MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
-                System.out.println(String.valueOf(year) + (month<10?"0":"")+String.valueOf(month) +"28"+ "\t" + nf.format(ma.getAmount()));
+                //System.out.println(String.valueOf(year) + (month<10?"0":"")+String.valueOf(month) +"28"+ "\t" + nf.format(ma.getAmount()));
+                System.out.print(
+                "{x: new Date("
+                        +year
+                        +", "
+                        +((month-1)<10?"0":"")+String.valueOf(month-1)
+                        +", 1), y: "
+                        +nf.format(ma.getAmount())
+                        +"}");
+                if (year < ARS_INFLATION.getToYear() || month < 12) {
+                        System.out.println(",");
+                    }
             }
         }
+        System.out.println("]");
 
     }
 
