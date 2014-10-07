@@ -14,16 +14,25 @@
             http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
             http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
-    <bean id="argMoneyService" class="org.fede.calculator.service.ARGMoneyService"/>
-    <bean id="usdMoneyService" class="org.fede.calculator.service.USDMoneyService"/>
-    <bean id="addressService" class="org.fede.calculator.service.LaPlataAddressServiceImpl"/>
-    <bean id="chartService" class="org.fede.calculator.service.CanvasJSChartService"/>
-    
-    <util:map id="moneyServices" key-type="java.lang.String" value-type="org.fede.calculator.service.MoneyService">
-        <entry key="USD" value-ref="usdMoneyService" />
-        <entry key="ARS" value-ref="argMoneyService" />
-    </util:map>
     
     <context:annotation-config/>
+    
+    <!-- Spring security -->
+    
+    <security:http auto-config="true" use-expressions="true">
+        <security:intercept-url pattern="/secure/**" access="isFullyAuthenticated() and (hasIpAddress('190.247.164.0/255') or hasIpAddress('127.0.0.1'))" />
+        <security:form-login login-page="/login" authentication-failure-url="/login?login_error=1"/>
+        <security:logout logout-url="/logout" logout-success-url="/" />
+    </security:http>
 
+    <security:authentication-manager>
+        <security:authentication-provider>
+            <security:password-encoder hash="sha" />
+            <security:user-service properties="/WEB-INF/users.properties" />
+        </security:authentication-provider>
+    </security:authentication-manager>
+    
+    <import resource="bean-definitions.xml"/>
+
+    
 </beans>
