@@ -13,6 +13,7 @@
         <appengine.app.version>1</appengine.app.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.springframework.version>4.1.1.RELEASE</org.springframework.version>
+        <spring-security.version>3.2.5.RELEASE</spring-security.version>
         <com.google.appengine.version>1.9.12</com.google.appengine.version>
         <hibernate-validator-version>4.3.2.Final</hibernate-validator-version>
         <jackson2-version>2.4.2</jackson2-version>
@@ -21,6 +22,19 @@
     <prerequisites>
         <maven>3.1.0</maven>
     </prerequisites>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-framework-bom</artifactId>
+                <version>${org.springframework.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 
     <dependencies>
         <!-- Compile/runtime dependencies -->
@@ -44,14 +58,34 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>${org.springframework.version}</version>
+
         </dependency>
         
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>${org.springframework.version}</version>
+
         </dependency>
+        
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${spring-security.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>${spring-security.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-taglibs</artifactId>
+            <version>${spring-security.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
 
         <dependency>
             <groupId>${project.groupId}</groupId>
