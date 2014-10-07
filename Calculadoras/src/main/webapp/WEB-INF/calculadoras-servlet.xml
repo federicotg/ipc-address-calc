@@ -11,10 +11,6 @@
        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-    <bean id="addressController" class="org.fede.calculator.web.controller.LaPlataAddressCalculator"/>
-    <bean id="moneyController" class="org.fede.calculator.web.controller.MoneyCalculator"/>
-    <bean id="chartController" class="org.fede.calculator.web.controller.ChartController"/>
-      
     <context:annotation-config />  
 
     <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver"
@@ -53,6 +49,6 @@
     <mvc:resources mapping="/images/**" location="/images/" />
     <mvc:resources mapping="/scripts/**" location="/scripts/" />
     <mvc:resources mapping="/styles/**" location="/styles/" />
-    
-    
+   
+    <import resource="bean-definitions.xml"/>
 </beans>
