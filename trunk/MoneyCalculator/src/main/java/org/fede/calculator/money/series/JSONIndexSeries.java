@@ -16,14 +16,10 @@
  */
 package org.fede.calculator.money.series;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.json.JSONDataPoint;
 
 /**
@@ -32,28 +28,23 @@ import org.fede.calculator.money.json.JSONDataPoint;
  */
 public class JSONIndexSeries extends IndexSeriesSupport implements IndexSeries {
 
-    private List<JSONDataPoint> data;
+    private final List<JSONDataPoint> data;
 
-    public JSONIndexSeries(String name) {
-        try (InputStream is = JSONIndexSeries.class.getResourceAsStream("/" + name)) {
-            this.data = new ObjectMapper().readValue(is, new TypeReference<List<JSONDataPoint>>() {
-            });
-        } catch (IOException ioEx) {
-            throw new IllegalArgumentException("Could not read series named " + name, ioEx);
-        }
+    public JSONIndexSeries(List<JSONDataPoint> data) {
+        this.data = data;
     }
 
     @Override
-    public BigDecimal getIndex(int year, int month) throws NoIndexDataFoundException {
+    public BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException {
         int index = Collections.binarySearch(data, new JSONDataPoint(year, month));
         if (index < 0 || index >= this.data.size()) {
-            throw new NoIndexDataFoundException("No data for specified year and month.");
+            throw new NoSeriesDataFoundException("No data for specified year and month.");
         }
-        return new BigDecimal(this.data.get(index).getValue());
+        return this.data.get(index).getValue();
     }
 
     @Override
-    public BigDecimal getIndex(int year) throws NoIndexDataFoundException {
+    public BigDecimal getIndex(int year) throws NoSeriesDataFoundException {
         return this.getIndex(year, 12);
     }
 
@@ -66,4 +57,21 @@ public class JSONIndexSeries extends IndexSeriesSupport implements IndexSeries {
     public int getToYear() {
         return this.data.get(this.data.size() - 1).getYear();
     }
+
+    @Override
+    public int getFromMonth() {
+        return this.data.get(0).getMonth();
+    }
+
+    @Override
+    public int getToMonth() {
+        return this.data.get(this.data.size() - 1).getMonth();
+    }
+
+   /*@Override
+    public IndexSeries adjust(Inflation inflation) {
+        return null;
+    }*/
+
+
 }

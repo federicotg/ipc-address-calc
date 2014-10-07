@@ -17,11 +17,11 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import org.fede.calculator.money.json.JSONDataPoint;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.JSONIndexSeries;
 
@@ -87,11 +87,13 @@ public class SimpleForeignExchange implements ForeignExchange, MathConstants {
     private final Map<CurrencyPair, IndexSeries> exchangeRates = new HashMap<>();
 
     public SimpleForeignExchange() {
-        this.exchangeRates.put(new CurrencyPair(Currency.getInstance("ARS"), Currency.getInstance("USD")), new JSONIndexSeries("peso-dolar-libre.json"));
+        this.exchangeRates.put(
+                new CurrencyPair(Currency.getInstance("ARS"), Currency.getInstance("USD")), 
+                new JSONIndexSeries(JSONDataPoint.readSeries("peso-dolar-libre.json")));
     }
 
     @Override
-    public MoneyAmount exchangeAmountIntoCurrency(MoneyAmount amount, Currency currency, int year, int month) throws NoIndexDataFoundException {
+    public MoneyAmount exchangeAmountIntoCurrency(MoneyAmount amount, Currency currency, int year, int month) throws NoSeriesDataFoundException {
 
         IndexSeries exchangeRate = this.getSeries(currency, amount.getCurrency());
         if (exchangeRate != null) {

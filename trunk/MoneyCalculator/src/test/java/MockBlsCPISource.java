@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.bls.BlsCPISource;
 import org.fede.calculator.money.bls.BlsResponse;
 
@@ -29,7 +29,7 @@ import org.fede.calculator.money.bls.BlsResponse;
 public class MockBlsCPISource implements BlsCPISource {
 
     @Override
-    public BlsResponse getResponse(int year) throws NoIndexDataFoundException, IOException {
+    public BlsResponse getResponse(int year) throws NoSeriesDataFoundException, IOException {
         Map<Integer, String> strings = new HashMap<>();
 
         strings.put(2013, "{\"status\":\"REQUEST_SUCCEEDED\",\"responseTime\":722,\"message\":[],\"Results\":{\"series\":[{\"seriesID\":\"CUUR0000SA0\",\"data\":[{\"year\":\"2013\",\"period\":\"M13\",\"periodName\":\"Annual\",\"value\":\"232.957\",\"footnotes\":[{}]},{\"year\":\"2013\",\"period\":\"M12\",\"periodName\":\"December\",\"value\":\"233.049\",\"footnotes\":[{}]},{\"year\":\"2013\",\"period\":\"M11\",\"periodName\":\"November\",\"value\":\"233.069\",\"footnotes\":[{}]},{\"year\":\"2013\",\"period\":\"M10\",\"periodName\":\"October\",\"value\":\"233.546\",\"footnotes\":[{}]},{\"year\":\"2013\",\"period\":\"M09\",\"periodName\":\"September\",\"value\":\"234.149\",\"footnotes\":[{}]},{\"year\":\"2013\",\"period\":\"M08\",\"periodName\":\"August\",\"value\":\"233.877\",\"footnotes\":[{}]},{\"year\":\"2013\",\"period\":\"M07\",\"periodName\":\"July\",\"value\":\"233.596\",\"footnotes\":[{}]},{\"year\":\"2013\",\"period\":\"M06\",\"periodName\":\"June\",\"value\":\"233.504\",\"footnotes\":[{}]},{\"year\":\"2013\",\"period\":\"M05\",\"periodName\":\"May\",\"value\":\"232.945\",\"footnotes\":[{}]},{\"year\":\"2013\",\"period\":\"M04\",\"periodName\":\"April\",\"value\":\"232.531\",\"footnotes\":[{}]},{\"year\":\"2013\",\"period\":\"M03\",\"periodName\":\"March\",\"value\":\"232.773\",\"footnotes\":[{}]},{\"year\":\"2013\",\"period\":\"M02\",\"periodName\":\"February\",\"value\":\"232.166\",\"footnotes\":[{}]},{\"year\":\"2013\",\"period\":\"M01\",\"periodName\":\"January\",\"value\":\"230.280\",\"footnotes\":[{}]}]}]}}");

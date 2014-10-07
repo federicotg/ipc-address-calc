@@ -18,16 +18,15 @@ package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
  * @author fede
  */
-public interface IndexSeries {
-    BigDecimal getIndex(Date day) throws NoIndexDataFoundException;
-    BigDecimal getIndex(int year, int month) throws NoIndexDataFoundException;
-    BigDecimal getIndex(int year) throws NoIndexDataFoundException;
-    int getFromYear();
-    int getToYear();
+public interface IndexSeries extends Series {
+    BigDecimal getIndex(Date day) throws NoSeriesDataFoundException;
+    BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException;
+    BigDecimal getIndex(int year) throws NoSeriesDataFoundException;
+
 }

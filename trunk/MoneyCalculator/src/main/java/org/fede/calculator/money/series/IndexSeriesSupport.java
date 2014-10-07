@@ -19,21 +19,42 @@ package org.fede.calculator.money.series;
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
  * @author fede
  */
-public abstract class IndexSeriesSupport implements IndexSeries {
+public abstract class IndexSeriesSupport implements IndexSeries{
 
     @Override
-    public final BigDecimal getIndex(Date day) throws NoIndexDataFoundException {
+    public final BigDecimal getIndex(Date day) throws NoSeriesDataFoundException {
         Calendar cal = Calendar.getInstance();
         cal.setTime(day);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH);
         return this.getIndex(year, month);
     }
+
+   /* @Override
+    public IndexSeries adjust(Inflation inflation, int inflateToYear, int inflateToMonth) throws NoIndexDataFoundException {
+        int fromYear = Math.max(this.getFromYear(), inflation.getFromYear());
+        int fromMonth = Math.max(this.getFromMonth(), inflation.getFromMonth());
+
+        int toYear = Math.min(this.getToYear(), inflation.getToYear());
+        int toMonth = Math.min(this.getToMonth(), inflation.getToMonth());
+        List<JSONDataPoint> dataPoints = new ArrayList<>((toYear - fromYear) * 12);
+        for (int y = fromYear; y < toYear; y++) {
+            for (int m = 1; m <= 12; m++) {
+                JSONDataPoint dp = new JSONDataPoint(y,m);
+                MoneyAmount moneyAmount = new MoneyAmount(this.getIndex(y, m),inflation.getCurrency());
+                dp.setValue(inflation.adjust(moneyAmount, y, m, inflateToYear, inflateToMonth).getAmount());
+            }
+        }
+        for (int m = 1; m <= toMonth; m++) {
+            //last year
+        }
+        return new JSONIndexSeries(dataPoints);
+    }*/
 
 }

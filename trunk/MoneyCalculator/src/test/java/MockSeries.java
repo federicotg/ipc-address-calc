@@ -17,7 +17,7 @@
 import java.math.BigDecimal;
 import java.util.Date;
 import org.fede.calculator.money.series.IndexSeries;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
@@ -27,19 +27,19 @@ public class MockSeries implements IndexSeries{
 
     private int calls = 0;
     @Override
-    public BigDecimal getIndex(Date day) throws NoIndexDataFoundException {
+    public BigDecimal getIndex(Date day) throws NoSeriesDataFoundException {
         this.calls++;
         return BigDecimal.ONE;
     }
 
     @Override
-    public BigDecimal getIndex(int year, int month) throws NoIndexDataFoundException {
+    public BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException {
         this.calls++;
         return BigDecimal.ONE;
     }
 
     @Override
-    public BigDecimal getIndex(int year) throws NoIndexDataFoundException {
+    public BigDecimal getIndex(int year) throws NoSeriesDataFoundException {
         this.calls++;
         return BigDecimal.ONE;
     }
@@ -55,5 +55,15 @@ public class MockSeries implements IndexSeries{
     @Override
     public int getToYear() {
         return 4000;
+    }
+
+    @Override
+    public int getFromMonth() {
+        return 1;
+    }
+
+    @Override
+    public int getToMonth() {
+        return 12;
     }
 }

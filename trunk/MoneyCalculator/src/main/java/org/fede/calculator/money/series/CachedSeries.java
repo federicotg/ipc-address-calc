@@ -19,7 +19,7 @@ package org.fede.calculator.money.series;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
@@ -27,6 +27,7 @@ import org.fede.calculator.money.NoIndexDataFoundException;
  */
 public final class CachedSeries extends IndexSeriesSupport {
 
+    
 
     private class IndexKey {
 
@@ -64,7 +65,7 @@ public final class CachedSeries extends IndexSeriesSupport {
     }
 
     @Override
-    public final BigDecimal getIndex(int year, int month) throws NoIndexDataFoundException {
+    public final BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException {
         IndexKey key = new IndexKey(year, month);
         BigDecimal answer = this.cache.get(key);
         if (answer == null) {
@@ -75,7 +76,7 @@ public final class CachedSeries extends IndexSeriesSupport {
     }
 
     @Override
-    public BigDecimal getIndex(int year) throws NoIndexDataFoundException {
+    public BigDecimal getIndex(int year) throws NoSeriesDataFoundException {
         IndexKey key = new IndexKey(year, 13);
         BigDecimal answer = this.cache.get(key);
         if (answer == null) {
@@ -93,6 +94,15 @@ public final class CachedSeries extends IndexSeriesSupport {
     @Override
     public int getToYear() {
         return this.source.getToYear();
+    }
+@Override
+    public int getFromMonth() {
+        return this.source.getFromMonth();
+    }
+
+    @Override
+    public int getToMonth() {
+        return this.source.getToMonth();
     }
 
     
