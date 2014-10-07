@@ -24,7 +24,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
@@ -35,7 +35,7 @@ public class URLConnectionBlsCPISource implements BlsCPISource {
     private static final String BLS_REST_API = "http://api.bls.gov/publicAPI/v1/timeseries/data/";
 
     @Override
-    public BlsResponse getResponse(int year) throws NoIndexDataFoundException, IOException {
+    public BlsResponse getResponse(int year) throws NoSeriesDataFoundException, IOException {
         
         final BlsRequest blsRequest = new BlsRequest(CPI_SERIES_ID, year);
         String body = new ObjectMapper().writeValueAsString(blsRequest);

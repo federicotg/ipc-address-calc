@@ -35,7 +35,7 @@ public final class CPIInflation implements Inflation {
     }
 
     @Override
-    public final MoneyAmount adjust(MoneyAmount amount, int fromYear, int toYear) throws NoIndexDataFoundException {
+    public final MoneyAmount adjust(MoneyAmount amount, int fromYear, int toYear) throws NoSeriesDataFoundException {
         amount.assertCurrency(this.currency);
         BigDecimal divisor = this.series.getIndex(fromYear);
         BigDecimal factor = this.series.getIndex(toYear);
@@ -43,7 +43,7 @@ public final class CPIInflation implements Inflation {
     }
 
     @Override
-    public final MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoIndexDataFoundException {
+    public final MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoSeriesDataFoundException {
         amount.assertCurrency(this.currency);
         BigDecimal divisor = this.series.getIndex(fromYear, fromMonth);
         BigDecimal factor = this.series.getIndex(toYear, toMonth);
@@ -63,6 +63,16 @@ public final class CPIInflation implements Inflation {
     @Override
     public Currency getCurrency() {
         return this.currency;
+    }
+
+    @Override
+    public int getFromMonth() {
+        return this.series.getFromMonth();
+    }
+
+    @Override
+    public int getToMonth() {
+        return this.series.getToMonth();
     }
 
 }

@@ -19,7 +19,7 @@ package org.fede.calculator.money.bls;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
@@ -37,7 +37,7 @@ public class CachingBlsSource implements BlsCPISource {
     }
 
     @Override
-    public BlsResponse getResponse(int year) throws NoIndexDataFoundException, IOException {
+    public BlsResponse getResponse(int year) throws NoSeriesDataFoundException, IOException {
         BlsResponse response = this.cache.get(year);
         if (response == null) {
             response = this.source.getResponse(year);

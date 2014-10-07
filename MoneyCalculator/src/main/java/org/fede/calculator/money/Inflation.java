@@ -28,11 +28,13 @@ public interface Inflation {
     public static final Inflation USD_INFLATION = new CPIInflation(new DollarCPISeries(), Currency.getInstance("USD"));
     public static final Inflation ARS_INFLATION = new ArgentinaInflation();
 
-    MoneyAmount adjust(MoneyAmount amount, int fromYear, int toYear) throws NoIndexDataFoundException;
-    MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoIndexDataFoundException;
+    MoneyAmount adjust(MoneyAmount amount, int fromYear, int toYear) throws NoSeriesDataFoundException;
+    MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoSeriesDataFoundException;
     
     int getFromYear();
     int getToYear();
+    int getFromMonth();
+    int getToMonth();
     Currency getCurrency();
     
 }

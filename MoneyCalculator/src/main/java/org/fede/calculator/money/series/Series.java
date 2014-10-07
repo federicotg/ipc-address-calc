@@ -14,19 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.money.bls;
-
-import java.io.IOException;
-import org.fede.calculator.money.NoSeriesDataFoundException;
+package org.fede.calculator.money.series;
 
 /**
  *
  * @author fede
  */
-public interface BlsCPISource {
-    
-    public static final String CPI_SERIES_ID = "CUUR0000SA0";
-    
-    BlsResponse getResponse(int year) throws NoSeriesDataFoundException, IOException ;
-    
+public interface Series {
+
+    int getFromYear();
+
+    int getToYear();
+
+    int getFromMonth();
+
+    int getToMonth();
 }

@@ -28,12 +28,12 @@ public class ArgentinaInflation implements Inflation {
     private final Inflation basicInflation = new CPIInflation(new ArgentinaCompoundCPISeries(), Currency.getInstance("ARS"));
 
     @Override
-    public MoneyAmount adjust(MoneyAmount amount, int fromYear, int toYear) throws NoIndexDataFoundException {
+    public MoneyAmount adjust(MoneyAmount amount, int fromYear, int toYear) throws NoSeriesDataFoundException {
         return adjust(amount, fromYear, 12, toYear, 12);
     }
 
     @Override
-    public MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoIndexDataFoundException {
+    public MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoSeriesDataFoundException {
         amount.assertCurrency(Currency.getInstance("ARS"));
 
         MoneyAmount uncorrectedValue = this.basicInflation.adjust(amount, fromYear, fromMonth, toYear, toMonth);
@@ -55,6 +55,16 @@ public class ArgentinaInflation implements Inflation {
     @Override
     public Currency getCurrency() {
         return Currency.getInstance("ARS");
+    }
+
+    @Override
+    public int getFromMonth() {
+        return this.basicInflation.getFromMonth();
+    }
+
+    @Override
+    public int getToMonth() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

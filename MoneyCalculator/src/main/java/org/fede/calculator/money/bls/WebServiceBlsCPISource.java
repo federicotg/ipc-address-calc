@@ -26,7 +26,7 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
@@ -45,7 +45,7 @@ public class WebServiceBlsCPISource implements BlsCPISource {
     };
 
     @Override
-    public BlsResponse getResponse(int year) throws NoIndexDataFoundException, IOException {
+    public BlsResponse getResponse(int year) throws NoSeriesDataFoundException, IOException {
         HttpClient client = HttpClients.createDefault();
         HttpPost post = new HttpPost(BLS_REST_API);
         final BlsRequest blsRequest = new BlsRequest(CPI_SERIES_ID, year);
@@ -59,7 +59,7 @@ public class WebServiceBlsCPISource implements BlsCPISource {
             if (!messages.isEmpty()) {
                 message = messages.get(0);
             }
-            throw new NoIndexDataFoundException(message);
+            throw new NoSeriesDataFoundException(message);
         }
         return blsResponse;
     }

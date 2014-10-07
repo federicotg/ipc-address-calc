@@ -20,7 +20,7 @@ import org.fede.calculator.money.bls.BlsResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Calendar;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.bls.BlsCPISource;
 import static org.fede.calculator.money.bls.BlsCPISource.CPI_SERIES_ID;
 import org.fede.calculator.money.bls.CachingBlsSource;
@@ -43,24 +43,24 @@ public final class DollarCPISeries extends IndexSeriesSupport {
     }
 
     @Override
-    public BigDecimal getIndex(int year, int month) throws NoIndexDataFoundException {
+    public BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException {
         try {
             BlsResponse blsResponse = this.source.getResponse(year);
             return blsResponse.getDataPoint(CPI_SERIES_ID, year, month).getValue();
 
         } catch (IOException ex) {
-            throw new NoIndexDataFoundException(ex);
+            throw new NoSeriesDataFoundException(ex);
         }
     }
 
     @Override
-    public BigDecimal getIndex(int year) throws NoIndexDataFoundException {
+    public BigDecimal getIndex(int year) throws NoSeriesDataFoundException {
         try {
             BlsResponse blsResponse = this.source.getResponse(year);
             return blsResponse.getDataPoint(CPI_SERIES_ID, year).getValue();
 
         } catch (IOException ex) {
-            throw new NoIndexDataFoundException(ex);
+            throw new NoSeriesDataFoundException(ex);
         }
     }
 
@@ -74,6 +74,18 @@ public final class DollarCPISeries extends IndexSeriesSupport {
         Calendar lastMonth = Calendar.getInstance();
         lastMonth.add(Calendar.MONTH, -1);
         return lastMonth.get(Calendar.YEAR);
+    }
+
+    @Override
+    public int getFromMonth() {
+        return 1;
+    }
+
+    @Override
+    public int getToMonth() {
+        Calendar lastMonth = Calendar.getInstance();
+        lastMonth.add(Calendar.MONTH, -1);
+        return lastMonth.get(Calendar.MONTH);
     }
 
 }

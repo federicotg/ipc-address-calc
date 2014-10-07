@@ -29,7 +29,8 @@ import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.money.json.JSONDataPoint;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -177,12 +178,12 @@ public class DollarTest {
     }
 
     @Test
-    public void jsonSeries() throws IOException, NoIndexDataFoundException {
-        assertEquals(0, new BigDecimal("2.060").compareTo(new JSONIndexSeries("peso-dolar-libre.json").getIndex(1987, 5)));
+    public void jsonSeries() throws IOException, NoSeriesDataFoundException {
+        assertEquals(0, new BigDecimal("2.060").compareTo(new JSONIndexSeries(JSONDataPoint.readSeries("peso-dolar-libre.json")).getIndex(1987, 5)));
     }
 
     @Test
-    public void fx() throws NoIndexDataFoundException {
+    public void fx() throws NoSeriesDataFoundException {
         MoneyAmount pesos10 = new MoneyAmount(new BigDecimal("10"), Currency.getInstance("ARS"));
         MoneyAmount xDollars = ForeignExchange.INSTANCE.exchangeAmountIntoCurrency(pesos10, Currency.getInstance("USD"), 1981, 6);
         assertEquals(new MoneyAmount(new BigDecimal("0.00141844"), "USD"), xDollars);
@@ -203,7 +204,7 @@ public class DollarTest {
                     if (year <= s.getToYear() || month < 12) {
                         System.out.println(",");
                     }
-                } catch (NoIndexDataFoundException ex) {
+                } catch (NoSeriesDataFoundException ex) {
 
                 }
             }
@@ -212,7 +213,7 @@ public class DollarTest {
     }
 
     //@Test
-    public void historicDollar() throws NoIndexDataFoundException {
+    public void historicDollar() throws NoSeriesDataFoundException {
         NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
         nf.setGroupingUsed(false);
         final int todayYear = 2014;
