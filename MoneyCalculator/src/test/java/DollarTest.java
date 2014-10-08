@@ -31,7 +31,10 @@ import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.json.JSONDataPoint;
+import org.fede.calculator.money.json.JSONSeries;
 import org.fede.calculator.money.series.JSONIndexSeries;
+import org.fede.calculator.money.series.JSONMoneyAmountSeries;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -179,7 +182,7 @@ public class DollarTest {
 
     @Test
     public void jsonSeries() throws IOException, NoSeriesDataFoundException {
-        assertEquals(0, new BigDecimal("2.060").compareTo(new JSONIndexSeries(JSONDataPoint.readSeries("peso-dolar-libre.json")).getIndex(1987, 5)));
+        assertEquals(0, new BigDecimal("2.060").compareTo(JSONIndexSeries.readSeries("peso-dolar-libre.json").getIndex(1987, 5)));
     }
 
     @Test
@@ -242,6 +245,18 @@ public class DollarTest {
         }
         System.out.println("]");
 
+    }
+    
+    @Test
+    public void inflate() throws NoSeriesDataFoundException{
+        MoneyAmountSeries unlp = JSONMoneyAmountSeries.readSeries("unlp.json");
+        MoneyAmountSeries unlpDeflacted = unlp.adjust(ARS_INFLATION, 1999, 11);
+        MoneyAmount ma = unlpDeflacted.getAmount(2014, 1);
+        MoneyAmount expected = ARS_INFLATION.adjust(unlp.getAmount(2014, 1), 2014, 1, 1999, 11);
+        
+        assertEquals(expected, ma);
+        assertEquals(new MoneyAmount(new BigDecimal("231.6932084953"),"ARS"), ma);
+        
     }
 
 }

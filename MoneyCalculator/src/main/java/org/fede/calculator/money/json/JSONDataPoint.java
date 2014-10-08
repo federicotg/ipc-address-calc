@@ -16,13 +16,7 @@
  */
 package org.fede.calculator.money.json;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.util.List;
-import org.fede.calculator.money.series.JSONIndexSeries;
 
 /**
  *
@@ -33,15 +27,6 @@ public class JSONDataPoint implements Comparable<JSONDataPoint> {
     private int month;
     private BigDecimal value;
 
-    public static List<JSONDataPoint> readSeries(String name){
-         try (InputStream is = JSONIndexSeries.class.getResourceAsStream("/" + name)) {
-            return new ObjectMapper().readValue(is, new TypeReference<List<JSONDataPoint>>() {
-            });
-        } catch (IOException ioEx) {
-            throw new IllegalArgumentException("Could not read series named " + name, ioEx);
-        }
-    }
-               
     public JSONDataPoint(){
         
     }

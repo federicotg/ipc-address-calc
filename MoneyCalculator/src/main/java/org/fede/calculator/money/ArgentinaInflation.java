@@ -64,7 +64,7 @@ public class ArgentinaInflation implements Inflation {
 
     @Override
     public int getToMonth() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return this.basicInflation.getToMonth();
     }
 
 }

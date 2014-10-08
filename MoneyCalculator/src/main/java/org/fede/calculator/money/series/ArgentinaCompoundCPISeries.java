@@ -18,28 +18,25 @@ package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
 import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.json.JSONDataPoint;
 
 /**
  *
  * @author fede
  */
 public class ArgentinaCompoundCPISeries extends IndexSeriesSupport {
-        
-    private final IndexSeries cqpSeries = new JSONIndexSeries(JSONDataPoint.readSeries("cqp.json"));
-    private final IndexSeries indecSeries = new JSONIndexSeries(JSONDataPoint.readSeries("indec.json"));
+
+    private final IndexSeries cqpSeries = JSONIndexSeries.readSeries("cqp.json");
+    private final IndexSeries indecSeries = JSONIndexSeries.readSeries("indec.json");
     private static final BigDecimal CORRECTION_FACTOR = new BigDecimal("1.84856478083063");
 
-    
     @Override
     public BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException {
-        
-        if(year<2006 || (year==2006 && month <12)){
+
+        if (year < 2006 || (year == 2006 && month < 12)) {
             return indecSeries.getIndex(year, month);
-        }else{
+        } else {
             return this.cqpSeries.getIndex(year, month).multiply(CORRECTION_FACTOR);
         }
-        
     }
 
     @Override
@@ -50,7 +47,7 @@ public class ArgentinaCompoundCPISeries extends IndexSeriesSupport {
     @Override
     public int getFromYear() {
         return this.indecSeries.getFromYear();
-                
+
     }
 
     @Override
@@ -67,5 +64,5 @@ public class ArgentinaCompoundCPISeries extends IndexSeriesSupport {
     public int getToMonth() {
         return this.cqpSeries.getToMonth();
     }
-    
+
 }
