@@ -88,8 +88,8 @@ public class SimpleForeignExchange implements ForeignExchange, MathConstants {
 
     public SimpleForeignExchange() {
         this.exchangeRates.put(
-                new CurrencyPair(Currency.getInstance("ARS"), Currency.getInstance("USD")), 
-                new JSONIndexSeries(JSONDataPoint.readSeries("peso-dolar-libre.json")));
+                new CurrencyPair(Currency.getInstance("ARS"), Currency.getInstance("USD")),
+                JSONIndexSeries.readSeries("peso-dolar-libre.json"));
     }
 
     @Override

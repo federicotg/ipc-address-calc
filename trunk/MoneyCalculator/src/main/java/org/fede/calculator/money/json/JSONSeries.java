@@ -16,11 +16,7 @@
  */
 package org.fede.calculator.money.json;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-import org.fede.calculator.money.series.JSONIndexSeries;
 
 /**
  *
@@ -28,18 +24,10 @@ import org.fede.calculator.money.series.JSONIndexSeries;
  */
 public class JSONSeries {
 
-    public static JSONSeries readSeries(String name) {
-        try (InputStream is = JSONIndexSeries.class.getResourceAsStream("/" + name)) {
-            return new ObjectMapper().readValue(is, JSONSeries.class);
-        } catch (IOException ioEx) {
-            throw new IllegalArgumentException("Could not read series named " + name, ioEx);
-        }
-    }
-
     private String currency;
     private List<JSONDataPoint> data;
 
-    private JSONSeries(String name) {
+    private JSONSeries() {
 
     }
 

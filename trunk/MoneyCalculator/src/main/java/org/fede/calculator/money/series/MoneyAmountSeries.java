@@ -17,6 +17,7 @@
 package org.fede.calculator.money.series;
 
 import java.util.Date;
+import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 
@@ -31,5 +32,7 @@ public interface MoneyAmountSeries extends Series {
     MoneyAmount getAmount(int year, int month) throws NoSeriesDataFoundException;
 
     MoneyAmount getAmount(int year) throws NoSeriesDataFoundException;
+    
+    MoneyAmountSeries adjust(Inflation inflation, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
 
 }
