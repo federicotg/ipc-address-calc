@@ -20,7 +20,7 @@ import java.util.Currency;
 import org.fede.calculator.money.ArgCurrency;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.web.dto.CurrencyDTO;
 import org.fede.calculator.web.dto.CurrencyLimitsDTO;
 import org.fede.calculator.web.dto.MoneyDTO;
@@ -37,7 +37,7 @@ public class ARGMoneyService implements MoneyService {
             ARS_INFLATION.getCurrency().getCurrencyCode());
 
     @Override
-    public MoneyDTO getMoney(MoneyDTO dto) throws NoIndexDataFoundException {
+    public MoneyDTO getMoney(MoneyDTO dto) throws NoSeriesDataFoundException {
 
         MoneyAmount amount = new MoneyAmount(dto.getAmount(), Currency.getInstance("ARS"));
         MoneyAmount result = ARS_INFLATION.adjust(amount, dto.getFromYear(), dto.getFromMonth(), dto.getToYear(), dto.getToMonth());

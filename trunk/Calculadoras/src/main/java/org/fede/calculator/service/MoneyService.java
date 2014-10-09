@@ -17,7 +17,7 @@
 package org.fede.calculator.service;
 
 import java.util.Locale;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.web.dto.CurrencyLimitsDTO;
 import org.fede.calculator.web.dto.MoneyDTO;
 
@@ -29,6 +29,6 @@ import org.fede.calculator.web.dto.MoneyDTO;
 public interface MoneyService {
     
     public static final Locale ES_AR = Locale.forLanguageTag("es-AR");
-    MoneyDTO getMoney(MoneyDTO dto) throws NoIndexDataFoundException;
+    MoneyDTO getMoney(MoneyDTO dto) throws NoSeriesDataFoundException;
     CurrencyLimitsDTO getLimits();
 }
