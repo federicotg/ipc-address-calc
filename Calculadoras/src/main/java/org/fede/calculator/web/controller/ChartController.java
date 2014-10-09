@@ -17,7 +17,7 @@
 package org.fede.calculator.web.controller;
 
 import javax.annotation.Resource;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.ChartService;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.springframework.stereotype.Controller;
@@ -36,7 +36,7 @@ public class ChartController {
     private ChartService chartService;
     
     @RequestMapping(value = "/historicDollarValue", method = RequestMethod.GET)
-    public CanvasJSChartDTO historicDollarValue(@RequestParam("year") int year, @RequestParam(value = "month") int month) throws NoIndexDataFoundException {
+    public CanvasJSChartDTO historicDollarValue(@RequestParam("year") int year, @RequestParam(value = "month") int month) throws NoSeriesDataFoundException {
         return this.chartService.historicDollarValue(year, month);
     }
     

@@ -20,7 +20,7 @@ import java.util.Currency;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.web.dto.CurrencyDTO;
 import org.fede.calculator.web.dto.CurrencyLimitsDTO;
 import org.fede.calculator.web.dto.MoneyDTO;
@@ -37,7 +37,7 @@ public class USDMoneyService implements MoneyService {
             USD_INFLATION.getCurrency().getCurrencyCode());
 
     @Override
-    public MoneyDTO getMoney(MoneyDTO dto) throws NoIndexDataFoundException {
+    public MoneyDTO getMoney(MoneyDTO dto) throws NoSeriesDataFoundException {
 
         MoneyAmount amount = new MoneyAmount(dto.getAmount(), Currency.getInstance("USD"));
         MoneyAmount result = Inflation.USD_INFLATION.adjust(amount, dto.getFromYear(), dto.getFromMonth(), dto.getToYear(), dto.getToMonth());

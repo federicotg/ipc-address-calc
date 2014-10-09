@@ -16,7 +16,7 @@
  */
 package org.fede.calculator.service;
 
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 
 /**
@@ -24,5 +24,5 @@ import org.fede.calculator.web.dto.CanvasJSChartDTO;
  * @author fede
  */
 public interface ChartService {
-    CanvasJSChartDTO historicDollarValue(int year, int month) throws NoIndexDataFoundException;
+    CanvasJSChartDTO historicDollarValue(int year, int month) throws NoSeriesDataFoundException;
 }

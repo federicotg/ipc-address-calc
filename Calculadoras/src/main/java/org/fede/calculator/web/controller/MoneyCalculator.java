@@ -22,7 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.MoneyService;
 import org.fede.calculator.web.dto.CurrencyLimitsDTO;
 import org.fede.calculator.web.dto.MoneyDTO;
@@ -76,7 +76,7 @@ public class MoneyCalculator {
     @RequestMapping(value = "/money", method = RequestMethod.POST)
     public MoneyDTO computeMoney(
             @RequestBody @Valid MoneyDTO money,
-            BindingResult result) throws NoIndexDataFoundException {
+            BindingResult result) throws NoSeriesDataFoundException {
 
         if (result.hasErrors()) {
             MoneyDTO dto = new MoneyDTO();

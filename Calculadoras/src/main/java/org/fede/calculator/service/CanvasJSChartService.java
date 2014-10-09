@@ -28,7 +28,7 @@ import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoIndexDataFoundException;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.web.dto.CanvasJSAxisDTO;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
@@ -61,7 +61,7 @@ public class CanvasJSChartService implements ChartService {
     }
 
     @Override
-    public CanvasJSChartDTO historicDollarValue(int todayYear, int todayMonth) throws NoIndexDataFoundException {
+    public CanvasJSChartDTO historicDollarValue(int todayYear, int todayMonth) throws NoSeriesDataFoundException {
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO("Precio del Dólar (en pesos de "+MONTH_NAMES.get(todayMonth)+" "+todayYear+")");
         dto.setTitle(title);
@@ -83,7 +83,7 @@ public class CanvasJSChartService implements ChartService {
         for (int year = Inflation.ARS_INFLATION.getFromYear(); year < Inflation.ARS_INFLATION.getToYear(); year++) {
             for (int month = 1; month <= 12; month++) {
                 MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
-                MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchangeAmountIntoCurrency(oneDollarBackThen, ars, year, month);
+                MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
                 MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
                 CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
                         "date-" + year + "-" + String.valueOf(month - 1) + "-1", ma.getAmount());
