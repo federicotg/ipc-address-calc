@@ -21,9 +21,10 @@ import java.util.Currency;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import org.fede.calculator.money.json.JSONDataPoint;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.JSONIndexSeries;
+import org.fede.calculator.money.series.JSONMoneyAmountSeries;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 
 /**
  *
@@ -32,30 +33,6 @@ import org.fede.calculator.money.series.JSONIndexSeries;
 public class SimpleForeignExchange implements ForeignExchange, MathConstants {
 
     private static final BigDecimal ONE = BigDecimal.ONE.setScale(SCALE, ROUNDING_MODE);
-
-    @Override
-    public int getFromYear(Currency from, Currency to) {
-        IndexSeries s = this.getSeries(from, to);
-        if (s == null) {
-            s = this.getSeries(to, from);
-        }
-        if (s == null) {
-            throw new IllegalArgumentException("Unknown currency.");
-        }
-        return s.getFromYear();
-    }
-
-    @Override
-    public int getToYear(Currency from, Currency to) {
-        IndexSeries s = this.getSeries(from, to);
-        if (s == null) {
-            s = this.getSeries(to, from);
-        }
-        if (s == null) {
-            throw new IllegalArgumentException("Unknown currency.");
-        }
-        return s.getToYear();
-    }
 
     private static class CurrencyPair {
 
@@ -93,16 +70,16 @@ public class SimpleForeignExchange implements ForeignExchange, MathConstants {
     }
 
     @Override
-    public MoneyAmount exchangeAmountIntoCurrency(MoneyAmount amount, Currency currency, int year, int month) throws NoSeriesDataFoundException {
+    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int year, int month) throws NoSeriesDataFoundException {
 
-        IndexSeries exchangeRate = this.getSeries(currency, amount.getCurrency());
+        IndexSeries exchangeRate = this.getSeries(targetCurrency, amount.getCurrency());
         if (exchangeRate != null) {
-            return amount.exchange(currency, exchangeRate.getIndex(year, month));
+            return amount.exchange(targetCurrency, exchangeRate.getIndex(year, month));
         }
 
-        exchangeRate = this.getSeries(amount.getCurrency(), currency);
+        exchangeRate = this.getSeries(amount.getCurrency(), targetCurrency);
         if (exchangeRate != null) {
-            return amount.exchange(currency, ONE.divide(exchangeRate.getIndex(year, month), ROUNDING_MODE));
+            return amount.exchange(targetCurrency, ONE.divide(exchangeRate.getIndex(year, month), ROUNDING_MODE));
         }
 
         throw new IllegalArgumentException("Unknown currency.");
@@ -112,4 +89,61 @@ public class SimpleForeignExchange implements ForeignExchange, MathConstants {
         return this.exchangeRates.get(new CurrencyPair(c1, c2));
     }
 
+    @Override
+    public MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) throws NoSeriesDataFoundException {
+        final int fromYear = Math.max(this.getFromYear(series.getCurrency(), targetCurrency), series.getFromYear());
+        final int fromMonth = Math.max(this.getFromMonth(series.getCurrency(), targetCurrency), series.getFromMonth());
+
+        final int toYear = Math.min(this.getToYear(series.getCurrency(), targetCurrency), series.getToYear());
+        final int toMonth = Math.min(this.getToMonth(series.getCurrency(), targetCurrency), series.getToMonth());
+
+        final MoneyAmountSeries answer = new JSONMoneyAmountSeries(targetCurrency);
+
+        for (int m = fromMonth; m <= 12; m++) {
+            //first year
+            answer.putAmount(fromYear, m, this.exchange(series.getAmount(fromYear, m), targetCurrency, fromYear, m));
+        }
+        for (int y = fromYear + 1; y < toYear; y++) {
+            for (int m = 1; m <= 12; m++) {
+                answer.putAmount(y, m, this.exchange(series.getAmount(y, m), targetCurrency, y, m));
+            }
+        }
+        for (int m = 1; m <= toMonth; m++) {
+            //last year
+            answer.putAmount(toYear, m, this.exchange(series.getAmount(toYear, m), targetCurrency, toYear, m));
+        }
+        return answer;
+
+    }
+
+    @Override
+    public int getFromMonth(Currency from, Currency to) {
+        return this.getAnySeries(from, to).getFromMonth();
+    }
+
+    @Override
+    public int getToMonth(Currency from, Currency to) {
+        return this.getAnySeries(from, to).getToMonth();
+    }
+
+    @Override
+    public int getFromYear(Currency from, Currency to) {
+        return this.getAnySeries(from, to).getFromYear();
+    }
+
+    @Override
+    public int getToYear(Currency from, Currency to) {
+        return this.getAnySeries(from, to).getToYear();
+    }
+
+    private IndexSeries getAnySeries(Currency from, Currency to) {
+        IndexSeries s = this.getSeries(from, to);
+        if (s == null) {
+            s = this.getSeries(to, from);
+        }
+        if (s == null) {
+            throw new IllegalArgumentException("Unknown currency.");
+        }
+        return s;
+    }
 }

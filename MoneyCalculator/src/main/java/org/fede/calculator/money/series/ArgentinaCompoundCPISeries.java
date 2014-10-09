@@ -40,11 +40,6 @@ public class ArgentinaCompoundCPISeries extends IndexSeriesSupport {
     }
 
     @Override
-    public BigDecimal getIndex(int year) throws NoSeriesDataFoundException {
-        return this.getIndex(year, 12);
-    }
-
-    @Override
     public int getFromYear() {
         return this.indecSeries.getFromYear();
 

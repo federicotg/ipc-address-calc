@@ -20,12 +20,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.json.JSONDataPoint;
@@ -83,6 +86,12 @@ public class JSONMoneyAmountSeries implements MoneyAmountSeries {
     private final Currency currency;
     private final SortedMap<YearMonth, MoneyAmount> values;
 
+    public JSONMoneyAmountSeries(Currency currency) {
+        this.currency = currency;
+        this.values = new TreeMap<>();
+
+    }
+
     public JSONMoneyAmountSeries(String currency, List<JSONDataPoint> data) {
         this.currency = Currency.getInstance(currency);
         this.values = new TreeMap<>();
@@ -91,11 +100,11 @@ public class JSONMoneyAmountSeries implements MoneyAmountSeries {
         }
     }
 
-    private JSONMoneyAmountSeries(Currency currency, SortedMap<YearMonth, MoneyAmount> data) {
-        this.currency = currency;
-        this.values = data;
-    }
-
+    /* private JSONMoneyAmountSeries(Currency currency, SortedMap<YearMonth, MoneyAmount> data) {
+     this.currency = currency;
+     this.values = data;
+     }
+     */
     @Override
     public MoneyAmount getAmount(Date day) throws NoSeriesDataFoundException {
 
@@ -138,38 +147,40 @@ public class JSONMoneyAmountSeries implements MoneyAmountSeries {
     }
 
     @Override
-    public MoneyAmountSeries adjust(Inflation inflation, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
-        int fromYear = Math.max(this.getFromYear(), inflation.getFromYear());
-        int fromMonth = Math.max(this.getFromMonth(), inflation.getFromMonth());
-
-        int toYear = Math.min(this.getToYear(), inflation.getToYear());
-        int toMonth = Math.min(this.getToMonth(), inflation.getToMonth());
-        SortedMap<YearMonth, MoneyAmount> answer = new TreeMap<>();
-
-        for (int m = fromMonth; m <= 12; m++) {
-            //first year
-            //answer.put(new YearMonth(fromYear, m), inflation.adjust(this.getAmount(fromYear, m), referenceYear, referenceMonth));
-            this.addAdjustedValue(inflation, answer, fromYear, m, referenceYear, referenceMonth);
-        }
-        for (int y = fromYear + 1; y < toYear; y++) {
-            for (int m = 1; m <= 12; m++) {
-                //answer.put(new YearMonth(y, m), inflation.adjust(this.getAmount(y, m), referenceYear, referenceMonth));
-                this.addAdjustedValue(inflation, answer, y, m, referenceYear, referenceMonth);
-            }
-        }
-        for (int m = 1; m <= toMonth; m++) {
-            //last year
-            //answer.put(new YearMonth(toYear, m), inflation.adjust(this.getAmount(toYear, m), referenceYear, referenceMonth));
-            this.addAdjustedValue(inflation, answer, toYear, m, referenceYear, referenceMonth);
-        }
-        return new JSONMoneyAmountSeries(this.currency, answer);
+    public void putAmount(int year, int month, MoneyAmount amount) {
+        this.values.put(new YearMonth(year, month), amount);
     }
 
-    private void addAdjustedValue(Inflation inflation, SortedMap<YearMonth, MoneyAmount> answer,
-            int year, int month, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
-        answer.put(new YearMonth(year, month), 
-                inflation.adjust(this.getAmount(year, month), year, month, referenceYear, referenceMonth)
-        );
+    @Override
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof MoneyAmountSeries)) {
+            return false;
+        }
+        MoneyAmountSeries other = (MoneyAmountSeries) obj;
+        boolean equal = this.getCurrency().equals(other.getCurrency())
+                && this.getFromMonth() == other.getFromMonth()
+                && this.getFromYear() == other.getFromYear()
+                && this.getToMonth() == other.getToMonth()
+                && this.getToYear() == other.getToYear();
+        if (!equal) {
+            return false;
+        }
+        equal = true;
+        try {
+            for (Iterator<Map.Entry<YearMonth, MoneyAmount>> it = this.values.entrySet().iterator(); it.hasNext();) {
+                Map.Entry<YearMonth, MoneyAmount> e = it.next();
+                equal &= e.getValue().equals(other.getAmount(e.getKey().year, e.getKey().month));
+            }
+            return equal;
+        } catch (NoSeriesDataFoundException ex) {
+            return false;
+        }
+
     }
 
 }

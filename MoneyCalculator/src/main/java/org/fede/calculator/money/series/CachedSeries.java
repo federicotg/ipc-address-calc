@@ -27,8 +27,6 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public final class CachedSeries extends IndexSeriesSupport {
 
-    
-
     private class IndexKey {
 
         private final int year;
@@ -76,17 +74,6 @@ public final class CachedSeries extends IndexSeriesSupport {
     }
 
     @Override
-    public BigDecimal getIndex(int year) throws NoSeriesDataFoundException {
-        IndexKey key = new IndexKey(year, 13);
-        BigDecimal answer = this.cache.get(key);
-        if (answer == null) {
-            answer = this.source.getIndex(year);
-            this.cache.put(key, answer);
-        }
-        return answer;
-    }
-    
-        @Override
     public int getFromYear() {
         return this.source.getFromYear();
     }
@@ -95,7 +82,8 @@ public final class CachedSeries extends IndexSeriesSupport {
     public int getToYear() {
         return this.source.getToYear();
     }
-@Override
+
+    @Override
     public int getFromMonth() {
         return this.source.getFromMonth();
     }
@@ -105,5 +93,4 @@ public final class CachedSeries extends IndexSeriesSupport {
         return this.source.getToMonth();
     }
 
-    
 }
