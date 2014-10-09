@@ -31,7 +31,6 @@ import org.fede.calculator.money.series.DollarCPISeries;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.bls.JSONBlsCPISource;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;

@@ -16,27 +16,14 @@
  */
 package org.fede.calculator.money.series;
 
-import java.util.Currency;
-import java.util.Date;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
  * @author fede
  */
-public interface MoneyAmountSeries extends Series {
-
-    MoneyAmount getAmount(Date day) throws NoSeriesDataFoundException;
-
-    MoneyAmount getAmount(int year, int month) throws NoSeriesDataFoundException;
-
-    MoneyAmount getAmount(int year) throws NoSeriesDataFoundException;
+public interface MoneyAmountSeriesProcessor {
     
-    void putAmount(int year, int month, MoneyAmount amount);
-    
-    Currency getCurrency();
-    
-    void forEach(MoneyAmountSeriesProcessor processor);
+    void process(int year, int month, MoneyAmount amount);
     
 }

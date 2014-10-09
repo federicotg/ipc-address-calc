@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
 import java.util.Iterator;
@@ -100,11 +98,6 @@ public class JSONMoneyAmountSeries implements MoneyAmountSeries {
         }
     }
 
-    /* private JSONMoneyAmountSeries(Currency currency, SortedMap<YearMonth, MoneyAmount> data) {
-     this.currency = currency;
-     this.values = data;
-     }
-     */
     @Override
     public MoneyAmount getAmount(Date day) throws NoSeriesDataFoundException {
 
@@ -181,6 +174,14 @@ public class JSONMoneyAmountSeries implements MoneyAmountSeries {
             return false;
         }
 
+    }
+
+    @Override
+    public void forEach(MoneyAmountSeriesProcessor processor) {
+        for (Iterator<Map.Entry<YearMonth, MoneyAmount>> it = this.values.entrySet().iterator(); it.hasNext();) {
+            Map.Entry<YearMonth, MoneyAmount> entry = it.next();
+            processor.process(entry.getKey().year, entry.getKey().month, entry.getValue());
+        }
     }
 
 }
