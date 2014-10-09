@@ -58,11 +58,6 @@ public class JSONIndexSeries extends IndexSeriesSupport implements IndexSeries {
     }
 
     @Override
-    public BigDecimal getIndex(int year) throws NoSeriesDataFoundException {
-        return this.getIndex(year, 12);
-    }
-
-    @Override
     public int getFromYear() {
         return this.data.get(0).getYear();
     }

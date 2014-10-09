@@ -23,15 +23,15 @@ import java.util.Locale;
 import static org.fede.calculator.money.ArgCurrency.*;
 import org.fede.calculator.money.CPIInflation;
 import org.fede.calculator.money.ForeignExchange;
+import org.fede.calculator.money.Inflation;
+import static org.fede.calculator.money.Inflation.ARS_INFLATION;
+import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.CachedSeries;
 import org.fede.calculator.money.series.DollarCPISeries;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.MoneyAmount;
-import static org.fede.calculator.money.Inflation.ARS_INFLATION;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.json.JSONDataPoint;
-import org.fede.calculator.money.json.JSONSeries;
+import org.fede.calculator.money.bls.JSONBlsCPISource;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -126,10 +126,10 @@ public class DollarTest {
     public void hundredUSD1923() {
         try {
             MoneyAmount oneHundred = new MoneyAmount(new BigDecimal("100"), "USD");
-            MoneyAmount expected = new MoneyAmount(new BigDecimal("1362.3216374269"), "USD");
+            MoneyAmount expected = new MoneyAmount(new BigDecimal("1347.104046"), "USD");
             MoneyAmount adjusted
-                    = /*Inflation.USD_INFLATION*/ new CPIInflation(new CachedSeries(new DollarCPISeries(new MockBlsCPISource())), Currency.getInstance("USD"))
-                    .adjust(oneHundred, 1923, 2013);
+                    = new CPIInflation(new CachedSeries(new DollarCPISeries(new MockBlsCPISource())), Currency.getInstance("USD"))
+                    .adjust(oneHundred, 1923, 12, 2013, 12);
             //System.out.println(expected);
             //System.out.println(adjusted);
             assertEquals(expected, adjusted);
@@ -144,7 +144,7 @@ public class DollarTest {
     public void cqp1() {
         try {
             MoneyAmount adjusted = ARS_INFLATION.adjust(new MoneyAmount(new BigDecimal("521144.26"), "ARS"), 2013, 7, 1999, 11);
-            assertEquals(new MoneyAmount(new BigDecimal("70652.72"), "ARS"), adjusted);
+            assertEquals(new MoneyAmount(new BigDecimal("70652.7198300712"), "ARS"), adjusted);
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
             ex.printStackTrace(System.err);
@@ -188,7 +188,7 @@ public class DollarTest {
     @Test
     public void fx() throws NoSeriesDataFoundException {
         MoneyAmount pesos10 = new MoneyAmount(new BigDecimal("10"), Currency.getInstance("ARS"));
-        MoneyAmount xDollars = ForeignExchange.INSTANCE.exchangeAmountIntoCurrency(pesos10, Currency.getInstance("USD"), 1981, 6);
+        MoneyAmount xDollars = ForeignExchange.INSTANCE.exchange(pesos10, Currency.getInstance("USD"), 1981, 6);
         assertEquals(new MoneyAmount(new BigDecimal("0.00141844"), "USD"), xDollars);
 
         //this.print("CqP", new CqPSeries());
@@ -216,10 +216,11 @@ public class DollarTest {
     }
 
     //@Test
-    public void historicDollar() throws NoSeriesDataFoundException {
+    public void historicDollarNonTest() throws NoSeriesDataFoundException {
+        //Inflation localUSDInflation = new CPIInflation(new DollarCPISeries(new JSONBlsCPISource("bls.json")), Currency.getInstance("USD"));
         NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
         nf.setGroupingUsed(false);
-        final int todayYear = 2014;
+        final int todayYear = 2013;
         final int todayMonth = 8;
         final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
         final Currency ars = Currency.getInstance("ARS");
@@ -227,36 +228,72 @@ public class DollarTest {
         for (int year = ARS_INFLATION.getFromYear(); year <= ARS_INFLATION.getToYear(); year++) {
             for (int month = 1; month <= 12; month++) {
                 MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
-                MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchangeAmountIntoCurrency(oneDollarBackThen, ars, year, month);
+                MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
                 MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
                 //System.out.println(String.valueOf(year) + (month<10?"0":"")+String.valueOf(month) +"28"+ "\t" + nf.format(ma.getAmount()));
                 System.out.print(
-                "{x: new Date("
-                        +year
-                        +", "
-                        +((month-1)<10?"0":"")+String.valueOf(month-1)
-                        +", 1), y: "
-                        +nf.format(ma.getAmount())
-                        +"}");
+                        "{x: new Date("
+                        + year
+                        + ", "
+                        + ((month - 1) < 10 ? "0" : "") + String.valueOf(month - 1)
+                        + ", 1), y: "
+                        + nf.format(ma.getAmount())
+                        + "}");
                 if (year < ARS_INFLATION.getToYear() || month < 12) {
-                        System.out.println(",");
-                    }
+                    System.out.println(",");
+                }
             }
         }
         System.out.println("]");
 
     }
-    
+
     @Test
-    public void inflate() throws NoSeriesDataFoundException{
+    public void inflate() throws NoSeriesDataFoundException {
         MoneyAmountSeries unlp = JSONMoneyAmountSeries.readSeries("unlp.json");
-        MoneyAmountSeries unlpDeflacted = unlp.adjust(ARS_INFLATION, 1999, 11);
+        MoneyAmountSeries unlpDeflacted = ARS_INFLATION.adjust(unlp, 1999, 11);
         MoneyAmount ma = unlpDeflacted.getAmount(2014, 1);
         MoneyAmount expected = ARS_INFLATION.adjust(unlp.getAmount(2014, 1), 2014, 1, 1999, 11);
-        
+
         assertEquals(expected, ma);
-        assertEquals(new MoneyAmount(new BigDecimal("231.6932084953"),"ARS"), ma);
-        
+        assertEquals(new MoneyAmount(new BigDecimal("231.6932084953"), "ARS"), ma);
+
+    }
+
+    @Test
+    public void historicDollar() throws NoSeriesDataFoundException {
+
+        //Inflation localUSDInflation = new CPIInflation(new DollarCPISeries(new JSONBlsCPISource("bls.json")), Currency.getInstance("USD"));
+
+        final int todayYear = 2013;
+        final int todayMonth = 8;
+
+        final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
+        final Currency ars = Currency.getInstance("ARS");
+
+        MoneyAmountSeries expected = new JSONMoneyAmountSeries(Currency.getInstance("ARS"));
+
+        for (int year = Inflation.ARS_INFLATION.getFromYear(); year < Inflation.ARS_INFLATION.getToYear(); year++) {
+            for (int month = 1; month <= 12; month++) {
+                MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
+                MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
+                MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
+                expected.putAmount(year, month, ma);
+            }
+        }
+        final int year = Inflation.ARS_INFLATION.getToYear();
+        for (int month = 1; month <= Inflation.ARS_INFLATION.getToMonth(); month++) {
+                MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
+                MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
+                MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
+                expected.putAmount(year, month, ma);
+            }
+
+        MoneyAmountSeries result = Inflation.ARS_INFLATION.adjust(
+                ForeignExchange.INSTANCE.exchange(
+                        USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), ars), todayYear, todayMonth);
+
+        assertEquals(expected, result);
     }
 
 }

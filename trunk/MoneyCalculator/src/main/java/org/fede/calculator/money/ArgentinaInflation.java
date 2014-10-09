@@ -23,14 +23,9 @@ import org.fede.calculator.money.series.ArgentinaCompoundCPISeries;
  *
  * @author fede
  */
-public class ArgentinaInflation implements Inflation {
+public class ArgentinaInflation extends BaseInflation implements Inflation {
 
     private final Inflation basicInflation = new CPIInflation(new ArgentinaCompoundCPISeries(), Currency.getInstance("ARS"));
-
-    @Override
-    public MoneyAmount adjust(MoneyAmount amount, int fromYear, int toYear) throws NoSeriesDataFoundException {
-        return adjust(amount, fromYear, 12, toYear, 12);
-    }
 
     @Override
     public MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoSeriesDataFoundException {
@@ -54,7 +49,7 @@ public class ArgentinaInflation implements Inflation {
 
     @Override
     public Currency getCurrency() {
-        return Currency.getInstance("ARS");
+        return this.basicInflation.getCurrency();
     }
 
     @Override

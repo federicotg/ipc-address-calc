@@ -24,7 +24,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.bls.BlsCPISource;
 import static org.fede.calculator.money.bls.BlsCPISource.CPI_SERIES_ID;
 import org.fede.calculator.money.bls.CachingBlsSource;
-import org.fede.calculator.money.bls.URLConnectionBlsCPISource;
+import org.fede.calculator.money.bls.JSONBlsCPISource;
 
 /**
  *
@@ -35,7 +35,7 @@ public final class DollarCPISeries extends IndexSeriesSupport {
     private final BlsCPISource source;
 
     public DollarCPISeries() {
-        this(new CachingBlsSource(new URLConnectionBlsCPISource()));
+        this(new CachingBlsSource(new JSONBlsCPISource("bls.json")));
     }
 
     public DollarCPISeries(BlsCPISource source) {
@@ -47,17 +47,6 @@ public final class DollarCPISeries extends IndexSeriesSupport {
         try {
             BlsResponse blsResponse = this.source.getResponse(year);
             return blsResponse.getDataPoint(CPI_SERIES_ID, year, month).getValue();
-
-        } catch (IOException ex) {
-            throw new NoSeriesDataFoundException(ex);
-        }
-    }
-
-    @Override
-    public BigDecimal getIndex(int year) throws NoSeriesDataFoundException {
-        try {
-            BlsResponse blsResponse = this.source.getResponse(year);
-            return blsResponse.getDataPoint(CPI_SERIES_ID, year).getValue();
 
         } catch (IOException ex) {
             throw new NoSeriesDataFoundException(ex);

@@ -38,11 +38,6 @@ public class MockSeries implements IndexSeries{
         return BigDecimal.ONE;
     }
 
-    @Override
-    public BigDecimal getIndex(int year) throws NoSeriesDataFoundException {
-        this.calls++;
-        return BigDecimal.ONE;
-    }
     public int getCalls(){
         return this.calls;
     }

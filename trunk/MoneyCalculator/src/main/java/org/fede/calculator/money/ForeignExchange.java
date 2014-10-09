@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.util.Currency;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 
 /**
  *
@@ -26,7 +27,16 @@ public interface ForeignExchange {
 
     public static final ForeignExchange INSTANCE = new SimpleForeignExchange();
 
-    MoneyAmount exchangeAmountIntoCurrency(MoneyAmount amount, Currency currency, int year, int month) throws NoSeriesDataFoundException;
+    MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
+
     int getFromYear(Currency from, Currency to);
+
     int getToYear(Currency from, Currency to);
+    
+    int getFromMonth(Currency from, Currency to);
+
+    int getToMonth(Currency from, Currency to);
+    
+
+    MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) throws NoSeriesDataFoundException;
 }

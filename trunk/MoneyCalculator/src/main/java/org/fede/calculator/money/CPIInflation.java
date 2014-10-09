@@ -24,7 +24,7 @@ import java.util.Currency;
  *
  * @author fede
  */
-public final class CPIInflation implements Inflation {
+public final class CPIInflation extends BaseInflation implements Inflation {
 
     private final IndexSeries series;
     private final Currency currency;
@@ -32,14 +32,6 @@ public final class CPIInflation implements Inflation {
     public CPIInflation(IndexSeries cpiSeries, Currency currency) {
         this.series = cpiSeries;
         this.currency = currency;
-    }
-
-    @Override
-    public final MoneyAmount adjust(MoneyAmount amount, int fromYear, int toYear) throws NoSeriesDataFoundException {
-        amount.assertCurrency(this.currency);
-        BigDecimal divisor = this.series.getIndex(fromYear);
-        BigDecimal factor = this.series.getIndex(toYear);
-        return amount.adjust(divisor, factor);
     }
 
     @Override

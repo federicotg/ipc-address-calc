@@ -63,8 +63,8 @@ public class MoneyAmount implements  MathConstants {
     public boolean equals(Object obj) {
         return obj instanceof MoneyAmount
                 && ((MoneyAmount) obj).currency.equals(this.currency)
-                && ((MoneyAmount) obj).amount.setScale(2, RoundingMode.HALF_UP)
-                .compareTo(this.amount.setScale(2, RoundingMode.HALF_UP)) == 0;
+                && ((MoneyAmount) obj).amount.setScale(5, RoundingMode.HALF_UP)
+                .compareTo(this.amount.setScale(5, RoundingMode.HALF_UP)) == 0;
     }
 
     @Override
