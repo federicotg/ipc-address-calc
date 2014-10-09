@@ -25,10 +25,12 @@ import java.util.List;
 import java.util.Map;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.Inflation;
-import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.money.series.JSONMoneyAmountSeries;
+import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.MoneyAmountSeriesProcessor;
 import org.fede.calculator.web.dto.CanvasJSAxisDTO;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
@@ -63,7 +65,7 @@ public class CanvasJSChartService implements ChartService {
     @Override
     public CanvasJSChartDTO historicDollarValue(int todayYear, int todayMonth) throws NoSeriesDataFoundException {
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Precio del Dólar (en pesos de "+MONTH_NAMES.get(todayMonth)+" "+todayYear+")");
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Precio del Dólar (en pesos de " + MONTH_NAMES.get(todayMonth) + " " + todayYear + ")");
         dto.setTitle(title);
         dto.setXAxisTitle("Año");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
@@ -74,22 +76,56 @@ public class CanvasJSChartService implements ChartService {
         datum.setType("area");
         datum.setColor("salmon");
         dto.setData(Collections.singletonList(datum));
-        List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         datum.setDataPoints(datapoints);
 
         final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
         final Currency ars = Currency.getInstance("ARS");
 
-        for (int year = Inflation.ARS_INFLATION.getFromYear(); year < Inflation.ARS_INFLATION.getToYear(); year++) {
-            for (int month = 1; month <= 12; month++) {
-                MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
-                MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
-                MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
+        MoneyAmountSeries result = Inflation.ARS_INFLATION.adjust(
+                ForeignExchange.INSTANCE.exchange(
+                        USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), ars), todayYear, todayMonth);
+
+        result.forEach(new MoneyAmountSeriesProcessor() {
+
+            @Override
+            public void process(int year, int month, MoneyAmount amount) {
                 CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
-                        "date-" + year + "-" + String.valueOf(month - 1) + "-1", ma.getAmount());
+                        "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-1"), amount.getAmount());
                 datapoints.add(dataPoint);
             }
-        }
+        });
+
+        return dto;
+    }
+
+    @Override
+    public CanvasJSChartDTO deflactedUnlp() throws NoSeriesDataFoundException {
+        CanvasJSChartDTO dto = new CanvasJSChartDTO();
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("UNLP Pesos Reales (nov. 1999)");
+        dto.setTitle(title);
+        dto.setXAxisTitle("Año");
+        CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
+        yAxis.setTitle("Pesos");
+        yAxis.setValueFormatString("$0");
+        dto.setAxisY(yAxis);
+        CanvasJSDatumDTO datum = new CanvasJSDatumDTO();
+        datum.setType("line");
+        datum.setColor("blue");
+        dto.setData(Collections.singletonList(datum));
+        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        datum.setDataPoints(datapoints);
+
+        MoneyAmountSeries series = Inflation.ARS_INFLATION.adjust(JSONMoneyAmountSeries.readSeries("unlp.json"), 1999, 11);
+        series.forEach(new MoneyAmountSeriesProcessor() {
+
+            @Override
+            public void process(int year, int month, MoneyAmount amount) {
+                CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
+                        "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-1"), amount.getAmount());
+                datapoints.add(dataPoint);
+            }
+        });
         return dto;
     }
 

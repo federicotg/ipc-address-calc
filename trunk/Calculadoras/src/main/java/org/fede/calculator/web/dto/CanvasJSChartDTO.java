@@ -24,6 +24,7 @@ import java.util.List;
  */
 public class CanvasJSChartDTO {
 
+    private boolean successful = true;
     private CanvasJSTitleDTO title;
     private List<CanvasJSDatumDTO> data;
     private CanvasJSAxisDTO axisX;
@@ -72,4 +73,13 @@ public class CanvasJSChartDTO {
         axis.setTitle(title);
         this.axisY = axis;
     }
+
+    public boolean isSuccessful() {
+        return successful;
+    }
+
+    public void setSuccessful(boolean successful) {
+        this.successful = successful;
+    }
+
 }

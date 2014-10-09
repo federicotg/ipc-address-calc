@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.web.controller;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -46,7 +47,7 @@ public class LaPlataAddressCalculator {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public LaPlataAddressDTO errorHandler(Exception ex){
-        LOG.throwing(LaPlataAddressCalculator.class.getName(), "errorHandler", ex);
+        LOG.log(Level.SEVERE, "errorHandler", ex);
         return new LaPlataAddressDTO("La dirección ingresada no es válida.", "");
     }
     
