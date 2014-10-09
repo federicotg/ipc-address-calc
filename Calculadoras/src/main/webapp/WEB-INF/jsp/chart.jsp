@@ -29,41 +29,20 @@
         <link rel="stylesheet" type="text/css" href="/styles/style.css" />
         <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/mootools/1.5.1/mootools-yui-compressed.js"></script>
         <script type="text/javascript" src="/scripts/canvasjs.min.js"></script>
+        <script type="text/javascript" src="/scripts/charts.js"></script>
         <script type="text/javascript">
 
             window.addEvent('domready', function () {
-                var reviver = function(key, value){
-                    var a;
-                    if (typeof value === 'string') {
-                        a = /^date-(\d+)-(\d+)-(\d+)$/.exec(value);
-                        if (a) {
-                            return new Date(a[1], a[2], a[3]);
-                        }
-                    }
-                    return value;
-                };
-                var req = new Request({
-                    url: 'historicDollarValue.json',
-                    method: 'get',
-                    headers: {'Content-Type': 'application/json;charset=UTF-8'},
-                    urlEncoded: false,
-                    onSuccess: function(responseText){
-                        var chartObject = JSON.parse(responseText, reviver);
-                        var chart = new CanvasJS.Chart("chartContainer", chartObject);
-                        chart.render();
-                    },
-                    onFailure: function () {
-                        alert("Error.");
-                    }
-                });
-                req.send('year=1992&month=1');
+                showChart('historicDollarValue.json', 'year=1992&month=1', 'chartContainer');
+                showChart('/secure/unlpRealPesos.json', null, 'pesos2014');
             });
         </script>
     </head>
     <body>
         <h1>Gráficos</h1>
         
-        <div id="chartContainer">
-        </div>
+        <div id="chartContainer" style="height:400px;"></div>
+        
+        <div id="pesos2014" style="height:400px;"></div>
     </body>
 </html>
