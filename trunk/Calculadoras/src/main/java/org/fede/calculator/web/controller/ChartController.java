@@ -30,12 +30,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  *
  * @author fede
  */
 @Controller
+@RequestMapping("/secure/")
 public class ChartController {
 
     private static final Logger LOG = Logger.getLogger(ChartController.class.getName());
@@ -52,19 +54,41 @@ public class ChartController {
         return dto;
     }
 
-    @RequestMapping(value = "/historicDollarValue", method = RequestMethod.GET)
-    public CanvasJSChartDTO historicDollarValue(@RequestParam("year") int year, @RequestParam(value = "month") int month) throws NoSeriesDataFoundException {
-        return this.chartService.historicDollarValue(year, month);
+    @RequestMapping(value = "unlpCombined", method = RequestMethod.GET)
+    public CanvasJSChartDTO unlpCombined(
+            @RequestParam(value = "months", required = false, defaultValue = "6") int months,
+            @RequestParam(value = "pn", required = false, defaultValue = "false") boolean pn,
+            @RequestParam(value = "pr", required = false, defaultValue = "true") boolean pr,
+            @RequestParam(value = "dn", required = false, defaultValue = "true") boolean dn,
+            @RequestParam(value = "dr", required = false, defaultValue = "true") boolean dr)
+            throws NoSeriesDataFoundException {
+        return this.chartService.unlp(months, pn, pr, dn, dr);
     }
 
-    @RequestMapping(value = "/secure/unlpRealPesos", method = RequestMethod.GET)
-    public CanvasJSChartDTO historicDollarValue() throws NoSeriesDataFoundException {
-        return this.chartService.deflactedUnlp();
+    @RequestMapping(value = "unlp", method = RequestMethod.GET)
+    public ModelAndView unlp() {
+        ModelAndView mav = new ModelAndView("combinedChart");
+        mav.addObject("uri", "unlpCombined");
+        mav.addObject("title", "UNLP");
+        
+        return mav;
     }
-
-    @RequestMapping(value = "/charts", method = RequestMethod.GET)
-    public String show() {
-        return "chart";
+@RequestMapping(value = "lifia", method = RequestMethod.GET)
+    public ModelAndView lifia() {
+        ModelAndView mav = new ModelAndView("combinedChart");
+        mav.addObject("uri", "lifiaCombined");
+        mav.addObject("title", "LIFIA");
+        
+        return mav;
+    }
+    @RequestMapping(value = "lifiaCombined", method = RequestMethod.GET)
+    public CanvasJSChartDTO lifiaCombined(@RequestParam(value = "months", required = false, defaultValue = "6") int months,
+            @RequestParam(value = "pn", required = false, defaultValue = "false") boolean pn,
+            @RequestParam(value = "pr", required = false, defaultValue = "true") boolean pr,
+            @RequestParam(value = "dn", required = false, defaultValue = "true") boolean dn,
+            @RequestParam(value = "dr", required = false, defaultValue = "true") boolean dr)
+            throws NoSeriesDataFoundException {
+        return this.chartService.lifia(months, pn, pr, dn, dr);
     }
 
 }

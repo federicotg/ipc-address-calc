@@ -24,6 +24,11 @@ import org.fede.calculator.web.dto.CanvasJSChartDTO;
  * @author fede
  */
 public interface ChartService {
+
     CanvasJSChartDTO historicDollarValue(int year, int month) throws NoSeriesDataFoundException;
-    CanvasJSChartDTO deflactedUnlp() throws NoSeriesDataFoundException;
+
+    CanvasJSChartDTO unlp(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException;
+
+    CanvasJSChartDTO lifia(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException;
+
 }
