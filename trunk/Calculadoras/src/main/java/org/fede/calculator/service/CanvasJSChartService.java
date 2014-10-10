@@ -120,7 +120,6 @@ public class CanvasJSChartService implements ChartService {
         yAxis.setValueFormatString("$0");
         dto.setAxisY(yAxis);
 
-        //MoneyAmountSeries series = JSONMoneyAmountSeries.readSeries("unlp.json");
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(4);
         if (pr) {
             seriesList.add(this.getDatum("line", "blue", "Pesos Reales", this.getRealPesosDatapoints(months, series)));

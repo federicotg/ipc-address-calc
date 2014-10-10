@@ -61,7 +61,7 @@ public class ARGMoneyService implements MoneyService {
     public CurrencyLimitsDTO getLimits() {
         return new CurrencyLimitsDTO(
                 CURRENCY_DTO,
-                ARS_INFLATION.getFromYear(), ARS_INFLATION.getToYear());
+                ARS_INFLATION.getFrom().getYear(), ARS_INFLATION.getTo().getYear());
 
     }
 
