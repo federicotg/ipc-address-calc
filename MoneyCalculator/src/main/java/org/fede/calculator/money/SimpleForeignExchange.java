@@ -25,6 +25,7 @@ import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.YearMonth;
 
 /**
  *
@@ -91,11 +92,15 @@ public class SimpleForeignExchange implements ForeignExchange, MathConstants {
 
     @Override
     public MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) throws NoSeriesDataFoundException {
-        final int fromYear = Math.max(this.getFromYear(series.getCurrency(), targetCurrency), series.getFromYear());
-        final int fromMonth = Math.max(this.getFromMonth(series.getCurrency(), targetCurrency), series.getFromMonth());
+        
+        YearMonth from = this.getAnySeries(series.getCurrency(), targetCurrency).maximumFrom(series);
+        YearMonth to = this.getAnySeries(series.getCurrency(), targetCurrency).minimumTo(series);
+        
 
-        final int toYear = Math.min(this.getToYear(series.getCurrency(), targetCurrency), series.getToYear());
-        final int toMonth = Math.min(this.getToMonth(series.getCurrency(), targetCurrency), series.getToMonth());
+        final int fromYear = from.getYear();
+        final int fromMonth = from.getMonth();
+        final int toYear = to.getYear();
+        final int toMonth = to.getMonth();
 
         final MoneyAmountSeries answer = new JSONMoneyAmountSeries(targetCurrency);
 

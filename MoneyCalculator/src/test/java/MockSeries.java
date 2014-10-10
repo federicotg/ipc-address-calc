@@ -18,6 +18,8 @@ import java.math.BigDecimal;
 import java.util.Date;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.money.series.Series;
+import org.fede.calculator.money.series.YearMonth;
 
 /**
  *
@@ -60,5 +62,15 @@ public class MockSeries implements IndexSeries{
     @Override
     public int getToMonth() {
         return 12;
+    }
+
+    @Override
+    public YearMonth minimumTo(Series other) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public YearMonth maximumFrom(Series other) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

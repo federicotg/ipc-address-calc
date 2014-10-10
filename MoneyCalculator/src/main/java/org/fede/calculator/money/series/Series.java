@@ -29,4 +29,7 @@ public interface Series {
     int getFromMonth();
 
     int getToMonth();
+    
+    YearMonth minimumTo(Series other);
+    YearMonth maximumFrom(Series other);
 }

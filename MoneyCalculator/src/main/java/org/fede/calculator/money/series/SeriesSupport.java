@@ -16,24 +16,29 @@
  */
 package org.fede.calculator.money.series;
 
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Date;
-import org.fede.calculator.money.NoSeriesDataFoundException;
-
 /**
  *
  * @author fede
  */
-public abstract class IndexSeriesSupport extends SeriesSupport implements IndexSeries {
+public abstract class SeriesSupport implements Series {
 
     @Override
-    public final BigDecimal getIndex(Date day) throws NoSeriesDataFoundException {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(day);
-        int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH);
-        return this.getIndex(year, month);
+    public final YearMonth minimumTo(Series other) {
+        YearMonth myTo = new YearMonth(this.getToYear(), this.getToMonth());
+        YearMonth otherTo = new YearMonth(other.getToYear(), other.getToMonth());
+        if (myTo.compareTo(otherTo) < 0) {
+            return myTo;
+        }
+        return otherTo;
     }
 
+    @Override
+    public final YearMonth maximumFrom(Series other) {
+        YearMonth myFrom = new YearMonth(this.getFromYear(), this.getFromMonth());
+        YearMonth otherFrom = new YearMonth(other.getFromYear(), other.getFromMonth());
+        if (myFrom.compareTo(otherFrom) > 0) {
+            return myFrom;
+        }
+        return otherFrom;
+    }
 }

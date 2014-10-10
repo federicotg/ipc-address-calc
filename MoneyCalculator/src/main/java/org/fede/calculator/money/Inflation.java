@@ -67,4 +67,6 @@ public interface Inflation {
     int getToMonth();
     Currency getCurrency();
     
+    
+    
 }
