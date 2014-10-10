@@ -74,23 +74,13 @@ public final class CachedSeries extends IndexSeriesSupport {
     }
 
     @Override
-    public int getFromYear() {
-        return this.source.getFromYear();
+    public YearMonth getFrom() {
+        return this.source.getFrom();
     }
 
     @Override
-    public int getToYear() {
-        return this.source.getToYear();
-    }
-
-    @Override
-    public int getFromMonth() {
-        return this.source.getFromMonth();
-    }
-
-    @Override
-    public int getToMonth() {
-        return this.source.getToMonth();
+    public YearMonth getTo() {
+        return this.source.getTo();
     }
 
 }

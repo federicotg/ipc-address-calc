@@ -19,6 +19,7 @@ package org.fede.calculator.money;
 import org.fede.calculator.money.series.IndexSeries;
 import java.math.BigDecimal;
 import java.util.Currency;
+import org.fede.calculator.money.series.YearMonth;
 
 /**
  *
@@ -43,28 +44,18 @@ public final class CPIInflation extends BaseInflation implements Inflation {
     }
 
     @Override
-    public int getFromYear() {
-        return this.series.getFromYear();
-    }
-
-    @Override
-    public int getToYear() {
-        return this.series.getToYear();
-    }
-
-    @Override
     public Currency getCurrency() {
         return this.currency;
     }
 
     @Override
-    public int getFromMonth() {
-        return this.series.getFromMonth();
+    public YearMonth getFrom() {
+        return this.series.getFrom();
     }
 
     @Override
-    public int getToMonth() {
-        return this.series.getToMonth();
+    public YearMonth getTo() {
+        return this.series.getTo();
     }
 
 }

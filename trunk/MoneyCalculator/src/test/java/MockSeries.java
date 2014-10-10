@@ -45,26 +45,6 @@ public class MockSeries implements IndexSeries{
     }
 
     @Override
-    public int getFromYear() {
-        return 1;
-    }
-
-    @Override
-    public int getToYear() {
-        return 4000;
-    }
-
-    @Override
-    public int getFromMonth() {
-        return 1;
-    }
-
-    @Override
-    public int getToMonth() {
-        return 12;
-    }
-
-    @Override
     public YearMonth minimumTo(Series other) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
@@ -73,4 +53,15 @@ public class MockSeries implements IndexSeries{
     public YearMonth maximumFrom(Series other) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    @Override
+    public YearMonth getFrom() {
+        return new YearMonth(1900, 1);
+    }
+
+    @Override
+    public YearMonth getTo() {
+        return new YearMonth(4000, 12);
+    }
+    
 }

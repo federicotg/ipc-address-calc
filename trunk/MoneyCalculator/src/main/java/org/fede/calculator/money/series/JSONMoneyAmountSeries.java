@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import org.fede.calculator.money.MoneyAmount;
@@ -86,23 +87,13 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
     }
 
     @Override
-    public int getFromYear() {
-        return this.values.firstKey().getYear();
+    public YearMonth getFrom() {
+        return this.values.firstKey();
     }
 
     @Override
-    public int getToYear() {
-        return this.values.lastKey().getYear();
-    }
-
-    @Override
-    public int getFromMonth() {
-        return this.values.firstKey().getMonth();
-    }
-
-    @Override
-    public int getToMonth() {
-        return this.values.lastKey().getMonth();
+    public YearMonth getTo() {
+        return this.values.lastKey();
     }
 
     @Override
@@ -122,10 +113,8 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
         }
         MoneyAmountSeries other = (MoneyAmountSeries) obj;
         boolean equal = this.getCurrency().equals(other.getCurrency())
-                && this.getFromMonth() == other.getFromMonth()
-                && this.getFromYear() == other.getFromYear()
-                && this.getToMonth() == other.getToMonth()
-                && this.getToYear() == other.getToYear();
+                && Objects.equals(this.getFrom(), other.getFrom())
+                && Objects.equals(this.getTo(), other.getTo());
         if (!equal) {
             return false;
         }

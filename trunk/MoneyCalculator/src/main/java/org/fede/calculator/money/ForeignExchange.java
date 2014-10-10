@@ -17,25 +17,22 @@
 package org.fede.calculator.money;
 
 import java.util.Currency;
+import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.Series;
 
 /**
  *
  * @author fede
  */
-public interface ForeignExchange {
+public interface ForeignExchange extends Series {
 
-    public static final ForeignExchange INSTANCE = new SimpleForeignExchange();
+    public static final ForeignExchange INSTANCE = new SimpleForeignExchange(
+            JSONIndexSeries.readSeries("peso-dolar-libre.json"),
+            Currency.getInstance("USD"),
+            Currency.getInstance("ARS"));
 
     MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
-
-    int getFromYear(Currency from, Currency to);
-
-    int getToYear(Currency from, Currency to);
-    
-    int getFromMonth(Currency from, Currency to);
-
-    int getToMonth(Currency from, Currency to);
 
     MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) throws NoSeriesDataFoundException;
 }

@@ -21,14 +21,9 @@ package org.fede.calculator.money.series;
  * @author fede
  */
 public interface Series {
-
-    int getFromYear();
-
-    int getToYear();
-
-    int getFromMonth();
-
-    int getToMonth();
+  
+    YearMonth getFrom();
+    YearMonth getTo();
     
     YearMonth minimumTo(Series other);
     YearMonth maximumFrom(Series other);
