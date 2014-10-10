@@ -14,31 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.money.series;
+package org.fede.calculator.money;
 
-import java.util.Currency;
-import java.util.Date;
-import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 
 /**
  *
  * @author fede
  */
-public interface MoneyAmountSeries extends Series {
-
-    MoneyAmount getAmount(Date day) throws NoSeriesDataFoundException;
-
-    MoneyAmount getAmount(int year, int month) throws NoSeriesDataFoundException;
-
-    MoneyAmount getAmount(int year) throws NoSeriesDataFoundException;
+public interface Average {
     
-    void putAmount(int year, int month, MoneyAmount amount);
-    
-    Currency getCurrency();
-    
-    void forEach(MoneyAmountProcessor processor);
-    
-    MoneyAmountSeries map(MoneyAmountTransform processor);
+    MoneyAmountSeries average(MoneyAmountSeries series);
     
 }
