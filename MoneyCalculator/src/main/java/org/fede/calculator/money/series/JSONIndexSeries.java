@@ -58,23 +58,15 @@ public class JSONIndexSeries extends IndexSeriesSupport implements IndexSeries {
     }
 
     @Override
-    public int getFromYear() {
-        return this.data.get(0).getYear();
+    public YearMonth getFrom() {
+        JSONDataPoint point = this.data.get(0);
+        return new YearMonth(point.getYear(), point.getMonth());
     }
 
     @Override
-    public int getToYear() {
-        return this.data.get(this.data.size() - 1).getYear();
-    }
-
-    @Override
-    public int getFromMonth() {
-        return this.data.get(0).getMonth();
-    }
-
-    @Override
-    public int getToMonth() {
-        return this.data.get(this.data.size() - 1).getMonth();
+    public YearMonth getTo() {
+        JSONDataPoint point =  this.data.get(this.data.size() - 1);
+        return new YearMonth(point.getYear(), point.getMonth());
     }
 
 }

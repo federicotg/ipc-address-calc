@@ -40,24 +40,13 @@ public class ArgentinaCompoundCPISeries extends IndexSeriesSupport {
     }
 
     @Override
-    public int getFromYear() {
-        return this.indecSeries.getFromYear();
-
+    public YearMonth getFrom() {
+        return this.indecSeries.getFrom();
     }
 
     @Override
-    public int getToYear() {
-        return this.cqpSeries.getToYear();
-    }
-
-    @Override
-    public int getFromMonth() {
-        return this.indecSeries.getFromMonth();
-    }
-
-    @Override
-    public int getToMonth() {
-        return this.cqpSeries.getToMonth();
+    public YearMonth getTo() {
+        return this.cqpSeries.getTo();
     }
 
 }

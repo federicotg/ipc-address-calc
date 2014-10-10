@@ -32,6 +32,8 @@ import org.fede.calculator.money.bls.JSONBlsCPISource;
  */
 public final class DollarCPISeries extends IndexSeriesSupport {
 
+    private static final YearMonth FROM = new YearMonth(1913, 1);
+    
     private final BlsCPISource source;
 
     public DollarCPISeries() {
@@ -54,27 +56,15 @@ public final class DollarCPISeries extends IndexSeriesSupport {
     }
 
     @Override
-    public int getFromYear() {
-        return 1913;
+    public YearMonth getFrom() {
+        return FROM;
     }
 
     @Override
-    public int getToYear() {
+    public YearMonth getTo() {
         Calendar lastMonth = Calendar.getInstance();
         lastMonth.add(Calendar.MONTH, -1);
-        return lastMonth.get(Calendar.YEAR);
-    }
-
-    @Override
-    public int getFromMonth() {
-        return 1;
-    }
-
-    @Override
-    public int getToMonth() {
-        Calendar lastMonth = Calendar.getInstance();
-        lastMonth.add(Calendar.MONTH, -1);
-        return lastMonth.get(Calendar.MONTH);
+        return new YearMonth(lastMonth.get(Calendar.YEAR), lastMonth.get(Calendar.MONTH));
     }
 
 }

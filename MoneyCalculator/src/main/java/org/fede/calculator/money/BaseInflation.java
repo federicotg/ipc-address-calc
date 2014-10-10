@@ -18,21 +18,27 @@ package org.fede.calculator.money;
 
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.SeriesSupport;
+import org.fede.calculator.money.series.YearMonth;
 
 /**
  *
  * @author fede
  */
-abstract class BaseInflation implements Inflation {
+abstract class BaseInflation extends SeriesSupport implements Inflation {
 
     @Override
     public final MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
+        YearMonth maxFrom = this.maximumFrom(series);
+        YearMonth minTo = this.minimumTo(series);
+        
+        final int fromYear = maxFrom.getYear();//Math.max(this.getFromYear(), series.getFromYear());
+        final int fromMonth = maxFrom.getMonth(); //Math.max(this.getFromMonth(), series.getFromMonth());
 
-        final int fromYear = Math.max(this.getFromYear(), series.getFromYear());
-        final int fromMonth = Math.max(this.getFromMonth(), series.getFromMonth());
-
-        final int toYear = Math.min(this.getToYear(), series.getToYear());
-        final int toMonth = Math.min(this.getToMonth(), series.getToMonth());
+        final int toYear = minTo.getYear();//Math.min(this.getToYear(), series.getToYear());
+        final int toMonth = minTo.getMonth();//Math.min(this.getToMonth(), series.getToMonth());
+       
+        
         final MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.getCurrency());
 
         for (int m = fromMonth; m <= 12; m++) {
@@ -54,11 +60,11 @@ abstract class BaseInflation implements Inflation {
 
     @Override
     public MoneyAmountSeries adjust(MoneyAmount amount, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
-        int fromYear = this.getFromYear();
-        int fromMonth = this.getFromMonth();
+        final int fromYear = this.getFrom().getYear();
+        final int fromMonth = this.getFrom().getMonth();
 
-        int toYear = this.getToYear();
-        int toMonth = this.getToMonth();
+        final int toYear = this.getTo().getYear();
+        final int toMonth = this.getTo().getMonth();
 
         MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.getCurrency());
 

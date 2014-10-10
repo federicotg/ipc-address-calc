@@ -18,6 +18,7 @@ package org.fede.calculator.money;
 
 import java.util.Currency;
 import org.fede.calculator.money.series.ArgentinaCompoundCPISeries;
+import org.fede.calculator.money.series.YearMonth;
 
 /**
  *
@@ -38,28 +39,18 @@ public class ArgentinaInflation extends BaseInflation implements Inflation {
     }
 
     @Override
-    public int getFromYear() {
-        return this.basicInflation.getFromYear();
-    }
-
-    @Override
-    public int getToYear() {
-        return this.basicInflation.getToYear();
-    }
-
-    @Override
     public Currency getCurrency() {
         return this.basicInflation.getCurrency();
     }
 
     @Override
-    public int getFromMonth() {
-        return this.basicInflation.getFromMonth();
+    public YearMonth getFrom() {
+        return this.basicInflation.getFrom();
     }
 
     @Override
-    public int getToMonth() {
-        return this.basicInflation.getToMonth();
+    public YearMonth getTo() {
+        return this.basicInflation.getTo();
     }
 
 }
