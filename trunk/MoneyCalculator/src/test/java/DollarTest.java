@@ -17,9 +17,7 @@
 import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
-import java.text.NumberFormat;
 import java.util.Currency;
-import java.util.Locale;
 import static org.fede.calculator.money.ArgCurrency.*;
 import org.fede.calculator.money.CPIInflation;
 import org.fede.calculator.money.ForeignExchange;
@@ -291,5 +289,18 @@ public class DollarTest {
         assertEquals(series.getFrom().getYear(), inflatedSeries.getFrom().getYear());
         assertEquals(series.getFrom().getMonth(), inflatedSeries.getFrom().getMonth());
         
+    }
+    
+    @Test
+    public void seriesAddition() throws NoSeriesDataFoundException{
+        MoneyAmountSeries lifia = JSONMoneyAmountSeries.readSeries("lifia.json");
+        MoneyAmountSeries unlp = JSONMoneyAmountSeries.readSeries("unlp.json");
+        MoneyAmountSeries sum = lifia.add(unlp);
+        
+        MoneyAmount expected = lifia.getAmount(2010, 5).add(unlp.getAmount(2010, 5));
+        assertEquals(expected, sum.getAmount(2010, 5));
+        
+        expected = unlp.getAmount(2001, 12);
+        assertEquals(expected, sum.getAmount(2001, 12));
     }
 }

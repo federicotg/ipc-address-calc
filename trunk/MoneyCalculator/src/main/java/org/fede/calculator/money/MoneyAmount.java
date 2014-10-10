@@ -89,5 +89,7 @@ public class MoneyAmount implements  MathConstants {
     public BigDecimal getAmount() {
         return amount;
     }
-
+    public MoneyAmount add(MoneyAmount other){
+        return new MoneyAmount(this.getAmount().add(other.getAmount()), this.getCurrency());
+    }
 }

@@ -17,6 +17,7 @@
 package org.fede.calculator.money.series;
 
 import org.fede.calculator.money.MoneyAmount;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
@@ -24,6 +25,6 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public interface MoneyAmountProcessor {
     
-    void process(int year, int month, MoneyAmount amount);
+    void process(int year, int month, MoneyAmount amount) throws NoSeriesDataFoundException;
     
 }

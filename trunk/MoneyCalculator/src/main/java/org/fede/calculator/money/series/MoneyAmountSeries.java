@@ -31,14 +31,13 @@ public interface MoneyAmountSeries extends Series {
 
     MoneyAmount getAmount(int year, int month) throws NoSeriesDataFoundException;
 
-    MoneyAmount getAmount(int year) throws NoSeriesDataFoundException;
-    
     void putAmount(int year, int month, MoneyAmount amount);
-    
+
     Currency getCurrency();
-    
-    void forEach(MoneyAmountProcessor processor);
-    
+
+    void forEach(MoneyAmountProcessor processor) throws NoSeriesDataFoundException;
+
     MoneyAmountSeries map(MoneyAmountTransform processor);
-    
+
+    MoneyAmountSeries add(MoneyAmountSeries other) throws NoSeriesDataFoundException;
 }

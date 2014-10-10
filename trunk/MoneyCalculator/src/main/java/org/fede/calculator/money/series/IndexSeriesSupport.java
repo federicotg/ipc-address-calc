@@ -33,7 +33,7 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
         cal.setTime(day);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH);
-        return this.getIndex(year, month);
+        return this.getIndex(year, month + 1);
     }
 
 }
