@@ -28,9 +28,10 @@ import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.money.SimpleAverage;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.MoneyAmountSeriesProcessor;
+import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.web.dto.CanvasJSAxisDTO;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
@@ -86,7 +87,7 @@ public class CanvasJSChartService implements ChartService {
                 ForeignExchange.INSTANCE.exchange(
                         USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), ars), todayYear, todayMonth);
 
-        result.forEach(new MoneyAmountSeriesProcessor() {
+        result.forEach(new MoneyAmountProcessor() {
 
             @Override
             public void process(int year, int month, MoneyAmount amount) {
@@ -100,33 +101,105 @@ public class CanvasJSChartService implements ChartService {
     }
 
     @Override
-    public CanvasJSChartDTO deflactedUnlp() throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO unlp(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+        return this.createCombinedChart(JSONMoneyAmountSeries.readSeries("unlp.json"), months, pn, pr, dn, dr);
+    }
+
+    @Override
+    public CanvasJSChartDTO lifia(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+        return this.createCombinedChart(JSONMoneyAmountSeries.readSeries("lifia.json"), months, pn, pr, dn, dr);
+    }
+
+    private CanvasJSChartDTO createCombinedChart(MoneyAmountSeries series, int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("UNLP Pesos Reales (nov. 1999)");
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Sueldo promedio " + months + " meses");
         dto.setTitle(title);
         dto.setXAxisTitle("Año");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
-        yAxis.setTitle("Pesos");
+        yAxis.setTitle("Monto");
         yAxis.setValueFormatString("$0");
         dto.setAxisY(yAxis);
-        CanvasJSDatumDTO datum = new CanvasJSDatumDTO();
-        datum.setType("line");
-        datum.setColor("blue");
-        dto.setData(Collections.singletonList(datum));
-        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        datum.setDataPoints(datapoints);
 
-        MoneyAmountSeries series = Inflation.ARS_INFLATION.adjust(JSONMoneyAmountSeries.readSeries("unlp.json"), 1999, 11);
-        series.forEach(new MoneyAmountSeriesProcessor() {
+        //MoneyAmountSeries series = JSONMoneyAmountSeries.readSeries("unlp.json");
+        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(4);
+        if (pr) {
+            seriesList.add(this.getDatum("line", "blue", "Pesos Reales", this.getRealPesosDatapoints(months, series)));
+        }
+        if (pn) {
+            seriesList.add(this.getDatum("line", "red", "Pesos Nominales", this.getNominalPesosDatapoints(months, series)));
+        }
+        if (dr) {
+            seriesList.add(this.getDatum("line", "green", "USD Reales", this.getRealUSDDatapoints(months, series)));
+        }
+        if (dn) {
+            seriesList.add(this.getDatum("line", "black", "USD Nominales", this.getNominalUSDDatapoints(months, series)));
+        }
 
-            @Override
-            public void process(int year, int month, MoneyAmount amount) {
-                CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
-                        "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-1"), amount.getAmount());
-                datapoints.add(dataPoint);
-            }
-        });
+        dto.setData(seriesList);
+
         return dto;
+    }
+
+    private CanvasJSDatumDTO getDatum(String type, String color, String name, List<CanvasJSDatapointDTO> datapoints) {
+        CanvasJSDatumDTO datum = new CanvasJSDatumDTO();
+        datum.setType(type);
+        datum.setColor(color);
+        datum.setLegendText(name);
+        datum.setShowInLegend(true);
+        datum.setName(name);
+        datum.setDataPoints(datapoints);
+        return datum;
+    }
+
+    private List<CanvasJSDatapointDTO> getRealPesosDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
+        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        MoneyAmountSeries series = new SimpleAverage(months).average(Inflation.ARS_INFLATION.adjust(sourceSeries, 1999, 11));
+        series.forEach(new MoneyAmountProcessorImpl(datapoints));
+        return datapoints;
+    }
+
+    private List<CanvasJSDatapointDTO> getNominalPesosDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
+        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        MoneyAmountSeries series = new SimpleAverage(months).average(sourceSeries);
+        series.forEach(new MoneyAmountProcessorImpl(datapoints));
+        return datapoints;
+    }
+
+    private List<CanvasJSDatapointDTO> getNominalUSDDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
+        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        MoneyAmountSeries series = new SimpleAverage(months).average(
+                ForeignExchange.INSTANCE.exchange(
+                        sourceSeries, Currency.getInstance("USD")
+                ));
+        series.forEach(new MoneyAmountProcessorImpl(datapoints));
+        return datapoints;
+    }
+
+    private List<CanvasJSDatapointDTO> getRealUSDDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
+        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        MoneyAmountSeries series = new SimpleAverage(months).average(
+                Inflation.USD_INFLATION.adjust(
+                        ForeignExchange.INSTANCE.exchange(
+                                sourceSeries, Currency.getInstance("USD")
+                        ), 1999, 11));
+        series.forEach(new MoneyAmountProcessorImpl(datapoints));
+        return datapoints;
+    }
+
+    private static class MoneyAmountProcessorImpl implements MoneyAmountProcessor {
+
+        private final List<CanvasJSDatapointDTO> datapoints;
+
+        public MoneyAmountProcessorImpl(List<CanvasJSDatapointDTO> datapoints) {
+            this.datapoints = datapoints;
+        }
+
+        @Override
+        public void process(int year, int month, MoneyAmount amount) {
+            CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
+                    "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-1"), amount.getAmount());
+            datapoints.add(dataPoint);
+        }
     }
 
 }

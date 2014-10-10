@@ -29,6 +29,7 @@ public class CanvasJSChartDTO {
     private List<CanvasJSDatumDTO> data;
     private CanvasJSAxisDTO axisX;
     private CanvasJSAxisDTO axisY;
+    private boolean exportEnabled = true;
 
     public CanvasJSTitleDTO getTitle() {
         return title;
@@ -80,6 +81,14 @@ public class CanvasJSChartDTO {
 
     public void setSuccessful(boolean successful) {
         this.successful = successful;
+    }
+
+    public boolean isExportEnabled() {
+        return exportEnabled;
+    }
+
+    public void setExportEnabled(boolean exportEnabled) {
+        this.exportEnabled = exportEnabled;
     }
 
 }
