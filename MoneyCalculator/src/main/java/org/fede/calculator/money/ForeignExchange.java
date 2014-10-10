@@ -36,7 +36,6 @@ public interface ForeignExchange {
     int getFromMonth(Currency from, Currency to);
 
     int getToMonth(Currency from, Currency to);
-    
 
     MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) throws NoSeriesDataFoundException;
 }

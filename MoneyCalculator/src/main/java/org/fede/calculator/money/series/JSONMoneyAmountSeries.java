@@ -177,11 +177,24 @@ public class JSONMoneyAmountSeries implements MoneyAmountSeries {
     }
 
     @Override
-    public void forEach(MoneyAmountSeriesProcessor processor) {
+    public void forEach(MoneyAmountProcessor processor) {
         for (Iterator<Map.Entry<YearMonth, MoneyAmount>> it = this.values.entrySet().iterator(); it.hasNext();) {
             Map.Entry<YearMonth, MoneyAmount> entry = it.next();
             processor.process(entry.getKey().year, entry.getKey().month, entry.getValue());
         }
+    }
+
+    @Override
+    public MoneyAmountSeries map(MoneyAmountTransform transform) {
+        MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.currency);
+        for (Iterator<Map.Entry<YearMonth, MoneyAmount>> it = this.values.entrySet().iterator(); it.hasNext();) {
+            Map.Entry<YearMonth, MoneyAmount> entry = it.next();
+            answer.putAmount(
+                    entry.getKey().year,
+                    entry.getKey().month,
+                    transform.transform(entry.getKey().year, entry.getKey().month, entry.getValue()));
+        }
+        return answer;
     }
 
 }

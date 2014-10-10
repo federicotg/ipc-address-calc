@@ -26,11 +26,13 @@ import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.series.CachedSeries;
 import org.fede.calculator.money.series.DollarCPISeries;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.money.SimpleAverage;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -295,4 +297,24 @@ public class DollarTest {
         assertEquals(expected, result);
     }
 
+    
+    @Test
+    public void averages() throws NoSeriesDataFoundException{
+        MoneyAmountSeries series = JSONMoneyAmountSeries.readSeries("unlp.json");
+        MoneyAmountSeries averaged = new SimpleAverage(6).average(JSONMoneyAmountSeries.readSeries("unlp.json"));
+        
+        assertEquals(series.getAmount(series.getFromYear(), series.getFromMonth()), averaged.getAmount(averaged.getFromYear(), averaged.getFromMonth()));
+        
+        BigDecimal x1 = series.getAmount(2010, 1).getAmount();
+        BigDecimal x2 = series.getAmount(2010, 2).getAmount();
+        BigDecimal x3 = series.getAmount(2010, 3).getAmount();
+        BigDecimal x4 = series.getAmount(2010, 4).getAmount();
+        BigDecimal x5 = series.getAmount(2010, 5).getAmount();
+        BigDecimal x6 = series.getAmount(2010, 6).getAmount();
+        
+        BigDecimal value = averaged.getAmount(2010, 6).getAmount();
+        BigDecimal expected = x1.add(x2).add(x3).add(x4).add(x5).add(x6).divide(new BigDecimal(6), MathConstants.CONTEXT);
+        assertEquals(expected, value);
+        
+    }
 }
