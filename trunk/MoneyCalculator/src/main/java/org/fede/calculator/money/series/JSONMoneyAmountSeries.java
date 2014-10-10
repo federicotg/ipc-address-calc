@@ -36,7 +36,7 @@ import org.fede.calculator.money.json.JSONSeries;
  *
  * @author fede
  */
-public class JSONMoneyAmountSeries implements MoneyAmountSeries {
+public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountSeries {
 
     public static MoneyAmountSeries readSeries(String name) {
         try (InputStream is = JSONIndexSeries.class.getResourceAsStream("/" + name)) {
@@ -47,40 +47,6 @@ public class JSONMoneyAmountSeries implements MoneyAmountSeries {
         }
     }
 
-    private class YearMonth implements Comparable<YearMonth> {
-
-        private final int year;
-        private final int month;
-
-        public YearMonth(int year, int month) {
-            this.year = year;
-            this.month = month;
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 3;
-            hash = 83 * hash + this.year;
-            hash = 83 * hash + this.month;
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj instanceof YearMonth
-                    && this.year == ((YearMonth) obj).year
-                    && this.month == ((YearMonth) obj).month;
-        }
-
-        @Override
-        public int compareTo(YearMonth o) {
-            if (o.year == this.year) {
-                return this.month - o.month;
-            }
-            return this.year - o.year;
-        }
-
-    }
     private final Currency currency;
     private final SortedMap<YearMonth, MoneyAmount> values;
 
@@ -121,22 +87,22 @@ public class JSONMoneyAmountSeries implements MoneyAmountSeries {
 
     @Override
     public int getFromYear() {
-        return this.values.firstKey().year;
+        return this.values.firstKey().getYear();
     }
 
     @Override
     public int getToYear() {
-        return this.values.lastKey().year;
+        return this.values.lastKey().getYear();
     }
 
     @Override
     public int getFromMonth() {
-        return this.values.firstKey().month;
+        return this.values.firstKey().getMonth();
     }
 
     @Override
     public int getToMonth() {
-        return this.values.lastKey().month;
+        return this.values.lastKey().getMonth();
     }
 
     @Override
@@ -167,7 +133,7 @@ public class JSONMoneyAmountSeries implements MoneyAmountSeries {
         try {
             for (Iterator<Map.Entry<YearMonth, MoneyAmount>> it = this.values.entrySet().iterator(); it.hasNext();) {
                 Map.Entry<YearMonth, MoneyAmount> e = it.next();
-                equal &= e.getValue().equals(other.getAmount(e.getKey().year, e.getKey().month));
+                equal &= e.getValue().equals(other.getAmount(e.getKey().getYear(), e.getKey().getMonth()));
             }
             return equal;
         } catch (NoSeriesDataFoundException ex) {
@@ -180,7 +146,7 @@ public class JSONMoneyAmountSeries implements MoneyAmountSeries {
     public void forEach(MoneyAmountProcessor processor) {
         for (Iterator<Map.Entry<YearMonth, MoneyAmount>> it = this.values.entrySet().iterator(); it.hasNext();) {
             Map.Entry<YearMonth, MoneyAmount> entry = it.next();
-            processor.process(entry.getKey().year, entry.getKey().month, entry.getValue());
+            processor.process(entry.getKey().getYear(), entry.getKey().getMonth(), entry.getValue());
         }
     }
 
@@ -190,9 +156,9 @@ public class JSONMoneyAmountSeries implements MoneyAmountSeries {
         for (Iterator<Map.Entry<YearMonth, MoneyAmount>> it = this.values.entrySet().iterator(); it.hasNext();) {
             Map.Entry<YearMonth, MoneyAmount> entry = it.next();
             answer.putAmount(
-                    entry.getKey().year,
-                    entry.getKey().month,
-                    transform.transform(entry.getKey().year, entry.getKey().month, entry.getValue()));
+                    entry.getKey().getYear(),
+                    entry.getKey().getMonth(),
+                    transform.transform(entry.getKey().getYear(), entry.getKey().getMonth(), entry.getValue()));
         }
         return answer;
     }
