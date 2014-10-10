@@ -60,6 +60,7 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
 
     @Override
     public MoneyAmountSeries adjust(MoneyAmount amount, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
+        
         final int fromYear = this.getFrom().getYear();
         final int fromMonth = this.getFrom().getMonth();
 
