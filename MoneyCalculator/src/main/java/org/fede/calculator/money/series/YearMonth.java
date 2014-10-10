@@ -21,6 +21,7 @@ package org.fede.calculator.money.series;
  * @author fede
  */
 public class YearMonth implements Comparable<YearMonth> {
+    
     private final int year;
     private final int month;
 
@@ -57,5 +58,5 @@ public class YearMonth implements Comparable<YearMonth> {
     public int getMonth() {
         return month;
     }
-    
+       
 }

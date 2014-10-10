@@ -72,18 +72,21 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
         cal.setTime(day);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH);
-        return this.getAmount(year, month);
+        return this.getAmount(year, month + 1);
 
     }
 
     @Override
     public MoneyAmount getAmount(int year, int month) throws NoSeriesDataFoundException {
-        return this.values.get(new YearMonth(year, month));
-    }
-
-    @Override
-    public MoneyAmount getAmount(int year) throws NoSeriesDataFoundException {
-        return this.getAmount(year, 1);
+        MoneyAmount answer = this.values.get(new YearMonth(year, month));
+        if (answer == null) {
+            YearMonth moment = new YearMonth(year, month);
+            if (moment.compareTo(this.getFrom()) > 0 && moment.compareTo(this.getTo()) < 0) {
+                return this.values.get(this.values.headMap(moment).lastKey());
+            }
+            throw new NoSeriesDataFoundException("No value for specified year and month.");
+        }
+        return answer;
     }
 
     @Override
@@ -132,7 +135,7 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
     }
 
     @Override
-    public void forEach(MoneyAmountProcessor processor) {
+    public void forEach(MoneyAmountProcessor processor) throws NoSeriesDataFoundException {
         for (Iterator<Map.Entry<YearMonth, MoneyAmount>> it = this.values.entrySet().iterator(); it.hasNext();) {
             Map.Entry<YearMonth, MoneyAmount> entry = it.next();
             processor.process(entry.getKey().getYear(), entry.getKey().getMonth(), entry.getValue());
@@ -149,6 +152,47 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
                     entry.getKey().getMonth(),
                     transform.transform(entry.getKey().getYear(), entry.getKey().getMonth(), entry.getValue()));
         }
+        return answer;
+    }
+
+    @Override
+    public MoneyAmountSeries add(final MoneyAmountSeries other) throws NoSeriesDataFoundException {
+        final MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.currency);
+        final YearMonth otherStart = other.getFrom();
+        final YearMonth otherEnd = other.getTo();
+
+        if (this.getFrom().compareTo(other.getFrom()) > 0) {
+            return other.add(this);
+        }
+
+        //this empieza antes o son iguales
+        this.forEach(new MoneyAmountProcessor() {
+
+            @Override
+            public void process(int thisYear, int thisMonth, MoneyAmount amount) throws NoSeriesDataFoundException {
+                YearMonth now = new YearMonth(thisYear, thisMonth);
+                if (now.compareTo(otherStart) < 0 || now.compareTo(otherEnd) > 0) {
+                    answer.putAmount(thisYear, thisMonth, amount);
+                } else {
+                    answer.putAmount(thisYear, thisMonth, amount.add(other.getAmount(thisYear, thisMonth)));
+                }
+            }
+        });
+
+        // si el otro termina despues tengo que copiar sus valores al resultado.
+        final YearMonth thisEnd = this.getTo();
+
+        other.forEach(new MoneyAmountProcessor() {
+
+            @Override
+            public void process(int year, int month, MoneyAmount amount) throws NoSeriesDataFoundException {
+                final YearMonth otherNow = new YearMonth(year, month);
+                if (otherNow.compareTo(thisEnd) > 0) {
+                    answer.putAmount(year, month, amount);
+                }
+            }
+        });
+
         return answer;
     }
 
