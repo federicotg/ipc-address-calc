@@ -102,17 +102,37 @@ public class CanvasJSChartService implements ChartService {
 
     @Override
     public CanvasJSChartDTO unlp(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
-        return this.createCombinedChart(JSONMoneyAmountSeries.readSeries("unlp.json"), months, pn, pr, dn, dr);
+        return this.createCombinedChart(
+                "Sueldo UNLP",
+                JSONMoneyAmountSeries.readSeries("unlp.json"), months, pn, pr, dn, dr);
     }
 
     @Override
     public CanvasJSChartDTO lifia(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
-        return this.createCombinedChart(JSONMoneyAmountSeries.readSeries("lifia.json"), months, pn, pr, dn, dr);
+        return this.createCombinedChart(
+                "Sueldo LIFIA",
+                JSONMoneyAmountSeries.readSeries("lifia.json"), months, pn, pr, dn, dr);
     }
 
-    private CanvasJSChartDTO createCombinedChart(MoneyAmountSeries series, int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+    @Override
+    public CanvasJSChartDTO lifiaAndUnlp(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+        return this.createCombinedChart("Sueldo LIFIA + UNLP",
+                JSONMoneyAmountSeries.readSeries("unlp.json").add(JSONMoneyAmountSeries.readSeries("lifia.json")),
+                months, pn, pr, dn, dr);
+    }
+
+    @Override
+    public CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+        MoneyAmountSeries ars = JSONMoneyAmountSeries.readSeries("ahorros-peso.json");
+        MoneyAmountSeries usd = ForeignExchange.INSTANCE.exchange(JSONMoneyAmountSeries.readSeries("ahorros-dolar.json"), Currency.getInstance("ARS"));
+        return this.createCombinedChart("Ahorros",
+                usd.add(ars),
+                1, pn, pr, dn, dr);
+    }
+
+    private CanvasJSChartDTO createCombinedChart(String titleText, MoneyAmountSeries series, int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Sueldo promedio " + months + " meses");
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO(titleText);
         dto.setTitle(title);
         dto.setXAxisTitle("Año");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
@@ -196,7 +216,7 @@ public class CanvasJSChartService implements ChartService {
         @Override
         public void process(int year, int month, MoneyAmount amount) {
             CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
-                    "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-1"), amount.getAmount());
+                    "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-28"), amount.getAmount());
             datapoints.add(dataPoint);
         }
     }

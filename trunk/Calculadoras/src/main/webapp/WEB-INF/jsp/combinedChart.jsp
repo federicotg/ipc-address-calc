@@ -69,7 +69,7 @@
         <label for="pr">Pesos Reales</label><input type="checkbox" id="pr" checked onchange="reloadChart()"/><br/>
         <label for="dn">Dólares Nominales</label><input type="checkbox" id="dn" checked onchange="reloadChart()"/><br/>
         <label for="dr">Dólares Reales</label><input type="checkbox" id="dr" checked onchange="reloadChart()"/>
-        <div id="combined" style="height:400px;"></div>
+        <div id="combined" style="height:500px;"></div>
 
 
     </body>

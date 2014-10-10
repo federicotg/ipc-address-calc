@@ -22,7 +22,6 @@ import javax.annotation.Resource;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.ChartService;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
-import org.fede.calculator.web.dto.LaPlataAddressDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -54,6 +53,11 @@ public class ChartController {
         return dto;
     }
 
+    @RequestMapping(value = "", method = RequestMethod.GET)
+    public String chartList() {
+        return "charts";
+    }
+
     @RequestMapping(value = "unlpCombined", method = RequestMethod.GET)
     public CanvasJSChartDTO unlpCombined(
             @RequestParam(value = "months", required = false, defaultValue = "6") int months,
@@ -70,17 +74,37 @@ public class ChartController {
         ModelAndView mav = new ModelAndView("combinedChart");
         mav.addObject("uri", "unlpCombined");
         mav.addObject("title", "UNLP");
-        
+
         return mav;
     }
-@RequestMapping(value = "lifia", method = RequestMethod.GET)
+
+    @RequestMapping(value = "lifia", method = RequestMethod.GET)
     public ModelAndView lifia() {
         ModelAndView mav = new ModelAndView("combinedChart");
         mav.addObject("uri", "lifiaCombined");
         mav.addObject("title", "LIFIA");
-        
+
         return mav;
     }
+
+    @RequestMapping(value = "lifiaAndUnlp", method = RequestMethod.GET)
+    public ModelAndView lifiaAndUnlp() {
+        ModelAndView mav = new ModelAndView("combinedChart");
+        mav.addObject("uri", "lifiaAndUnlpCombined");
+        mav.addObject("title", "LIFIA + UNLP");
+
+        return mav;
+    }
+
+    @RequestMapping(value = "savings", method = RequestMethod.GET)
+    public ModelAndView savings() {
+        ModelAndView mav = new ModelAndView("combinedChart");
+        mav.addObject("uri", "savingsCombined");
+        mav.addObject("title", "Ahorros");
+
+        return mav;
+    }
+
     @RequestMapping(value = "lifiaCombined", method = RequestMethod.GET)
     public CanvasJSChartDTO lifiaCombined(@RequestParam(value = "months", required = false, defaultValue = "6") int months,
             @RequestParam(value = "pn", required = false, defaultValue = "false") boolean pn,
@@ -89,6 +113,26 @@ public class ChartController {
             @RequestParam(value = "dr", required = false, defaultValue = "true") boolean dr)
             throws NoSeriesDataFoundException {
         return this.chartService.lifia(months, pn, pr, dn, dr);
+    }
+
+    @RequestMapping(value = "lifiaAndUnlpCombined", method = RequestMethod.GET)
+    public CanvasJSChartDTO lifiaAndUnlpCombined(@RequestParam(value = "months", required = false, defaultValue = "6") int months,
+            @RequestParam(value = "pn", required = false, defaultValue = "false") boolean pn,
+            @RequestParam(value = "pr", required = false, defaultValue = "true") boolean pr,
+            @RequestParam(value = "dn", required = false, defaultValue = "true") boolean dn,
+            @RequestParam(value = "dr", required = false, defaultValue = "true") boolean dr)
+            throws NoSeriesDataFoundException {
+        return this.chartService.lifiaAndUnlp(months, pn, pr, dn, dr);
+    }
+
+    @RequestMapping(value = "savingsCombined", method = RequestMethod.GET)
+    public CanvasJSChartDTO savingsCombined(@RequestParam(value = "months", required = false, defaultValue = "6") int months,
+            @RequestParam(value = "pn", required = false, defaultValue = "false") boolean pn,
+            @RequestParam(value = "pr", required = false, defaultValue = "true") boolean pr,
+            @RequestParam(value = "dn", required = false, defaultValue = "true") boolean dn,
+            @RequestParam(value = "dr", required = false, defaultValue = "true") boolean dr)
+            throws NoSeriesDataFoundException {
+        return this.chartService.savings(pn, pr, dn, dr);
     }
 
 }
