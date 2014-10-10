@@ -59,7 +59,7 @@ public class USDMoneyService implements MoneyService {
     @Override
     public CurrencyLimitsDTO getLimits() {
 
-        return new CurrencyLimitsDTO(CURRENCY_DTO, USD_INFLATION.getFromYear(), USD_INFLATION.getToYear());
+        return new CurrencyLimitsDTO(CURRENCY_DTO, USD_INFLATION.getFrom().getYear(), USD_INFLATION.getTo().getYear());
     }
 
 }
