@@ -276,5 +276,20 @@ public class DollarTest {
         assertEquals(ForeignExchange.INSTANCE.getTo().getYear(), dolarizedSeries.getTo().getYear());
         assertEquals(ForeignExchange.INSTANCE.getTo().getMonth(), dolarizedSeries.getTo().getMonth());
         
+        assertEquals(series.getFrom().getYear(), dolarizedSeries.getFrom().getYear());
+        assertEquals(series.getFrom().getMonth(), dolarizedSeries.getFrom().getMonth());
+    }
+    
+    @Test
+    public void inflationLimits() throws NoSeriesDataFoundException{
+        MoneyAmountSeries series = JSONMoneyAmountSeries.readSeries("lifia.json");
+        MoneyAmountSeries inflatedSeries = Inflation.ARS_INFLATION.adjust(series, 1962, 9);
+        
+        assertEquals(Inflation.ARS_INFLATION.getTo().getYear(), inflatedSeries.getTo().getYear());
+        assertEquals(Inflation.ARS_INFLATION.getTo().getMonth(), inflatedSeries.getTo().getMonth());
+        
+        assertEquals(series.getFrom().getYear(), inflatedSeries.getFrom().getYear());
+        assertEquals(series.getFrom().getMonth(), inflatedSeries.getFrom().getMonth());
+        
     }
 }
