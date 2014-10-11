@@ -23,8 +23,7 @@
         <li><a href="/">¿Entre Qué y Qué?</a></li>
         <li><a href="/money">Inflación</a></li>
             <sec:authorize access="isFullyAuthenticated()">
-            <li><a href="/secure/unlp">UNLP</a></li>
-            <li><a href="/secure/lifia">Lifia</a></li>
+            <li><a href="/secure/">Gráficos</a></li>
             <li><a href="/logout">Cerrar sesión</a></li>
             </sec:authorize>
     </ul>
