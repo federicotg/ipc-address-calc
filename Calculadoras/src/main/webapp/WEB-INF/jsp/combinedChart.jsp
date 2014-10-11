@@ -17,6 +17,8 @@
  
 --%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <!DOCTYPE html>
 <html>
     <head profile="http://www.w3.org/25/10/profile">
@@ -40,18 +42,21 @@
 
             function reloadChart() {
                 document.id('combined').empty();
-                var m = document.id('months').value;
+                if (document.id('months')) {
+                    var m = document.id('months').value;
+                }
+
                 var pn = document.id('pn').checked;
                 var pr = document.id('pr').checked;
                 var dn = document.id('dn').checked;
                 var dr = document.id('dr').checked;
                 showChart('/secure/${uri}.json',
-                        'months=' + m
+                        (m ? 'months=' + m : '')
                         + '&pn=' + pn
                         + '&pr=' + pr
                         + '&dn=' + dn
-                        + '&dr=' + dr, 
-                'combined');
+                        + '&dr=' + dr,
+                        'combined');
             }
 
         </script>
@@ -59,18 +64,21 @@
     <body>
         <%@include file="../jspf/menu.jspf" %>
         <h1>${title}</h1>
-        <label for="months">Promediar</label>
-        <select id="months" onchange="reloadChart()">
-            <option value="1">1</option>
-            <option value="6" selected="selected">6</option>
-            <option value="12">12</option>
-        </select><label for="months">meses.</label><br/>
-        <label for="pn">Pesos Nominales</label><input type="checkbox" id="pn" onchange="reloadChart()"/><br/>
-        <label for="pr">Pesos Reales</label><input type="checkbox" id="pr" checked onchange="reloadChart()"/><br/>
-        <label for="dn">Dólares Nominales</label><input type="checkbox" id="dn" checked onchange="reloadChart()"/><br/>
-        <label for="dr">Dólares Reales</label><input type="checkbox" id="dr" checked onchange="reloadChart()"/>
+        <form:form modelAttribute="dto">
+            <c:if test="${not empty monthlyPeriods}">
+                <label for="months">Aplicar promedio </label>
+                <form:select id="months" path="months" onchange="reloadChart()">
+                    <c:forEach items="${monthlyPeriods}" var="p">
+                        <form:option value="${p.value}">${p.key}</form:option>
+                    </c:forEach>
+                </form:select><br/>
+            </c:if>
+
+            <label for="pn">Pesos Nominales</label><form:checkbox id="pn" path="pn" onchange="reloadChart()"/><br/>
+            <label for="pr">Pesos Reales</label><form:checkbox id="pr" path="pr" onchange="reloadChart()"/><br/>
+            <label for="dn">Dólares Nominales</label><form:checkbox id="dn" path="dn" onchange="reloadChart()"/><br/>
+            <label for="dr">Dólares Reales</label><form:checkbox id="dr" path="dr" onchange="reloadChart()"/>
+        </form:form>
         <div id="combined" style="height:600px;"></div>
-
-
     </body>
 </html>

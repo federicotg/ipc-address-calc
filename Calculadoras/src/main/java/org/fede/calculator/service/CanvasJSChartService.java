@@ -221,4 +221,9 @@ public class CanvasJSChartService implements ChartService {
         }
     }
 
+    @Override
+    public CanvasJSChartDTO expenses(int months) throws NoSeriesDataFoundException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

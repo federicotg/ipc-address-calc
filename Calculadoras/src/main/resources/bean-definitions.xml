@@ -22,4 +22,13 @@
     </util:map>
     
     
+    <util:map id="monthlyPeriod" key-type="java.lang.String" value-type="java.lang.Integer">
+        <entry key="mensual" value="1" />
+        <entry key="bimestral" value="2" />
+        <entry key="trimestral" value="3" />
+        <entry key="semestral" value="6" />
+        <entry key="anual" value="12" />
+        <entry key="bienal" value="24" />
+    </util:map>
+    
 </beans>
