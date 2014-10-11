@@ -21,7 +21,7 @@ package org.fede.calculator.money.series;
  * @author fede
  */
 public class YearMonth implements Comparable<YearMonth> {
-    
+
     private final int year;
     private final int month;
 
@@ -58,5 +58,18 @@ public class YearMonth implements Comparable<YearMonth> {
     public int getMonth() {
         return month;
     }
-       
+
+    public int monthsUntil(YearMonth other) {
+        if (this.compareTo(other) < 0) {
+            return ((other.getYear() - this.getYear()) * 12) + (other.getMonth() - this.getMonth());
+        }
+        return 0;
+    }
+
+    public YearMonth next() {
+        if (this.month == 12) {
+            return new YearMonth(this.year + 1, 1);
+        }
+        return new YearMonth(this.year, this.month + 1);
+    }
 }

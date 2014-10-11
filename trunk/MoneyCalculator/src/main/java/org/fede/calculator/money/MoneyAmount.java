@@ -17,8 +17,6 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
-import static java.math.MathContext.DECIMAL128;
 import java.math.RoundingMode;
 import java.util.Currency;
 import java.util.Objects;

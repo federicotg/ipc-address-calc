@@ -26,6 +26,7 @@ public class JSONSeries {
 
     private String currency;
     private List<JSONDataPoint> data;
+    private String interpolation = "NO_INTERPOLATION";
 
     private JSONSeries() {
 
@@ -47,4 +48,11 @@ public class JSONSeries {
         this.data = data;
     }
 
+    public String getInterpolation() {
+        return interpolation;
+    }
+
+    public void setInterpolation(String interpolation) {
+        this.interpolation = interpolation;
+    }
 }
