@@ -34,5 +34,7 @@ public interface ChartService {
     CanvasJSChartDTO lifiaAndUnlp(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException;
     
     CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException;
+    
+    CanvasJSChartDTO expenses(int months) throws NoSeriesDataFoundException;
 
 }
