@@ -16,47 +16,23 @@
  */
 package org.fede.calculator.web.dto;
 
+import javax.validation.constraints.Min;
+
 /**
  *
  * @author fede
  */
-public class CombinedChartDTO extends MonthlyGroupingChartDTO {
+public class MonthlyGroupingChartDTO {
 
-    private boolean pn = false;
-    private boolean pr = true;
-    private boolean dn = true;
-    private boolean dr = true;
+    @Min(1)
+    private int months = 6;
 
-    public boolean isPn() {
-        return pn;
+    public int getMonths() {
+        return months;
     }
 
-    public void setPn(boolean pn) {
-        this.pn = pn;
-    }
-
-    public boolean isPr() {
-        return pr;
-    }
-
-    public void setPr(boolean pr) {
-        this.pr = pr;
-    }
-
-    public boolean isDn() {
-        return dn;
-    }
-
-    public void setDn(boolean dn) {
-        this.dn = dn;
-    }
-
-    public boolean isDr() {
-        return dr;
-    }
-
-    public void setDr(boolean dr) {
-        this.dr = dr;
+    public void setMonths(int months) {
+        this.months = months;
     }
 
 }

@@ -223,7 +223,38 @@ public class CanvasJSChartService implements ChartService {
 
     @Override
     public CanvasJSChartDTO expenses(int months) throws NoSeriesDataFoundException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        String[][] data = new String[][]{
+            new String[]{"red", "Cablevisión", "cablevision.json"},
+            new String[]{"pink", "celular A.", "celular-a.json"},
+            new String[]{"orange", "celular F.", "celular-f.json"},
+            new String[]{"black", "contadora", "contadora.json"},
+            new String[]{"maroon", "expensas", "expensas.json"},
+            new String[]{"cyan", "gas", "gas.json"},
+            new String[]{"darkgreen", "inmobiliario", "inmobiliario-43.json"},
+            new String[]{"magenta", "IOMA", "ioma.json"},
+            new String[]{"salmon", "luz", "luz.json"},
+            new String[]{"gray", "municipal", "municipal-43.json"},
+            new String[]{"violet", "seguro", "seguro.json"},
+            new String[]{"lightblue", "teléfono", "telefono-43.json"},
+            new String[]{"blue", "UDEC", "udec.json"}
+        };
+
+        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(13);
+        for(String[] s : data){
+            seriesList.add(this.getDatum("line", s[0], s[1], this.getRealPesosDatapoints(months, JSONMoneyAmountSeries.readSeries(s[2]))));
+        }
+
+        CanvasJSChartDTO dto = new CanvasJSChartDTO();
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Gastos");
+        dto.setTitle(title);
+        dto.setXAxisTitle("Fecha");
+        CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
+        yAxis.setTitle("Pesos Reales");
+        yAxis.setValueFormatString("$0");
+        dto.setAxisY(yAxis);
+        dto.setData(seriesList);
+        return dto;
     }
 
 }

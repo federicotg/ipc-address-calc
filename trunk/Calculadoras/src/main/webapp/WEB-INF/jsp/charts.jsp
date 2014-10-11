@@ -36,6 +36,7 @@
             <li><a href="lifia">LIFIA</a></li>
             <li><a href="lifiaAndUnlp">LIFIA + UNLP</a></li>
             <li><a href="savings">Ahorros</a></li>
+            <li><a href="expenses">Gastos</a></li>
         </ul>
 
     </body>
