@@ -42,21 +42,8 @@
 
             function reloadChart() {
                 document.id('chartContainer').empty();
-                if (document.id('months')) {
-                    var m = document.id('months').value;
-                }
-
-                var pn = document.id('pn').checked;
-                var pr = document.id('pr').checked;
-                var dn = document.id('dn').checked;
-                var dr = document.id('dr').checked;
-                showChart('/secure/${uri}.json',
-                        (m ? 'months=' + m : '')
-                        + '&pn=' + pn
-                        + '&pr=' + pr
-                        + '&dn=' + dn
-                        + '&dr=' + dr,
-                        'chartContainer');
+                var m = document.id('months').value;
+                showChart('/secure/${uri}.json', 'months=' + m, 'chartContainer');
             }
 
         </script>
@@ -73,11 +60,6 @@
                     </c:forEach>
                 </form:select><br/>
             </c:if>
-
-            <label for="pn">Pesos Nominales</label><form:checkbox id="pn" path="pn" onchange="reloadChart()"/><br/>
-            <label for="pr">Pesos Reales</label><form:checkbox id="pr" path="pr" onchange="reloadChart()"/><br/>
-            <label for="dn">Dólares Nominales</label><form:checkbox id="dn" path="dn" onchange="reloadChart()"/><br/>
-            <label for="dr">Dólares Reales</label><form:checkbox id="dr" path="dr" onchange="reloadChart()"/>
         </form:form>
         <div id="chartContainer" style="height:600px;"></div>
     </body>

@@ -25,6 +25,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.ChartService;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CombinedChartDTO;
+import org.fede.calculator.web.dto.MonthlyGroupingChartDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -105,6 +106,16 @@ public class ChartController {
         return mav;
     }
 
+    @RequestMapping(value = "expenses", method = RequestMethod.GET)
+    public ModelAndView expenses() {
+        ModelAndView mav = new ModelAndView("simpleChart");
+        mav.addObject("uri", "expensesChart");
+        mav.addObject("title", "Gastos");
+        mav.addObject("monthlyPeriods", this.monthlyPeriods);
+        mav.addObject("dto", new MonthlyGroupingChartDTO());
+        return mav;
+    }
+
     @ResponseBody
     @RequestMapping(value = "unlpCombined", method = RequestMethod.GET)
     public CanvasJSChartDTO unlpCombined(@ModelAttribute("dto") @Valid CombinedChartDTO dto, BindingResult errors)
@@ -151,6 +162,18 @@ public class ChartController {
             return notOk;
         }
         return this.chartService.savings(dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr());
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "expensesChart", method = RequestMethod.GET)
+    public CanvasJSChartDTO expensesChart(@ModelAttribute("dto") @Valid MonthlyGroupingChartDTO dto, BindingResult errors)
+            throws NoSeriesDataFoundException {
+        if (errors.hasErrors()) {
+            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
+            notOk.setSuccessful(false);
+            return notOk;
+        }
+        return this.chartService.expenses(dto.getMonths());
     }
 
 }
