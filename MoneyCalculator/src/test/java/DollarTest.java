@@ -17,6 +17,7 @@
 import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import java.util.Arrays;
 import java.util.Currency;
 import static org.fede.calculator.money.ArgCurrency.*;
 import org.fede.calculator.money.CPIInflation;
@@ -31,9 +32,13 @@ import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAverage;
+import org.fede.calculator.money.SimpleForeignExchange;
+import org.fede.calculator.money.json.JSONDataPoint;
+import org.fede.calculator.money.series.InterpolationStrategy;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.YearMonth;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -190,7 +195,7 @@ public class DollarTest {
         MoneyAmount xDollars = ForeignExchange.INSTANCE.exchange(pesos10, Currency.getInstance("USD"), 1981, 6);
         assertEquals(new MoneyAmount(new BigDecimal("0.00141844"), "USD"), xDollars);
     }
-    
+
     @Test
     public void inflate() throws NoSeriesDataFoundException {
         MoneyAmountSeries unlp = JSONMoneyAmountSeries.readSeries("unlp.json");
@@ -207,7 +212,6 @@ public class DollarTest {
     public void historicDollar() throws NoSeriesDataFoundException {
 
         //Inflation localUSDInflation = new CPIInflation(new DollarCPISeries(new JSONBlsCPISource("bls.json")), Currency.getInstance("USD"));
-
         final int todayYear = 2013;
         final int todayMonth = 8;
 
@@ -226,11 +230,11 @@ public class DollarTest {
         }
         final int year = Inflation.ARS_INFLATION.getTo().getYear();
         for (int month = 1; month <= Inflation.ARS_INFLATION.getTo().getMonth(); month++) {
-                MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
-                MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
-                MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
-                expected.putAmount(year, month, ma);
-            }
+            MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
+            MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
+            MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
+            expected.putAmount(year, month, ma);
+        }
 
         MoneyAmountSeries result = Inflation.ARS_INFLATION.adjust(
                 ForeignExchange.INSTANCE.exchange(
@@ -239,68 +243,126 @@ public class DollarTest {
         assertEquals(expected, result);
     }
 
-    
     @Test
-    public void averages() throws NoSeriesDataFoundException{
+    public void averages() throws NoSeriesDataFoundException {
         MoneyAmountSeries series = JSONMoneyAmountSeries.readSeries("unlp.json");
         MoneyAmountSeries averaged = new SimpleAverage(6).average(JSONMoneyAmountSeries.readSeries("unlp.json"));
-        
+
         assertEquals(series.getAmount(series.getFrom().getYear(), series.getFrom().getMonth()), averaged.getAmount(averaged.getFrom().getYear(), averaged.getFrom().getMonth()));
-        
+
         BigDecimal x1 = series.getAmount(2010, 1).getAmount();
         BigDecimal x2 = series.getAmount(2010, 2).getAmount();
         BigDecimal x3 = series.getAmount(2010, 3).getAmount();
         BigDecimal x4 = series.getAmount(2010, 4).getAmount();
         BigDecimal x5 = series.getAmount(2010, 5).getAmount();
         BigDecimal x6 = series.getAmount(2010, 6).getAmount();
-        
+
         BigDecimal value = averaged.getAmount(2010, 6).getAmount();
         BigDecimal expected = x1.add(x2).add(x3).add(x4).add(x5).add(x6).divide(new BigDecimal(6), MathConstants.CONTEXT);
         assertEquals(expected, value);
-        
+
     }
-    
+
     @Test
-    public void limits() throws NoSeriesDataFoundException{
+    public void limits() throws NoSeriesDataFoundException {
         assertEquals(1913, Inflation.USD_INFLATION.getFrom().getYear());
         assertEquals(1, Inflation.USD_INFLATION.getFrom().getMonth());
-        
+
         assertEquals(2014, Inflation.USD_INFLATION.getTo().getYear());
         assertEquals(8, Inflation.USD_INFLATION.getTo().getMonth());
-        
+
         MoneyAmountSeries series = JSONMoneyAmountSeries.readSeries("lifia.json");
         MoneyAmountSeries dolarizedSeries = ForeignExchange.INSTANCE.exchange(series, Currency.getInstance("USD"));
-        
+
         assertEquals(ForeignExchange.INSTANCE.getTo().getYear(), dolarizedSeries.getTo().getYear());
         assertEquals(ForeignExchange.INSTANCE.getTo().getMonth(), dolarizedSeries.getTo().getMonth());
-        
+
         assertEquals(series.getFrom().getYear(), dolarizedSeries.getFrom().getYear());
         assertEquals(series.getFrom().getMonth(), dolarizedSeries.getFrom().getMonth());
     }
-    
+
     @Test
-    public void inflationLimits() throws NoSeriesDataFoundException{
+    public void inflationLimits() throws NoSeriesDataFoundException {
         MoneyAmountSeries series = JSONMoneyAmountSeries.readSeries("lifia.json");
         MoneyAmountSeries inflatedSeries = Inflation.ARS_INFLATION.adjust(series, 1962, 9);
-        
+
         assertEquals(Inflation.ARS_INFLATION.getTo().getYear(), inflatedSeries.getTo().getYear());
         assertEquals(Inflation.ARS_INFLATION.getTo().getMonth(), inflatedSeries.getTo().getMonth());
-        
+
         assertEquals(series.getFrom().getYear(), inflatedSeries.getFrom().getYear());
         assertEquals(series.getFrom().getMonth(), inflatedSeries.getFrom().getMonth());
+
+    }
+
+    @Test
+    public void seriesAddition() throws NoSeriesDataFoundException {
+        MoneyAmountSeries lifia = JSONMoneyAmountSeries.readSeries("lifia.json");
+        MoneyAmountSeries unlp = JSONMoneyAmountSeries.readSeries("unlp.json");
+        MoneyAmountSeries sum = lifia.add(unlp);
+
+        MoneyAmount expected = lifia.getAmount(2010, 5).add(unlp.getAmount(2010, 5));
+        assertEquals(expected, sum.getAmount(2010, 5));
+
+        expected = unlp.getAmount(2001, 12);
+        assertEquals(expected, sum.getAmount(2001, 12));
+    }
+
+    @Test
+    public void uninterpolated() throws NoSeriesDataFoundException {
+        MoneyAmountSeries unlp = JSONMoneyAmountSeries.readSeries("unlp.json");
+        MoneyAmountSeries ars = JSONMoneyAmountSeries.readSeries("ahorros-peso.json");
+        try {
+            MoneyAmountSeries sum = unlp.add(ars);
+        } catch (NoSeriesDataFoundException ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    public void ahorros() throws NoSeriesDataFoundException {
+        //9 2002
+        MoneyAmountSeries pesos = JSONMoneyAmountSeries.readSeries("ahorros-peso.json");
+        MoneyAmountSeries dolares = JSONMoneyAmountSeries.readSeries("ahorros-dolar.json");
+
+        MoneyAmount p = pesos.getAmount(2002, 9);
+        MoneyAmount d = dolares.getAmount(2002, 9);
+        MoneyAmount p2 = ForeignExchange.INSTANCE.exchange(d, Currency.getInstance("ARS"), 2002, 9);
+        MoneyAmount expected = p.add(p2);
+
+        MoneyAmountSeries newSeries = ForeignExchange.INSTANCE.exchange(dolares, Currency.getInstance("ARS"));
+        assertEquals(new MoneyAmount(new BigDecimal("44152.57"), Currency.getInstance("ARS")),expected);
+        assertEquals(expected,
+                pesos.add(newSeries).getAmount(2002, 9));
+    }
+
+   // @Test arreglar el hecho de que no se esta interpolando la serie al crearla así.
+    public void exchangeFailing() throws NoSeriesDataFoundException {
+        JSONDataPoint fx1 = new JSONDataPoint(2000, 10);fx1.setValue(new BigDecimal("3"));
+        JSONDataPoint fx2 = new JSONDataPoint(2000, 11);fx2.setValue(new BigDecimal("5"));
+        JSONDataPoint fx3 = new JSONDataPoint(2000, 12);fx3.setValue(new BigDecimal("7"));
+        JSONDataPoint fx4 = new JSONDataPoint(2001, 1);fx4.setValue(new BigDecimal("10"));
+        
+        JSONIndexSeries fxSeries = new JSONIndexSeries(Arrays.asList(new JSONDataPoint[]{fx1, fx2, fx3, fx4}));
+        ForeignExchange fx = new SimpleForeignExchange(fxSeries, Currency.getInstance("USD"), Currency.getInstance("ARS"));     
+        
+        JSONMoneyAmountSeries usdSeries = new JSONMoneyAmountSeries(Currency.getInstance("USD"));
+        usdSeries.putAmount(1998, 5, new MoneyAmount(new BigDecimal("1"), Currency.getInstance("USD")));
+        usdSeries.putAmount(2000, 11, new MoneyAmount(new BigDecimal("10"), Currency.getInstance("USD")));
+        usdSeries.putAmount(2001, 1, new MoneyAmount(new BigDecimal("100"), Currency.getInstance("USD")));
+        
+        MoneyAmountSeries pasadaAPesos = fx.exchange(usdSeries, Currency.getInstance("ARS"));
+        assertEquals(new MoneyAmount(new BigDecimal("70"), Currency.getInstance("ARS")), pasadaAPesos.getAmount(2000, 12));
         
     }
     
     @Test
-    public void seriesAddition() throws NoSeriesDataFoundException{
-        MoneyAmountSeries lifia = JSONMoneyAmountSeries.readSeries("lifia.json");
-        MoneyAmountSeries unlp = JSONMoneyAmountSeries.readSeries("unlp.json");
-        MoneyAmountSeries sum = lifia.add(unlp);
+    public void yearMonthDistances(){
         
-        MoneyAmount expected = lifia.getAmount(2010, 5).add(unlp.getAmount(2010, 5));
-        assertEquals(expected, sum.getAmount(2010, 5));
+        assertEquals(1, new YearMonth(2012, 12).monthsUntil(new YearMonth(2013, 1)));
+        assertEquals(0, new YearMonth(2012, 12).monthsUntil(new YearMonth(2012, 12)));
+        assertEquals(12, new YearMonth(2012, 12).monthsUntil(new YearMonth(2013, 12)));
+        assertEquals(0, new YearMonth(2012, 2).monthsUntil(new YearMonth(2011, 6)));
+        assertEquals(23, new YearMonth(2012, 1).monthsUntil(new YearMonth(2013, 12)));
         
-        expected = unlp.getAmount(2001, 12);
-        assertEquals(expected, sum.getAmount(2001, 12));
     }
 }

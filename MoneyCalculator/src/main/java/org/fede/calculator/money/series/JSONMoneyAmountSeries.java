@@ -22,8 +22,8 @@ import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Currency;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.SortedMap;
@@ -39,10 +39,31 @@ import org.fede.calculator.money.json.JSONSeries;
  */
 public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountSeries {
 
-    public static MoneyAmountSeries readSeries(String name) {
+    public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
         try (InputStream is = JSONIndexSeries.class.getResourceAsStream("/" + name)) {
             JSONSeries series = new ObjectMapper().readValue(is, JSONSeries.class);
-            return new JSONMoneyAmountSeries(series.getCurrency(), series.getData());
+
+            final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
+            SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
+            final Currency currency = Currency.getInstance(series.getCurrency());
+            for (JSONDataPoint dp : series.getData()) {
+                interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), currency));
+            }
+
+            Map<YearMonth, MoneyAmount> extraData = new HashMap<>();
+            YearMonth previousKey = interpolatedData.firstKey();
+            MoneyAmount previousValue = interpolatedData.get(interpolatedData.firstKey());
+            for (Map.Entry<YearMonth, MoneyAmount> entry : interpolatedData.entrySet()) {
+                while (previousKey.monthsUntil(entry.getKey()) > 1) {
+                    previousKey = previousKey.next();
+                    extraData.put(previousKey, strategy.interpolate(previousValue, currency));
+                }
+                previousValue = entry.getValue();
+                previousKey = entry.getKey();
+            }
+            interpolatedData.putAll(extraData);
+
+            return new JSONMoneyAmountSeries(currency, interpolatedData);
         } catch (IOException ioEx) {
             throw new IllegalArgumentException("Could not read series named " + name, ioEx);
         }
@@ -50,19 +71,15 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
 
     private final Currency currency;
     private final SortedMap<YearMonth, MoneyAmount> values;
-
+    
     public JSONMoneyAmountSeries(Currency currency) {
         this.currency = currency;
         this.values = new TreeMap<>();
-
     }
 
-    public JSONMoneyAmountSeries(String currency, List<JSONDataPoint> data) {
-        this.currency = Currency.getInstance(currency);
-        this.values = new TreeMap<>();
-        for (JSONDataPoint dp : data) {
-            this.values.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), this.currency));
-        }
+    private JSONMoneyAmountSeries(Currency currency, SortedMap<YearMonth, MoneyAmount> interpolatedData) {
+        this.currency = currency;
+        this.values = interpolatedData;
     }
 
     @Override
@@ -73,20 +90,11 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH);
         return this.getAmount(year, month + 1);
-
     }
 
     @Override
     public MoneyAmount getAmount(int year, int month) throws NoSeriesDataFoundException {
-        MoneyAmount answer = this.values.get(new YearMonth(year, month));
-        if (answer == null) {
-            YearMonth moment = new YearMonth(year, month);
-            if (moment.compareTo(this.getFrom()) > 0 && moment.compareTo(this.getTo()) < 0) {
-                return this.values.get(this.values.headMap(moment).lastKey());
-            }
-            throw new NoSeriesDataFoundException("No value for specified year and month.");
-        }
-        return answer;
+        return this.values.get(new YearMonth(year, month));
     }
 
     @Override
@@ -157,14 +165,15 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
 
     @Override
     public MoneyAmountSeries add(final MoneyAmountSeries other) throws NoSeriesDataFoundException {
-        final MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.currency);
-        final YearMonth otherStart = other.getFrom();
-        final YearMonth otherEnd = other.getTo();
 
         if (this.getFrom().compareTo(other.getFrom()) > 0) {
             return other.add(this);
         }
 
+        final YearMonth otherStart = other.getFrom();
+        final YearMonth otherEnd = other.getTo();
+
+        final MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.currency);
         //this empieza antes o son iguales
         this.forEach(new MoneyAmountProcessor() {
 
