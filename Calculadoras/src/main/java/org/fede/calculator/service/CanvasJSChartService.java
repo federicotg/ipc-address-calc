@@ -120,9 +120,23 @@ public class CanvasJSChartService implements ChartService {
     }
 
     @Override
+    public CanvasJSChartDTO interest(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+        return this.createCombinedChart(
+                "Plazo Fijo",
+                JSONMoneyAmountSeries.readSeries("plazofijo.json"), months, pn, pr, dn, dr);
+    }
+
+    @Override
     public CanvasJSChartDTO lifiaAndUnlp(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
         return this.createCombinedChart("Sueldo LIFIA + UNLP",
                 JSONMoneyAmountSeries.readSeries("unlp.json").add(JSONMoneyAmountSeries.readSeries("lifia.json")),
+                months, pn, pr, dn, dr);
+    }
+
+    @Override
+    public CanvasJSChartDTO lifiaUnlpAndInterest(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+        return this.createCombinedChart("Sueldo LIFIA + UNLP + Plazo Fijo",
+                JSONMoneyAmountSeries.readSeries("unlp.json").add(JSONMoneyAmountSeries.readSeries("lifia.json").add(JSONMoneyAmountSeries.readSeries("plazofijo.json"))),
                 months, pn, pr, dn, dr);
     }
 
