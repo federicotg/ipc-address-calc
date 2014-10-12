@@ -9,8 +9,6 @@
           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-    
-   
     <bean id="argMoneyService" class="org.fede.calculator.service.ARGMoneyService"/>
     <bean id="usdMoneyService" class="org.fede.calculator.service.USDMoneyService"/>
     <bean id="addressService" class="org.fede.calculator.service.LaPlataAddressServiceImpl"/>
@@ -31,4 +29,72 @@
         <entry key="bienal" value="24" />
     </util:map>
     
+   
+    <util:list id="expenseSeries" value-type="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="Cablevisión" />
+            <property name="seriesName" value="cablevision.json" />
+            <property name="color" value="red" />
+        </bean>
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
+            <property name="name" value="celular A." />
+            <property name="seriesName" value="celular-a.json" />
+            <property name="color" value="blue" />
+        </bean>
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
+            <property name="name" value="celular F." />
+            <property name="seriesName" value="celular-f.json" />
+            <property name="color" value="Peru" />
+        </bean>
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
+            <property name="name" value="contadora" />
+            <property name="seriesName" value="contadora.json" />
+            <property name="color" value="black" />
+        </bean>  
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
+            <property name="name" value="gas" />
+            <property name="seriesName" value="gas.json" />
+            <property name="color" value="RoyalBlue" />
+        </bean>  
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
+            <property name="name" value="inmobiliario" />
+            <property name="seriesName" value="inmobiliario-43.json" />
+            <property name="color" value="darkgreen" />
+        </bean>  
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
+            <property name="name" value="IOMA" />
+            <property name="seriesName" value="ioma.json" />
+            <property name="color" value="magenta" />
+        </bean>  
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
+            <property name="name" value="luz" />
+            <property name="seriesName" value="luz.json" />
+            <property name="color" value="YellowGreen" />
+        </bean>  
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
+            <property name="name" value="municipal" />
+            <property name="seriesName" value="municipal-43.json" />
+            <property name="color" value="MediumVioletRed" />
+        </bean>   
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
+            <property name="name" value="seguro" />
+            <property name="seriesName" value="seguro.json" />
+            <property name="color" value="DarkOrange" />
+        </bean>  
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
+            <property name="name" value="teléfono" />
+            <property name="seriesName" value="telefono-43.json" />
+            <property name="color" value="Indigo" />
+        </bean>  
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
+            <property name="name" value="UDEC" />
+            <property name="seriesName" value="udec.json" />
+            <property name="color" value="Gold" />
+        </bean>
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="expensas" />
+            <property name="seriesName" value="expensas.json" />
+            <property name="color" value="maroon" />
+        </bean>
+    </util:list>
 </beans>

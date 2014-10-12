@@ -20,7 +20,7 @@ package org.fede.calculator.web.dto;
  *
  * @author fede
  */
-public class CombinedChartDTO extends MonthlyGroupingChartDTO {
+public class CombinedChartDTO extends MonthGroupingChartDTO {
 
     private boolean pn = false;
     private boolean pr = true;

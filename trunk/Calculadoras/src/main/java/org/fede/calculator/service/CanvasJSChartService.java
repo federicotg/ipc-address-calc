@@ -23,6 +23,7 @@ import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Resource;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
@@ -37,6 +38,7 @@ import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
 import org.fede.calculator.web.dto.CanvasJSDatumDTO;
 import org.fede.calculator.web.dto.CanvasJSTitleDTO;
+import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,6 +49,9 @@ import org.springframework.stereotype.Service;
 public class CanvasJSChartService implements ChartService {
 
     private static final Map<Integer, String> MONTH_NAMES = new HashMap<>();
+
+    @Resource(name = "expenseSeries")
+    private List<ExpenseChartSeriesDTO> expenseSeries;
 
     static {
         MONTH_NAMES.put(1, "enero");
@@ -222,29 +227,20 @@ public class CanvasJSChartService implements ChartService {
     }
 
     @Override
-    public CanvasJSChartDTO expenses(int months) throws NoSeriesDataFoundException {
-
-        String[][] data = new String[][]{
-            new String[]{"red", "Cablevisión", "cablevision.json"},
-            new String[]{"pink", "celular A.", "celular-a.json"},
-            new String[]{"orange", "celular F.", "celular-f.json"},
-            new String[]{"black", "contadora", "contadora.json"},
-            new String[]{"maroon", "expensas", "expensas.json"},
-            new String[]{"cyan", "gas", "gas.json"},
-            new String[]{"darkgreen", "inmobiliario", "inmobiliario-43.json"},
-            new String[]{"magenta", "IOMA", "ioma.json"},
-            new String[]{"salmon", "luz", "luz.json"},
-            new String[]{"gray", "municipal", "municipal-43.json"},
-            new String[]{"violet", "seguro", "seguro.json"},
-            new String[]{"lightblue", "teléfono", "telefono-43.json"},
-            new String[]{"blue", "UDEC", "udec.json"}
-        };
+    public CanvasJSChartDTO expenses(int months, List<String> series) throws NoSeriesDataFoundException {
 
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(13);
-        for(String[] s : data){
-            seriesList.add(this.getDatum("line", s[0], s[1], this.getRealPesosDatapoints(months, JSONMoneyAmountSeries.readSeries(s[2]))));
+        if (series != null) {
+            for (ExpenseChartSeriesDTO s : this.expenseSeries) {
+                if (series.contains(s.getName())) {
+                    seriesList.add(this.getDatum(
+                            "line",
+                            s.getColor(),
+                            s.getName(),
+                            this.getRealPesosDatapoints(months, JSONMoneyAmountSeries.readSeries(s.getSeriesName()))));
+                }
+            }
         }
-
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO("Gastos");
         dto.setTitle(title);

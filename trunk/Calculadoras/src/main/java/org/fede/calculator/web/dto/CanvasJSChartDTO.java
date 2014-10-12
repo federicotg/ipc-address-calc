@@ -30,6 +30,8 @@ public class CanvasJSChartDTO {
     private CanvasJSAxisDTO axisX;
     private CanvasJSAxisDTO axisY;
     private boolean exportEnabled = true;
+    private boolean zoomEnabled = true;
+    private CanvasJSLegendDTO legend = new CanvasJSLegendDTO();
 
     public CanvasJSTitleDTO getTitle() {
         return title;
@@ -72,6 +74,7 @@ public class CanvasJSChartDTO {
     public void setYAxisTitle(String title) {
         CanvasJSAxisDTO axis = new CanvasJSAxisDTO();
         axis.setTitle(title);
+        axis.setValueFormatString("YYYY");
         this.axisY = axis;
     }
 
@@ -89,6 +92,22 @@ public class CanvasJSChartDTO {
 
     public void setExportEnabled(boolean exportEnabled) {
         this.exportEnabled = exportEnabled;
+    }
+
+    public boolean isZoomEnabled() {
+        return zoomEnabled;
+    }
+
+    public void setZoomEnabled(boolean zoomEnabled) {
+        this.zoomEnabled = zoomEnabled;
+    }
+
+    public CanvasJSLegendDTO getLegend() {
+        return legend;
+    }
+
+    public void setLegend(CanvasJSLegendDTO legend) {
+        this.legend = legend;
     }
 
 }
