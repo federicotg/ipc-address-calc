@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.service;
 
+import java.util.List;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 
@@ -35,6 +36,6 @@ public interface ChartService {
     
     CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException;
     
-    CanvasJSChartDTO expenses(int months) throws NoSeriesDataFoundException;
+    CanvasJSChartDTO expenses(int months, List<String> series) throws NoSeriesDataFoundException;
 
 }

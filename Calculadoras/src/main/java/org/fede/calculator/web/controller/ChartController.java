@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.web.controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,7 +27,9 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.ChartService;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CombinedChartDTO;
-import org.fede.calculator.web.dto.MonthlyGroupingChartDTO;
+import org.fede.calculator.web.dto.ExpenseChartDTO;
+import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
+import org.fede.calculator.web.dto.MonthGroupingChartDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -52,6 +56,9 @@ public class ChartController {
 
     @Resource(name = "monthlyPeriod")
     private Map<String, Integer> monthlyPeriods;
+    
+    @Resource(name = "expenseSeries")
+    private List<ExpenseChartSeriesDTO> expenseSeries;
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -108,11 +115,19 @@ public class ChartController {
 
     @RequestMapping(value = "expenses", method = RequestMethod.GET)
     public ModelAndView expenses() {
-        ModelAndView mav = new ModelAndView("simpleChart");
+        ModelAndView mav = new ModelAndView("expenseChart");
         mav.addObject("uri", "expensesChart");
         mav.addObject("title", "Gastos");
         mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("dto", new MonthlyGroupingChartDTO());
+        mav.addObject("series", this.expenseSeries);
+        
+        ExpenseChartDTO chartDto = new ExpenseChartDTO();
+        List<String> series = new ArrayList<>(this.expenseSeries.size());
+        for(ExpenseChartSeriesDTO e : this.expenseSeries){
+            series.add(e.getName());
+        }
+        chartDto.setSeries(series);
+        mav.addObject("dto", chartDto);
         return mav;
     }
 
@@ -166,14 +181,14 @@ public class ChartController {
 
     @ResponseBody
     @RequestMapping(value = "expensesChart", method = RequestMethod.GET)
-    public CanvasJSChartDTO expensesChart(@ModelAttribute("dto") @Valid MonthlyGroupingChartDTO dto, BindingResult errors)
+    public CanvasJSChartDTO expensesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
             CanvasJSChartDTO notOk = new CanvasJSChartDTO();
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.expenses(dto.getMonths());
+        return this.chartService.expenses(dto.getMonths(), dto.getSeries());
     }
 
 }

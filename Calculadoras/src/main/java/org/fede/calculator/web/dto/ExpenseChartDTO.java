@@ -16,34 +16,22 @@
  */
 package org.fede.calculator.web.dto;
 
+import java.util.List;
+
 /**
  *
  * @author fede
  */
-public class CanvasJSTitleDTO {
-   
-    private String text;
-    private int fontSize = 24;
+public class ExpenseChartDTO extends MonthGroupingChartDTO{
 
-    public CanvasJSTitleDTO(String text) {
-        this.text = text;
+    private List<String> series;
+
+    public List<String> getSeries() {
+        return series;
     }
 
-    public String getText() {
-        return text;
+    public void setSeries(List<String> series) {
+        this.series = series;
     }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public int getFontSize() {
-        return fontSize;
-    }
-
-    public void setFontSize(int fontSize) {
-        this.fontSize = fontSize;
-    }
-    
     
 }

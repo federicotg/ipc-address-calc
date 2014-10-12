@@ -20,30 +20,34 @@ package org.fede.calculator.web.dto;
  *
  * @author fede
  */
-public class CanvasJSTitleDTO {
-   
-    private String text;
-    private int fontSize = 24;
+public class ExpenseChartSeriesDTO {
 
-    public CanvasJSTitleDTO(String text) {
-        this.text = text;
+    private String name;
+    private String color;
+    private String seriesName;
+
+    public String getName() {
+        return name;
     }
 
-    public String getText() {
-        return text;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    public String getColor() {
+        return color;
     }
 
-    public int getFontSize() {
-        return fontSize;
+    public void setColor(String color) {
+        this.color = color;
     }
 
-    public void setFontSize(int fontSize) {
-        this.fontSize = fontSize;
+    public String getSeriesName() {
+        return seriesName;
     }
-    
-    
+
+    public void setSeriesName(String seriesName) {
+        this.seriesName = seriesName;
+    }
+
 }

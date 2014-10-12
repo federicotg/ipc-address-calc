@@ -36,14 +36,22 @@
 
             window.addEvent('domready', function () {
 
-                showChart('/secure/${uri}.json', 'months=6', 'chartContainer');
+                reloadChart();
 
             });
 
             function reloadChart() {
                 document.id('chartContainer').empty();
+                
+                var checkboxes = document.getElements('input[type=checkbox]');
+                var series = "";
+                for(var i=0;i<checkboxes.length;i++){
+                    if(checkboxes[i].checked){
+                        series +="&series="+checkboxes[i].value;
+                    }
+                }
                 var m = document.id('months').value;
-                showChart('/secure/${uri}.json', 'months=' + m, 'chartContainer');
+                showChart('/secure/${uri}.json', 'months=' + m+series, 'chartContainer');
             }
 
         </script>
@@ -53,7 +61,9 @@
         <h1>${title}</h1>
         <form:form modelAttribute="dto">
             <c:if test="${not empty monthlyPeriods}">
+                <form:checkboxes items="${series}" path="series" itemValue="name" itemLabel="name" onchange="reloadChart()" /><br/>
                 <label for="months">Aplicar promedio </label>
+                
                 <form:select id="months" path="months" onchange="reloadChart()">
                     <c:forEach items="${monthlyPeriods}" var="p">
                         <form:option value="${p.value}">${p.key}</form:option>
@@ -61,6 +71,6 @@
                 </form:select><br/>
             </c:if>
         </form:form>
-        <div id="chartContainer" style="height:600px;"></div>
+        <div id="chartContainer" style="height:750px;"></div>
     </body>
 </html>

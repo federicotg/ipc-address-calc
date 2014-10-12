@@ -22,7 +22,7 @@ import javax.validation.constraints.Min;
  *
  * @author fede
  */
-public class MonthlyGroupingChartDTO {
+public class MonthGroupingChartDTO {
 
     @Min(1)
     private int months = 6;

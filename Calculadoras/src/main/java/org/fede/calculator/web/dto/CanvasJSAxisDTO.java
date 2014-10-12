@@ -21,9 +21,12 @@ package org.fede.calculator.web.dto;
  * @author fede
  */
 public class CanvasJSAxisDTO {
+
     private String title;
     private String valueFormatString;
     private boolean includeZero = true;
+    private int labelFontSize = 12;
+    private int titleFontSize = 20;
 
     public String getTitle() {
         return title;
@@ -48,5 +51,21 @@ public class CanvasJSAxisDTO {
     public void setIncludeZero(boolean includeZero) {
         this.includeZero = includeZero;
     }
-    
+
+    public int getLabelFontSize() {
+        return labelFontSize;
+    }
+
+    public void setLabelFontSize(int labelFontSize) {
+        this.labelFontSize = labelFontSize;
+    }
+
+    public int getTitleFontSize() {
+        return titleFontSize;
+    }
+
+    public void setTitleFontSize(int titleFontSize) {
+        this.titleFontSize = titleFontSize;
+    }
+
 }
