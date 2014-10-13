@@ -20,6 +20,8 @@ import org.fede.calculator.money.bls.BlsResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.bls.BlsCPISource;
 import static org.fede.calculator.money.bls.BlsCPISource.CPI_SERIES_ID;
@@ -67,9 +69,14 @@ public final class DollarCPISeries extends IndexSeriesSupport {
 
     @Override
     public YearMonth getTo() {
-        Calendar lastMonth = Calendar.getInstance();
-        lastMonth.add(Calendar.MONTH, -1);
-        return new YearMonth(lastMonth.get(Calendar.YEAR), lastMonth.get(Calendar.MONTH));
+        Calendar cal = Calendar.getInstance();
+        int year = cal.get(Calendar.YEAR);
+        try {
+            return new YearMonth(year, this.source.getResponse(year).getLastAvailableMonth(CPI_SERIES_ID));
+        } catch (NoSeriesDataFoundException | IOException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error getting BLS Data", ex);
+            return new YearMonth(year, cal.get(Calendar.MONTH) + 1);
+        }
     }
 
     @Override

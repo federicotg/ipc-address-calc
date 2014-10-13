@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.money.bls;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,20 +33,18 @@ public class BlsSeries {
         return seriesId.equals(this.seriesID);
     }
 
-    
     public BlsCpiDataPoint getDataPoint(int year) {
         return this.getDataPoint(year, 13);
     }
-    
+
     public BlsCpiDataPoint getDataPoint(int year, int month) {
 
         final String period = "M"
                 + (month < 10 ? "0" : "")
                 + String.valueOf(month);
 
-        //return this.data.stream().filter(dp -> dp.matchesYearMonth(year, period)).findFirst().get();
-        for(BlsCpiDataPoint dp : this.data){
-            if(dp.matchesYearMonth(year, period)){
+        for (BlsCpiDataPoint dp : this.data) {
+            if (dp.matchesYearMonth(year, period)) {
                 return dp;
             }
         }
@@ -65,6 +65,15 @@ public class BlsSeries {
 
     public void setData(List<BlsCpiDataPoint> data) {
         this.data = data;
+    }
+
+    public int getLastAvailableMonth() {
+        List<String> periods = new ArrayList<>(12);
+        for (BlsCpiDataPoint dp : this.data) {
+            periods.add(dp.getPeriod());
+        }
+        Collections.sort(periods);
+        return Integer.parseInt(periods.get(periods.size() - 1).substring(1), 10);
     }
 
 }

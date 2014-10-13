@@ -75,5 +75,7 @@ public class BlsResponse {
         this.results = results;
     }
     
-    
+    public int getLastAvailableMonth(String series){
+     return this.results.getLastAvailableMonth(series);
+    }
 }
