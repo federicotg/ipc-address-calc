@@ -17,7 +17,9 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.Currency;
+import java.util.Date;
 import static org.fede.calculator.money.MathConstants.ROUNDING_MODE;
 import static org.fede.calculator.money.MathConstants.SCALE;
 import org.fede.calculator.money.series.IndexSeries;
@@ -74,8 +76,8 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     @Override
     public MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) throws NoSeriesDataFoundException {
 
-        YearMonth from = this.getAnySeries(series.getCurrency(), targetCurrency).maximumFrom(series);
-        YearMonth to = this.getAnySeries(series.getCurrency(), targetCurrency).minimumTo(series);
+        YearMonth from = this.exchangeRatesSeries.maximumFrom(series);
+        YearMonth to = this.exchangeRatesSeries.minimumTo(series);
 
         final int fromYear = from.getYear();
         final int fromMonth = from.getMonth();
@@ -101,9 +103,52 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     }
 
-    private IndexSeries getAnySeries(Currency from, Currency to) {
+    @Override
+    public MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
 
-        return this.exchangeRatesSeries;
+        YearMonth from = this.exchangeRatesSeries.maximumFrom(series);
+        YearMonth to = this.exchangeRatesSeries.minimumTo(series);
+
+        final int fromYear = from.getYear();
+        final int fromMonth = from.getMonth();
+        final int toYear = to.getYear();
+        final int toMonth = to.getMonth();
+
+        final MoneyAmountSeries answer = new JSONMoneyAmountSeries(targetCurrency);
+
+        for (int m = fromMonth; m <= 12; m++) {
+            //first year
+            answer.putAmount(fromYear, m, this.exchange(series.getAmount(fromYear, m), targetCurrency, referenceYear, referenceMonth));
+        }
+        for (int y = fromYear + 1; y < toYear; y++) {
+            for (int m = 1; m <= 12; m++) {
+                answer.putAmount(y, m, this.exchange(series.getAmount(y, m), targetCurrency, referenceYear, referenceMonth));
+            }
+        }
+        for (int m = 1; m <= toMonth; m++) {
+            //last year
+            answer.putAmount(toYear, m, this.exchange(series.getAmount(toYear, m), targetCurrency, referenceYear, referenceMonth));
+        }
+        return answer;
+
+    }
+
+    @Override
+    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(moment);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        return this.exchange(amount, targetCurrency, year, month + 1);
+    }
+
+    @Override
+    public MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(moment);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        return this.exchange(series, targetCurrency, year, month + 1);
     }
 
 }

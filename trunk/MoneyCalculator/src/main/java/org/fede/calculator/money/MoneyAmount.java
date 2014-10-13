@@ -18,6 +18,7 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.util.Currency;
 import java.util.Objects;
 
@@ -89,5 +90,13 @@ public class MoneyAmount implements  MathConstants {
     }
     public MoneyAmount add(MoneyAmount other){
         return new MoneyAmount(this.getAmount().add(other.getAmount()), this.getCurrency());
+    }
+    
+    public boolean isZero(){
+        return this.amount.signum() == 0;
+    }
+    
+    public void appendTo(StringBuilder sb, NumberFormat nf){
+        sb.append(this.currency.getSymbol()).append(" ").append(nf.format(this.amount));
     }
 }

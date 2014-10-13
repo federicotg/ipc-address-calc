@@ -17,6 +17,7 @@
 import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Currency;
 import static org.fede.calculator.money.ArgCurrency.*;
@@ -37,6 +38,7 @@ import org.fede.calculator.money.json.JSONDataPoint;
 import org.fede.calculator.money.series.InterpolationStrategy;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
+import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.junit.After;
@@ -209,41 +211,6 @@ public class DollarTest {
     }
 
     @Test
-    public void historicDollar() throws NoSeriesDataFoundException {
-
-        //Inflation localUSDInflation = new CPIInflation(new DollarCPISeries(new JSONBlsCPISource("bls.json")), Currency.getInstance("USD"));
-        final int todayYear = 2013;
-        final int todayMonth = 8;
-
-        final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
-        final Currency ars = Currency.getInstance("ARS");
-
-        MoneyAmountSeries expected = new JSONMoneyAmountSeries(Currency.getInstance("ARS"));
-
-        for (int year = Inflation.ARS_INFLATION.getFrom().getYear(); year < Inflation.ARS_INFLATION.getTo().getYear(); year++) {
-            for (int month = 1; month <= 12; month++) {
-                MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
-                MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
-                MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
-                expected.putAmount(year, month, ma);
-            }
-        }
-        final int year = Inflation.ARS_INFLATION.getTo().getYear();
-        for (int month = 1; month <= Inflation.ARS_INFLATION.getTo().getMonth(); month++) {
-            MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
-            MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
-            MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
-            expected.putAmount(year, month, ma);
-        }
-
-        MoneyAmountSeries result = Inflation.ARS_INFLATION.adjust(
-                ForeignExchange.INSTANCE.exchange(
-                        USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), ars), todayYear, todayMonth);
-
-        assertEquals(expected, result);
-    }
-
-    @Test
     public void averages() throws NoSeriesDataFoundException {
         MoneyAmountSeries series = JSONMoneyAmountSeries.readSeries("unlp.json");
         MoneyAmountSeries averaged = new SimpleAverage(6).average(JSONMoneyAmountSeries.readSeries("unlp.json"));
@@ -330,39 +297,81 @@ public class DollarTest {
         MoneyAmount expected = p.add(p2);
 
         MoneyAmountSeries newSeries = ForeignExchange.INSTANCE.exchange(dolares, Currency.getInstance("ARS"));
-        assertEquals(new MoneyAmount(new BigDecimal("44152.57"), Currency.getInstance("ARS")),expected);
+        assertEquals(new MoneyAmount(new BigDecimal("44152.57"), Currency.getInstance("ARS")), expected);
         assertEquals(expected,
                 pesos.add(newSeries).getAmount(2002, 9));
     }
 
-   // @Test arreglar el hecho de que no se esta interpolando la serie al crearla así.
+    // @Test arreglar el hecho de que no se esta interpolando la serie al crearla así.
     public void exchangeFailing() throws NoSeriesDataFoundException {
-        JSONDataPoint fx1 = new JSONDataPoint(2000, 10);fx1.setValue(new BigDecimal("3"));
-        JSONDataPoint fx2 = new JSONDataPoint(2000, 11);fx2.setValue(new BigDecimal("5"));
-        JSONDataPoint fx3 = new JSONDataPoint(2000, 12);fx3.setValue(new BigDecimal("7"));
-        JSONDataPoint fx4 = new JSONDataPoint(2001, 1);fx4.setValue(new BigDecimal("10"));
-        
+        JSONDataPoint fx1 = new JSONDataPoint(2000, 10);
+        fx1.setValue(new BigDecimal("3"));
+        JSONDataPoint fx2 = new JSONDataPoint(2000, 11);
+        fx2.setValue(new BigDecimal("5"));
+        JSONDataPoint fx3 = new JSONDataPoint(2000, 12);
+        fx3.setValue(new BigDecimal("7"));
+        JSONDataPoint fx4 = new JSONDataPoint(2001, 1);
+        fx4.setValue(new BigDecimal("10"));
+
         JSONIndexSeries fxSeries = new JSONIndexSeries(Arrays.asList(new JSONDataPoint[]{fx1, fx2, fx3, fx4}));
-        ForeignExchange fx = new SimpleForeignExchange(fxSeries, Currency.getInstance("USD"), Currency.getInstance("ARS"));     
-        
+        ForeignExchange fx = new SimpleForeignExchange(fxSeries, Currency.getInstance("USD"), Currency.getInstance("ARS"));
+
         JSONMoneyAmountSeries usdSeries = new JSONMoneyAmountSeries(Currency.getInstance("USD"));
         usdSeries.putAmount(1998, 5, new MoneyAmount(new BigDecimal("1"), Currency.getInstance("USD")));
         usdSeries.putAmount(2000, 11, new MoneyAmount(new BigDecimal("10"), Currency.getInstance("USD")));
         usdSeries.putAmount(2001, 1, new MoneyAmount(new BigDecimal("100"), Currency.getInstance("USD")));
-        
+
         MoneyAmountSeries pasadaAPesos = fx.exchange(usdSeries, Currency.getInstance("ARS"));
         assertEquals(new MoneyAmount(new BigDecimal("70"), Currency.getInstance("ARS")), pasadaAPesos.getAmount(2000, 12));
-        
+
     }
-    
+
     @Test
-    public void yearMonthDistances(){
-        
+    public void yearMonthDistances() {
+
         assertEquals(1, new YearMonth(2012, 12).monthsUntil(new YearMonth(2013, 1)));
         assertEquals(0, new YearMonth(2012, 12).monthsUntil(new YearMonth(2012, 12)));
         assertEquals(12, new YearMonth(2012, 12).monthsUntil(new YearMonth(2013, 12)));
         assertEquals(0, new YearMonth(2012, 2).monthsUntil(new YearMonth(2011, 6)));
         assertEquals(23, new YearMonth(2012, 1).monthsUntil(new YearMonth(2013, 12)));
-        
+
     }
+
+    @Test
+    public void dolarBuying() throws NoSeriesDataFoundException {
+        MoneyAmountSeries dolares = JSONMoneyAmountSeries.readSeries("dolares.json");
+
+        Currency peso = Currency.getInstance("ARS");
+
+        final MoneyAmountSeries nominalPesosAtBuyingTime = ForeignExchange.INSTANCE.exchange(dolares, peso);
+
+        final MoneyAmountSeries nominalPesosNow = ForeignExchange.INSTANCE.exchange(dolares, peso, 2014, 8);
+        final MoneyAmountSeries realPesosNow = Inflation.ARS_INFLATION.adjust(nominalPesosAtBuyingTime, 2014, 8);
+        final NumberFormat nf = NumberFormat.getCurrencyInstance();
+        dolares.forEach(new MoneyAmountProcessor() {
+
+            @Override
+            public void process(int year, int month, MoneyAmount dolar) throws NoSeriesDataFoundException {
+                if (!dolar.isZero()) {
+                    StringBuilder sb = new StringBuilder(200);
+                    dolar.appendTo(sb, nf);
+                    sb.append(" en ")
+                            .append(year)
+                            .append("-")
+                            .append(month)
+                            .append(" eran ");
+                    nominalPesosAtBuyingTime.getAmount(year, month).appendTo(sb, nf);
+                    sb.append(" y ahora son ");
+                    nominalPesosNow.getAmount(year, month).appendTo(sb, nf);
+                    sb.append(" nominales y ");
+                    MoneyAmount rp = realPesosNow.getAmount(year, month);
+
+                    rp.appendTo(sb, nf);
+                    sb.append(" reales.");
+                    System.out.println(sb.toString());
+                }
+            }
+        });
+    }
+
 }

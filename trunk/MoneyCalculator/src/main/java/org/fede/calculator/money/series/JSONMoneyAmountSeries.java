@@ -71,7 +71,7 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
 
     private final Currency currency;
     private final SortedMap<YearMonth, MoneyAmount> values;
-    
+
     public JSONMoneyAmountSeries(Currency currency) {
         this.currency = currency;
         this.values = new TreeMap<>();
@@ -203,6 +203,19 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
         });
 
         return answer;
+    }
+
+    @Override
+    public void forEachNonZero(final MoneyAmountProcessor processor) throws NoSeriesDataFoundException {
+        this.forEach(new MoneyAmountProcessor() {
+            @Override
+            public void process(int year, int month, MoneyAmount amount) throws NoSeriesDataFoundException {
+
+                if (!amount.isZero()) {
+                    processor.process(year, month, amount);
+                }
+            }
+        });
     }
 
 }
