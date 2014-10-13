@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.List;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.Inflation;
+import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
@@ -42,9 +43,12 @@ public class InvestmentServiceImpl implements InvestmentService {
     @Override
     public List<DollarReportDTO> dollar() throws NoSeriesDataFoundException {
         
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.MONTH, -1);
-        final Date moment = cal.getTime();
+        
+        
+        final Date moment = new Date();
+        
+        final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
+                final Currency ars = Currency.getInstance("ARS");
 
         final MoneyAmountSeries dolares = JSONMoneyAmountSeries.readSeries("dolares.json");
         final Currency peso = Currency.getInstance("ARS");
@@ -65,6 +69,20 @@ public class InvestmentServiceImpl implements InvestmentService {
                 dto.setRealPesosNow(realPesos);
                 dto.setNow(moment);
                 dto.setNominalPesosNow(ForeignExchange.INSTANCE.exchange(dollar, peso, moment).getAmount());
+                
+                
+                
+                MoneyAmount oneDollarThen = USD_INFLATION.adjust(oneDollar, moment, thenDate);
+
+                MoneyAmount realDollarThen = Inflation.ARS_INFLATION.adjust(
+                ForeignExchange.INSTANCE.exchange(oneDollarThen,ars, thenDate), 
+                        thenDate, moment);
+                
+                dto.setRealUsdThen(realDollarThen.getAmount());
+                
+                
+                MoneyAmount oneDollarNow = ForeignExchange.INSTANCE.exchange(oneDollar, ars, moment);
+                dto.setNominalUsdNow(oneDollarNow.getAmount());
                 
             }
         });
