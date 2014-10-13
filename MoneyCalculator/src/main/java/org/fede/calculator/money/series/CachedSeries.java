@@ -83,4 +83,9 @@ public final class CachedSeries extends IndexSeriesSupport {
         return this.source.getTo();
     }
 
+    @Override
+    public BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException {
+        return this.source.predictValue(year, month);
+    }
+
 }

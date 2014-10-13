@@ -23,6 +23,7 @@ import java.util.Calendar;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.bls.BlsCPISource;
 import static org.fede.calculator.money.bls.BlsCPISource.CPI_SERIES_ID;
+import org.fede.calculator.money.bls.BlsCpiDataPoint;
 import org.fede.calculator.money.bls.CachingBlsSource;
 import org.fede.calculator.money.bls.JSONBlsCPISource;
 
@@ -33,7 +34,7 @@ import org.fede.calculator.money.bls.JSONBlsCPISource;
 public final class DollarCPISeries extends IndexSeriesSupport {
 
     private static final YearMonth FROM = new YearMonth(1913, 1);
-    
+
     private final BlsCPISource source;
 
     public DollarCPISeries() {
@@ -48,7 +49,11 @@ public final class DollarCPISeries extends IndexSeriesSupport {
     public BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException {
         try {
             BlsResponse blsResponse = this.source.getResponse(year);
-            return blsResponse.getDataPoint(CPI_SERIES_ID, year, month).getValue();
+            BlsCpiDataPoint dp = blsResponse.getDataPoint(CPI_SERIES_ID, year, month);
+            if (dp == null) {
+                return this.predictValue(year, month);
+            }
+            return dp.getValue();
 
         } catch (IOException ex) {
             throw new NoSeriesDataFoundException(ex);
@@ -65,6 +70,15 @@ public final class DollarCPISeries extends IndexSeriesSupport {
         Calendar lastMonth = Calendar.getInstance();
         lastMonth.add(Calendar.MONTH, -1);
         return new YearMonth(lastMonth.get(Calendar.YEAR), lastMonth.get(Calendar.MONTH));
+    }
+
+    @Override
+    public BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException {
+        if (year < 1913) {
+            throw new NoSeriesDataFoundException("No data for specified year and month.");
+        }
+        //return new BigDecimal("250.0");
+        return new LinearFutureValue().predictValue(this, year, month);
     }
 
 }

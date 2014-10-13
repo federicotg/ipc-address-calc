@@ -27,6 +27,6 @@ public interface BlsCPISource {
     
     public static final String CPI_SERIES_ID = "CUUR0000SA0";
     
-    BlsResponse getResponse(int year) throws NoSeriesDataFoundException, IOException ;
+    BlsResponse getResponse(int year) throws NoSeriesDataFoundException, IOException;
     
 }
