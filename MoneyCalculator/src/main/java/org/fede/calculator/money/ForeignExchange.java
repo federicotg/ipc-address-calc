@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.util.Currency;
+import java.util.Date;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.Series;
@@ -33,6 +34,26 @@ public interface ForeignExchange extends Series {
             Currency.getInstance("ARS"));
 
     MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
+    MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException;
 
+    /**
+     * Convierte cada money amount de la serie a la moneda especificada según el tipo de cambio de la fecha de cada money amount de la serie.
+     * @param series
+     * @param targetCurrency
+     * @return
+     * @throws NoSeriesDataFoundException 
+     */
     MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) throws NoSeriesDataFoundException;
+    /**
+     * Convierte cada money amount de la serie a la moneda especificada según el tipo de cambio de la fecha especificada.
+     * @param series
+     * @param targetCurrency
+     * @param referenceYear
+     * @param referenceMonth
+     * @return
+     * @throws NoSeriesDataFoundException 
+     */
+    MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
+    
+    MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException;
 }

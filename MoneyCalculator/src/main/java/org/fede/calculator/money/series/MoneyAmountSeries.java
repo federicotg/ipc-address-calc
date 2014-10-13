@@ -36,6 +36,8 @@ public interface MoneyAmountSeries extends Series {
     Currency getCurrency();
 
     void forEach(MoneyAmountProcessor processor) throws NoSeriesDataFoundException;
+    
+    void forEachNonZero(MoneyAmountProcessor processor) throws NoSeriesDataFoundException;
 
     MoneyAmountSeries map(MoneyAmountTransform processor);
 

@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.util.Currency;
+import java.util.Date;
 import org.fede.calculator.money.series.DollarCPISeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.Series;
@@ -42,6 +43,8 @@ public interface Inflation extends Series{
      */
     MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoSeriesDataFoundException;
     
+    MoneyAmount adjust(MoneyAmount amount, Date from, Date to) throws NoSeriesDataFoundException;
+    
     /**
      * Ajusta por inflación todos los valores de la serie
      * @param series la serie a ajustar.
@@ -51,6 +54,8 @@ public interface Inflation extends Series{
      * @throws NoSeriesDataFoundException 
      */
     MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
+    
+    MoneyAmountSeries adjust(MoneyAmountSeries series, Date moment) throws NoSeriesDataFoundException;
     
     /**
      * Calcula el valor ajustado por inflación del monto especificado en cada mes que se pueda.

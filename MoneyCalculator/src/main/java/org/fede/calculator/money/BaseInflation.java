@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.money;
 
+import java.util.Calendar;
+import java.util.Date;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesSupport;
@@ -31,14 +33,13 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
     public final MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
         YearMonth maxFrom = this.maximumFrom(series);
         YearMonth minTo = this.minimumTo(series);
-        
+
         final int fromYear = maxFrom.getYear();//Math.max(this.getFromYear(), series.getFromYear());
         final int fromMonth = maxFrom.getMonth(); //Math.max(this.getFromMonth(), series.getFromMonth());
 
         final int toYear = minTo.getYear();//Math.min(this.getToYear(), series.getToYear());
         final int toMonth = minTo.getMonth();//Math.min(this.getToMonth(), series.getToMonth());
-       
-        
+
         final MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.getCurrency());
 
         for (int m = fromMonth; m <= 12; m++) {
@@ -59,8 +60,8 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
     }
 
     @Override
-    public MoneyAmountSeries adjust(MoneyAmount amount, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
-        
+    public final MoneyAmountSeries adjust(MoneyAmount amount, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
+
         final int fromYear = this.getFrom().getYear();
         final int fromMonth = this.getFrom().getMonth();
 
@@ -84,6 +85,27 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
         }
         return answer;
 
+    }
+
+    @Override
+    public final MoneyAmountSeries adjust(MoneyAmountSeries series, Date moment) throws NoSeriesDataFoundException {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(moment);
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH);
+        return this.adjust(series, year, month + 1);
+    }
+
+    @Override
+    public final MoneyAmount adjust(MoneyAmount amount, Date from, Date to) throws NoSeriesDataFoundException {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(from);
+        int yearFrom = cal.get(Calendar.YEAR);
+        int monthFrom = cal.get(Calendar.MONTH);
+        cal.setTime(to);
+        int yearTo = cal.get(Calendar.YEAR);
+        int monthTo = cal.get(Calendar.MONTH);
+        return this.adjust(amount, yearFrom, monthFrom + 1, yearTo, monthTo + 1);
     }
 
 }
