@@ -31,6 +31,7 @@ public class CanvasJSChartDTO {
     private CanvasJSAxisDTO axisY;
     private boolean exportEnabled = true;
     private boolean zoomEnabled = true;
+    private String markerType = "none";
     private CanvasJSLegendDTO legend = new CanvasJSLegendDTO();
 
     public CanvasJSTitleDTO getTitle() {
@@ -108,6 +109,14 @@ public class CanvasJSChartDTO {
 
     public void setLegend(CanvasJSLegendDTO legend) {
         this.legend = legend;
+    }
+
+    public String getMarkerType() {
+        return markerType;
+    }
+
+    public void setMarkerType(String markerType) {
+        this.markerType = markerType;
     }
 
 }
