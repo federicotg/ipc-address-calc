@@ -47,24 +47,18 @@ public class InvestmentController {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public CanvasJSChartDTO errorHandler(Exception ex) {
+    public String errorHandler(Exception ex) {
         LOG.log(Level.SEVERE, "errorHandler", ex);
-        CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        dto.setSuccessful(false);
-        return dto;
+        
+        return "redirect:/secure/";
     }
 
     
     @RequestMapping(value = "/dollar", method = RequestMethod.GET)
     public ModelAndView dollarInvestment() throws NoSeriesDataFoundException {
         ModelAndView mav = new ModelAndView("dollarInvestment");
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, 2014);
-        cal.set(Calendar.MONTH, 8);
-        cal.set(Calendar.DAY_OF_MONTH, 1);
-        Date moment = cal.getTime();
         mav.addObject("report", this.investmentService.dollar());
-        mav.addObject("moment", moment);
+        mav.addObject("moment", new Date());
         return mav;
     }
 }

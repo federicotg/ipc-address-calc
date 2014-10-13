@@ -35,16 +35,25 @@
             thead{
                 text-align: center;
             }
+            
+            thead th:last-child{
+                border-right-color: black;
+                border-right-style: solid;
+                border-right-width: 1px;
+            }
             th{
                 border-bottom-color: black;
                 border-bottom-style: solid;
                 border-bottom-width: 1px;
+                border-left-color: black;
+                border-left-style: solid;
+                border-left-width: 1px;
                 padding:1em;
             }
             table {
-                border-style: solid;
-                border-color: black;
-                border-width: 1px;
+                border-top-style: solid;
+                border-top-color: black;
+                border-top-width: 1px;
                 font-size: 90%;
             }
             tbody td {
@@ -63,50 +72,49 @@
                 background-color: cornsilk;
             }
             #chart{
-                
+
                 height: 800px;
             }
+            .valueTd{
+                text-align: right;
+            }
         </style>
-        <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/mootools/1.5.1/mootools-yui-compressed.js"></script>
-        <script type="text/javascript" src="/scripts/canvasjs.min.js"></script>
-        <script type="text/javascript" src="/scripts/charts.js"></script>
-        <script type="text/javascript">
-
-            window.addEvent('domready', function () {
-
-               // showChart('/secure/dollarInvestmentChart.json', null, 'chart');
-
-            });
-
-
-        </script>
     </head>
     <body>
         <%@include file="../jspf/menu.jspf" %>
         <h1>Inversión USD</h1>
-       <%-- <div id="chart"></div>--%>
         <table>
             <thead>
+                <tr>
+                    <th colspan="2">Compra</th>
+                    <th colspan="2">Pesos</th>
+                    <th colspan="3">Valor de venta (<fmt:formatDate value="${moment}" pattern="MMM/YYYY"/>)</th>
+                    <th colspan="2">Tipo de Cambio Real</th>
+                </tr>
                 <tr>
                     <th>Fecha</th>
                     <th>Dólares</th>
                     <th>Nominales</th>
                     <th>Reales al <fmt:formatDate value="${moment}" pattern="MMM/YYYY"/></th>
-                    <th>Valor al <fmt:formatDate value="${moment}" pattern="MMM/YYYY"/></th>
+                    <th>Pesos</th>
                     <th>Diferencia</th>
                     <th>%</th>
+                    <th>$/USD</th>
+                    <th>Dif. dólar hoy</th>
                 </tr>
             </thead>
             <tbody>
                 <c:forEach items="${report}" var="item">
                     <tr>
                         <td><fmt:formatDate value="${item.then}" pattern="MMM/YYYY"/></td>
-                        <td><fmt:formatNumber type="CURRENCY">${item.usd}</fmt:formatNumber></td>
-                        <td><fmt:formatNumber type="CURRENCY">${item.nominalPesosThen}</fmt:formatNumber></td>
-                        <td><fmt:formatNumber type="CURRENCY">${item.realPesosNow}</fmt:formatNumber></td>
-                        <td><fmt:formatNumber type="CURRENCY">${item.nominalPesosNow}</fmt:formatNumber></td>
-                        <td><fmt:formatNumber type="CURRENCY">${item.nominalPesosNow - item.realPesosNow}</fmt:formatNumber></td>
-                        <td><fmt:formatNumber type="PERCENT" minFractionDigits="2">${(item.nominalPesosNow - item.realPesosNow) / item.realPesosNow}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.usd}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.nominalPesosThen}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.realPesosNow}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.nominalPesosNow}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.nominalPesosNow - item.realPesosNow}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${(item.nominalPesosNow - item.realPesosNow) / item.realPesosNow}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.realUsdThen}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${(item.realUsdThen - item.nominalUsdNow) / item.nominalUsdNow}</fmt:formatNumber></td>
                         </tr>
                 </c:forEach>
             </tbody>

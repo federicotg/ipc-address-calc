@@ -233,12 +233,5 @@ public class ChartController {
         }
         return this.chartService.expenses(dto.getMonths(), dto.getSeries());
     }
-    
-    @ResponseBody
-    @RequestMapping(value = "dollarInvestmentChart", method = RequestMethod.GET)
-    public CanvasJSChartDTO dollarInvestmentChart()
-            throws NoSeriesDataFoundException {
-        return this.chartService.dollarInvestment();
-    }
 
 }

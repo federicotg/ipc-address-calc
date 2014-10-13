@@ -35,6 +35,9 @@ public class DollarReportDTO {
     private BigDecimal realPesosNow;
     private BigDecimal nominalPesosNow;
     
+    private BigDecimal realUsdThen;
+    private BigDecimal nominalUsdNow;
+    
 
     public BigDecimal getUsd() {
         return usd;
@@ -82,6 +85,22 @@ public class DollarReportDTO {
 
     public void setNominalPesosNow(BigDecimal nominalPesosNow) {
         this.nominalPesosNow = nominalPesosNow;
+    }
+
+    public BigDecimal getRealUsdThen() {
+        return realUsdThen;
+    }
+
+    public void setRealUsdThen(BigDecimal realUsdThen) {
+        this.realUsdThen = realUsdThen;
+    }
+
+    public BigDecimal getNominalUsdNow() {
+        return nominalUsdNow;
+    }
+
+    public void setNominalUsdNow(BigDecimal nominalUsdNow) {
+        this.nominalUsdNow = nominalUsdNow;
     }
 
 

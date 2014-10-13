@@ -17,9 +17,6 @@
 package org.fede.calculator.service;
 
 import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Currency;
@@ -41,7 +38,6 @@ import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
 import org.fede.calculator.web.dto.CanvasJSDatumDTO;
 import org.fede.calculator.web.dto.CanvasJSTitleDTO;
-import org.fede.calculator.web.dto.DollarReportDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 
 import org.springframework.stereotype.Service;
@@ -57,9 +53,6 @@ public class CanvasJSChartService implements ChartService {
 
     @Resource(name = "expenseSeries")
     private List<ExpenseChartSeriesDTO> expenseSeries;
-    
-    @Resource(name = "investmentService")
-    private InvestmentService investmentService;
 
     static {
         MONTH_NAMES.put(1, "enero");
@@ -274,41 +267,4 @@ public class CanvasJSChartService implements ChartService {
         dto.setData(seriesList);
         return dto;
     }
-
-    @Override
-    public CanvasJSChartDTO dollarInvestment() throws NoSeriesDataFoundException {
-        
-        List<DollarReportDTO> report = this.investmentService.dollar();
-        
-                CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Ganancia");
-        dto.setTitle(title);
-        dto.setXAxisTitle("Año");
-        CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
-        yAxis.setTitle("Monto");
-        yAxis.setValueFormatString("$0");
-        dto.setAxisY(yAxis);
-
-        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
-
-        
-        List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
-        DateFormat dateFormat = new SimpleDateFormat("MMM/YYYY");
-        for (DollarReportDTO rdto : report) {
-            CanvasJSDatapointDTO dp = new CanvasJSDatapointDTO(
-                    dateFormat.format(rdto.getThen()),
-                    rdto.getNominalPesosNow().subtract(rdto.getRealPesosNow()),
-                    moneyFormat.format(rdto.getUsd()) + " " + dateFormat.format(rdto.getThen()));
-            datapoints.add(dp);
-        }
-        
-        seriesList.add(this.getDatum("bar", "blue", "Pesos Reales", datapoints));
-        
-
-        dto.setData(seriesList);
-        
-        return dto;
-    }
-
 }

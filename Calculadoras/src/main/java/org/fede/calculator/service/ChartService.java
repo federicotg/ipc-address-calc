@@ -41,7 +41,5 @@ public interface ChartService {
     CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException;
     
     CanvasJSChartDTO expenses(int months, List<String> series) throws NoSeriesDataFoundException;
-    
-    CanvasJSChartDTO dollarInvestment() throws NoSeriesDataFoundException;
 
 }
