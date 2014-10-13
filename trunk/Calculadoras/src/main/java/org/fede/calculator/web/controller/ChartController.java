@@ -29,7 +29,6 @@ import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CombinedChartDTO;
 import org.fede.calculator.web.dto.ExpenseChartDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
-import org.fede.calculator.web.dto.MonthGroupingChartDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -233,6 +232,13 @@ public class ChartController {
             return notOk;
         }
         return this.chartService.expenses(dto.getMonths(), dto.getSeries());
+    }
+    
+    @ResponseBody
+    @RequestMapping(value = "dollarInvestmentChart", method = RequestMethod.GET)
+    public CanvasJSChartDTO dollarInvestmentChart()
+            throws NoSeriesDataFoundException {
+        return this.chartService.dollarInvestment();
     }
 
 }

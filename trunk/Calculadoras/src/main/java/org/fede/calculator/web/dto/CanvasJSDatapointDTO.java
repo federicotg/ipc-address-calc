@@ -25,10 +25,15 @@ import java.math.RoundingMode;
  */
 public class CanvasJSDatapointDTO {
 
-    public String x;
-    //@JsonFormat(locale = "en-US", shape = JsonFormat.Shape.NUMBER_FLOAT, pattern = "#.####")
-    public BigDecimal y;
+    private String x;
+    private BigDecimal y;
+    private String label;
 
+    public CanvasJSDatapointDTO(String x, BigDecimal y, String label) {
+        this(x,y);
+        this.label = label;
+    }
+    
     public CanvasJSDatapointDTO(String x, BigDecimal y) {
         this.x = x;
         this.y = y.setScale(4, RoundingMode.HALF_UP);
@@ -49,6 +54,14 @@ public class CanvasJSDatapointDTO {
 
     public void setY(BigDecimal y) {
         this.y = y.setScale(4, RoundingMode.HALF_UP);
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 
 }

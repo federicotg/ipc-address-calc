@@ -14,7 +14,7 @@
     <bean id="moneyController" class="org.fede.calculator.web.controller.MoneyCalculator"/>
     <bean id="chartController" class="org.fede.calculator.web.controller.ChartController"/>
     <bean id="authController" class="org.fede.calculator.web.controller.AuthenticationController"/>
+    <bean id="investmentController" class="org.fede.calculator.web.controller.InvestmentController"/>
    
-    
     
 </beans>
