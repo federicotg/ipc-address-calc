@@ -35,7 +35,6 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAverage;
 import org.fede.calculator.money.SimpleForeignExchange;
 import org.fede.calculator.money.json.JSONDataPoint;
-import org.fede.calculator.money.series.InterpolationStrategy;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
@@ -211,6 +210,40 @@ public class DollarTest {
     }
 
     @Test
+    public void historicDollar() throws NoSeriesDataFoundException {
+
+        final int todayYear = 2014;
+        final int todayMonth = 9;
+
+        final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
+        final Currency ars = Currency.getInstance("ARS");
+
+        MoneyAmountSeries expected = new JSONMoneyAmountSeries(Currency.getInstance("ARS"));
+
+        for (int year = Inflation.ARS_INFLATION.getFrom().getYear(); year < Inflation.ARS_INFLATION.getTo().getYear(); year++) {
+            for (int month = 1; month <= 12; month++) {
+                MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
+                MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
+                MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
+                expected.putAmount(year, month, ma);
+            }
+        }
+        final int year = Inflation.ARS_INFLATION.getTo().getYear();
+        for (int month = 1; month <= Inflation.ARS_INFLATION.getTo().getMonth(); month++) {
+            MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
+            MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
+            MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
+            expected.putAmount(year, month, ma);
+        }
+
+        MoneyAmountSeries result = Inflation.ARS_INFLATION.adjust(
+                ForeignExchange.INSTANCE.exchange(
+                        USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), ars), todayYear, todayMonth);
+
+        assertEquals(expected, result);
+    }
+
+    @Test
     public void averages() throws NoSeriesDataFoundException {
         MoneyAmountSeries series = JSONMoneyAmountSeries.readSeries("unlp.json");
         MoneyAmountSeries averaged = new SimpleAverage(6).average(JSONMoneyAmountSeries.readSeries("unlp.json"));
@@ -337,7 +370,7 @@ public class DollarTest {
 
     }
 
-    @Test
+    //@Test
     public void dolarBuying() throws NoSeriesDataFoundException {
         MoneyAmountSeries dolares = JSONMoneyAmountSeries.readSeries("dolares.json");
 

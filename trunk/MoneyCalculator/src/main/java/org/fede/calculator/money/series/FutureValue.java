@@ -17,19 +17,12 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
  * @author fede
  */
-public interface IndexSeries extends Series {
-
-    BigDecimal getIndex(Date day) throws NoSeriesDataFoundException;
-
-    BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException;
-
-    BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException;
-
+public interface FutureValue {
+    BigDecimal predictValue(IndexSeries series, int year, int month) throws NoSeriesDataFoundException;
 }

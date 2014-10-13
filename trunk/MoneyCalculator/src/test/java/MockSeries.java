@@ -63,5 +63,10 @@ public class MockSeries implements IndexSeries{
     public YearMonth getTo() {
         return new YearMonth(4000, 12);
     }
+
+    @Override
+    public BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException {
+        return BigDecimal.ZERO;
+    }
     
 }

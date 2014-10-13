@@ -17,19 +17,29 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
  * @author fede
  */
-public interface IndexSeries extends Series {
+public class LinearFutureValue implements FutureValue, MathConstants {
 
-    BigDecimal getIndex(Date day) throws NoSeriesDataFoundException;
+    @Override
+    public BigDecimal predictValue(IndexSeries series, int year, int month) throws NoSeriesDataFoundException {
+        final int yearsBack = 1;
+        YearMonth end = series.getTo();
 
-    BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException;
+        BigDecimal sum = BigDecimal.ZERO;
 
-    BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException;
+        for (YearMonth ym = new YearMonth(year - 1, month); ym.compareTo(end) < 0; ym = ym.next()) {
+            sum = sum.add(
+                    series.getIndex(ym.getYear(), ym.getMonth()).divide(
+                            series.getIndex(ym.getYear() - 1, ym.getMonth()), CONTEXT)
+            );
+        }
+        return sum.divide(new BigDecimal(yearsBack * 12), CONTEXT);
+    }
 
 }

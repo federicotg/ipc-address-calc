@@ -40,6 +40,14 @@ public class ArgentinaCompoundCPISeries extends IndexSeriesSupport {
     }
 
     @Override
+    public BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException {
+        if (year < 2006 || (year == 2006 && month < 12)) {
+            throw new NoSeriesDataFoundException("Can't predict INDEC");
+        }
+        return this.cqpSeries.predictValue(year, month);
+    }
+    
+    @Override
     public YearMonth getFrom() {
         return this.indecSeries.getFrom();
     }
@@ -48,5 +56,7 @@ public class ArgentinaCompoundCPISeries extends IndexSeriesSupport {
     public YearMonth getTo() {
         return this.cqpSeries.getTo();
     }
+
+
 
 }
