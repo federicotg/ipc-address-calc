@@ -33,13 +33,21 @@ public class LinearFutureValue implements FutureValue, MathConstants {
 
         BigDecimal sum = BigDecimal.ZERO;
 
-        for (YearMonth ym = new YearMonth(year - 1, month); ym.compareTo(end) < 0; ym = ym.next()) {
+        for (YearMonth ym = new YearMonth(end.getYear() - 1, end.getMonth()); ym.compareTo(end) < 0; ym = ym.next()) {
             sum = sum.add(
                     series.getIndex(ym.getYear(), ym.getMonth()).divide(
                             series.getIndex(ym.getYear() - 1, ym.getMonth()), CONTEXT)
             );
         }
-        return sum.divide(new BigDecimal(yearsBack * 12), CONTEXT);
+        BigDecimal avgAnnualCpiChange = sum.divide(new BigDecimal(yearsBack * 12), CONTEXT);
+        
+        int lastYear = end.getYear();
+        if(month > end.getMonth()){
+            lastYear--;
+        }
+        BigDecimal lastKnownValueForRequestedMonth = series.getIndex(lastYear, month);
+        
+        return lastKnownValueForRequestedMonth.multiply(avgAnnualCpiChange);
     }
 
 }

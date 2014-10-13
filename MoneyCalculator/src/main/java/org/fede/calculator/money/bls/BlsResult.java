@@ -27,7 +27,6 @@ public class BlsResult {
     private List<BlsSeries> series;
 
     public BlsCpiDataPoint getDataPoint(String seriesId, int year) {
-        //return this.series.stream().filter( s -> s.hasId(seriesId)).findFirst().get().getDataPoint(year);
         for (BlsSeries s : this.series) {
             if (s.hasId(seriesId)) {
                 return s.getDataPoint(year);
@@ -37,8 +36,6 @@ public class BlsResult {
     }
 
     public BlsCpiDataPoint getDataPoint(String seriesId, int year, int month) {
-
-        //return this.series.stream().filter( s -> s.hasId(seriesId)).findFirst().get().getDataPoint(year, month);
         for (BlsSeries s : this.series) {
             if (s.hasId(seriesId)) {
                 return s.getDataPoint(year, month);
@@ -53,6 +50,15 @@ public class BlsResult {
 
     public void setSeries(List<BlsSeries> series) {
         this.series = series;
+    }
+
+    public int getLastAvailableMonth(String seriesId) {
+        for (BlsSeries s : this.series) {
+            if (s.hasId(seriesId)) {
+                return s.getLastAvailableMonth();
+            }
+        }
+        return 0;
     }
 
 }
