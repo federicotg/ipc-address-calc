@@ -47,7 +47,7 @@ public class CanvasJSDatumDTO {
         this.color = color;
     }
 
-    public List<CanvasJSDatapointDTO> getDataPoints() {
+    public List<?> getDataPoints() {
         return dataPoints;
     }
 

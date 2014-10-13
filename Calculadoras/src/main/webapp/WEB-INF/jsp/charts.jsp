@@ -40,6 +40,9 @@
             <li><a href="savings">Ahorros</a></li>
             <li><a href="expenses">Gastos</a></li>
         </ul>
-
+        <h1>Reportes</h1>
+        <ul>
+            <li><a href="investment/dollar">Dólar</a></li>
+        </ul>
     </body>
 </html>
