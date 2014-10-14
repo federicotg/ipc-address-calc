@@ -63,25 +63,25 @@ public class InvestmentServiceImpl implements InvestmentService {
                 answer.add(dto);
                 Date thenDate = createDate(year, month);
                 dto.setThen(thenDate);
-                MoneyAmount pesos = ForeignExchange.INSTANCE.exchange(dollar, peso, thenDate);
+                MoneyAmount pesos = ForeignExchange.USD_ARS.exchange(dollar, peso, thenDate);
                 dto.setNominalPesosThen(pesos.getAmount());
                 BigDecimal realPesos =Inflation.ARS_INFLATION.adjust(pesos, thenDate, moment).getAmount();
                 dto.setRealPesosNow(realPesos);
                 dto.setNow(moment);
-                dto.setNominalPesosNow(ForeignExchange.INSTANCE.exchange(dollar, peso, moment).getAmount());
+                dto.setNominalPesosNow(ForeignExchange.USD_ARS.exchange(dollar, peso, moment).getAmount());
                 
                 
                 
                 MoneyAmount oneDollarThen = USD_INFLATION.adjust(oneDollar, moment, thenDate);
 
                 MoneyAmount realDollarThen = Inflation.ARS_INFLATION.adjust(
-                ForeignExchange.INSTANCE.exchange(oneDollarThen,ars, thenDate), 
+                ForeignExchange.USD_ARS.exchange(oneDollarThen,ars, thenDate), 
                         thenDate, moment);
                 
                 dto.setRealUsdThen(realDollarThen.getAmount());
                 
                 
-                MoneyAmount oneDollarNow = ForeignExchange.INSTANCE.exchange(oneDollar, ars, moment);
+                MoneyAmount oneDollarNow = ForeignExchange.USD_ARS.exchange(oneDollar, ars, moment);
                 dto.setNominalUsdNow(oneDollarNow.getAmount());
                 
             }

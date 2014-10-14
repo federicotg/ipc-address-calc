@@ -131,6 +131,15 @@ public class ChartController {
         mav.addObject("dto", new CombinedChartDTO());
         return mav;
     }
+    
+    @RequestMapping(value = "goldSavings", method = RequestMethod.GET)
+    public ModelAndView goldSavings() {
+        ModelAndView mav = new ModelAndView("combinedChart");
+        mav.addObject("uri", "goldSavingsChart");
+        mav.addObject("title", "Ahorros");
+        mav.addObject("dto", new CombinedChartDTO());
+        return mav;
+    }
 
     @RequestMapping(value = "expenses", method = RequestMethod.GET)
     public ModelAndView expenses() {
@@ -234,4 +243,11 @@ public class ChartController {
         return this.chartService.expenses(dto.getMonths(), dto.getSeries());
     }
 
+    @ResponseBody
+    @RequestMapping(value = "goldSavingsChart", method = RequestMethod.GET)
+    public CanvasJSChartDTO goldSavingsChart()
+            throws NoSeriesDataFoundException {
+        return this.chartService.goldIncomeAndSavings();
+    }
+    
 }
