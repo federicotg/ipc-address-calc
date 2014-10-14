@@ -282,7 +282,7 @@ public class CanvasJSChartService implements ChartService {
                                 Currency.getInstance("USD")), Currency.getInstance("XAU"));
 
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Ahorros");
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Oro");
         dto.setTitle(title);
         dto.setXAxisTitle("Año");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
