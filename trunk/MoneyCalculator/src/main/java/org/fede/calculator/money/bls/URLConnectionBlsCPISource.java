@@ -33,7 +33,6 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 public class URLConnectionBlsCPISource implements BlsCPISource {
 
     private static final String BLS_REST_API = "http://api.bls.gov/publicAPI/v1/timeseries/data/";
-    //private static final String file = "/home/fede/bls.json";
 
     @Override
     public BlsResponse getResponse(int year) throws NoSeriesDataFoundException, IOException {
@@ -51,9 +50,7 @@ public class URLConnectionBlsCPISource implements BlsCPISource {
             out.write(body.getBytes("UTF-8"));
             out.flush();
         }
-        
-        //Writer o = new OutputStreamWriter(new FileOutputStream(new File(file), true));
-        
+       
         StringBuilder sb;
         
         try (InputStream is = con.getInputStream()) {
@@ -62,13 +59,9 @@ public class URLConnectionBlsCPISource implements BlsCPISource {
             char[] buffer = new char[4096];
             int read = reader.read(buffer);
             while(read > 0){
-                //o.write(buffer, 0, read);
                 sb.append(buffer, 0, read);
                 read = reader.read(buffer);
-                
             }
-            //o.flush();
-            //o.close();
         }
 
         return new ObjectMapper().readValue(sb.toString(), BlsResponse.class);

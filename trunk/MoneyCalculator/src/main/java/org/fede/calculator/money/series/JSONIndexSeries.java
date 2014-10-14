@@ -24,7 +24,6 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.json.JSONDataPoint;
 
 /**
  *
