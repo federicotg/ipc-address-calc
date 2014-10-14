@@ -30,8 +30,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.json.JSONDataPoint;
-import org.fede.calculator.money.json.JSONSeries;
 
 /**
  *

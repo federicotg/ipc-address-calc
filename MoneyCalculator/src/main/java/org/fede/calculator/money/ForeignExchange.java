@@ -28,10 +28,15 @@ import org.fede.calculator.money.series.Series;
  */
 public interface ForeignExchange extends Series {
 
-    public static final ForeignExchange INSTANCE = new SimpleForeignExchange(
+    public static final ForeignExchange USD_ARS = new SimpleForeignExchange(
             JSONIndexSeries.readSeries("peso-dolar-libre.json"),
             Currency.getInstance("USD"),
             Currency.getInstance("ARS"));
+    
+    public static final ForeignExchange USD_XAU = new SimpleForeignExchange(
+            JSONIndexSeries.readSeries("gold.json"),
+            Currency.getInstance("XAU"),
+            Currency.getInstance("USD"));
 
     MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
     MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException;
