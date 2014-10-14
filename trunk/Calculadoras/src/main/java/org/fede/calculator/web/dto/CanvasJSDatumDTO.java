@@ -29,6 +29,7 @@ public class CanvasJSDatumDTO {
     private boolean showInLegend = false;
     private String name;
     private String legendText;
+    private String markerType = "none";
     private List<CanvasJSDatapointDTO> dataPoints;
 
     public String getType() {
@@ -77,6 +78,14 @@ public class CanvasJSDatumDTO {
 
     public void setLegendText(String legendText) {
         this.legendText = legendText;
+    }
+
+    public String getMarkerType() {
+        return markerType;
+    }
+
+    public void setMarkerType(String markerType) {
+        this.markerType = markerType;
     }
 
 }
