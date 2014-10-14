@@ -34,7 +34,7 @@ import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAverage;
 import org.fede.calculator.money.SimpleForeignExchange;
-import org.fede.calculator.money.json.JSONDataPoint;
+import org.fede.calculator.money.series.JSONDataPoint;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
@@ -51,9 +51,9 @@ import static org.junit.Assert.*;
  *
  * @author fede
  */
-public class DollarTest {
+public class Dollar {
 
-    public DollarTest() {
+    public Dollar() {
     }
 
     @BeforeClass
@@ -193,7 +193,7 @@ public class DollarTest {
     @Test
     public void fx() throws NoSeriesDataFoundException {
         MoneyAmount pesos10 = new MoneyAmount(new BigDecimal("10"), Currency.getInstance("ARS"));
-        MoneyAmount xDollars = ForeignExchange.INSTANCE.exchange(pesos10, Currency.getInstance("USD"), 1981, 6);
+        MoneyAmount xDollars = ForeignExchange.USD_ARS.exchange(pesos10, Currency.getInstance("USD"), 1981, 6);
         assertEquals(new MoneyAmount(new BigDecimal("0.00141844"), "USD"), xDollars);
     }
 
@@ -223,7 +223,7 @@ public class DollarTest {
         for (int year = Inflation.ARS_INFLATION.getFrom().getYear(); year < Inflation.ARS_INFLATION.getTo().getYear(); year++) {
             for (int month = 1; month <= 12; month++) {
                 MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
-                MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
+                MoneyAmount pesosBackThen = ForeignExchange.USD_ARS.exchange(oneDollarBackThen, ars, year, month);
                 MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
                 expected.putAmount(year, month, ma);
             }
@@ -231,13 +231,13 @@ public class DollarTest {
         final int year = Inflation.ARS_INFLATION.getTo().getYear();
         for (int month = 1; month <= Inflation.ARS_INFLATION.getTo().getMonth(); month++) {
             MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
-            MoneyAmount pesosBackThen = ForeignExchange.INSTANCE.exchange(oneDollarBackThen, ars, year, month);
+            MoneyAmount pesosBackThen = ForeignExchange.USD_ARS.exchange(oneDollarBackThen, ars, year, month);
             MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
             expected.putAmount(year, month, ma);
         }
 
         MoneyAmountSeries result = Inflation.ARS_INFLATION.adjust(
-                ForeignExchange.INSTANCE.exchange(
+                ForeignExchange.USD_ARS.exchange(
                         USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), ars), todayYear, todayMonth);
 
         assertEquals(expected, result);
@@ -272,10 +272,10 @@ public class DollarTest {
         //assertEquals(9, Inflation.USD_INFLATION.getTo().getMonth());
 
         MoneyAmountSeries series = JSONMoneyAmountSeries.readSeries("lifia.json");
-        MoneyAmountSeries dolarizedSeries = ForeignExchange.INSTANCE.exchange(series, Currency.getInstance("USD"));
+        MoneyAmountSeries dolarizedSeries = ForeignExchange.USD_ARS.exchange(series, Currency.getInstance("USD"));
 
-        assertEquals(ForeignExchange.INSTANCE.getTo().getYear(), dolarizedSeries.getTo().getYear());
-        assertEquals(ForeignExchange.INSTANCE.getTo().getMonth(), dolarizedSeries.getTo().getMonth());
+        assertEquals(ForeignExchange.USD_ARS.getTo().getYear(), dolarizedSeries.getTo().getYear());
+        assertEquals(ForeignExchange.USD_ARS.getTo().getMonth(), dolarizedSeries.getTo().getMonth());
 
         assertEquals(series.getFrom().getYear(), dolarizedSeries.getFrom().getYear());
         assertEquals(series.getFrom().getMonth(), dolarizedSeries.getFrom().getMonth());
@@ -326,10 +326,10 @@ public class DollarTest {
 
         MoneyAmount p = pesos.getAmount(2002, 9);
         MoneyAmount d = dolares.getAmount(2002, 9);
-        MoneyAmount p2 = ForeignExchange.INSTANCE.exchange(d, Currency.getInstance("ARS"), 2002, 9);
+        MoneyAmount p2 = ForeignExchange.USD_ARS.exchange(d, Currency.getInstance("ARS"), 2002, 9);
         MoneyAmount expected = p.add(p2);
 
-        MoneyAmountSeries newSeries = ForeignExchange.INSTANCE.exchange(dolares, Currency.getInstance("ARS"));
+        MoneyAmountSeries newSeries = ForeignExchange.USD_ARS.exchange(dolares, Currency.getInstance("ARS"));
         assertEquals(new MoneyAmount(new BigDecimal("44152.57"), Currency.getInstance("ARS")), expected);
         assertEquals(expected,
                 pesos.add(newSeries).getAmount(2002, 9));
@@ -376,9 +376,9 @@ public class DollarTest {
 
         Currency peso = Currency.getInstance("ARS");
 
-        final MoneyAmountSeries nominalPesosAtBuyingTime = ForeignExchange.INSTANCE.exchange(dolares, peso);
+        final MoneyAmountSeries nominalPesosAtBuyingTime = ForeignExchange.USD_ARS.exchange(dolares, peso);
 
-        final MoneyAmountSeries nominalPesosNow = ForeignExchange.INSTANCE.exchange(dolares, peso, 2014, 8);
+        final MoneyAmountSeries nominalPesosNow = ForeignExchange.USD_ARS.exchange(dolares, peso, 2014, 8);
         final MoneyAmountSeries realPesosNow = Inflation.ARS_INFLATION.adjust(nominalPesosAtBuyingTime, 2014, 8);
         final NumberFormat nf = NumberFormat.getCurrencyInstance();
         dolares.forEach(new MoneyAmountProcessor() {
