@@ -43,5 +43,6 @@ public interface ChartService {
     CanvasJSChartDTO expenses(int months, List<String> series) throws NoSeriesDataFoundException;
     
     CanvasJSChartDTO goldIncomeAndSavings() throws NoSeriesDataFoundException;
-
+    
+    CanvasJSChartDTO savedSalaries() throws NoSeriesDataFoundException;
 }

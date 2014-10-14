@@ -28,6 +28,8 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.ForeignExchange.USD_ARS;
 import static org.fede.calculator.money.ForeignExchange.USD_XAU;
+import org.fede.calculator.money.MathConstants;
+import static org.fede.calculator.money.MathConstants.CONTEXT;
 import static org.fede.calculator.money.series.JSONMoneyAmountSeries.readSeries;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -35,6 +37,7 @@ import org.fede.calculator.money.SimpleAverage;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
+import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.web.dto.CanvasJSAxisDTO;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
@@ -49,7 +52,7 @@ import org.springframework.stereotype.Service;
  * @author fede
  */
 @Service
-public class CanvasJSChartService implements ChartService {
+public class CanvasJSChartService implements ChartService, MathConstants {
 
     private static final Map<Integer, String> MONTH_NAMES = new HashMap<>();
 
@@ -273,13 +276,15 @@ public class CanvasJSChartService implements ChartService {
     @Override
     public CanvasJSChartDTO goldIncomeAndSavings() throws NoSeriesDataFoundException {
 
-        MoneyAmountSeries ars = USD_XAU.exchange(USD_ARS.exchange(readSeries("ahorros-peso.json"), Currency.getInstance("USD")), Currency.getInstance("XAU"));
-        MoneyAmountSeries usd = USD_XAU.exchange(readSeries("ahorros-dolar.json"), Currency.getInstance("XAU"));
+        Currency xau = Currency.getInstance("XAU");
+        Currency usd = Currency.getInstance("USD");
+        MoneyAmountSeries ars = USD_XAU.exchange(USD_ARS.exchange(readSeries("ahorros-peso.json"), usd), xau);
+        MoneyAmountSeries usdSavings = USD_XAU.exchange(readSeries("ahorros-dolar.json"), xau);
         MoneyAmountSeries income
                 = USD_XAU.exchange(
                         USD_ARS.exchange(
                                 readSeries("unlp.json").add(readSeries("lifia.json")).add(readSeries("plazofijo.json")),
-                                Currency.getInstance("USD")), Currency.getInstance("XAU"));
+                                usd), xau);
 
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO("Oro");
@@ -294,12 +299,52 @@ public class CanvasJSChartService implements ChartService {
         dto.setData(seriesList);
 
         List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        ars.add(usd).forEach(new MoneyAmountProcessorImpl(datapoints));
+        ars.add(usdSavings).forEach(new MoneyAmountProcessorImpl(datapoints));
         seriesList.add(this.getDatum("line", "gold", "Ahorros", datapoints));
 
         datapoints = new ArrayList<>();
         income.forEach(new MoneyAmountProcessorImpl(datapoints));
         seriesList.add(this.getDatum("line", "orange", "Ingresos", datapoints));
+
+        return dto;
+
+    }
+
+    @Override
+    public CanvasJSChartDTO savedSalaries() throws NoSeriesDataFoundException {
+        Currency usd = Currency.getInstance("USD");
+        MoneyAmountSeries income = new SimpleAverage(12).average(USD_ARS.exchange(
+                readSeries("unlp.json").add(readSeries("lifia.json")).add(readSeries("plazofijo.json")),
+                usd));
+
+        final MoneyAmountSeries savings = USD_ARS.exchange(readSeries("ahorros-peso.json"), usd).add(readSeries("ahorros-dolar.json"));
+
+        CanvasJSChartDTO dto = new CanvasJSChartDTO();
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Sueldos Ahorrados");
+        dto.setTitle(title);
+        dto.setXAxisTitle("Año");
+        CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
+        yAxis.setTitle("Sueldos");
+        dto.setAxisY(yAxis);
+
+        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(2);
+        dto.setData(seriesList);
+
+        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        income.forEachNonZero(new MoneyAmountProcessor() {
+
+            @Override
+            public void process(int year, int month, MoneyAmount sueldo) throws NoSeriesDataFoundException {
+                if (new YearMonth(year, month).compareTo(savings.getFrom()) >= 0) {
+                    CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
+                            "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-28"),
+                            savings.getAmount(year, month).getAmount().divide(sueldo.getAmount(), CONTEXT)
+                    );
+                    datapoints.add(dataPoint);
+                }
+            }
+        });
+        seriesList.add(this.getDatum("line", "red", "Sueldos", datapoints));
 
         return dto;
 
