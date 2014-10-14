@@ -134,10 +134,9 @@ public class ChartController {
     
     @RequestMapping(value = "goldSavings", method = RequestMethod.GET)
     public ModelAndView goldSavings() {
-        ModelAndView mav = new ModelAndView("combinedChart");
+        ModelAndView mav = new ModelAndView("simpleChart");
         mav.addObject("uri", "goldSavingsChart");
-        mav.addObject("title", "Ahorros");
-        mav.addObject("dto", new CombinedChartDTO());
+        mav.addObject("title", "Oro");
         return mav;
     }
 
