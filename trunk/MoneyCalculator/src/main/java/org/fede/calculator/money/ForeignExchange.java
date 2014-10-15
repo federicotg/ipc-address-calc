@@ -32,33 +32,55 @@ public interface ForeignExchange extends Series {
             JSONIndexSeries.readSeries("peso-dolar-libre.json"),
             Currency.getInstance("USD"),
             Currency.getInstance("ARS"));
-    
+
     public static final ForeignExchange USD_XAU = new SimpleForeignExchange(
             JSONIndexSeries.readSeries("gold.json"),
             Currency.getInstance("XAU"),
             Currency.getInstance("USD"));
 
     MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
+
     MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException;
 
     /**
-     * Convierte cada money amount de la serie a la moneda especificada según el tipo de cambio de la fecha de cada money amount de la serie.
+     * Convierte cada money amount de la serie a la moneda especificada según el
+     * tipo de cambio de la fecha de cada money amount de la serie. Útil para
+     * convertir una serie de valores a su equivalenet en otra moneda en el
+     * momento que ese valor está asignado.
+     *
      * @param series
      * @param targetCurrency
      * @return
-     * @throws NoSeriesDataFoundException 
+     * @throws NoSeriesDataFoundException
      */
     MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) throws NoSeriesDataFoundException;
+
     /**
-     * Convierte cada money amount de la serie a la moneda especificada según el tipo de cambio de la fecha especificada.
+     * Convierte el money amount especificado en la serie de valores donde en
+     * valor en cada fecha es la conversión según el tipo de cambio de la fecha.
+     * Útil para saber la evolución de un valor nominal según el tipo de cambio
+     * en diferentes momentos.
+     *
+     * @param amount
+     * @param targetCurrency
+     * @return
+     * @throws NoSeriesDataFoundException
+     */
+    MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) throws NoSeriesDataFoundException;
+
+    /**
+     * Convierte cada money amount de la serie a la moneda especificada según el
+     * tipo de cambio de la fecha especificada. Útil para convertir toda una
+     * serie de valores a un tipo de cambio fijo de un momento dado.
+     *
      * @param series
      * @param targetCurrency
      * @param referenceYear
      * @param referenceMonth
      * @return
-     * @throws NoSeriesDataFoundException 
+     * @throws NoSeriesDataFoundException
      */
     MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
-    
+
     MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException;
 }

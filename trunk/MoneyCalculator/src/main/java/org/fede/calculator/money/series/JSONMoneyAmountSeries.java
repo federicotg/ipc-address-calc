@@ -164,6 +164,10 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
     @Override
     public MoneyAmountSeries add(final MoneyAmountSeries other) throws NoSeriesDataFoundException {
 
+        if(!other.getCurrency().equals(this.getCurrency())){
+            throw new IllegalArgumentException("Can't add different currencies.");
+        }
+        
         if (this.getFrom().compareTo(other.getFrom()) > 0) {
             return other.add(this);
         }

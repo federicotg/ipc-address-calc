@@ -26,7 +26,7 @@ import java.util.Objects;
  *
  * @author fede
  */
-public class MoneyAmount implements  MathConstants {
+public class MoneyAmount implements MathConstants {
 
     private Currency currency;
     private BigDecimal amount;
@@ -76,27 +76,31 @@ public class MoneyAmount implements  MathConstants {
             throw new IllegalArgumentException("Unexpected currency.");
         }
     }
-    
-    public Currency getCurrency(){
+
+    public Currency getCurrency() {
         return this.currency;
     }
-    
-    public MoneyAmount movePoint(int n){
+
+    public MoneyAmount movePoint(int n) {
         return new MoneyAmount(this.amount.movePointRight(n), this.currency);
     }
-    
+
     public BigDecimal getAmount() {
         return amount;
     }
-    public MoneyAmount add(MoneyAmount other){
+
+    public MoneyAmount add(MoneyAmount other) {
+        if (!other.getCurrency().equals(this.getCurrency())) {
+            throw new IllegalArgumentException("Can't add different currencies.");
+        }
         return new MoneyAmount(this.getAmount().add(other.getAmount()), this.getCurrency());
     }
-    
-    public boolean isZero(){
+
+    public boolean isZero() {
         return this.amount.signum() == 0;
     }
-    
-    public void appendTo(StringBuilder sb, NumberFormat nf){
+
+    public void appendTo(StringBuilder sb, NumberFormat nf) {
         sb.append(this.currency.getSymbol()).append(" ").append(nf.format(this.amount));
     }
 }
