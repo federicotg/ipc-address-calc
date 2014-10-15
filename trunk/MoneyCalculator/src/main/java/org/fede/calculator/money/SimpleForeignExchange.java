@@ -103,7 +103,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     }
 
-    @Override
+   /* @Override
     public MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
 
         YearMonth from = this.exchangeRatesSeries.maximumFrom(series);
@@ -131,7 +131,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         }
         return answer;
 
-    }
+    }*/
 
     @Override
     public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException {
@@ -142,14 +142,14 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         return this.exchange(amount, targetCurrency, year, month + 1);
     }
 
-    @Override
+  /*  @Override
     public MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException {
         Calendar cal = Calendar.getInstance();
         cal.setTime(moment);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH);
         return this.exchange(series, targetCurrency, year, month + 1);
-    }
+    }*/
 
     @Override
     public MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) throws NoSeriesDataFoundException {

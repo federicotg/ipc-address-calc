@@ -370,41 +370,4 @@ public class Dollar {
 
     }
 
-    //@Test
-    public void dolarBuying() throws NoSeriesDataFoundException {
-        MoneyAmountSeries dolares = JSONMoneyAmountSeries.readSeries("dolares.json");
-
-        Currency peso = Currency.getInstance("ARS");
-
-        final MoneyAmountSeries nominalPesosAtBuyingTime = USD_ARS.exchange(dolares, peso);
-
-        final MoneyAmountSeries nominalPesosNow = USD_ARS.exchange(dolares, peso, 2014, 8);
-        final MoneyAmountSeries realPesosNow = ARS_INFLATION.adjust(nominalPesosAtBuyingTime, 2014, 8);
-        final NumberFormat nf = NumberFormat.getCurrencyInstance();
-        dolares.forEach(new MoneyAmountProcessor() {
-
-            @Override
-            public void process(int year, int month, MoneyAmount dolar) throws NoSeriesDataFoundException {
-                if (!dolar.isZero()) {
-                    StringBuilder sb = new StringBuilder(200);
-                    dolar.appendTo(sb, nf);
-                    sb.append(" en ")
-                            .append(year)
-                            .append("-")
-                            .append(month)
-                            .append(" eran ");
-                    nominalPesosAtBuyingTime.getAmount(year, month).appendTo(sb, nf);
-                    sb.append(" y ahora son ");
-                    nominalPesosNow.getAmount(year, month).appendTo(sb, nf);
-                    sb.append(" nominales y ");
-                    MoneyAmount rp = realPesosNow.getAmount(year, month);
-
-                    rp.appendTo(sb, nf);
-                    sb.append(" reales.");
-                    System.out.println(sb.toString());
-                }
-            }
-        });
-    }
-
 }

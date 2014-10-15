@@ -45,7 +45,7 @@ public interface ForeignExchange extends Series {
     /**
      * Convierte cada money amount de la serie a la moneda especificada según el
      * tipo de cambio de la fecha de cada money amount de la serie. Útil para
-     * convertir una serie de valores a su equivalenet en otra moneda en el
+     * convertir una serie de valores a su equivalente en otra moneda en el
      * momento que ese valor está asignado.
      *
      * @param series
@@ -80,7 +80,7 @@ public interface ForeignExchange extends Series {
      * @return
      * @throws NoSeriesDataFoundException
      */
-    MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
+   // MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
 
-    MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException;
+    //MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException;
 }
