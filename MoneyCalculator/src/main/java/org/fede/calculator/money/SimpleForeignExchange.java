@@ -151,4 +151,31 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         return this.exchange(series, targetCurrency, year, month + 1);
     }
 
+    @Override
+    public MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) throws NoSeriesDataFoundException {
+
+        final int fromYear = this.getFrom().getYear();
+        final int fromMonth = this.getFrom().getMonth();
+        final int toYear = this.getTo().getYear();
+        final int toMonth = this.getTo().getMonth();
+
+        final MoneyAmountSeries answer = new JSONMoneyAmountSeries(targetCurrency);
+
+        for (int m = fromMonth; m <= 12; m++) {
+            //first year
+            answer.putAmount(fromYear, m, this.exchange(amount, targetCurrency, fromYear, m));
+        }
+        for (int y = fromYear + 1; y < toYear; y++) {
+            for (int m = 1; m <= 12; m++) {
+                answer.putAmount(y, m, this.exchange(amount, targetCurrency, y, m));
+            }
+        }
+        for (int m = 1; m <= toMonth; m++) {
+            //last year
+            answer.putAmount(toYear, m, this.exchange(amount, targetCurrency, toYear, m));
+        }
+        return answer;
+        
+    }
+
 }
