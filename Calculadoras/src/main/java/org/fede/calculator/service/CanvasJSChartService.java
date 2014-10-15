@@ -355,12 +355,11 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         final int todayMonth = cal.get(Calendar.MONTH) + 1;
         final int todayYear = cal.get(Calendar.YEAR);
 
-        final MoneyAmount oneTroyOunce = new MoneyAmount(BigDecimal.ONE, "USD");
         final Currency usd = Currency.getInstance("USD");
+        final MoneyAmount oneTroyOunce = new MoneyAmount(BigDecimal.ONE, "XAU");
 
-        final MoneyAmountSeries historicDollar = USD_INFLATION.adjust(
-                USD_XAU.exchange(
-                        USD_INFLATION.adjust(oneTroyOunce, todayYear, todayMonth), usd), todayYear, todayMonth);
+        final MoneyAmountSeries historicGold = USD_INFLATION.adjust(USD_XAU.exchange(oneTroyOunce, usd), todayYear, todayMonth);
+
         DateFormat df = new SimpleDateFormat("MMM/YYYY");
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO("Onza Troy en USD de " + df.format(cal.getTime()));
@@ -375,7 +374,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         dto.setData(seriesList);
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        historicDollar.forEach(new MoneyAmountProcessorImpl(datapoints));
+        historicGold.forEach(new MoneyAmountProcessorImpl(datapoints));
         seriesList.add(this.getDatum("area", "gold", "Oro", datapoints));
         return dto;
     }
