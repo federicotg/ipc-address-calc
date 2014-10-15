@@ -22,10 +22,10 @@
     <ul>
         <li><a href="/">¿Entre Qué y Qué?</a></li>
         <li><a href="/money">Inflación</a></li>
-        <li><a href="/chart">Gráficos</a></li>
-            <sec:authorize access="isFullyAuthenticated()">
+        <li><a href="/chart/">Gráficos</a></li>
+        <sec:authorize access="isFullyAuthenticated()">
             <li><a href="/secure/">Estadísticas</a></li>
             <li><a href="/logout">Cerrar sesión</a></li>
-            </sec:authorize>
+        </sec:authorize>
     </ul>
 </navbar>

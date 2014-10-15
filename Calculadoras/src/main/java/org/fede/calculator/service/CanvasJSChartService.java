@@ -355,7 +355,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         final int todayMonth = cal.get(Calendar.MONTH) + 1;
         final int todayYear = cal.get(Calendar.YEAR);
 
-        final MoneyAmount oneTroyOunce = new MoneyAmount(BigDecimal.ONE, "XAU");
+        final MoneyAmount oneTroyOunce = new MoneyAmount(BigDecimal.ONE, "USD");
         final Currency usd = Currency.getInstance("USD");
 
         final MoneyAmountSeries historicDollar = USD_INFLATION.adjust(

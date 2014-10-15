@@ -40,7 +40,7 @@
 
             function reloadChart() {
                 document.id('chartContainer').empty();
-                showChart('/secure/${uri}.json', null, 'chartContainer');
+                showChart('${uri}.json', null, 'chartContainer');
             }
 
         </script>
