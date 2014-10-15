@@ -69,7 +69,7 @@ public class PublicChartController {
     @RequestMapping(value = "realDollarsForTroyOunce", method = GET)
     public ModelAndView realGoldPrice() {
         ModelAndView mav = new ModelAndView("simpleChart");
-        mav.addObject("uri", "realDollarsForTroyOunce");
+        mav.addObject("uri", "realDollarsForTroyOunceChart");
         mav.addObject("title", "Precio del Oro en Dólares Reales Actuales");
         return mav;
     }
@@ -82,7 +82,7 @@ public class PublicChartController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "realDollarsForTroyOunce", method = GET)
+    @RequestMapping(value = "realDollarsForTroyOunceChart", method = GET)
     public CanvasJSChartDTO realDollarsForTroyOunce()
             throws NoSeriesDataFoundException {
         return this.chartService.historicGold();
