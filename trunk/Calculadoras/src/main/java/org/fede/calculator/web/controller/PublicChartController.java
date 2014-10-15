@@ -62,7 +62,7 @@ public class PublicChartController {
     public ModelAndView realDollarPrice() {
         ModelAndView mav = new ModelAndView("simpleChart");
         mav.addObject("uri", "realPesosForDollarChart");
-        mav.addObject("title", "Precio del Dólar en Pesos Reales Actuales");
+        mav.addObject("title", "Dólar en Pesos Reales");
         return mav;
     }
 
@@ -70,7 +70,7 @@ public class PublicChartController {
     public ModelAndView realGoldPrice() {
         ModelAndView mav = new ModelAndView("simpleChart");
         mav.addObject("uri", "realDollarsForTroyOunceChart");
-        mav.addObject("title", "Precio del Oro en Dólares Reales Actuales");
+        mav.addObject("title", "Oro en Dólares Reales");
         return mav;
     }
 
