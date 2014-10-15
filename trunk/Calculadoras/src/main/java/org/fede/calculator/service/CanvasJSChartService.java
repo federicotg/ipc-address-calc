@@ -17,7 +17,10 @@
 package org.fede.calculator.service;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Currency;
 import java.util.HashMap;
@@ -72,43 +75,6 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         MONTH_NAMES.put(10, "octubre");
         MONTH_NAMES.put(11, "noviembre");
         MONTH_NAMES.put(12, "diciembre");
-    }
-
-    @Override
-    public CanvasJSChartDTO historicDollarValue(int todayYear, int todayMonth) throws NoSeriesDataFoundException {
-        CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Precio del Dólar (en pesos de " + MONTH_NAMES.get(todayMonth) + " " + todayYear + ")");
-        dto.setTitle(title);
-        dto.setXAxisTitle("Año");
-        CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
-        yAxis.setTitle("Pesos");
-        yAxis.setValueFormatString("$0");
-        dto.setAxisY(yAxis);
-        CanvasJSDatumDTO datum = new CanvasJSDatumDTO();
-        datum.setType("area");
-        datum.setColor("salmon");
-        dto.setData(Collections.singletonList(datum));
-        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        datum.setDataPoints(datapoints);
-
-        final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
-        final Currency ars = Currency.getInstance("ARS");
-
-        MoneyAmountSeries result = ARS_INFLATION.adjust(
-                USD_ARS.exchange(
-                        USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), ars), todayYear, todayMonth);
-
-        result.forEach(new MoneyAmountProcessor() {
-
-            @Override
-            public void process(int year, int month, MoneyAmount amount) {
-                CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
-                        "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-1"), amount.getAmount());
-                datapoints.add(dataPoint);
-            }
-        });
-
-        return dto;
     }
 
     @Override
@@ -327,7 +293,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         yAxis.setTitle("Sueldos");
         dto.setAxisY(yAxis);
 
-        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(2);
+        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
         dto.setData(seriesList);
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
@@ -348,6 +314,70 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
         return dto;
 
+    }
+
+    @Override
+    public CanvasJSChartDTO hisotricDollar() throws NoSeriesDataFoundException {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MONTH, -2);
+        final int todayMonth = cal.get(Calendar.MONTH) + 1;
+        final int todayYear = cal.get(Calendar.YEAR);
+
+        final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
+        final Currency ars = Currency.getInstance("ARS");
+
+        final MoneyAmountSeries historicDollar = ARS_INFLATION.adjust(
+                USD_ARS.exchange(
+                        USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), ars), todayYear, todayMonth);
+        DateFormat df = new SimpleDateFormat("MMM/YYYY");
+        CanvasJSChartDTO dto = new CanvasJSChartDTO();
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Dólar en Pesos de " + df.format(cal.getTime()));
+        dto.setTitle(title);
+        dto.setXAxisTitle("Año");
+        CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
+        yAxis.setValueFormatString("$0");
+        yAxis.setTitle("Pesos Reales");
+        dto.setAxisY(yAxis);
+
+        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
+        dto.setData(seriesList);
+
+        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        historicDollar.forEach(new MoneyAmountProcessorImpl(datapoints));
+        seriesList.add(this.getDatum("area", "darkgreen", "Dólar", datapoints));
+        return dto;
+    }
+
+    @Override
+    public CanvasJSChartDTO historicGold() throws NoSeriesDataFoundException {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MONTH, -2);
+        final int todayMonth = cal.get(Calendar.MONTH) + 1;
+        final int todayYear = cal.get(Calendar.YEAR);
+
+        final MoneyAmount oneTroyOunce = new MoneyAmount(BigDecimal.ONE, "XAU");
+        final Currency usd = Currency.getInstance("USD");
+
+        final MoneyAmountSeries historicDollar = USD_INFLATION.adjust(
+                USD_XAU.exchange(
+                        USD_INFLATION.adjust(oneTroyOunce, todayYear, todayMonth), usd), todayYear, todayMonth);
+        DateFormat df = new SimpleDateFormat("MMM/YYYY");
+        CanvasJSChartDTO dto = new CanvasJSChartDTO();
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Onza Troy en USD de " + df.format(cal.getTime()));
+        dto.setTitle(title);
+        dto.setXAxisTitle("Año");
+        CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
+        yAxis.setValueFormatString("USD 0");
+        yAxis.setTitle("USD Reales");
+        dto.setAxisY(yAxis);
+
+        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
+        dto.setData(seriesList);
+
+        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        historicDollar.forEach(new MoneyAmountProcessorImpl(datapoints));
+        seriesList.add(this.getDatum("area", "gold", "Oro", datapoints));
+        return dto;
     }
 
 }
