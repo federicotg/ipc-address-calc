@@ -1,3 +1,5 @@
+package org.fede.calculator.money;
+
 /*
  * Copyright (C) 2014 fede
  *
@@ -17,27 +19,18 @@
 import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
-import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Currency;
 import static org.fede.calculator.money.ArgCurrency.*;
-import org.fede.calculator.money.CPIInflation;
-import org.fede.calculator.money.ForeignExchange;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.ForeignExchange.USD_ARS;
-import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.series.CachedSeries;
 import org.fede.calculator.money.series.DollarCPISeries;
 import org.fede.calculator.money.series.IndexSeries;
-import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.SimpleAverage;
-import org.fede.calculator.money.SimpleForeignExchange;
 import org.fede.calculator.money.series.JSONDataPoint;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
-import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.junit.After;
@@ -51,9 +44,9 @@ import static org.junit.Assert.*;
  *
  * @author fede
  */
-public class Dollar {
+public class DollarTest {
 
-    public Dollar() {
+    public DollarTest() {
     }
 
     @BeforeClass
@@ -270,7 +263,6 @@ public class Dollar {
 
         //assertEquals(2014, Inflation.USD_INFLATION.getTo().getYear());
         //assertEquals(9, Inflation.USD_INFLATION.getTo().getMonth());
-
         MoneyAmountSeries series = JSONMoneyAmountSeries.readSeries("lifia.json");
         MoneyAmountSeries dolarizedSeries = USD_ARS.exchange(series, Currency.getInstance("USD"));
 
@@ -368,6 +360,13 @@ public class Dollar {
         assertEquals(0, new YearMonth(2012, 2).monthsUntil(new YearMonth(2011, 6)));
         assertEquals(23, new YearMonth(2012, 1).monthsUntil(new YearMonth(2013, 12)));
 
+    }
+
+    @Test
+    public void convertAustrales() throws NoSeriesDataFoundException {
+        MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
+        MoneyAmount australes = ForeignExchange.USD_ARS.exchange(oneDollar, Currency.getInstance("ARS"), 1989, 12);
+        assertTrue(australes.getAmount().compareTo(new BigDecimal("1000")) > 0);
     }
 
 }

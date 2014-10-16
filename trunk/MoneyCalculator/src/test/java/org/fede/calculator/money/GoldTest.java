@@ -1,3 +1,5 @@
+package org.fede.calculator.money;
+
 /*
  * Copyright (C) 2014 fede
  *
@@ -30,9 +32,9 @@ import static org.junit.Assert.*;
  *
  * @author fede
  */
-public class Gold {
+public class GoldTest {
     
-    public Gold() {
+    public GoldTest() {
     }
     
     @BeforeClass

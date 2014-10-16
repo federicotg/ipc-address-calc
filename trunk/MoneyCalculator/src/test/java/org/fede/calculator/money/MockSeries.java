@@ -1,3 +1,5 @@
+package org.fede.calculator.money;
+
 /*
  * Copyright (C) 2014 fede
  *
