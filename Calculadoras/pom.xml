@@ -151,13 +151,13 @@
     </dependencies>
 
     <repositories>
-        <repository>
+        <!--<repository>
             <id>com.springsource.repository.maven.snapshot</id>
             <url>http://repo.spring.io/snapshot/</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-        </repository>
+        </repository>-->
         
         <repository>
             <id>com.springsource.repository.maven.release</id>
