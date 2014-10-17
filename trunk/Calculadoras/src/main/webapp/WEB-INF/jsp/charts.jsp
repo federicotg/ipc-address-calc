@@ -41,6 +41,7 @@
             <li><a href="savedSalaries">Sueldos Ahorrados</a></li>
             <li><a href="goldSavings">Oro</a></li>
             <li><a href="expenses">Gastos</a></li>
+            <li><a href="expensesPercent">Gastos / Ingresos</a></li>
         </ul>
         <h1>Reportes</h1>
         <ul>

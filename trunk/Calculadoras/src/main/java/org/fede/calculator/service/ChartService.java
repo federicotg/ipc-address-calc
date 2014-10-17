@@ -47,4 +47,6 @@ public interface ChartService {
     CanvasJSChartDTO hisotricDollar() throws NoSeriesDataFoundException;
     
     CanvasJSChartDTO historicGold() throws NoSeriesDataFoundException;
+    
+    CanvasJSChartDTO expensesPercentage(int months, List<String> series) throws NoSeriesDataFoundException;
 }

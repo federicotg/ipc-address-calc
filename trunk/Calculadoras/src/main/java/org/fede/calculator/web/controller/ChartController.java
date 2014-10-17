@@ -131,7 +131,7 @@ public class ChartController {
         mav.addObject("dto", new CombinedChartDTO());
         return mav;
     }
-    
+
     @RequestMapping(value = "goldSavings", method = RequestMethod.GET)
     public ModelAndView goldSavings() {
         ModelAndView mav = new ModelAndView("simpleChart");
@@ -139,7 +139,7 @@ public class ChartController {
         mav.addObject("title", "Oro");
         return mav;
     }
-    
+
     @RequestMapping(value = "savedSalaries", method = RequestMethod.GET)
     public ModelAndView savedSalaries() {
         ModelAndView mav = new ModelAndView("simpleChart");
@@ -153,6 +153,24 @@ public class ChartController {
         ModelAndView mav = new ModelAndView("expenseChart");
         mav.addObject("uri", "expensesChart");
         mav.addObject("title", "Gastos");
+        mav.addObject("monthlyPeriods", this.monthlyPeriods);
+        mav.addObject("series", this.expenseSeries);
+
+        ExpenseChartDTO chartDto = new ExpenseChartDTO();
+        List<String> series = new ArrayList<>(this.expenseSeries.size());
+        for (ExpenseChartSeriesDTO e : this.expenseSeries) {
+            series.add(e.getName());
+        }
+        chartDto.setSeries(series);
+        mav.addObject("dto", chartDto);
+        return mav;
+    }
+
+    @RequestMapping(value = "expensesPercent", method = RequestMethod.GET)
+    public ModelAndView expensesPercent() {
+        ModelAndView mav = new ModelAndView("expenseChart");
+        mav.addObject("uri", "expensesPercentChart");
+        mav.addObject("title", "Gastos / Ingresos");
         mav.addObject("monthlyPeriods", this.monthlyPeriods);
         mav.addObject("series", this.expenseSeries);
 
@@ -251,17 +269,29 @@ public class ChartController {
     }
 
     @ResponseBody
+    @RequestMapping(value = "expensesPercentChart", method = RequestMethod.GET)
+    public CanvasJSChartDTO expensesPercentChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
+            throws NoSeriesDataFoundException {
+        if (errors.hasErrors()) {
+            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
+            notOk.setSuccessful(false);
+            return notOk;
+        }
+        return this.chartService.expensesPercentage(dto.getMonths(), dto.getSeries());
+    }
+
+    @ResponseBody
     @RequestMapping(value = "goldSavingsChart", method = RequestMethod.GET)
     public CanvasJSChartDTO goldSavingsChart()
             throws NoSeriesDataFoundException {
         return this.chartService.goldIncomeAndSavings();
     }
-    
+
     @ResponseBody
     @RequestMapping(value = "savedSalariesChart", method = RequestMethod.GET)
     public CanvasJSChartDTO savedSalariesChart()
             throws NoSeriesDataFoundException {
         return this.chartService.savedSalaries();
     }
-    
+
 }

@@ -21,7 +21,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
@@ -234,6 +233,59 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
         yAxis.setTitle("Pesos Reales");
         yAxis.setValueFormatString("$0");
+        dto.setAxisY(yAxis);
+        dto.setData(seriesList);
+        return dto;
+    }
+
+    @Override
+    public CanvasJSChartDTO expensesPercentage(int months, List<String> series) throws NoSeriesDataFoundException {
+
+        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
+        if (series != null && !series.isEmpty()) {
+
+            MoneyAmountSeries sumSeries = null;
+            for (ExpenseChartSeriesDTO s : this.expenseSeries) {
+                if (series.contains(s.getName())) {
+                    MoneyAmountSeries eachSeries = JSONMoneyAmountSeries.readSeries(s.getSeriesName());
+                    if (sumSeries == null) {
+                        sumSeries = eachSeries;
+                    } else {
+                        sumSeries = sumSeries.add(eachSeries);
+                    }
+                }
+            }
+
+            final MoneyAmountSeries totalIncome = readSeries("unlp.json").add(readSeries("lifia.json")).add(readSeries("plazofijo.json"));
+            final MoneyAmountSeries percentSeries = new JSONMoneyAmountSeries(sumSeries.getCurrency());
+            sumSeries.forEach(new MoneyAmountProcessor() {
+
+                @Override
+                public void process(int year, int month, MoneyAmount expensesSum) throws NoSeriesDataFoundException {
+                    percentSeries.putAmount(
+                            year,
+                            month,
+                            new MoneyAmount(
+                                    expensesSum.getAmount().divide(totalIncome.getAmount(year, month).getAmount(), CONTEXT),
+                                    totalIncome.getCurrency()));
+                }
+            });
+
+            seriesList.add(this.getDatum(
+                    "line",
+                    "red",
+                    "Gastos / Ingresos",
+                    this.getRealPesosDatapoints(months, percentSeries)));
+
+        }
+
+        CanvasJSChartDTO dto = new CanvasJSChartDTO();
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Gastos / Ingresos");
+        dto.setTitle(title);
+        dto.setXAxisTitle("Fecha");
+        CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
+        yAxis.setTitle("Pesos Reales");
+        yAxis.setValueFormatString("#%");
         dto.setAxisY(yAxis);
         dto.setData(seriesList);
         return dto;
