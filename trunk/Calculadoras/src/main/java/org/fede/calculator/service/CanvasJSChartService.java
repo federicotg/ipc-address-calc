@@ -275,7 +275,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
                     "line",
                     "red",
                     "Gastos / Ingresos",
-                    this.getRealPesosDatapoints(months, percentSeries)));
+                    this.getNominalPesosDatapoints(months, percentSeries)));
 
         }
 
