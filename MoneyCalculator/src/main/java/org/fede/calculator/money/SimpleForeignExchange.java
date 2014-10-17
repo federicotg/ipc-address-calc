@@ -62,6 +62,9 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     @Override
     public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int year, int month) throws NoSeriesDataFoundException {
+        if(amount.getCurrency().equals(targetCurrency)){
+            return amount;
+        }
         if (this.targetCurrency.equals(targetCurrency)) {
             return amount.exchange(targetCurrency, exchangeRatesSeries.getIndex(year, month));
         }
