@@ -6,13 +6,18 @@
        xmlns:util="http://www.springframework.org/schema/util"
        xmlns:cache="http://www.springframework.org/schema/cache"
        xmlns:security="http://www.springframework.org/schema/security"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:tx="http://www.springframework.org/schema/tx"
        xmlns:task="http://www.springframework.org/schema/task"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
             http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
             http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd
             http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
-            http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+            http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+            http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd">
 
     
     <context:annotation-config/>
@@ -23,7 +28,7 @@
         <!--<security:intercept-url pattern="/secure/**" access="isFullyAuthenticated() and (hasIpAddress('190.247.164.0/255') or hasIpAddress('127.0.0.1'))" />-->
         <security:intercept-url pattern="/secure/**" access="isFullyAuthenticated()" />
         <security:form-login login-page="/login" authentication-failure-url="/login?login_error=1"/>
-        <security:logout logout-url="/logout" logout-success-url="/" />
+        <security:logout logout-url="/logout" logout-success-url="/" invalidate-session="true" />
     </security:http>
 
     <security:authentication-manager>
@@ -32,6 +37,35 @@
             <security:user-service properties="/WEB-INF/users.properties" />
         </security:authentication-provider>
     </security:authentication-manager>
+    
+    <context:component-scan base-package="org.fede.calculator.service,org.fede.calculator.repository"/>
+   
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
+    <bean id="transactionManager" class="org.springframework.orm.jdo.JdoTransactionManager"
+          p:persistenceManagerFactory-ref="localPersistenceManagerFactoryBean" />
+
+    <bean id="transactionAwarePersistenceManagerFactoryProxy"
+          class="org.springframework.orm.jdo.TransactionAwarePersistenceManagerFactoryProxy"
+          p:targetPersistenceManagerFactory-ref="localPersistenceManagerFactoryBean"
+          p:allowCreate="false" />
+
+    <bean id="localPersistenceManagerFactoryBean"
+          class="org.springframework.orm.jdo.LocalPersistenceManagerFactoryBean">
+        <property name="jdoPropertyMap">
+            <props>
+                <prop key="javax.jdo.PersistenceManagerFactoryClass">org.datanucleus.api.jdo.JDOPersistenceManagerFactory</prop>
+                <prop key="javax.jdo.option.ConnectionURL">appengine</prop>
+                <prop key="javax.jdo.option.NontransactionalRead">true</prop>
+                <prop key="javax.jdo.option.NontransactionalWrite">false</prop>
+                <prop key="javax.jdo.option.RetainValues">true</prop>
+                <prop key="javax.jdo.option.DetachAllOnCommit">true</prop>
+                <prop key="javax.jdo.option.Multithreaded">true</prop>
+                <prop key="datanucleus.appengine.ignorableMetaDataBehavior">NONE</prop>
+                <prop key="datanucleus.appengine.autoCreateDatastoreTxns">true</prop>
+            </props>
+        </property>
+    </bean>
     
     <import resource="bean-definitions.xml"/>
 

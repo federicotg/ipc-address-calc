@@ -16,14 +16,12 @@
  */
 package org.fede.calculator.web.controller;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Resource;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.InvestmentService;
-import org.fede.calculator.web.dto.CanvasJSChartDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -42,7 +40,7 @@ public class InvestmentController {
 
     private static final Logger LOG = Logger.getLogger(InvestmentController.class.getName());
 
-    @Resource(name = "investmentService")
+    @Autowired
     private InvestmentService investmentService;
 
     @ExceptionHandler(Exception.class)

@@ -13,6 +13,8 @@
 
     <context:annotation-config />  
 
+    <context:component-scan base-package="org.fede.calculator.web.controller" />
+    
     <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver"
           p:order="0" 
           p:ignoreAcceptHeader="true">
@@ -50,5 +52,5 @@
     <mvc:resources mapping="/scripts/**" location="/scripts/" />
     <mvc:resources mapping="/styles/**" location="/styles/" />
    
-    <import resource="bean-definitions.xml"/>
+    <!--<import resource="bean-definitions.xml"/>-->
 </beans>
