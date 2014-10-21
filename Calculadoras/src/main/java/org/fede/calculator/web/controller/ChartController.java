@@ -29,6 +29,7 @@ import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CombinedChartDTO;
 import org.fede.calculator.web.dto.ExpenseChartDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -50,7 +51,7 @@ public class ChartController {
 
     private static final Logger LOG = Logger.getLogger(ChartController.class.getName());
 
-    @Resource(name = "chartService")
+    @Autowired
     private ChartService chartService;
 
     @Resource(name = "monthlyPeriod")
