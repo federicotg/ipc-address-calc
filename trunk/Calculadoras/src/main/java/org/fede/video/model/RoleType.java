@@ -16,51 +16,25 @@
  */
 package org.fede.video.model;
 
-import com.google.appengine.datanucleus.annotations.Unowned;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
-
 
 /**
  *
  * @author fede
  */
 @PersistenceCapable
-public class Authorship extends PersistentEntity {
+public class RoleType extends PersistentEntity {
 
     @Persistent
-    @Unowned
-    private Author author;
+    private String name;
 
-    @Persistent
-    @Unowned
-    private AuthorshipType type;
-    
-    @Persistent
-    private int year;
-
-    public Author getAuthor() {
-        return author;
+    public String getName() {
+        return name;
     }
 
-    public void setAuthor(Author author) {
-        this.author = author;
-    }
-
-    public AuthorshipType getType() {
-        return type;
-    }
-
-    public void setType(AuthorshipType type) {
-        this.type = type;
-    }
-
-    public int getYear() {
-        return year;
-    }
-
-    public void setYear(int year) {
-        this.year = year;
+    public void setName(String name) {
+        this.name = name;
     }
 
 }
