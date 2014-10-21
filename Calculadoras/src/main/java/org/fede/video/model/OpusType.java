@@ -21,7 +21,7 @@ import javax.jdo.annotations.Persistent;
 
 
 /**
- *
+ * Opus types include Ballet, Opera, Concert, Play, Studio Session, etc.
  * @author fede
  */
 @PersistenceCapable

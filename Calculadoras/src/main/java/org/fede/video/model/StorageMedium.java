@@ -21,7 +21,7 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 
 /**
- *
+ * A particular DVD, CD or BD-R holding some digital content.
  * @author fede
  */
 @PersistenceCapable
@@ -29,8 +29,9 @@ public class StorageMedium extends PersistentEntity {
 
     @Persistent
     private String name;
-    @Persistent
+
     @Unowned
+    @Persistent
     private StorageMediumType type;
 
     public String getName() {
