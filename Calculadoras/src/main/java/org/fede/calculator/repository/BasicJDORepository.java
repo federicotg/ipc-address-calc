@@ -57,7 +57,7 @@ public abstract class BasicJDORepository<T> implements JDORepository<T, Key> {
 
     @Override
     public T findOne(Key id) {
-        Query query = this.getPersistenceManager().newQuery(this.getClass().getGenericSuperclass().getClass(), " id = idParam");
+        Query query = this.getPersistenceManager().newQuery(clazz, " id = idParam");
         query.declareParameters("Key idParam");
         Iterator<T> it = ((Iterable<T>) query.execute(id)).iterator();
         if (it.hasNext()) {
