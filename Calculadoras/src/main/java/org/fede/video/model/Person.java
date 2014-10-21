@@ -30,7 +30,7 @@ public class Person extends PersistentEntity {
     @Persistent
     private String name;
     @Persistent
-    private Set<Video> watchedVideos;
+    private Set<WebResource> resources;
 
     public String getName() {
         return name;
@@ -40,12 +40,13 @@ public class Person extends PersistentEntity {
         this.name = name;
     }
 
-    public Set<Video> getWatchedVideos() {
-        return watchedVideos;
+    public Set<WebResource> getResources() {
+        return resources;
     }
 
-    public void setWatchedVideos(Set<Video> watchedVideos) {
-        this.watchedVideos = watchedVideos;
+    public void setResources(Set<WebResource> resources) {
+        this.resources = resources;
     }
+
 
 }

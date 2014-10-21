@@ -38,7 +38,7 @@ public class Opus extends PersistentEntity {
     private String language;
 
     @Persistent
-    private Set<Authorship> authors;
+    private Set<Role> authors;
 
     @Persistent
     private Set<WebResource> resources;
@@ -67,11 +67,11 @@ public class Opus extends PersistentEntity {
         this.language = language;
     }
 
-    public Set<Authorship> getAuthors() {
+    public Set<Role> getAuthors() {
         return authors;
     }
 
-    public void setAuthors(Set<Authorship> authors) {
+    public void setAuthors(Set<Role> authors) {
         this.authors = authors;
     }
 

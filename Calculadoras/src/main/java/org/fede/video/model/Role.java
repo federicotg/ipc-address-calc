@@ -16,7 +16,7 @@
  */
 package org.fede.video.model;
 
-import java.util.Set;
+import com.google.appengine.datanucleus.annotations.Unowned;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 
@@ -25,27 +25,41 @@ import javax.jdo.annotations.Persistent;
  * @author fede
  */
 @PersistenceCapable
-public class Author extends PersistentEntity {
+public class Role extends PersistentEntity {
 
     @Persistent
-    private String name;
+    @Unowned
+    private Person person;
+
     @Persistent
-    private Set<WebResource> resources;
+    @Unowned
+    private RoleType type;
 
-    public String getName() {
-        return name;
+    @Persistent
+    private int year;
+
+    public Person getPerson() {
+        return person;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setPerson(Person person) {
+        this.person = person;
     }
 
-    public Set<WebResource> getResources() {
-        return resources;
+    public RoleType getType() {
+        return type;
     }
 
-    public void setResources(Set<WebResource> resources) {
-        this.resources = resources;
+    public void setType(RoleType type) {
+        this.type = type;
+    }
+
+    public int getYear() {
+        return year;
+    }
+
+    public void setYear(int year) {
+        this.year = year;
     }
 
 }

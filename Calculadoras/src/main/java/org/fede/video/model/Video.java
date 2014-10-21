@@ -57,6 +57,9 @@ public class Video extends PersistentEntity {
     @Persistent
     private Date date;
 
+    @Persistent
+    private Set<Role> roles;
+            
     public Opus getOpus() {
         return opus;
     }
@@ -119,6 +122,14 @@ public class Video extends PersistentEntity {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
 }

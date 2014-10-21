@@ -14,27 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.video.model;
+package org.fede.calculator.repository;
 
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
+import org.fede.video.model.Person;
+import org.springframework.stereotype.Repository;
 
 /**
  *
  * @author fede
  */
-@PersistenceCapable
-public class AuthorshipType extends PersistentEntity {
+@Repository("personRepository")
+public class PersonRepository extends BasicJDORepository<Person>{
 
-    @Persistent
-    private String name;
-
-    public String getName() {
-        return name;
+    public PersonRepository() {
+        super(Person.class);
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
+    
 }
