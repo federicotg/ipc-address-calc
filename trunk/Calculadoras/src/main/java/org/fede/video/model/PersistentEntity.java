@@ -33,7 +33,6 @@ import javax.jdo.annotations.VersionStrategy;
 @PersistenceCapable
 @Inheritance(strategy = InheritanceStrategy.SUBCLASS_TABLE)
 @Version(strategy = VersionStrategy.VERSION_NUMBER, column = "VERSION")
-
 public abstract class PersistentEntity {
 
     @PrimaryKey

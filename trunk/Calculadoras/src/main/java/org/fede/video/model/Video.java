@@ -31,8 +31,7 @@ import javax.jdo.annotations.Persistent;
 public class Video extends PersistentEntity {
 
     @Persistent
-    @Unowned
-    private Opus opus;
+    private List<Opus> opus;
 
     @Persistent
     private int quality;
@@ -59,15 +58,15 @@ public class Video extends PersistentEntity {
 
     @Persistent
     private Set<Role> roles;
-            
-    public Opus getOpus() {
+
+    public List<Opus> getOpus() {
         return opus;
     }
 
-    public void setOpus(Opus opus) {
+    public void setOpus(List<Opus> opus) {
         this.opus = opus;
     }
-
+            
     public int getQuality() {
         return quality;
     }
