@@ -21,7 +21,7 @@ import javax.jdo.annotations.Persistent;
 
 
 /**
- *
+ * Storage medium types are DVD, BD-R, CD, etc.
  * @author fede
  */
 @PersistenceCapable

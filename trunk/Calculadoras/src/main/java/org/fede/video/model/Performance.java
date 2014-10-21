@@ -17,41 +17,61 @@
 package org.fede.video.model;
 
 import com.google.appengine.datanucleus.annotations.Unowned;
+import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 
 /**
- * Theatre, studio or outdoor stage where the performance took place.
+ *
  * @author fede
  */
 @PersistenceCapable
-public class Venue extends PersistentEntity {
-
-    @Persistent
-    private String name;
+public class Performance extends PersistentEntity {
 
     @Persistent
     @Unowned
-    private City city;
-
+    private Venue venue;
+    @Persistent
+    private Date date;
+    @Persistent
+    private Set<Role> roles;
+    @Persistent
+    private List<Opus> opus;
     @Persistent
     private Set<WebResource> resources;
 
-    public City getCity() {
-        return city;
+    public Venue getVenue() {
+        return venue;
     }
 
-    public void setCity(City city) {
-        this.city = city;
+    public void setVenue(Venue venue) {
+        this.venue = venue;
     }
 
-    public String getName() {
-        return name;
+    public Date getDate() {
+        return date;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
+    public List<Opus> getOpus() {
+        return opus;
+    }
+
+    public void setOpus(List<Opus> opus) {
+        this.opus = opus;
     }
 
     public Set<WebResource> getResources() {

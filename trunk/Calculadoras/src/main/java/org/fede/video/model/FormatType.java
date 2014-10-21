@@ -20,7 +20,7 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 
 /**
- *
+ * Format types include MKV, ISO Image, AVI, MP3, FLAC, ts, etc.
  * @author fede
  */
 @PersistenceCapable

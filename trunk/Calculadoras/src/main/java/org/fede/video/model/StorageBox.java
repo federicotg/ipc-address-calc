@@ -21,11 +21,11 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 
 /**
- *
+ * A box holding a particular set of CD, DVD or BD-R.
  * @author fede
  */
 @PersistenceCapable
-public class StorageMediaBox extends PersistentEntity {
+public class StorageBox extends PersistentEntity {
 
     @Persistent
     private String name;

@@ -28,10 +28,11 @@ import javax.jdo.annotations.Persistent;
  * @author fede
  */
 @PersistenceCapable
-public class Video extends PersistentEntity {
+public class DigitalContent extends PersistentEntity {
 
     @Persistent
-    private List<Opus> opus;
+    @Unowned
+    private Performance performance;
 
     @Persistent
     private int quality;
@@ -41,32 +42,11 @@ public class Video extends PersistentEntity {
     private FormatType format;
 
     @Persistent
-    @Unowned
-    private Venue venue;
-
-    @Persistent
     private List<StorageMedium> storageMedia;
 
     @Persistent
     private String subtitle;
 
-    @Persistent
-    private Set<WebResource> resources;
-
-    @Persistent
-    private Date date;
-
-    @Persistent
-    private Set<Role> roles;
-
-    public List<Opus> getOpus() {
-        return opus;
-    }
-
-    public void setOpus(List<Opus> opus) {
-        this.opus = opus;
-    }
-            
     public int getQuality() {
         return quality;
     }
@@ -81,14 +61,6 @@ public class Video extends PersistentEntity {
 
     public void setFormat(FormatType format) {
         this.format = format;
-    }
-
-    public Venue getVenue() {
-        return venue;
-    }
-
-    public void setVenue(Venue venue) {
-        this.venue = venue;
     }
 
     public List<StorageMedium> getStorageMedia() {
@@ -107,28 +79,12 @@ public class Video extends PersistentEntity {
         this.subtitle = subtitle;
     }
 
-    public Set<WebResource> getResources() {
-        return resources;
+    public Performance getPerformance() {
+        return performance;
     }
 
-    public void setResources(Set<WebResource> resources) {
-        this.resources = resources;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
+    public void setPerformance(Performance performance) {
+        this.performance = performance;
     }
 
 }

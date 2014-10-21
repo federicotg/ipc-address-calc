@@ -21,7 +21,7 @@ import javax.jdo.annotations.Persistent;
 
 
 /**
- *
+ * Possible web resources are wikipedia, imdb, etc.
  * @author fede
  */
 @PersistenceCapable

@@ -20,7 +20,8 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 
 /**
- *
+ * Roles include actor, viewer, singer, orchestra director, presenter, music author, words author,
+ * choreographer, film director, etc.
  * @author fede
  */
 @PersistenceCapable

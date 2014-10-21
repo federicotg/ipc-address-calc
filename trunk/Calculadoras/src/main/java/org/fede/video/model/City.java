@@ -21,7 +21,7 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 
 /**
- *
+ * City where the actual concert, play or performance took place.
  * @author fede
  */
 @PersistenceCapable
