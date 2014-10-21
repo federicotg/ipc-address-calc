@@ -17,7 +17,6 @@
 package org.fede.video.model;
 
 import com.google.appengine.api.datastore.Key;
-import java.io.Serializable;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.Inheritance;
 import javax.jdo.annotations.InheritanceStrategy;
@@ -35,7 +34,7 @@ import javax.jdo.annotations.VersionStrategy;
 @Inheritance(strategy = InheritanceStrategy.SUBCLASS_TABLE)
 @Version(strategy = VersionStrategy.VERSION_NUMBER, column = "VERSION")
 
-public abstract class PersistentEntity implements Serializable {
+public abstract class PersistentEntity {
 
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
