@@ -16,19 +16,24 @@
  */
 package org.fede.calculator.repository;
 
+import com.google.appengine.api.datastore.Key;
+
 /**
  *
  * @author fede
  */
-public interface JDORepository<T,ID> {
+public interface JDORepository {
     
-    <S extends T> S save(S entity);
-    Iterable<T> findAll();
-    T findOne(ID id);
-    boolean exists(ID id);
-    void delete(ID id);
-    //void delete(Iterable<? extends T> entities);
-    //<S extends T> Iterable<S> save(Iterable<? extends T> entities);
+    <T> T save(T entity);
+    <T> Iterable<T> findAll(Class<T> clazz);
+    <T> T findOne(Class<T> clazz, Key id);
+    <T> void delete(Class<T> clazz, Key id);
+    <T> void deleteAll(Class<T> clazz);
+    <T> T findFirstByName(Class<T> clazz, String name);
+    <T> Iterable<T> findByFilter(Class<T> clazz, String filter, String parameterDeclaration, Object param1);
+    <T> Iterable<T> findByFilter(Class<T> clazz, String filter, String parameterDeclaration, Object param1, Object param2);
+    <T> Iterable<T> findByFilter(Class<T> clazz, String filter, String parameterDeclaration, Object param1, Object param2, Object param3);
+    <T> Iterable<T> findByFilter(Class<T> clazz, String filter, String parameterDeclaration, Object[] params);
     
     
 }
