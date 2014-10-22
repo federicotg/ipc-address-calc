@@ -23,41 +23,39 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
  * @author fede
  */
-@Repository
-public abstract class BasicJDORepository<T> implements JDORepository<T, Key> {
+@Repository("basicRepository")
+public class BasicJDORepository implements JDORepository {
 
     @Resource(name = "transactionAwarePersistenceManagerFactoryProxy")
     private PersistenceManagerFactory persistenceManagerFactory;
-
-    private Class<T> clazz;
-
-    protected BasicJDORepository(Class<T> clazz) {
-        this.clazz = clazz;
-    }
 
     private PersistenceManager getPersistenceManager() {
         return this.persistenceManagerFactory.getPersistenceManager();
     }
 
     @Override
-    public <S extends T> S save(S entity) {
+    @Transactional
+    public <T> T save(T entity) {
         return this.getPersistenceManager().makePersistent(entity);
     }
 
     @Override
-    public Iterable<T> findAll() {
+    @Transactional(readOnly = true)
+    public <T> Iterable<T> findAll(Class<T> clazz) {
         Query query = this.getPersistenceManager().newQuery(clazz);
         return (Iterable<T>) query.execute();
     }
 
     @Override
-    public T findOne(Key id) {
-        Query query = this.getPersistenceManager().newQuery(clazz, " id = idParam");
+    @Transactional(readOnly = true)
+    public <T> T findOne(Class<T> clazz, Key id) {
+        Query query = this.getPersistenceManager().newQuery(clazz, "id == idParam");
         query.declareParameters("Key idParam");
         Iterator<T> it = ((Iterable<T>) query.execute(id)).iterator();
         if (it.hasNext()) {
@@ -67,16 +65,56 @@ public abstract class BasicJDORepository<T> implements JDORepository<T, Key> {
     }
 
     @Override
-    public boolean exists(Key id) {
-        return this.findOne(id) != null;
-    }
-
-    @Override
-    public void delete(Key id) {
-        T entity = this.findOne(id);
+    @Transactional
+    public <T> void delete(Class<T> clazz, Key id) {
+        T entity = this.findOne(clazz, id);
         if (entity != null) {
             this.getPersistenceManager().deletePersistent(entity);
         }
+    }
+
+    @Override
+    @Transactional
+    public <T> void deleteAll(Class<T> clazz) {
+        for (T entity : this.findAll(clazz)) {
+            this.getPersistenceManager().deletePersistent(entity);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public <T> Iterable<T> findByFilter(Class<T> clazz, String filter, String parameterDeclaration, Object param1) {
+        return this.findByFilter(clazz, filter, parameterDeclaration, new Object[]{param1});
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public <T> Iterable<T> findByFilter(Class<T> clazz, String filter, String parameterDeclaration, Object param1, Object param2) {
+        return this.findByFilter(clazz, filter, parameterDeclaration, new Object[]{param1, param2});
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public <T> Iterable<T> findByFilter(Class<T> clazz, String filter, String parameterDeclaration, Object param1, Object param2, Object param3) {
+        return this.findByFilter(clazz, filter, parameterDeclaration, new Object[]{param1, param2, param3});
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public <T> Iterable<T> findByFilter(Class<T> clazz, String filter, String parameterDeclaration, Object[] params) {
+        Query query = this.getPersistenceManager().newQuery(clazz, filter);
+        query.declareParameters(parameterDeclaration);
+        return (Iterable<T>) query.executeWithArray(params);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public <T> T findFirstByName(Class<T> clazz, String name) {
+        Iterator<T> result = this.findByFilter(clazz, "name == nameParam", "String nameParam", name).iterator();
+        if (result.hasNext()) {
+            return result.next();
+        }
+        return null;
     }
 
 }
