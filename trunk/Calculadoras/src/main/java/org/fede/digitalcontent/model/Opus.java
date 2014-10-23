@@ -24,7 +24,7 @@ import java.util.Set;
  * @author fede
  */
 
-class Opus  {
+public class Opus  {
 
     private String title;
 

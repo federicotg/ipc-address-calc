@@ -43,7 +43,7 @@ public class DigitalCollectionController {
     
     @RequestMapping(value = "/initSampleData", method = RequestMethod.GET)
     public String initSampleData() {
-        this.dcService.initBasicObjects();
+        //this.dcService.initBasicObjects();
         return "dcIndex";
     }
     

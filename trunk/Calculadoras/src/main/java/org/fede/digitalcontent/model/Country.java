@@ -20,23 +20,9 @@ package org.fede.digitalcontent.model;
  *
  * @author fede
  */
-public class Country  {
+public enum Country  {
 
-    private String name;
-
-    Country() {
-    }
-
-    Country(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    USA, FRANCE, UK, GERMANY, DENMARK, RUSSIA, ITALY, AUSTRIA,
+    AUSTRALIA, SWITZERLAND, SPAIN;
 
 }

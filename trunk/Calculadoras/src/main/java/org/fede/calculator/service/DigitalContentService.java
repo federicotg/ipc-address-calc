@@ -24,7 +24,6 @@ import org.fede.digitalcontent.model.StorageBox;
  */
 public interface DigitalContentService {
     
-    void initBasicObjects();
     
     Iterable<StorageBox> getAllBoxes();
     
