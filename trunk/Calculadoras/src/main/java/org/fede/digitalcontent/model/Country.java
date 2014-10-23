@@ -24,10 +24,10 @@ public class Country  {
 
     private String name;
 
-    public Country() {
+    Country() {
     }
 
-    public Country(String name) {
+    Country(String name) {
         this.name = name;
     }
 

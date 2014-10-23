@@ -24,6 +24,8 @@ import java.util.Set;
 /**
  *
  * @author fede
+ * @param <K>
+ * @param <T>
  */
 public abstract class BaseFactory<K,T> implements Factory<K, T>{
      

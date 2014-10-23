@@ -32,10 +32,10 @@ public class Venue {
 
     private Set<WebResource> resources;
 
-    public Venue() {
+    Venue() {
     }
 
-    public Venue(String name, City city) {
+    Venue(String name, City city) {
         this.name = name;
         this.city = city;
     }

@@ -33,10 +33,10 @@ public class DigitalContent  {
 
     private String subtitle;
 
-    public DigitalContent() {
+    DigitalContent() {
     }
 
-    public DigitalContent(Set<Performance> performances, Quality quality, FormatType format) {
+    DigitalContent(Set<Performance> performances, Quality quality, FormatType format) {
         
         this.performances = performances;
         this.quality = quality;

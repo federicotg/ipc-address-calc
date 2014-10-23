@@ -29,15 +29,13 @@ public class Person  {
 
     private Set<WebResource> resources;
 
-    public Person() {
+    Person() {
     }
 
-    public Person(String name) {
+    Person(String name) {
         this.name = name;
     }
     
-    
-
     public String getName() {
         return name;
     }

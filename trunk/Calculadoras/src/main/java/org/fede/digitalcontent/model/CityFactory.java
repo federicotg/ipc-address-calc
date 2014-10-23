@@ -23,9 +23,9 @@ package org.fede.digitalcontent.model;
 public final class CityFactory extends BaseFactory<String, City> {
 
     public City createCity(final String name, final Country country) {
-        return this.createInstance(name, new Creator() {
+        return this.createInstance(name, new Creator<City>() {
             @Override
-            public Object createInstance() {
+            public City createInstance() {
                 return new City(name, country);
             }
         });

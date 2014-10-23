@@ -27,10 +27,10 @@ public class City {
 
     private Country country;
 
-    public City() {
+    City() {
     }
     
-    public City(String name, Country country) {
+    City(String name, Country country) {
         this.name = name;
         this.country = country;
     }

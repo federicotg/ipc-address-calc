@@ -24,7 +24,7 @@ import java.util.Set;
  * @author fede
  */
 
-public class Opus  {
+class Opus  {
 
     private String title;
 
@@ -36,10 +36,10 @@ public class Opus  {
 
     private Set<WebResource> resources;
 
-    public Opus() {
+    Opus() {
     }
 
-    public Opus(String title, OpusType type, Language lang) {
+    Opus(String title, OpusType type, Language lang) {
         this.title = title;
         this.type = type;
         this.language = lang;

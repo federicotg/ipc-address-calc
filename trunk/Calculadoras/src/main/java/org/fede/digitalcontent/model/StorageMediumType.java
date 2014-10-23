@@ -23,6 +23,6 @@ package org.fede.digitalcontent.model;
  */
 public enum StorageMediumType {
 
-    DVD, BDR, CD;
+    DVDPLUSRDL, BDR, CD;
     
 }

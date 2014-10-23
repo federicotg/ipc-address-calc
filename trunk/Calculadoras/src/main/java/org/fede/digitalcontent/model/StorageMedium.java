@@ -34,10 +34,10 @@ public class StorageMedium  {
 
     private Set<DigitalContent> contents;
 
-    public StorageMedium() {
+    StorageMedium() {
     }
 
-    public StorageMedium(String name, StorageMediumType type) {
+    StorageMedium(String name, StorageMediumType type) {
         this.name = name;
         this.type = type;
     }
