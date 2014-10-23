@@ -24,7 +24,6 @@ package org.fede.digitalcontent.model;
 
 public class WebResource  {
 
-
     private String uri;
 
     private WebResourceType type;

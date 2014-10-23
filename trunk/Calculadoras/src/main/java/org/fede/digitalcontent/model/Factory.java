@@ -16,19 +16,13 @@
  */
 package org.fede.digitalcontent.model;
 
+import java.util.Set;
+
 /**
  *
  * @author fede
  */
-public class QualityFactory extends BaseFactory<String, Quality> {
-
-    public Quality createQuality(final String name) {
-        return this.createInstance(name, new Creator<Quality>() {
-
-            @Override
-            public Quality createInstance() {
-                return new Quality(name);
-            }
-        });
-    }
+public interface Factory<K, T> {
+    T findById(K id);
+    Set<T> findAll();
 }

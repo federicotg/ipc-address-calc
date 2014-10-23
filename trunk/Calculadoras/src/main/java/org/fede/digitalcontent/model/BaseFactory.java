@@ -17,19 +17,17 @@
 package org.fede.digitalcontent.model;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
  * @author fede
  */
-public class BaseFactory<K,T> {
+public abstract class BaseFactory<K,T> implements Factory<K, T>{
      
     private final Map<K, T> instances = new HashMap<>();
-    
-    protected BaseFactory(){
-        
-    }
     
     protected final T createInstance(K key, Creator<T> creator){
         T answer = this.instances.get(key);
@@ -38,6 +36,16 @@ public class BaseFactory<K,T> {
             this.instances.put(key, answer);
         }
         return answer;
+    }
+
+    @Override
+    public final T findById(K id) {
+        return this.instances.get(id);
+    }
+
+    @Override
+    public Set<T> findAll() {
+        return new HashSet<>(this.instances.values());
     }
     
 }

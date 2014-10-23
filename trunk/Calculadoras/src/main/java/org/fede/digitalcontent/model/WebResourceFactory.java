@@ -20,8 +20,16 @@ package org.fede.digitalcontent.model;
  *
  * @author fede
  */
-public enum Quality {
+public class WebResourceFactory extends BaseFactory<String, WebResource> {
 
-    HD1080, HD720, LOSSLESS, DVD480;
+    public WebResource createWebResource(final String uri, final WebResourceType type) {
+        return this.createInstance(uri, new Creator<WebResource>() {
+
+            @Override
+            public WebResource createInstance() {
+                return new WebResource(uri, type);
+            }
+        });
+    }
 
 }
