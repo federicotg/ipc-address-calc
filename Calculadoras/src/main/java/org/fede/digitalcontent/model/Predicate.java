@@ -16,16 +16,12 @@
  */
 package org.fede.digitalcontent.model;
 
-import java.util.Set;
-
 /**
  *
  * @author fede
- * @param <K>
  * @param <T>
  */
-public interface Factory<K, T> {
-    T findById(K id);
-    Set<T> findAll();
-    Set<T> filter(Predicate<T> predicate);
+public interface Predicate<T> {
+    boolean test(T t);
+    
 }
