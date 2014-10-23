@@ -21,6 +21,9 @@ import java.util.Objects;
 /**
  *
  * @author fede
+ * @param <A>
+ * @param <B>
+ * @param <C>
  */
 public class Terna<A, B, C> extends Pair<A, B> {
 
