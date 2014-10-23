@@ -27,11 +27,11 @@ public class Role  {
 
     private RoleType type;
 
-    public Role() {
+    Role() {
     }
 
     
-    public Role(Person person, RoleType type) {
+    Role(Person person, RoleType type) {
         this.person = person;
         this.type = type;
     }

@@ -31,10 +31,10 @@ public class StorageBox  {
 
     private Set<StorageMedium> media;
 
-    public StorageBox() {
+    StorageBox() {
     }
 
-    public StorageBox(String name) {
+    StorageBox(String name) {
         this.name = name;
     }
 
