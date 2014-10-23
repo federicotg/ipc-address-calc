@@ -21,6 +21,8 @@ import java.util.Set;
 /**
  *
  * @author fede
+ * @param <K>
+ * @param <T>
  */
 public interface Factory<K, T> {
     T findById(K id);
