@@ -27,8 +27,6 @@ public class Role  {
 
     private RoleType type;
 
-    private int year;
-
     public Role() {
     }
 
@@ -52,14 +50,6 @@ public class Role  {
 
     public void setType(RoleType type) {
         this.type = type;
-    }
-
-    public int getYear() {
-        return year;
-    }
-
-    public void setYear(int year) {
-        this.year = year;
     }
 
 }

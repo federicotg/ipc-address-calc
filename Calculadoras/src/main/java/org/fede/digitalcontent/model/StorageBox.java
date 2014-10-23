@@ -27,9 +27,7 @@ import java.util.Set;
 
 public class StorageBox  {
 
-
     private String name;
-
 
     private Set<StorageMedium> media;
 
