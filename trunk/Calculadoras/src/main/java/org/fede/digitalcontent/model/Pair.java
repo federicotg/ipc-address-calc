@@ -21,6 +21,8 @@ import java.util.Objects;
 /**
  *
  * @author fede
+ * @param <A>
+ * @param <B>
  */
 public class Pair<A,B> {
     
