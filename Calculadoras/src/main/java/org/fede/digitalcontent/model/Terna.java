@@ -16,14 +16,39 @@
  */
 package org.fede.digitalcontent.model;
 
-
+import java.util.Objects;
 
 /**
- * Opus types include Ballet, Opera, Concert, Play, Studio Session, etc.
+ *
  * @author fede
  */
-public enum OpusType  {
+public class Terna<A, B, C> extends Pair<A, B> {
 
-    BALLET,OPERA, CONCERT,PLAY, STUDIO;
+    private C third;
+
+    public Terna(A first, B second, C third) {
+        super(first, second);
+        this.third = third;
+    }
+
+    public C getThird() {
+        return third;
+    }
+
+    public void setThird(C third) {
+        this.third = third;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj)
+                && Objects.equals(this.third, ((Terna) obj).getThird());
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        return 37 * hash + super.hashCode();
+    }
 
 }

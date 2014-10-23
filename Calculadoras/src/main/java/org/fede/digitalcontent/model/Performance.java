@@ -16,42 +16,33 @@
  */
 package org.fede.digitalcontent.model;
 
-import com.google.appengine.datanucleus.annotations.Unowned;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
 
 /**
  *
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class Performance extends PersistentEntity {
 
-    @Persistent
-    @Unowned
+public class Performance  {
+
+    private Opus opus;
+    
     private Venue venue;
-    @Persistent
+
     private Date date;
-    @Persistent
+
     private Set<Role> roles;
-    @Persistent
-    private Set<Opus> opus;
-    @Persistent
+
     private Set<WebResource> resources;
 
     public Performance() {
     }
 
-    
-    
-    public Performance(Opus opus, Venue venue, int day, int month, int year) {
-        this.opus = new HashSet<>();
-        this.opus.add(opus);
-        Calendar cal = Calendar.getInstance();
+    public Performance(Opus opus, Venue venue, Date date) {
+        
+        this.opus = opus;
+        /*Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, year);
         cal.set(Calendar.MONTH, month-1);
         cal.set(Calendar.DAY_OF_MONTH, day);
@@ -59,7 +50,8 @@ public class Performance extends PersistentEntity {
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        this.date = cal.getTime();
+        this.date = cal.getTime();*/
+        this.date = date;
         this.venue = venue;
     }
     
@@ -87,11 +79,11 @@ public class Performance extends PersistentEntity {
         this.roles = roles;
     }
 
-    public Set<Opus> getOpus() {
+    public Opus getOpus() {
         return opus;
     }
 
-    public void setOpus(Set<Opus> opus) {
+    public void setOpus(Opus opus) {
         this.opus = opus;
     }
 

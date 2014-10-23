@@ -16,14 +16,19 @@
  */
 package org.fede.digitalcontent.model;
 
-
-
 /**
- * Opus types include Ballet, Opera, Concert, Play, Studio Session, etc.
+ *
  * @author fede
  */
-public enum OpusType  {
+public class PersonFactory extends BaseFactory<String, Person> {
 
-    BALLET,OPERA, CONCERT,PLAY, STUDIO;
+    public Person createPerson(final String name) {
+        return this.createInstance(name, new Creator<Person>() {
 
+            @Override
+            public Person createInstance() {
+                return new Person(name);
+            }
+        });
+    }
 }

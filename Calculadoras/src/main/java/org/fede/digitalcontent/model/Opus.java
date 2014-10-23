@@ -16,40 +16,33 @@
  */
 package org.fede.digitalcontent.model;
 
-import com.google.appengine.datanucleus.annotations.Unowned;
 import java.util.HashSet;
 import java.util.Set;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
 
 /**
  *
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class Opus extends PersistentEntity {
 
-    @Persistent
+public class Opus  {
+
     private String title;
 
-    @Persistent
-    @Unowned
     private OpusType type;
-    @Persistent
-    private String language;
 
-    @Persistent
+    private Language language;
+
     private Set<Role> authors;
 
-    @Persistent
     private Set<WebResource> resources;
 
     public Opus() {
     }
 
-    public Opus(String title, OpusType type) {
+    public Opus(String title, OpusType type, Language lang) {
         this.title = title;
         this.type = type;
+        this.language = lang;
     }
 
     public String getTitle() {
@@ -68,11 +61,11 @@ public class Opus extends PersistentEntity {
         this.type = type;
     }
 
-    public String getLanguage() {
+    public Language getLanguage() {
         return language;
     }
 
-    public void setLanguage(String language) {
+    public void setLanguage(Language language) {
         this.language = language;
     }
 

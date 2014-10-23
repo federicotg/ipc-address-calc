@@ -16,16 +16,12 @@
  */
 package org.fede.digitalcontent.model;
 
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
 
 /**
  *
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class Quality extends PersistentEntity{
-    @Persistent
+public class Quality {
     private String name;
 
     public Quality() {

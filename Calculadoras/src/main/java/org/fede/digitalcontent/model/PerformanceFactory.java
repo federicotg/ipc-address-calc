@@ -16,14 +16,22 @@
  */
 package org.fede.digitalcontent.model;
 
-
+import java.util.Date;
 
 /**
- * Opus types include Ballet, Opera, Concert, Play, Studio Session, etc.
+ *
  * @author fede
  */
-public enum OpusType  {
+public class PerformanceFactory extends BaseFactory<Terna<Opus, Venue, Date>, Performance> {
 
-    BALLET,OPERA, CONCERT,PLAY, STUDIO;
+    public Performance createPerformance(final Opus opus, final Venue venue, final Date date) {
+        return this.createInstance(new Terna<>(opus, venue, date), new Creator<Performance>() {
+
+            @Override
+            public Performance createInstance() {
+                return new Performance(opus, venue, date);
+            }
+        });
+    }
 
 }

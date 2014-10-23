@@ -16,14 +16,19 @@
  */
 package org.fede.digitalcontent.model;
 
-
-
 /**
- * Opus types include Ballet, Opera, Concert, Play, Studio Session, etc.
+ *
  * @author fede
  */
-public enum OpusType  {
+public class StorageMediumFactory extends BaseFactory<String, StorageMedium> {
 
-    BALLET,OPERA, CONCERT,PLAY, STUDIO;
+    public StorageMedium createStorageMedium(final String name, final StorageMediumType type) {
+        return this.createInstance(name, new Creator<StorageMedium>() {
 
+            @Override
+            public StorageMedium createInstance() {
+                return new StorageMedium(name, type);
+            }
+        });
+    }
 }
