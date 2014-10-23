@@ -16,15 +16,13 @@
  */
 package org.fede.digitalcontent.model;
 
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
-
 /**
  *
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class Country extends PersistentEntity {
+public class Country  {
+
+    private String name;
 
     public Country() {
     }
@@ -32,11 +30,6 @@ public class Country extends PersistentEntity {
     public Country(String name) {
         this.name = name;
     }
-
-    
-    
-    @Persistent
-    private String name;
 
     public String getName() {
         return name;

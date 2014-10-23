@@ -16,26 +16,19 @@
  */
 package org.fede.digitalcontent.model;
 
-import com.google.appengine.datanucleus.annotations.Unowned;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
-
 /**
  * City where the actual concert, play or performance took place.
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class City extends PersistentEntity {
 
-    @Persistent
+public class City {
+
     private String name;
-    @Persistent
-    @Unowned
+
     private Country country;
 
     public City() {
     }
-
     
     public City(String name, Country country) {
         this.name = name;

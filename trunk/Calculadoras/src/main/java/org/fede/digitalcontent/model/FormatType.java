@@ -16,33 +16,13 @@
  */
 package org.fede.digitalcontent.model;
 
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
 
 /**
  * Format types include MKV, ISO Image, AVI, MP3, FLAC, ts, etc.
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class FormatType extends PersistentEntity {
+public enum FormatType  {
 
-    @Persistent
-    private String name;
-
-    public FormatType() {
-    }
-
-    public FormatType(String name) {
-        this.name = name;
-    }
-    
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    MKV, ISOImage, AVI, MP3, FLAC;
 
 }

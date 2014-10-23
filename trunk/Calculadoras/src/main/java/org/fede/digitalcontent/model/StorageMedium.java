@@ -16,33 +16,31 @@
  */
 package org.fede.digitalcontent.model;
 
-import com.google.appengine.datanucleus.annotations.Unowned;
+
 import java.util.HashSet;
 import java.util.Set;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
 
 /**
  * A particular DVD, CD or BD-R holding some digital content.
  *
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class StorageMedium extends PersistentEntity {
 
-    @Persistent
+public class StorageMedium  {
+
     private String name;
 
-    @Unowned
-    @Persistent
     private StorageMediumType type;
 
-    @Persistent
     private Set<DigitalContent> contents;
 
     public StorageMedium() {
     }
-    
+
+    public StorageMedium(String name, StorageMediumType type) {
+        this.name = name;
+        this.type = type;
+    }
     
 
     public String getName() {

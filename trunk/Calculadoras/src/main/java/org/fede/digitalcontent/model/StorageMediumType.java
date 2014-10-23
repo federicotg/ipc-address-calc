@@ -16,35 +16,13 @@
  */
 package org.fede.digitalcontent.model;
 
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
-
 
 /**
  * Storage medium types are DVD, BD-R, CD, etc.
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class StorageMediumType extends PersistentEntity{
+public enum StorageMediumType {
 
-    @Persistent
-    private String name;
-
-    public StorageMediumType() {
-    }
-
-    public StorageMediumType(String name) {
-        this.name = name;
-    }
-    
-    
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    DVD, BDR, CD;
     
 }

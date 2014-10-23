@@ -16,14 +16,28 @@
  */
 package org.fede.digitalcontent.model;
 
-
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Opus types include Ballet, Opera, Concert, Play, Studio Session, etc.
+ *
  * @author fede
  */
-public enum OpusType  {
-
-    BALLET,OPERA, CONCERT,PLAY, STUDIO;
-
+public class BaseFactory<K,T> {
+     
+    private final Map<K, T> instances = new HashMap<>();
+    
+    protected BaseFactory(){
+        
+    }
+    
+    protected final T createInstance(K key, Creator<T> creator){
+        T answer = this.instances.get(key);
+        if (answer == null) {
+            answer = creator.createInstance();
+            this.instances.put(key, answer);
+        }
+        return answer;
+    }
+    
 }

@@ -16,35 +16,15 @@
  */
 package org.fede.digitalcontent.model;
 
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
 
 
 /**
  * Possible web resources are wikipedia, imdb, etc.
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class WebResourceType extends PersistentEntity {
 
-    @Persistent
-    private String name;
+public enum WebResourceType {
 
-    public WebResourceType() {
-    }
-
-    public WebResourceType(String name) {
-        this.name = name;
-    }
-
-    
-    
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    IMDB, WIKIPEDIA;
 
 }

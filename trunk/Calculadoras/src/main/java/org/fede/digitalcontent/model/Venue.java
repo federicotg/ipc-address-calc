@@ -16,24 +16,21 @@
  */
 package org.fede.digitalcontent.model;
 
-import com.google.appengine.datanucleus.annotations.Unowned;
 import java.util.Set;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
+
 
 /**
  * Theatre, studio or outdoor stage where the performance took place.
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class Venue extends PersistentEntity {
 
-    @Persistent
+public class Venue {
+
     private String name;
 
-    @Persistent
-    @Unowned
     private City city;
+
+    private Set<WebResource> resources;
 
     public Venue() {
     }
@@ -42,11 +39,6 @@ public class Venue extends PersistentEntity {
         this.name = name;
         this.city = city;
     }
-
-    
-    @Persistent
-    private Set<WebResource> resources;
-
     public City getCity() {
         return city;
     }

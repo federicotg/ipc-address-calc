@@ -16,37 +16,29 @@
  */
 package org.fede.digitalcontent.model;
 
-import com.google.appengine.datanucleus.annotations.Unowned;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
+import java.util.Set;
+
 
 /**
  *
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class DigitalContent extends PersistentEntity {
+public class DigitalContent  {
 
-    @Persistent
-    @Unowned
-    private Performance performance;
+    private Set<Performance> performances;
 
-    @Persistent
-    @Unowned
     private Quality quality;
 
-    @Persistent
-    @Unowned
     private FormatType format;
 
-    @Persistent
     private String subtitle;
 
     public DigitalContent() {
     }
 
-    public DigitalContent(Performance performance, Quality quality, FormatType format) {
-        this.performance = performance;
+    public DigitalContent(Set<Performance> performances, Quality quality, FormatType format) {
+        
+        this.performances = performances;
         this.quality = quality;
         this.format = format;
     }
@@ -75,12 +67,12 @@ public class DigitalContent extends PersistentEntity {
         this.subtitle = subtitle;
     }
 
-    public Performance getPerformance() {
-        return performance;
+    public Set<Performance> getPerformances() {
+        return performances;
     }
 
-    public void setPerformance(Performance performance) {
-        this.performance = performance;
+    public void setPerformances(Set<Performance> performances) {
+        this.performances = performances;
     }
 
 }

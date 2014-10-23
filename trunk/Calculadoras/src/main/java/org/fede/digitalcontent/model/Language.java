@@ -16,14 +16,11 @@
  */
 package org.fede.digitalcontent.model;
 
-
-
 /**
- * Opus types include Ballet, Opera, Concert, Play, Studio Session, etc.
+ *
  * @author fede
  */
-public enum OpusType  {
+public enum Language {
 
-    BALLET,OPERA, CONCERT,PLAY, STUDIO;
-
+    ENGLISH, FRENCH, ITALIAN, GERMAN, SPANISH, CZECH, RUSSIAN;
 }

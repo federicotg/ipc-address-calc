@@ -16,23 +16,17 @@
  */
 package org.fede.digitalcontent.model;
 
-import com.google.appengine.datanucleus.annotations.Unowned;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
-
 
 /**
  *
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class WebResource extends PersistentEntity {
 
-    @Persistent
+public class WebResource  {
+
+
     private String uri;
 
-    @Persistent
-    @Unowned
     private WebResourceType type;
 
     public WebResource() {

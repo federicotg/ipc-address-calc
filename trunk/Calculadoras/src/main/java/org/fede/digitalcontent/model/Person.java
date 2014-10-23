@@ -17,19 +17,16 @@
 package org.fede.digitalcontent.model;
 
 import java.util.Set;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
 
 /**
  *
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class Person extends PersistentEntity {
+public class Person  {
 
-    @Persistent
+
     private String name;
-    @Persistent
+
     private Set<WebResource> resources;
 
     public Person() {

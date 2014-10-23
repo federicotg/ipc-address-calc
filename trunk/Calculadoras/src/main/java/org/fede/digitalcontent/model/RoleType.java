@@ -16,35 +16,14 @@
  */
 package org.fede.digitalcontent.model;
 
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
-
 /**
- * Roles include actor, viewer, singer, orchestra director, presenter, music author, words author,
- * choreographer, film director, etc.
+ * Roles include actor, viewer, singer, orchestra director, presenter, music
+ * author, words author, choreographer, film director, etc.
+ *
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class RoleType extends PersistentEntity {
+public enum RoleType {
 
-    @Persistent
-    private String name;
-
-    public RoleType() {
-    }
-
-    public RoleType(String name) {
-        this.name = name;
-    }
-
-    
-    
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    VIEWER, SINGER, COMPOSER;
 
 }

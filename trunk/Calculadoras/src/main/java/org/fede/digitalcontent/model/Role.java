@@ -16,32 +16,22 @@
  */
 package org.fede.digitalcontent.model;
 
-import com.google.appengine.datanucleus.annotations.Unowned;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
 
 /**
  *
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class Role extends PersistentEntity {
+public class Role  {
 
-    @Persistent
-    @Unowned
     private Person person;
 
-    @Persistent
-    @Unowned
     private RoleType type;
 
-    @Persistent
     private int year;
 
     public Role() {
     }
 
-    
     
     public Role(Person person, RoleType type) {
         this.person = person;

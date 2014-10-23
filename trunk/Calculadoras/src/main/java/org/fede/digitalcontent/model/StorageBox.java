@@ -18,21 +18,19 @@ package org.fede.digitalcontent.model;
 
 import java.util.HashSet;
 import java.util.Set;
-import javax.jdo.annotations.PersistenceCapable;
-import javax.jdo.annotations.Persistent;
 
 /**
  * A box holding a particular set of CD, DVD or BD-R.
  *
  * @author fede
  */
-@PersistenceCapable(detachable = "true")
-public class StorageBox extends PersistentEntity {
 
-    @Persistent
+public class StorageBox  {
+
+
     private String name;
 
-    @Persistent
+
     private Set<StorageMedium> media;
 
     public StorageBox() {
