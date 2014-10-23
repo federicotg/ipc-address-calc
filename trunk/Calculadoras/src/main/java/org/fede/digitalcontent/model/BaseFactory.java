@@ -27,11 +27,11 @@ import java.util.Set;
  * @param <K>
  * @param <T>
  */
-public abstract class BaseFactory<K,T> implements Factory<K, T>{
-     
+public abstract class BaseFactory<K, T> implements Factory<K, T> {
+
     private final Map<K, T> instances = new HashMap<>();
-    
-    protected final T createInstance(K key, Creator<T> creator){
+
+    protected final T createInstance(K key, Creator<T> creator) {
         T answer = this.instances.get(key);
         if (answer == null) {
             answer = creator.createInstance();
@@ -46,8 +46,18 @@ public abstract class BaseFactory<K,T> implements Factory<K, T>{
     }
 
     @Override
-    public Set<T> findAll() {
+    public final Set<T> findAll() {
         return new HashSet<>(this.instances.values());
     }
-    
+
+    @Override
+    public final Set<T> filter(Predicate<T> predicate) {
+        Set<T> answer = new HashSet<>();
+        for (T t : this.instances.values()) {
+            if (predicate.test(t)) {
+                answer.add(t);
+            }
+        }
+        return answer;
+    }
 }
