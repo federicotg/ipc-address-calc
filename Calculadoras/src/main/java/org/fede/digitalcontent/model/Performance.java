@@ -35,21 +35,9 @@ public class Performance {
 
     private Set<WebResource> resources;
 
-    Performance() {
-    }
 
     Performance(Opus opus, Venue venue, Date date) {
-
         this.opus = opus;
-        /*Calendar cal = Calendar.getInstance();
-         cal.set(Calendar.YEAR, year);
-         cal.set(Calendar.MONTH, month-1);
-         cal.set(Calendar.DAY_OF_MONTH, day);
-         cal.set(Calendar.HOUR, 0);
-         cal.set(Calendar.MINUTE, 0);
-         cal.set(Calendar.SECOND, 0);
-         cal.set(Calendar.MILLISECOND, 0);
-         this.date = cal.getTime();*/
         this.date = date;
         this.venue = venue;
     }
@@ -94,4 +82,11 @@ public class Performance {
         this.resources = resources;
     }
 
+    public void addSinger(Person singer){
+        this.roles.add(new Role(singer, RoleType.SINGER));
+    }
+    
+    public void addViewer(Person viewer){
+        this.roles.add(new Role(viewer, RoleType.VIEWER));
+    }
 }

@@ -16,20 +16,20 @@
  */
 package org.fede.digitalcontent.model;
 
+import java.util.Date;
+
 /**
  *
  * @author fede
  */
-public class StorageBoxFactory extends BaseFactory<String, StorageBox> {
+public class PerformanceRepository extends BaseRepository<Terna<Opus, Venue, Date>, Performance> {
 
-    public StorageBox createStorageBox(final String name) {
-        return this.createInstance(name, new Creator<StorageBox>() {
-
-            @Override
-            public StorageBox createInstance() {
-                return new StorageBox(name);
-            }
-        });
+    @Override
+    public void add(Performance entity) {
+        this.add(
+                new Terna<>(entity.getOpus(), entity.getVenue(), entity.getDate()),
+                entity
+        );
     }
 
 }

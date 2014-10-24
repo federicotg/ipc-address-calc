@@ -20,15 +20,11 @@ package org.fede.digitalcontent.model;
  *
  * @author fede
  */
-public class VenueFactory extends BaseFactory<String, Venue> {
+public class PersonRepository extends BaseRepository<String, Person> {
 
-    public Venue createVenue(final String name, final City city) {
-        return this.createInstance(name, new Creator<Venue>() {
-
-            @Override
-            public Venue createInstance() {
-                return new Venue(name, city);
-            }
-        });
+    @Override
+    public void add(Person person) {
+        this.add(person.getName(), person);
     }
+
 }

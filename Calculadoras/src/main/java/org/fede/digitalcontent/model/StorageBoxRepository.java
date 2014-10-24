@@ -20,21 +20,11 @@ package org.fede.digitalcontent.model;
  *
  * @author fede
  */
-public class OpusFactory extends BaseFactory<Pair<String, OpusType>, Opus> {
-
-    public Opus createOpus(final String title, final OpusType type, final Language language, final Person composer) {
-        return this.createInstance(new Pair<>(title, type), new Creator<Opus>() {
-            @Override
-            public Opus createInstance() {
-                Opus op = new Opus(title, type, language);
-                op.addPerson(RoleType.COMPOSER, composer);
-                return op;
-            }
-        });
-    }
+public class StorageBoxRepository extends BaseRepository<String, StorageBox> {
 
     @Override
-    public void add(Opus entity) {
-        this.add(new Pair<>(entity.getTitle(), entity.getType()), entity);
+    public void add(StorageBox entity) {
+        this.add(entity.getName(), entity);
     }
+
 }

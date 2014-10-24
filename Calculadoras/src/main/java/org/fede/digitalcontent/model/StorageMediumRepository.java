@@ -20,15 +20,11 @@ package org.fede.digitalcontent.model;
  *
  * @author fede
  */
-public class StorageMediumFactory extends BaseFactory<String, StorageMedium> {
+public class StorageMediumRepository extends BaseRepository<String, StorageMedium> {
 
-    public StorageMedium createStorageMedium(final String name, final StorageMediumType type) {
-        return this.createInstance(name, new Creator<StorageMedium>() {
-
-            @Override
-            public StorageMedium createInstance() {
-                return new StorageMedium(name, type);
-            }
-        });
+   
+    @Override
+    public void add(StorageMedium medium){
+        this.add(medium.getName(), medium);
     }
 }

@@ -27,66 +27,124 @@ public class Opus {
 
     public static class Builder {
 
-        private Opus opus;
+        private Opus[] opuses;
+
+        public Builder(String... titles) {
+            this.opuses = new Opus[titles.length];
+            int i = 0;
+            for (String title : titles) {
+                this.opuses[i] = new Opus(title);
+                i++;
+            }
+        }
 
         public Builder(String title) {
-            this.opus = new Opus();
-            this.opus.setTitle(title);
+            this(new String[]{title});
         }
 
         public Builder opera() {
-            this.opus.setType(OpusType.OPERA);
+            for (Opus opus : this.opuses) {
+                opus.setType(OpusType.OPERA);
+            }
             return this;
         }
 
         public Builder ballet() {
-            this.opus.setType(OpusType.BALLET);
+            for (Opus opus : this.opuses) {
+                opus.setType(OpusType.BALLET);
+            }
+            return this;
+        }
+
+        public Builder oratorio() {
+            for (Opus opus : this.opuses) {
+                opus.setType(OpusType.ORATORIO);
+            }
             return this;
         }
 
         public Builder type(OpusType type) {
-            this.opus.setType(type);
+            for (Opus opus : this.opuses) {
+                opus.setType(type);
+            }
             return this;
         }
 
         public Builder by(String name) {
-            this.opus.addPerson(RoleType.COMPOSER, Factory.PERSON.findById(name));
+
+            Person by = Repository.PERSON.findById(name);
+            if (by == null) {
+                by = new Person(name);
+                Repository.PERSON.add(by);
+            }
+
+            for (Opus opus : this.opuses) {
+                opus.addPerson(RoleType.COMPOSER, by);
+            }
             return this;
         }
 
         public Builder italian() {
-            this.opus.setLanguage(Language.ITALIAN);
+            for (Opus opus : this.opuses) {
+                opus.setLanguage(Language.ITALIAN);
+            }
             return this;
         }
 
         public Builder french() {
-            this.opus.setLanguage(Language.FRENCH);
+            for (Opus opus : this.opuses) {
+                opus.setLanguage(Language.FRENCH);
+            }
             return this;
         }
 
         public Builder german() {
-            this.opus.setLanguage(Language.GERMAN);
+            for (Opus opus : this.opuses) {
+                opus.setLanguage(Language.GERMAN);
+            }
+            return this;
+        }
+
+        public Builder russian() {
+            for (Opus opus : this.opuses) {
+                opus.setLanguage(Language.RUSSIAN);
+            }
+            return this;
+        }
+
+        public Builder english() {
+            for (Opus opus : this.opuses) {
+                opus.setLanguage(Language.ENGLISH);
+            }
             return this;
         }
 
         public Builder language(Language lang) {
-            this.opus.setLanguage(lang);
+            for (Opus opus : this.opuses) {
+                opus.setLanguage(lang);
+            }
             return this;
         }
 
         public Builder wikipedia(String uri) {
-            this.opus.addWebResource(WebResourceType.WIKIPEDIA, uri);
+            for (Opus opus : this.opuses) {
+                opus.addWebResource(WebResourceType.WIKIPEDIA, uri);
+            }
             return this;
         }
 
         public Builder imdb(String uri) {
-            this.opus.addWebResource(WebResourceType.IMDB, uri);
+            for (Opus opus : this.opuses) {
+                opus.addWebResource(WebResourceType.IMDB, uri);
+            }
             return this;
         }
 
-        public Opus build() {
-            Factory.OPUS.add(opus);
-            return this.opus;
+        public Opus[] build() {
+            for (Opus opus : this.opuses) {
+                Repository.OPUS.add(opus);
+            }
+            return this.opuses;
         }
 
     }
@@ -101,13 +159,8 @@ public class Opus {
 
     private Set<WebResource> resources;
 
-    Opus() {
-    }
-
-    Opus(String title, OpusType type, Language lang) {
+    private Opus(String title) {
         this.title = title;
-        this.type = type;
-        this.language = lang;
     }
 
     public String getTitle() {

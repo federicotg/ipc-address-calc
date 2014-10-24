@@ -16,50 +16,19 @@
  */
 package org.fede.calculator.service;
 
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.HashSet;
-import java.util.Set;
 import javax.annotation.PostConstruct;
-import org.fede.digitalcontent.model.CityFactory;
-import static org.fede.digitalcontent.model.Country.AUSTRALIA;
-import static org.fede.digitalcontent.model.Country.AUSTRIA;
 import static org.fede.digitalcontent.model.Country.DENMARK;
 import static org.fede.digitalcontent.model.Country.FRANCE;
-import static org.fede.digitalcontent.model.Country.GERMANY;
-import static org.fede.digitalcontent.model.Country.ITALY;
-import static org.fede.digitalcontent.model.Country.RUSSIA;
 import static org.fede.digitalcontent.model.Country.SWITZERLAND;
-import static org.fede.digitalcontent.model.Country.UK;
-import static org.fede.digitalcontent.model.Country.USA;
-import static org.fede.digitalcontent.model.Country.SPAIN;
-import org.fede.digitalcontent.model.DigitalContentFactory;
-import org.fede.digitalcontent.model.FormatType;
-import static org.fede.digitalcontent.model.Language.ITALIAN;
-import static org.fede.digitalcontent.model.Language.GERMAN;
-import static org.fede.digitalcontent.model.Language.FRENCH;
-import static org.fede.digitalcontent.model.Language.RUSSIAN;
-import static org.fede.digitalcontent.model.Language.ENGLISH;
-import org.fede.digitalcontent.model.OpusFactory;
-import org.fede.digitalcontent.model.OpusType;
-import static org.fede.digitalcontent.model.OpusType.BALLET;
-import static org.fede.digitalcontent.model.OpusType.OPERA;
-import org.fede.digitalcontent.model.Pair;
-import org.fede.digitalcontent.model.PerformanceFactory;
-import org.fede.digitalcontent.model.Person;
-import org.fede.digitalcontent.model.PersonFactory;
-import org.fede.digitalcontent.model.Quality;
+import org.fede.digitalcontent.model.DigitalContent;
 import org.fede.digitalcontent.model.StorageBox;
-import org.fede.digitalcontent.model.StorageBoxFactory;
-import org.fede.digitalcontent.model.StorageMedium;
-import org.fede.digitalcontent.model.StorageMediumFactory;
-import org.fede.digitalcontent.model.StorageMediumType;
-import org.fede.digitalcontent.model.VenueFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import static org.fede.digitalcontent.model.Factory.*;
+import static org.fede.digitalcontent.model.Repository.*;
+import org.fede.digitalcontent.model.Language;
 import org.fede.digitalcontent.model.Opus;
+import org.fede.digitalcontent.model.Venue;
 
 /**
  *
@@ -69,147 +38,159 @@ import org.fede.digitalcontent.model.Opus;
 @Lazy
 public class LazyDigitalContentService implements DigitalContentService {
 
-    private final DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-
-
-
     @PostConstruct
-    public void initBasicObjects() {
-        // cities
-        CITY.createCity("New York", USA);
-        CITY.createCity("Londres", UK);
-        CITY.createCity("Glyndebourne", UK);
-        CITY.createCity("Madrid", SPAIN);
-        CITY.createCity("París", FRANCE);
-        CITY.createCity("Moscú", RUSSIA);
-        CITY.createCity("Milano", ITALY);
-        CITY.createCity("Nápoles", ITALY);
-        CITY.createCity("Salzburgo", AUSTRIA);
-        CITY.createCity("Sydney", AUSTRALIA);
-        CITY.createCity("Copenhagen", DENMARK);
-        CITY.createCity("Madrid", SPAIN);
-        CITY.createCity("Verona", ITALY);
-        CITY.createCity("Valencia", SPAIN);
-        CITY.createCity("Barcelona", SPAIN);
-        CITY.createCity("Baden-Baden", GERMANY);
-        CITY.createCity("Zürich", SWITZERLAND);
-        CITY.createCity("San Petersburgo", RUSSIA);
-
-        final Person puccini = PERSON.createPerson("Giacomo Puccini");
-        final Person verdi = PERSON.createPerson("Giuseppe Verdi");
-        final Person wagner = PERSON.createPerson("Richard Wagner");
-        final Person donizetti = PERSON.createPerson("Gaetano Donizetti");
-        final Person mozart = PERSON.createPerson("W. A. Mozart");
-        final Person rossini = PERSON.createPerson("Rossini");
-
-        PERSON.createPerson("Bellini");
-        PERSON.createPerson("Bizet");
-        PERSON.createPerson("Hector Berlioz");
-        PERSON.createPerson("Gounoud");
-        PERSON.createPerson("Antonin Dvorák");
-        PERSON.createPerson("Borodin");
-        PERSON.createPerson("A. Ponchielli");
-        PERSON.createPerson("Monteverdi");
-        PERSON.createPerson("Ravel");
-        PERSON.createPerson("Richard Strauss");
-        PERSON.createPerson("Rameau");
-        PERSON.createPerson("Tchaikovsky");
-        PERSON.createPerson("Jules Massenet");
-        PERSON.createPerson("Léo Delibes");
-        PERSON.createPerson("Leoncavallo");
-        PERSON.createPerson("Leoš Janáček");
-        PERSON.createPerson("Dmitri Shostakovich");
-        PERSON.createPerson("Händel");
-        PERSON.createPerson("Zandonai");
-
-        for (String title : new String[]{
-            "Macbeth", "Aida", "Rigoletto", "Nabucco", "La Traviata",
-            "Il Trovatore", "Simón Boccanegra", "Otello", "Un Ballo in Maschera",
-            "Falstaff", "La Forza del Destino", "Don Carlo", "I Due Foscari"}) {
-            OPUS.createOpus(title, OPERA, ITALIAN, verdi);
-        }
-
-        for (String title : new String[]{
-            "Parsifal", "Rienzi", "Das Rheingold", "Die Walküre", "Gotterdammerung",
-            "Siegfried", "Tannhauser", "Tristan und Ilsode",
-            "Falstaff", "La Forza del Destino"}) {
-            OPUS.createOpus(title, OPERA, GERMAN, wagner);
-        }
-
-        for (String title : new String[]{
-            "Anna Bolena", "Don Pasquale", "L'elisir d'amore", "Lucia de Lammermoor", "Maria Stuarda"}) {
-            OPUS.createOpus(title, OPERA, ITALIAN, donizetti);
-        }
-
-        new Opus.Builder("La Fille du Regiment")
-                .french()
-                .opera()
-                .by("Gaetano Donizetti")
-                .build();
+    public void initBasicObjects() throws ParseException {
+       
+        new Venue.Builder("ROH").city("Londres").uk();
+        new Venue.Builder("Glyndebourne").city("Glyndebourne").uk();
+        new Venue.Builder("The Met").city("New York").usa();
+        new Venue.Builder("ONP").city("Paris").country(FRANCE);
+        new Venue.Builder("Royal Danish Theatre").city("Copenhagen").country(DENMARK);
+        new Venue.Builder("Palacio de las Artes Reina Sofía").city("Valencia").spain();
+        new Venue.Builder("Gran Teatro del Liceo de Barcelona").city("Barcelona").spain();
+        new Venue.Builder("alla Scala").city("Milano").italy();
+        new Venue.Builder("Festspielhaus Baden-Baden").city("Baden-Baden").germany();
+        new Venue.Builder("Sydney Opera House").city("Sydney").australia();
+        new Venue.Builder("Bolshói").city("Moscú").russia();
+        new Venue.Builder("Mariinski").city("San Petersburgo").russia();
+        new Venue.Builder("Teatro di San Carlo").city("Nápoles").italy();
+        new Venue.Builder("Ópera de Zürich").city("Zürich").country(SWITZERLAND);
         
-        OPUS.createOpus("Carmen", OPERA, FRENCH, PERSON.findById("Bizet"));
-        OPUS.createOpus("Les Troyens", OPERA, FRENCH, PERSON.findById("Hector Berlioz"));
-        OPUS.createOpus("The Nose", OPERA, FRENCH, PERSON.findById("Dmitri Shostakovich"));
-        OPUS.createOpus("Lakme", OPERA, FRENCH, PERSON.findById("Léo Delibes"));
-        OPUS.createOpus("Werther", OPERA, FRENCH, PERSON.findById("Jules Massenet"));
-        OPUS.createOpus("Prince Igor", OPERA, RUSSIAN, PERSON.findById("Borodin"));
-        OPUS.createOpus("I Puritani", OPERA, ITALIAN, PERSON.findById("Bellini"));
-        OPUS.createOpus("Messiah", OPERA, ENGLISH, PERSON.findById("Händel"));
-        OPUS.createOpus("Eugene Onegin", OPERA, RUSSIAN, PERSON.findById("Tchaikovsky"));
-        OPUS.createOpus("Francesca da Rimini", OPERA, ITALIAN, PERSON.findById("Zandonai"));
+ 
+        new Opus.Builder("Macbeth",
+                "Aida",
+                "Rigoletto",
+                "Nabucco",
+                "La Traviata",
+                "Il Trovatore",
+                "Simón Boccanegra",
+                "Otello",
+                "Un Ballo in Maschera",
+                "Falstaff",
+                "La Forza del Destino",
+                "Don Carlo",
+                "I Due Foscari")
+                .italian().opera().by("Giuseppe Verdi");
 
-        for (String title : new String[]{"Così fan tutte", "Don Giovanni", "Il Sogno di Scipione", "La Clemenza di Tito", "Le nozze di Figaro"}) {
-            OPUS.createOpus(title, OPERA, ITALIAN, mozart);
-        }
+        new Opus.Builder("Parsifal",
+                "Rienzi",
+                "Das Rheingold",
+                "Die Walküre",
+                "Gotterdammerung",
+                "Siegfried",
+                "Tannhauser",
+                "Tristan und Ilsode",
+                "Falstaff",
+                "La Forza del Destino")
+                .german().opera().by("Richard Wagner").build();
 
-        for (String title : new String[]{"La Flauta Mágica", "El rapto en el serrallo"}) {
-            OPUS.createOpus(title, OPERA, GERMAN, mozart);
-        }
+        new Opus.Builder("Anna Bolena",
+                "Don Pasquale",
+                "L'elisir d'amore",
+                "Lucia de Lammermoor",
+                "Maria Stuarda")
+                .italian().opera().by("Gaetano Donizetti").build();
 
-        for (String title : new String[]{"Gianni Schicchi", "Il Trittico", "La Bohème",
-            "La Fanciulla del West", "La Rondine", "Madama Butterfly",
-            "Manon Lescaut", "Tosca", "Turandot"}) {
-            OPUS.createOpus(title, OPERA, ITALIAN, puccini);
-        }
+        new Opus.Builder("La Fille du Regiment").french().opera().by("Gaetano Donizetti").build();
+        new Opus.Builder("Carmen").french().opera().by("Bizet").build();
+        new Opus.Builder("Les Troyens").french().opera().by("Hector Berlioz").build();
+        new Opus.Builder("I Puritani", "Norma").italian().opera().by("Vincenzo Bellini").build();
+        new Opus.Builder("The Nose").russian().opera().by("Dmitri Shostakovich").build();
+        new Opus.Builder("Lakme").french().opera().by("Léo Delibes").build();
+        new Opus.Builder("Werther").french().opera().by("Jules Massenet").build();
+        new Opus.Builder("Prince Igor").russian().opera().by("Borodin").build();
+        new Opus.Builder("Messiah").english().oratorio().by("Händel").build();
+        new Opus.Builder("Eugene Onegin").russian().opera().by("Tchaikovsky").build();
+        new Opus.Builder("Francesca da Rimini").italian().opera().by("Zandonai").build();
+        new Opus.Builder("Rusalka").language(Language.CZECH).opera().by("Dvorak").build();
 
-        for (String title : new String[]{"Armida", "Il Barbiere di Siviglia", "Il turco in Italia",
-            "L'Italiana in Algeri", "La Cenerentola", "La Donna del Lago", "Sigismondo",
-            "Zelmira"}) {
-            OPUS.createOpus(title, OPERA, ITALIAN, rossini);
-        }
+        new Opus.Builder("Così fan tutte",
+                "Don Giovanni",
+                "Il Sogno di Scipione",
+                "La Clemenza di Tito",
+                "Le nozze di Figaro")
+                .italian().opera().by("W. A. Mozart");
 
-        VENUE.createVenue("ROH", CITY.findById("Londres"));
-        VENUE.createVenue("The Met", CITY.findById("New York"));
-        VENUE.createVenue("Glyndebourne", CITY.findById("Glyndebourne"));
-        VENUE.createVenue("ONP", CITY.findById("París"));
-        VENUE.createVenue("Royal Danish Theatre", CITY.findById("Copenhagen"));
-        VENUE.createVenue("ROH", CITY.findById("Londres"));
-        VENUE.createVenue("Palacio de las Artes Reina Sofía", CITY.findById("Valencia"));
-        VENUE.createVenue("Gran Teatro del Liceo de Barcelona", CITY.findById("Barcelona"));
-        VENUE.createVenue("alla Scala", CITY.findById("Milano"));
-        VENUE.createVenue("Festspielhaus Baden-Baden", CITY.findById("Baden-Baden"));
-        VENUE.createVenue("Sydney Opera House", CITY.findById("Sydney"));
-        VENUE.createVenue("Bolshói", CITY.findById("Moscú"));
-        VENUE.createVenue("Mariinski", CITY.findById("San Petersburgo"));
-        VENUE.createVenue("Ópera de Zürich", CITY.findById("Zürich"));
-        VENUE.createVenue("Teatro di San Carlo", CITY.findById("Nápoles"));
+        new Opus.Builder("La Flauta Mágica", "El rapto en el serrallo")
+                .german().opera().by("W. A. Mozart");
 
-        this.createOperaPerformanceMKV1080("La Gioconda", "ONP", "13/05/2013");
-        this.createOperaPerformanceMKV1080("Rusalka", "The Met", "08/02/2014");
-        this.createOperaPerformanceMKV1080("I Puritani", "ONP", "09/12/2013");
-        this.createOperaPerformanceMKV1080("Prince Igor", "The Met", "01/03/2014");
-        this.createOperaPerformanceMKV1080("The Nose", "The Met", "26/10/2013");
-        this.createOperaPerformanceMKV1080("Don Pasquale", "Glyndebourne", "06/08/2013");
-        this.createOperaPerformanceMKV1080("L'elisir d'amore", "The Met", "13/10/2012");
-        this.createOperaPerformanceMKV1080("Maria Stuarda", "The Met", "19/01/2013");
-        this.createOperaPerformanceMKV1080("Aida", "The Met", "15/12/2012");
-        this.createOperaPerformanceMKV1080("Falstaff", "The Met", "15/12/2013");
-        this.createOperaPerformanceMKV1080("La Traviata", "ONP", "17/06/2014");
-        this.createOperaPerformanceMKV1080("La Traviata", "Glyndebourne", "10/08/2014");
-        this.createOperaPerformanceMKV1080("Macbeth", "París", "04/04/2009");
-        this.createOperaPerformanceMKV1080("Macbeth", "The Met", "11/10/2014");
-        this.createOperaPerformanceMKV1080("Nabucco", "ROH", "26/04/2013");
-        this.createOperaPerformanceMKV1080("Otello", "The Met", "28/10/2012");
+        new Opus.Builder("Gianni Schicchi",
+                "Il Trittico",
+                "La Bohème",
+                "La Fanciulla del West",
+                "La Rondine",
+                "Madama Butterfly",
+                "Manon Lescaut",
+                "Tosca",
+                "Turandot")
+                .italian().opera().by("Giacomo Puccini");
+
+        new Opus.Builder("Armida",
+                "Il Barbiere di Siviglia",
+                "Il turco in Italia",
+                "L'Italiana in Algeri",
+                "La Cenerentola",
+                "La Donna del Lago",
+                "Sigismondo",
+                "Zelmira")
+                .italian().opera().by("Rossini");
+
+        new DigitalContent.Builder("La Gioconda")
+                .opera()
+                .atParis()
+                .on("13/05/2013")
+                .fullHD()
+                .spaSubs()
+                .mkv()
+                .seenByFede()
+                .bdr("15-01")
+                .build();
+
+        new DigitalContent.Builder("Rusalka")
+                .opera().atTheMet().on("08/02/2014").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("I Puritani")
+                .opera().atParis().on("09/12/2013").fullHD().spaSubs().mkv().bdr("15-01").build();
+        
+        new DigitalContent.Builder("Prince Igor")
+                .opera().atTheMet().on("01/03/2014").fullHD().engSubs().mkv().bdr("15-01").build();
+        
+        new DigitalContent.Builder("The Nose")
+                .opera().atTheMet().on("26/10/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+        
+        new DigitalContent.Builder("Don Pasquale")
+                .opera().atGlyndebourne().on("06/08/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+       
+        new DigitalContent.Builder("L'elisir d'amore")
+                .opera().atTheMet().on("13/10/2012").fullHD().engSubs().mkv().bdr("15-01").build();
+        
+        new DigitalContent.Builder("Maria Stuarda")
+                .opera().atTheMet().on("19/01/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+        
+        new DigitalContent.Builder("Aida")
+                .opera().atTheMet().on("15/12/2012").fullHD().engSubs().mkv().bdr("15-01").build();
+        
+        new DigitalContent.Builder("Falstaff")
+                .opera().atTheMet().on("15/12/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+        
+        new DigitalContent.Builder("La Traviata")
+                .opera().atParis().on("17/06/2014").fullHD().engSubs().mkv().bdr("15-01").build();
+        
+        new DigitalContent.Builder("La Traviata")
+                .opera().atGlyndebourne().on("10/08/2014").fullHD().engSubs().mkv().bdr("15-01").build();
+        
+        new DigitalContent.Builder("Macbeth")
+                .opera().atParis().on("04/04/2009").fullHD().engSubs().mkv().bdr("15-01").build();
+        
+        new DigitalContent.Builder("Macbeth")
+                .opera().atTheMet().on("11/10/2014").fullHD().engSubs().mkv().bdr("15-01").build();
+        
+        new DigitalContent.Builder("Nabucco")
+                .opera().atRoh().on("26/04/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+        
+        
+        
+       /* this.createOperaPerformanceMKV1080("Otello", "The Met", "28/10/2012");
         this.createOperaPerformanceMKV1080("Otello", "Teatro di San Carlo", "22/04/2014");
         this.createOperaPerformanceMKV1080("Rigoletto", "Ópera de Zürich", null);
         this.createOperaPerformanceMKV1080("Rigoletto", "The Met", "16/02/2013");
@@ -230,30 +211,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         this.createOperaPerformanceMKV1080("Eugene Onegin", "ROH", "20/02/2013");
         this.createOperaPerformanceMKV1080("Eugene Onegin", "The Met", "05/10/2013");
         this.createOperaPerformanceMKV1080("Parsifal", "The Met", "02/03/2013");
-        this.createOperaPerformanceMKV1080("Francesca da Rimini", "The Met", "16/03/2013");
+        this.createOperaPerformanceMKV1080("Francesca da Rimini", "The Met", "16/03/2013");*/
 
-        StorageMedium bdr1 = STORAGE.createStorageMedium("Un disco", StorageMediumType.BDR);
-        StorageBox box1 = STORAGEBOX.createStorageBox("A Box");
-        bdr1.setContents(DIGITALCONTENT.findAll());
-        Set<StorageMedium> testSet = new HashSet<>();
-        testSet.add(bdr1);
-        box1.setMedia(testSet);
-
-    }
-
-    private void createOperaPerformanceMKV1080(String title, String theatre, String date) {
-        try {
-            DIGITALCONTENT.createDigitalContent(
-                    PERFORMANCE.createPerformance(
-                            OPUS.findById(new Pair<>(title, OPERA)),
-                            VENUE.findById(theatre),
-                            date != null
-                                    ? df.parse(date)
-                                    : null),
-                    FormatType.MKV, Quality.HD1080);
-        } catch (ParseException pEx) {
-            throw new RuntimeException(pEx);
-        }
     }
 
     @Override

@@ -22,20 +22,16 @@ import java.util.Set;
  *
  * @author fede
  */
-public class Person  {
-
+public class Person {
 
     private String name;
 
     private Set<WebResource> resources;
 
-    Person() {
-    }
-
     Person(String name) {
         this.name = name;
     }
-    
+
     public String getName() {
         return name;
     }
@@ -51,6 +47,5 @@ public class Person  {
     public void setResources(Set<WebResource> resources) {
         this.resources = resources;
     }
-
 
 }

@@ -26,11 +26,8 @@ public class City {
     private String name;
 
     private Country country;
-
-    City() {
-    }
     
-    City(String name, Country country) {
+    public City(String name, Country country) {
         this.name = name;
         this.country = country;
     }

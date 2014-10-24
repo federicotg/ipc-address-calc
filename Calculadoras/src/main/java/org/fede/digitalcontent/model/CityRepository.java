@@ -20,16 +20,10 @@ package org.fede.digitalcontent.model;
  *
  * @author fede
  */
-public class WebResourceFactory extends BaseFactory<String, WebResource> {
+public final class CityRepository extends BaseRepository<String, City> {
 
-    public WebResource createWebResource(final String uri, final WebResourceType type) {
-        return this.createInstance(uri, new Creator<WebResource>() {
-
-            @Override
-            public WebResource createInstance() {
-                return new WebResource(uri, type);
-            }
-        });
+    @Override
+    public void add(City entity) {
+        this.add(entity.getName(), entity);
     }
-
 }
