@@ -252,7 +252,6 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("Francesca da Rimini").opera()
                 .atTheMet().on("16/03/2013").fullHD().engSubs().mkv().bdr("15-01").build();
-
     }
 
     @Override
