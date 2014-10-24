@@ -22,11 +22,13 @@ package org.fede.digitalcontent.model;
  */
 public class OpusFactory extends BaseFactory<Pair<String, OpusType>, Opus> {
 
-    public Opus createOpus(final String title, final OpusType type, final Language language) {
+    public Opus createOpus(final String title, final OpusType type, final Language language, final Person composer) {
         return this.createInstance(new Pair<>(title, type), new Creator<Opus>() {
             @Override
             public Opus createInstance() {
-                return new Opus(title, type, language);
+                Opus op = new Opus(title, type, language);
+                op.addPerson(RoleType.COMPOSER, composer);
+                return op;
             }
         });
     }

@@ -41,12 +41,6 @@ public class DigitalCollectionController {
         return "dcIndex";
     }
     
-    @RequestMapping(value = "/initSampleData", method = RequestMethod.GET)
-    public String initSampleData() {
-        //this.dcService.initBasicObjects();
-        return "dcIndex";
-    }
-    
     @RequestMapping(value = "/allBoxes", method = RequestMethod.GET)
     public Iterable<StorageBox> allBoxes() {
         return this.dcService.getAllBoxes();
