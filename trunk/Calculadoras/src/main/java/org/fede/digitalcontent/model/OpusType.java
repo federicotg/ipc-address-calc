@@ -24,6 +24,6 @@ package org.fede.digitalcontent.model;
  */
 public enum OpusType  {
 
-    BALLET, OPERA, CONCERT,PLAY, STUDIO;
+    BALLET, OPERA, CONCERT,PLAY, STUDIO, ORATORIO;
 
 }

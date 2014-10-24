@@ -28,14 +28,10 @@ public class WebResource  {
 
     private WebResourceType type;
 
-    WebResource() {
-    }
-
     WebResource(String uri, WebResourceType type) {
         this.uri = uri;
         this.type = type;
     }
-    
 
     public String getUri() {
         return uri;

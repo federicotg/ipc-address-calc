@@ -16,10 +16,18 @@
  */
 package org.fede.digitalcontent.model;
 
+import java.util.Set;
+
 /**
  *
  * @author fede
  */
-public interface Creator<T> {
-    T createInstance();
+public class DigitalContentRepository extends BaseRepository<Pair<Set<Performance>, FormatType>, DigitalContent> {
+
+    @Override
+    public void add(DigitalContent entity) {
+        this.add(new Pair<>(entity.getPerformances(), entity.getFormat()), entity);
+
+    }
+
 }

@@ -24,16 +24,16 @@ import java.util.Set;
  * @param <K>
  * @param <T>
  */
-public interface Factory<K, T> {
+public interface Repository<K, T> {
     
-    public static final StorageBoxFactory STORAGEBOX = new StorageBoxFactory();
-    public static final CityFactory CITY = new CityFactory();
-    public static final PersonFactory PERSON = new PersonFactory();
-    public static final OpusFactory OPUS = new OpusFactory();
-    public static final VenueFactory VENUE = new VenueFactory();
-    public static final PerformanceFactory PERFORMANCE = new PerformanceFactory();
-    public static final DigitalContentFactory DIGITALCONTENT = new DigitalContentFactory();
-    public static final StorageMediumFactory STORAGE = new StorageMediumFactory();
+    public static final StorageBoxRepository STORAGEBOX = new StorageBoxRepository();
+    public static final CityRepository CITY = new CityRepository();
+    public static final PersonRepository PERSON = new PersonRepository();
+    public static final OpusRepository OPUS = new OpusRepository();
+    public static final VenueRepository VENUE = new VenueRepository();
+    public static final PerformanceRepository PERFORMANCE = new PerformanceRepository();
+    public static final DigitalContentRepository DIGITALCONTENT = new DigitalContentRepository();
+    public static final StorageMediumRepository STORAGE = new StorageMediumRepository();
     
     void add(T entity);
     T findById(K id);

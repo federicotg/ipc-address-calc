@@ -34,9 +34,6 @@ public class StorageMedium  {
 
     private Set<DigitalContent> contents;
 
-    StorageMedium() {
-    }
-
     StorageMedium(String name, StorageMediumType type) {
         this.name = name;
         this.type = type;

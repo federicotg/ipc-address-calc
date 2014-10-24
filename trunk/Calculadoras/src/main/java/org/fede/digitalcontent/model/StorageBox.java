@@ -31,9 +31,6 @@ public class StorageBox  {
 
     private Set<StorageMedium> media;
 
-    StorageBox() {
-    }
-
     StorageBox(String name) {
         this.name = name;
     }

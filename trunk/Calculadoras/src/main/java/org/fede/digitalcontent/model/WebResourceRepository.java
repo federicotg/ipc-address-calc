@@ -20,19 +20,11 @@ package org.fede.digitalcontent.model;
  *
  * @author fede
  */
-public final class CityFactory extends BaseFactory<String, City> {
-
-    public City createCity(final String name, final Country country) {
-        return this.createInstance(name, new Creator<City>() {
-            @Override
-            public City createInstance() {
-                return new City(name, country);
-            }
-        });
-    }
+public class WebResourceRepository extends BaseRepository<String, WebResource> {
 
     @Override
-    public void add(City entity) {
-        this.add(entity.getName(), entity);
+    public void add(WebResource entity) {
+        this.add(entity.getUri(), entity);
     }
+
 }

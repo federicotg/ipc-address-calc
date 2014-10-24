@@ -16,22 +16,14 @@
  */
 package org.fede.digitalcontent.model;
 
-import java.util.Date;
-
 /**
  *
  * @author fede
  */
-public class PerformanceFactory extends BaseFactory<Terna<Opus, Venue, Date>, Performance> {
+public class OpusRepository extends BaseRepository<Pair<String, OpusType>, Opus> {
 
-    public Performance createPerformance(final Opus opus, final Venue venue, final Date date) {
-        return this.createInstance(new Terna<>(opus, venue, date), new Creator<Performance>() {
-
-            @Override
-            public Performance createInstance() {
-                return new Performance(opus, venue, date);
-            }
-        });
+    @Override
+    public void add(Opus entity) {
+        this.add(new Pair<>(entity.getTitle(), entity.getType()), entity);
     }
-
 }

@@ -27,18 +27,9 @@ import java.util.Set;
  * @param <K>
  * @param <T>
  */
-public abstract class BaseFactory<K, T> implements Factory<K, T> {
+public abstract class BaseRepository<K, T> implements Repository<K, T> {
 
     private final Map<K, T> instances = new HashMap<>();
-
-    protected final T createInstance(K key, Creator<T> creator) {
-        T answer = this.instances.get(key);
-        if (answer == null) {
-            answer = creator.createInstance();
-            this.instances.put(key, answer);
-        }
-        return answer;
-    }
 
     @Override
     public final T findById(K id) {

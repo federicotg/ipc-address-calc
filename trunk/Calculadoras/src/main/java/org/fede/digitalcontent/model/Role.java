@@ -26,10 +26,6 @@ public class Role  {
     private Person person;
 
     private RoleType type;
-
-    Role() {
-    }
-
     
     Role(Person person, RoleType type) {
         this.person = person;
