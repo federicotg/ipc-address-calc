@@ -23,8 +23,73 @@ import java.util.Set;
  *
  * @author fede
  */
+public class Opus {
 
-public class Opus  {
+    public static class Builder {
+
+        private Opus opus;
+
+        public Builder(String title) {
+            this.opus = new Opus();
+            this.opus.setTitle(title);
+        }
+
+        public Builder opera() {
+            this.opus.setType(OpusType.OPERA);
+            return this;
+        }
+
+        public Builder ballet() {
+            this.opus.setType(OpusType.BALLET);
+            return this;
+        }
+
+        public Builder type(OpusType type) {
+            this.opus.setType(type);
+            return this;
+        }
+
+        public Builder by(String name) {
+            this.opus.addPerson(RoleType.COMPOSER, Factory.PERSON.findById(name));
+            return this;
+        }
+
+        public Builder italian() {
+            this.opus.setLanguage(Language.ITALIAN);
+            return this;
+        }
+
+        public Builder french() {
+            this.opus.setLanguage(Language.FRENCH);
+            return this;
+        }
+
+        public Builder german() {
+            this.opus.setLanguage(Language.GERMAN);
+            return this;
+        }
+
+        public Builder language(Language lang) {
+            this.opus.setLanguage(lang);
+            return this;
+        }
+
+        public Builder wikipedia(String uri) {
+            this.opus.addWebResource(WebResourceType.WIKIPEDIA, uri);
+            return this;
+        }
+
+        public Builder imdb(String uri) {
+            this.opus.addWebResource(WebResourceType.IMDB, uri);
+            return this;
+        }
+
+        public Opus build() {
+            Factory.OPUS.add(opus);
+            return this.opus;
+        }
+
+    }
 
     private String title;
 

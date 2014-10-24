@@ -32,4 +32,9 @@ public class OpusFactory extends BaseFactory<Pair<String, OpusType>, Opus> {
             }
         });
     }
+
+    @Override
+    public void add(Opus entity) {
+        this.add(new Pair<>(entity.getTitle(), entity.getType()), entity);
+    }
 }
