@@ -44,6 +44,7 @@ public class DigitalContent {
         private Language subtitle;
         private final Set<String> singers;
         private final Set<String> viewers;
+        private String boxName;
         private String medium;
         private StorageMediumType mediumType;
 
@@ -173,6 +174,11 @@ public class DigitalContent {
             this.mediumType = StorageMediumType.BDR;
             return this;
         }
+        
+        public Builder box(int boxNumber){
+            this.boxName = String.valueOf(boxNumber);
+            return this;
+        }
 
         public Builder dvdrdl(String mediumName) {
             this.medium = mediumName;
@@ -227,6 +233,15 @@ public class DigitalContent {
                 }
                 disc.addContent(dc);
                 Repository.STORAGE.add(disc);
+                
+                if(this.boxName != null){
+                    StorageBox box = Repository.STORAGEBOX.findById(this.boxName);
+                    if(box == null){
+                        box = new StorageBox(this.boxName);
+                        Repository.STORAGEBOX.add(box);
+                    }
+                    box.addStorageMedium(disc);
+                }
             }
             Repository.DIGITALCONTENT.add(dc);
             return dc;
