@@ -40,7 +40,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @PostConstruct
     public void initBasicObjects() throws ParseException {
-       
+
         new Venue.Builder("ROH").city("Londres").uk();
         new Venue.Builder("Glyndebourne").city("Glyndebourne").uk();
         new Venue.Builder("The Met").city("New York").usa();
@@ -55,8 +55,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Mariinski").city("San Petersburgo").russia();
         new Venue.Builder("Teatro di San Carlo").city("Nápoles").italy();
         new Venue.Builder("Ópera de Zürich").city("Zürich").country(SWITZERLAND);
-        
- 
+
         new Opus.Builder("Macbeth",
                 "Aida",
                 "Rigoletto",
@@ -151,67 +150,108 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("I Puritani")
                 .opera().atParis().on("09/12/2013").fullHD().spaSubs().mkv().bdr("15-01").build();
-        
+
         new DigitalContent.Builder("Prince Igor")
                 .opera().atTheMet().on("01/03/2014").fullHD().engSubs().mkv().bdr("15-01").build();
-        
+
         new DigitalContent.Builder("The Nose")
                 .opera().atTheMet().on("26/10/2013").fullHD().engSubs().mkv().bdr("15-01").build();
-        
+
         new DigitalContent.Builder("Don Pasquale")
                 .opera().atGlyndebourne().on("06/08/2013").fullHD().engSubs().mkv().bdr("15-01").build();
-       
+
         new DigitalContent.Builder("L'elisir d'amore")
                 .opera().atTheMet().on("13/10/2012").fullHD().engSubs().mkv().bdr("15-01").build();
-        
+
         new DigitalContent.Builder("Maria Stuarda")
                 .opera().atTheMet().on("19/01/2013").fullHD().engSubs().mkv().bdr("15-01").build();
-        
+
         new DigitalContent.Builder("Aida")
                 .opera().atTheMet().on("15/12/2012").fullHD().engSubs().mkv().bdr("15-01").build();
-        
+
         new DigitalContent.Builder("Falstaff")
                 .opera().atTheMet().on("15/12/2013").fullHD().engSubs().mkv().bdr("15-01").build();
-        
+
         new DigitalContent.Builder("La Traviata")
                 .opera().atParis().on("17/06/2014").fullHD().engSubs().mkv().bdr("15-01").build();
-        
+
         new DigitalContent.Builder("La Traviata")
                 .opera().atGlyndebourne().on("10/08/2014").fullHD().engSubs().mkv().bdr("15-01").build();
-        
+
         new DigitalContent.Builder("Macbeth")
                 .opera().atParis().on("04/04/2009").fullHD().engSubs().mkv().bdr("15-01").build();
-        
+
         new DigitalContent.Builder("Macbeth")
                 .opera().atTheMet().on("11/10/2014").fullHD().engSubs().mkv().bdr("15-01").build();
-        
+
         new DigitalContent.Builder("Nabucco")
                 .opera().atRoh().on("26/04/2013").fullHD().engSubs().mkv().bdr("15-01").build();
-        
-        
-        
-       /* this.createOperaPerformanceMKV1080("Otello", "The Met", "28/10/2012");
-        this.createOperaPerformanceMKV1080("Otello", "Teatro di San Carlo", "22/04/2014");
-        this.createOperaPerformanceMKV1080("Rigoletto", "Ópera de Zürich", null);
-        this.createOperaPerformanceMKV1080("Rigoletto", "The Met", "16/02/2013");
-        this.createOperaPerformanceMKV1080("Un Ballo in Maschera", "The Met", "08/12/2012");
-        this.createOperaPerformanceMKV1080("Messiah", "Zürich", null);
-        this.createOperaPerformanceMKV1080("Les Troyens", "The Met", "05/01/2013");
-        this.createOperaPerformanceMKV1080("Werther", "The Met", "15/03/2014");
-        this.createOperaPerformanceMKV1080("Lakme", "Sydney Opera House", null);
-        this.createOperaPerformanceMKV1080("Cosi Fan Tutte", "The Met", "26/04/2014");
-        this.createOperaPerformanceMKV1080("La Clemenza di Tito", "The Met", "01/12/2012");
-        this.createOperaPerformanceMKV1080("La Bohème", "ROH", "15/01/2013");
-        this.createOperaPerformanceMKV1080("La Fanciulla del West", "ONP", "10/02/2014");
-        this.createOperaPerformanceMKV1080("Manon Lescaut", "ROH", "24/06/2014");
-        this.createOperaPerformanceMKV1080("Tosca", "The Met", "09/11/2013");
-        this.createOperaPerformanceMKV1080("Tosca", "ONP", "16/10/2014");
-        this.createOperaPerformanceMKV1080("La Cenerentola", "The Met", "10/05/2014");
-        this.createOperaPerformanceMKV1080("La Donna del Lago", "ROH", "27/05/2013");
-        this.createOperaPerformanceMKV1080("Eugene Onegin", "ROH", "20/02/2013");
-        this.createOperaPerformanceMKV1080("Eugene Onegin", "The Met", "05/10/2013");
-        this.createOperaPerformanceMKV1080("Parsifal", "The Met", "02/03/2013");
-        this.createOperaPerformanceMKV1080("Francesca da Rimini", "The Met", "16/03/2013");*/
+
+        new DigitalContent.Builder("Otello")
+                .opera().atTheMet().on("28/10/2012").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Otello").opera()
+                .at("Teatro di San Carlo").on("22/04/2014").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Rigoletto").opera()
+                .at("Ópera de Zürich").on("01/01/1901").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Rigoletto").opera()
+                .atTheMet().on("16/02/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Un Ballo in Maschera").opera()
+                .atTheMet().on("08/12/2012").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Messiah").oratorio()
+                .at("Ópera de Zürich").on("01/01/1901").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Les Troyens").opera()
+                .atTheMet().on("05/01/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Werther").opera()
+                .atTheMet().on("15/03/2014").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Lakme").opera()
+                .at("Sydney Opera House").on("01/01/1901").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Cosi Fan Tutte").opera()
+                .atTheMet().on("26/04/2014").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("La Clemenza di Tito").opera()
+                .atTheMet().on("01/12/2012").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("La Bohème").opera()
+                .atRoh().on("15/01/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("La Fanciulla del West").opera()
+                .atParis().on("10/02/2014").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Manon Lescaut").opera()
+                .atRoh().on("24/06/2014").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Tosca").opera()
+                .atTheMet().on("09/11/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Tosca").opera()
+                .atParis().on("16/10/2014").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("La Cenerentola").opera()
+                .atTheMet().on("10/05/2014").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("La Donna del Lago").opera()
+                .atRoh().on("27/05/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Eugene Onegin").opera()
+                .atRoh().on("20/02/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Eugene Onegin").opera()
+                .atTheMet().on("05/10/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Parsifal").opera()
+                .atTheMet().on("02/03/2013").fullHD().engSubs().mkv().bdr("15-01").build();
+
+        new DigitalContent.Builder("Francesca da Rimini").opera()
+                .atTheMet().on("16/03/2013").fullHD().engSubs().mkv().bdr("15-01").build();
 
     }
 
