@@ -38,36 +38,9 @@
         </security:authentication-provider>
     </security:authentication-manager>
     
-    <context:component-scan base-package="org.fede.calculator.service,org.fede.calculator.repository"/>
+    <context:component-scan base-package="org.fede.calculator.service"/>
    
-    <tx:annotation-driven transaction-manager="transactionManager" />
-
-    <bean id="transactionManager" class="org.springframework.orm.jdo.JdoTransactionManager"
-          p:persistenceManagerFactory-ref="localPersistenceManagerFactoryBean" />
-
-    <bean id="transactionAwarePersistenceManagerFactoryProxy"
-          class="org.springframework.orm.jdo.TransactionAwarePersistenceManagerFactoryProxy"
-          p:targetPersistenceManagerFactory-ref="localPersistenceManagerFactoryBean"
-          p:allowCreate="false" />
-
-    <bean id="localPersistenceManagerFactoryBean"
-          class="org.springframework.orm.jdo.LocalPersistenceManagerFactoryBean">
-        <property name="jdoPropertyMap">
-            <props>
-                <prop key="javax.jdo.PersistenceManagerFactoryClass">org.datanucleus.api.jdo.JDOPersistenceManagerFactory</prop>
-                <prop key="javax.jdo.option.ConnectionURL">appengine</prop>
-                <prop key="javax.jdo.option.NontransactionalRead">true</prop>
-                <prop key="javax.jdo.option.NontransactionalWrite">true</prop>
-                <prop key="javax.jdo.option.RetainValues">true</prop>
-                <prop key="javax.jdo.option.DetachAllOnCommit">true</prop>
-                <prop key="javax.jdo.option.Multithreaded">true</prop>
-                <prop key="datanucleus.appengine.ignorableMetaDataBehavior">NONE</prop>
-                <prop key="datanucleus.appengine.autoCreateDatastoreTxns">true</prop>
-                <prop key="datanucleus.appengine.datastoreEnableXGTransactions">true</prop>
-            </props>
-        </property>
-    </bean>
-    
+   
     <import resource="bean-definitions.xml"/>
 
     

@@ -15,7 +15,6 @@
     <body>
         <h1>Under Construction</h1>
         <ul>
-            <li><a href="initSampleData">Inicializar</a></li>
             <li><a href="allBoxes.json">Boxes</a></li>
         </ul>
     </body>
