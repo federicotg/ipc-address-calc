@@ -60,4 +60,8 @@ public abstract class BaseFactory<K, T> implements Factory<K, T> {
         }
         return answer;
     }
+    
+    protected void add(K key, T entity){
+        this.instances.put(key, entity);
+    }
 }

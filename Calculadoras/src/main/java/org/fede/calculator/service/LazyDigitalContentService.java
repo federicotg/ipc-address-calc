@@ -58,6 +58,8 @@ import org.fede.digitalcontent.model.StorageMediumType;
 import org.fede.digitalcontent.model.VenueFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import static org.fede.digitalcontent.model.Factory.*;
+import org.fede.digitalcontent.model.Opus;
 
 /**
  *
@@ -69,131 +71,128 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     private final DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
 
-    private final StorageBoxFactory storageBoxFactory = new StorageBoxFactory();
-    private final CityFactory cityFactory = new CityFactory();
-    private final PersonFactory personFactory = new PersonFactory();
-    private final OpusFactory opusFactory = new OpusFactory();
-    private final VenueFactory venueFactory = new VenueFactory();
-    private final PerformanceFactory performanceFactory = new PerformanceFactory();
-    private final DigitalContentFactory dcFactory = new DigitalContentFactory();
-    private final StorageMediumFactory storageFactory = new StorageMediumFactory();
-    private final StorageBoxFactory boxFactory = new StorageBoxFactory();
+
 
     @PostConstruct
     public void initBasicObjects() {
         // cities
-        this.cityFactory.createCity("New York", USA);
-        this.cityFactory.createCity("Londres", UK);
-        this.cityFactory.createCity("Glyndebourne", UK);
-        this.cityFactory.createCity("Madrid", SPAIN);
-        this.cityFactory.createCity("París", FRANCE);
-        this.cityFactory.createCity("Moscú", RUSSIA);
-        this.cityFactory.createCity("Milano", ITALY);
-        this.cityFactory.createCity("Nápoles", ITALY);
-        this.cityFactory.createCity("Salzburgo", AUSTRIA);
-        this.cityFactory.createCity("Sydney", AUSTRALIA);
-        this.cityFactory.createCity("Copenhagen", DENMARK);
-        this.cityFactory.createCity("Madrid", SPAIN);
-        this.cityFactory.createCity("Verona", ITALY);
-        this.cityFactory.createCity("Valencia", SPAIN);
-        this.cityFactory.createCity("Barcelona", SPAIN);
-        this.cityFactory.createCity("Baden-Baden", GERMANY);
-        this.cityFactory.createCity("Zürich", SWITZERLAND);
-        this.cityFactory.createCity("San Petersburgo", RUSSIA);
+        CITY.createCity("New York", USA);
+        CITY.createCity("Londres", UK);
+        CITY.createCity("Glyndebourne", UK);
+        CITY.createCity("Madrid", SPAIN);
+        CITY.createCity("París", FRANCE);
+        CITY.createCity("Moscú", RUSSIA);
+        CITY.createCity("Milano", ITALY);
+        CITY.createCity("Nápoles", ITALY);
+        CITY.createCity("Salzburgo", AUSTRIA);
+        CITY.createCity("Sydney", AUSTRALIA);
+        CITY.createCity("Copenhagen", DENMARK);
+        CITY.createCity("Madrid", SPAIN);
+        CITY.createCity("Verona", ITALY);
+        CITY.createCity("Valencia", SPAIN);
+        CITY.createCity("Barcelona", SPAIN);
+        CITY.createCity("Baden-Baden", GERMANY);
+        CITY.createCity("Zürich", SWITZERLAND);
+        CITY.createCity("San Petersburgo", RUSSIA);
 
-        final Person puccini = this.personFactory.createPerson("Giacomo Puccini");
-        final Person verdi = this.personFactory.createPerson("Giuseppe Verdi");
-        final Person wagner = this.personFactory.createPerson("Richard Wagner");
-        final Person donizetti = this.personFactory.createPerson("Gaetano Donizetti");
-        final Person mozart = this.personFactory.createPerson("W. A. Mozart");
-        final Person rossini = this.personFactory.createPerson("Rossini");
+        final Person puccini = PERSON.createPerson("Giacomo Puccini");
+        final Person verdi = PERSON.createPerson("Giuseppe Verdi");
+        final Person wagner = PERSON.createPerson("Richard Wagner");
+        final Person donizetti = PERSON.createPerson("Gaetano Donizetti");
+        final Person mozart = PERSON.createPerson("W. A. Mozart");
+        final Person rossini = PERSON.createPerson("Rossini");
 
-        this.personFactory.createPerson("Bellini");
-        this.personFactory.createPerson("Bizet");
-        this.personFactory.createPerson("Hector Berlioz");
-        this.personFactory.createPerson("Gounoud");
-        this.personFactory.createPerson("Antonin Dvorák");
-        this.personFactory.createPerson("Borodin");
-        this.personFactory.createPerson("A. Ponchielli");
-        this.personFactory.createPerson("Monteverdi");
-        this.personFactory.createPerson("Ravel");
-        this.personFactory.createPerson("Richard Strauss");
-        this.personFactory.createPerson("Rameau");
-        this.personFactory.createPerson("Tchaikovsky");
-        this.personFactory.createPerson("Jules Massenet");
-        this.personFactory.createPerson("Léo Delibes");
-        this.personFactory.createPerson("Leoncavallo");
-        this.personFactory.createPerson("Leoš Janáček");
-        this.personFactory.createPerson("Dmitri Shostakovich");
-        this.personFactory.createPerson("Händel");
-        this.personFactory.createPerson("Zandonai");
+        PERSON.createPerson("Bellini");
+        PERSON.createPerson("Bizet");
+        PERSON.createPerson("Hector Berlioz");
+        PERSON.createPerson("Gounoud");
+        PERSON.createPerson("Antonin Dvorák");
+        PERSON.createPerson("Borodin");
+        PERSON.createPerson("A. Ponchielli");
+        PERSON.createPerson("Monteverdi");
+        PERSON.createPerson("Ravel");
+        PERSON.createPerson("Richard Strauss");
+        PERSON.createPerson("Rameau");
+        PERSON.createPerson("Tchaikovsky");
+        PERSON.createPerson("Jules Massenet");
+        PERSON.createPerson("Léo Delibes");
+        PERSON.createPerson("Leoncavallo");
+        PERSON.createPerson("Leoš Janáček");
+        PERSON.createPerson("Dmitri Shostakovich");
+        PERSON.createPerson("Händel");
+        PERSON.createPerson("Zandonai");
 
         for (String title : new String[]{
             "Macbeth", "Aida", "Rigoletto", "Nabucco", "La Traviata",
             "Il Trovatore", "Simón Boccanegra", "Otello", "Un Ballo in Maschera",
             "Falstaff", "La Forza del Destino", "Don Carlo", "I Due Foscari"}) {
-            this.opusFactory.createOpus(title, OPERA, ITALIAN, verdi);
+            OPUS.createOpus(title, OPERA, ITALIAN, verdi);
         }
 
         for (String title : new String[]{
             "Parsifal", "Rienzi", "Das Rheingold", "Die Walküre", "Gotterdammerung",
             "Siegfried", "Tannhauser", "Tristan und Ilsode",
             "Falstaff", "La Forza del Destino"}) {
-            this.opusFactory.createOpus(title, OPERA, GERMAN, wagner);
+            OPUS.createOpus(title, OPERA, GERMAN, wagner);
         }
 
         for (String title : new String[]{
             "Anna Bolena", "Don Pasquale", "L'elisir d'amore", "Lucia de Lammermoor", "Maria Stuarda"}) {
-            this.opusFactory.createOpus(title, OPERA, ITALIAN, donizetti);
+            OPUS.createOpus(title, OPERA, ITALIAN, donizetti);
         }
 
-        this.opusFactory.createOpus("La Fille du Regiment", OPERA, FRENCH, donizetti);
-        this.opusFactory.createOpus("Carmen", OPERA, FRENCH, this.personFactory.findById("Bizet"));
-        this.opusFactory.createOpus("Les Troyens", OPERA, FRENCH, this.personFactory.findById("Hector Berlioz"));
-        this.opusFactory.createOpus("The Nose", OPERA, FRENCH, this.personFactory.findById("Dmitri Shostakovich"));
-        this.opusFactory.createOpus("Lakme", OPERA, FRENCH, this.personFactory.findById("Léo Delibes"));
-        this.opusFactory.createOpus("Werther", OPERA, FRENCH, this.personFactory.findById("Jules Massenet"));
-        this.opusFactory.createOpus("Prince Igor", OPERA, RUSSIAN, this.personFactory.findById("Borodin"));
-        this.opusFactory.createOpus("I Puritani", OPERA, ITALIAN, this.personFactory.findById("Bellini"));
-        this.opusFactory.createOpus("Messiah", OPERA, ENGLISH, this.personFactory.findById("Händel"));
-        this.opusFactory.createOpus("Eugene Onegin", OPERA, RUSSIAN, this.personFactory.findById("Tchaikovsky"));
-        this.opusFactory.createOpus("Francesca da Rimini", OPERA, ITALIAN, this.personFactory.findById("Zandonai"));
+        new Opus.Builder("La Fille du Regiment")
+                .french()
+                .opera()
+                .by("Gaetano Donizetti")
+                .build();
+        
+        OPUS.createOpus("Carmen", OPERA, FRENCH, PERSON.findById("Bizet"));
+        OPUS.createOpus("Les Troyens", OPERA, FRENCH, PERSON.findById("Hector Berlioz"));
+        OPUS.createOpus("The Nose", OPERA, FRENCH, PERSON.findById("Dmitri Shostakovich"));
+        OPUS.createOpus("Lakme", OPERA, FRENCH, PERSON.findById("Léo Delibes"));
+        OPUS.createOpus("Werther", OPERA, FRENCH, PERSON.findById("Jules Massenet"));
+        OPUS.createOpus("Prince Igor", OPERA, RUSSIAN, PERSON.findById("Borodin"));
+        OPUS.createOpus("I Puritani", OPERA, ITALIAN, PERSON.findById("Bellini"));
+        OPUS.createOpus("Messiah", OPERA, ENGLISH, PERSON.findById("Händel"));
+        OPUS.createOpus("Eugene Onegin", OPERA, RUSSIAN, PERSON.findById("Tchaikovsky"));
+        OPUS.createOpus("Francesca da Rimini", OPERA, ITALIAN, PERSON.findById("Zandonai"));
 
         for (String title : new String[]{"Così fan tutte", "Don Giovanni", "Il Sogno di Scipione", "La Clemenza di Tito", "Le nozze di Figaro"}) {
-            this.opusFactory.createOpus(title, OPERA, ITALIAN, mozart);
+            OPUS.createOpus(title, OPERA, ITALIAN, mozart);
         }
 
         for (String title : new String[]{"La Flauta Mágica", "El rapto en el serrallo"}) {
-            this.opusFactory.createOpus(title, OPERA, GERMAN, mozart);
+            OPUS.createOpus(title, OPERA, GERMAN, mozart);
         }
 
         for (String title : new String[]{"Gianni Schicchi", "Il Trittico", "La Bohème",
             "La Fanciulla del West", "La Rondine", "Madama Butterfly",
             "Manon Lescaut", "Tosca", "Turandot"}) {
-            this.opusFactory.createOpus(title, OPERA, ITALIAN, puccini);
+            OPUS.createOpus(title, OPERA, ITALIAN, puccini);
         }
 
         for (String title : new String[]{"Armida", "Il Barbiere di Siviglia", "Il turco in Italia",
             "L'Italiana in Algeri", "La Cenerentola", "La Donna del Lago", "Sigismondo",
             "Zelmira"}) {
-            this.opusFactory.createOpus(title, OPERA, ITALIAN, rossini);
+            OPUS.createOpus(title, OPERA, ITALIAN, rossini);
         }
 
-        this.venueFactory.createVenue("ROH", this.cityFactory.findById("Londres"));
-        this.venueFactory.createVenue("The Met", this.cityFactory.findById("New York"));
-        this.venueFactory.createVenue("Glyndebourne", this.cityFactory.findById("Glyndebourne"));
-        this.venueFactory.createVenue("ONP", this.cityFactory.findById("París"));
-        this.venueFactory.createVenue("Royal Danish Theatre", this.cityFactory.findById("Copenhagen"));
-        this.venueFactory.createVenue("ROH", this.cityFactory.findById("Londres"));
-        this.venueFactory.createVenue("Palacio de las Artes Reina Sofía", this.cityFactory.findById("Valencia"));
-        this.venueFactory.createVenue("Gran Teatro del Liceo de Barcelona", this.cityFactory.findById("Barcelona"));
-        this.venueFactory.createVenue("alla Scala", this.cityFactory.findById("Milano"));
-        this.venueFactory.createVenue("Festspielhaus Baden-Baden", this.cityFactory.findById("Baden-Baden"));
-        this.venueFactory.createVenue("Sydney Opera House", this.cityFactory.findById("Sydney"));
-        this.venueFactory.createVenue("Bolshói", this.cityFactory.findById("Moscú"));
-        this.venueFactory.createVenue("Mariinski", this.cityFactory.findById("San Petersburgo"));
-        this.venueFactory.createVenue("Ópera de Zürich", this.cityFactory.findById("Zürich"));
-        this.venueFactory.createVenue("Teatro di San Carlo", this.cityFactory.findById("Nápoles"));
+        VENUE.createVenue("ROH", CITY.findById("Londres"));
+        VENUE.createVenue("The Met", CITY.findById("New York"));
+        VENUE.createVenue("Glyndebourne", CITY.findById("Glyndebourne"));
+        VENUE.createVenue("ONP", CITY.findById("París"));
+        VENUE.createVenue("Royal Danish Theatre", CITY.findById("Copenhagen"));
+        VENUE.createVenue("ROH", CITY.findById("Londres"));
+        VENUE.createVenue("Palacio de las Artes Reina Sofía", CITY.findById("Valencia"));
+        VENUE.createVenue("Gran Teatro del Liceo de Barcelona", CITY.findById("Barcelona"));
+        VENUE.createVenue("alla Scala", CITY.findById("Milano"));
+        VENUE.createVenue("Festspielhaus Baden-Baden", CITY.findById("Baden-Baden"));
+        VENUE.createVenue("Sydney Opera House", CITY.findById("Sydney"));
+        VENUE.createVenue("Bolshói", CITY.findById("Moscú"));
+        VENUE.createVenue("Mariinski", CITY.findById("San Petersburgo"));
+        VENUE.createVenue("Ópera de Zürich", CITY.findById("Zürich"));
+        VENUE.createVenue("Teatro di San Carlo", CITY.findById("Nápoles"));
 
         this.createOperaPerformanceMKV1080("La Gioconda", "ONP", "13/05/2013");
         this.createOperaPerformanceMKV1080("Rusalka", "The Met", "08/02/2014");
@@ -233,9 +232,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         this.createOperaPerformanceMKV1080("Parsifal", "The Met", "02/03/2013");
         this.createOperaPerformanceMKV1080("Francesca da Rimini", "The Met", "16/03/2013");
 
-        StorageMedium bdr1 = this.storageFactory.createStorageMedium("Un disco", StorageMediumType.BDR);
-        StorageBox box1 = this.storageBoxFactory.createStorageBox("A Box");
-        bdr1.setContents(this.dcFactory.findAll());
+        StorageMedium bdr1 = STORAGE.createStorageMedium("Un disco", StorageMediumType.BDR);
+        StorageBox box1 = STORAGEBOX.createStorageBox("A Box");
+        bdr1.setContents(DIGITALCONTENT.findAll());
         Set<StorageMedium> testSet = new HashSet<>();
         testSet.add(bdr1);
         box1.setMedia(testSet);
@@ -244,10 +243,10 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     private void createOperaPerformanceMKV1080(String title, String theatre, String date) {
         try {
-            this.dcFactory.createDigitalContent(
-                    this.performanceFactory.createPerformance(
-                            this.opusFactory.findById(new Pair<>(title, OPERA)),
-                            this.venueFactory.findById(theatre),
+            DIGITALCONTENT.createDigitalContent(
+                    PERFORMANCE.createPerformance(
+                            OPUS.findById(new Pair<>(title, OPERA)),
+                            VENUE.findById(theatre),
                             date != null
                                     ? df.parse(date)
                                     : null),
@@ -259,7 +258,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @Override
     public Iterable<StorageBox> getAllBoxes() {
-        return this.storageBoxFactory.findAll();
+        return STORAGEBOX.findAll();
     }
 
 }

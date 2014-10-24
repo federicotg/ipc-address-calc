@@ -30,4 +30,9 @@ public final class CityFactory extends BaseFactory<String, City> {
             }
         });
     }
+
+    @Override
+    public void add(City entity) {
+        this.add(entity.getName(), entity);
+    }
 }
