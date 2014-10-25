@@ -48,4 +48,9 @@ public class Person {
         this.resources = resources;
     }
 
+    @Override
+    public String toString() {
+        return this.name;
+    }
+
 }

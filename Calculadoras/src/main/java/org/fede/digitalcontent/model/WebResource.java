@@ -16,6 +16,8 @@
  */
 package org.fede.digitalcontent.model;
 
+import java.util.Objects;
+
 
 /**
  *
@@ -49,4 +51,25 @@ public class WebResource  {
         this.type = type;
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 23 * hash + Objects.hashCode(this.uri);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final WebResource other = (WebResource) obj;
+        return Objects.equals(this.uri, other.uri);
+    }
+
+    
+    
 }

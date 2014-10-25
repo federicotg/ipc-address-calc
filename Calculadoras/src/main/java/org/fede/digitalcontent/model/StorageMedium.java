@@ -16,7 +16,6 @@
  */
 package org.fede.digitalcontent.model;
 
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,20 +24,15 @@ import java.util.Set;
  *
  * @author fede
  */
-
-public class StorageMedium  {
+public class StorageMedium {
 
     private String name;
 
-    private StorageMediumType type;
-
     private Set<DigitalContent> contents;
 
-    StorageMedium(String name, StorageMediumType type) {
+    StorageMedium(String name) {
         this.name = name;
-        this.type = type;
     }
-    
 
     public String getName() {
         return name;
@@ -46,14 +40,6 @@ public class StorageMedium  {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public StorageMediumType getType() {
-        return type;
-    }
-
-    public void setType(StorageMediumType type) {
-        this.type = type;
     }
 
     public Set<DigitalContent> getContents() {
@@ -69,6 +55,15 @@ public class StorageMedium  {
             this.contents = new HashSet<>();
         }
         this.contents.add(content);
+    }
+
+    public boolean contains(DigitalContent dc) {
+        return this.contents.contains(dc);
+    }
+
+    @Override
+    public String toString() {
+        return contents.toString();
     }
 
 }

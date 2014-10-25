@@ -26,10 +26,7 @@ public class PerformanceRepository extends BaseRepository<Terna<Opus, Venue, Dat
 
     @Override
     public void add(Performance entity) {
-        this.add(
-                new Terna<>(entity.getOpus(), entity.getVenue(), entity.getDate()),
-                entity
-        );
+        this.add(new Terna<>(entity.getOpus(), entity.getVenue(), entity.getDate()), entity);
     }
 
 }

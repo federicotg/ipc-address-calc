@@ -16,6 +16,7 @@
         <h1>Under Construction</h1>
         <ul>
             <li><a href="allBoxes.json">Boxes</a></li>
+            <li><a href="report">Reporte</a></li>
         </ul>
     </body>
 </html>

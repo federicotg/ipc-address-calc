@@ -24,8 +24,7 @@ import java.util.Set;
  *
  * @author fede
  */
-
-public class StorageBox  {
+public class StorageBox {
 
     private String name;
 
@@ -57,4 +56,18 @@ public class StorageBox  {
         }
         this.media.add(medium);
     }
+
+    public boolean contains(DigitalContent dc) {
+        boolean answer = false;
+        for (StorageMedium m : this.media) {
+            answer |= m.contains(dc);
+        }
+        return answer;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + this.media.toString() + "]";
+    }
+
 }

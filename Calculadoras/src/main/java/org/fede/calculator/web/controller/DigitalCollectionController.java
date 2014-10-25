@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  *
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 @RequestMapping("/dc")
 public class DigitalCollectionController {
+
     private static final Logger LOG = Logger.getLogger(DigitalCollectionController.class.getName());
 
     @Autowired
@@ -40,10 +42,15 @@ public class DigitalCollectionController {
     public String dcIndex() {
         return "dcIndex";
     }
-    
+
     @RequestMapping(value = "/allBoxes", method = RequestMethod.GET)
     public Iterable<StorageBox> allBoxes() {
         return this.dcService.getAllBoxes();
     }
-    
+
+    @RequestMapping(value = "/report", method = RequestMethod.GET)
+    public ModelAndView report() {
+        return new ModelAndView("dcReport", "list", this.dcService.getDigitalContentReport());
+    }
+
 }
