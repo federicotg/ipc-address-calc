@@ -17,6 +17,7 @@
 package org.fede.digitalcontent.model;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -161,6 +162,8 @@ public class Opus {
 
     private Opus(String title) {
         this.title = title;
+        this.authors = new HashSet<>();
+        this.resources = new HashSet<>();
     }
 
     public String getTitle() {
@@ -204,17 +207,50 @@ public class Opus {
     }
 
     public void addPerson(RoleType roleType, Person person) {
-        if (this.authors == null) {
-            this.authors = new HashSet<>();
-        }
         this.authors.add(new Role(person, roleType));
     }
 
     public void addWebResource(WebResourceType type, String uri) {
-        if (this.resources == null) {
-            this.resources = new HashSet<>();
-        }
         this.resources.add(new WebResource(uri, type));
     }
 
+    public Set<Person> getMusicComposers() {
+        Set<Person> answer = new HashSet<>();
+        for (Role r : this.authors) {
+            if (r.getType().equals(RoleType.COMPOSER)) {
+                answer.add(r.getPerson());
+            }
+        }
+        return answer;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 97 * hash + Objects.hashCode(this.title);
+        hash = 97 * hash + Objects.hashCode(this.type);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Opus other = (Opus) obj;
+        if (!Objects.equals(this.title, other.title)) {
+            return false;
+        }
+        return this.type == other.type;
+    }
+
+    @Override
+    public String toString() {
+        return this.title;
+    }
+    
+    
 }

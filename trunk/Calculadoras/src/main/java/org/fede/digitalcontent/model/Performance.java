@@ -17,6 +17,8 @@
 package org.fede.digitalcontent.model;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -40,6 +42,8 @@ public class Performance {
         this.opus = opus;
         this.date = date;
         this.venue = venue;
+        this.roles = new HashSet<>();
+        this.resources = new HashSet<>();
     }
 
     public Venue getVenue() {
@@ -58,7 +62,7 @@ public class Performance {
         this.date = date;
     }
 
-    public Set<Role> getRoles() {
+    private Set<Role> getRoles() {
         return roles;
     }
 
@@ -74,7 +78,7 @@ public class Performance {
         this.opus = opus;
     }
 
-    public Set<WebResource> getResources() {
+    private Set<WebResource> getResources() {
         return resources;
     }
 
@@ -86,7 +90,78 @@ public class Performance {
         this.roles.add(new Role(singer, RoleType.SINGER));
     }
     
+    public void addImdb(String uri){
+        this.resources.add(new WebResource(uri, WebResourceType.IMDB));
+    }
+    
     public void addViewer(Person viewer){
         this.roles.add(new Role(viewer, RoleType.VIEWER));
     }
+    
+    public String getImdb(){
+        for(WebResource r: this.getResources()){
+            if(r.getType().equals(WebResourceType.IMDB)){
+                return r.getUri();
+            }
+        }
+        return null;
+    }
+    
+    public Language getLanguage(){
+        return this.opus.getLanguage();
+    }
+    
+    public Set<Person> getMusicComposers(){
+        return this.opus.getMusicComposers();
+    }
+    
+    public OpusType getOpusType(){
+        return this.opus.getType();
+    }
+    
+    public boolean isSeenBy(Person p){
+        for(Role r : this.roles){
+            return r.getType().equals(RoleType.VIEWER) && r.getPerson().equals(p);
+        }
+        return false;
+    }
+    
+    public String getTitle(){
+        return this.opus.getTitle();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 67 * hash + Objects.hashCode(this.opus);
+        hash = 67 * hash + Objects.hashCode(this.venue);
+        hash = 67 * hash + Objects.hashCode(this.date);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Performance other = (Performance) obj;
+        if (!Objects.equals(this.opus, other.opus)) {
+            return false;
+        }
+        if (!Objects.equals(this.venue, other.venue)) {
+            return false;
+        }
+        return Objects.equals(this.date, other.date);
+    }
+
+    @Override
+    public String toString() {
+        return this.opus.toString() + " @ "+this.venue.toString()+" on "+this.date.toString();
+    }
+    
+    
 }
+

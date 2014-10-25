@@ -16,6 +16,9 @@
  */
 package org.fede.digitalcontent.model;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  *
  * @author fede
@@ -25,6 +28,16 @@ public class StorageBoxRepository extends BaseRepository<String, StorageBox> {
     @Override
     public void add(StorageBox entity) {
         this.add(entity.getName(), entity);
+    }
+
+    public Set<StorageBox> boxesContaining(DigitalContent dc) {
+        Set<StorageBox> answer = new HashSet<>();
+        for (StorageBox box : this.findAll()) {
+            if (box.contains(dc)) {
+                answer.add(box);
+            }
+        }
+        return answer;
     }
 
 }

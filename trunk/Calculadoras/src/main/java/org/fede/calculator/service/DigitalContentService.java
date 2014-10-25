@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.service;
 
+import java.util.List;
+import org.fede.digitalcontent.dto.DigitalContentDTO;
 import org.fede.digitalcontent.model.StorageBox;
 
 /**
@@ -26,5 +28,7 @@ public interface DigitalContentService {
     
     
     Iterable<StorageBox> getAllBoxes();
+    
+    List<DigitalContentDTO> getDigitalContentReport();
     
 }

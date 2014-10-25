@@ -16,6 +16,7 @@
  */
 package org.fede.digitalcontent.model;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -128,6 +129,30 @@ public class Venue {
 
     public void setResources(Set<WebResource> resources) {
         this.resources = resources;
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 43 * hash + Objects.hashCode(this.name);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Venue other = (Venue) obj;
+        return Objects.equals(this.name, other.name);
     }
 
 }

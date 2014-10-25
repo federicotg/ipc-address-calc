@@ -21,7 +21,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static org.fede.digitalcontent.model.Repository.OPUS;
 import static org.fede.digitalcontent.model.Repository.VENUE;
 
@@ -30,9 +33,11 @@ import static org.fede.digitalcontent.model.Repository.VENUE;
  * @author fede
  */
 public class DigitalContent {
-
+    
     public static class Builder {
 
+        private static Logger LOG = Logger.getLogger(DigitalContent.Builder.class.getName());
+        
         private final DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
 
         private final String title;
@@ -44,14 +49,16 @@ public class DigitalContent {
         private Language subtitle;
         private final Set<String> singers;
         private final Set<String> viewers;
-        private String boxName;
-        private String medium;
-        private StorageMediumType mediumType;
+        private final Set<String> imdb;
+        private final Set<Pair<Integer, Integer>> discs;
 
         public Builder(String title) {
             this.title = title;
             this.singers = new HashSet<>();
             this.viewers = new HashSet<>();
+            this.imdb = new HashSet<>();
+            this.discs = new HashSet<>();
+
         }
 
         public Builder at(String venue) {
@@ -169,20 +176,14 @@ public class DigitalContent {
             return this;
         }
 
-        public Builder bdr(String mediumName) {
-            this.medium = mediumName;
-            this.mediumType = StorageMediumType.BDR;
-            return this;
-        }
-        
-        public Builder box(int boxNumber){
-            this.boxName = String.valueOf(boxNumber);
+        public Builder discBox(int disc, int box) {
+            this.discs.add(new Pair<>(disc, box));
+
             return this;
         }
 
-        public Builder dvdrdl(String mediumName) {
-            this.medium = mediumName;
-            this.mediumType = StorageMediumType.DVDPLUSRDL;
+        public Builder imdb(String uri) {
+            this.imdb.add(uri);
             return this;
         }
 
@@ -193,15 +194,18 @@ public class DigitalContent {
             Date moment = df.parse(date);
 
             if (opus == null || place == null || moment == null || formatType == null) {
+                LOG.log(Level.SEVERE, 
+                        "title {0}, opusType {1}, venue {2}, date {3}, formatType {4}", 
+                        new Object[]{title, opusType, venue, date, formatType});
                 throw new IllegalArgumentException("Opus, Venue, Date and FormatType are required.");
             }
 
             Performance perf = new Performance(opus, place, moment);
-            
+
             for (String singerName : this.singers) {
                 Person singer = Repository.PERSON.findById(singerName);
                 if (singer == null) {
-                    singer = new Person (singerName);
+                    singer = new Person(singerName);
                     Repository.PERSON.add(singer);
                 }
                 perf.addSinger(singer);
@@ -215,6 +219,9 @@ public class DigitalContent {
                 }
                 perf.addViewer(viewer);
             }
+            for (String uri : this.imdb) {
+                perf.addImdb(uri);
+            }
 
             Repository.PERFORMANCE.add(perf);
 
@@ -226,22 +233,23 @@ public class DigitalContent {
             set.add(perf);
             dc.setPerformances(set);
 
-            if (this.medium != null) {
-                StorageMedium disc = Repository.STORAGE.findById(this.medium);
-                if (disc == null) {
-                    disc = new StorageMedium(this.medium, this.mediumType);
+            for (Pair<Integer, Integer> discBox : this.discs) {
+                final String disc = String.valueOf(discBox.getFirst());
+                final String box = String.valueOf(discBox.getSecond());
+
+                StorageMedium d = Repository.STORAGE.findById(disc);
+                if (d == null) {
+                    d = new StorageMedium(disc);
+                    Repository.STORAGE.add(d);
                 }
-                disc.addContent(dc);
-                Repository.STORAGE.add(disc);
-                
-                if(this.boxName != null){
-                    StorageBox box = Repository.STORAGEBOX.findById(this.boxName);
-                    if(box == null){
-                        box = new StorageBox(this.boxName);
-                        Repository.STORAGEBOX.add(box);
-                    }
-                    box.addStorageMedium(disc);
+                d.addContent(dc);
+
+                StorageBox b = Repository.STORAGEBOX.findById(box);
+                if (b == null) {
+                    b = new StorageBox(box);
+                    Repository.STORAGEBOX.add(b);
                 }
+                b.addStorageMedium(d);
             }
             Repository.DIGITALCONTENT.add(dc);
             return dc;
@@ -289,6 +297,102 @@ public class DigitalContent {
 
     public void setPerformances(Set<Performance> performances) {
         this.performances = performances;
+    }
+
+    public Date getDate() {
+        return this.performances.iterator().next().getDate();
+    }
+
+    public String getImdb() {
+        return this.performances.iterator().next().getImdb();
+    }
+
+    public Set<Language> getLanguages() {
+        Set<Language> langs = new HashSet<>();
+        for (Performance p : this.performances) {
+            Language l = p.getLanguage();
+            if (l != null) {
+                langs.add(l);
+            }
+        }
+        return langs;
+    }
+
+  
+    public Set<Person> getMusicComposers() {
+        Set<Person> composers = new HashSet<>();
+        for (Performance p : this.performances) {
+            composers.addAll(p.getMusicComposers());
+        }
+        return composers;
+    }
+
+    public Set<OpusType> getOpusTypes() {
+        Set<OpusType> types = new HashSet<>();
+        for (Performance p : this.performances) {
+            types.add(p.getOpusType());
+        }
+        return types;
+    }
+
+    public boolean isSeenBy(Person person) {
+        boolean seen = true;
+        for (Performance p : this.performances) {
+            seen &= p.isSeenBy(person);
+        }
+        return seen;
+    }
+    
+    public Set<String> getTitles(){
+        Set<String> titles = new HashSet<>();
+        for(Performance p : this.performances){
+            titles.add(p.getTitle());
+        }
+        return titles;
+    }
+    
+    public Set<Venue> getVenues(){
+        Set<Venue> venues = new HashSet<>();
+        for(Performance p : this.performances){
+            venues.add(p.getVenue());
+        }
+        return venues;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 97 * hash + Objects.hashCode(this.performances);
+        hash = 97 * hash + Objects.hashCode(this.quality);
+        hash = 97 * hash + Objects.hashCode(this.format);
+        hash = 97 * hash + Objects.hashCode(this.subtitle);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final DigitalContent other = (DigitalContent) obj;
+        if (!Objects.equals(this.performances, other.performances)) {
+            return false;
+        }
+        if (this.quality != other.quality) {
+            return false;
+        }
+        if (this.format != other.format) {
+            return false;
+        }
+        return this.subtitle == other.subtitle;
+    }
+
+    @Override
+    public String toString() {
+        return performances.toString();
     }
 
 }
