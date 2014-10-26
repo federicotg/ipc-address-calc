@@ -17,6 +17,7 @@
 package org.fede.digitalcontent.model;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -68,6 +69,25 @@ public class StorageBox {
     @Override
     public String toString() {
         return "[" + this.media.toString() + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 37 * hash + Objects.hashCode(this.name);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final StorageBox other = (StorageBox) obj;
+        return Objects.equals(this.name, other.name);
     }
 
 }

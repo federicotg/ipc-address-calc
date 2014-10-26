@@ -33,11 +33,11 @@ import static org.fede.digitalcontent.model.Repository.VENUE;
  * @author fede
  */
 public class DigitalContent {
-    
+
     public static class Builder {
 
         private static Logger LOG = Logger.getLogger(DigitalContent.Builder.class.getName());
-        
+
         private final DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
 
         private final String title;
@@ -194,8 +194,8 @@ public class DigitalContent {
             Date moment = df.parse(date);
 
             if (opus == null || place == null || moment == null || formatType == null) {
-                LOG.log(Level.SEVERE, 
-                        "title {0}, opusType {1}, venue {2}, date {3}, formatType {4}", 
+                LOG.log(Level.SEVERE,
+                        "title {0}, opusType {1}, venue {2}, date {3}, formatType {4}",
                         new Object[]{title, opusType, venue, date, formatType});
                 throw new IllegalArgumentException("Opus, Venue, Date and FormatType are required.");
             }
@@ -234,22 +234,23 @@ public class DigitalContent {
             dc.setPerformances(set);
 
             for (Pair<Integer, Integer> discBox : this.discs) {
-                final String disc = String.valueOf(discBox.getFirst());
+
                 final String box = String.valueOf(discBox.getSecond());
+                final String disc = box + "-" + String.valueOf(discBox.getFirst());
 
-                StorageMedium d = Repository.STORAGE.findById(disc);
-                if (d == null) {
-                    d = new StorageMedium(disc);
-                    Repository.STORAGE.add(d);
+                StorageMedium medium = Repository.STORAGE.findById(disc);
+                if (medium == null) {
+                    medium = new StorageMedium(disc);
+                    Repository.STORAGE.add(medium);
                 }
-                d.addContent(dc);
+                medium.addContent(dc);
 
-                StorageBox b = Repository.STORAGEBOX.findById(box);
-                if (b == null) {
-                    b = new StorageBox(box);
-                    Repository.STORAGEBOX.add(b);
+                StorageBox storageBox = Repository.STORAGEBOX.findById(box);
+                if (storageBox == null) {
+                    storageBox = new StorageBox(box);
+                    Repository.STORAGEBOX.add(storageBox);
                 }
-                b.addStorageMedium(d);
+                storageBox.addStorageMedium(medium);
             }
             Repository.DIGITALCONTENT.add(dc);
             return dc;
@@ -318,7 +319,6 @@ public class DigitalContent {
         return langs;
     }
 
-  
     public Set<Person> getMusicComposers() {
         Set<Person> composers = new HashSet<>();
         for (Performance p : this.performances) {
@@ -342,18 +342,18 @@ public class DigitalContent {
         }
         return seen;
     }
-    
-    public Set<String> getTitles(){
+
+    public Set<String> getTitles() {
         Set<String> titles = new HashSet<>();
-        for(Performance p : this.performances){
+        for (Performance p : this.performances) {
             titles.add(p.getTitle());
         }
         return titles;
     }
-    
-    public Set<Venue> getVenues(){
+
+    public Set<Venue> getVenues() {
         Set<Venue> venues = new HashSet<>();
-        for(Performance p : this.performances){
+        for (Performance p : this.performances) {
             venues.add(p.getVenue());
         }
         return venues;
