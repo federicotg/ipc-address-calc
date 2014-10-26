@@ -23,6 +23,6 @@ package org.fede.digitalcontent.model;
 public enum Country  {
 
     USA, FRANCE, UK, GERMANY, DENMARK, RUSSIA, ITALY, AUSTRIA,
-    AUSTRALIA, SWITZERLAND, SPAIN;
+    AUSTRALIA, SWITZERLAND, SPAIN, CHINA;
 
 }
