@@ -417,7 +417,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Flauta Mágica").opera().atRoh().on("25/06/1905").fullHD().spaSubs().iso().seenByFede().discBox(0, 1).imdb("http://www.imdb.com/title/tt0383058/").build();
         new DigitalContent.Builder("Gianni Schicchi").opera().atGlyndebourne().on("26/06/1905").fullHD().spaSubs().iso().seenByFede().discBox(0, 1).build();
         new DigitalContent.Builder("Il Trittico").opera().at("Teatro Comunale di Modena").on("29/06/1905").fullHD().spaSubs().iso().discBox(0, 15).build();
-        new DigitalContent.Builder("La Bohéme").opera().at("Teatro Real").on("28/06/1905").fullHD().spaSubs().iso().seenByFede().discBox(0, 1).build();
+        new DigitalContent.Builder("La Bohème").opera().at("Teatro Real").on("28/06/1905").fullHD().spaSubs().iso().seenByFede().discBox(0, 1).build();
         new DigitalContent.Builder("La Bohème").opera().atRoh().on("15/01/2013").fullHD().spaSubs().mkv().discBox(0, 4).build();
         new DigitalContent.Builder("La Fanciulla del West").opera().atTheMet().on("08/01/2011").dvd().spaSubs().iso().seenByFede().discBox(0, 0).imdb("http://www.imdb.com/title/tt1736154/").build();
         new DigitalContent.Builder("La Fanciulla del West").opera().atParis().on("10/02/2014").fullHD().spaSubs().mkv().discBox(0, 15).discBox(0, 0).build();
