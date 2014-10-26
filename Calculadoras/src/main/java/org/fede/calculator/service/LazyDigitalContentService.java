@@ -463,7 +463,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         List<DigitalContentDTO> answer = new ArrayList<>(allContent.size());
         for (DigitalContent dc : allContent) {
             DigitalContentDTO dto = new DigitalContentDTO();
-            dto.setBox(list(Repository.STORAGEBOX.boxesContaining(dc)));
+            List<String> boxNames = new ArrayList<>();
+            for(StorageBox box : Repository.STORAGEBOX.boxesContaining(dc)){
+                boxNames.add(box.getName());
+            }
+            dto.setBox(list(boxNames));
             dto.setDate(dc.getDate());
             dto.setFormat(dc.getFormat().name());
             dto.setImdb(dc.getImdb());
