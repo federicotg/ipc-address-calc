@@ -171,7 +171,7 @@ public class DigitalContent {
             return this;
         }
 
-        public Builder dvdRip() {
+        public Builder dvd() {
             this.quality = Quality.DVD480;
             return this;
         }
