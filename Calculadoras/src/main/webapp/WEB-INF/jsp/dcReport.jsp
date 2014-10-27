@@ -99,7 +99,7 @@
                 <c:forEach items="${list}" var="item">
                     <tr>
                         <td><c:forEach items="${item.boxes}" var="box" varStatus="status">
-                                <a href="/dc/report/box/${box}">${box}</a><c:if test="${not status.isLast()}">, </c:if>
+                                <a href="/dc/report/box/${box}">${box}</a><c:if test="${not status.last}">, </c:if>
                             </c:forEach></td>
                         <td>${item.opusType}</td>
                         <td>${item.title}</td>
