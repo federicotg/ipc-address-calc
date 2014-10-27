@@ -142,7 +142,7 @@ public class DigitalContent {
         }
 
         public Builder iso() {
-            this.formatType = FormatType.ISOImage;
+            this.formatType = FormatType.ISO;
             return this;
         }
 
