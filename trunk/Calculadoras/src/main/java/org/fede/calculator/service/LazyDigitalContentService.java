@@ -107,6 +107,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Mariinsky").city("San Petersburgo").russia().build();
 
         new Venue.Builder("ROH").city("Londres").uk().build();
+        new Venue.Builder("King's College").city("Cambridge").uk().build();
         new Venue.Builder("Glyndebourne").city("Glyndebourne").uk().build();
 
         new Venue.Builder("The Met").city("New York").usa().build();
@@ -267,7 +268,8 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("La Fille du Pharaon").ballet().atBolshoi().on("24/11/2012").fullHD().mkv()
                 .discBox(0, 11)
-                .discBox(0, 12)
+                .discBox(9, 12)
+                .discBox(10, 12)
                 .build();
         new DigitalContent.Builder("Marco Spada").ballet().atBolshoi().on("30/03/2014").fullHD().mkv()
                 .discBox(0, 4)
@@ -289,7 +291,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Alice's Adventures In Wonderland")
                 .ballet().atRoh().on("28/03/2013").fullHD().mkv().seenByAnaMaria()
                 .discBox(0, 11)
-                .discBox(0, 12)
+                .discBox(3, 12)
+                .discBox(4, 12)
                 .build();
         new DigitalContent.Builder("Winter's Tale").ballet().atRoh().on("28/04/2014").fullHD().mkv()
                 .seenByAnaMaria()
@@ -384,12 +387,18 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(5, 13)
                 .imdb("http://www.imdb.com/title/tt1320091/").build();
         new DigitalContent.Builder("Lucia de Lammermoor").opera().at("Teatro Donizetti").on("28/06/1905").dvd().spaSubs().iso().seenByFede().discBox(0, 7).build();
-        new DigitalContent.Builder("Maria Stuarda").opera().atTheMet().on("19/01/2013").fullHD().engSubs().mkv().seenByFede().discBox(0, 7 / 12).imdb("http://www.imdb.com/title/tt2651570/").build();
+        new DigitalContent.Builder("Maria Stuarda").opera().atTheMet().on("19/01/2013").fullHD().engSubs().mkv().seenByFede()
+                .discBox(0, 7)
+                .discBox(2, 12)
+                .imdb("http://www.imdb.com/title/tt2651570/").build();
         new DigitalContent.Builder("Faust").opera().atTheMet().on("10/12/2011").fullHD().engSubs().mkv()
                 .discBox(10, 13)
                 .imdb("http://www.imdb.com/title/tt1878497/").build();
         new DigitalContent.Builder("Aida").opera().at("alla Scala").on("28/06/1905").dvd().spaSubs().iso().discBox(0, 2).imdb("http://www.imdb.com/title/tt1399162/").build();
-        new DigitalContent.Builder("Aida").opera().atTheMet().on("15/12/2012").fullHD().engSubs().mkv().discBox(0, 12).imdb("http://www.imdb.com/title/tt2573426/").build();
+        new DigitalContent.Builder("Aida").opera().atTheMet().on("15/12/2012").fullHD().engSubs().mkv()
+                .discBox(6, 12)
+                .discBox(9, 12)
+                .imdb("http://www.imdb.com/title/tt2573426/").build();
         new DigitalContent.Builder("Don Carlo").opera().atRoh().on("30/06/1905").fullHD().engSubs().mkv().discBox(0, 2).imdb("http://www.imdb.com/title/tt2074354/").build();
         new DigitalContent.Builder("Falstaff").opera().at("Teatro Comunale di Firenze").on("28/06/1905").dvd().spaSubs().iso().seenByFede().discBox(0, 2).imdb("http://www.imdb.com/title/tt2199446/").build();
         new DigitalContent.Builder("Falstaff").opera().atGlyndebourne().on("01/07/1905").fullHD().engSubs().mkv()
@@ -450,6 +459,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Messiah").oratorio().at("Ópera de Zürich").on("30/12/1899").fullHD().spaSubs().mkv().seenByFede()
                 .discBox(0, 15)
                 .imdb("http://www.imdb.com/title/tt1414536/").build();
+        
+        new DigitalContent.Builder("Messiah").oratorio().at("King's College").on("30/12/1899").dvd().spaSubs().iso().seenByFede()
+                .discBox(3, 12)
+                .build();
+        
         new DigitalContent.Builder("Rinaldo").opera().at("Bayerische Staatsoper").on("23/06/1905").dvd().spaSubs().iso().discBox(0, 6).imdb("http://www.imdb.com/title/tt0345861/").build();
         new DigitalContent.Builder("Rodelinda").opera().atGlyndebourne().on("20/06/1905").dvd().spaSubs().iso().discBox(0, 6).imdb("http://www.imdb.com/title/tt0255555/").build();
         new DigitalContent.Builder("Tamerlano").opera().at("Halle Opera House").on("01/01/2001").dvd().spaSubs().iso()
