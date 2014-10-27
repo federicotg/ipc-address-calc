@@ -106,7 +106,11 @@
                             </c:forEach>
                         </td>
                         <td>${item.title}</td>
-                        <td>${item.musicBy}</td>
+                        <td>
+                            <c:forEach items="${item.musicBy}" var="name" varStatus="status">
+                                <a href="/dc/report/composer/${name}">${name}</a><c:if test="${not status.last}">, </c:if>
+                            </c:forEach>
+                        </td>
                         <td><fmt:formatDate value="${item.date}" pattern="dd/MM/yyyy"/></td>
                         <td>
                             <c:forEach items="${item.venues}" var="venue" varStatus="status">

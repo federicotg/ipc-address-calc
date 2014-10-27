@@ -636,7 +636,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         dto.setFormat(dc.getFormat().name());
         dto.setImdb(dc.getImdb());
         dto.setLanguage(list(dc.getLanguages()));
-        dto.setMusicBy(list(dc.getMusicComposers()));
+        dto.setMusicBy(toString(dc.getMusicComposers()));
         dto.setOpusTypes(toString(dc.getOpusTypes()));
         dto.setQuality(dc.getQuality().toString());
         dto.setSeenByAnaMaria(dc.isSeenBy(Repository.PERSON.findById("Ana María")));

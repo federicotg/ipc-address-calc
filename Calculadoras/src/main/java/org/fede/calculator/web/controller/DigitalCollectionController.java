@@ -47,25 +47,30 @@ public class DigitalCollectionController {
     public ModelAndView fullReport() {
         return new ModelAndView("dcReport", "list", this.dcService.getFullReport());
     }
-    
+
     @RequestMapping(value = "/report/box/{box}", method = RequestMethod.GET)
     public ModelAndView boxReport(@PathVariable String box) {
         return new ModelAndView("dcReport", "list", this.dcService.getBoxReport(box));
     }
-    
+
     @RequestMapping(value = "/report/composer/{name}", method = RequestMethod.GET)
     public ModelAndView composerReport(@PathVariable String name) {
         return new ModelAndView("dcReport", "list", this.dcService.getComposerReport(name));
     }
-    
+
     @RequestMapping(value = "/report/opus/{name}", method = RequestMethod.GET)
     public ModelAndView opusReport(@PathVariable String name) {
         return new ModelAndView("dcReport", "list", this.dcService.getOpusReport(name));
     }
 
+    @RequestMapping(value = "/report/type/{type}", method = RequestMethod.GET)
+    public ModelAndView opusTypeReport(@PathVariable String type) {
+        return new ModelAndView("dcReport", "list", this.dcService.getOpusTypeReport(type));
+    }
+
     @RequestMapping(value = "/report/venue/{name}", method = RequestMethod.GET)
     public ModelAndView venueReport(@PathVariable String name) {
         return new ModelAndView("dcReport", "list", this.dcService.getVenueReport(name));
-    }    
-    
+    }
+
 }
