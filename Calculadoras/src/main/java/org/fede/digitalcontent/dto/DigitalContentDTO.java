@@ -27,11 +27,11 @@ import org.fede.util.Util;
 public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
 
     private List<String> boxes;
-    private String opusType;
+    private List<String> opusTypes;
     private String title;
     private String musicBy;
     private Date date;
-    private String venue;
+    private List<String> venues;
     private String quality;
     private String language;
     private String subtitles;
@@ -50,14 +50,6 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
     
     public String getBox(){
         return Util.list(this.boxes);
-    }
-
-    public String getOpusType() {
-        return opusType;
-    }
-
-    public void setOpusType(String opusType) {
-        this.opusType = opusType;
     }
 
     public String getTitle() {
@@ -84,12 +76,20 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
         this.date = date;
     }
 
-    public String getVenue() {
-        return venue;
+    public List<String> getOpusTypes() {
+        return opusTypes;
     }
 
-    public void setVenue(String venue) {
-        this.venue = venue;
+    public void setOpusTypes(List<String> opusTypes) {
+        this.opusTypes = opusTypes;
+    }
+
+    public List<String> getVenues() {
+        return venues;
+    }
+
+    public void setVenues(List<String> venues) {
+        this.venues = venues;
     }
 
     public String getQuality() {
@@ -150,16 +150,16 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
 
     @Override
     public int compareTo(DigitalContentDTO o) {
-        if(!this.opusType.equals(o.opusType)){
-            return this.opusType.compareTo(o.opusType);
+        if(!this.opusTypes.equals(o.getOpusTypes())){
+            return this.opusTypes.get(0).compareTo(o.getOpusTypes().get(0));
         }
-        if(!this.musicBy.equals(o.musicBy)){
-            return this.musicBy.compareTo(o.musicBy);
+        if(!this.musicBy.equals(o.getMusicBy())){
+            return this.musicBy.compareTo(o.getMusicBy());
         }
-        if(!this.title.equals(o.title)){
-            return this.title.compareTo(o.title);
+        if(!this.title.equals(o.getTitle())){
+            return this.title.compareTo(o.getTitle());
         }
-        return this.date.compareTo(o.date);
+        return this.date.compareTo(o.getDate());
     }
     
 }

@@ -18,6 +18,7 @@ package org.fede.calculator.service;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +37,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.fede.digitalcontent.model.Language;
 import org.fede.digitalcontent.model.Opus;
+import org.fede.digitalcontent.model.OpusType;
 import org.fede.digitalcontent.model.Repository;
 import org.fede.digitalcontent.model.Venue;
 import org.fede.util.Predicate;
@@ -628,20 +630,31 @@ public class LazyDigitalContentService implements DigitalContentService {
         for (StorageBox box : Repository.STORAGEBOX.boxesContaining(dc)) {
             boxNames.add(box.getName());
         }
+
         dto.setBoxes(boxNames);
         dto.setDate(dc.getDate());
         dto.setFormat(dc.getFormat().name());
         dto.setImdb(dc.getImdb());
         dto.setLanguage(list(dc.getLanguages()));
         dto.setMusicBy(list(dc.getMusicComposers()));
-        dto.setOpusType(list(dc.getOpusTypes()));
+        dto.setOpusTypes(toString(dc.getOpusTypes()));
         dto.setQuality(dc.getQuality().toString());
         dto.setSeenByAnaMaria(dc.isSeenBy(Repository.PERSON.findById("Ana María")));
         dto.setSeenByFede(dc.isSeenBy(Repository.PERSON.findById("Federico")));
         dto.setSubtitles(dc.getSubtitle() != null ? dc.getSubtitle().toString() : "");
         dto.setTitle(list(dc.getTitles()));
-        dto.setVenue(list(dc.getVenues()));
+        dto.setVenues(toString(dc.getVenues()));
         return dto;
+    }
+
+    public static List<String> toString(Collection<?> col) {
+        List<String> answer = new ArrayList<>(col.size());
+
+        for (Object o : col) {
+            answer.add(o.toString());
+        }
+
+        return answer;
     }
 
     @Override
@@ -689,6 +702,18 @@ public class LazyDigitalContentService implements DigitalContentService {
             @Override
             public boolean test(DigitalContent dc) {
                 return dc.includesVenue(venueName);
+            }
+        });
+    }
+
+    @Override
+    public List<DigitalContentDTO> getOpusTypeReport(String name) {
+        final OpusType type = OpusType.valueOf(name);
+        return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
+
+            @Override
+            public boolean test(DigitalContent dc) {
+                return dc.getOpusTypes().contains(type);
             }
         });
     }

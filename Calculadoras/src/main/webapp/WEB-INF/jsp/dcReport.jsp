@@ -51,9 +51,6 @@
                 font-size: 90%;
             }
             tbody td {
-                /*border-bottom-color: black;
-                border-bottom-style: solid;
-                border-bottom-width: 1px;*/
                 padding:0.4em;
             }
             table{
@@ -98,14 +95,24 @@
             <tbody>
                 <c:forEach items="${list}" var="item">
                     <tr>
-                        <td><c:forEach items="${item.boxes}" var="box" varStatus="status">
+                        <td>
+                            <c:forEach items="${item.boxes}" var="box" varStatus="status">
                                 <a href="/dc/report/box/${box}">${box}</a><c:if test="${not status.last}">, </c:if>
-                            </c:forEach></td>
-                        <td>${item.opusType}</td>
+                            </c:forEach>
+                        </td>
+                        <td>
+                            <c:forEach items="${item.opusTypes}" var="type" varStatus="status">
+                                <a href="/dc/report/type/${type}">${type}</a><c:if test="${not status.last}">, </c:if>
+                            </c:forEach>
+                        </td>
                         <td>${item.title}</td>
                         <td>${item.musicBy}</td>
                         <td><fmt:formatDate value="${item.date}" pattern="dd/MM/yyyy"/></td>
-                        <td>${item.venue}</td>
+                        <td>
+                            <c:forEach items="${item.venues}" var="venue" varStatus="status">
+                                <a href="/dc/report/venue/${venue}">${venue}</a><c:if test="${not status.last}">, </c:if>
+                            </c:forEach>
+                        </td>
                         <td>${item.quality}</td>
                         <td>${item.language}</td>
                         <td>${item.subtitles}</td>

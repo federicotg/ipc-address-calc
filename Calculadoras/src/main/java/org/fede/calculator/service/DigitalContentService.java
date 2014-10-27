@@ -33,5 +33,5 @@ public interface DigitalContentService {
     List<DigitalContentDTO> getComposerReport(String composerName);
     List<DigitalContentDTO> getOpusReport(String opusName);
     List<DigitalContentDTO> getVenueReport(String venueName);
-    
+    List<DigitalContentDTO> getOpusTypeReport(String name);
 }
