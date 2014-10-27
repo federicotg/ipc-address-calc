@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 import org.fede.calculator.service.DigitalContentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -43,8 +44,28 @@ public class DigitalCollectionController {
     }
 
     @RequestMapping(value = "/report", method = RequestMethod.GET)
-    public ModelAndView report() {
-        return new ModelAndView("dcReport", "list", this.dcService.getDigitalContentReport());
+    public ModelAndView fullReport() {
+        return new ModelAndView("dcReport", "list", this.dcService.getFullReport());
+    }
+    
+    @RequestMapping(value = "/report/box/{box}", method = RequestMethod.GET)
+    public ModelAndView boxReport(@PathVariable String box) {
+        return new ModelAndView("dcReport", "list", this.dcService.getBoxReport(box));
+    }
+    
+    @RequestMapping(value = "/report/composer/{name}", method = RequestMethod.GET)
+    public ModelAndView composerReport(@PathVariable String name) {
+        return new ModelAndView("dcReport", "list", this.dcService.getComposerReport(name));
+    }
+    
+    @RequestMapping(value = "/report/opus/{name}", method = RequestMethod.GET)
+    public ModelAndView opusReport(@PathVariable String name) {
+        return new ModelAndView("dcReport", "list", this.dcService.getOpusReport(name));
     }
 
+    @RequestMapping(value = "/report/venue/{name}", method = RequestMethod.GET)
+    public ModelAndView venueReport(@PathVariable String name) {
+        return new ModelAndView("dcReport", "list", this.dcService.getVenueReport(name));
+    }    
+    
 }

@@ -17,6 +17,8 @@
 package org.fede.digitalcontent.dto;
 
 import java.util.Date;
+import java.util.List;
+import org.fede.util.Util;
 
 /**
  *
@@ -24,7 +26,7 @@ import java.util.Date;
  */
 public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
 
-    private String box;
+    private List<String> boxes;
     private String opusType;
     private String title;
     private String musicBy;
@@ -38,12 +40,16 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
     private boolean seenByFede;
     private boolean seenByAnaMaria;
 
-    public String getBox() {
-        return box;
+    public List<String> getBoxes() {
+        return boxes;
     }
 
-    public void setBox(String box) {
-        this.box = box;
+    public void setBoxes(List<String> boxes) {
+        this.boxes = boxes;
+    }
+    
+    public String getBox(){
+        return Util.list(this.boxes);
     }
 
     public String getOpusType() {

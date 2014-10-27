@@ -20,12 +20,12 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import org.fede.digitalcontent.dto.DigitalContentDTO;
 import org.fede.digitalcontent.model.Country;
+import static org.fede.util.Util.list;
 import static org.fede.digitalcontent.model.Country.DENMARK;
 import static org.fede.digitalcontent.model.Country.FRANCE;
 import static org.fede.digitalcontent.model.Country.SWITZERLAND;
@@ -38,6 +38,7 @@ import org.fede.digitalcontent.model.Language;
 import org.fede.digitalcontent.model.Opus;
 import org.fede.digitalcontent.model.Repository;
 import org.fede.digitalcontent.model.Venue;
+import org.fede.util.Predicate;
 
 /**
  *
@@ -592,7 +593,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 12)
                 .discBox(10, 12)
                 .imdb("http://www.imdb.com/title/tt2777536/").build();
-
     }
 
     @Override
@@ -601,48 +601,96 @@ public class LazyDigitalContentService implements DigitalContentService {
     }
 
     @Override
-    public List<DigitalContentDTO> getDigitalContentReport() {
-        Set<DigitalContent> allContent = DigitalContentRepository.DIGITALCONTENT.findAll();
-        List<DigitalContentDTO> answer = new ArrayList<>(allContent.size());
-        for (DigitalContent dc : allContent) {
-            DigitalContentDTO dto = new DigitalContentDTO();
-            List<String> boxNames = new ArrayList<>();
-            for (StorageBox box : Repository.STORAGEBOX.boxesContaining(dc)) {
-                boxNames.add(box.getName());
+    public List<DigitalContentDTO> getFullReport() {
+        return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
+            @Override
+            public boolean test(DigitalContent t) {
+                return true;
             }
-            dto.setBox(list(boxNames));
-            dto.setDate(dc.getDate());
-            dto.setFormat(dc.getFormat().name());
-            dto.setImdb(dc.getImdb());
-            dto.setLanguage(list(dc.getLanguages()));
-            dto.setMusicBy(list(dc.getMusicComposers()));
-            dto.setOpusType(list(dc.getOpusTypes()));
-            dto.setQuality(dc.getQuality().toString());
-            dto.setSeenByAnaMaria(dc.isSeenBy(Repository.PERSON.findById("Ana María")));
-            dto.setSeenByFede(dc.isSeenBy(Repository.PERSON.findById("Federico")));
-            dto.setSubtitles(dc.getSubtitle() != null ? dc.getSubtitle().toString() : "");
-            dto.setTitle(list(dc.getTitles()));
-            dto.setVenue(list(dc.getVenues()));
-            answer.add(dto);
+        });
+    }
+
+    private List<DigitalContentDTO> filteredReport(Collection<DigitalContent> elements, Predicate<DigitalContent> p) {
+        List<DigitalContentDTO> answer = new ArrayList<>(elements.size());
+        for (DigitalContent dc : elements) {
+            if (p.test(dc)) {
+                answer.add(toDto(dc));
+            }
         }
         Collections.sort(answer);
         return answer;
-
     }
 
-    private static <T> String list(Collection<T> elements) {
-        return list(elements, ", ");
+    private static DigitalContentDTO toDto(DigitalContent dc) {
+        DigitalContentDTO dto = new DigitalContentDTO();
 
-    }
-
-    private static <T> String list(Collection<T> elements, String separator) {
-        StringBuilder sb = new StringBuilder(elements.size() * 10);
-        for (Iterator<T> it = elements.iterator(); it.hasNext();) {
-            sb.append(it.next().toString());
-            if (it.hasNext()) {
-                sb.append(separator);
-            }
+        List<String> boxNames = new ArrayList<>();
+        for (StorageBox box : Repository.STORAGEBOX.boxesContaining(dc)) {
+            boxNames.add(box.getName());
         }
-        return sb.toString();
+        dto.setBoxes(boxNames);
+        dto.setDate(dc.getDate());
+        dto.setFormat(dc.getFormat().name());
+        dto.setImdb(dc.getImdb());
+        dto.setLanguage(list(dc.getLanguages()));
+        dto.setMusicBy(list(dc.getMusicComposers()));
+        dto.setOpusType(list(dc.getOpusTypes()));
+        dto.setQuality(dc.getQuality().toString());
+        dto.setSeenByAnaMaria(dc.isSeenBy(Repository.PERSON.findById("Ana María")));
+        dto.setSeenByFede(dc.isSeenBy(Repository.PERSON.findById("Federico")));
+        dto.setSubtitles(dc.getSubtitle() != null ? dc.getSubtitle().toString() : "");
+        dto.setTitle(list(dc.getTitles()));
+        dto.setVenue(list(dc.getVenues()));
+        return dto;
     }
+
+    @Override
+    public List<DigitalContentDTO> getBoxReport(final String boxName) {
+        return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
+            @Override
+            public boolean test(DigitalContent dc) {
+                Set<StorageBox> boxes = Repository.STORAGEBOX.boxesContaining(dc);
+                for (StorageBox box : boxes) {
+                    if (box.getName().equals(boxName)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public List<DigitalContentDTO> getComposerReport(final String composerName) {
+        return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
+
+            @Override
+            public boolean test(DigitalContent dc) {
+                return dc.includesComposer(composerName);
+            }
+        });
+    }
+
+    @Override
+    public List<DigitalContentDTO> getOpusReport(final String opusName) {
+        return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
+
+            @Override
+            public boolean test(DigitalContent dc) {
+                return dc.includesOpus(opusName);
+            }
+        });
+    }
+
+    @Override
+    public List<DigitalContentDTO> getVenueReport(final String venueName) {
+        return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
+
+            @Override
+            public boolean test(DigitalContent dc) {
+                return dc.includesVenue(venueName);
+            }
+        });
+    }
+
 }

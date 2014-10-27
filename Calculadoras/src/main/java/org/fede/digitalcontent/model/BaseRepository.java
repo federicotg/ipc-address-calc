@@ -16,6 +16,7 @@
  */
 package org.fede.digitalcontent.model;
 
+import org.fede.util.Predicate;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
