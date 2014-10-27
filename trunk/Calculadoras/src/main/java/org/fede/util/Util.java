@@ -14,24 +14,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.service;
+package org.fede.util;
 
-import java.util.List;
-import org.fede.digitalcontent.dto.DigitalContentDTO;
-import org.fede.digitalcontent.model.StorageBox;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  *
  * @author fede
  */
-public interface DigitalContentService {
-    
-    Iterable<StorageBox> getAllBoxes();
-    
-    List<DigitalContentDTO> getFullReport();
-    List<DigitalContentDTO> getBoxReport(String box);
-    List<DigitalContentDTO> getComposerReport(String composerName);
-    List<DigitalContentDTO> getOpusReport(String opusName);
-    List<DigitalContentDTO> getVenueReport(String venueName);
-    
+public class Util {
+
+    public static <T> String list(Collection<T> elements) {
+        return list(elements, ", ");
+    }
+
+    public static <T> String list(Collection<T> elements, String separator) {
+        StringBuilder sb = new StringBuilder(elements.size() * 10);
+        for (Iterator<T> it = elements.iterator(); it.hasNext();) {
+            sb.append(it.next().toString());
+            if (it.hasNext()) {
+                sb.append(separator);
+            }
+        }
+        return sb.toString();
+    }
 }

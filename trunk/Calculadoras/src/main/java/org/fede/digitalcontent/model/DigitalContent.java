@@ -395,4 +395,30 @@ public class DigitalContent {
         return performances.toString();
     }
 
+    public boolean includesOpus(String opusName) {
+        for (Performance p : this.performances) {
+            if (p.getOpus().getTitle().equals(opusName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean includesVenue(String venueName) {
+        for (Performance p : this.performances) {
+            if (p.getVenue().getName().equals(venueName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean includesComposer(String name) {
+        for (Performance p : this.performances) {
+            if (p.includesComposer(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

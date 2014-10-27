@@ -37,7 +37,6 @@ public class Performance {
 
     private Set<WebResource> resources;
 
-
     Performance(Opus opus, Venue venue, Date date) {
         this.opus = opus;
         this.date = date;
@@ -86,47 +85,47 @@ public class Performance {
         this.resources = resources;
     }
 
-    public void addSinger(Person singer){
+    public void addSinger(Person singer) {
         this.roles.add(new Role(singer, RoleType.SINGER));
     }
-    
-    public void addImdb(String uri){
+
+    public void addImdb(String uri) {
         this.resources.add(new WebResource(uri, WebResourceType.IMDB));
     }
-    
-    public void addViewer(Person viewer){
+
+    public void addViewer(Person viewer) {
         this.roles.add(new Role(viewer, RoleType.VIEWER));
     }
-    
-    public String getImdb(){
-        for(WebResource r: this.getResources()){
-            if(r.getType().equals(WebResourceType.IMDB)){
+
+    public String getImdb() {
+        for (WebResource r : this.getResources()) {
+            if (r.getType().equals(WebResourceType.IMDB)) {
                 return r.getUri();
             }
         }
         return null;
     }
-    
-    public Language getLanguage(){
+
+    public Language getLanguage() {
         return this.opus.getLanguage();
     }
-    
-    public Set<Person> getMusicComposers(){
+
+    public Set<Person> getMusicComposers() {
         return this.opus.getMusicComposers();
     }
-    
-    public OpusType getOpusType(){
+
+    public OpusType getOpusType() {
         return this.opus.getType();
     }
-    
-    public boolean isSeenBy(Person p){
-        for(Role r : this.roles){
+
+    public boolean isSeenBy(Person p) {
+        for (Role r : this.roles) {
             return r.getType().equals(RoleType.VIEWER) && r.getPerson().equals(p);
         }
         return false;
     }
-    
-    public String getTitle(){
+
+    public String getTitle() {
         return this.opus.getTitle();
     }
 
@@ -159,9 +158,15 @@ public class Performance {
 
     @Override
     public String toString() {
-        return this.opus.toString() + " @ "+this.venue.toString()+" on "+this.date.toString();
+        return this.opus.toString() + " @ " + this.venue.toString() + " on " + this.date.toString();
     }
-    
-    
-}
 
+    public boolean includesComposer(String name) {
+        for (Person composer : this.getMusicComposers()) {
+            if (composer.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
