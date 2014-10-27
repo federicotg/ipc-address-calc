@@ -21,6 +21,21 @@ package org.fede.digitalcontent.model;
  * @author fede
  */
 public enum Language {
+   
+    ENGLISH("en"), FRENCH("fr"), ITALIAN("it"), GERMAN("de"), SPANISH("sp"), CZECH("cz"), RUSSIAN("ru");
+    
+    private String code;
+    
+    private Language(String code){
+        this.code = code;
+    }
 
-    ENGLISH, FRENCH, ITALIAN, GERMAN, SPANISH, CZECH, RUSSIAN;
+    @Override
+    public String toString() {
+        return this.code;
+    }
+    
+    
+    
+    
 }
