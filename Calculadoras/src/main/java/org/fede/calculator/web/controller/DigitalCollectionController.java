@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.web.controller;
 
-import java.util.logging.Logger;
 import org.fede.calculator.service.DigitalContentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -33,7 +32,7 @@ import org.springframework.web.servlet.ModelAndView;
 @RequestMapping("/dc")
 public class DigitalCollectionController {
 
-    private static final Logger LOG = Logger.getLogger(DigitalCollectionController.class.getName());
+    //private static final Logger LOG = Logger.getLogger(DigitalCollectionController.class.getName());
 
     @Autowired
     private DigitalContentService dcService;
@@ -53,7 +52,7 @@ public class DigitalCollectionController {
         return new ModelAndView("dcReport", "list", this.dcService.getBoxReport(box));
     }
 
-    @RequestMapping(value = "/report/composer/{name}", method = RequestMethod.GET)
+    @RequestMapping(value = "/report/composer/{name:.+}", method = RequestMethod.GET)
     public ModelAndView composerReport(@PathVariable String name) {
         return new ModelAndView("dcReport", "list", this.dcService.getComposerReport(name));
     }

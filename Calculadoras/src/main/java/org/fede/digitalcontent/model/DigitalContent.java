@@ -136,6 +136,11 @@ public class DigitalContent {
             return this;
         }
 
+        public Builder type(OpusType type) {
+            this.opusType = type;
+            return this;
+        }
+        
         public Builder mkv() {
             this.formatType = FormatType.MKV;
             return this;
