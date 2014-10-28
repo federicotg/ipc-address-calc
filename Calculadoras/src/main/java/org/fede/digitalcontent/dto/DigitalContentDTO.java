@@ -27,7 +27,7 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
 
     private List<String> boxes;
     private List<String> opusTypes;
-    private String title;
+    private List<String> titles;
     private List<String> musicBy;
     private Date date;
     private List<String> venues;
@@ -46,15 +46,15 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
     public void setBoxes(List<String> boxes) {
         this.boxes = boxes;
     }
+
+    public List<String> getTitles() {
+        return titles;
+    }
+
+    public void setTitles(List<String> titles) {
+        this.titles = titles;
+    }
     
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public List<String> getMusicBy() {
         return musicBy;
     }
@@ -154,9 +154,14 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
             }
             return  this.musicBy.get(0).compareTo(o.getMusicBy().get(0));
         }
-        if(!this.title.equals(o.getTitle())){
-            return this.title.compareTo(o.getTitle());
+        
+        if(!this.titles.equals(o.getTitles())){
+            if(this.titles.isEmpty() || o.getTitles().isEmpty()){
+                return 0;
+            }
+            return  this.titles.get(0).compareTo(o.getTitles().get(0));
         }
+        
         return this.date.compareTo(o.getDate());
     }
     
