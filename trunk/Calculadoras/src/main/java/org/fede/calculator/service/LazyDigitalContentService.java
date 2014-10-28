@@ -61,22 +61,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         this.initBalletVideos();
         this.initOperaVideos();
         this.initMisc();
-        this.initConcerts();
+//        this.initConcerts();
 
     }
     
-    private void initConcerts() throws ParseException{
-        
-        new DigitalContent.Builder("An Evening With Renee Fleming")
-                .type(OpusType.CONCERT)
-                .at("Waldbühne")
-                .on("01/01/2010").hd720().mkv()
-                .discBox(1, 5)
-                .starringFleming()
-                .build();
-        
-    }
-
     private void initBallets() {
         new Opus.Builder("Giselle", "Le Corsaire").ballet().by("Adolphe Adam").build();
         new Opus.Builder("Raymonda").ballet().by("Alexander Glazunov").build();
@@ -98,6 +86,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Swan Lake", "The Nutcracker", "The Sleeping Beauty").ballet()
                 .by("Tchaikovsky").build();
         new Opus.Builder("La fille mal gardée").ballet().build();
+        new Opus.Builder("Legend of Love").by("Arif Malikov").ballet().build();
 
     }
 
@@ -398,6 +387,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La fille mal gardée").ballet().atRoh().on("16/05/2012").hd720().mkv().discBox(8, 3)
                 .seenByFede()
                 .build();
+        
+        new DigitalContent.Builder("Legend of Love").ballet().atBolshoi().on("26/10/2014").fullHD().mkv().discBox(0, 0).build();
 
     }
 
@@ -409,16 +400,16 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(5, 14)
                 .build();
         new DigitalContent.Builder("Rusalka").opera().atTheMet().on("08/02/2014").fullHD().engSubs().mkv().discBox(9, 15).imdb("http://www.imdb.com/title/tt3451542/").build();
-        new DigitalContent.Builder("I Puritani").opera().atTheMet().on("29/06/1905").dvd().spaSubs().iso()
+        new DigitalContent.Builder("I Puritani").opera().atTheMet().on("01/01/2007").dvd().spaSubs().iso()
                 .discBox(12, 14)
                 .imdb("http://www.imdb.com/title/tt0966101/").build();
         new DigitalContent.Builder("I Puritani").opera().atParis().on("09/12/2013").fullHD().spaSubs().mkv().seenByFede()
                 .discBox(5, 11)
                 .build();
-        new DigitalContent.Builder("Norma").opera().at("Bayerische Staatsoper").on("29/06/1905").dvd().spaSubs().iso()
+        new DigitalContent.Builder("Norma").opera().at("Bayerische Staatsoper").on("01/01/2007").dvd().spaSubs().iso()
                 .discBox(3, 3).discBox(4, 3)
                 .build();
-        new DigitalContent.Builder("Faust").opera().atRoh().on("26/06/1905").dvd().spaSubs().iso().discBox(2, 5).discBox(3, 5).imdb("http://www.imdb.com/title/tt1954436/").build();
+        new DigitalContent.Builder("Faust").opera().atRoh().on("01/01/2004").dvd().spaSubs().iso().discBox(2, 5).discBox(3, 5).imdb("http://www.imdb.com/title/tt1954436/").build();
         new DigitalContent.Builder("Carmen").opera().atTheMet().on("16/01/2010").dvd().spaSubs().iso().seenByFede()
                 .discBox(6, 1)
                 .discBox(7, 1)
@@ -440,7 +431,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Fille du Regiment").opera().atRoh().on("01/01/2007").dvd().spaSubs().iso()
                 .discBox(5, 13)
                 .imdb("http://www.imdb.com/title/tt1320091/").build();
-        new DigitalContent.Builder("Lucia de Lammermoor").opera().at("Teatro Donizetti").on("28/06/1905").dvd().spaSubs().iso().seenByFede()
+        new DigitalContent.Builder("Lucia de Lammermoor").opera().at("Teatro Donizetti").on("01/01/2006").dvd().spaSubs().iso().seenByFede()
                 .discBox(3, 7)
                 .build();
         new DigitalContent.Builder("Maria Stuarda").opera().atTheMet().on("19/01/2013").fullHD().engSubs().mkv().seenByFede()
@@ -450,7 +441,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Faust").opera().atTheMet().on("10/12/2011").fullHD().engSubs().mkv()
                 .discBox(10, 13)
                 .imdb("http://www.imdb.com/title/tt1878497/").build();
-        new DigitalContent.Builder("Aida").opera().at("alla Scala").on("28/06/1905").dvd().spaSubs().iso()
+        new DigitalContent.Builder("Aida").opera().at("alla Scala").on("01/01/2006").dvd().spaSubs().iso()
                 .discBox(3, 2)
                 .discBox(4, 2)
                 .imdb("http://www.imdb.com/title/tt1399162/").build();
@@ -458,9 +449,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(6, 12)
                 .discBox(9, 12)
                 .imdb("http://www.imdb.com/title/tt2573426/").build();
-        new DigitalContent.Builder("Don Carlo").opera().atRoh().on("30/06/1905").fullHD().engSubs().mkv().discBox(7, 2).imdb("http://www.imdb.com/title/tt2074354/").build();
-        new DigitalContent.Builder("Falstaff").opera().at("Teatro Comunale di Firenze").on("28/06/1905").dvd().spaSubs().iso().seenByFede().discBox(2, 2).imdb("http://www.imdb.com/title/tt2199446/").build();
-        new DigitalContent.Builder("Falstaff").opera().atGlyndebourne().on("01/07/1905").fullHD().engSubs().mkv()
+        new DigitalContent.Builder("Don Carlo").opera().atRoh().on("01/01/2008").fullHD().engSubs().mkv().discBox(7, 2).imdb("http://www.imdb.com/title/tt2074354/").build();
+        new DigitalContent.Builder("Falstaff").opera().at("Teatro Comunale di Firenze").on("01/01/2006").dvd().spaSubs().iso().seenByFede().discBox(2, 2).imdb("http://www.imdb.com/title/tt2199446/").build();
+        new DigitalContent.Builder("Falstaff").opera().atGlyndebourne().on("01/01/2009").fullHD().engSubs().mkv()
                 .discBox(6, 14)
                 .discBox(8, 14)
                 .build();
@@ -472,11 +463,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(5, 5)
                 .discBox(6, 5)
                 .imdb("http://www.imdb.com/title/tt0429194/").build();
-        new DigitalContent.Builder("La Forza del Destino").opera().at("Teatro Comunale di Firenze").on("29/06/1905").dvd().spaSubs().iso()
+        new DigitalContent.Builder("La Forza del Destino").opera().at("Teatro Comunale di Firenze").on("01/01/2007").dvd().spaSubs().iso()
                 .discBox(12, 14)
                 .imdb("http://www.imdb.com/title/tt2196658/").build();
         new DigitalContent.Builder("La Traviata").opera().at("Großes Festspielhaus").on("27/06/1905").dvd().spaSubs().iso().seenByFede().discBox(2, 4).imdb("http://www.imdb.com/title/tt0475165/").build();
-        new DigitalContent.Builder("La Traviata").opera().at("alla Scala").on("29/06/1905").hd720().mkv()
+        new DigitalContent.Builder("La Traviata").opera().at("alla Scala").on("01/01/2007").hd720().mkv()
                 .discBox(3, 14)
                 .imdb("http://www.imdb.com/title/tt2316799/").build();
         new DigitalContent.Builder("La Traviata").opera().atParis().on("17/06/2014").fullHD().spaSubs().mkv()
@@ -502,7 +493,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(7, 4)
                 .discBox(8, 4)
                 .build();
-        new DigitalContent.Builder("Rigoletto").opera().at("Ópera de Zürich").on("28/06/1905").fullHD().spaSubs().mkv()
+        new DigitalContent.Builder("Rigoletto").opera().at("Ópera de Zürich").on("01/01/2006").fullHD().spaSubs().mkv()
                 .discBox(10, 14)
                 .imdb("http://www.imdb.com/title/tt2289502/").build();
         new DigitalContent.Builder("Rigoletto").opera().atTheMet().on("16/02/2013").fullHD().engSubs().mkv().seenByFede()
@@ -510,7 +501,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(7, 12)
                 .discBox(10, 12)
                 .imdb("http://www.imdb.com/title/tt2710572/").build();
-        new DigitalContent.Builder("Simon Boccanegra").opera().atRoh().on("02/07/1905").dvd().spaSubs().iso()
+        new DigitalContent.Builder("Simon Boccanegra").opera().atRoh().on("01/01/2010").dvd().spaSubs().iso()
                 .discBox(1, 13)
                 .discBox(2, 13)
                 .imdb("http://www.imdb.com/title/tt1691418/").build();
@@ -523,67 +514,67 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(9, 14)
                 .imdb("http://www.imdb.com/title/tt2651146/").build();
         new DigitalContent.Builder("Alcina").opera().at("Staatsoper Stuttgart").on("21/06/1905").fullHD().spaSubs().mkv().discBox(8, 4).imdb("http://www.imdb.com/title/tt0354364/").build();
-        new DigitalContent.Builder("Giulio Cesare").opera().atParis().on("03/07/1905").dvd().spaSubs().iso()
+        new DigitalContent.Builder("Giulio Cesare").opera().atParis().on("01/01/2011").dvd().spaSubs().iso()
                 .discBox(6, 13)
                 .discBox(7, 13)
                 .build();
-        new DigitalContent.Builder("Messiah").oratorio().at("Ópera de Zürich").on("30/12/1899").fullHD().spaSubs().mkv().seenByFede()
+        new DigitalContent.Builder("Messiah").oratorio().at("Ópera de Zürich").on("01/01/2009").fullHD().spaSubs().mkv().seenByFede()
                 .discBox(8, 15)
                 .imdb("http://www.imdb.com/title/tt1414536/").build();
 
-        new DigitalContent.Builder("Messiah").oratorio().at("King's College").on("30/12/1899").dvd().spaSubs().iso().seenByFede()
+        new DigitalContent.Builder("Messiah").oratorio().at("King's College").on("01/01/2009").dvd().spaSubs().iso().seenByFede()
                 .discBox(3, 12)
                 .discBox(7, 11)
                 .build();
 
-        new DigitalContent.Builder("Rinaldo").opera().at("Bayerische Staatsoper").on("23/06/1905").dvd().spaSubs().iso()
+        new DigitalContent.Builder("Rinaldo").opera().at("Bayerische Staatsoper").on("01/01/2001").dvd().spaSubs().iso()
                 .discBox(7, 6)
                 .discBox(8, 6)
                 .imdb("http://www.imdb.com/title/tt0345861/").build();
-        new DigitalContent.Builder("Rodelinda").opera().atGlyndebourne().on("20/06/1905").dvd().spaSubs().iso().discBox(2, 6).imdb("http://www.imdb.com/title/tt0255555/").build();
+        new DigitalContent.Builder("Rodelinda").opera().atGlyndebourne().on("01/01/1998").dvd().spaSubs().iso().discBox(2, 6).imdb("http://www.imdb.com/title/tt0255555/").build();
         new DigitalContent.Builder("Tamerlano").opera().at("Halle Opera House").on("01/01/2001").dvd().spaSubs().iso()
                 .discBox(1, 12)
                 .discBox(2, 12)
                 .build();
-        new DigitalContent.Builder("Theodora").oratorio().atGlyndebourne().on("18/06/1905").dvd().engSubs().mkv().discBox(0, 0).imdb("http://www.imdb.com/title/tt0253802/").build();
+        new DigitalContent.Builder("Theodora").oratorio().atGlyndebourne().on("01/01/1996").dvd().engSubs().mkv().discBox(0, 0).imdb("http://www.imdb.com/title/tt0253802/").build();
         new DigitalContent.Builder("Les Troyens").opera().atTheMet().on("05/01/2013").fullHD().engSubs().mkv()
                 .discBox(11, 11)
                 .discBox(5, 12)
                 .discBox(7, 12)
                 .imdb("http://www.imdb.com/title/tt2661764/").build();
-        new DigitalContent.Builder("Nixon in China").opera().atTheMet().on("03/07/1905").dvd().spaSubs().iso().discBox(4, 4).imdb("http://www.imdb.com/title/tt1736150/").build();
+        new DigitalContent.Builder("Nixon in China").opera().atTheMet().on("01/01/2011").dvd().spaSubs().iso().discBox(4, 4).imdb("http://www.imdb.com/title/tt1736150/").build();
         new DigitalContent.Builder("Manon").opera().atTheMet().on("07/04/2012").fullHD().engSubs().mkv().seenByFede()
                 .discBox(6, 11).imdb("http://www.imdb.com/title/tt2239809/").build();
         new DigitalContent.Builder("Werther").opera().atTheMet().on("15/03/2014").fullHD().spaSubs().mkv()
                 .discBox(11, 15)
                 .discBox(9, 4)
                 .imdb("http://www.imdb.com/title/tt3599730/").build();
-        new DigitalContent.Builder("Lakme").opera().at("Sydney Opera House").on("03/07/1905").fullHD().spaSubs().mkv().discBox(3, 15).imdb("http://www.imdb.com/title/tt2757396/").build();
-        new DigitalContent.Builder("Pagliacci").opera().at("Arena di Verona").on("28/06/1905").dvd().spaSubs().iso().seenByFede()
+        new DigitalContent.Builder("Lakme").opera().at("Sydney Opera House").on("01/01/2011").fullHD().spaSubs().mkv().discBox(3, 15).imdb("http://www.imdb.com/title/tt2757396/").build();
+        new DigitalContent.Builder("Pagliacci").opera().at("Arena di Verona").on("01/01/2006").dvd().spaSubs().iso().seenByFede()
                 .discBox(1, 9)
                 .build();
         new DigitalContent.Builder("The Cunning Little Vixen").opera().atGlyndebourne().on("10/06/2012").fullHD().engSubs().mkv().discBox(4, 7).build();
-        new DigitalContent.Builder("Manon").opera().at("Berlin State Opera").on("29/06/1905").dvd().spaSubs().iso().discBox(5, 2)
+        new DigitalContent.Builder("Manon").opera().at("Berlin State Opera").on("01/01/2007").dvd().spaSubs().iso().discBox(5, 2)
                 .discBox(6, 2)
                 .imdb("http://www.imdb.com/title/tt1431725/").build();
-        new DigitalContent.Builder("L'Orfeo").opera().at("Ópera de Zürich").on("29/06/1905").dvd().spaSubs().iso().discBox(2, 15).build();
+        new DigitalContent.Builder("L'Orfeo").opera().at("Ópera de Zürich").on("01/01/2007").dvd().spaSubs().iso().discBox(2, 15).build();
         new DigitalContent.Builder("Così Fan Tutte").opera().atTheMet().on("26/04/2014").fullHD().spaSubs().mkv().discBox(6, 4).build();
-        new DigitalContent.Builder("Così Fan Tutte").opera().at("Wiener Staatsoper").on("18/06/1905").dvd().spaSubs().iso().seenByFede()
+        new DigitalContent.Builder("Così Fan Tutte").opera().at("Wiener Staatsoper").on("01/01/1996").dvd().spaSubs().iso().seenByFede()
                 .discBox(4, 9)
                 .discBox(5, 9)
                 .imdb("http://www.imdb.com/title/tt0428432/").build();
-        new DigitalContent.Builder("Don Giovanni").opera().at("Großes Festspielhaus").on("28/06/1905").dvd().spaSubs().iso()
+        new DigitalContent.Builder("Don Giovanni").opera().at("Großes Festspielhaus").on("01/01/2006").dvd().spaSubs().iso()
                 .discBox(5, 7)
                 .discBox(6, 7)
                 .imdb("http://www.imdb.com/title/tt0864960/").build();
-        new DigitalContent.Builder("Don Giovanni").opera().atRoh().on("30/06/1905").fullHD().engSubs().mkv().seenByFede()
+        new DigitalContent.Builder("Don Giovanni").opera().atRoh().on("01/01/2008").fullHD().engSubs().mkv().seenByFede()
                 .discBox(10, 2)
                 .discBox(2, 3)
                 .imdb("http://www.imdb.com/title/tt2374452/").build();
         new DigitalContent.Builder("El rapto en el serrallo").opera().at("Bayerische Staatsoper").on("01/01/1980").fullHD().spaSubs().mkv()
                 .discBox(4, 11)
                 .imdb("http://www.imdb.com/title/tt0254303/").build();
-        new DigitalContent.Builder("Il Sogno di Scipione").opera().at("Großes Festspielhaus").on("28/06/1905").dvd().spaSubs().iso().seenByFede().discBox(10, 3).imdb("http://www.imdb.com/title/tt1039909/").build();
+        new DigitalContent.Builder("Il Sogno di Scipione").opera().at("Großes Festspielhaus").on("01/01/2006").dvd().spaSubs().iso().seenByFede().discBox(10, 3).imdb("http://www.imdb.com/title/tt1039909/").build();
         new DigitalContent.Builder("La Clemenza di Tito").opera().atTheMet().on("01/12/2012").fullHD().engSubs().mkv().seenByFede()
                 .discBox(8, 11)
                 .discBox(9, 11)
@@ -594,21 +585,21 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("01/01/1999").fullHD().engSubs().mkv()
                 .discBox(11, 14)
                 .build();
-        new DigitalContent.Builder("Le nozze di Figaro").opera().atRoh().on("28/06/1905").dvd().spaSubs().iso().seenByFede()
+        new DigitalContent.Builder("Le nozze di Figaro").opera().atRoh().on("01/01/2006").dvd().spaSubs().iso().seenByFede()
                 .discBox(3, 1)
                 .discBox(4, 1)
                 .imdb("http://www.imdb.com/title/tt1229379/").build();
-        new DigitalContent.Builder("Le nozze di Figaro").opera().at("Großes Festspielhaus").on("28/06/1905").fullHD().spaSubs().mkv()
+        new DigitalContent.Builder("Le nozze di Figaro").opera().at("Großes Festspielhaus").on("01/01/2006").fullHD().spaSubs().mkv()
                 .discBox(11, 14)
                 .imdb("http://www.imdb.com/title/tt0838187/").build();
         new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("17/08/2012").fullHD().engSubs().mkv()
                 .discBox(8, 14)
                 .build();
-        new DigitalContent.Builder("La Flauta Mágica").opera().atRoh().on("25/06/1905").dvd().spaSubs().iso().seenByFede()
+        new DigitalContent.Builder("La Flauta Mágica").opera().atRoh().on("01/01/2003").dvd().spaSubs().iso().seenByFede()
                 .discBox(5, 1).imdb("http://www.imdb.com/title/tt0383058/").build();
-        new DigitalContent.Builder("Gianni Schicchi").opera().atGlyndebourne().on("26/06/1905").dvd().spaSubs().iso().seenByFede().discBox(10, 1).build();
-        new DigitalContent.Builder("Il Trittico").opera().at("Teatro Comunale di Modena").on("29/06/1905").dvd().spaSubs().iso().discBox(2, 15).build();
-        new DigitalContent.Builder("La Bohème").opera().at("Teatro Real").on("28/06/1905").dvd().spaSubs().iso().seenByFede()
+        new DigitalContent.Builder("Gianni Schicchi").opera().atGlyndebourne().on("01/01/2004").dvd().spaSubs().iso().seenByFede().discBox(10, 1).build();
+        new DigitalContent.Builder("Il Trittico").opera().at("Teatro Comunale di Modena").on("01/01/2007").dvd().spaSubs().iso().discBox(2, 15).build();
+        new DigitalContent.Builder("La Bohème").opera().at("Teatro Real").on("01/01/2006").dvd().spaSubs().iso().seenByFede()
                 .discBox(8, 1)
                 .discBox(9, 1)
                 .build();
@@ -634,11 +625,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(7, 14)
                 .discBox(10, 14)
                 .build();
-        new DigitalContent.Builder("Capriccio").opera().atParis().on("26/06/1905").dvd().spaSubs().iso()
+        new DigitalContent.Builder("Capriccio").opera().atParis().on("01/01/2004").dvd().spaSubs().iso()
                 .discBox(7, 5)
                 .discBox(8, 5)
                 .imdb("http://www.imdb.com/title/tt2353871/").build();
-        new DigitalContent.Builder("Intermezzo").opera().atGlyndebourne().on("05/06/1905").fullHD().engSubs().iso()
+        new DigitalContent.Builder("Intermezzo").opera().atGlyndebourne().on("01/01/1983").fullHD().engSubs().iso()
                 .discBox(7, 9)
                 .imdb("http://www.imdb.com/title/tt0240617/").build();
         new DigitalContent.Builder("Salome").opera().atRoh().on("01/01/2008").dvd().spaSubs().iso().seenByFede().discBox(4, 6).imdb("http://www.imdb.com/title/tt2254086/").build();
@@ -653,7 +644,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(1, 14)
                 .discBox(2, 14)
                 .imdb("http://www.imdb.com/title/tt1214968/").build();
-        new DigitalContent.Builder("La Cenerentola").opera().atTheMet().on("01/07/1905").dvd().spaSubs().iso().seenByFede()
+        new DigitalContent.Builder("La Cenerentola").opera().atTheMet().on("01/01/2009").dvd().spaSubs().iso().seenByFede()
                 .discBox(4, 8)
                 .discBox(5, 8)
                 .imdb("http://www.imdb.com/title/tt1497524/").build();
@@ -670,10 +661,10 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 13)
                 .discBox(9, 13)
                 .imdb("http://www.imdb.com/title/tt2701902/").build();
-        new DigitalContent.Builder("Cherevichki The Tsarina's Slippers").opera().atRoh().on("01/07/1905").fullHD().spaSubs().mkv()
+        new DigitalContent.Builder("Cherevichki The Tsarina's Slippers").opera().atRoh().on("01/01/2009").fullHD().spaSubs().mkv()
                 .discBox(7, 14)
                 .imdb("http://www.imdb.com/title/tt2066085/").build();
-        new DigitalContent.Builder("Eugene Onegin").opera().atTheMet().on("29/06/1905").dvd().spaSubs().iso()
+        new DigitalContent.Builder("Eugene Onegin").opera().atTheMet().on("01/01/2007").dvd().spaSubs().iso()
                 .discBox(5, 6)
                 .discBox(6, 6)
                 .imdb("http://www.imdb.com/title/tt1021778/").build();
@@ -686,15 +677,15 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(6, 9)
                 .imdb("http://www.imdb.com/title/tt0240782/").build();
         new DigitalContent.Builder("Das Rheingold").opera().at("Royal Danish Theatre").on("01/01/2006").dvd().spaSubs().iso().seenByFede().discBox(3, 4).imdb("http://www.imdb.com/title/tt2199364/").build();
-        new DigitalContent.Builder("Das Rheingold").opera().at("Palacio de las Artes Reina Sofía").on("01/07/1905").dvd().spaSubs().mkv().discBox(0, 0).build();
+        new DigitalContent.Builder("Das Rheingold").opera().at("Palacio de las Artes Reina Sofía").on("01/01/2009").dvd().spaSubs().mkv().discBox(0, 0).build();
         new DigitalContent.Builder("Die Walküre").opera().at("Royal Danish Theatre").on("01/01/2006").dvd().spaSubs().iso().seenByFede()
                 .discBox(4, 4)
                 .discBox(5, 4)
                 .imdb("http://www.imdb.com/title/tt2199396/").build();
-        new DigitalContent.Builder("Die Walküre").opera().at("Palacio de las Artes Reina Sofía").on("01/07/1905").dvd().spaSubs().mkv().discBox(0, 0).imdb("http://www.imdb.com/title/tt1565010/").build();
+        new DigitalContent.Builder("Die Walküre").opera().at("Palacio de las Artes Reina Sofía").on("01/01/2009").dvd().spaSubs().mkv().discBox(0, 0).imdb("http://www.imdb.com/title/tt1565010/").build();
         new DigitalContent.Builder("Gotterdammerung").opera().at("Royal Danish Theatre").on("01/01/2006").dvd().spaSubs().iso().seenByFede().discBox(5, 4).imdb("http://www.imdb.com/title/tt2199386/").build();
-        new DigitalContent.Builder("Gotterdammerung").opera().at("Palacio de las Artes Reina Sofía").on("01/07/1905").dvd().spaSubs().mkv().discBox(0, 0).imdb("http://www.imdb.com/title/tt2368889/").build();
-        new DigitalContent.Builder("Lohengrin").opera().at("Bayerische Staatsoper").on("01/07/1905").dvd().spaSubs().iso()
+        new DigitalContent.Builder("Gotterdammerung").opera().at("Palacio de las Artes Reina Sofía").on("01/01/2009").dvd().spaSubs().mkv().discBox(0, 0).imdb("http://www.imdb.com/title/tt2368889/").build();
+        new DigitalContent.Builder("Lohengrin").opera().at("Bayerische Staatsoper").on("01/01/2009").dvd().spaSubs().iso()
                 .discBox(6, 8)
                 .discBox(7, 8)
                 .imdb("http://www.imdb.com/title/tt1570624/").build();
@@ -707,8 +698,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(3, 9)
                 .imdb("http://www.imdb.com/title/tt1961481/").build();
         new DigitalContent.Builder("Siegfried").opera().at("Royal Danish Theatre").on("01/01/2006").dvd().spaSubs().iso().seenByFede().discBox(4, 4).imdb("http://www.imdb.com/title/tt2199376/").build();
-        new DigitalContent.Builder("Siegfried").opera().at("Palacio de las Artes Reina Sofía").on("01/07/1905").dvd().spaSubs().mkv().discBox(0, 0).imdb("http://www.imdb.com/title/tt2369295/").build();
-        new DigitalContent.Builder("Tannhauser").opera().at("Festspielhaus Baden-Baden").on("30/06/1905").fullHD().spaSubs().mkv().discBox(10, 4).imdb("http://www.imdb.com/title/tt2222864/").build();
+        new DigitalContent.Builder("Siegfried").opera().at("Palacio de las Artes Reina Sofía").on("01/01/2009").dvd().spaSubs().mkv().discBox(0, 0).imdb("http://www.imdb.com/title/tt2369295/").build();
+        new DigitalContent.Builder("Tannhauser").opera().at("Festspielhaus Baden-Baden").on("01/01/2008").fullHD().spaSubs().mkv().discBox(10, 4).imdb("http://www.imdb.com/title/tt2222864/").build();
         new DigitalContent.Builder("Tristan und Ilsode").opera().at("Anhaltisches Theater").on("01/01/2007").dvd().spaSubs().iso()
                 .discBox(1, 8)
                 .discBox(2, 8)

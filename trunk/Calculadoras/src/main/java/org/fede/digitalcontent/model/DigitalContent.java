@@ -17,13 +17,13 @@
 package org.fede.digitalcontent.model;
 
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import static org.fede.digitalcontent.model.Repository.OPUS;
 import static org.fede.digitalcontent.model.Repository.VENUE;
@@ -39,7 +39,8 @@ public class DigitalContent {
         private static Logger LOG = Logger.getLogger(DigitalContent.Builder.class.getName());
 
         private final DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-
+        private final NumberFormat nf = NumberFormat.getIntegerInstance();
+        
         private final String title;
         private String venue;
         private String date;
@@ -59,7 +60,7 @@ public class DigitalContent {
             this.viewers = new HashSet<>();
             this.imdb = new HashSet<>();
             this.discs = new HashSet<>();
-
+            nf.setMinimumIntegerDigits(2);
         }
 
         public Builder at(String venue) {
@@ -199,20 +200,13 @@ public class DigitalContent {
         }
 
         public DigitalContent build() throws ParseException {
-
             Opus opus = OPUS.findById(new Pair<>(this.title, this.opusType));
             Venue place = VENUE.findById(this.venue);
             Date moment = df.parse(date);
-
             if (opus == null || place == null || moment == null || formatType == null) {
-                LOG.log(Level.SEVERE,
-                        "title {0}, opusType {1}, venue {2}, date {3}, formatType {4}",
-                        new Object[]{title, opusType, venue, date, formatType});
                 throw new IllegalArgumentException("Opus, Venue, Date and FormatType are required.");
             }
-
             Performance perf = new Performance(opus, place, moment);
-
             for (String singerName : this.singers) {
                 Person singer = Repository.PERSON.findById(singerName);
                 if (singer == null) {
@@ -221,7 +215,6 @@ public class DigitalContent {
                 }
                 perf.addSinger(singer);
             }
-
             for (String viewerName : this.viewers) {
                 Person viewer = Repository.PERSON.findById(viewerName);
                 if (viewer == null) {
@@ -233,9 +226,7 @@ public class DigitalContent {
             for (String uri : this.imdb) {
                 perf.addImdb(uri);
             }
-
             Repository.PERFORMANCE.add(perf);
-
             DigitalContent dc = new DigitalContent();
             dc.setFormat(formatType);
             dc.setQuality(quality);
@@ -244,19 +235,15 @@ public class DigitalContent {
             Set<Performance> set = new HashSet<>();
             set.add(perf);
             dc.setPerformances(set);
-
             for (Pair<Integer, Integer> discBox : this.discs) {
-
-                final String box = String.valueOf(discBox.getSecond());
-                final String disc = box + "-" + String.valueOf(discBox.getFirst());
-
+                final String box = nf.format(discBox.getSecond());
+                final String disc = box + "-" + nf.format(discBox.getFirst());
                 StorageMedium medium = Repository.STORAGE.findById(disc);
                 if (medium == null) {
                     medium = new StorageMedium(disc);
                     Repository.STORAGE.add(medium);
                 }
                 medium.addContent(dc);
-
                 StorageBox storageBox = Repository.STORAGEBOX.findById(box);
                 if (storageBox == null) {
                     storageBox = new StorageBox(box);
