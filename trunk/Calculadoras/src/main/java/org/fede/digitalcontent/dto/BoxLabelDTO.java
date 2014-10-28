@@ -14,26 +14,43 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.service;
+package org.fede.digitalcontent.dto;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import org.fede.digitalcontent.dto.BoxLabelDTO;
-import org.fede.digitalcontent.dto.DigitalContentDTO;
-import org.fede.digitalcontent.model.StorageBox;
 
 /**
  *
  * @author fede
  */
-public interface DigitalContentService {
+public class BoxLabelDTO {
+
+    private String boxName;
+    private List<MediumContentDTO> contents = new ArrayList<>();
+
+    public String getBoxName() {
+        return boxName;
+    }
+
+    public void setBoxName(String boxName) {
+        this.boxName = boxName;
+    }
+
+    public List<MediumContentDTO> getContents() {
+        return contents;
+    }
+
+    public void setContents(List<MediumContentDTO> contents) {
+        this.contents = contents;
+    }
     
-    Iterable<StorageBox> getAllBoxes();
+    public void addContent(MediumContentDTO content){
+        this.contents.add(content);
+    }
     
-    List<DigitalContentDTO> getFullReport();
-    List<DigitalContentDTO> getBoxReport(String box);
-    List<DigitalContentDTO> getComposerReport(String composerName);
-    List<DigitalContentDTO> getOpusReport(String opusName);
-    List<DigitalContentDTO> getVenueReport(String venueName);
-    List<DigitalContentDTO> getOpusTypeReport(String name);
-    BoxLabelDTO getBoxLabel(String boxName);
+    public void doneContent(){
+        Collections.sort(this.contents);
+    }
+
 }

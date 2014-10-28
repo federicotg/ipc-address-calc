@@ -14,26 +14,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.service;
+package org.fede.digitalcontent.dto;
 
-import java.util.List;
-import org.fede.digitalcontent.dto.BoxLabelDTO;
-import org.fede.digitalcontent.dto.DigitalContentDTO;
-import org.fede.digitalcontent.model.StorageBox;
+import java.util.Set;
 
 /**
  *
  * @author fede
  */
-public interface DigitalContentService {
+public class MediumContentDTO implements Comparable<MediumContentDTO> {
+    private String mediumName;
+    private Set<String> opus;
+
+    public String getMediumName() {
+        return mediumName;
+    }
+
+    public void setMediumName(String mediumName) {
+        this.mediumName = mediumName;
+    }
+
+    public Set<String> getOpus() {
+        return opus;
+    }
+
+    public void setOpus(Set<String> opus) {
+        this.opus = opus;
+    }
+
+    @Override
+    public int compareTo(MediumContentDTO o) {
+        return this.mediumName.compareTo(o.getMediumName());
+    }
+    public void addOpusNames(Set<String> names){
+        this.opus.addAll(names);
+    }
     
-    Iterable<StorageBox> getAllBoxes();
-    
-    List<DigitalContentDTO> getFullReport();
-    List<DigitalContentDTO> getBoxReport(String box);
-    List<DigitalContentDTO> getComposerReport(String composerName);
-    List<DigitalContentDTO> getOpusReport(String opusName);
-    List<DigitalContentDTO> getVenueReport(String venueName);
-    List<DigitalContentDTO> getOpusTypeReport(String name);
-    BoxLabelDTO getBoxLabel(String boxName);
 }

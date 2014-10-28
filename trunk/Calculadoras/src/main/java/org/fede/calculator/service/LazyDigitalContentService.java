@@ -23,7 +23,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.PostConstruct;
+import org.fede.digitalcontent.dto.BoxLabelDTO;
 import org.fede.digitalcontent.dto.DigitalContentDTO;
+import org.fede.digitalcontent.dto.MediumContentDTO;
 import org.fede.digitalcontent.model.Country;
 import static org.fede.util.Util.list;
 import static org.fede.digitalcontent.model.Country.DENMARK;
@@ -38,6 +40,7 @@ import org.fede.digitalcontent.model.Language;
 import org.fede.digitalcontent.model.Opus;
 import org.fede.digitalcontent.model.OpusType;
 import org.fede.digitalcontent.model.Repository;
+import org.fede.digitalcontent.model.StorageMedium;
 import org.fede.digitalcontent.model.Venue;
 import org.fede.util.Predicate;
 
@@ -824,6 +827,23 @@ public class LazyDigitalContentService implements DigitalContentService {
                 return dc.getOpusTypes().contains(type);
             }
         });
+    }
+
+    @Override
+    public BoxLabelDTO getBoxLabel(String boxName) {
+        BoxLabelDTO dto = new BoxLabelDTO();
+        dto.setBoxName(boxName);
+        StorageBox box = Repository.STORAGEBOX.findById(boxName);
+        for(StorageMedium medium : box.getMedia()){
+            MediumContentDTO mDto = new MediumContentDTO();
+            mDto.setMediumName(medium.getName());
+            for(DigitalContent dc : medium.getContents()){
+                mDto.addOpusNames(dc.getTitles());
+            }
+            dto.addContent(mDto);
+        }
+        dto.doneContent();
+        return dto;
     }
 
 }
