@@ -412,7 +412,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .imdb("http://www.imdb.com/title/tt1669004/").build();
         new DigitalContent.Builder("Prince Igor").opera().atTheMet().on("01/03/2014").fullHD().spaSubs().mkv().discBox(3, 15).imdb("http://www.imdb.com/title/tt3565332/").build();
         new DigitalContent.Builder("The Nose").opera().atTheMet().on("26/10/2013").fullHD().engSubs().mkv().discBox(6, 15).imdb("http://www.imdb.com/title/tt3114272/").build();
-        new DigitalContent.Builder("Anna Bolena").opera().at("Wiener Staatsoper").on("03/07/1905").dvd().spaSubs().iso()
+        new DigitalContent.Builder("Anna Bolena").opera().at("Wiener Staatsoper").on("01/01/2011").dvd().spaSubs().iso()
                 .discBox(1, 7).discBox(1, 7)
                 .imdb("http://www.imdb.com/title/tt1878854/").build();
         new DigitalContent.Builder("Don Pasquale").opera().atGlyndebourne().on("06/08/2013").fullHD().engSubs().mkv()
