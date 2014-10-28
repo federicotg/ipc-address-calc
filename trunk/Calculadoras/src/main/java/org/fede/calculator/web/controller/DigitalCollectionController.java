@@ -49,7 +49,10 @@ public class DigitalCollectionController {
 
     @RequestMapping(value = "/report/box/{box}", method = RequestMethod.GET)
     public ModelAndView boxReport(@PathVariable String box) {
-        return new ModelAndView("dcReport", "list", this.dcService.getBoxReport(box));
+        ModelAndView mav = new ModelAndView("dcReport", "list", this.dcService.getBoxReport(box));
+        mav.addObject("boxLabel", this.dcService.getBoxLabel(box));
+        
+        return mav;
     }
 
     @RequestMapping(value = "/report/composer/{name:.+}", method = RequestMethod.GET)

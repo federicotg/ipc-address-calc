@@ -140,7 +140,7 @@ public class DigitalContent {
             this.opusType = type;
             return this;
         }
-        
+
         public Builder mkv() {
             this.formatType = FormatType.MKV;
             return this;
@@ -352,6 +352,22 @@ public class DigitalContent {
         Set<String> titles = new HashSet<>();
         for (Performance p : this.performances) {
             titles.add(p.getTitle());
+        }
+        return titles;
+    }
+
+    public Set<String> getDetailedTitles() {
+        DateFormat yearFormat = new SimpleDateFormat("yyyy");
+        Set<String> titles = new HashSet<>();
+        for (Performance p : this.performances) {
+            StringBuilder sb = new StringBuilder(30);
+            sb.append(p.getTitle())
+                    .append(" @ ")
+                    .append(p.getVenue().getName())
+                    .append(" (")
+                    .append(yearFormat.format(p.getDate()))
+                    .append(")");
+            titles.add(sb.toString());
         }
         return titles;
     }

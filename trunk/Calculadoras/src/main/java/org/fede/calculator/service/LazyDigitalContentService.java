@@ -838,7 +838,7 @@ public class LazyDigitalContentService implements DigitalContentService {
             MediumContentDTO mDto = new MediumContentDTO();
             mDto.setMediumName(medium.getName());
             for(DigitalContent dc : medium.getContents()){
-                mDto.addOpusNames(dc.getTitles());
+                mDto.addOpusNames(dc.getDetailedTitles());
             }
             dto.addContent(mDto);
         }
