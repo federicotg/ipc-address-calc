@@ -19,6 +19,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
@@ -49,12 +50,10 @@
                 border-top-color: black;
                 border-top-width: 1px;
                 font-size: 90%;
+                border-spacing: 0px;
             }
             tbody td {
                 padding:0.4em;
-            }
-            table{
-                border-spacing: 0px;
             }
             tbody tr:nth-child(even) {
                 background-color: white;
@@ -62,18 +61,18 @@
             tbody tr:hover {
                 background-color: cornsilk;
             }
-            #chart{
 
-                height: 800px;
+            .centeredTd{
+                text-align: center;
             }
-            .valueTd{
-                text-align: right;
+            strong{
+                font-size: 150%;
             }
         </style>
     </head>
     <body>
         <%@include file="../jspf/menu.jspf" %>
-        <h1>Videos</h1>
+        <h1>Catálogo</h1>
         <table>
             <thead>
                 <tr>
@@ -84,8 +83,8 @@
                     <th>Fecha</th>
                     <th>Lugar</th>
                     <th>Calidad</th>
-                    <th>Lenguaje</th>
-                    <th>Subtítulos</th>
+                    <th>Leng.</th>
+                    <th>Sub.</th>
                     <th>Formato</th>
                     <th>IMDB</th>
                     <th>Yo</th>
@@ -107,27 +106,28 @@
                         </td>
                         <td>${item.title}</td>
                         <td>
-                            <c:forEach items="${item.musicBy}" var="name" varStatus="status">
-                                <a href="/dc/report/composer/${name}">${name}</a><c:if test="${not status.last}">, </c:if>
+                            <c:forEach items="${item.musicBy}" var="composer" varStatus="status">
+                                <spring:url value="/dc/report/composer/${composer}" var="composerUri" htmlEscape="true"/>
+                                <a href="${composerUri}">${composer}</a><c:if test="${not status.last}">, </c:if>
                             </c:forEach>
                         </td>
-                        <td><fmt:formatDate value="${item.date}" pattern="dd/MM/yyyy"/></td>
+                        <td class="centeredTd"><fmt:formatDate value="${item.date}" pattern="dd/MM/yyyy"/></td>
                         <td>
                             <c:forEach items="${item.venues}" var="venue" varStatus="status">
                                 <a href="/dc/report/venue/${venue}">${venue}</a><c:if test="${not status.last}">, </c:if>
                             </c:forEach>
                         </td>
-                        <td>${item.quality}</td>
-                        <td>${item.language}</td>
-                        <td>${item.subtitles}</td>
-                        <td>${item.format}</td>
+                        <td class="centeredTd">${item.quality}</td>
+                        <td class="centeredTd">${item.language}</td>
+                        <td class="centeredTd">${item.subtitles}</td>
+                        <td class="centeredTd">${item.format}</td>
                         <td>
                             <c:if test="${not empty item.imdb}">
                                 <a href="${item.imdb}">IMDB</a>
                             </c:if>
                         </td>
-                        <td><c:if test="${item.seenByFede}"><strong>x</strong></c:if></td>
-                        <td><c:if test="${item.seenByAnaMaria}"><strong>x</strong></c:if></td>
+                        <td class="centeredTd"><c:if test="${item.seenByFede}"><strong>☑</strong></c:if></td>
+                        <td class="centeredTd"><c:if test="${item.seenByAnaMaria}"><strong>☑</strong></c:if></td>
                         </tr>
                 </c:forEach>
             </tbody>

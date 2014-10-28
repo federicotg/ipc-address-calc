@@ -24,7 +24,7 @@ public enum Quality {
 
     HD1080("1080"), HD720("720"), LOSSLESS("PCM"), DVD480("DVD");
 
-    private String description;
+    private final String description;
 
     private Quality(String desc) {
         this.description = desc;

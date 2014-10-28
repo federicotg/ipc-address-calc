@@ -154,7 +154,10 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
             return this.opusTypes.get(0).compareTo(o.getOpusTypes().get(0));
         }
         if(!this.musicBy.equals(o.getMusicBy())){
-            return this.musicBy.get(0).compareTo(o.getMusicBy().get(0));
+            if(this.musicBy.isEmpty() || o.getMusicBy().isEmpty()){
+                return 0;
+            }
+            return  this.musicBy.get(0).compareTo(o.getMusicBy().get(0));
         }
         if(!this.title.equals(o.getTitle())){
             return this.title.compareTo(o.getTitle());
