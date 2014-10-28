@@ -139,15 +139,15 @@
 
 
         <c:if test="${not empty boxLabel}">
-            <ol>
+            <ul>
                 <c:forEach items="${boxLabel.contents}" var="medium">
-                    <li>
+                    <li>${medium.mediumName}
                         <c:forEach items="${medium.opus}" var="op" varStatus="status">
                             ${op}<c:if test="${not status.last}">, </c:if>
                         </c:forEach>
                     </li>
                 </c:forEach>
-            </ol>
+            </ul>
         </c:if>
 
     </body>
