@@ -104,7 +104,11 @@
                                 <a href="/dc/report/type/${type}">${type}</a><c:if test="${not status.last}">, </c:if>
                             </c:forEach>
                         </td>
-                        <td><a href="/dc/report/opus/${item.title}">${item.title}</a></td>
+                        <td>
+                            <c:forEach items="${item.titles}" var="title" varStatus="status">
+                                <a href="/dc/report/opus/${title}">${title}</a><c:if test="${not status.last}">, </c:if>
+                            </c:forEach>
+                        </td>
                         <td>
                             <c:forEach items="${item.musicBy}" var="composer" varStatus="status">
                                 <spring:url value="/dc/report/composer/${composer}" var="composerUri" htmlEscape="true"/>

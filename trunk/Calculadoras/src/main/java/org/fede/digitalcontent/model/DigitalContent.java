@@ -51,6 +51,7 @@ public class DigitalContent {
         private final Set<String> viewers;
         private final Set<String> imdb;
         private final Set<Pair<Integer, Integer>> discs;
+        private long bytes;
 
         public Builder(String title) {
             this.title = title;
@@ -191,6 +192,11 @@ public class DigitalContent {
             this.imdb.add(uri);
             return this;
         }
+        
+        public Builder bytes(long bytes){
+            this.bytes = bytes;
+            return this;
+        }
 
         public DigitalContent build() throws ParseException {
 
@@ -234,6 +240,7 @@ public class DigitalContent {
             dc.setFormat(formatType);
             dc.setQuality(quality);
             dc.setSubtitle(subtitle);
+            dc.setBytes(this.bytes);
             Set<Performance> set = new HashSet<>();
             set.add(perf);
             dc.setPerformances(set);
@@ -269,6 +276,8 @@ public class DigitalContent {
     private FormatType format;
 
     private Language subtitle;
+    
+    private long bytes;
 
     private DigitalContent() {
     }
@@ -442,4 +451,13 @@ public class DigitalContent {
         }
         return false;
     }
+
+    public long getBytes() {
+        return bytes;
+    }
+
+    public void setBytes(long bytes) {
+        this.bytes = bytes;
+    }
+    
 }
