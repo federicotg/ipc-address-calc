@@ -18,7 +18,6 @@ package org.fede.digitalcontent.dto;
 
 import java.util.Date;
 import java.util.List;
-import org.fede.util.Util;
 
 /**
  *
