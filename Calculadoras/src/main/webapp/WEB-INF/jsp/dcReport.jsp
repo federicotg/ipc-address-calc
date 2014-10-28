@@ -133,18 +133,18 @@
             </tbody>
         </table>
 
-        
+
         <c:if test="${not empty boxLabel}">
             <ol>
-            <c:forEach items="${boxLabel.contents}" var="medium">
-                <li>
-                    <c:forEach items="${medium.opus}" var="op" varStatus="status">
-                        ${op}<c:if test="${not status.last}">, </c:if>
-                    </c:forEach>
-                </li>
-            </c:forEach>
+                <c:forEach items="${boxLabel.contents}" var="medium">
+                    <li>
+                        <c:forEach items="${medium.opus}" var="op" varStatus="status">
+                            ${op}<c:if test="${not status.last}">, </c:if>
+                        </c:forEach>
+                    </li>
+                </c:forEach>
             </ol>
         </c:if>
-        
+
     </body>
 </html>
