@@ -52,7 +52,7 @@ public class DigitalContent {
         private final Set<String> viewers;
         private final Set<String> imdb;
         private final Set<Pair<Integer, Integer>> discs;
-        private long bytes;
+        //private long bytes;
 
         public Builder(String title) {
             this.title = title;
@@ -194,10 +194,10 @@ public class DigitalContent {
             return this;
         }
         
-        public Builder bytes(long bytes){
+       /* public Builder bytes(long bytes){
             this.bytes = bytes;
             return this;
-        }
+        }*/
 
         public DigitalContent build() throws ParseException {
             Opus opus = OPUS.findById(new Pair<>(this.title, this.opusType));
@@ -231,7 +231,7 @@ public class DigitalContent {
             dc.setFormat(formatType);
             dc.setQuality(quality);
             dc.setSubtitle(subtitle);
-            dc.setBytes(this.bytes);
+          //  dc.setBytes(this.bytes);
             Set<Performance> set = new HashSet<>();
             set.add(perf);
             dc.setPerformances(set);
@@ -264,7 +264,7 @@ public class DigitalContent {
 
     private Language subtitle;
     
-    private long bytes;
+   // private long bytes;
 
     private DigitalContent() {
     }
@@ -439,12 +439,12 @@ public class DigitalContent {
         return false;
     }
 
-    public long getBytes() {
+   /* public long getBytes() {
         return bytes;
     }
 
     public void setBytes(long bytes) {
         this.bytes = bytes;
-    }
+    }*/
     
 }
