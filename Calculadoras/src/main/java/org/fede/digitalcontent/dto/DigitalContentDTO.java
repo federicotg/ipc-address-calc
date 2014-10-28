@@ -48,10 +48,6 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
         this.boxes = boxes;
     }
     
-    public String getBox(){
-        return Util.list(this.boxes);
-    }
-
     public String getTitle() {
         return title;
     }
