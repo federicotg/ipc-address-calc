@@ -16,6 +16,7 @@
  */
 package org.fede.digitalcontent.dto;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -24,7 +25,7 @@ import java.util.Set;
  */
 public class MediumContentDTO implements Comparable<MediumContentDTO> {
     private String mediumName;
-    private Set<String> opus;
+    private Set<String> opus = new HashSet<>();
 
     public String getMediumName() {
         return mediumName;
