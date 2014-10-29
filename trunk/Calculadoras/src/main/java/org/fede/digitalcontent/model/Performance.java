@@ -16,6 +16,9 @@
  */
 package org.fede.digitalcontent.model;
 
+import java.text.DateFormat;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
@@ -26,6 +29,8 @@ import java.util.Set;
  * @author fede
  */
 public class Performance {
+
+    private static final NumberFormat NF = NumberFormat.getIntegerInstance();
 
     private Opus opus;
 
@@ -168,5 +173,17 @@ public class Performance {
             }
         }
         return false;
+    }
+
+    public String getDetailedTitle() {
+        DateFormat yearFormat = new SimpleDateFormat("yyyy");
+        StringBuilder sb = new StringBuilder(30);
+        sb.append(this.getTitle())
+                .append(" @ ")
+                .append(this.getVenue().getName())
+                .append(" (")
+                .append(yearFormat.format(this.getDate()))
+                .append(")");
+        return sb.toString();
     }
 }

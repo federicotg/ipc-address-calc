@@ -33,35 +33,6 @@
         <link rel="stylesheet" type="text/css" href="/styles/style.css" />
         <style type="text/css">
 
-            thead{
-                text-align: center;
-            }
-            th{
-                border-bottom-color: black;
-                border-bottom-style: solid;
-                border-bottom-width: 1px;
-                border-left-color: black;
-                border-left-style: solid;
-                border-left-width: 1px;
-                padding:1em;
-            }
-            table {
-                border-top-style: solid;
-                border-top-color: black;
-                border-top-width: 1px;
-                font-size: 90%;
-                border-spacing: 0px;
-            }
-            tbody td {
-                padding:0.4em;
-            }
-            tbody tr:nth-child(even) {
-                background-color: white;
-            }
-            tbody tr:hover {
-                background-color: cornsilk;
-            }
-
             .centeredTd{
                 text-align: center;
             }
@@ -136,19 +107,5 @@
                 </c:forEach>
             </tbody>
         </table>
-
-
-        <c:if test="${not empty boxLabel}">
-            <ul>
-                <c:forEach items="${boxLabel.contents}" var="medium">
-                    <li>${medium.mediumName}
-                        <c:forEach items="${medium.opus}" var="op" varStatus="status">
-                            ${op}<c:if test="${not status.last}">, </c:if>
-                        </c:forEach>
-                    </li>
-                </c:forEach>
-            </ul>
-        </c:if>
-
     </body>
 </html>

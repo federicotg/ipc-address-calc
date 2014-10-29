@@ -39,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.fede.digitalcontent.model.Language;
 import org.fede.digitalcontent.model.Opus;
 import org.fede.digitalcontent.model.OpusType;
+import org.fede.digitalcontent.model.Performance;
 import org.fede.digitalcontent.model.Repository;
 import org.fede.digitalcontent.model.StorageMedium;
 import org.fede.digitalcontent.model.Venue;
@@ -61,10 +62,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         this.initBalletVideos();
         this.initOperaVideos();
         this.initMisc();
-//        this.initConcerts();
 
     }
-    
+
     private void initBallets() {
         new Opus.Builder("Giselle", "Le Corsaire").ballet().by("Adolphe Adam").build();
         new Opus.Builder("Raymonda").ballet().by("Alexander Glazunov").build();
@@ -136,11 +136,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Ciudad Prohibida").city("Beijing").country(Country.CHINA).build();
 
     }
-    
-    private void initMisc() throws ParseException{
-     new Opus.Builder("Wagner's Dream")
+
+    private void initMisc() throws ParseException {
+        new Opus.Builder("Wagner's Dream")
                 .english().type(OpusType.DOCUMENTARY).build();
-     new DigitalContent.Builder("Wagner's Dream").type(OpusType.DOCUMENTARY).atTheMet().on("01/01/2012").dvd().mkv()
+        new DigitalContent.Builder("Wagner's Dream").type(OpusType.DOCUMENTARY).atTheMet().on("01/01/2012").dvd().mkv()
                 .discBox(8, 11)
                 .build();
 
@@ -387,7 +387,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La fille mal gardée").ballet().atRoh().on("16/05/2012").hd720().mkv().discBox(8, 3)
                 .seenByFede()
                 .build();
-        
+
         new DigitalContent.Builder("Legend of Love").ballet().atBolshoi().on("26/10/2014").fullHD().mkv().discBox(0, 0).build();
 
     }
@@ -835,14 +835,19 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @Override
     public BoxLabelDTO getBoxLabel(String boxName) {
+        return this.getBoxLabel(Repository.STORAGEBOX.findById(boxName));
+    }
+
+    private BoxLabelDTO getBoxLabel(StorageBox box) {
         BoxLabelDTO dto = new BoxLabelDTO();
-        dto.setBoxName(boxName);
-        StorageBox box = Repository.STORAGEBOX.findById(boxName);
-        for(StorageMedium medium : box.getMedia()){
+        dto.setBoxName(box.getName());
+        for (StorageMedium medium : box.getMedia()) {
             MediumContentDTO mDto = new MediumContentDTO();
             mDto.setMediumName(medium.getName());
-            for(DigitalContent dc : medium.getContents()){
-                mDto.addOpusNames(dc.getDetailedTitles());
+            for (DigitalContent dc : medium.getContents()) {
+                for (Performance p : dc.getPerformances()) {
+                    mDto.addOpus(p.getDetailedTitle(), p.getOpusType().name());
+                }
             }
             dto.addContent(mDto);
         }
@@ -850,4 +855,14 @@ public class LazyDigitalContentService implements DigitalContentService {
         return dto;
     }
 
+    @Override
+    public List<BoxLabelDTO> getEveryBoxLabel() {
+        Set<StorageBox> boxes = Repository.STORAGEBOX.findAll();
+        List<BoxLabelDTO> list = new ArrayList<>(boxes.size());
+        for (StorageBox box : boxes) {
+            list.add(this.getBoxLabel(box));
+        }
+        Collections.sort(list);
+        return list;
+    }
 }

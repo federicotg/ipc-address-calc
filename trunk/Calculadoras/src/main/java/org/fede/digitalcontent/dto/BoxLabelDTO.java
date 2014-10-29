@@ -24,7 +24,7 @@ import java.util.List;
  *
  * @author fede
  */
-public class BoxLabelDTO {
+public class BoxLabelDTO implements Comparable<BoxLabelDTO> {
 
     private String boxName;
     private List<MediumContentDTO> contents = new ArrayList<>();
@@ -51,6 +51,11 @@ public class BoxLabelDTO {
     
     public void doneContent(){
         Collections.sort(this.contents);
+    }
+
+    @Override
+    public int compareTo(BoxLabelDTO o) {
+        return this.getBoxName().compareTo(o.getBoxName());
     }
 
 }

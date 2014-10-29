@@ -36,4 +36,5 @@ public interface DigitalContentService {
     List<DigitalContentDTO> getVenueReport(String venueName);
     List<DigitalContentDTO> getOpusTypeReport(String name);
     BoxLabelDTO getBoxLabel(String boxName);
+    List<BoxLabelDTO> getEveryBoxLabel();
 }

@@ -34,6 +34,7 @@
         <h1>Catálogo</h1>
         <ul>
             <li><a href="report">Reporte</a></li>
+            <li><a href="boxes">Cajas</a></li>
         </ul>
     </body>
 </html>
