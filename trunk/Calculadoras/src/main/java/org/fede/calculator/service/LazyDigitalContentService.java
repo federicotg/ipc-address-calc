@@ -475,7 +475,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 4)
                 .discBox(11, 15)
                 .build();
-        new DigitalContent.Builder("La Traviata").opera().atGlyndebourne().on("10/08/2014").fullHD().engSubs().mkv().seenByFede().discBox(0, 0).build();
+        new DigitalContent.Builder("La Traviata").opera().atGlyndebourne().on("10/08/2014").fullHD().engSubs().mkv().seenByFede().discBox(12, 15).build();
         new DigitalContent.Builder("Macbeth").opera().atParis().on("04/04/2009").fullHD().spaSubs().mkv().discBox(9, 15).imdb("http://www.imdb.com/title/tt2705154/").build();
         new DigitalContent.Builder("Macbeth").opera().atTheMet().on("11/10/2014").fullHD().spaSubs().mkv().discBox(0, 0).build();
         new DigitalContent.Builder("Nabucco").opera().atRoh().on("26/04/2013").fullHD().spaSubs().mkv().seenByFede()
@@ -536,7 +536,10 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(1, 12)
                 .discBox(2, 12)
                 .build();
-        new DigitalContent.Builder("Theodora").oratorio().atGlyndebourne().on("01/01/1996").dvd().engSubs().mkv().discBox(0, 0).imdb("http://www.imdb.com/title/tt0253802/").build();
+        new DigitalContent.Builder("Theodora").oratorio().atGlyndebourne().on("01/01/1996").dvd().engSubs().mkv()
+                .discBox(12, 15)
+                .imdb("http://www.imdb.com/title/tt0253802/")
+                .build();
         new DigitalContent.Builder("Les Troyens").opera().atTheMet().on("05/01/2013").fullHD().engSubs().mkv()
                 .discBox(11, 11)
                 .discBox(5, 12)
@@ -605,7 +608,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         new DigitalContent.Builder("La Bohème").opera().atRoh().on("15/01/2013").fullHD().spaSubs().mkv().discBox(3, 4).build();
         new DigitalContent.Builder("La Fanciulla del West").opera().atTheMet().on("08/01/2011").dvd().spaSubs().iso().seenByFede().discBox(0, 0).imdb("http://www.imdb.com/title/tt1736154/").build();
-        new DigitalContent.Builder("La Fanciulla del West").opera().atParis().on("10/02/2014").fullHD().spaSubs().mkv().discBox(11, 15).discBox(0, 0).build();
+        new DigitalContent.Builder("La Fanciulla del West").opera().atParis().on("10/02/2014").fullHD().spaSubs().mkv().discBox(11, 15).discBox(12, 15).build();
         new DigitalContent.Builder("La Rondine").opera().atTheMet().on("01/01/2009").dvd().spaSubs().iso().seenByFede().discBox(8, 8).imdb("http://www.imdb.com/title/tt1347918/").build();
         new DigitalContent.Builder("Madama Butterfly").opera().at("Arena di Verona").on("01/01/2004").dvd().spaSubs().iso().discBox(1, 1).build();
         new DigitalContent.Builder("Manon Lescaut").opera().atRoh().on("01/01/1983").dvd().spaSubs().iso().discBox(2, 15).imdb("http://www.imdb.com/title/tt0254549/").build();
