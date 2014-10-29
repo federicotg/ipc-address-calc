@@ -16,7 +16,7 @@
  */
 package org.fede.digitalcontent.dto;
 
-import java.util.Set;
+import java.util.Collection;
 import java.util.TreeSet;
 
 /**
@@ -26,7 +26,7 @@ import java.util.TreeSet;
 public class MediumContentDTO implements Comparable<MediumContentDTO> {
 
     private String mediumName;
-    private Set<OpusDTO> opus = new TreeSet<>();
+    private Collection<OpusDTO> opus = new TreeSet<>();
 
     public String getMediumName() {
         return mediumName;
@@ -36,11 +36,11 @@ public class MediumContentDTO implements Comparable<MediumContentDTO> {
         this.mediumName = mediumName;
     }
 
-    public Set<OpusDTO> getOpus() {
+    public Collection<OpusDTO> getOpus() {
         return opus;
     }
 
-    public void setOpus(Set<OpusDTO> opus) {
+    public void setOpus(Collection<OpusDTO> opus) {
         this.opus = opus;
     }
 

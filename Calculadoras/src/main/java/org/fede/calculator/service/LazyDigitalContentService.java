@@ -842,10 +842,13 @@ public class LazyDigitalContentService implements DigitalContentService {
         BoxLabelDTO dto = new BoxLabelDTO();
         dto.setBoxName(box.getName());
         for (StorageMedium medium : box.getMedia()) {
-            MediumContentDTO mDto = new MediumContentDTO();
+            final MediumContentDTO mDto = new MediumContentDTO();
             mDto.setMediumName(medium.getName());
             for (DigitalContent dc : medium.getContents()) {
                 for (Performance p : dc.getPerformances()) {
+                    if(box.getName().equals("00")){
+                        System.out.println(p.getDetailedTitle());
+                    }
                     mDto.addOpus(p.getDetailedTitle(), p.getOpusType().name());
                 }
             }
