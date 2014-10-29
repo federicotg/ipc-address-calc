@@ -17,7 +17,6 @@
 package org.fede.digitalcontent.model;
 
 import java.text.DateFormat;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -29,8 +28,6 @@ import java.util.Set;
  * @author fede
  */
 public class Performance {
-
-    private static final NumberFormat NF = NumberFormat.getIntegerInstance();
 
     private Opus opus;
 
