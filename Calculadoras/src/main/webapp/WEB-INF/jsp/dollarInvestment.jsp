@@ -32,45 +32,6 @@
         <link rel="stylesheet" type="text/css" href="/styles/style.css" />
         <style type="text/css">
 
-            thead{
-                text-align: center;
-            }
-            
-            thead th:last-child{
-                border-right-color: black;
-                border-right-style: solid;
-                border-right-width: 1px;
-            }
-            th{
-                border-bottom-color: black;
-                border-bottom-style: solid;
-                border-bottom-width: 1px;
-                border-left-color: black;
-                border-left-style: solid;
-                border-left-width: 1px;
-                padding:1em;
-            }
-            table {
-                border-top-style: solid;
-                border-top-color: black;
-                border-top-width: 1px;
-                font-size: 90%;
-            }
-            tbody td {
-                /*border-bottom-color: black;
-                border-bottom-style: solid;
-                border-bottom-width: 1px;*/
-                padding:0.4em;
-            }
-            table{
-                border-spacing: 0px;
-            }
-            tbody tr:nth-child(even) {
-                background-color: white;
-            }
-            tbody tr:hover {
-                background-color: cornsilk;
-            }
             #chart{
 
                 height: 800px;

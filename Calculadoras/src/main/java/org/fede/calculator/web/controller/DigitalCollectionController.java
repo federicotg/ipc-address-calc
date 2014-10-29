@@ -75,4 +75,10 @@ public class DigitalCollectionController {
         return new ModelAndView("dcReport", "list", this.dcService.getVenueReport(name));
     }
 
+    @RequestMapping(value = "/boxes", method = RequestMethod.GET)
+    public ModelAndView boxes() {
+        return new ModelAndView("boxes", "boxes", this.dcService.getEveryBoxLabel());
+        
+    }
+    
 }

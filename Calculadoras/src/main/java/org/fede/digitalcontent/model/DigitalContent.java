@@ -353,17 +353,9 @@ public class DigitalContent {
     }
 
     public Set<String> getDetailedTitles() {
-        DateFormat yearFormat = new SimpleDateFormat("yyyy");
         Set<String> titles = new HashSet<>();
         for (Performance p : this.performances) {
-            StringBuilder sb = new StringBuilder(30);
-            sb.append(p.getTitle())
-                    .append(" @ ")
-                    .append(p.getVenue().getName())
-                    .append(" (")
-                    .append(yearFormat.format(p.getDate()))
-                    .append(")");
-            titles.add(sb.toString());
+            titles.add(p.getDetailedTitle());
         }
         return titles;
     }
