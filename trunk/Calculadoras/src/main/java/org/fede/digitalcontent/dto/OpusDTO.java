@@ -52,7 +52,7 @@ public class OpusDTO implements Comparable<OpusDTO> {
 
     @Override
     public int compareTo(OpusDTO o) {
-        if(this.type.equals(o.getType())){
+        if(!this.type.equals(o.getType())){
             return this.type.compareTo(o.getType());
         }
         return this.name.compareTo(o.getName());
