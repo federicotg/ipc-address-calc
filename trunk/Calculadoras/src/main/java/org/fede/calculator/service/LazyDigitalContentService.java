@@ -607,7 +607,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(9, 1)
                 .build();
         new DigitalContent.Builder("La Bohème").opera().atRoh().on("15/01/2013").fullHD().spaSubs().mkv().discBox(3, 4).build();
-        new DigitalContent.Builder("La Fanciulla del West").opera().atTheMet().on("08/01/2011").dvd().spaSubs().iso().seenByFede().discBox(0, 0).imdb("http://www.imdb.com/title/tt1736154/").build();
         new DigitalContent.Builder("La Fanciulla del West").opera().atParis().on("10/02/2014").fullHD().spaSubs().mkv().discBox(11, 15).discBox(12, 15).build();
         new DigitalContent.Builder("La Rondine").opera().atTheMet().on("01/01/2009").dvd().spaSubs().iso().seenByFede().discBox(8, 8).imdb("http://www.imdb.com/title/tt1347918/").build();
         new DigitalContent.Builder("Madama Butterfly").opera().at("Arena di Verona").on("01/01/2004").dvd().spaSubs().iso().discBox(1, 1).build();
