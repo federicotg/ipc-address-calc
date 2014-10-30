@@ -713,6 +713,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 12)
                 .discBox(10, 12)
                 .imdb("http://www.imdb.com/title/tt2777536/").build();
+        
+        new DigitalContent.Builder("I Due Foscari").opera().atRoh().on("27/10/2014").fullHD().spaSubs().mkv()
+                .discBox(0, 0).build();
     }
 
     @Override
@@ -765,7 +768,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         return dto;
     }
 
-    public static List<String> toString(Collection<?> col) {
+    private static List<String> toString(Collection<?> col) {
         List<String> answer = new ArrayList<>(col.size());
 
         for (Object o : col) {
