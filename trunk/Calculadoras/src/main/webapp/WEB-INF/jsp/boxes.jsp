@@ -65,7 +65,7 @@
                 <c:forEach items="${boxLabel.contents}" var="medium">
                     <li>${medium.mediumName}
                         <c:forEach items="${medium.opus}" var="op" varStatus="status">
-                            <span class="opusSpan ${op.type}">${op.name}</span><c:if test="${not status.last}">, </c:if>
+                            <span class="opusSpan ${op.type}">${op.name}</span><c:if test="${not status.last}"> </c:if>
                         </c:forEach>
                     </li>
                 </c:forEach>
