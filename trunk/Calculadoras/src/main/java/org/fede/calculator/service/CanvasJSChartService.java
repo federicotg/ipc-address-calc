@@ -24,6 +24,7 @@ import java.util.Calendar;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.annotation.Resource;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
@@ -412,7 +413,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
         final MoneyAmountSeries historicGold = USD_INFLATION.adjust(USD_XAU.exchange(oneTroyOunce, usd), todayYear, todayMonth);
 
-        DateFormat df = new SimpleDateFormat("MMM/YYYY");
+        DateFormat df = new SimpleDateFormat("MMM/YYYY", Locale.forLanguageTag("es-AR"));
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO("Onza Troy en USD de " + df.format(cal.getTime()));
         dto.setTitle(title);
