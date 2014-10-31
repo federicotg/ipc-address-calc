@@ -98,7 +98,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Teatro Comunale di Modena").city("Módena").italy().build();
         new Venue.Builder("Teatro Rossini").city("Pesaro").italy().build();
         new Venue.Builder("Arena di Verona").city("Verona").italy().build();
-
         new Venue.Builder("Waldbühne").city("Berlín").germany().build();
         new Venue.Builder("Festspielhaus Baden-Baden").city("Baden-Baden").germany().build();
         new Venue.Builder("Bayerische Staatsoper").city("Munich").germany().build();
@@ -106,33 +105,23 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Berlin State Opera").city("Berlín").germany().build();
         new Venue.Builder("Anhaltisches Theater").city("Dessau").germany().build();
         new Venue.Builder("Staatsoper Stuttgart").city("Stuttgart").germany().build();
-
         new Venue.Builder("Palacio de las Artes Reina Sofía").city("Valencia").spain().build();
         new Venue.Builder("Gran Teatro del Liceo").city("Barcelona").spain().build();
         new Venue.Builder("Teatro Real").city("Madrid").spain().build();
-
         new Venue.Builder("Bolshói").city("Moscú").russia().build();
         new Venue.Builder("Mariinsky").city("San Petersburgo").russia().build();
-
         new Venue.Builder("ROH").city("Londres").uk().build();
         new Venue.Builder("King's College").city("Cambridge").uk().build();
         new Venue.Builder("Glyndebourne").city("Glyndebourne").uk().build();
-
         new Venue.Builder("The Met").city("New York").usa().build();
         new Venue.Builder("War Memorial Opera House").city("San Francisco").usa().build();
-
         new Venue.Builder("Musikverein").city("Viena").country(Country.AUSTRIA).build();
         new Venue.Builder("Wiener Staatsoper").city("Viena").country(Country.AUSTRIA).build();
         new Venue.Builder("Großes Festspielhaus").city("Salzburgo").country(Country.AUSTRIA).build();
-
         new Venue.Builder("ONP").city("Paris").country(FRANCE).build();
-
         new Venue.Builder("Royal Danish Theatre").city("Copenhagen").country(DENMARK).build();
-
         new Venue.Builder("Sydney Opera House").city("Sydney").australia().build();
-
         new Venue.Builder("Ópera de Zürich").city("Zürich").country(SWITZERLAND).build();
-
         new Venue.Builder("Ciudad Prohibida").city("Beijing").country(Country.CHINA).build();
 
     }
@@ -277,13 +266,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Le Palais de Cristal (Symphony in C)").ballet().atParis().on("06/03/2014").fullHD().mkv()
                 .discBox(6, 4)
                 .build();
-
         new DigitalContent.Builder("La Esmeralda").ballet().atBolshoi().on("09/10/2011").hd720().mkv()
                 .discBox(2, 11)
                 .discBox(3, 11)
                 .imdb("http://www.imdb.com/title/tt2798094/")
                 .build();
-
         new DigitalContent.Builder("La Fille du Pharaon").ballet().atBolshoi().on("24/11/2012").fullHD().mkv()
                 .discBox(10, 11)
                 .discBox(9, 12)
@@ -325,7 +312,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Lost Illusions").ballet().atBolshoi().on("20/10/2013").fullHD().mkv().discBox(4, 15)
                 .seenByAnaMaria()
                 .build();
-
         new DigitalContent.Builder("Don Quichotte").ballet().atParis().on("18/12/2012").fullHD().mkv()
                 .discBox(1, 11)
                 .discBox(2, 11)
@@ -334,7 +320,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Don Quichotte").ballet().atRoh().on("16/10/2013").fullHD().mkv().discBox(6, 15)
                 .seenByAnaMaria()
                 .build();
-
         new DigitalContent.Builder("La Bayadère").ballet().atParis().on("22/03/2012").hd720().mkv()
                 .discBox(2, 11)
                 .discBox(3, 11)
@@ -342,7 +327,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Bayadère").ballet().atBolshoi().on("27/01/2013").fullHD().mkv()
                 .discBox(11, 14)
                 .seenByAnaMaria().build();
-
         new DigitalContent.Builder("Notre Dame de Paris").ballet().atBolshoi().on("14/02/2013").fullHD().mkv()
                 .discBox(2, 13)
                 .build();
@@ -370,7 +354,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByAnaMaria()
                 .build();
         new DigitalContent.Builder("The Nutcracker").ballet().atRoh().on("12/12/2013").fullHD().mkv().discBox(5, 15).build();
-
         new DigitalContent.Builder("The Sleeping Beauty").ballet().atBolshoi().on("20/11/2011").hd720().mkv().discBox(4, 5)
                 .imdb("http://www.imdb.com/title/tt2798186/")
                 .build();
@@ -387,7 +370,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La fille mal gardée").ballet().atRoh().on("16/05/2012").hd720().mkv().discBox(8, 3)
                 .seenByFede()
                 .build();
-
         new DigitalContent.Builder("Legend of Love").ballet().atBolshoi().on("26/10/2014").fullHD().mkv().discBox(0, 0).build();
 
     }
@@ -521,12 +503,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Messiah").oratorio().at("Ópera de Zürich").on("01/01/2009").fullHD().spaSubs().mkv().seenByFede()
                 .discBox(8, 15)
                 .imdb("http://www.imdb.com/title/tt1414536/").build();
-
         new DigitalContent.Builder("Messiah").oratorio().at("King's College").on("01/01/2009").dvd().spaSubs().iso().seenByFede()
                 .discBox(3, 12)
                 .discBox(7, 11)
                 .build();
-
         new DigitalContent.Builder("Rinaldo").opera().at("Bayerische Staatsoper").on("01/01/2001").dvd().spaSubs().iso()
                 .discBox(7, 6)
                 .discBox(8, 6)
@@ -712,7 +692,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 12)
                 .discBox(10, 12)
                 .imdb("http://www.imdb.com/title/tt2777536/").build();
-        
         new DigitalContent.Builder("I Due Foscari").opera().atRoh().on("27/10/2014").fullHD().spaSubs().mkv()
                 .discBox(0, 0).build();
     }
@@ -769,11 +748,9 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     private static List<String> toString(Collection<?> col) {
         List<String> answer = new ArrayList<>(col.size());
-
         for (Object o : col) {
             answer.add(o.toString());
         }
-
         return answer;
     }
 
@@ -796,7 +773,6 @@ public class LazyDigitalContentService implements DigitalContentService {
     @Override
     public List<DigitalContentDTO> getComposerReport(final String composerName) {
         return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
-
             @Override
             public boolean test(DigitalContent dc) {
                 return dc.includesComposer(composerName);
@@ -807,7 +783,6 @@ public class LazyDigitalContentService implements DigitalContentService {
     @Override
     public List<DigitalContentDTO> getOpusReport(final String opusName) {
         return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
-
             @Override
             public boolean test(DigitalContent dc) {
                 return dc.includesOpus(opusName);
@@ -818,7 +793,6 @@ public class LazyDigitalContentService implements DigitalContentService {
     @Override
     public List<DigitalContentDTO> getVenueReport(final String venueName) {
         return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
-
             @Override
             public boolean test(DigitalContent dc) {
                 return dc.includesVenue(venueName);
@@ -851,9 +825,6 @@ public class LazyDigitalContentService implements DigitalContentService {
             mDto.setMediumName(medium.getName());
             for (DigitalContent dc : medium.getContents()) {
                 for (Performance p : dc.getPerformances()) {
-                    if(box.getName().equals("00")){
-                        System.out.println(p.getDetailedTitle());
-                    }
                     mDto.addOpus(p.getDetailedTitle(), p.getOpusType().name());
                 }
             }
