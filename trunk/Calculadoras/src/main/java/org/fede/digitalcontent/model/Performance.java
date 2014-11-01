@@ -63,7 +63,7 @@ public class Performance {
         this.date = date;
     }
 
-    private Set<Role> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 
@@ -107,7 +107,7 @@ public class Performance {
         }
         return null;
     }
-
+    
     public Language getLanguage() {
         return this.opus.getLanguage();
     }

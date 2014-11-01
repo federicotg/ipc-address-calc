@@ -18,24 +18,19 @@
 --%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-        <link rel="icon" 
-              type="image/png" 
-              href="/images/favicon.png" />
-        <link rel="stylesheet" type="text/css" href="/styles/style.css" />
-        <title>Catálogo</title>
-    </head>
-    <body>
-        <%@include file="../jspf/menu.jspf" %>
-        <h1>Catálogo</h1>
-        <ul>
-            <li><a href="report">Reporte</a></li>
-            <li><a href="boxes">Cajas</a></li>
-            <li><a href="venueMap">Lugares</a></li>
-        </ul>
-    </body>
-</html>
+<div id="content">
+    <h1>${detail.name}</h1>
+    <p>Más información en <a href="${detail.wikipedia}">Wikipedia</a></p>
+    <ul>
+        <c:forEach items="${detail.performances}" var="perf">
+            <c:choose >
+                <c:when test="${not empty perf.imdb}">
+                    <li><a href="${perf.imdb}">${perf.opusTitle} ${perf.year}</a></li>
+                    </c:when>
+                    <c:otherwise>
+                    <li>${perf.opusTitle} ${perf.year}</li>
+                    </c:otherwise>
+                </c:choose>
+            </c:forEach>
+    </ul>
+</div>

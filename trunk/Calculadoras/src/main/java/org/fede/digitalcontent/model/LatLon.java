@@ -17,37 +17,33 @@
 package org.fede.digitalcontent.model;
 
 /**
- * City where the actual concert, play or performance took place.
+ *
  * @author fede
  */
+public class LatLon {
 
-public class City {
+    private Double lat;
+    private Double lon;
 
-    private String name;
-
-    private Country country;
-    
-    public City(String name, Country country) {
-        this.name = name;
-        this.country = country;
+    public LatLon(Double lat, Double lon) {
+        this.lat = lat;
+        this.lon = lon;
     }
 
-    public Country getCountry() {
-        return country;
+    public Double getLat() {
+        return lat;
     }
 
-    public void setCountry(Country country) {
-        this.country = country;
+    public void setLat(Double lat) {
+        this.lat = lat;
     }
 
-    public String getName() {
-        return name;
+    public Double getLon() {
+        return lon;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setLon(Double lon) {
+        this.lon = lon;
     }
-    public String getCountryName(){
-        return this.country.name();
-    }
+
 }

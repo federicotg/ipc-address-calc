@@ -19,6 +19,8 @@ package org.fede.calculator.service;
 import java.util.List;
 import org.fede.digitalcontent.dto.BoxLabelDTO;
 import org.fede.digitalcontent.dto.DigitalContentDTO;
+import org.fede.digitalcontent.dto.VenueDTO;
+import org.fede.digitalcontent.dto.VenueDetailDTO;
 import org.fede.digitalcontent.model.StorageBox;
 
 /**
@@ -37,4 +39,7 @@ public interface DigitalContentService {
     List<DigitalContentDTO> getOpusTypeReport(String name);
     BoxLabelDTO getBoxLabel(String boxName);
     List<BoxLabelDTO> getEveryBoxLabel();
+    List<VenueDTO> getVenues();
+    VenueDetailDTO getVenueDetail(String venueName);
+    
 }

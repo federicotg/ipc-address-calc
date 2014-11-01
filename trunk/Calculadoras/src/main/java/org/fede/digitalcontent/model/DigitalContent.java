@@ -79,7 +79,7 @@ public class DigitalContent {
         }
 
         public Builder atParis() {
-            this.venue = "ONP";
+            this.venue = "Palais Garnier";
             return this;
         }
 
