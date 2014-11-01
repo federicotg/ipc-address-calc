@@ -28,7 +28,7 @@
         <link rel="icon" 
               type="image/png" 
               href="/images/favicon.png" />
-        <title>Inversión USD</title>
+        <title>Ahorros</title>
         <link rel="stylesheet" type="text/css" href="/styles/style.css" />
         <style type="text/css">
 

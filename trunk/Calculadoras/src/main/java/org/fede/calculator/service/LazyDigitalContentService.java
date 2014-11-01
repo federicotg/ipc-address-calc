@@ -438,7 +438,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Forza del Destino").opera().at("Teatro Comunale di Firenze").on("01/01/2007").dvd().spaSubs().iso()
                 .discBox(12, 14)
                 .imdb("http://www.imdb.com/title/tt2196658/").build();
-        new DigitalContent.Builder("La Traviata").opera().at("Großes Festspielhaus").on("27/06/1905").dvd().spaSubs().iso().seenByFede().discBox(2, 4).imdb("http://www.imdb.com/title/tt0475165/").build();
+        new DigitalContent.Builder("La Traviata").opera().at("Großes Festspielhaus").on("01/01/2005").dvd().spaSubs().iso().seenByFede().discBox(2, 4).imdb("http://www.imdb.com/title/tt0475165/").build();
         new DigitalContent.Builder("La Traviata").opera().at("alla Scala").on("01/01/2007").hd720().mkv()
                 .discBox(3, 14)
                 .imdb("http://www.imdb.com/title/tt2316799/").build();
@@ -485,7 +485,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 14)
                 .discBox(9, 14)
                 .imdb("http://www.imdb.com/title/tt2651146/").build();
-        new DigitalContent.Builder("Alcina").opera().at("Staatsoper Stuttgart").on("21/06/1905").fullHD().spaSubs().mkv().discBox(8, 4).imdb("http://www.imdb.com/title/tt0354364/").build();
+        new DigitalContent.Builder("Alcina").opera().at("Staatsoper Stuttgart").on("01/01/1999").fullHD().spaSubs().mkv().discBox(8, 4).imdb("http://www.imdb.com/title/tt0354364/").build();
         new DigitalContent.Builder("Giulio Cesare").opera().atParis().on("01/01/2011").dvd().spaSubs().iso()
                 .discBox(6, 13)
                 .discBox(7, 13)
@@ -581,14 +581,14 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Rondine").opera().atTheMet().on("01/01/2009").dvd().spaSubs().iso().seenByFede().discBox(8, 8).imdb("http://www.imdb.com/title/tt1347918/").build();
         new DigitalContent.Builder("Madama Butterfly").opera().at("Arena di Verona").on("01/01/2004").dvd().spaSubs().iso().discBox(1, 1).build();
         new DigitalContent.Builder("Manon Lescaut").opera().atRoh().on("01/01/1983").dvd().spaSubs().iso().discBox(2, 15).imdb("http://www.imdb.com/title/tt0254549/").build();
-        new DigitalContent.Builder("Tosca").opera().at("alla Scala").on("22/06/1905").dvd().spaSubs().iso().discBox(6, 2).imdb("http://www.imdb.com/title/tt2385259/").build();
+        new DigitalContent.Builder("Tosca").opera().at("alla Scala").on("01/01/2000").dvd().spaSubs().iso().discBox(6, 2).imdb("http://www.imdb.com/title/tt2385259/").build();
         new DigitalContent.Builder("Tosca").opera().atRoh().on("17/07/2011").fullHD().engSubs().mkv().seenByFede().discBox(3, 8).build();
         new DigitalContent.Builder("Tosca").opera().atTheMet().on("09/11/2013").fullHD().engSubs().mkv().discBox(5, 15).imdb("http://www.imdb.com/title/tt3315900/").build();
         new DigitalContent.Builder("Tosca").opera().atParis().on("16/10/2014").fullHD().spaSubs().mkv().discBox(0, 0).build();
-        new DigitalContent.Builder("Turandot").opera().atTheMet().on("09/06/1905").fullHD().spaSubs().mkv()
+        new DigitalContent.Builder("Turandot").opera().atTheMet().on("01/01/1987").fullHD().spaSubs().mkv()
                 .discBox(3, 13)
                 .imdb("http://www.imdb.com/title/tt0220822/").build();
-        new DigitalContent.Builder("Turandot").opera().at("Ciudad Prohibida").on("21/06/1905").fullHD().spaSubs().mkv().discBox(5, 2).imdb("http://www.imdb.com/title/tt0205483/").build();
+        new DigitalContent.Builder("Turandot").opera().at("Ciudad Prohibida").on("01/01/1999").fullHD().spaSubs().mkv().discBox(5, 2).imdb("http://www.imdb.com/title/tt0205483/").build();
         new DigitalContent.Builder("Hippolyte et Aricie").opera().atGlyndebourne().on("29/06/2013").fullHD().engSubs().mkv().discBox(1, 15).build();
         new DigitalContent.Builder("L'enfant et les sortilèges").opera().atGlyndebourne().on("19/08/2012").fullHD().engSubs().mkv().seenByFede().discBox(3, 6).build();
         new DigitalContent.Builder("L'heure espagnole").opera().atGlyndebourne().on("19/08/2012").fullHD().engSubs().mkv().seenByFede().discBox(3, 6).build();
