@@ -16,7 +16,9 @@
  */
 package org.fede.calculator.service;
 
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,6 +28,8 @@ import javax.annotation.PostConstruct;
 import org.fede.digitalcontent.dto.BoxLabelDTO;
 import org.fede.digitalcontent.dto.DigitalContentDTO;
 import org.fede.digitalcontent.dto.MediumContentDTO;
+import org.fede.digitalcontent.dto.VenueDTO;
+import org.fede.digitalcontent.dto.VenueDetailDTO;
 import org.fede.digitalcontent.model.Country;
 import static org.fede.util.Util.list;
 import static org.fede.digitalcontent.model.Country.DENMARK;
@@ -60,7 +64,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         this.initBallets();
         this.initOperas();
         this.initBalletVideos();
-        this.initOperaVideos();    
+        this.initOperaVideos();
 
     }
 
@@ -90,38 +94,106 @@ public class LazyDigitalContentService implements DigitalContentService {
     }
 
     private void initVenues() {
-        new Venue.Builder("Teatro di San Carlo").city("Nápoles").italy().build();
-        new Venue.Builder("alla Scala").city("Milano").italy().build();
-        new Venue.Builder("Teatro Donizetti").city("Bergamo").italy().build();
-        new Venue.Builder("Teatro Comunale di Firenze").city("Florencia").italy().build();
-        new Venue.Builder("Teatro Comunale di Modena").city("Módena").italy().build();
-        new Venue.Builder("Teatro Rossini").city("Pesaro").italy().build();
-        new Venue.Builder("Arena di Verona").city("Verona").italy().build();
-        new Venue.Builder("Waldbühne").city("Berlín").germany().build();
-        new Venue.Builder("Festspielhaus Baden-Baden").city("Baden-Baden").germany().build();
-        new Venue.Builder("Bayerische Staatsoper").city("Munich").germany().build();
-        new Venue.Builder("Halle Opera House").city("Halle").germany().build();
-        new Venue.Builder("Berlin State Opera").city("Berlín").germany().build();
-        new Venue.Builder("Anhaltisches Theater").city("Dessau").germany().build();
-        new Venue.Builder("Staatsoper Stuttgart").city("Stuttgart").germany().build();
-        new Venue.Builder("Palacio de las Artes Reina Sofía").city("Valencia").spain().build();
-        new Venue.Builder("Gran Teatro del Liceo").city("Barcelona").spain().build();
-        new Venue.Builder("Teatro Real").city("Madrid").spain().build();
-        new Venue.Builder("Bolshói").city("Moscú").russia().build();
-        new Venue.Builder("Mariinsky").city("San Petersburgo").russia().build();
-        new Venue.Builder("ROH").city("Londres").uk().build();
-        new Venue.Builder("King's College").city("Cambridge").uk().build();
-        new Venue.Builder("Glyndebourne").city("Glyndebourne").uk().build();
-        new Venue.Builder("The Met").city("New York").usa().build();
-        new Venue.Builder("War Memorial Opera House").city("San Francisco").usa().build();
-        new Venue.Builder("Musikverein").city("Viena").country(Country.AUSTRIA).build();
-        new Venue.Builder("Wiener Staatsoper").city("Viena").country(Country.AUSTRIA).build();
-        new Venue.Builder("Großes Festspielhaus").city("Salzburgo").country(Country.AUSTRIA).build();
-        new Venue.Builder("ONP").city("Paris").country(FRANCE).build();
-        new Venue.Builder("Royal Danish Theatre").city("Copenhagen").country(DENMARK).build();
-        new Venue.Builder("Sydney Opera House").city("Sydney").australia().build();
-        new Venue.Builder("Ópera de Zürich").city("Zürich").country(SWITZERLAND).build();
-        new Venue.Builder("Ciudad Prohibida").city("Beijing").country(Country.CHINA).build();
+        new Venue.Builder("Teatro di San Carlo").city("Nápoles").italy()
+                .latLong(40.837556d, 14.2496541d)
+                .build();
+        new Venue.Builder("alla Scala").city("Milano").italy()
+                .latLong(45.467402d, 9.189551d)
+                .build();
+        new Venue.Builder("Teatro Donizetti").city("Bergamo").italy()
+                .latLong(45.695151d, 9.671143d)
+                .build();
+        new Venue.Builder("Teatro Comunale di Firenze").city("Florencia").italy()
+                .latLong(43.7746958d, 11.2388874d)
+                .build();
+        new Venue.Builder("Teatro Comunale di Modena").city("Módena").italy()
+                .latLong(44.646842d, 10.930176d)
+                .build();
+        new Venue.Builder("Teatro Rossini").city("Pesaro").italy()
+                .latLong(43.907854d, 12.908755d)
+                .build();
+        new Venue.Builder("Arena di Verona").city("Verona").italy()
+                .latLong(45.438996d, 10.994357d)
+                .build();
+        new Venue.Builder("Waldbühne").city("Berlín").germany()
+                .latLong(52.5158333d, 13.2294058d)
+                .build();
+        new Venue.Builder("Festspielhaus Baden-Baden").city("Baden-Baden").germany()
+                .latLong(48.76679d, 8.232d)
+                .build();
+        new Venue.Builder("Bayerische Staatsoper").city("Munich").germany()
+                .latLong(48.139674d, 11.578718d)
+                .build();
+        new Venue.Builder("Halle Opera House").city("Halle").germany()
+                .latLong(51.486731d, 11.971031d)
+                .build();
+        new Venue.Builder("Berlin State Opera").city("Berlín").germany()
+                .latLong(52.516782d, 13.394691d)
+                .build();
+        new Venue.Builder("Anhaltisches Theater").city("Dessau").germany()
+                .latLong(51.8365371d, 12.2374098d)
+                .build();
+        new Venue.Builder("Staatsoper Stuttgart").city("Stuttgart").germany()
+                .latLong(48.780047d, 9.18472d)
+                .build();
+        new Venue.Builder("Palacio de las Artes Reina Sofía").city("Valencia").spain()
+                .latLong(39.458065d, -0.355897d)
+                .build();
+        new Venue.Builder("Gran Teatro del Liceo").city("Barcelona").spain()
+                .latLong(41.3801765d, 2.1733504d)
+                .build();
+        new Venue.Builder("Teatro Real").city("Madrid").spain()
+                .latLong(40.418299d, -3.710578d)
+                .build();
+        new Venue.Builder("Bolshói").city("Moscú").russia()
+                .latLong(55.760133d, 37.618649d)
+                .wiki("https://es.wikipedia.org/wiki/Teatro_Bolsh%C3%B3i")
+                .build();
+        new Venue.Builder("Mariinsky").city("San Petersburgo").russia()
+                .latLong(59.925645d, 30.295997d)
+                .build();
+        new Venue.Builder("ROH").city("Londres").uk()
+                .latLong(51.512921d, -0.122198d)
+                .build();
+        new Venue.Builder("King's College").city("Cambridge").uk()
+                .latLong(52.204278d, 0.116594d)
+                .build();
+        new Venue.Builder("Glyndebourne").city("Glyndebourne").uk()
+                .latLong(50.878292d, 0.06417d)
+                .wiki("https://en.wikipedia.org/wiki/Glyndebourne")
+                .build();
+        new Venue.Builder("The Met").city("New York").usa()
+                .latLong(40.7728825d, -73.9841752d)
+                .wiki("https://es.wikipedia.org/wiki/Metropolitan_Opera_House")
+                .build();
+        new Venue.Builder("War Memorial Opera House").city("San Francisco").usa()
+                .latLong(37.778546d, -122.420976d)
+                .build();
+        new Venue.Builder("Musikverein").city("Viena").country(Country.AUSTRIA)
+                .latLong(48.2008d, 16.3729d)
+                .build();
+        new Venue.Builder("Wiener Staatsoper").city("Viena").country(Country.AUSTRIA)
+                .latLong(48.203332d, 16.369176d)
+                .build();
+        new Venue.Builder("Großes Festspielhaus").city("Salzburgo").country(Country.AUSTRIA)
+                .latLong(47.798534d, 13.041774d)
+                .build();
+        new Venue.Builder("Palais Garnier").city("Paris").country(FRANCE)
+                .latLong(48.87197d, 2.331601d)
+                .wiki("https://es.wikipedia.org/wiki/%C3%93pera_Garnier")
+                .build();
+        new Venue.Builder("Royal Danish Theatre").city("Copenhagen").country(DENMARK)
+                .latLong(55.679459d, 12.586215d)
+                .build();
+        new Venue.Builder("Sydney Opera House").city("Sydney").australia()
+                .latLong(-33.856898d, 151.215281d)
+                .build();
+        new Venue.Builder("Ópera de Zürich").city("Zürich").country(SWITZERLAND)
+                .latLong(47.364946d, 8.546908d)
+                .build();
+        new Venue.Builder("Ciudad Prohibida").city("Beijing").country(Country.CHINA)
+                .latLong(39.9161804d, 116.3970584d)
+                .build();
 
     }
 
@@ -834,4 +906,35 @@ public class LazyDigitalContentService implements DigitalContentService {
         Collections.sort(list);
         return list;
     }
+
+    @Override
+    public List<VenueDTO> getVenues() {
+        Set<Venue> allVenues = Repository.VENUE.findAll();
+        List<VenueDTO> list = new ArrayList<>(allVenues.size());
+        for (Venue v : allVenues) {
+            VenueDTO dto = new VenueDTO();
+            dto.setName(v.getName());
+            dto.setCountry(v.getCountryName());
+            dto.setCity(v.getCityName());
+            dto.setLatLon(v.getLatLon());
+            dto.setWikipedia(v.getWikipedia());
+            list.add(dto);
+        }
+        return list;
+    }
+
+    @Override
+    public VenueDetailDTO getVenueDetail(String venueName) {
+        DateFormat yearFormat = new SimpleDateFormat("yyyy");
+        Venue venue = Repository.VENUE.findById(venueName);
+        VenueDetailDTO dto = new VenueDetailDTO();
+        dto.setName(venueName);
+        for (Performance p : Repository.PERFORMANCE.findByVenue(venue)) {
+            dto.addPerformance(p.getTitle(), yearFormat.format(p.getDate()), p.getImdb());
+        }
+        dto.doneAddingPerformances();
+        dto.setWikipedia(venue.getWikipedia());
+        return dto;
+    }
+
 }

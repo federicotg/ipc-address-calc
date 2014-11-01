@@ -14,31 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.digitalcontent.model;
+package org.fede.digitalcontent.dto;
+
+import org.fede.digitalcontent.model.LatLon;
 
 /**
- * City where the actual concert, play or performance took place.
+ *
  * @author fede
  */
-
-public class City {
-
+public class VenueDTO {
     private String name;
-
-    private Country country;
-    
-    public City(String name, Country country) {
-        this.name = name;
-        this.country = country;
-    }
-
-    public Country getCountry() {
-        return country;
-    }
-
-    public void setCountry(Country country) {
-        this.country = country;
-    }
+    private String city;
+    private String country;
+    private String wikipedia;
+    private LatLon latLon;
 
     public String getName() {
         return name;
@@ -47,7 +36,39 @@ public class City {
     public void setName(String name) {
         this.name = name;
     }
-    public String getCountryName(){
-        return this.country.name();
+
+    public String getCity() {
+        return city;
     }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getWikipedia() {
+        return wikipedia;
+    }
+
+    public void setWikipedia(String wikipedia) {
+        this.wikipedia = wikipedia;
+    }
+
+    public LatLon getLatLon() {
+        return latLon;
+    }
+
+    public void setLatLon(LatLon latLon) {
+        this.latLon = latLon;
+    }
+    
+    
+    
 }

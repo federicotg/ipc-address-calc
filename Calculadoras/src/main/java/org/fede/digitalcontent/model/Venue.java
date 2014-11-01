@@ -16,6 +16,7 @@
  */
 package org.fede.digitalcontent.model;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -31,6 +32,9 @@ public class Venue {
         private final String name;
         private String cityName;
         private Country country;
+        private Double lat;
+        private Double lon;
+        private String wikipedia;
 
         public Builder(String name) {
             this.name = name;
@@ -81,6 +85,17 @@ public class Venue {
             return this;
         }
 
+        public Builder latLong(double lat, double lon) {
+            this.lat = lat;
+            this.lon = lon;
+            return this;
+        }
+
+        public Builder wiki(String uri) {
+            this.wikipedia = uri;
+            return this;
+        }
+
         public Venue build() {
             Venue v = new Venue(this.name);
 
@@ -91,6 +106,13 @@ public class Venue {
             }
 
             v.setCity(city);
+            if (lat != null && lon != null) {
+                v.setLatLon(new LatLon(this.lat, this.lon));
+            }
+            if (this.wikipedia != null) {
+                v.addWikipedia(this.wikipedia);
+            }
+
             Repository.VENUE.add(v);
             return v;
         }
@@ -101,7 +123,9 @@ public class Venue {
 
     private City city;
 
-    private Set<WebResource> resources;
+    private Set<WebResource> resources = new HashSet<>();
+
+    private LatLon latLon;
 
     private Venue(String name) {
         this.name = name;
@@ -155,4 +179,32 @@ public class Venue {
         return Objects.equals(this.name, other.name);
     }
 
+    public LatLon getLatLon() {
+        return latLon;
+    }
+
+    public void setLatLon(LatLon latLon) {
+        this.latLon = latLon;
+    }
+
+    public void addWikipedia(String uri) {
+        this.resources.add(new WebResource(uri, WebResourceType.WIKIPEDIA));
+    }
+
+    public String getWikipedia(){
+        for(WebResource r : this.resources){
+            if(r.getType() == WebResourceType.WIKIPEDIA){
+                return r.getUri();
+            }
+        }
+        return null;
+    }
+    
+    public String getCountryName() {
+        return this.getCity().getCountryName();
+    }
+
+    public String getCityName() {
+        return this.getCity().getName();
+    }
 }

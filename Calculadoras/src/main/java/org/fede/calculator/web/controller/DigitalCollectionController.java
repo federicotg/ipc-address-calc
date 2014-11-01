@@ -16,12 +16,16 @@
  */
 package org.fede.calculator.web.controller;
 
+import java.util.List;
 import org.fede.calculator.service.DigitalContentService;
+import org.fede.digitalcontent.dto.VenueDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -33,7 +37,6 @@ import org.springframework.web.servlet.ModelAndView;
 public class DigitalCollectionController {
 
     //private static final Logger LOG = Logger.getLogger(DigitalCollectionController.class.getName());
-
     @Autowired
     private DigitalContentService dcService;
 
@@ -51,7 +54,7 @@ public class DigitalCollectionController {
     public ModelAndView boxReport(@PathVariable String box) {
         ModelAndView mav = new ModelAndView("dcReport", "list", this.dcService.getBoxReport(box));
         mav.addObject("boxLabel", this.dcService.getBoxLabel(box));
-        
+
         return mav;
     }
 
@@ -78,7 +81,23 @@ public class DigitalCollectionController {
     @RequestMapping(value = "/boxes", method = RequestMethod.GET)
     public ModelAndView boxes() {
         return new ModelAndView("boxes", "boxes", this.dcService.getEveryBoxLabel());
-        
+
     }
-    
+
+    @RequestMapping(value = "/venues", method = RequestMethod.GET)
+    @ResponseBody
+    public List<VenueDTO> venues() {
+        return this.dcService.getVenues();
+    }
+
+    @RequestMapping(value = "/venueInfoWindow", method = RequestMethod.GET)
+    public ModelAndView venue(@RequestParam("name") String name) {
+        return new ModelAndView("venueInfoWindow", "detail", this.dcService.getVenueDetail(name));
+    }
+
+    @RequestMapping(value = "/venueMap", method = RequestMethod.GET)
+    public String venuesMap() {
+        return "venueMap";
+    }
+
 }
