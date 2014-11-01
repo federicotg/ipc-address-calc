@@ -41,12 +41,18 @@ public class MoneyAmount implements MathConstants {
     }
 
     public MoneyAmount adjust(BigDecimal divisor, BigDecimal factor) {
+        if(this.isZero()){
+            return this;
+        }
         return new MoneyAmount(
                 this.amount.setScale(SCALE, ROUNDING_MODE).divide(divisor, CONTEXT)
                 .multiply(factor), this.currency);
     }
 
     public MoneyAmount exchange(Currency newCurrency, BigDecimal exchangeRate) {
+        if(this.isZero()){
+            return new MoneyAmount(BigDecimal.ZERO, newCurrency);
+        }
         return new MoneyAmount(this.amount.multiply(exchangeRate), newCurrency);
     }
 
