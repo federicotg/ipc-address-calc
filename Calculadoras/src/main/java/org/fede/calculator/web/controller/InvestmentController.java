@@ -47,16 +47,20 @@ public class InvestmentController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String errorHandler(Exception ex) {
         LOG.log(Level.SEVERE, "errorHandler", ex);
-        
+
         return "redirect:/secure/";
     }
 
-    
     @RequestMapping(value = "/dollar", method = RequestMethod.GET)
     public ModelAndView dollarInvestment() throws NoSeriesDataFoundException {
         ModelAndView mav = new ModelAndView("dollarInvestment");
         mav.addObject("report", this.investmentService.dollar());
         mav.addObject("moment", new Date());
         return mav;
+    }
+
+    @RequestMapping(value = "/savings", method = RequestMethod.GET)
+    public ModelAndView savings() throws NoSeriesDataFoundException {
+        return new ModelAndView("savingsReport", "report", this.investmentService.savings());
     }
 }

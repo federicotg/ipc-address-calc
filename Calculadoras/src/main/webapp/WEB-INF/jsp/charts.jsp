@@ -46,6 +46,7 @@
         <h1>Reportes</h1>
         <ul>
             <li><a href="investment/dollar">Dólar</a></li>
+            <li><a href="investment/savings">Ahorros</a></li>
         </ul>
     </body>
 </html>
