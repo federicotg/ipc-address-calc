@@ -39,16 +39,17 @@
 
         <script>
 
-            function getContent(venueName) {
+            function getContent(marker) {
                 var req = new Request({
-                    url: 'venueInfoWindow?name=' + venueName,
+                    url: 'venueInfoWindow?name=' + marker.title,
                     method: 'get',
-                    async: false,
+                    async: true,
                     headers: {'Content-Type': 'application/json;charset=UTF-8'},
                     urlEncoded: false,
                     onSuccess: function (responseText) {
                         if (this.status === 200) {
-                            this.html = responseText;
+                            marker.iw.content = responseText;
+                            marker.iw.open(marker.map, marker);
                         }
                     }
                 });
@@ -68,11 +69,12 @@
                     var marker = new google.maps.Marker({
                         position: new google.maps.LatLng(v.latLon.lat, v.latLon.lon),
                         map: map,
-                        title: v.name
+                        title: v.name,
+                        iw:infowindow
                     });
                     google.maps.event.addListener(marker, 'click', function () {
-                        infowindow.content = getContent(this.title);
-                        infowindow.open(map, this);
+                        infowindow.content = getContent(this);
+                        //infowindow.open(map, this);
                     });
                 }
             }
