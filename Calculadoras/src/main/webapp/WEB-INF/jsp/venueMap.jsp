@@ -74,7 +74,6 @@
                     });
                     google.maps.event.addListener(marker, 'click', function () {
                         infowindow.content = getContent(this);
-                        //infowindow.open(map, this);
                     });
                 }
             }
