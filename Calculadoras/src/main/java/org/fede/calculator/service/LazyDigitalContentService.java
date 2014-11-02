@@ -178,9 +178,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Großes Festspielhaus").city("Salzburgo").country(Country.AUSTRIA)
                 .latLong(47.798534d, 13.041774d)
                 .build();
-        new Venue.Builder("Palais Garnier").city("Paris").country(FRANCE)
-                .latLong(48.87197d, 2.331601d)
-                .wiki("https://es.wikipedia.org/wiki/%C3%93pera_Garnier")
+        new Venue.Builder("Opéra Bastille").city("Paris").country(FRANCE)
+                .latLong(48.852438d, 2.370203d)
+                .wiki("https://es.wikipedia.org/wiki/%C3%93pera_de_la_Bastilla")
                 .build();
         new Venue.Builder("Royal Danish Theatre").city("Copenhagen").country(DENMARK)
                 .latLong(55.679459d, 12.586215d)
