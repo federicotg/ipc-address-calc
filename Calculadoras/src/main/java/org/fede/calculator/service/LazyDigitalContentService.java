@@ -426,7 +426,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("The Sleeping Beauty").ballet().atRoh().on("15/12/2011").hd720().mkv()
                 .discBox(7, 2)
                 .discBox(9, 2)
-                .discBox(10, 2)
+                .discBox(8, 2)
                 .discBox(2, 3)
                 .build();
         new DigitalContent.Builder("The Sleeping Beauty").ballet().atRoh().on("19/03/2014").fullHD().mkv().discBox(10, 4)
@@ -617,7 +617,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(6, 7)
                 .imdb("http://www.imdb.com/title/tt0864960/").build();
         new DigitalContent.Builder("Don Giovanni").opera().atRoh().on("01/01/2008").fullHD().engSubs().mkv().seenByFede()
-                .discBox(10, 2)
+                .discBox(8, 2)
                 .discBox(2, 3)
                 .imdb("http://www.imdb.com/title/tt2374452/").build();
         new DigitalContent.Builder("El rapto en el serrallo").opera().at("Bayerische Staatsoper").on("01/01/1980").fullHD().spaSubs().mkv()
@@ -660,7 +660,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Tosca").opera().at("alla Scala").on("01/01/2000").dvd().spaSubs().iso().discBox(6, 2).imdb("http://www.imdb.com/title/tt2385259/").build();
         new DigitalContent.Builder("Tosca").opera().atRoh().on("17/07/2011").fullHD().engSubs().mkv().seenByFede().discBox(3, 8).build();
         new DigitalContent.Builder("Tosca").opera().atTheMet().on("09/11/2013").fullHD().engSubs().mkv().discBox(5, 15).imdb("http://www.imdb.com/title/tt3315900/").build();
-        new DigitalContent.Builder("Tosca").opera().atParis().on("16/10/2014").fullHD().spaSubs().mkv().discBox(0, 0).build();
+        new DigitalContent.Builder("Tosca").opera().atParis().on("16/10/2014").fullHD().spaSubs().mkv().discBox(8, 2).build();
         new DigitalContent.Builder("Turandot").opera().atTheMet().on("01/01/1987").fullHD().spaSubs().mkv()
                 .discBox(3, 13)
                 .imdb("http://www.imdb.com/title/tt0220822/").build();
