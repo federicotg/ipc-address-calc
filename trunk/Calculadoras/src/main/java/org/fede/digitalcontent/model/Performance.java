@@ -107,7 +107,7 @@ public class Performance {
         }
         return null;
     }
-    
+
     public Language getLanguage() {
         return this.opus.getLanguage();
     }
@@ -122,7 +122,9 @@ public class Performance {
 
     public boolean isSeenBy(Person p) {
         for (Role r : this.roles) {
-            return r.getType().equals(RoleType.VIEWER) && r.getPerson().equals(p);
+            if (r.getType().equals(RoleType.VIEWER) && r.getPerson().equals(p)) {
+                return true;
+            }
         }
         return false;
     }

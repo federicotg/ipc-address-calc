@@ -194,11 +194,6 @@ public class DigitalContent {
             return this;
         }
         
-       /* public Builder bytes(long bytes){
-            this.bytes = bytes;
-            return this;
-        }*/
-
         public DigitalContent build() throws ParseException {
             Opus opus = OPUS.findById(new Pair<>(this.title, this.opusType));
             Venue place = VENUE.findById(this.venue);
@@ -231,7 +226,7 @@ public class DigitalContent {
             dc.setFormat(formatType);
             dc.setQuality(quality);
             dc.setSubtitle(subtitle);
-          //  dc.setBytes(this.bytes);
+
             Set<Performance> set = new HashSet<>();
             set.add(perf);
             dc.setPerformances(set);
