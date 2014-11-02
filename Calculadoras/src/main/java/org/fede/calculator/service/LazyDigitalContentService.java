@@ -436,8 +436,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La fille mal gardée").ballet().atRoh().on("16/05/2012").hd720().mkv().discBox(8, 3)
                 .seenByFede()
                 .build();
-        new DigitalContent.Builder("Legend of Love").ballet().atBolshoi().on("26/10/2014").fullHD().mkv().discBox(8, 2)
-                .discBox(0, 0)
+        new DigitalContent.Builder("Legend of Love").ballet().atBolshoi().on("26/10/2014").fullHD().mkv()
+                .discBox(8, 2)
+                .discBox(10, 2)
                 .build();
 
     }
@@ -527,7 +528,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         new DigitalContent.Builder("La Traviata").opera().atGlyndebourne().on("10/08/2014").fullHD().engSubs().mkv().seenByFede().discBox(12, 15).build();
         new DigitalContent.Builder("Macbeth").opera().atParis().on("04/04/2009").fullHD().spaSubs().mkv().discBox(9, 15).imdb("http://www.imdb.com/title/tt2705154/").build();
-        new DigitalContent.Builder("Macbeth").opera().atTheMet().on("11/10/2014").fullHD().spaSubs().mkv().discBox(0, 0).build();
+        new DigitalContent.Builder("Macbeth").opera().atTheMet().on("11/10/2014").fullHD().spaSubs().mkv()
+                .discBox(10, 2)
+                .build();
         new DigitalContent.Builder("Nabucco").opera().atRoh().on("26/04/2013").fullHD().spaSubs().mkv().seenByFede()
                 .discBox(3, 14)
                 .discBox(4, 14)
