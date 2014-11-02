@@ -436,7 +436,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La fille mal gardée").ballet().atRoh().on("16/05/2012").hd720().mkv().discBox(8, 3)
                 .seenByFede()
                 .build();
-        new DigitalContent.Builder("Legend of Love").ballet().atBolshoi().on("26/10/2014").fullHD().mkv().discBox(0, 0).build();
+        new DigitalContent.Builder("Legend of Love").ballet().atBolshoi().on("26/10/2014").fullHD().mkv().discBox(8, 2)
+                .discBox(0, 0)
+                .build();
 
     }
 
