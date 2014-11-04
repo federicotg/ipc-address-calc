@@ -36,11 +36,10 @@ public class DigitalContent {
 
     public static class Builder {
 
-        private static Logger LOG = Logger.getLogger(DigitalContent.Builder.class.getName());
-
+       // private static Logger LOG = Logger.getLogger(DigitalContent.Builder.class.getName());
         private final DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
         private final NumberFormat nf = NumberFormat.getIntegerInstance();
-        
+
         private final String title;
         private String venue;
         private String date;
@@ -51,7 +50,7 @@ public class DigitalContent {
         private final Set<String> singers;
         private final Set<String> viewers;
         private final Set<String> imdb;
-        private final Set<Pair<Integer, Integer>> discs;
+        private final Set<Pair<String, String>> discs;
         //private long bytes;
 
         public Builder(String title) {
@@ -148,8 +147,19 @@ public class DigitalContent {
             return this;
         }
 
+        public Builder br() {
+            this.formatType = FormatType.BLURAY;
+            this.quality = Quality.HD1080;
+            return this;
+        }
+        
         public Builder iso() {
             this.formatType = FormatType.ISO;
+            return this;
+        }
+        
+        public Builder dvdFormat() {
+            this.formatType = FormatType.DVD;
             return this;
         }
 
@@ -183,8 +193,17 @@ public class DigitalContent {
             return this;
         }
 
+        public Builder box(String boxName) {
+            this.discs.add(new Pair<>(this.title, boxName));
+            return this;
+        }
+        
         public Builder discBox(int disc, int box) {
-            this.discs.add(new Pair<>(disc, box));
+            
+            final String boxStr = nf.format(box);
+            final String discStr = box + "-" + nf.format(disc);
+            
+            this.discs.add(new Pair<>(discStr, boxStr));
 
             return this;
         }
@@ -193,7 +212,7 @@ public class DigitalContent {
             this.imdb.add(uri);
             return this;
         }
-        
+
         public DigitalContent build() throws ParseException {
             Opus opus = OPUS.findById(new Pair<>(this.title, this.opusType));
             Venue place = VENUE.findById(this.venue);
@@ -230,18 +249,17 @@ public class DigitalContent {
             Set<Performance> set = new HashSet<>();
             set.add(perf);
             dc.setPerformances(set);
-            for (Pair<Integer, Integer> discBox : this.discs) {
-                final String box = nf.format(discBox.getSecond());
-                final String disc = box + "-" + nf.format(discBox.getFirst());
-                StorageMedium medium = Repository.STORAGE.findById(disc);
+            for (Pair<String, String> discBox : this.discs) {
+                
+                StorageMedium medium = Repository.STORAGE.findById(discBox.getFirst());
                 if (medium == null) {
-                    medium = new StorageMedium(disc);
+                    medium = new StorageMedium(discBox.getFirst());
                     Repository.STORAGE.add(medium);
                 }
                 medium.addContent(dc);
-                StorageBox storageBox = Repository.STORAGEBOX.findById(box);
+                StorageBox storageBox = Repository.STORAGEBOX.findById(discBox.getSecond());
                 if (storageBox == null) {
-                    storageBox = new StorageBox(box);
+                    storageBox = new StorageBox(discBox.getSecond());
                     Repository.STORAGEBOX.add(storageBox);
                 }
                 storageBox.addStorageMedium(medium);
@@ -258,9 +276,8 @@ public class DigitalContent {
     private FormatType format;
 
     private Language subtitle;
-    
-   // private long bytes;
 
+   // private long bytes;
     private DigitalContent() {
     }
 
@@ -347,6 +364,14 @@ public class DigitalContent {
         return titles;
     }
 
+    public Set<Opus> getOpuses() {
+        Set<Opus> answer = new HashSet<>();
+        for (Performance p : this.performances) {
+            answer.add(p.getOpus());
+        }
+        return answer;
+    }
+
     public Set<String> getDetailedTitles() {
         Set<String> titles = new HashSet<>();
         for (Performance p : this.performances) {
@@ -426,12 +451,4 @@ public class DigitalContent {
         return false;
     }
 
-   /* public long getBytes() {
-        return bytes;
-    }
-
-    public void setBytes(long bytes) {
-        this.bytes = bytes;
-    }*/
-    
 }

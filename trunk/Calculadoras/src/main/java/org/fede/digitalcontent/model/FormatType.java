@@ -23,6 +23,6 @@ package org.fede.digitalcontent.model;
  */
 public enum FormatType  {
 
-    MKV, ISO, AVI, MP3, FLAC;
+    MKV, ISO, AVI, MP3, FLAC, BLURAY, DVD;
 
 }

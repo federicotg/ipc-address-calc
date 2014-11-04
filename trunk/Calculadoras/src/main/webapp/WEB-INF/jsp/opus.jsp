@@ -16,28 +16,53 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  
 --%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html>
-    <head>
+    <head profile="http://www.w3.org/25/10/profile">
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <link rel="icon" 
               type="image/png" 
               href="/images/favicon.png" />
+        <title>Opuses</title>
         <link rel="stylesheet" type="text/css" href="/styles/style.css" />
-        <title>Catálogo</title>
+        <style type="text/css">
+            li{
+                line-height: 2.3em;
+
+            }
+            .opusSpan{
+                border-radius: 0.2em;
+                border-color: sandybrown;
+                border-width: 1px;
+                border-style: solid;
+                padding:0.4em;
+            }
+            ul{
+                list-style-type: square;
+            }
+            .BALLET{
+                background-color: khaki;
+            }
+            .OPERA{
+                background-color: peachpuff;
+            }
+            .ORATORIO{
+                background-color: burlywood;
+            }
+        </style>
     </head>
     <body>
         <%@include file="../jspf/menu.jspf" %>
-        <h1>Catálogo</h1>
+        <h1>Opus</h1>
         <ul>
-            <li><a href="report">Reporte</a></li>
-            <li><a href="boxes">Cajas</a></li>
-            <li><a href="venueMap">Lugares</a></li>
-            <li><a href="unseen">No vistas</a></li>
-            <li><a href="notInHD">No en HD</a></li>
+            <c:forEach items="${list}" var="op">
+                <li><span class="opusSpan ${op.type}">${op.name}</span></li>
+                </c:forEach>
         </ul>
+
     </body>
 </html>

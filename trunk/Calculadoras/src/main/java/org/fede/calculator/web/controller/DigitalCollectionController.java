@@ -81,7 +81,6 @@ public class DigitalCollectionController {
     @RequestMapping(value = "/boxes", method = RequestMethod.GET)
     public ModelAndView boxes() {
         return new ModelAndView("boxes", "boxes", this.dcService.getEveryBoxLabel());
-
     }
 
     @RequestMapping(value = "/venues", method = RequestMethod.GET)
@@ -98,6 +97,18 @@ public class DigitalCollectionController {
     @RequestMapping(value = "/venueMap", method = RequestMethod.GET)
     public String venuesMap() {
         return "venueMap";
+    }
+
+    @RequestMapping(value = "/unseen", method = RequestMethod.GET)
+    public ModelAndView unseen() {
+        return new ModelAndView("opus", "list", this.dcService.unseenBy("Federico"));
+
+    }
+
+    @RequestMapping(value = "/notInHD", method = RequestMethod.GET)
+    public ModelAndView notInHD() {
+        return new ModelAndView("opus", "list", this.dcService.unavailableInHD());
+
     }
 
 }

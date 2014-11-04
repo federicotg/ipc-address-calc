@@ -22,12 +22,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import org.fede.digitalcontent.dto.BoxLabelDTO;
 import org.fede.digitalcontent.dto.DigitalContentDTO;
 import org.fede.digitalcontent.dto.MediumContentDTO;
+import org.fede.digitalcontent.dto.OpusDTO;
 import org.fede.digitalcontent.dto.VenueDTO;
 import org.fede.digitalcontent.dto.VenueDetailDTO;
 import org.fede.digitalcontent.model.Country;
@@ -44,6 +46,8 @@ import org.fede.digitalcontent.model.Language;
 import org.fede.digitalcontent.model.Opus;
 import org.fede.digitalcontent.model.OpusType;
 import org.fede.digitalcontent.model.Performance;
+import org.fede.digitalcontent.model.Person;
+import org.fede.digitalcontent.model.Quality;
 import org.fede.digitalcontent.model.Repository;
 import org.fede.digitalcontent.model.StorageMedium;
 import org.fede.digitalcontent.model.Venue;
@@ -56,6 +60,17 @@ import org.fede.util.Predicate;
 @Service
 @Lazy
 public class LazyDigitalContentService implements DigitalContentService {
+
+    protected static final Comparator<OpusDTO> OPUS_COMPARATOR = new Comparator<OpusDTO>() {
+
+        @Override
+        public int compare(OpusDTO o1, OpusDTO o2) {
+            if (!o1.getType().equals(o2.getType())) {
+                return o1.getType().compareTo(o2.getType());
+            }
+            return o1.getName().compareTo(o2.getName());
+        }
+    };
 
     @PostConstruct
     public void initBasicObjects() throws ParseException {
@@ -227,7 +242,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Anna Bolena",
                 "Don Pasquale",
                 "L'elisir d'amore",
-                "Lucia de Lammermoor",
+                "Lucia di Lammermoor",
                 "Maria Stuarda")
                 .italian().opera().by("Gaetano Donizetti").build();
         new Opus.Builder("La Fille du Regiment").french().opera().by("Gaetano Donizetti").build();
@@ -255,7 +270,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .russian().opera().by("Tchaikovsky").build();
         new Opus.Builder("Orlando Furioso").italian().opera().by("Vivaldi").build();
         new Opus.Builder("Nixon in China").english().opera().by("John Adams").build();
-        new Opus.Builder("Faust").french().opera().by("Gounod").build();
+        new Opus.Builder("Faust", "Roméo et Juliette").french().opera().by("Gounod").build();
         new Opus.Builder("La Gioconda").french().opera().by("A. Ponchielli").build();
 
         new Opus.Builder("Admeto",
@@ -482,7 +497,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Fille du Regiment").opera().atRoh().on("01/01/2007").dvd().spaSubs().iso()
                 .discBox(5, 13)
                 .imdb("http://www.imdb.com/title/tt1320091/").build();
-        new DigitalContent.Builder("Lucia de Lammermoor").opera().at("Teatro Donizetti").on("01/01/2006").dvd().spaSubs().iso().seenByFede()
+        new DigitalContent.Builder("Lucia di Lammermoor").opera().at("Teatro Donizetti").on("01/01/2006").dvd().spaSubs().iso().seenByFede()
                 .discBox(3, 7)
                 .build();
         new DigitalContent.Builder("Maria Stuarda").opera().atTheMet().on("19/01/2013").fullHD().engSubs().mkv().seenByFede()
@@ -568,6 +583,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .imdb("http://www.imdb.com/title/tt2651146/").build();
         new DigitalContent.Builder("Alcina").opera().at("Staatsoper Stuttgart").on("01/01/1999").fullHD().spaSubs().mkv().discBox(8, 4).imdb("http://www.imdb.com/title/tt0354364/").build();
         new DigitalContent.Builder("Giulio Cesare").opera().atParis().on("01/01/2011").dvd().spaSubs().iso()
+                .seenByFede()
                 .discBox(6, 13)
                 .discBox(7, 13)
                 .build();
@@ -765,6 +781,32 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .imdb("http://www.imdb.com/title/tt2777536/").build();
         new DigitalContent.Builder("I Due Foscari").opera().atRoh().on("27/10/2014").fullHD().spaSubs().mkv()
                 .discBox(0, 0).build();
+        
+        new DigitalContent.Builder("La Fanciulla del West").opera().atTheMet().on("08/01/2011").spaSubs().dvd().dvdFormat().box("La Fanciulla del West")
+                .seenByFede()
+                .build();
+        
+        new DigitalContent.Builder("Siegfried").opera().atTheMet().on("01/01/2011").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
+        new DigitalContent.Builder("Gotterdammerung").opera().atTheMet().on("01/01/2012").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
+        new DigitalContent.Builder("Die Walküre").opera().atTheMet().on("01/01/2011").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
+        new DigitalContent.Builder("Das Rheingold").opera().atTheMet().on("01/01/2010").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
+        new DigitalContent.Builder("La Bohème").opera().at("Großes Festspielhaus").on("01/07/2012").spaSubs().br().box("La Bohème")
+                .starringNetrebko()
+                .seenByFede().build();
+        new DigitalContent.Builder("Lucia di Lammermoor").opera().atTheMet().on("07/02/2009").spaSubs().br()
+                .starringNetrebko()
+                .box("Lucia di Lammermoor").build();
+        
+        new DigitalContent.Builder("Le nozze di Figaro").opera().at("Sydney Opera House").on("18/08/2010").spaSubs().br().seenByFede().box("Le nozze di Figaro").build();
+        new DigitalContent.Builder("Turandot").opera().atTheMet().on("07/11/2009 ").spaSubs().br().seenByFede().box("Turandot").build();
+        new DigitalContent.Builder("Don Pasquale").opera().atTheMet().on("13/11/2010 ").spaSubs().br().seenByFede()
+                .starringNetrebko()
+                .box("Don Pasquale").build();
+        
+        new DigitalContent.Builder("Roméo et Juliette").opera().at("Großes Festspielhaus").on("02/08/2008").spaSubs().br().box("Roméo et Juliette")
+                .build();
+        
+        
     }
 
     @Override
@@ -944,6 +986,43 @@ public class LazyDigitalContentService implements DigitalContentService {
         dto.doneAddingPerformances();
         dto.setWikipedia(venue.getWikipedia());
         return dto;
+    }
+
+    @Override
+    public List<OpusDTO> unseenBy(String personName) {
+        Set<DigitalContent> allContent = Repository.DIGITALCONTENT.findAll();
+        Person p = Repository.PERSON.findById(personName);
+        Set<Opus> allOpuses = Repository.OPUS.findAll();
+        for (DigitalContent dc : allContent) {
+            if (dc.isSeenBy(p)) {
+                allOpuses.removeAll(dc.getOpuses());
+            }
+        }
+        List<OpusDTO> answer = new ArrayList<>(allOpuses.size());
+        for (Opus o : allOpuses) {
+            answer.add(new OpusDTO(o.getTitle(), o.getType().name()));
+        }
+        Collections.sort(answer, OPUS_COMPARATOR);
+
+        return answer;
+    }
+
+    @Override
+    public List<OpusDTO> unavailableInHD() {
+
+        Set<Opus> notInHD = Repository.OPUS.findAll();
+        for (DigitalContent dc : Repository.DIGITALCONTENT.findAll()) {
+            if (dc.getQuality() == Quality.HD720 || dc.getQuality() == Quality.HD1080) {
+                notInHD.removeAll(dc.getOpuses());
+            }
+        }
+
+        List<OpusDTO> answer = new ArrayList<>(notInHD.size());
+        for (Opus o : notInHD) {
+            answer.add(new OpusDTO(o.getTitle(), o.getType().name()));
+        }
+        Collections.sort(answer, OPUS_COMPARATOR);
+        return answer;
     }
 
 }
