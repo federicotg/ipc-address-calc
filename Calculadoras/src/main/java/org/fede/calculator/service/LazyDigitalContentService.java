@@ -806,6 +806,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Roméo et Juliette").opera().at("Großes Festspielhaus").on("02/08/2008").spaSubs().br().box("Roméo et Juliette")
                 .build();
         
+        new DigitalContent.Builder("Carmen").opera().atTheMet().on("01/11/2014").spaSubs().mkv().fullHD().discBox(0, 0)
+                .build();
+
         
     }
 
