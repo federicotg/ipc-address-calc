@@ -30,16 +30,16 @@ public class BlsResponse {
     private List<String> message;
     @JsonProperty(value = "Results")
     private BlsResult results;
-    
-    public boolean isValid(){
+
+    public boolean isValid() {
         return "REQUEST_SUCCEEDED".equals(this.status);
     }
-    
-    public BlsCpiDataPoint getDataPoint(String series, int year){
+
+    public BlsCpiDataPoint getDataPoint(String series, int year) {
         return this.results.getDataPoint(series, year);
     }
-    
-    public BlsCpiDataPoint getDataPoint(String series, int year, int month){
+
+    public BlsCpiDataPoint getDataPoint(String series, int year, int month) {
         return this.results.getDataPoint(series, year, month);
     }
 
@@ -74,8 +74,8 @@ public class BlsResponse {
     public void setResults(BlsResult results) {
         this.results = results;
     }
-    
-    public int getLastAvailableMonth(String series){
-     return this.results.getLastAvailableMonth(series);
+
+    public int getLastAvailableMonth(String series) {
+        return this.results.getLastAvailableMonth(series);
     }
 }

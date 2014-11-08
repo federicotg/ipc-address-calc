@@ -80,7 +80,8 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     public MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) throws NoSeriesDataFoundException {
 
         YearMonth from = this.exchangeRatesSeries.maximumFrom(series);
-        YearMonth to = this.exchangeRatesSeries.minimumTo(series);
+        //YearMonth to = this.exchangeRatesSeries.minimumTo(series);
+        YearMonth to = series.getTo();
 
         final int fromYear = from.getYear();
         final int fromMonth = from.getMonth();

@@ -8987,4 +8987,76 @@
                                 }]
                         }]
         }
-    }]
+    },
+    {
+        "status": "REQUEST_SUCCEEDED",
+        "responseTime": 19,
+        "message": [],
+        "Results": {
+            "series":
+                    [{
+                            "seriesID": "CUUR0000SA0",
+                            "data": [
+                                {
+                                    "year": "2014",
+                                    "period": "M09",
+                                    "periodName": "September",
+                                    "value": "238.031",
+                                    "footnotes": [{}]
+                                }, {
+                                    "year": "2014",
+                                    "period": "M08",
+                                    "periodName": "August",
+                                    "value": "237.852",
+                                    "footnotes": [{}]
+                                }, {
+                                    "year": "2014",
+                                    "period": "M07",
+                                    "periodName": "July",
+                                    "value": "238.250",
+                                    "footnotes": [{}]
+                                }, {
+                                    "year": "2014",
+                                    "period": "M06",
+                                    "periodName": "June",
+                                    "value": "238.343",
+                                    "footnotes": [{}]
+                                }, {
+                                    "year": "2014",
+                                    "period": "M05",
+                                    "periodName": "May",
+                                    "value": "237.900",
+                                    "footnotes": [{}]
+                                }, {
+                                    "year": "2014",
+                                    "period": "M04",
+                                    "periodName": "April",
+                                    "value": "237.072",
+                                    "footnotes": [{}]
+                                }, {
+                                    "year": "2014",
+                                    "period": "M03",
+                                    "periodName": "March",
+                                    "value": "236.293",
+                                    "footnotes": [{}]
+                                }, {
+                                    "year": "2014",
+                                    "period": "M02",
+                                    "periodName": "February",
+                                    "value": "234.781",
+                                    "footnotes": [{}]
+                                }, {
+                                    "year": "2014",
+                                    "period": "M01",
+                                    "periodName": "January",
+                                    "value": "233.916",
+                                    "footnotes": [{}]
+                                }]
+                        }]
+        }
+    }
+    
+    
+    
+    
+    ]

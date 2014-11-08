@@ -22,8 +22,9 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
  *
  * @author fede
  */
-public interface Average {
+public interface Aggregation {
     
     MoneyAmountSeries average(MoneyAmountSeries series);
+    MoneyAmountSeries sum(MoneyAmountSeries series);
     
 }

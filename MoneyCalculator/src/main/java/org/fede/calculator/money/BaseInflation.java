@@ -32,13 +32,13 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
     @Override
     public final MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
         YearMonth maxFrom = this.maximumFrom(series);
-        YearMonth minTo = this.minimumTo(series);
+        YearMonth minTo = series.getTo();
+        
+        final int fromYear = maxFrom.getYear();
+        final int fromMonth = maxFrom.getMonth();
 
-        final int fromYear = maxFrom.getYear();//Math.max(this.getFromYear(), series.getFromYear());
-        final int fromMonth = maxFrom.getMonth(); //Math.max(this.getFromMonth(), series.getFromMonth());
-
-        final int toYear = minTo.getYear();//Math.min(this.getToYear(), series.getToYear());
-        final int toMonth = minTo.getMonth();//Math.min(this.getToMonth(), series.getToMonth());
+        final int toYear = minTo.getYear();
+        final int toMonth = minTo.getMonth();
 
         final MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.getCurrency());
 

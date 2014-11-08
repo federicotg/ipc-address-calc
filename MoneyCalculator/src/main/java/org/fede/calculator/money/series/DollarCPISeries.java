@@ -20,8 +20,6 @@ import org.fede.calculator.money.bls.BlsResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Calendar;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.bls.BlsCPISource;
 import static org.fede.calculator.money.bls.BlsCPISource.CPI_SERIES_ID;
@@ -51,8 +49,11 @@ public final class DollarCPISeries extends IndexSeriesSupport {
     public BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException {
         try {
             BlsResponse blsResponse = this.source.getResponse(year);
+            if (blsResponse == null || !blsResponse.isValid()) {
+                return this.predictValue(year, month);
+            }
             BlsCpiDataPoint dp = blsResponse.getDataPoint(CPI_SERIES_ID, year, month);
-            if (dp == null) {
+            if(dp == null){
                 return this.predictValue(year, month);
             }
             return dp.getValue();
@@ -72,10 +73,16 @@ public final class DollarCPISeries extends IndexSeriesSupport {
         Calendar cal = Calendar.getInstance();
         int year = cal.get(Calendar.YEAR);
         try {
-            return new YearMonth(year, this.source.getResponse(year).getLastAvailableMonth(CPI_SERIES_ID));
+
+            BlsResponse resp = this.source.getResponse(year);
+            while (resp == null) {
+                year = year - 1;
+                resp = this.source.getResponse(year);
+            }
+
+            return new YearMonth(year, resp.getLastAvailableMonth(CPI_SERIES_ID));
         } catch (NoSeriesDataFoundException | IOException ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error getting BLS Data", ex);
-            return new YearMonth(year, cal.get(Calendar.MONTH) + 1);
+            return new YearMonth(year - 1, 11);
         }
     }
 
@@ -84,7 +91,6 @@ public final class DollarCPISeries extends IndexSeriesSupport {
         if (year < 1913) {
             throw new NoSeriesDataFoundException("No data for specified year and month.");
         }
-        //return new BigDecimal("250.0");
         return new LinearFutureValue().predictValue(this, year, month);
     }
 
