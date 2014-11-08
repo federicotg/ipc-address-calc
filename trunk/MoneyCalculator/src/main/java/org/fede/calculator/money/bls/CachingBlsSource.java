@@ -27,9 +27,9 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public class CachingBlsSource implements BlsCPISource {
 
-    private BlsCPISource source;
+    private final BlsCPISource source;
 
-    private Map<Integer, BlsResponse> cache;
+    private final Map<Integer, BlsResponse> cache;
 
     public CachingBlsSource(BlsCPISource source) {
         this.source = source;
@@ -41,7 +41,9 @@ public class CachingBlsSource implements BlsCPISource {
         BlsResponse response = this.cache.get(year);
         if (response == null) {
             response = this.source.getResponse(year);
-            this.cache.put(year, response);
+            if(response != null){
+                this.cache.put(year, response);
+            }
         }
         return response;
     }
