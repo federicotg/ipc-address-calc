@@ -465,7 +465,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(2, 14)
                 .discBox(5, 14)
                 .build();
-        new DigitalContent.Builder("Rusalka").opera().atTheMet().on("08/02/2014").fullHD().engSubs().mkv().discBox(9, 15).imdb("http://www.imdb.com/title/tt3451542/").build();
+        new DigitalContent.Builder("Rusalka").opera().atTheMet().on("08/02/2014").fullHD().engSubs().mkv().discBox(9, 15)
+                .starringFleming()
+                .imdb("http://www.imdb.com/title/tt3451542/").build();
         new DigitalContent.Builder("I Puritani").opera().atTheMet().on("01/01/2007").dvd().spaSubs().iso()
                 .discBox(12, 14)
                 .imdb("http://www.imdb.com/title/tt0966101/").build();
@@ -532,7 +534,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Forza del Destino").opera().at("Teatro Comunale di Firenze").on("01/01/2007").dvd().spaSubs().iso()
                 .discBox(12, 14)
                 .imdb("http://www.imdb.com/title/tt2196658/").build();
-        new DigitalContent.Builder("La Traviata").opera().at("Großes Festspielhaus").on("01/01/2005").dvd().spaSubs().iso().seenByFede().discBox(2, 4).imdb("http://www.imdb.com/title/tt0475165/").build();
+        new DigitalContent.Builder("La Traviata").opera().at("Großes Festspielhaus").on("01/01/2005").dvd().spaSubs().iso()
+                .seenByFede()
+                .discBox(2, 4)
+                .starringNetrebko()
+                .imdb("http://www.imdb.com/title/tt0475165/").build();
         new DigitalContent.Builder("La Traviata").opera().at("alla Scala").on("01/01/2007").hd720().mkv()
                 .discBox(3, 14)
                 .imdb("http://www.imdb.com/title/tt2316799/").build();
@@ -543,7 +549,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         new DigitalContent.Builder("La Traviata").opera().atGlyndebourne().on("10/08/2014").fullHD().engSubs().mkv().seenByFede().discBox(12, 15).build();
         new DigitalContent.Builder("Macbeth").opera().atParis().on("04/04/2009").fullHD().spaSubs().mkv().discBox(9, 15).imdb("http://www.imdb.com/title/tt2705154/").build();
-        new DigitalContent.Builder("Macbeth").opera().atTheMet().on("11/10/2014").fullHD().spaSubs().mkv()
+        new DigitalContent.Builder("Macbeth").opera().atTheMet().on("11/10/2014").fullHD()
+                .starringNetrebko()
+                .spaSubs().mkv()
                 .discBox(10, 2)
                 .build();
         new DigitalContent.Builder("Nabucco").opera().atRoh().on("26/04/2013").fullHD().spaSubs().mkv().seenByFede()
