@@ -39,6 +39,9 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
     private BigDecimal nominalDollarsPctVar;
     private BigDecimal nominalPesos;
     private BigDecimal nominalPesosPctVar;
+    
+    private BigDecimal nominalIncomePesos;
+    private BigDecimal nominalIncomeDollars;
 
     private BigDecimal totalNominalPesos;
     private BigDecimal totalNominalPesosPctVar;
@@ -50,10 +53,19 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
     private BigDecimal nov99Pesos;
     private BigDecimal nov99PesosPctVar;
 
+    private BigDecimal nov99IncomePesos;
+    private BigDecimal nov99IncomeDollars;
+    
     private BigDecimal totalNov99Dollars;
     private BigDecimal totalNov99DollarsPctVar;
     private BigDecimal totalNov99Pesos;
     private BigDecimal totalNov99PesosPctVar;
+    
+    private BigDecimal nov99PesosPctSaved;
+    private BigDecimal nov99DollarPctSaved;
+    
+    private BigDecimal nominalPesosPctSaved;
+    private BigDecimal nominalDollarPctSaved;
     
 
     @Override
@@ -213,4 +225,69 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
         this.totalNov99PesosPctVar = totalNov99PesosPctVar;
     }
 
+    public BigDecimal getNominalIncomePesos() {
+        return nominalIncomePesos;
+    }
+
+    public void setNominalIncomePesos(BigDecimal nominalIncomePesos) {
+        this.nominalIncomePesos = nominalIncomePesos;
+    }
+
+    public BigDecimal getNominalIncomeDollars() {
+        return nominalIncomeDollars;
+    }
+
+    public void setNominalIncomeDollars(BigDecimal nominalIncomeDollars) {
+        this.nominalIncomeDollars = nominalIncomeDollars;
+    }
+
+    public BigDecimal getNov99IncomePesos() {
+        return nov99IncomePesos;
+    }
+
+    public void setNov99IncomePesos(BigDecimal nov99IncomePesos) {
+        this.nov99IncomePesos = nov99IncomePesos;
+    }
+
+    public BigDecimal getNov99IncomeDollars() {
+        return nov99IncomeDollars;
+    }
+
+    public void setNov99IncomeDollars(BigDecimal nov99IncomeDollars) {
+        this.nov99IncomeDollars = nov99IncomeDollars;
+    }
+
+    public BigDecimal getNov99PesosPctSaved() {
+        return nov99PesosPctSaved;
+    }
+
+    public void setNov99PesosPctSaved(BigDecimal nov99PesosPctSaved) {
+        this.nov99PesosPctSaved = nov99PesosPctSaved;
+    }
+
+    public BigDecimal getNov99DollarPctSaved() {
+        return nov99DollarPctSaved;
+    }
+
+    public void setNov99DollarPctSaved(BigDecimal nov99DollarPctSaved) {
+        this.nov99DollarPctSaved = nov99DollarPctSaved;
+    }
+
+    public BigDecimal getNominalPesosPctSaved() {
+        return nominalPesosPctSaved;
+    }
+
+    public void setNominalPesosPctSaved(BigDecimal nominalPesosPctSaved) {
+        this.nominalPesosPctSaved = nominalPesosPctSaved;
+    }
+
+    public BigDecimal getNominalDollarPctSaved() {
+        return nominalDollarPctSaved;
+    }
+
+    public void setNominalDollarPctSaved(BigDecimal nominalDollarPctSaved) {
+        this.nominalDollarPctSaved = nominalDollarPctSaved;
+    }
+
+    
 }
