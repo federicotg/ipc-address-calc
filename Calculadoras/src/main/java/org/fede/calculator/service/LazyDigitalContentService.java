@@ -711,8 +711,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Salome").opera().atRoh().on("01/01/2008").dvd().spaSubs().iso().seenByFede().discBox(4, 6).imdb("http://www.imdb.com/title/tt2254086/").build();
         new DigitalContent.Builder("Armida").opera().atTheMet().on("01/01/2010").dvd().spaSubs().iso().seenByFede()
                 .discBox(5, 3).discBox(6, 3)
-                .imdb("http://www.imdb.com/title/tt1670805/").build();
-        new DigitalContent.Builder("Il Barbiere di Siviglia").opera().atGlyndebourne().on("01/01/1981").dvd().spaSubs().iso().discBox(2, 1).imdb("http://www.imdb.com/title/tt0259878/").build();
+                .imdb("http://www.imdb.com/title/tt1670805/").build();       
         new DigitalContent.Builder("Il Barbiere di Siviglia").opera().at("Teatro Real").on("01/01/2005").dvd().spaSubs().iso().discBox(8, 9).imdb("http://www.imdb.com/title/tt1974283/").build();
         new DigitalContent.Builder("Il turco in Italia").opera().at("Ópera de Zürich").on("01/01/2001").dvd().spaSubs().iso().seenByFede().discBox(1, 2).imdb("http://www.imdb.com/title/tt0363150/").build();
         new DigitalContent.Builder("L'Italiana in Algeri").opera().atTheMet().on("01/01/1986").dvd().spaSubs()
@@ -788,7 +787,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(10, 12)
                 .imdb("http://www.imdb.com/title/tt2777536/").build();
         new DigitalContent.Builder("I Due Foscari").opera().atRoh().on("27/10/2014").fullHD().spaSubs().mkv()
-                .discBox(0, 0).build();
+                .discBox(0, 0)
+                .discBox(1, 1)
+                .build();
         
         new DigitalContent.Builder("La Fanciulla del West").opera().atTheMet().on("08/01/2011").spaSubs().dvd().dvdFormat().box("La Fanciulla del West")
                 .seenByFede()
@@ -814,7 +815,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Roméo et Juliette").opera().at("Großes Festspielhaus").on("02/08/2008").spaSubs().br().box("Roméo et Juliette")
                 .build();
         
-        new DigitalContent.Builder("Carmen").opera().atTheMet().on("01/11/2014").spaSubs().mkv().fullHD().discBox(0, 0)
+        new DigitalContent.Builder("Carmen").opera().atTheMet().on("01/11/2014").spaSubs().mkv().fullHD().discBox(1, 1)
                 .build();
 
         
