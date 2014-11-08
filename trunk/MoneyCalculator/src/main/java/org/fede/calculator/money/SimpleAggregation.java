@@ -24,13 +24,18 @@ import org.fede.calculator.money.series.MoneyAmountTransform;
  *
  * @author fede
  */
-public class SimpleAverage implements Average, MathConstants {
+public class SimpleAggregation implements Aggregation, MathConstants {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(SCALE, ROUNDING_MODE);
-    
+
+    private static interface AggregationFunction {
+
+        MoneyAmount apply(MoneyAmount lastValues[]);
+    }
+
     private final int months;
 
-    public SimpleAverage(int months) {
+    public SimpleAggregation(int months) {
         this.months = months;
     }
 
@@ -46,9 +51,19 @@ public class SimpleAverage implements Average, MathConstants {
         return new MoneyAmount(sum.divide(new BigDecimal(total), CONTEXT), lastValues[0].getCurrency());
     }
 
-    @Override
-    public MoneyAmountSeries average(MoneyAmountSeries series) {
-        if(this.months == 1){
+    private MoneyAmount sum(MoneyAmount lastValues[]) {
+
+        BigDecimal sum = ZERO;
+        for (MoneyAmount lastValue : lastValues) {
+            if (lastValue != null) {
+                sum = sum.add(lastValue.getAmount());
+            }
+        }
+        return new MoneyAmount(sum, lastValues[0].getCurrency());
+    }
+
+    private MoneyAmountSeries aggregate(MoneyAmountSeries series, final AggregationFunction aggregationFunction) {
+        if (this.months == 1) {
             return series;
         }
         final MoneyAmount lastValues[] = new MoneyAmount[this.months];
@@ -60,7 +75,44 @@ public class SimpleAverage implements Average, MathConstants {
             public MoneyAmount transform(int year, int month, MoneyAmount amount) {
                 lastValues[index[0]] = amount;
                 index[0] = (index[0] + 1) % months;
+                return aggregationFunction.apply((lastValues));
+            }
+        });
+    }
+
+    @Override
+    public MoneyAmountSeries average(MoneyAmountSeries series) {
+        /*if(this.months == 1){
+         return series;
+         }
+         final MoneyAmount lastValues[] = new MoneyAmount[this.months];
+         final int index[] = new int[]{0};
+
+         return series.map(new MoneyAmountTransform() {
+
+         @Override
+         public MoneyAmount transform(int year, int month, MoneyAmount amount) {
+         lastValues[index[0]] = amount;
+         index[0] = (index[0] + 1) % months;
+         return avg(lastValues);
+         }
+         });*/
+        return this.aggregate(series, new AggregationFunction() {
+
+            @Override
+            public MoneyAmount apply(MoneyAmount[] lastValues) {
                 return avg(lastValues);
+            }
+        });
+    }
+
+    @Override
+    public MoneyAmountSeries sum(MoneyAmountSeries series) {
+        return this.aggregate(series, new AggregationFunction() {
+
+            @Override
+            public MoneyAmount apply(MoneyAmount[] lastValues) {
+                return sum(lastValues);
             }
         });
     }

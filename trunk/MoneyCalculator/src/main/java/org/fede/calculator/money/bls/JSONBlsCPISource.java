@@ -31,11 +31,11 @@ public class JSONBlsCPISource implements BlsCPISource {
 
     private final String name;
     private List<BlsResponse> list;
-    private final BlsCPISource alternateSource;
+    //private final BlsCPISource alternateSource;
 
     public JSONBlsCPISource(String name) {
         this.name = name;
-        this.alternateSource = new URLConnectionBlsCPISource();
+        //this.alternateSource = new URLConnectionBlsCPISource();
     }
 
     @Override
@@ -52,7 +52,7 @@ public class JSONBlsCPISource implements BlsCPISource {
                 return response;
             }
         }
-        return this.alternateSource.getResponse(year);
+        return null;
     }
 
 }
