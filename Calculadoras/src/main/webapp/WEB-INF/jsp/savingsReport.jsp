@@ -36,9 +36,31 @@
 
                 height: 800px;
             }
-            .valueTd{
+            .valueTd, .valueTdUsd{
                 text-align: right;
             }
+
+            .valueTdUsd{
+                color: forestgreen;
+            }
+
+            table{
+                font-size: 80%;
+            }
+            
+            .first{
+                border-left-color: black;
+                border-left-style: solid;
+                border-left-width: 1px;
+            }
+            
+            .last{
+                border-right-color: black;
+                border-right-style: solid;
+                border-right-width: 1px;
+            }
+            
+            
         </style>
     </head>
     <body>
@@ -52,6 +74,8 @@
                     <th></th>
                     <th colspan="8">Nominal</th>
                     <th colspan="8">Reales nov. 1999</th>
+                    <th colspan="4">Ingreso Nominal</th>
+                    <th colspan="4">Ingreso Real nov. 1999</th>
                 </tr>
                 <tr>
                     <th>Mes</th>
@@ -75,30 +99,54 @@
                     <th>+/- %</th>
                     <th>Total Pesos</th>
                     <th>+/- %</th>
+
+                    <th>Pesos</th>
+                    <th>% Ahorro</th>
+                    <th>Dólares</th>
+                    <th>% Ahorro</th>
+
+                    <th>Pesos</th>
+                    <th>% Ahorro</th>
+                    <th>Dólares</th>
+                    <th>% Ahorro</th>
+
                 </tr>
             </thead>
             <tbody>
                 <c:forEach items="${report}" var="item">
                     <tr>
-                        <td>${item.moment.month} / ${item.moment.year}</td>
+                        <td class="first">${item.moment.month} / ${item.moment.year}</td>
                         <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.pesosForDollar}</fmt:formatNumber></td>
                         <td class="valueTd"><fmt:formatNumber type="PERCENT">${item.pesosForDollarPctVar}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.nominalDollars}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="PERCENT">${item.nominalDollarsPctVar}</fmt:formatNumber></td>
+                        
+                        <td class="valueTdUsd first"><fmt:formatNumber type="CURRENCY">${item.nominalDollars}</fmt:formatNumber></td>
+                        <td class="valueTdUsd"><fmt:formatNumber type="PERCENT">${item.nominalDollarsPctVar}</fmt:formatNumber></td>
                         <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.nominalPesos}</fmt:formatNumber></td>
                         <td class="valueTd"><fmt:formatNumber type="PERCENT">${item.nominalPesosPctVar}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.totalNominalDollars}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="PERCENT">${item.totalNominalDollarsPctVar}</fmt:formatNumber></td>
+                        <td class="valueTdUsd"><fmt:formatNumber type="CURRENCY">${item.totalNominalDollars}</fmt:formatNumber></td>
+                        <td class="valueTdUsd"><fmt:formatNumber type="PERCENT">${item.totalNominalDollarsPctVar}</fmt:formatNumber></td>
                         <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.totalNominalPesos}</fmt:formatNumber></td>
+                        
                         <td class="valueTd"><fmt:formatNumber type="PERCENT">${item.totalNominalPesosPctVar}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.nov99Dollars}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="PERCENT">${item.nov99DollarsPctVar}</fmt:formatNumber></td>
+                        <td class="valueTdUsd first"><fmt:formatNumber type="CURRENCY">${item.nov99Dollars}</fmt:formatNumber></td>
+                        <td class="valueTdUsd"><fmt:formatNumber type="PERCENT">${item.nov99DollarsPctVar}</fmt:formatNumber></td>
                         <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.nov99Pesos}</fmt:formatNumber></td>
                         <td class="valueTd"><fmt:formatNumber type="PERCENT">${item.nov99PesosPctVar}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.totalNov99Dollars}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="PERCENT">${item.totalNov99DollarsPctVar}</fmt:formatNumber></td>
+                        <td class="valueTdUsd"><fmt:formatNumber type="CURRENCY">${item.totalNov99Dollars}</fmt:formatNumber></td>
+                        <td class="valueTdUsd"><fmt:formatNumber type="PERCENT">${item.totalNov99DollarsPctVar}</fmt:formatNumber></td>
                         <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.totalNov99Pesos}</fmt:formatNumber></td>
                         <td class="valueTd"><fmt:formatNumber type="PERCENT">${item.totalNov99PesosPctVar}</fmt:formatNumber></td>
+
+                        <td class="valueTd first"><fmt:formatNumber type="CURRENCY">${item.nominalIncomePesos}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="PERCENT">${item.nominalPesosPctSaved}</fmt:formatNumber></td>
+                        <td class="valueTdUsd"><fmt:formatNumber type="CURRENCY">${item.nominalIncomeDollars}</fmt:formatNumber></td>
+                        <td class="valueTdUsd"><fmt:formatNumber type="PERCENT">${item.nominalDollarPctSaved}</fmt:formatNumber></td>
+
+                        <td class="valueTd first"><fmt:formatNumber type="CURRENCY">${item.nov99IncomePesos}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="PERCENT">${item.nov99PesosPctSaved}</fmt:formatNumber></td>
+                        <td class="valueTdUsd"><fmt:formatNumber type="CURRENCY">${item.nov99IncomeDollars}</fmt:formatNumber></td>
+                        <td class="valueTdUsd last"><fmt:formatNumber type="PERCENT">${item.nov99DollarPctSaved}</fmt:formatNumber></td>
+
                         </tr>
                 </c:forEach>
             </tbody>
@@ -126,6 +174,19 @@
                     <th>+/- %</th>
                     <th>Total Pesos</th>
                     <th>+/- %</th>
+
+
+
+                    <th>Pesos</th>
+                    <th>% Ahorro</th>
+                    <th>Dólares</th>
+                    <th>% Ahorro</th>
+
+                    <th>Pesos</th>
+                    <th>% Ahorro</th>
+                    <th>Dólares</th>
+                    <th>% Ahorro</th>
+
                 </tr>
                 <tr>
                     <th></th>
@@ -133,6 +194,8 @@
                     <th></th>
                     <th colspan="8">Nominal</th>
                     <th colspan="8">Reales nov. 1999</th>
+                    <th colspan="4">Ingreso Nominal</th>
+                    <th colspan="4">Ingreso Real nov. 1999</th>
                 </tr>
 
             </tfoot>

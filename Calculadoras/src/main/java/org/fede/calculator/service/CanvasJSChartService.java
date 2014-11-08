@@ -36,7 +36,7 @@ import static org.fede.calculator.money.MathConstants.CONTEXT;
 import static org.fede.calculator.money.series.JSONMoneyAmountSeries.readSeries;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.SimpleAverage;
+import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
@@ -163,21 +163,21 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
     private List<CanvasJSDatapointDTO> getRealPesosDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        MoneyAmountSeries series = new SimpleAverage(months).average(ARS_INFLATION.adjust(sourceSeries, 1999, 11));
+        MoneyAmountSeries series = new SimpleAggregation(months).average(ARS_INFLATION.adjust(sourceSeries, 1999, 11));
         series.forEach(new MoneyAmountProcessorImpl(datapoints));
         return datapoints;
     }
 
     private List<CanvasJSDatapointDTO> getNominalPesosDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        MoneyAmountSeries series = new SimpleAverage(months).average(sourceSeries);
+        MoneyAmountSeries series = new SimpleAggregation(months).average(sourceSeries);
         series.forEach(new MoneyAmountProcessorImpl(datapoints));
         return datapoints;
     }
 
     private List<CanvasJSDatapointDTO> getNominalUSDDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        MoneyAmountSeries series = new SimpleAverage(months).average(
+        MoneyAmountSeries series = new SimpleAggregation(months).average(
                 USD_ARS.exchange(
                         sourceSeries, Currency.getInstance("USD")
                 ));
@@ -187,7 +187,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
     private List<CanvasJSDatapointDTO> getRealUSDDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        MoneyAmountSeries series = new SimpleAverage(months).average(
+        MoneyAmountSeries series = new SimpleAggregation(months).average(
                 USD_INFLATION.adjust(
                         USD_ARS.exchange(
                                 sourceSeries, Currency.getInstance("USD")
@@ -332,7 +332,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
     @Override
     public CanvasJSChartDTO savedSalaries() throws NoSeriesDataFoundException {
         Currency usd = Currency.getInstance("USD");
-        MoneyAmountSeries income = new SimpleAverage(12).average(USD_ARS.exchange(
+        MoneyAmountSeries income = new SimpleAggregation(12).average(USD_ARS.exchange(
                 readSeries("unlp.json").add(readSeries("lifia.json")).add(readSeries("plazofijo.json")),
                 usd));
 
@@ -354,7 +354,8 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
             @Override
             public void process(int year, int month, MoneyAmount sueldo) throws NoSeriesDataFoundException {
-                if (new YearMonth(year, month).compareTo(savings.getFrom()) >= 0) {
+                YearMonth ym = new YearMonth(year, month);
+                if (ym.compareTo(savings.getFrom()) >= 0 && ym.compareTo(savings.getTo()) <= 0) {
                     CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
                             "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-28"),
                             savings.getAmount(year, month).getAmount().divide(sueldo.getAmount(), CONTEXT)

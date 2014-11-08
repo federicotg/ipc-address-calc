@@ -22,19 +22,25 @@ import java.util.Calendar;
 import java.util.Currency;
 import java.util.Date;
 import java.util.List;
+import org.fede.calculator.money.Aggregation;
 import org.fede.calculator.money.ForeignExchange;
 import static org.fede.calculator.money.ForeignExchange.USD_ARS;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MathConstants;
+import static org.fede.calculator.money.MathConstants.CONTEXT;
+import static org.fede.calculator.money.MathConstants.ROUNDING_MODE;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.Series;
+import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.web.dto.DollarReportDTO;
 import org.fede.calculator.web.dto.SavingsReportDTO;
 import org.springframework.stereotype.Service;
@@ -98,19 +104,37 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return cal.getTime();
     }
 
+
     @Override
     public List<SavingsReportDTO> savings() throws NoSeriesDataFoundException {
 
         final List<SavingsReportDTO> report = new ArrayList<>();
 
         final MoneyAmountSeries pesos = JSONMoneyAmountSeries.readSeries("ahorros-peso.json");
+
         final MoneyAmountSeries dollars = JSONMoneyAmountSeries.readSeries("ahorros-dolar.json");
+
         final IndexSeries dollarPrice = JSONIndexSeries.readSeries("peso-dolar-libre.json");
+
+        MoneyAmountSeries nominalIncomePesos = JSONMoneyAmountSeries.readSeries("lifia.json")
+                .add(JSONMoneyAmountSeries.readSeries("unlp.json"))
+                .add(JSONMoneyAmountSeries.readSeries("plazofijo.json"));
+
+
+        Aggregation yearSum = new SimpleAggregation(12);
+        final MoneyAmountSeries nov99IncomePesos12 = yearSum.sum(Inflation.ARS_INFLATION.adjust(nominalIncomePesos, 1999, 11));
+
+
+        MoneyAmountSeries nominalIncomeDollars = ForeignExchange.USD_ARS.exchange(nominalIncomePesos, Currency.getInstance("USD"));
+        final MoneyAmountSeries nov99IncomeDollars12 = yearSum.sum(Inflation.USD_INFLATION.adjust(nominalIncomeDollars, 1999, 11));
+
+        final MoneyAmountSeries nominalIncomePesos12 = yearSum.sum(nominalIncomePesos);
+        final MoneyAmountSeries nominalIncomeDollars12 = yearSum.sum(nominalIncomeDollars);
 
         pesos.forEach(new MoneyAmountProcessor() {
             @Override
             public void process(int year, int month, MoneyAmount amount) throws NoSeriesDataFoundException {
-                
+
                 SavingsReportDTO dto = new SavingsReportDTO(year, month);
                 report.add(dto);
 
@@ -127,9 +151,9 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                 dto.setNov99Pesos(nov99Ars.getAmount());
 
                 MoneyAmount totNominalUSD = usd.add(USD_ARS.exchange(ars, Currency.getInstance("USD"), year, month));
-                
+
                 MoneyAmount totNominalARS = ars.add(USD_ARS.exchange(usd, Currency.getInstance("ARS"), year, month));
-                
+
                 dto.setTotalNominalDollars(totNominalUSD.getAmount());
                 dto.setTotalNominalPesos(totNominalARS.getAmount());
 
@@ -137,6 +161,12 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                 dto.setTotalNov99Pesos(ARS_INFLATION.adjust(totNominalARS, year, month, 1999, 11).getAmount());
 
                 dto.setPesosForDollar(dollarPrice.getIndex(year, month));
+
+                dto.setNominalIncomePesos(nominalIncomePesos12.getAmount(year, month).getAmount());
+                dto.setNominalIncomeDollars(nominalIncomeDollars12.getAmount(year, month).getAmount());
+                dto.setNov99IncomePesos(nov99IncomePesos12.getAmount(year, month).getAmount());
+                dto.setNov99IncomeDollars(nov99IncomeDollars12.getAmount(year, month).getAmount());
+
                 if (report.size() > 12) {
                     SavingsReportDTO otherDto = report.get(report.size() - 13);
 
@@ -153,6 +183,11 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
                     dto.setTotalNov99DollarsPctVar(pctChange(dto.getTotalNov99Dollars(), otherDto.getTotalNov99Dollars()));
                     dto.setTotalNov99PesosPctVar(pctChange(dto.getTotalNov99Pesos(), otherDto.getTotalNov99Pesos()));
+
+                    dto.setNominalPesosPctSaved(savingsPct(dto.getTotalNominalPesos(), otherDto.getTotalNominalPesos(), dto.getNominalIncomePesos()));
+                    dto.setNov99PesosPctSaved(savingsPct(dto.getTotalNov99Pesos(), otherDto.getTotalNov99Pesos(), dto.getNov99IncomePesos()));
+                    dto.setNominalDollarPctSaved(savingsPct(dto.getTotalNominalDollars(), otherDto.getTotalNominalDollars(), dto.getNominalIncomeDollars()));
+                    dto.setNov99DollarPctSaved(savingsPct(dto.getTotalNov99Dollars(), otherDto.getTotalNov99Dollars(), dto.getNov99IncomeDollars()));
                 }
             }
         });
@@ -165,6 +200,13 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
             return BigDecimal.ONE;
         }
         return now.subtract(then).divide(then, CONTEXT);
+    }
+
+    private static BigDecimal savingsPct(BigDecimal savingsNow, BigDecimal savingsThen, BigDecimal avgIncome) {
+        if (savingsNow.compareTo(savingsThen) == 0) {
+            return BigDecimal.ZERO;
+        }
+        return savingsNow.subtract(savingsThen).divide(avgIncome, CONTEXT);
     }
 
 }
