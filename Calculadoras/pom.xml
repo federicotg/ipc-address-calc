@@ -259,8 +259,8 @@
                             </includes>
                             <!-- files to exclude, path relative to output's directory-->
                             <excludes>
-                              <exclude>**/*.min.js</exclude>
-                              <exclude>**/compressed.css</exclude>
+                                <exclude>**/*.min.js</exclude>
+                                <exclude>**/compressed.css</exclude>
                             </excludes>
                             
                         </aggregation>
