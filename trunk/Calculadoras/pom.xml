@@ -230,6 +230,45 @@
                     </jvmFlags-->
                 </configuration>
             </plugin>
+            
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>yuicompressor-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compress</goal>
+                        </goals>
+                    </execution>
+                </executions>        
+                <configuration>
+                    <nosuffix>true</nosuffix>
+                    <aggregations>
+                        <aggregation>
+                            <!-- remove files after aggregation (default: false)
+                            <removeIncluded>true</removeIncluded>
+                            -->
+                            <!-- insert new line after each concatenation (default: false) -->
+                            <insertNewLine>true</insertNewLine>
+                            <output>${project.build.directory}/${project.build.finalName}/scripts/all.js</output>
+                            <!-- files to include, path relative to output's directory or absolute path-->
+                            <!--inputDir>base directory for non absolute includes, default to parent dir of output</inputDir-->
+                            <includes>
+
+                                <include>**/*.js</include>
+                            </includes>
+                            <!-- files to exclude, path relative to output's directory-->
+                            <excludes>
+                              <exclude>**/*.min.js</exclude>
+                              <exclude>**/compressed.css</exclude>
+                            </excludes>
+                            
+                        </aggregation>
+                    </aggregations>
+                </configuration>
+            </plugin>
+            
+            
         </plugins>
     </build>
     
