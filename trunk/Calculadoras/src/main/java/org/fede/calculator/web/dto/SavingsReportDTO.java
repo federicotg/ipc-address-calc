@@ -36,9 +36,9 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
     private BigDecimal pesosForDollarPctVar;
 
     private BigDecimal nominalDollars;
-    private BigDecimal nominalDollarsPctVar;
+
     private BigDecimal nominalPesos;
-    private BigDecimal nominalPesosPctVar;
+
     
     private BigDecimal nominalIncomePesos;
     private BigDecimal nominalIncomeDollars;
@@ -49,9 +49,9 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
     private BigDecimal totalNominalDollarsPctVar;
 
     private BigDecimal nov99Dollars;
-    private BigDecimal nov99DollarsPctVar;
+
     private BigDecimal nov99Pesos;
-    private BigDecimal nov99PesosPctVar;
+
 
     private BigDecimal nov99IncomePesos;
     private BigDecimal nov99IncomeDollars;
@@ -161,21 +161,7 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
         this.pesosForDollarPctVar = pesosForDollarPctVar;
     }
 
-    public BigDecimal getNominalDollarsPctVar() {
-        return nominalDollarsPctVar;
-    }
 
-    public void setNominalDollarsPctVar(BigDecimal nominalDollarsPctVar) {
-        this.nominalDollarsPctVar = nominalDollarsPctVar;
-    }
-
-    public BigDecimal getNominalPesosPctVar() {
-        return nominalPesosPctVar;
-    }
-
-    public void setNominalPesosPctVar(BigDecimal nominalPesosPctVar) {
-        this.nominalPesosPctVar = nominalPesosPctVar;
-    }
 
     public BigDecimal getTotalNominalPesosPctVar() {
         return totalNominalPesosPctVar;
@@ -193,21 +179,7 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
         this.totalNominalDollarsPctVar = totalNominalDollarsPctVar;
     }
 
-    public BigDecimal getNov99DollarsPctVar() {
-        return nov99DollarsPctVar;
-    }
 
-    public void setNov99DollarsPctVar(BigDecimal nov99DollarsPctVar) {
-        this.nov99DollarsPctVar = nov99DollarsPctVar;
-    }
-
-    public BigDecimal getNov99PesosPctVar() {
-        return nov99PesosPctVar;
-    }
-
-    public void setNov99PesosPctVar(BigDecimal nov99PesosPctVar) {
-        this.nov99PesosPctVar = nov99PesosPctVar;
-    }
 
     public BigDecimal getTotalNov99DollarsPctVar() {
         return totalNov99DollarsPctVar;

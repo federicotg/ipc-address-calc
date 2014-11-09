@@ -30,7 +30,6 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MathConstants;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
-import static org.fede.calculator.money.MathConstants.ROUNDING_MODE;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
@@ -39,8 +38,6 @@ import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.Series;
-import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.web.dto.DollarReportDTO;
 import org.fede.calculator.web.dto.SavingsReportDTO;
 import org.springframework.stereotype.Service;
@@ -169,12 +166,6 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
                 if (report.size() > 12) {
                     SavingsReportDTO otherDto = report.get(report.size() - 13);
-
-                    dto.setNominalDollarsPctVar(pctChange(dto.getNominalDollars(), otherDto.getNominalDollars()));
-                    dto.setNominalPesosPctVar(pctChange(dto.getNominalPesos(), otherDto.getNominalPesos()));
-
-                    dto.setNov99DollarsPctVar(pctChange(dto.getNov99Dollars(), otherDto.getNov99Dollars()));
-                    dto.setNov99PesosPctVar(pctChange(dto.getNov99Pesos(), otherDto.getNov99Pesos()));
 
                     dto.setPesosForDollarPctVar(pctChange(dto.getPesosForDollar(), otherDto.getPesosForDollar()));
 
