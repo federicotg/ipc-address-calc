@@ -17,7 +17,6 @@
 package org.fede.calculator.service;
 
 import java.util.List;
-import java.util.Set;
 import org.fede.digitalcontent.dto.BoxLabelDTO;
 import org.fede.digitalcontent.dto.DigitalContentDTO;
 import org.fede.digitalcontent.dto.OpusDTO;
