@@ -801,7 +801,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Das Rheingold").opera().atTheMet().on("01/01/2010").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
         new DigitalContent.Builder("La Bohème").opera().at("Großes Festspielhaus").on("01/07/2012").spaSubs().br().box("La Bohème")
                 .starringNetrebko()
-                .seenByFede().build();
+                .seenByFede()
+                .build();
         new DigitalContent.Builder("Lucia di Lammermoor").opera().atTheMet().on("07/02/2009").spaSubs().br()
                 .starringNetrebko()
                 .box("Lucia di Lammermoor").build();
@@ -818,9 +819,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Carmen").opera().atTheMet().on("01/11/2014").spaSubs().mkv().fullHD().discBox(1, 1)
                 .build();
 
-        
+        new DigitalContent.Builder("Don Quichotte").ballet().at("alla Scala").on("25/09/2014").engSubs().mkv().fullHD().discBox(0, 0)
+                .build();           
     }
-
+    
     @Override
     public Iterable<StorageBox> getAllBoxes() {
         return Repository.STORAGEBOX.findAll();
