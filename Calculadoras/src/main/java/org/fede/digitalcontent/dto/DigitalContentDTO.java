@@ -16,6 +16,7 @@
  */
 package org.fede.digitalcontent.dto;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -23,7 +24,7 @@ import java.util.List;
  *
  * @author fede
  */
-public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
+public class DigitalContentDTO implements Comparable<DigitalContentDTO> {
 
     private List<String> boxes;
     private List<String> opusTypes;
@@ -54,7 +55,7 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
     public void setTitles(List<String> titles) {
         this.titles = titles;
     }
-    
+
     public List<String> getMusicBy() {
         return musicBy;
     }
@@ -143,26 +144,40 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO>{
         this.seenByAnaMaria = seenByAnaMaria;
     }
 
+    private int compareCollection(Collection<? extends Comparable> col1, Collection<? extends Comparable> col2) {
+        if (col1 == null) {
+            return col2 == null ? 0 : -1;
+        }
+        if (col2 == null) {
+            return 1;
+        }
+        if (col1.isEmpty()) {
+            return col2.isEmpty() ? 0 : -1;
+        }
+        if (col2.isEmpty()) {
+            return 1;
+        }
+        return col1.iterator().next().compareTo(col2.iterator().next());
+    }
+
     @Override
     public int compareTo(DigitalContentDTO o) {
-        if(!this.opusTypes.equals(o.getOpusTypes())){
-            return this.opusTypes.get(0).compareTo(o.getOpusTypes().get(0));
-        }
-        if(!this.musicBy.equals(o.getMusicBy())){
-            if(this.musicBy.isEmpty() || o.getMusicBy().isEmpty()){
-                return 0;
-            }
-            return  this.musicBy.get(0).compareTo(o.getMusicBy().get(0));
+        int comparison = this.compareCollection(this.opusTypes, o.opusTypes);
+        if(comparison != 0){
+            return comparison;
         }
         
-        if(!this.titles.equals(o.getTitles())){
-            if(this.titles.isEmpty() || o.getTitles().isEmpty()){
-                return 0;
-            }
-            return  this.titles.get(0).compareTo(o.getTitles().get(0));
+        comparison = this.compareCollection(this.musicBy, o.musicBy);
+        if(comparison != 0){
+            return comparison;
+        }
+
+        comparison = this.compareCollection(this.titles, o.titles);
+        if(comparison != 0){
+            return comparison;
         }
         
         return this.date.compareTo(o.getDate());
     }
-    
+
 }
