@@ -245,6 +245,7 @@
                 </executions>        
                 <configuration>
                     <nosuffix>true</nosuffix>
+                    <jswarn>false</jswarn>
                     <aggregations>
                         <aggregation>
                             <!-- remove files after aggregation (default: false)-->
