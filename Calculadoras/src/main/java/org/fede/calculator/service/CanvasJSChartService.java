@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.annotation.Resource;
+import org.fede.calculator.money.ForeignExchange;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.ForeignExchange.USD_ARS;
@@ -161,14 +162,24 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         return datum;
     }
 
-    private List<CanvasJSDatapointDTO> getRealPesosDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
+    private MoneyAmountSeries dollarToPesosIfNeeded(MoneyAmountSeries originalSeries) throws NoSeriesDataFoundException {
+        if (originalSeries.getCurrency().equals(Currency.getInstance("USD"))) {
+            return ForeignExchange.USD_ARS.exchange(originalSeries, Currency.getInstance("ARS"));
+        }
+        return originalSeries;
+    }
+
+    private List<CanvasJSDatapointDTO> getRealPesosDatapoints(int months, MoneyAmountSeries originalSeries) throws NoSeriesDataFoundException {
+        MoneyAmountSeries sourceSeries = dollarToPesosIfNeeded(originalSeries);
+
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         MoneyAmountSeries series = new SimpleAggregation(months).average(ARS_INFLATION.adjust(sourceSeries, 1999, 11));
         series.forEach(new MoneyAmountProcessorImpl(datapoints));
         return datapoints;
     }
 
-    private List<CanvasJSDatapointDTO> getNominalPesosDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
+    private List<CanvasJSDatapointDTO> getNominalPesosDatapoints(int months, MoneyAmountSeries originalSeries) throws NoSeriesDataFoundException {
+        MoneyAmountSeries sourceSeries = dollarToPesosIfNeeded(originalSeries);
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         MoneyAmountSeries series = new SimpleAggregation(months).average(sourceSeries);
         series.forEach(new MoneyAmountProcessorImpl(datapoints));
@@ -177,21 +188,23 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
     private List<CanvasJSDatapointDTO> getNominalUSDDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        MoneyAmountSeries series = new SimpleAggregation(months).average(
-                USD_ARS.exchange(
-                        sourceSeries, Currency.getInstance("USD")
-                ));
+        MoneyAmountSeries exchanged = sourceSeries;
+        if (sourceSeries.getCurrency().equals(Currency.getInstance("ARS"))) {
+            USD_ARS.exchange(sourceSeries, Currency.getInstance("USD"));
+        }
+        MoneyAmountSeries series = new SimpleAggregation(months).average(exchanged);
         series.forEach(new MoneyAmountProcessorImpl(datapoints));
         return datapoints;
     }
 
     private List<CanvasJSDatapointDTO> getRealUSDDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        MoneyAmountSeries exchanged = sourceSeries;
+        if (sourceSeries.getCurrency().equals(Currency.getInstance("ARS"))) {
+            USD_ARS.exchange(sourceSeries, Currency.getInstance("USD"));
+        }
         MoneyAmountSeries series = new SimpleAggregation(months).average(
-                USD_INFLATION.adjust(
-                        USD_ARS.exchange(
-                                sourceSeries, Currency.getInstance("USD")
-                        ), 1999, 11));
+                USD_INFLATION.adjust(exchanged, 1999, 11));
         series.forEach(new MoneyAmountProcessorImpl(datapoints));
         return datapoints;
     }
@@ -249,6 +262,9 @@ public class CanvasJSChartService implements ChartService, MathConstants {
             for (ExpenseChartSeriesDTO s : this.expenseSeries) {
                 if (series.contains(s.getName())) {
                     MoneyAmountSeries eachSeries = JSONMoneyAmountSeries.readSeries(s.getSeriesName());
+                    if(eachSeries.getCurrency().equals(Currency.getInstance("USD"))){
+                        eachSeries = ForeignExchange.USD_ARS.exchange(eachSeries, Currency.getInstance("ARS"));
+                    }
                     if (sumSeries == null) {
                         sumSeries = eachSeries;
                     } else {
