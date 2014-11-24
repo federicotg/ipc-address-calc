@@ -324,6 +324,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Giselle").ballet().atRoh().on("27/01/2014").fullHD().mkv().discBox(7, 15).build();
         new DigitalContent.Builder("Le Corsaire").ballet().atBolshoi().on("11/03/2012").hd720().mkv().discBox(9, 3)
                 .imdb("http://www.imdb.com/title/tt2798336/")
+                .seenByAnaMaria()
+                .seenByFede()
                 .build();
         new DigitalContent.Builder("Raymonda").ballet().atBolshoi().on("24/06/2012").hd720().mkv()
                 .discBox(6, 12)
