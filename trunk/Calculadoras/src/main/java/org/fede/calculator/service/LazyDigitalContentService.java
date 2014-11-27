@@ -822,7 +822,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("Don Quichotte").ballet().at("alla Scala").on("25/09/2014").engSubs().mkv().fullHD().discBox(0, 0)
-                .build();           
+                .build();
+        new DigitalContent.Builder("Swan Lake").ballet().at("Ópera de Zürich").on("05/12/2010").mkv().hd720()
+                .imdb("http://www.imdb.com/title/tt1754561/")
+                .discBox(0, 0)
+                .build();
     }
     
     @Override
