@@ -42,6 +42,7 @@
             <li><a href="goldSavings">Oro</a></li>
             <li><a href="expenses">Gastos</a></li>
             <li><a href="expensesPercent">Gastos / Ingresos</a></li>
+            <li><a href="absa">ABSA</a></li>
         </ul>
         <h1>Reportes</h1>
         <ul>
