@@ -141,6 +141,14 @@ public class ChartController {
         return mav;
     }
 
+    @RequestMapping(value = "absa", method = RequestMethod.GET)
+    public ModelAndView absa() {
+        ModelAndView mav = new ModelAndView("simpleChart");
+        mav.addObject("uri", "absaChart");
+        mav.addObject("title", "ABSA");
+        return mav;
+    }
+    
     @RequestMapping(value = "savedSalaries", method = RequestMethod.GET)
     public ModelAndView savedSalaries() {
         ModelAndView mav = new ModelAndView("simpleChart");
@@ -293,6 +301,13 @@ public class ChartController {
     public CanvasJSChartDTO savedSalariesChart()
             throws NoSeriesDataFoundException {
         return this.chartService.savedSalaries();
+    }
+    
+    @ResponseBody
+    @RequestMapping(value = "absaChart", method = RequestMethod.GET)
+    public CanvasJSChartDTO absaChart()
+            throws NoSeriesDataFoundException {
+        return this.chartService.absa(12);
     }
 
 }

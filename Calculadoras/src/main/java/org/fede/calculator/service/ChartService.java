@@ -49,4 +49,6 @@ public interface ChartService {
     CanvasJSChartDTO historicGold() throws NoSeriesDataFoundException;
     
     CanvasJSChartDTO expensesPercentage(int months, List<String> series) throws NoSeriesDataFoundException;
+    
+    CanvasJSChartDTO absa(int months) throws NoSeriesDataFoundException;
 }
