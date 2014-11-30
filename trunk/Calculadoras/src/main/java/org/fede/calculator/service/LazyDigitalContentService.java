@@ -415,7 +415,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByAnaMaria()
                 .build();
         new DigitalContent.Builder("Romeo and Juliet").ballet().atBolshoi().on("12/05/2013").fullHD().mkv()
-                .discBox(11, 14)
+                //.discBox(11, 14)
                 .build();
         new DigitalContent.Builder("Swan Lake").ballet().atBolshoi().on("19/06/2011").hd720().mkv()
                 .discBox(8, 2)
@@ -697,7 +697,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(3, 13)
                 .imdb("http://www.imdb.com/title/tt0220822/").build();
         new DigitalContent.Builder("Turandot").opera().at("Ciudad Prohibida").on("01/01/1999").fullHD().spaSubs().mkv().discBox(5, 2).imdb("http://www.imdb.com/title/tt0205483/").build();
-        new DigitalContent.Builder("Hippolyte et Aricie").opera().atGlyndebourne().on("29/06/2013").fullHD().engSubs().mkv().discBox(1, 15).build();
+
         new DigitalContent.Builder("L'enfant et les sortilèges").opera().atGlyndebourne().on("19/08/2012").fullHD().engSubs().mkv().seenByFede().discBox(3, 6).build();
         new DigitalContent.Builder("L'heure espagnole").opera().atGlyndebourne().on("19/08/2012").fullHD().engSubs().mkv().seenByFede().discBox(3, 6).build();
         new DigitalContent.Builder("Ariadne auf Naxos").opera().atGlyndebourne().on("04/06/2013").fullHD().engSubs().mkv().seenByFede()
