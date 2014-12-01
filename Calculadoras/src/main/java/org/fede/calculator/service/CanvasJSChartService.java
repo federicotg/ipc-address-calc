@@ -191,7 +191,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         MoneyAmountSeries exchanged = sourceSeries;
         if (sourceSeries.getCurrency().equals(Currency.getInstance("ARS"))) {
-            USD_ARS.exchange(sourceSeries, Currency.getInstance("USD"));
+            exchanged = USD_ARS.exchange(sourceSeries, Currency.getInstance("USD"));
         }
         MoneyAmountSeries series = new SimpleAggregation(months).average(exchanged);
         series.forEach(new MoneyAmountProcessorImpl(datapoints));
@@ -202,7 +202,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         MoneyAmountSeries exchanged = sourceSeries;
         if (sourceSeries.getCurrency().equals(Currency.getInstance("ARS"))) {
-            USD_ARS.exchange(sourceSeries, Currency.getInstance("USD"));
+            exchanged = USD_ARS.exchange(sourceSeries, Currency.getInstance("USD"));
         }
         MoneyAmountSeries series = new SimpleAggregation(months).average(
                 USD_INFLATION.adjust(exchanged, 1999, 11));
