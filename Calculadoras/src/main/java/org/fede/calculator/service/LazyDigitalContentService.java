@@ -411,10 +411,13 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(2, 13)
                 .build();
         new DigitalContent.Builder("Daphnis et Chloé").ballet().atBolshoi().on("06/03/2014").fullHD().mkv().discBox(10, 15).build();
-        new DigitalContent.Builder("Romeo and Juliet").ballet().atRoh().on("10/01/2012").fullHD().mkv().discBox(1, 3)
+        new DigitalContent.Builder("Romeo and Juliet").ballet().atRoh().on("10/01/2012").fullHD().mkv()
+                .discBox(0, 0)
+                //.discBox(1, 3)
                 .seenByAnaMaria()
                 .build();
         new DigitalContent.Builder("Romeo and Juliet").ballet().atBolshoi().on("12/05/2013").fullHD().mkv()
+                .discBox(0, 0)
                 //.discBox(11, 14)
                 .build();
         new DigitalContent.Builder("Swan Lake").ballet().atBolshoi().on("19/06/2011").hd720().mkv()
