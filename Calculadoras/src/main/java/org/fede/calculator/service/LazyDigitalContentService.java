@@ -691,7 +691,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Manon Lescaut").opera().atRoh().on("01/01/1983").dvd().spaSubs().iso().discBox(2, 15).imdb("http://www.imdb.com/title/tt0254549/").build();
         new DigitalContent.Builder("Tosca").opera().at("alla Scala").on("01/01/2000").dvd().spaSubs().iso().discBox(6, 2).imdb("http://www.imdb.com/title/tt2385259/").build();
         new DigitalContent.Builder("Tosca").opera().atRoh().on("17/07/2011").fullHD().engSubs().mkv().seenByFede().discBox(3, 8).build();
-        new DigitalContent.Builder("Tosca").opera().atTheMet().on("09/11/2013").fullHD().engSubs().mkv().discBox(5, 15).imdb("http://www.imdb.com/title/tt3315900/").build();
+        new DigitalContent.Builder("Tosca").opera().atTheMet().on("09/11/2013").fullHD().engSubs().mkv().discBox(5, 15).imdb("http://www.imdb.com/title/tt3315900/")
+                .seenByFede()
+                .build();
         new DigitalContent.Builder("Tosca").opera().atParis().on("16/10/2014").fullHD().spaSubs().mkv().discBox(8, 2).build();
         //new DigitalContent.Builder("Turandot").opera().atTheMet().on("01/01/1987").fullHD().spaSubs().mkv()                .discBox(3, 13)                .imdb("http://www.imdb.com/title/tt0220822/").build();
         new DigitalContent.Builder("Turandot").opera().at("Ciudad Prohibida").on("01/01/1999").fullHD().spaSubs().mkv().discBox(5, 2).imdb("http://www.imdb.com/title/tt0205483/").build();
