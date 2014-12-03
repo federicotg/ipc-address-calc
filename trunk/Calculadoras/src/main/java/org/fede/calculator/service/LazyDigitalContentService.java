@@ -318,6 +318,7 @@ public class LazyDigitalContentService implements DigitalContentService {
     private void initBalletVideos() throws ParseException {
         new DigitalContent.Builder("Giselle").ballet().atRoh().on("29/04/2006").hd720().mkv()
                 .seenByAnaMaria()
+                .seenByElsa()
                 .discBox(1, 3)
                 .imdb("http://www.imdb.com/title/tt1596783/")
                 .build();
@@ -373,7 +374,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByAnaMaria()
                 .build();
         new DigitalContent.Builder("Alice's Adventures In Wonderland")
-                .ballet().atRoh().on("28/03/2013").fullHD().mkv().seenByAnaMaria()
+                .ballet().atRoh().on("28/03/2013").fullHD().mkv()
+                .seenByAnaMaria()
+                .seenByElsa()
                 .discBox(12, 11)
                 .discBox(3, 12)
                 .discBox(4, 12)
@@ -386,6 +389,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Coppelia").ballet().atBolshoi().on("29/05/2011").hd720().mkv()
                 .discBox(7, 3)
                 .seenByAnaMaria()
+                .seenByElsa()
                 .imdb("http://www.imdb.com/title/tt1833535/")
                 .build();
         new DigitalContent.Builder("La Source").ballet().atParis().on("11/04/2011").hd720().mkv().discBox(4, 7).build();
@@ -403,7 +407,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Bayadère").ballet().atParis().on("22/03/2012").hd720().mkv()
                 .discBox(2, 11)
                 .discBox(3, 11)
-                .seenByAnaMaria().build();
+                .seenByAnaMaria()
+                .seenByElsa()
+                .build();
         new DigitalContent.Builder("La Bayadère").ballet().atBolshoi().on("27/01/2013").fullHD().mkv()
                 .discBox(11, 14)
                 .seenByAnaMaria().build();
@@ -413,6 +419,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Daphnis et Chloé").ballet().atBolshoi().on("06/03/2014").fullHD().mkv().discBox(10, 15).build();
         new DigitalContent.Builder("Romeo and Juliet").ballet().atRoh().on("10/01/2012").fullHD().mkv()
                 .discBox(0, 0)
+                .seenByElsa()
                 //.discBox(1, 3)
                 .seenByAnaMaria()
                 .build();
@@ -424,6 +431,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 2)
                 .discBox(9, 2)
                 .seenByFede()
+                .seenByElsa()
                 .build();
         new DigitalContent.Builder("Swan Lake").ballet().at("Mariinsky").on("06/06/2013").fullHD().mkv()
                 .discBox(6, 13)
@@ -435,6 +443,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(7, 3)
                 .imdb("http://www.imdb.com/title/tt2798230/")
                 .seenByAnaMaria()
+                .seenByElsa()
                 .build();
         new DigitalContent.Builder("The Nutcracker").ballet().atRoh().on("12/12/2013").fullHD().mkv()
                 .discBox(5, 15)
@@ -453,6 +462,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("The Sleeping Beauty").ballet().atRoh().on("19/03/2014").fullHD().mkv().discBox(10, 4)
                 .seenByAnaMaria()
                 .seenByFede()
+                .seenByElsa()
                 .build();
         new DigitalContent.Builder("La fille mal gardée").ballet().atRoh().on("16/05/2012").hd720().mkv().discBox(8, 3)
                 .seenByFede()
@@ -876,6 +886,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         dto.setOpusTypes(toString(dc.getOpusTypes()));
         dto.setQuality(dc.getQuality().toString());
         dto.setSeenByAnaMaria(dc.isSeenBy(Repository.PERSON.findById("Ana María")));
+        dto.setSeenByElsa(dc.isSeenBy(Repository.PERSON.findById("Elsa")));
         dto.setSeenByFede(dc.isSeenBy(Repository.PERSON.findById("Federico")));
         dto.setSubtitles(dc.getSubtitle() != null ? dc.getSubtitle().toString() : "");
         dto.setTitles(toString(dc.getTitles()));

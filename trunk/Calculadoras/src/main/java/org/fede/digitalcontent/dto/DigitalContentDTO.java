@@ -39,6 +39,7 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO> {
     private String imdb;
     private boolean seenByFede;
     private boolean seenByAnaMaria;
+    private boolean seenByElsa;
 
     public List<String> getBoxes() {
         return boxes;
@@ -178,6 +179,14 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO> {
         }
         
         return this.date.compareTo(o.getDate());
+    }
+
+    public boolean isSeenByElsa() {
+        return seenByElsa;
+    }
+
+    public void setSeenByElsa(boolean seenByElsa) {
+        this.seenByElsa = seenByElsa;
     }
 
 }

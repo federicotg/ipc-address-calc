@@ -91,6 +91,11 @@ public class DigitalContent {
             this.viewers.add("Ana María");
             return this;
         }
+        
+        public Builder seenByElsa() {
+            this.viewers.add("Elsa");
+            return this;
+        }
 
         public Builder seenByCristina() {
             this.viewers.add("Crsitina");
