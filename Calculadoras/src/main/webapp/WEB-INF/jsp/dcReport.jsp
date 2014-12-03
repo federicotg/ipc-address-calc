@@ -58,8 +58,9 @@
                     <th>Sub.</th>
                     <th>Formato</th>
                     <th>IMDB</th>
-                    <th>Yo</th>
+                    <th>F.</th>
                     <th>A.M.</th>
+                    <th>E.</th>
                 </tr>
             </thead>
             <tbody>
@@ -103,6 +104,7 @@
                         </td>
                         <td class="centeredTd"><c:if test="${item.seenByFede}"><strong>☑</strong></c:if></td>
                         <td class="centeredTd"><c:if test="${item.seenByAnaMaria}"><strong>☑</strong></c:if></td>
+                        <td class="centeredTd"><c:if test="${item.seenByElsa}"><strong>☑</strong></c:if></td>
                         </tr>
                 </c:forEach>
             </tbody>
