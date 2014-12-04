@@ -265,7 +265,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Hippolyte et Aricie").french().opera().by("Rameau").build();
         new Opus.Builder("L'enfant et les sortilèges", "L'heure espagnole")
                 .french().opera().by("Ravel").build();
-        new Opus.Builder("Ariadne auf Naxos", "Capriccio", "Intermezzo", "Salome")
+        new Opus.Builder("Ariadne auf Naxos", "Capriccio", "Intermezzo", "Salome", "Daphne", "Elektra")
                 .german().opera().by("Richard Strauss").build();
         new Opus.Builder("Cherevichki The Tsarina's Slippers", "Eugene Onegin")
                 .russian().opera().by("Tchaikovsky").build();
@@ -273,7 +273,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Nixon in China").english().opera().by("John Adams").build();
         new Opus.Builder("Faust", "Roméo et Juliette").french().opera().by("Gounod").build();
         new Opus.Builder("La Gioconda").french().opera().by("A. Ponchielli").build();
-
+        new Opus.Builder("Le Grand Macabre").french().opera().by("Ligeti").build();
+        
         new Opus.Builder("Admeto",
                 "Alcina",
                 "Giulio Cesare",
@@ -311,9 +312,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "La Cenerentola",
                 "La Donna del Lago",
                 "Sigismondo",
+                "Otelo",
                 "Zelmira")
                 .italian().opera().by("Rossini").build();
-
     }
 
     private void initBalletVideos() throws ParseException {
