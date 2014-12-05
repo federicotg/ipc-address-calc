@@ -848,6 +848,10 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("Carmen").opera().atTheMet().on("01/11/2014").spaSubs().mkv().fullHD().discBox(1, 1)
                 .build();
+        
+        new DigitalContent.Builder("Le Grand Macabre").opera().at("Gran Teatro del Liceo").on("01/11/2011").spaSubs().iso().dvd()
+                .discBox(0, 0)
+                .build();
 
     }
 
