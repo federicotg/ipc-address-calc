@@ -321,7 +321,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Giselle").ballet().atRoh().on("29/04/2006").hd720().mkv()
                 .seenByAnaMaria()
                 .seenByElsa()
-                .discBox(1, 3)
+                .discBox(2, 1)
                 .imdb("http://www.imdb.com/title/tt1596783/")
                 .build();
         new DigitalContent.Builder("Giselle").ballet().atRoh().on("27/01/2014").fullHD().mkv().discBox(7, 15).build();
@@ -510,8 +510,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         new DigitalContent.Builder("Faust").opera().atRoh().on("01/01/2004").dvd().spaSubs().iso().discBox(2, 5).discBox(3, 5).imdb("http://www.imdb.com/title/tt1954436/").build();
         new DigitalContent.Builder("Carmen").opera().atTheMet().on("16/01/2010").dvd().spaSubs().iso().seenByFede()
-                .discBox(6, 1)
-                .discBox(7, 1)
+                .discBox(2, 1)
                 .imdb("http://www.imdb.com/title/tt1669004/").build();
         new DigitalContent.Builder("Prince Igor").opera().atTheMet().on("01/03/2014").fullHD().spaSubs().mkv().discBox(3, 15).imdb("http://www.imdb.com/title/tt3565332/").build();
         new DigitalContent.Builder("The Nose").opera().atTheMet().on("26/10/2013").fullHD().engSubs().mkv().discBox(6, 15).imdb("http://www.imdb.com/title/tt3114272/").build();
@@ -709,8 +708,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Gianni Schicchi").opera().atGlyndebourne().on("01/01/2004").dvd().spaSubs().iso().seenByFede().discBox(10, 1).build();
         new DigitalContent.Builder("Il Trittico").opera().at("Teatro Comunale di Modena").on("01/01/2007").dvd().spaSubs().iso().discBox(2, 15).build();
         new DigitalContent.Builder("La Bohème").opera().at("Teatro Real").on("01/01/2006").dvd().spaSubs().iso().seenByFede()
-                .discBox(8, 1)
-                .discBox(9, 1)
+                .discBox(2, 1)
                 .build();
         new DigitalContent.Builder("La Bohème").opera().atRoh().on("15/01/2013").fullHD().spaSubs().mkv().discBox(3, 4).build();
         new DigitalContent.Builder("La Fanciulla del West").opera().atParis().on("10/02/2014").fullHD().spaSubs().mkv().discBox(11, 15).discBox(12, 15).build();
