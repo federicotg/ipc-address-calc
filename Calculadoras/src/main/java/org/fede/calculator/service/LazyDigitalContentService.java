@@ -422,8 +422,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Romeo and Juliet").ballet().atRoh().on("10/01/2012").fullHD().mkv()
                 .discBox(0, 0)
                 .seenByElsa()
-                //.discBox(1, 3)
-                //TODO el disco 1 de la caja 3 sólo tiene un archivo mkv útil que hay que reubicar.
                 .seenByAnaMaria()
                 .build();
         new DigitalContent.Builder("Romeo and Juliet").ballet().atBolshoi().on("12/05/2013").fullHD().mkv()
