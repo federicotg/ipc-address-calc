@@ -273,7 +273,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Nixon in China").english().opera().by("John Adams").build();
         new Opus.Builder("Faust", "Roméo et Juliette").french().opera().by("Gounod").build();
         new Opus.Builder("La Gioconda").french().opera().by("A. Ponchielli").build();
-        new Opus.Builder("Le Grand Macabre").french().opera().by("Ligeti").build();
+        new Opus.Builder("Le Grand Macabre").german().opera().by("Ligeti").build();
         
         new Opus.Builder("Admeto",
                 "Alcina",
@@ -423,11 +423,13 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(0, 0)
                 .seenByElsa()
                 //.discBox(1, 3)
+                //TODO el disco 1 de la caja 3 sólo tiene un archivo mkv útil que hay que reubicar.
                 .seenByAnaMaria()
                 .build();
         new DigitalContent.Builder("Romeo and Juliet").ballet().atBolshoi().on("12/05/2013").fullHD().mkv()
                 .discBox(0, 0)
                 //.discBox(11, 14)
+                //TODO ver cómo grabar el cacho que está incompleto.
                 .build();
         new DigitalContent.Builder("Swan Lake").ballet().atBolshoi().on("19/06/2011").hd720().mkv()
                 .discBox(8, 2)
@@ -473,7 +475,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 2)
                 .discBox(10, 2)
                 .build();
-
         new DigitalContent.Builder("Manon").ballet().atRoh().on("16/10/2014").fullHD().mkv()
                 .discBox(0, 0)
                 .build();
