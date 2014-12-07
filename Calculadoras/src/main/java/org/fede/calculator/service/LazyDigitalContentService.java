@@ -850,6 +850,10 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(0, 0)
                 .build();
 
+        new DigitalContent.Builder("L'elisir d'amore").opera().atRoh().on("26/11/2014").hd720().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
+        
     }
 
     @Override
