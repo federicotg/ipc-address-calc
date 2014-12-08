@@ -713,8 +713,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Rondine").opera().atTheMet().on("01/01/2009").dvd().spaSubs().iso().seenByFede().discBox(8, 8).imdb("http://www.imdb.com/title/tt1347918/").build();
         new DigitalContent.Builder("Madama Butterfly").opera().at("Arena di Verona").on("01/01/2004").dvd().spaSubs().iso().discBox(1, 1).build();
         new DigitalContent.Builder("Manon Lescaut").opera().atRoh().on("01/01/1983").dvd().spaSubs().iso().discBox(2, 15).imdb("http://www.imdb.com/title/tt0254549/").build();
-        new DigitalContent.Builder("Tosca").opera().at("alla Scala").on("01/01/2000").dvd().spaSubs().iso().discBox(6, 2).imdb("http://www.imdb.com/title/tt2385259/").build();
-        new DigitalContent.Builder("Tosca").opera().atRoh().on("17/07/2011").fullHD().engSubs().mkv().seenByFede().discBox(3, 8).build();
+        new DigitalContent.Builder("Tosca").opera().at("alla Scala").on("01/01/2000").dvd().spaSubs().iso().discBox(3, 8).imdb("http://www.imdb.com/title/tt2385259/").build();
+        new DigitalContent.Builder("Tosca").opera().atRoh().on("17/07/2011").dvd().engSubs().mkv().seenByFede().discBox(6, 2).build();
         new DigitalContent.Builder("Tosca").opera().atTheMet().on("09/11/2013").fullHD().engSubs().mkv().discBox(5, 15).imdb("http://www.imdb.com/title/tt3315900/")
                 .seenByFede()
                 .build();
