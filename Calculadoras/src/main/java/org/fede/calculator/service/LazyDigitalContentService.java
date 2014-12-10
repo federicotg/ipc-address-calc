@@ -312,7 +312,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "La Cenerentola",
                 "La Donna del Lago",
                 "Sigismondo",
-                "Otelo",
+                "Otello ossia Il moro di Venezia",
                 "Zelmira")
                 .italian().opera().by("Rossini").build();
     }
@@ -853,6 +853,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("L'elisir d'amore").opera().atRoh().on("26/11/2014").hd720().spaSubs().mkv()
                 .discBox(0, 0)
                 .build();
+        
+        new DigitalContent.Builder("Otello ossia Il moro di Venezia").opera().at("Ópera de Zürich").on("01/01/2011").dvd().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
+        
         
     }
 
