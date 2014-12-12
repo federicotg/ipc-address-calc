@@ -617,7 +617,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 14)
                 .discBox(9, 14)
                 .imdb("http://www.imdb.com/title/tt2651146/").build();
-        new DigitalContent.Builder("Alcina").opera().at("Staatsoper Stuttgart").on("01/01/1999").fullHD().spaSubs().mkv().discBox(8, 4).imdb("http://www.imdb.com/title/tt0354364/").build();
+        new DigitalContent.Builder("Alcina").opera().at("Staatsoper Stuttgart").on("01/01/1999").dvd().spaSubs().mkv().discBox(8, 4).imdb("http://www.imdb.com/title/tt0354364/").build();
         new DigitalContent.Builder("Giulio Cesare").opera().atParis().on("01/01/2011").dvd().spaSubs().iso()
                 .seenByFede()
                 .discBox(6, 13)
