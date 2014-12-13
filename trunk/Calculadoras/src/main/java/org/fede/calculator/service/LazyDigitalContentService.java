@@ -100,7 +100,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Don Quichotte", "La Bayadère").ballet().by("Ludwig Minkus").build();
         new Opus.Builder("Notre Dame de Paris").ballet().by("Maurice Jarre").build();
         new Opus.Builder("Daphnis et Chloé").ballet().by("Ravel").build();
-        new Opus.Builder("Romeo and Juliet").ballet().by("Sergey Prokofiev").build();
+        new Opus.Builder("Romeo and Juliet", "Cinderella").ballet().by("Sergey Prokofiev").build();
         new Opus.Builder("Swan Lake", "The Nutcracker", "The Sleeping Beauty").ballet()
                 .by("Tchaikovsky").build();
         new Opus.Builder("La fille mal gardée").ballet().build();
@@ -125,10 +125,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Teatro Comunale di Modena").city("Módena").italy()
                 .latLong(44.646842d, 10.930176d)
                 .build();
-        
+
         new Venue.Builder("Teatro Comunale di Bologna").city("Bologna").italy()
-                .build();        
-        
+                .build();
+
         new Venue.Builder("Teatro Rossini").city("Pesaro").italy()
                 .latLong(43.907854d, 12.908755d)
                 .build();
@@ -214,10 +214,12 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Ciudad Prohibida").city("Beijing").country(Country.CHINA)
                 .latLong(39.9161804d, 116.3970584d)
                 .build();
-        
+
         new Venue.Builder("Aix-en-Provence").city("Aix-en-Provence").country(Country.FRANCE)
                 .build();
-        
+
+        new Venue.Builder("Stopera").city("Amsterdam").country(Country.NETHERLANDS)
+                .build();
 
     }
 
@@ -282,7 +284,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Faust", "Roméo et Juliette").french().opera().by("Gounod").build();
         new Opus.Builder("La Gioconda").french().opera().by("A. Ponchielli").build();
         new Opus.Builder("Le Grand Macabre").german().opera().by("Ligeti").build();
-        
+
         new Opus.Builder("Admeto",
                 "Alcina",
                 "Giulio Cesare",
@@ -488,9 +490,13 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Don Quichotte").ballet().at("alla Scala").on("25/09/2014").engSubs().mkv().fullHD()
                 .discBox(0, 0)
                 .build();
-        
+
         new DigitalContent.Builder("Swan Lake").ballet().at("Ópera de Zürich").on("05/12/2010").mkv().hd720()
                 .imdb("http://www.imdb.com/title/tt1754561/")
+                .discBox(0, 0)
+                .build();
+
+        new DigitalContent.Builder("Cinderella").ballet().at("Stopera").on("01/01/2012").mkv().fullHD()
                 .discBox(0, 0)
                 .build();
     }
@@ -853,7 +859,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("Carmen").opera().atTheMet().on("01/11/2014").spaSubs().mkv().fullHD().discBox(1, 1)
                 .build();
-        
+
         new DigitalContent.Builder("Le Grand Macabre").opera().at("Gran Teatro del Liceo").on("01/11/2011").spaSubs().iso().dvd()
                 .discBox(0, 0)
                 .build();
@@ -861,19 +867,19 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("L'elisir d'amore").opera().atRoh().on("26/11/2014").hd720().spaSubs().mkv()
                 .discBox(0, 0)
                 .build();
-        
+
         new DigitalContent.Builder("Otello ossia Il moro di Venezia").opera().at("Ópera de Zürich").on("01/01/2011").dvd().spaSubs().mkv()
                 .discBox(0, 0)
                 .build();
-        
+
         new DigitalContent.Builder("Salome").opera().at("Teatro Comunale di Bologna").on("01/01/2010").fullHD().spaSubs().mkv()
                 .discBox(0, 0)
                 .build();
-        
+
         new DigitalContent.Builder("Elektra").opera().at("Aix-en-Provence").on("01/07/2013").dvd().spaSubs().iso()
                 .discBox(0, 0)
-                .build();        
-        
+                .build();
+
     }
 
     @Override
