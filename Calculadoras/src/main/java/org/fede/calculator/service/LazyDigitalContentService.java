@@ -125,6 +125,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Teatro Comunale di Modena").city("Módena").italy()
                 .latLong(44.646842d, 10.930176d)
                 .build();
+        
+        new Venue.Builder("Teatro Comunale di Bologna").city("Bologna").italy()
+                .build();        
+        
         new Venue.Builder("Teatro Rossini").city("Pesaro").italy()
                 .latLong(43.907854d, 12.908755d)
                 .build();
@@ -210,6 +214,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Ciudad Prohibida").city("Beijing").country(Country.CHINA)
                 .latLong(39.9161804d, 116.3970584d)
                 .build();
+        
+        new Venue.Builder("Aix-en-Provence").city("Aix-en-Provence").country(Country.FRANCE)
+                .build();
+        
 
     }
 
@@ -858,6 +866,13 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(0, 0)
                 .build();
         
+        new DigitalContent.Builder("Salome").opera().at("Teatro Comunale di Bologna").on("01/01/2010").fullHD().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
+        
+        new DigitalContent.Builder("Elektra").opera().at("Aix-en-Provence").on("01/07/2013").dvd().spaSubs().iso()
+                .discBox(0, 0)
+                .build();        
         
     }
 
