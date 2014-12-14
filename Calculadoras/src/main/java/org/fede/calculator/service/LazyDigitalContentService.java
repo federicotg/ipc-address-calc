@@ -493,7 +493,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("Swan Lake").ballet().at("Ópera de Zürich").on("05/12/2010").mkv().hd720()
                 .imdb("http://www.imdb.com/title/tt1754561/")
-                .discBox(0, 0)
+                .discBox(6, 1)
                 .build();
 
         new DigitalContent.Builder("Cinderella").ballet().at("Stopera").on("01/01/2012").mkv().fullHD()
@@ -869,7 +869,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("Otello ossia Il moro di Venezia").opera().at("Ópera de Zürich").on("01/01/2011").dvd().spaSubs().mkv()
-                .discBox(0, 0)
+                .discBox(6, 1)
                 .build();
 
         new DigitalContent.Builder("Salome").opera().at("Teatro Comunale di Bologna").on("01/01/2010").fullHD().spaSubs().mkv()
@@ -877,7 +877,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("Elektra").opera().at("Aix-en-Provence").on("01/07/2013").dvd().spaSubs().iso()
-                .discBox(0, 0)
+                .discBox(6, 1)
                 .build();
 
     }
