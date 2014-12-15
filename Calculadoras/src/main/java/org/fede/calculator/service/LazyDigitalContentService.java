@@ -258,6 +258,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .italian().opera().by("Gaetano Donizetti").build();
         new Opus.Builder("La Fille du Regiment").french().opera().by("Gaetano Donizetti").build();
 
+        new Opus.Builder("Fidelio").german().opera().by("Beethoven").build();
+        
         new Opus.Builder("Carmen").french().opera().by("Bizet").build();
         new Opus.Builder("Les Troyens").french().opera().by("Hector Berlioz").build();
         new Opus.Builder("I Puritani", "Norma").italian().opera().by("Vincenzo Bellini").build();
@@ -462,6 +464,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByAnaMaria()
                 .seenByFede()
                 .build();
+        
+        new DigitalContent.Builder("The Nutcracker").ballet().at("Mariinsky").on("01/01/2012").fullHD().mkv()
+                .discBox(0, 0)
+                .build();
+        
         new DigitalContent.Builder("The Sleeping Beauty").ballet().atBolshoi().on("20/11/2011").hd720().mkv().discBox(4, 5)
                 .imdb("http://www.imdb.com/title/tt2798186/")
                 .build();
@@ -881,6 +888,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(6, 1)
                 .build();
 
+        new DigitalContent.Builder("Fidelio").opera().at("alla Scala").on("07/12/2014").fullHD().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
     }
 
     @Override
