@@ -436,7 +436,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         new DigitalContent.Builder("Romeo and Juliet").ballet().atBolshoi().on("12/05/2013").fullHD().mkv()
                 .discBox(0, 0)
-                //.discBox(11, 14)
+                .discBox(11, 14)
                 //TODO ver cómo grabar el cacho que está incompleto.
                 .build();
         new DigitalContent.Builder("Swan Lake").ballet().atBolshoi().on("19/06/2011").hd720().mkv()
@@ -488,6 +488,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("Don Quichotte").ballet().at("alla Scala").on("25/09/2014").engSubs().mkv().fullHD()
+                .discBox(7, 1)
                 .discBox(0, 0)
                 .build();
 
@@ -828,7 +829,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(10, 12)
                 .imdb("http://www.imdb.com/title/tt2777536/").build();
         new DigitalContent.Builder("I Due Foscari").opera().atRoh().on("27/10/2014").fullHD().spaSubs().mkv()
-                .discBox(0, 0)
+                .discBox(7, 1)
                 .discBox(1, 1)
                 .build();
 
@@ -861,7 +862,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("Le Grand Macabre").opera().at("Gran Teatro del Liceo").on("01/11/2011").spaSubs().iso().dvd()
-                .discBox(0, 0)
+                .discBox(7, 1)
                 .build();
 
         new DigitalContent.Builder("L'elisir d'amore").opera().atRoh().on("26/11/2014").hd720().spaSubs().mkv()
