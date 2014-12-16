@@ -216,9 +216,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new Venue.Builder("Aix-en-Provence").city("Aix-en-Provence").country(Country.FRANCE)
+                .latLong(43.5262164d, 5.4408571d)
                 .build();
 
         new Venue.Builder("Stopera").city("Amsterdam").country(Country.NETHERLANDS)
+                .latLong(52.367493d, 4.901872d)
                 .build();
 
     }
