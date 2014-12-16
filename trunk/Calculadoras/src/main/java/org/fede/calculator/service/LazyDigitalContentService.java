@@ -850,11 +850,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(7, 1)
                 .discBox(1, 1)
                 .build();
-
         new DigitalContent.Builder("La Fanciulla del West").opera().atTheMet().on("08/01/2011").spaSubs().dvd().dvdFormat().box("La Fanciulla del West")
                 .seenByFede()
                 .build();
-
         new DigitalContent.Builder("Siegfried").opera().atTheMet().on("01/01/2011").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
         new DigitalContent.Builder("Gotterdammerung").opera().atTheMet().on("01/01/2012").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
         new DigitalContent.Builder("Die Walküre").opera().atTheMet().on("01/01/2011").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
