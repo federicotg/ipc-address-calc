@@ -274,7 +274,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Rusalka").language(Language.CZECH).opera().by("Dvorak").build();
         new Opus.Builder("L'Orfeo").italian().opera().by("Monteverdi").build();
         new Opus.Builder("Pagliacci").italian().opera().by("Leoncavallo").build();
-        new Opus.Builder("The Cunning Little Vixen").italian().opera().by("Leoš Janáček").build();
+        new Opus.Builder("The Cunning Little Vixen").language(Language.CZECH).opera().by("Leoš Janáček").build();
         new Opus.Builder("Manon").french().opera().by("Massenet").build();
         new Opus.Builder("Hippolyte et Aricie").french().opera().by("Rameau").build();
         new Opus.Builder("L'enfant et les sortilèges", "L'heure espagnole")
