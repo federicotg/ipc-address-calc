@@ -427,6 +427,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Bayadère").ballet().atBolshoi().on("27/01/2013").fullHD().mkv()
                 .discBox(11, 14)
                 .seenByAnaMaria().build();
+        
+        new DigitalContent.Builder("La Bayadère").ballet().at("Mariinsky").on("27/01/2013").fullHD().mkv()
+                .discBox(0, 0)
+                .build();
+        
         new DigitalContent.Builder("Notre Dame de Paris").ballet().atBolshoi().on("14/02/2013").fullHD().mkv()
                 .discBox(2, 13)
                 .build();
