@@ -32,11 +32,13 @@ import org.fede.digitalcontent.dto.MediumContentDTO;
 import org.fede.digitalcontent.dto.OpusDTO;
 import org.fede.digitalcontent.dto.VenueDTO;
 import org.fede.digitalcontent.dto.VenueDetailDTO;
-import org.fede.digitalcontent.model.Country;
+import static  org.fede.digitalcontent.model.Country.CHINA;
 import static org.fede.util.Util.list;
 import static org.fede.digitalcontent.model.Country.DENMARK;
 import static org.fede.digitalcontent.model.Country.FRANCE;
 import static org.fede.digitalcontent.model.Country.SWITZERLAND;
+import static org.fede.digitalcontent.model.Country.AUSTRIA;
+import static org.fede.digitalcontent.model.Country.NETHERLANDS;
 import org.fede.digitalcontent.model.DigitalContent;
 import org.fede.digitalcontent.model.DigitalContentRepository;
 import org.fede.digitalcontent.model.StorageBox;
@@ -189,13 +191,13 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("War Memorial Opera House").city("San Francisco").usa()
                 .latLong(37.778546d, -122.420976d)
                 .build();
-        new Venue.Builder("Musikverein").city("Viena").country(Country.AUSTRIA)
+        new Venue.Builder("Musikverein").city("Viena").country(AUSTRIA)
                 .latLong(48.2008d, 16.3729d)
                 .build();
-        new Venue.Builder("Wiener Staatsoper").city("Viena").country(Country.AUSTRIA)
+        new Venue.Builder("Wiener Staatsoper").city("Viena").country(AUSTRIA)
                 .latLong(48.203332d, 16.369176d)
                 .build();
-        new Venue.Builder("Großes Festspielhaus").city("Salzburgo").country(Country.AUSTRIA)
+        new Venue.Builder("Großes Festspielhaus").city("Salzburgo").country(AUSTRIA)
                 .latLong(47.798534d, 13.041774d)
                 .build();
         new Venue.Builder("Opéra Bastille").city("Paris").country(FRANCE)
@@ -211,15 +213,15 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Ópera de Zürich").city("Zürich").country(SWITZERLAND)
                 .latLong(47.364946d, 8.546908d)
                 .build();
-        new Venue.Builder("Ciudad Prohibida").city("Beijing").country(Country.CHINA)
+        new Venue.Builder("Ciudad Prohibida").city("Beijing").country(CHINA)
                 .latLong(39.9161804d, 116.3970584d)
                 .build();
 
-        new Venue.Builder("Aix-en-Provence").city("Aix-en-Provence").country(Country.FRANCE)
+        new Venue.Builder("Aix-en-Provence").city("Aix-en-Provence").country(FRANCE)
                 .latLong(43.5262164d, 5.4408571d)
                 .build();
 
-        new Venue.Builder("Stopera").city("Amsterdam").country(Country.NETHERLANDS)
+        new Venue.Builder("Stopera").city("Amsterdam").country(NETHERLANDS)
                 .latLong(52.367493d, 4.901872d)
                 .build();
 
