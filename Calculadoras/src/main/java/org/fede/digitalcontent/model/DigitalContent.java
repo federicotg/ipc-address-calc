@@ -66,6 +66,22 @@ public class DigitalContent {
             this.venue = venue;
             return this;
         }
+        
+        public Builder atAllaScala() {
+            this.venue = "alla Scala";
+            return this;
+        }
+        
+        
+        public Builder atZurich() {
+            this.venue = "Ópera de Zürich";
+            return this;
+        }
+        
+        public Builder atMariinsky() {
+            this.venue = "Mariinsky";
+            return this;
+        }
 
         public Builder atRoh() {
             this.venue = "ROH";

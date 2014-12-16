@@ -284,7 +284,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Cherevichki The Tsarina's Slippers", "Eugene Onegin")
                 .russian().opera().by("Tchaikovsky").build();
         new Opus.Builder("Orlando Furioso").italian().opera().by("Vivaldi").build();
-        new Opus.Builder("Nixon in China").english().opera().by("John Adams").build();
+        new Opus.Builder("Nixon in China", "Doctor Atomic").english().opera().by("John Adams").build();
         new Opus.Builder("Faust", "Roméo et Juliette").french().opera().by("Gounod").build();
         new Opus.Builder("La Gioconda").french().opera().by("A. Ponchielli").build();
         new Opus.Builder("Le Grand Macabre").german().opera().by("Ligeti").build();
@@ -430,7 +430,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(11, 14)
                 .seenByAnaMaria().build();
         
-        new DigitalContent.Builder("La Bayadère").ballet().at("Mariinsky").on("27/01/2013").fullHD().mkv()
+        new DigitalContent.Builder("La Bayadère").ballet().atMariinsky().on("27/01/2013").fullHD().mkv()
                 .discBox(0, 0)
                 .build();
         
@@ -454,7 +454,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByFede()
                 .seenByElsa()
                 .build();
-        new DigitalContent.Builder("Swan Lake").ballet().at("Mariinsky").on("06/06/2013").fullHD().mkv()
+        new DigitalContent.Builder("Swan Lake").ballet().atMariinsky().on("06/06/2013").fullHD().mkv()
                 .discBox(6, 13)
                 .discBox(12, 13)
                 .discBox(4, 14)
@@ -472,7 +472,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByFede()
                 .build();
         
-        new DigitalContent.Builder("The Nutcracker").ballet().at("Mariinsky").on("01/01/2012").fullHD().mkv()
+        new DigitalContent.Builder("The Nutcracker").ballet().atMariinsky().on("01/01/2012").fullHD().mkv()
                 .discBox(0, 0)
                 .build();
         
@@ -501,12 +501,12 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(0, 0)
                 .build();
 
-        new DigitalContent.Builder("Don Quichotte").ballet().at("alla Scala").on("25/09/2014").engSubs().mkv().fullHD()
+        new DigitalContent.Builder("Don Quichotte").ballet().atAllaScala().on("25/09/2014").engSubs().mkv().fullHD()
                 .discBox(7, 1)
                 .discBox(0, 0)
                 .build();
 
-        new DigitalContent.Builder("Swan Lake").ballet().at("Ópera de Zürich").on("05/12/2010").mkv().hd720()
+        new DigitalContent.Builder("Swan Lake").ballet().atZurich().on("05/12/2010").mkv().hd720()
                 .imdb("http://www.imdb.com/title/tt1754561/")
                 .discBox(6, 1)
                 .build();
@@ -549,7 +549,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Don Pasquale").opera().atGlyndebourne().on("06/08/2013").fullHD().engSubs().mkv()
                 .discBox(4, 11)
                 .build();
-        new DigitalContent.Builder("Don Pasquale").opera().at("alla Scala").on("01/01/1994").dvd().spaSubs().iso().discBox(1, 15).build();
+        new DigitalContent.Builder("Don Pasquale").opera().atAllaScala().on("01/01/1994").dvd().spaSubs().iso().discBox(1, 15).build();
         new DigitalContent.Builder("L'elisir d'amore").opera().atTheMet().on("13/10/2012").fullHD().engSubs().mkv()
                 .discBox(11, 11)
                 .discBox(8, 12)
@@ -568,7 +568,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Faust").opera().atTheMet().on("10/12/2011").fullHD().engSubs().mkv()
                 .discBox(10, 13)
                 .imdb("http://www.imdb.com/title/tt1878497/").build();
-        new DigitalContent.Builder("Aida").opera().at("alla Scala").on("01/01/2006").dvd().spaSubs().iso()
+        new DigitalContent.Builder("Aida").opera().atAllaScala().on("01/01/2006").dvd().spaSubs().iso()
                 .discBox(3, 2)
                 .discBox(4, 2)
                 .imdb("http://www.imdb.com/title/tt1399162/").build();
@@ -598,7 +598,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(2, 4)
                 .starringNetrebko()
                 .imdb("http://www.imdb.com/title/tt0475165/").build();
-        new DigitalContent.Builder("La Traviata").opera().at("alla Scala").on("01/01/2007").hd720().mkv()
+        new DigitalContent.Builder("La Traviata").opera().atAllaScala().on("01/01/2007").hd720().mkv()
                 .discBox(3, 14)
                 .imdb("http://www.imdb.com/title/tt2316799/").build();
         new DigitalContent.Builder("La Traviata").opera().atParis().on("17/06/2014").fullHD().spaSubs().mkv()
@@ -628,7 +628,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(7, 4)
                 .discBox(8, 4)
                 .build();
-        new DigitalContent.Builder("Rigoletto").opera().at("Ópera de Zürich").on("01/01/2006").fullHD().spaSubs().mkv()
+        new DigitalContent.Builder("Rigoletto").opera().atZurich().on("01/01/2006").fullHD().spaSubs().mkv()
                 .discBox(10, 14)
                 .imdb("http://www.imdb.com/title/tt2289502/").build();
         new DigitalContent.Builder("Rigoletto").opera().atTheMet().on("16/02/2013").fullHD().engSubs().mkv().seenByFede()
@@ -654,7 +654,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(6, 13)
                 .discBox(7, 13)
                 .build();
-        new DigitalContent.Builder("Messiah").oratorio().at("Ópera de Zürich").on("01/01/2009").fullHD().spaSubs().mkv().seenByFede()
+        new DigitalContent.Builder("Messiah").oratorio().atZurich().on("01/01/2009").fullHD().spaSubs().mkv().seenByFede()
                 .discBox(8, 15)
                 .imdb("http://www.imdb.com/title/tt1414536/").build();
         new DigitalContent.Builder("Messiah").oratorio().at("King's College").on("01/01/2009").dvd().spaSubs().iso().seenByFede()
@@ -694,7 +694,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Manon").opera().at("Berlin State Opera").on("01/01/2007").dvd().spaSubs().iso().discBox(5, 2)
                 .discBox(6, 2)
                 .imdb("http://www.imdb.com/title/tt1431725/").build();
-        new DigitalContent.Builder("L'Orfeo").opera().at("Ópera de Zürich").on("01/01/2007").dvd().spaSubs().iso().discBox(2, 15).build();
+        new DigitalContent.Builder("L'Orfeo").opera().atZurich().on("01/01/2007").dvd().spaSubs().iso().discBox(2, 15).build();
         new DigitalContent.Builder("Così Fan Tutte").opera().atTheMet().on("26/04/2014").fullHD().spaSubs().mkv().discBox(6, 4).build();
         new DigitalContent.Builder("Così Fan Tutte").opera().at("Wiener Staatsoper").on("01/01/1996").dvd().spaSubs().iso().seenByFede()
                 .discBox(4, 9)
@@ -744,14 +744,14 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Rondine").opera().atTheMet().on("01/01/2009").dvd().spaSubs().iso().seenByFede().discBox(8, 8).imdb("http://www.imdb.com/title/tt1347918/").build();
         new DigitalContent.Builder("Madama Butterfly").opera().at("Arena di Verona").on("01/01/2004").dvd().spaSubs().iso().discBox(1, 1).build();
         new DigitalContent.Builder("Manon Lescaut").opera().atRoh().on("01/01/1983").dvd().spaSubs().iso().discBox(2, 15).imdb("http://www.imdb.com/title/tt0254549/").build();
-        new DigitalContent.Builder("Tosca").opera().at("alla Scala").on("01/01/2000").dvd().spaSubs().iso().discBox(3, 8).imdb("http://www.imdb.com/title/tt2385259/").build();
+        new DigitalContent.Builder("Tosca").opera().atAllaScala().on("01/01/2000").dvd().spaSubs().iso().discBox(3, 8).imdb("http://www.imdb.com/title/tt2385259/").build();
         new DigitalContent.Builder("Tosca").opera().atRoh().on("17/07/2011").dvd().engSubs().mkv().seenByFede().discBox(6, 2).build();
         new DigitalContent.Builder("Tosca").opera().atTheMet().on("09/11/2013").fullHD().engSubs().mkv().discBox(5, 15).imdb("http://www.imdb.com/title/tt3315900/")
                 .seenByFede()
                 .build();
         new DigitalContent.Builder("Tosca").opera().atParis().on("16/10/2014").fullHD().spaSubs().mkv().discBox(8, 2).build();
         //new DigitalContent.Builder("Turandot").opera().atTheMet().on("01/01/1987").fullHD().spaSubs().mkv()                .discBox(3, 13)                .imdb("http://www.imdb.com/title/tt0220822/").build();
-        new DigitalContent.Builder("Turandot").opera().at("Ciudad Prohibida").on("01/01/1999").fullHD().spaSubs().mkv().discBox(5, 2).imdb("http://www.imdb.com/title/tt0205483/").build();
+        new DigitalContent.Builder("Turandot").opera().at("Ciudad Prohibida").on("01/01/1999").dvd().spaSubs().mkv().discBox(5, 2).imdb("http://www.imdb.com/title/tt0205483/").build();
 
         new DigitalContent.Builder("L'enfant et les sortilèges").opera().atGlyndebourne().on("19/08/2012").fullHD().engSubs().mkv().seenByFede().discBox(3, 6).build();
         new DigitalContent.Builder("L'heure espagnole").opera().atGlyndebourne().on("19/08/2012").fullHD().engSubs().mkv().seenByFede().discBox(3, 6).build();
@@ -771,7 +771,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(5, 3).discBox(6, 3)
                 .imdb("http://www.imdb.com/title/tt1670805/").build();
         new DigitalContent.Builder("Il Barbiere di Siviglia").opera().at("Teatro Real").on("01/01/2005").dvd().spaSubs().iso().discBox(8, 9).imdb("http://www.imdb.com/title/tt1974283/").build();
-        new DigitalContent.Builder("Il turco in Italia").opera().at("Ópera de Zürich").on("01/01/2001").dvd().spaSubs().iso().seenByFede().discBox(1, 2).imdb("http://www.imdb.com/title/tt0363150/").build();
+        new DigitalContent.Builder("Il turco in Italia").opera().atZurich().on("01/01/2001").dvd().spaSubs().iso().seenByFede().discBox(1, 2).imdb("http://www.imdb.com/title/tt0363150/").build();
         new DigitalContent.Builder("L'Italiana in Algeri").opera().atTheMet().on("01/01/1986").dvd().spaSubs()
                 .iso()
                 .discBox(1, 14)
@@ -885,7 +885,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(0, 0)
                 .build();
 
-        new DigitalContent.Builder("Otello ossia Il moro di Venezia").opera().at("Ópera de Zürich").on("01/01/2011").dvd().spaSubs().mkv()
+        new DigitalContent.Builder("Otello ossia Il moro di Venezia").opera().atZurich().on("01/01/2011").dvd().spaSubs().mkv()
                 .discBox(6, 1)
                 .build();
 
@@ -897,7 +897,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(6, 1)
                 .build();
 
-        new DigitalContent.Builder("Fidelio").opera().at("alla Scala").on("07/12/2014").fullHD().spaSubs().mkv()
+        new DigitalContent.Builder("Fidelio").opera().atAllaScala().on("07/12/2014").fullHD().spaSubs().mkv()
                 .discBox(0, 0)
                 .build();
     }
