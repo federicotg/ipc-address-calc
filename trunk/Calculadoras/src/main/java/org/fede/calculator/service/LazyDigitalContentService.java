@@ -441,7 +441,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         new DigitalContent.Builder("Daphnis et Chloé").ballet().atBolshoi().on("06/03/2014").fullHD().mkv().discBox(10, 15).build();
         new DigitalContent.Builder("Romeo and Juliet").ballet().atRoh().on("10/01/2012").fullHD().mkv()
-                .discBox(0, 0)
+                .discBox(9, 1)
                 .discBox(8, 1)
                 .seenByElsa()
                 .seenByAnaMaria()
@@ -505,7 +505,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("Don Quichotte").ballet().atAllaScala().on("25/09/2014").engSubs().mkv().fullHD()
                 .discBox(7, 1)
-                .discBox(0, 0)
+                .discBox(9, 1)
                 .build();
 
         new DigitalContent.Builder("Swan Lake").ballet().atZurich().on("05/12/2010").mkv().hd720()
