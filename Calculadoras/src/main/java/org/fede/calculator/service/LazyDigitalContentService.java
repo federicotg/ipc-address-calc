@@ -129,6 +129,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new Venue.Builder("Teatro Comunale di Bologna").city("Bologna").italy()
+                .latLong(44.49649d, 11.350486d)
                 .build();
 
         new Venue.Builder("Teatro Rossini").city("Pesaro").italy()
@@ -540,7 +541,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Norma").opera().at("Bayerische Staatsoper").on("01/01/2007").dvd().spaSubs().iso()
                 .discBox(3, 3).discBox(4, 3)
                 .build();
-        new DigitalContent.Builder("Faust").opera().atRoh().on("01/01/2004").dvd().spaSubs().iso().discBox(2, 5).discBox(3, 5).imdb("http://www.imdb.com/title/tt1954436/").build();
+        new DigitalContent.Builder("Faust").opera().atRoh().on("01/01/2004").dvd().spaSubs().iso().discBox(2, 5).discBox(3, 5).imdb("http://www.imdb.com/title/tt1954436/")
+                .seenByFede()
+                .build();
         new DigitalContent.Builder("Carmen").opera().atTheMet().on("16/01/2010").dvd().spaSubs().iso().seenByFede()
                 .discBox(2, 1)
                 .imdb("http://www.imdb.com/title/tt1669004/").build();
