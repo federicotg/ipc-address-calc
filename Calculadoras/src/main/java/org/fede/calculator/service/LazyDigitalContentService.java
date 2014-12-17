@@ -516,6 +516,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Cinderella").ballet().at("Stopera").on("01/01/2012").mkv().fullHD()
                 .discBox(8, 1)
                 .build();
+        new DigitalContent.Builder("Cinderella").ballet().atParis().on("01/01/2007").mkv().fullHD()
+                .discBox(0, 0)
+                .build();
     }
 
     private void initOperaVideos() throws ParseException {
