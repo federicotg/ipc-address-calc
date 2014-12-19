@@ -906,6 +906,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Fidelio").opera().atAllaScala().on("07/12/2014").fullHD().spaSubs().mkv()
                 .discBox(0, 0)
                 .build();
+        
+        new DigitalContent.Builder("Elektra").opera().at("Großes Festspielhaus").on("01/01/2010").fullHD().spaSubs().mkv()
+                .imdb("http://www.imdb.com/title/tt1787688/")
+                .discBox(0, 0)
+                .build();
     }
 
     @Override
