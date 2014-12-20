@@ -435,6 +435,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("La Bayadère").ballet().atMariinsky().on("27/01/2013").fullHD().mkv()
                 .discBox(0, 0)
+                .discBox(1, 3)
                 .build();
         
         new DigitalContent.Builder("Notre Dame de Paris").ballet().atBolshoi().on("14/02/2013").fullHD().mkv()
@@ -888,7 +889,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("L'elisir d'amore").opera().atRoh().on("26/11/2014").hd720().spaSubs().mkv()
-                .discBox(0, 0)
+                .discBox(1, 3)
                 .build();
 
         new DigitalContent.Builder("Otello ossia Il moro di Venezia").opera().atZurich().on("01/01/2011").dvd().spaSubs().mkv()
@@ -904,7 +905,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("Fidelio").opera().atAllaScala().on("07/12/2014").fullHD().spaSubs().mkv()
-                .discBox(0, 0)
+                .discBox(1, 3)
                 .build();
         
         new DigitalContent.Builder("Elektra").opera().at("Großes Festspielhaus").on("01/01/2010").fullHD().spaSubs().mkv()
