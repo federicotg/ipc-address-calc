@@ -332,6 +332,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Otello ossia Il moro di Venezia",
                 "Zelmira")
                 .italian().opera().by("Rossini").build();
+        
+        new Opus.Builder("Boris Godunov").russian().opera().by("Mussorgsky").build();
+        
     }
 
     private void initBalletVideos() throws ParseException {
@@ -519,7 +522,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 1)
                 .build();
         new DigitalContent.Builder("Cinderella").ballet().atParis().on("01/01/2007").mkv().fullHD()
-                .discBox(0, 0)
+                .discBox(1, 16)
                 .build();
     }
 
@@ -616,6 +619,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(11, 15)
                 .build();
         new DigitalContent.Builder("La Traviata").opera().atGlyndebourne().on("10/08/2014").fullHD().engSubs().mkv().seenByFede().discBox(12, 15).build();
+        
+        new DigitalContent.Builder("La Traviata").opera().atRoh().on("17/06/2009").hd720().spaSubs().mkv()
+                .starringFleming()
+                .discBox(0, 0).build();
+        
         new DigitalContent.Builder("Macbeth").opera().atParis().on("04/04/2009").fullHD().spaSubs().mkv().discBox(9, 15).imdb("http://www.imdb.com/title/tt2705154/").build();
         new DigitalContent.Builder("Macbeth").opera().atTheMet().on("11/10/2014").fullHD()
                 .starringNetrebko()
@@ -897,7 +905,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("Salome").opera().at("Teatro Comunale di Bologna").on("01/01/2010").fullHD().spaSubs().mkv()
-                .discBox(0, 0)
+                .discBox(1, 16)
                 .build();
 
         new DigitalContent.Builder("Elektra").opera().at("Aix-en-Provence").on("01/07/2013").dvd().spaSubs().iso()
@@ -912,6 +920,22 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .imdb("http://www.imdb.com/title/tt1787688/")
                 .discBox(0, 0)
                 .build();
+        
+        new DigitalContent.Builder("Il Trovatore").opera().at("Berlin State Opera").on("01/01/2014").fullHD().spaSubs().mkv()
+                .starringNetrebko()
+                .discBox(0, 0)
+                .build();
+        
+        new DigitalContent.Builder("L'Orfeo").opera().at("Teatro Real").on("01/01/2008").dvd().spaSubs().iso()
+                .discBox(0, 0)
+                .build();
+     
+        
+        new DigitalContent.Builder("Boris Godunov").opera().atTheMet().on("23/10/2010").hd720().engSubs().mkv()
+                .discBox(0, 0)
+                .build();
+        
+        
     }
 
     @Override
