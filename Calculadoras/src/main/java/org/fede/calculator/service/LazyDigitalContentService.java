@@ -322,6 +322,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Turandot")
                 .italian().opera().by("Giacomo Puccini").build();
 
+        new Opus.Builder("Le comte Ory").french().opera().by("Rossini").build();
+        
         new Opus.Builder("Armida",
                 "Il Barbiere di Siviglia",
                 "Il turco in Italia",
@@ -934,6 +936,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Boris Godunov").opera().atTheMet().on("23/10/2010").hd720().engSubs().mkv()
                 .discBox(0, 0)
                 .build();
+        
+        new DigitalContent.Builder("Le comte Ory").opera().atTheMet().on("09/04/2011").hd720().engSubs().mkv()
+                .discBox(0, 0)
+                .build();
+        
         
         
     }
