@@ -455,7 +455,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByAnaMaria().build();
         
         new DigitalContent.Builder("La Bayadère").ballet().atMariinsky().on("27/01/2013").fullHD().mkv()
-                .discBox(0, 0)
+                .discBox(2, 16)
                 .discBox(1, 3)
                 .build();
         
@@ -552,15 +552,15 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         Date date = new SimpleDateFormat("dd/MM/yyyy").parse("01/02/2013");
         
-        Set<Performance> performances =  new HashSet<>();
+        Set<Performance> ashtonCelebration =  new HashSet<>();
                 
-        performances.add(new Performance(laValse, roh, date));
-        performances.add(new Performance(monotones, roh, date));
-        performances.add(new Performance(meditations, roh, date));
-        performances.add(new Performance(voices, roh, date));
-        performances.add(new Performance(mAndA, roh, date));
+        ashtonCelebration.add(new Performance(laValse, roh, date));
+        ashtonCelebration.add(new Performance(monotones, roh, date));
+        ashtonCelebration.add(new Performance(meditations, roh, date));
+        ashtonCelebration.add(new Performance(voices, roh, date));
+        ashtonCelebration.add(new Performance(mAndA, roh, date));
         
-        new DigitalContent.Builder(performances).fullHD().discBox(0, 0).mkv().build();
+        new DigitalContent.Builder(ashtonCelebration).fullHD().discBox(2, 16).mkv().build();
         
         new DigitalContent.Builder("Sylvia").ballet().atRoh().on("01/01/2005").mkv().fullHD()
                 .discBox(0, 0)
@@ -982,7 +982,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("Le comte Ory").opera().atTheMet().on("09/04/2011").hd720().engSubs().mkv()
-                .discBox(0, 0)
+                .discBox(2, 16)
                 .build();
         
         new DigitalContent.Builder("Rigoletto").opera().at("Wiener Staatsoper").on("20/12/2014").fullHD().spaSubs().mkv()
