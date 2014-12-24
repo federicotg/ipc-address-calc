@@ -123,6 +123,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new Opus.Builder("Monotones").by("Erik Satie").ballet().build();
         new Opus.Builder("Marguerite and Armand").by("Franz Liszt").ballet().build();
+        new Opus.Builder("Sylvia").by("Léo Delibes").ballet().build();
 
     }
 
@@ -561,6 +562,14 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder(performances).fullHD().discBox(0, 0).mkv().build();
         
+        new DigitalContent.Builder("Sylvia").ballet().atRoh().on("01/01/2005").mkv().fullHD()
+                .discBox(0, 0)
+                .build();
+
+        new DigitalContent.Builder("The Nutcracker").ballet().atBolshoi().on("21/12/2014").mkv().fullHD()
+                .discBox(0, 0)
+                .build();
+        
     }
 
     private void initOperaVideos() throws ParseException {
@@ -976,7 +985,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(0, 0)
                 .build();
         
-        
+        new DigitalContent.Builder("Rigoletto").opera().at("Wiener Staatsoper").on("20/12/2014").fullHD().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
         
     }
 
