@@ -36,11 +36,11 @@ public class DigitalContent {
 
     public static class Builder {
 
-       // private static Logger LOG = Logger.getLogger(DigitalContent.Builder.class.getName());
         private final DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
         private final NumberFormat nf = NumberFormat.getIntegerInstance();
 
-        private final String title;
+        private String title;
+        private Set<Performance> performances;
         private String venue;
         private String date;
         private FormatType formatType;
@@ -51,10 +51,8 @@ public class DigitalContent {
         private final Set<String> viewers;
         private final Set<String> imdb;
         private final Set<Pair<String, String>> discs;
-        //private long bytes;
 
-        public Builder(String title) {
-            this.title = title;
+        private Builder() {
             this.singers = new HashSet<>();
             this.viewers = new HashSet<>();
             this.imdb = new HashSet<>();
@@ -62,22 +60,31 @@ public class DigitalContent {
             nf.setMinimumIntegerDigits(2);
         }
 
+        public Builder(Set<Performance> performances) {
+            this();
+            this.performances = performances;
+        }
+
+        public Builder(String title) {
+            this();
+            this.title = title;
+        }
+
         public Builder at(String venue) {
             this.venue = venue;
             return this;
         }
-        
+
         public Builder atAllaScala() {
             this.venue = "alla Scala";
             return this;
         }
-        
-        
+
         public Builder atZurich() {
             this.venue = "Ópera de Zürich";
             return this;
         }
-        
+
         public Builder atMariinsky() {
             this.venue = "Mariinsky";
             return this;
@@ -107,7 +114,7 @@ public class DigitalContent {
             this.viewers.add("Ana María");
             return this;
         }
-        
+
         public Builder seenByElsa() {
             this.viewers.add("Elsa");
             return this;
@@ -173,12 +180,12 @@ public class DigitalContent {
             this.quality = Quality.HD1080;
             return this;
         }
-        
+
         public Builder iso() {
             this.formatType = FormatType.ISO;
             return this;
         }
-        
+
         public Builder dvdFormat() {
             this.formatType = FormatType.DVD;
             return this;
@@ -218,12 +225,12 @@ public class DigitalContent {
             this.discs.add(new Pair<>(this.title, boxName));
             return this;
         }
-        
+
         public Builder discBox(int disc, int box) {
-            
+
             final String boxStr = nf.format(box);
             final String discStr = box + "-" + nf.format(disc);
-            
+
             this.discs.add(new Pair<>(discStr, boxStr));
 
             return this;
@@ -235,43 +242,54 @@ public class DigitalContent {
         }
 
         public DigitalContent build() throws ParseException {
-            Opus opus = OPUS.findById(new Pair<>(this.title, this.opusType));
-            Venue place = VENUE.findById(this.venue);
-            Date moment = df.parse(date);
-            if (opus == null || place == null || moment == null || formatType == null) {
-                throw new IllegalArgumentException("Opus, Venue, Date and FormatType are required.");
-            }
-            Performance perf = new Performance(opus, place, moment);
-            for (String singerName : this.singers) {
-                Person singer = Repository.PERSON.findById(singerName);
-                if (singer == null) {
-                    singer = new Person(singerName);
-                    Repository.PERSON.add(singer);
-                }
-                perf.addSinger(singer);
-            }
-            for (String viewerName : this.viewers) {
-                Person viewer = Repository.PERSON.findById(viewerName);
-                if (viewer == null) {
-                    viewer = new Person(viewerName);
-                    Repository.PERSON.add(viewer);
-                }
-                perf.addViewer(viewer);
-            }
-            for (String uri : this.imdb) {
-                perf.addImdb(uri);
-            }
-            Repository.PERFORMANCE.add(perf);
+
             DigitalContent dc = new DigitalContent();
             dc.setFormat(formatType);
             dc.setQuality(quality);
             dc.setSubtitle(subtitle);
 
-            Set<Performance> set = new HashSet<>();
-            set.add(perf);
-            dc.setPerformances(set);
+            if (this.title != null) {
+
+                Opus opus = OPUS.findById(new Pair<>(this.title, this.opusType));
+                Venue place = VENUE.findById(this.venue);
+                Date moment = df.parse(date);
+                if (opus == null || place == null || moment == null || formatType == null) {
+                    throw new IllegalArgumentException("Opus, Venue, Date and FormatType are required.");
+                }
+
+                Performance perf = new Performance(opus, place, moment);
+                for (String singerName : this.singers) {
+                    Person singer = Repository.PERSON.findById(singerName);
+                    if (singer == null) {
+                        singer = new Person(singerName);
+                        Repository.PERSON.add(singer);
+                    }
+                    perf.addSinger(singer);
+                }
+                for (String viewerName : this.viewers) {
+                    Person viewer = Repository.PERSON.findById(viewerName);
+                    if (viewer == null) {
+                        viewer = new Person(viewerName);
+                        Repository.PERSON.add(viewer);
+                    }
+                    perf.addViewer(viewer);
+                }
+                for (String uri : this.imdb) {
+                    perf.addImdb(uri);
+                }
+                Repository.PERFORMANCE.add(perf);
+                Set<Performance> set = new HashSet<>();
+                set.add(perf);
+                dc.setPerformances(set);
+            } else {
+                for (Performance perf : this.performances) {
+                    Repository.PERFORMANCE.add(perf);
+                }
+                dc.setPerformances(this.performances);
+            }
+
             for (Pair<String, String> discBox : this.discs) {
-                
+
                 StorageMedium medium = Repository.STORAGE.findById(discBox.getFirst());
                 if (medium == null) {
                     medium = new StorageMedium(discBox.getFirst());
@@ -298,7 +316,6 @@ public class DigitalContent {
 
     private Language subtitle;
 
-   // private long bytes;
     private DigitalContent() {
     }
 

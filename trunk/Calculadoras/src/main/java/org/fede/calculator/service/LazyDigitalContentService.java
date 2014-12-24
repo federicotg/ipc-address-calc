@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.PostConstruct;
@@ -47,6 +49,8 @@ import org.springframework.stereotype.Service;
 import org.fede.digitalcontent.model.Language;
 import org.fede.digitalcontent.model.Opus;
 import org.fede.digitalcontent.model.OpusType;
+import static org.fede.digitalcontent.model.OpusType.BALLET;
+import org.fede.digitalcontent.model.Pair;
 import org.fede.digitalcontent.model.Performance;
 import org.fede.digitalcontent.model.Person;
 import org.fede.digitalcontent.model.Quality;
@@ -108,6 +112,17 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("La fille mal gardée").ballet().build();
         new Opus.Builder("Legend of Love").by("Arif Malikov").ballet().build();
         new Opus.Builder("Manon").by("Massenet").ballet().build();
+        
+        new Opus.Builder("La Valse").by("Ravel").ballet().build();
+        
+        
+        new Opus.Builder("Meditation from Thaïs").by("Jules Massenet").ballet().build();
+        
+        new Opus.Builder("Voices of Spring").by("Johann Strauss").ballet().build();
+        
+        
+        new Opus.Builder("Monotones").by("Erik Satie").ballet().build();
+        new Opus.Builder("Marguerite and Armand").by("Franz Liszt").ballet().build();
 
     }
 
@@ -526,6 +541,26 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Cinderella").ballet().atParis().on("01/01/2007").mkv().fullHD()
                 .discBox(1, 16)
                 .build();
+        
+        Venue roh = Repository.VENUE.findById("ROH");
+        Opus laValse = Repository.OPUS.findById(new Pair<>("La Valse", BALLET));
+        Opus monotones = Repository.OPUS.findById(new Pair<>("Monotones", BALLET));
+        Opus mAndA = Repository.OPUS.findById(new Pair<>("Marguerite and Armand", BALLET));
+        Opus meditations = Repository.OPUS.findById(new Pair<>("Meditation from Thaïs", BALLET));
+        Opus voices = Repository.OPUS.findById(new Pair<>("Voices of Spring", BALLET));
+        
+        Date date = new SimpleDateFormat("dd/MM/yyyy").parse("01/02/2013");
+        
+        Set<Performance> performances =  new HashSet<>();
+                
+        performances.add(new Performance(laValse, roh, date));
+        performances.add(new Performance(monotones, roh, date));
+        performances.add(new Performance(meditations, roh, date));
+        performances.add(new Performance(voices, roh, date));
+        performances.add(new Performance(mAndA, roh, date));
+        
+        new DigitalContent.Builder(performances).fullHD().discBox(0, 0).mkv().build();
+        
     }
 
     private void initOperaVideos() throws ParseException {

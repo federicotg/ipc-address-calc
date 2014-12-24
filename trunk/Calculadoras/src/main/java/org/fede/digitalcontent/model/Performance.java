@@ -39,7 +39,7 @@ public class Performance {
 
     private Set<WebResource> resources;
 
-    Performance(Opus opus, Venue venue, Date date) {
+    public Performance(Opus opus, Venue venue, Date date) {
         this.opus = opus;
         this.date = date;
         this.venue = venue;
