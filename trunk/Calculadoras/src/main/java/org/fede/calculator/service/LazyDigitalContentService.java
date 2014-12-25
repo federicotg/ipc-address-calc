@@ -665,7 +665,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("La Traviata").opera().atRoh().on("17/06/2009").hd720().spaSubs().mkv()
                 .starringFleming()
-                .discBox(0, 0).build();
+                .discBox(5, 5).build();
         
         new DigitalContent.Builder("Macbeth").opera().atParis().on("04/04/2009").fullHD().spaSubs().mkv().discBox(9, 15).imdb("http://www.imdb.com/title/tt2705154/").build();
         new DigitalContent.Builder("Macbeth").opera().atTheMet().on("11/10/2014").fullHD()
@@ -961,7 +961,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("Elektra").opera().at("Großes Festspielhaus").on("01/01/2010").fullHD().spaSubs().mkv()
                 .imdb("http://www.imdb.com/title/tt1787688/")
-                .discBox(0, 0)
+                .discBox(5, 5)
                 .build();
         
         new DigitalContent.Builder("Il Trovatore").opera().at("Berlin State Opera").on("01/01/2014").fullHD().spaSubs().mkv()
