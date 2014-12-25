@@ -568,6 +568,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("The Nutcracker").ballet().atBolshoi().on("21/12/2014").mkv().fullHD()
                 .discBox(0, 0)
+                .seenByFede()
                 .build();
         
     }
@@ -755,7 +756,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(6, 2)
                 .imdb("http://www.imdb.com/title/tt1431725/").build();
         new DigitalContent.Builder("L'Orfeo").opera().atZurich().on("01/01/2007").dvd().spaSubs().iso().discBox(2, 15).build();
-        new DigitalContent.Builder("Così Fan Tutte").opera().atTheMet().on("26/04/2014").fullHD().spaSubs().mkv().discBox(6, 4).build();
+        new DigitalContent.Builder("Così Fan Tutte").opera().atTheMet().on("26/04/2014").fullHD().spaSubs().mkv()
+                .seenByFede()
+                .discBox(6, 4).build();
         new DigitalContent.Builder("Così Fan Tutte").opera().at("Wiener Staatsoper").on("01/01/1996").dvd().spaSubs().iso().seenByFede()
                 .discBox(4, 9)
                 .discBox(5, 9)
