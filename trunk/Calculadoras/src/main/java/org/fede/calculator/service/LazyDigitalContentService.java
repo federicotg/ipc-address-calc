@@ -973,6 +973,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("Il Trovatore").opera().at("Berlin State Opera").on("01/01/2014").fullHD().spaSubs().mkv()
                 .starringNetrebko()
+                .discBox(0, 0)
                 .discBox(6, 5)
                 .build();
         
