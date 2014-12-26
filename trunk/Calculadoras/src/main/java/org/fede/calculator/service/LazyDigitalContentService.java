@@ -570,7 +570,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(0, 0)
                 .seenByFede()
                 .build();
-        
+
+        new DigitalContent.Builder("Coppelia").ballet().atParis().on("01/01/2011").mkv().fullHD()
+                .discBox(0, 0)
+                .build();
+                
     }
 
     private void initOperaVideos() throws ParseException {
