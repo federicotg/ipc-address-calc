@@ -563,7 +563,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder(ashtonCelebration).fullHD().discBox(2, 16).mkv().build();
         
         new DigitalContent.Builder("Sylvia").ballet().atRoh().on("01/01/2005").mkv().fullHD()
-                .discBox(0, 0)
+                .discBox(6, 5)
                 .build();
 
         new DigitalContent.Builder("The Nutcracker").ballet().atBolshoi().on("21/12/2014").mkv().fullHD()
@@ -973,7 +973,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("Il Trovatore").opera().at("Berlin State Opera").on("01/01/2014").fullHD().spaSubs().mkv()
                 .starringNetrebko()
-                .discBox(0, 0)
+                .discBox(6, 5)
                 .build();
         
         new DigitalContent.Builder("L'Orfeo").opera().at("Teatro Real").on("01/01/2008").dvd().spaSubs().iso()
