@@ -455,6 +455,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByAnaMaria().build();
         
         new DigitalContent.Builder("La Bayadère").ballet().atMariinsky().on("27/01/2013").fullHD().mkv()
+                .seenByAnaMaria()
                 .discBox(2, 16)
                 .discBox(1, 3)
                 .build();
@@ -569,6 +570,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("The Nutcracker").ballet().atBolshoi().on("21/12/2014").mkv().fullHD()
                 .discBox(0, 0)
                 .seenByFede()
+                .seenByAnaMaria()
                 .build();
 
         new DigitalContent.Builder("Coppelia").ballet().atParis().on("01/01/2011").mkv().fullHD()
@@ -973,7 +975,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("Il Trovatore").opera().at("Berlin State Opera").on("01/01/2014").fullHD().spaSubs().mkv()
                 .starringNetrebko()
-                .discBox(0, 0)
+                .discBox(7, 5)
                 .discBox(6, 5)
                 .build();
         
@@ -981,9 +983,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(0, 0)
                 .build();
      
-        
         new DigitalContent.Builder("Boris Godunov").opera().atTheMet().on("23/10/2010").hd720().engSubs().mkv()
-                .discBox(0, 0)
+                .discBox(7, 5)
                 .build();
         
         new DigitalContent.Builder("Le comte Ory").opera().atTheMet().on("09/04/2011").hd720().engSubs().mkv()
