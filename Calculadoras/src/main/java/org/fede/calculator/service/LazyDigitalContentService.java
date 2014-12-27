@@ -819,7 +819,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByFede()
                 .build();
         new DigitalContent.Builder("Tosca").opera().atParis().on("16/10/2014").fullHD().spaSubs().mkv().discBox(8, 2).build();
-        //new DigitalContent.Builder("Turandot").opera().atTheMet().on("01/01/1987").fullHD().spaSubs().mkv()                .discBox(3, 13)                .imdb("http://www.imdb.com/title/tt0220822/").build();
+        //new DigitalContent.Builder("Turandot").opera().atTheMet().on("01/01/1987").fullHD().spaSubs().mkv().discBox(3, 13).imdb("http://www.imdb.com/title/tt0220822/").build();
         new DigitalContent.Builder("Turandot").opera().at("Ciudad Prohibida").on("01/01/1999").dvd().spaSubs().mkv().discBox(5, 2).imdb("http://www.imdb.com/title/tt0205483/").build();
 
         new DigitalContent.Builder("L'enfant et les sortilèges").opera().atGlyndebourne().on("19/08/2012").fullHD().engSubs().mkv().seenByFede().discBox(3, 6).build();
@@ -829,8 +829,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(10, 14)
                 .build();
         new DigitalContent.Builder("Capriccio").opera().atParis().on("01/01/2004").dvd().spaSubs().iso()
-                .discBox(7, 5)
-                .discBox(8, 5)
+                .discBox(0, 0)
+                .discBox(0, 0)
                 .imdb("http://www.imdb.com/title/tt2353871/").build();
         new DigitalContent.Builder("Intermezzo").opera().atGlyndebourne().on("01/01/1983").fullHD().engSubs().iso()
                 .discBox(7, 9)
