@@ -523,10 +523,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 2)
                 .discBox(10, 2)
                 .build();
-        new DigitalContent.Builder("Manon").ballet().atRoh().on("16/10/2014").fullHD().mkv()
-                .discBox(0, 0)
-                .build();
-
         new DigitalContent.Builder("Don Quichotte").ballet().atAllaScala().on("25/09/2014").engSubs().mkv().fullHD()
                 .discBox(7, 1)
                 .discBox(9, 1)
