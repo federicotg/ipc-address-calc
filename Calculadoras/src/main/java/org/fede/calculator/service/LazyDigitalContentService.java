@@ -499,7 +499,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("The Nutcracker").ballet().atMariinsky().on("01/01/2012").fullHD().mkv()
-                .discBox(0, 0)
+                .discBox(8, 5)
                 .build();
         
         new DigitalContent.Builder("The Sleeping Beauty").ballet().atBolshoi().on("20/11/2011").hd720().mkv().discBox(4, 5)
@@ -574,7 +574,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("Coppelia").ballet().atParis().on("01/01/2011").mkv().fullHD()
-                .discBox(0, 0)
+                .discBox(8, 5)
                 .build();
                 
     }
@@ -846,7 +846,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(10, 14)
                 .build();
         new DigitalContent.Builder("Capriccio").opera().atParis().on("01/01/2004").dvd().spaSubs().iso()
-                .discBox(0, 0)
+                .discBox(8, 5)
                 .imdb("http://www.imdb.com/title/tt2353871/").build();
         new DigitalContent.Builder("Intermezzo").opera().atGlyndebourne().on("01/01/1983").fullHD().engSubs().iso()
                 .discBox(7, 9)
