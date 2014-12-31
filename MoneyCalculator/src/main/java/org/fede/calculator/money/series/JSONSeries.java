@@ -19,9 +19,18 @@ package org.fede.calculator.money.series;
 import java.util.List;
 
 /**
- *
  * Gold: http://www.bundesbank.de/cae/servlet/StatisticDownload?tsId=BBEX3.M.XAU.USD.EA.AC.C06&its_csvFormat=en&its_fileFormat=csv&mode=its
- * 
+ * =====
+ * Guía:
+ * =====
+ * Dólar:       valor a fin de mes
+ * Ahorros USD: valor a fin de mes (a partir de dic 2014, antes valor al 1 del mes)
+ * Ahorros ARA: valor a fin de mes (a partir de dic 2014, antes valor al 1 del mes)
+ * CPI: valor del mes (se conoce al mes siguiente)
+ * Gold: valor mensual según la serie de arriba
+ * Sueldo UNLP: mes liquidado (fecha del recibo, anterior a cobrarlo)
+ * Sueldo LIFIA: mes de cobro (fecha de la factura)
+ * Gastos: mes del pago (fecha del comprobate o débito de tarjeta)
  * 
  * @author fede
  */
