@@ -34,7 +34,6 @@ import org.fede.digitalcontent.dto.MediumContentDTO;
 import org.fede.digitalcontent.dto.OpusDTO;
 import org.fede.digitalcontent.dto.VenueDTO;
 import org.fede.digitalcontent.dto.VenueDetailDTO;
-import org.fede.digitalcontent.model.Country;
 import static  org.fede.digitalcontent.model.Country.CHINA;
 import static org.fede.util.Util.list;
 import static org.fede.digitalcontent.model.Country.DENMARK;
@@ -125,6 +124,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Monotones").by("Erik Satie").ballet().build();
         new Opus.Builder("Marguerite and Armand").by("Franz Liszt").ballet().build();
         new Opus.Builder("Sylvia").by("Léo Delibes").ballet().build();
+        new Opus.Builder("La Dame Aux Camelias").by("Chopin").ballet().build();
 
     }
 
