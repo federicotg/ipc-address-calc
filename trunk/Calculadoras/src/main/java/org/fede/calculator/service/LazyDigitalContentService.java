@@ -34,6 +34,7 @@ import org.fede.digitalcontent.dto.MediumContentDTO;
 import org.fede.digitalcontent.dto.OpusDTO;
 import org.fede.digitalcontent.dto.VenueDTO;
 import org.fede.digitalcontent.dto.VenueDetailDTO;
+import org.fede.digitalcontent.model.Country;
 import static  org.fede.digitalcontent.model.Country.CHINA;
 import static org.fede.util.Util.list;
 import static org.fede.digitalcontent.model.Country.DENMARK;
@@ -240,6 +241,10 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new Venue.Builder("Stopera").city("Amsterdam").country(NETHERLANDS)
                 .latLong(52.367493d, 4.901872d)
+                .build();
+        
+        new Venue.Builder("Los Angeles Opera").city("Los Angeles").usa()
+                .latLong(34.056553d,-118.248789d)
                 .build();
 
     }
@@ -571,6 +576,10 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("Coppelia").ballet().atParis().on("01/01/2011").mkv().fullHD()
                 .discBox(8, 5)
+                .build();
+        
+        new DigitalContent.Builder("La Dame Aux Camelias").ballet().atParis().on("01/07/2008").mkv().fullHD()
+                .discBox(0, 0)
                 .build();
                 
     }
@@ -1015,6 +1024,10 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("Rigoletto").opera().at("Wiener Staatsoper").on("20/12/2014").fullHD().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
+        
+        new DigitalContent.Builder("La Traviata").opera().at("Los Angeles Opera").on("01/01/2006").fullHD().spaSubs().mkv()
                 .discBox(0, 0)
                 .build();
         
