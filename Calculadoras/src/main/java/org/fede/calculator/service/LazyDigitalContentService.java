@@ -1002,6 +1002,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("Elektra").opera().at("Großes Festspielhaus").on("01/01/2010").fullHD().spaSubs().mkv()
                 .imdb("http://www.imdb.com/title/tt1787688/")
+                .seenByFede()
                 .discBox(5, 5)
                 .build();
         
