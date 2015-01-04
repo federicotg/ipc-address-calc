@@ -115,16 +115,15 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new Opus.Builder("La Valse").by("Ravel").ballet().build();
         
-        
         new Opus.Builder("Meditation from Thaïs").by("Jules Massenet").ballet().build();
         
         new Opus.Builder("Voices of Spring").by("Johann Strauss").ballet().build();
-        
-        
+      
         new Opus.Builder("Monotones").by("Erik Satie").ballet().build();
         new Opus.Builder("Marguerite and Armand").by("Franz Liszt").ballet().build();
         new Opus.Builder("Sylvia").by("Léo Delibes").ballet().build();
         new Opus.Builder("La Dame Aux Camelias").by("Chopin").ballet().build();
+        new Opus.Builder("A Midsummer Night's Dream").by("Felix Mendelssohn").ballet().build();
 
     }
 
@@ -245,6 +244,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new Venue.Builder("Los Angeles Opera").city("Los Angeles").usa()
                 .latLong(34.056553d,-118.248789d)
+                .build();
+        
+        new Venue.Builder("Sadler's Wells").city("Londres").uk()
+                .latLong(51.5292663d,-0.1062039d)
                 .build();
 
     }
@@ -624,6 +627,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         new DigitalContent.Builder("Don Pasquale").opera().atAllaScala().on("01/01/1994").dvd().spaSubs().iso().discBox(1, 15).build();
         new DigitalContent.Builder("L'elisir d'amore").opera().atTheMet().on("13/10/2012").fullHD().engSubs().mkv()
+                .starringNetrebko()
+                .seenByFede()
                 .discBox(11, 11)
                 .discBox(8, 12)
                 .discBox(10, 12)
@@ -1029,6 +1034,10 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("La Traviata").opera().at("Los Angeles Opera").on("01/01/2006").fullHD().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
+        
+        new DigitalContent.Builder("A Midsummer Night's Dream").ballet().at("Sadler's Wells").on("01/02/1999").fullHD().mkv()
                 .discBox(0, 0)
                 .build();
         
