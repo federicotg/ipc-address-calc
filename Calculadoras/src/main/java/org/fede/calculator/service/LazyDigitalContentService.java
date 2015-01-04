@@ -572,7 +572,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("The Nutcracker").ballet().atBolshoi().on("21/12/2014").mkv().fullHD()
-                .discBox(0, 0)
+                .discBox(3, 16)
                 .seenByFede()
                 .seenByAnaMaria()
                 .build();
@@ -1038,7 +1038,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("La Traviata").opera().at("Los Angeles Opera").on("01/01/2006").fullHD().spaSubs().mkv()
+                .starringFleming()
                 .discBox(0, 0)
+                .discBox(3, 16)
                 .build();
 
     }
