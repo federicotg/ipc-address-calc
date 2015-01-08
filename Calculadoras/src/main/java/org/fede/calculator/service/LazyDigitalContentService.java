@@ -250,6 +250,10 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .latLong(51.5292663d, -0.1062039d)
                 .build();
 
+        new Venue.Builder("Teatro Regio").city("Parma").italy()
+                .latLong(44.803242d, 10.326742d)
+                .build();
+        
     }
 
     private void initOperas() {
@@ -1043,6 +1047,10 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(3, 16)
                 .build();
 
+        new DigitalContent.Builder("Il Barbiere di Siviglia").opera().at("Teatro Regio").on("01/01/2011").fullHD().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
+       
     }
 
     @Override
