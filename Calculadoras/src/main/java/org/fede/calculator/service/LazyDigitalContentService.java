@@ -1050,6 +1050,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Il Barbiere di Siviglia").opera().at("Teatro Regio").on("01/01/2011").fullHD().spaSubs().mkv()
                 .discBox(0, 0)
                 .build();
+        
+        new DigitalContent.Builder("Rodelinda").opera().atTheMet().on("03/12/2011").fullHD().spaSubs().mkv()
+                .starringFleming()
+                .discBox(0, 0)
+                .build();
        
     }
 
