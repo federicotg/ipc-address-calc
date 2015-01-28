@@ -8999,6 +8999,13 @@
                             "data": [
                                 {
                                     "year": "2014",
+                                    "period": "M12",
+                                    "periodName": "December",
+                                    "value": "234.812",
+                                    "footnotes": [{}]
+                                },
+                        {
+                                    "year": "2014",
                                     "period": "M11",
                                     "periodName": "November",
                                     "value": "236.151",
