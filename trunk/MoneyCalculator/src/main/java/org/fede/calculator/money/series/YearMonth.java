@@ -72,4 +72,11 @@ public class YearMonth implements Comparable<YearMonth> {
         }
         return new YearMonth(this.year, this.month + 1);
     }
+
+    @Override
+    public String toString() {
+        return "YearMonth{" + "year=" + year + ", month=" + month + '}';
+    }
+    
+    
 }

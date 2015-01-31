@@ -125,6 +125,16 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
                 && Objects.equals(this.getFrom(), other.getFrom())
                 && Objects.equals(this.getTo(), other.getTo());
         if (!equal) {
+            System.err.println("Not eq 1");
+            
+            System.err.println(this.getCurrency());
+            System.err.println(other.getCurrency());
+            System.err.println(this.getFrom());
+            System.err.println(other.getFrom());
+            System.err.println(this.getTo());
+            System.err.println(other.getTo());
+            
+            
             return false;
         }
         equal = true;
@@ -133,8 +143,14 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
                 Map.Entry<YearMonth, MoneyAmount> e = it.next();
                 equal &= e.getValue().equals(other.getAmount(e.getKey().getYear(), e.getKey().getMonth()));
             }
+        if (!equal) {
+            System.err.println("Not eq 2");
+        }
             return equal;
         } catch (NoSeriesDataFoundException ex) {
+            
+            System.err.println("Not eq 2");
+        
             return false;
         }
 
