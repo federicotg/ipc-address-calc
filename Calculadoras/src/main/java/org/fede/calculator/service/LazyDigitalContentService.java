@@ -364,6 +364,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .italian().opera().by("Rossini").build();
 
         new Opus.Builder("Boris Godunov").russian().opera().by("Mussorgsky").build();
+        
+        new Opus.Builder("Cavalleria Rusticana").italian().opera().by("Mascagni").build();
 
     }
 
@@ -1054,8 +1056,18 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Rodelinda").opera().atTheMet().on("03/12/2011").fullHD().spaSubs().mkv()
                 .starringFleming()
                 .discBox(0, 0)
+               // .discBox(4, 16)
                 .build();
        
+        new DigitalContent.Builder("Cavalleria Rusticana").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
+        
+        new DigitalContent.Builder("Pagliacci").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
+
+    
     }
 
     @Override
