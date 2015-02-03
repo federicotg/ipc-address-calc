@@ -1045,7 +1045,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("La Traviata").opera().at("Los Angeles Opera").on("01/01/2006").fullHD().spaSubs().mkv()
                 .starringFleming()
-                .discBox(0, 0)
+                .discBox(4, 16)
                 .discBox(3, 16)
                 .build();
 
@@ -1056,7 +1056,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Rodelinda").opera().atTheMet().on("03/12/2011").fullHD().spaSubs().mkv()
                 .starringFleming()
                 .discBox(0, 0)
-               // .discBox(4, 16)
+                .discBox(4, 16)
                 .build();
        
         new DigitalContent.Builder("Cavalleria Rusticana").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
