@@ -1038,7 +1038,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("L'Orfeo").opera().at("Teatro Real").on("01/01/2008").dvd().spaSubs().iso()
-                .discBox(0, 0)
+                .discBox(7, 16)
                 .build();
         
         new DigitalContent.Builder("Boris Godunov").opera().atTheMet().on("23/10/2010").hd720().engSubs().mkv()
@@ -1050,7 +1050,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("Rigoletto").opera().at("Wiener Staatsoper").on("20/12/2014").fullHD().spaSubs().mkv()
-                .discBox(0, 0)
+                .discBox(0, 0) // partes 1 y 3
+                .discBox(7, 16) //parte 2
                 .build();
         
         new DigitalContent.Builder("La Traviata").opera().at("Los Angeles Opera").on("01/01/2006").fullHD().spaSubs().mkv()
@@ -1065,9 +1066,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("Rodelinda").opera().atTheMet().on("03/12/2011").fullHD().spaSubs().mkv()
                 .starringFleming()
-                .discBox(0, 0)
                 .discBox(4, 16)
                 .discBox(6, 16)
+                .discBox(7, 16)
                 .build();
         
         new DigitalContent.Builder("Cavalleria Rusticana").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
