@@ -1067,10 +1067,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .starringFleming()
                 .discBox(0, 0)
                 .discBox(4, 16)
+                .discBox(6, 16)
                 .build();
         
         new DigitalContent.Builder("Cavalleria Rusticana").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
-                .discBox(0, 0)
+                .discBox(6, 16)
                 .build();
         
         new DigitalContent.Builder("Pagliacci").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
