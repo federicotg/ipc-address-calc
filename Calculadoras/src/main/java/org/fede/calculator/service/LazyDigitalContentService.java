@@ -1050,7 +1050,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("Rigoletto").opera().at("Wiener Staatsoper").on("20/12/2014").fullHD().spaSubs().mkv()
-                .discBox(0, 0) // parte 3
+                .discBox(9, 16) // parte 3
                 .discBox(7, 16) // parte 2
                 .discBox(8, 16) // parte 1
                 .build();
@@ -1062,7 +1062,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("Il Barbiere di Siviglia").opera().at("Teatro Regio").on("01/01/2011").fullHD().spaSubs().mkv()
-                .discBox(0, 0)
+                .discBox(0, 0) // parte 2
+                .discBox(9, 16) // parte 1
                 .build();
         
         new DigitalContent.Builder("Rodelinda").opera().atTheMet().on("03/12/2011").fullHD().spaSubs().mkv()
