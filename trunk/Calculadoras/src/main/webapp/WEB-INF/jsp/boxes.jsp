@@ -57,10 +57,14 @@
     </head>
     <body>
         <%@include file="../jspf/menu.jspf" %>
-        <h1>Cajas</h1>
+        <h1 id="top">Cajas</h1>
 
         <c:forEach items="${boxes}" var="boxLabel">
-            <h2>Caja ${boxLabel.boxName}</h2>
+            <a href="#${boxLabel.boxName}">${boxLabel.boxName}</a> 
+        </c:forEach>
+        
+        <c:forEach items="${boxes}" var="boxLabel">
+            <h2><a id="${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> <a href="#top">&#x25B5;</a></h2>
             <ul>
                 <c:forEach items="${boxLabel.contents}" var="medium">
                     <li>${medium.mediumName}
