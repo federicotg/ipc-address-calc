@@ -126,6 +126,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("A Midsummer Night's Dream").by("Felix Mendelssohn").ballet().build();
         
         new Opus.Builder("La Creación").by("Joseph Haydn").ballet().build();
+        new Opus.Builder("Ondine").by("Hans Werner Henze").ballet().build();
+        
         
     }
     
@@ -373,6 +375,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new Opus.Builder("Cavalleria Rusticana").italian().opera().by("Mascagni").build();
         
+        new Opus.Builder("Ascenso y caída de la ciudad de Mahagonny").german().opera().by("Kurt Weill").build();
+        
+        
     }
     
     private void initBalletVideos() throws ParseException {
@@ -603,6 +608,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("La Creación").ballet().at("Opéra National du Rhin").on("29/03/2014").fullHD().mkv()
                 .discBox(5, 16)
+                .build();
+        
+        new DigitalContent.Builder("Ondine").ballet().atRoh().on("01/01/2009").fullHD().mkv()
+                .discBox(0, 0)
                 .build();
         
     }
@@ -1079,6 +1088,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("Pagliacci").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
                 .discBox(8, 16)
+                .build();
+        
+        new DigitalContent.Builder("Ascenso y caída de la ciudad de Mahagonny").opera().at("Teatro Real").on("01/09/2010").fullHD().spaSubs().mkv()
+                .discBox(0, 0)
                 .build();
         
     }
