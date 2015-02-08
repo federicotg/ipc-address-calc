@@ -613,7 +613,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("Ondine").ballet().atRoh().on("01/01/2009").fullHD().mkv()
-                .discBox(0, 0)
+                .discBox(0, 0) // falta parte 3
+                .discBox(11, 16)
                 .build();
         
     }
@@ -1097,7 +1098,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("Andrea Chénier").opera().atRoh().on("29/01/2015").fullHD().spaSubs().mkv()
-                .discBox(0, 0) // faltan 1 2 y 4
+                .discBox(11, 16) // 1 2 y 4
                 .discBox(10, 16) //3 5 6
                 .seenByFede()
                 .build();
