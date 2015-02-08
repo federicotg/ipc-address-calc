@@ -377,6 +377,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new Opus.Builder("Ascenso y caída de la ciudad de Mahagonny").german().opera().by("Kurt Weill").build();
         
+        new Opus.Builder("Andrea Chénier").german().opera().by("Umberto Giordano").build();
+        
         
     }
     
@@ -1071,7 +1073,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("Il Barbiere di Siviglia").opera().at("Teatro Regio").on("01/01/2011").fullHD().spaSubs().mkv()
-                .discBox(0, 0) // parte 2
+                .discBox(10, 16) // parte 2
                 .discBox(9, 16) // parte 1
                 .build();
         
@@ -1092,6 +1094,12 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("Ascenso y caída de la ciudad de Mahagonny").opera().at("Teatro Real").on("01/09/2010").fullHD().spaSubs().mkv()
                 .discBox(0, 0)
+                .build();
+
+        new DigitalContent.Builder("Andrea Chénier").opera().atRoh().on("29/01/2015").fullHD().spaSubs().mkv()
+                .discBox(0, 0) // faltan 1 2 y 4
+                .discBox(10, 16) //3 5 6
+                .seenByFede()
                 .build();
         
     }
