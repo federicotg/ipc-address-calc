@@ -24,7 +24,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.logging.Logger;
 import static org.fede.digitalcontent.model.Repository.OPUS;
 import static org.fede.digitalcontent.model.Repository.VENUE;
 
