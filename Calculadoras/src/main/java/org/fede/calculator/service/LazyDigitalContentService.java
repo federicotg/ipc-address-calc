@@ -845,7 +845,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("01/01/1999").fullHD().engSubs().mkv()
                 .discBox(11, 14)
                 .build();
-        new DigitalContent.Builder("Le nozze di Figaro").opera().atRoh().on("01/01/2006").dvd().spaSubs().iso().seenByFede()
+        new DigitalContent.Builder("Le nozze di Figaro").opera().atRoh().on("01/01/2006").fullHD().spaSubs().mkv().seenByFede()
                 .discBox(3, 1)
                 .discBox(4, 1)
                 .imdb("http://www.imdb.com/title/tt1229379/").build();
