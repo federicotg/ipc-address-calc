@@ -842,14 +842,15 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Flauta Mágica").opera().at("Großes Festspielhaus").on("01/08/2012").fullHD().spaSubs().mkv().seenByFede()
                 .discBox(7, 7)
                 .build();
-        new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("01/01/1999").fullHD().engSubs().mkv()
+        new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("01/01/1999").dvd().engSubs().mkv()
+                .starringFleming()
                 .discBox(11, 14)
                 .build();
         new DigitalContent.Builder("Le nozze di Figaro").opera().atRoh().on("01/01/2006").fullHD().spaSubs().mkv().seenByFede()
                 .discBox(3, 1)
                 .discBox(4, 1)
                 .imdb("http://www.imdb.com/title/tt1229379/").build();
-        new DigitalContent.Builder("Le nozze di Figaro").opera().at("Großes Festspielhaus").on("01/01/2006").fullHD().spaSubs().mkv()
+        new DigitalContent.Builder("Le nozze di Figaro").opera().at("Großes Festspielhaus").on("01/01/2006").dvd().spaSubs().mkv()
                 .discBox(11, 14)
                 .imdb("http://www.imdb.com/title/tt0838187/").build();
         new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("17/08/2012").fullHD().engSubs().mkv()
