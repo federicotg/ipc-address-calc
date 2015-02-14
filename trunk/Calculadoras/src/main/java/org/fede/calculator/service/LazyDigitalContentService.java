@@ -614,7 +614,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("Ondine").ballet().atRoh().on("01/01/2009").fullHD().mkv()
-                .discBox(0, 0) // falta parte 3
+                .discBox(3, 3) // parte 3
                 .discBox(11, 16)
                 .build();
 
@@ -637,7 +637,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(5, 11)
                 .build();
         new DigitalContent.Builder("Norma").opera().at("Bayerische Staatsoper").on("01/01/2007").dvd().spaSubs().iso()
-                .discBox(3, 3).discBox(4, 3)
+                .discBox(0, 0) // vol 1
+                .discBox(3, 3) // vol 2
                 .build();
         new DigitalContent.Builder("Faust").opera().atRoh().on("01/01/2004").dvd().spaSubs().iso().discBox(2, 5).discBox(3, 5)
                 .imdb("http://www.imdb.com/title/tt1954436/")
@@ -1126,9 +1127,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 16)
                 .build();
 
-        new DigitalContent.Builder("Ascenso y caída de la ciudad de Mahagonny").opera().at("Teatro Real").on("01/09/2010").fullHD().spaSubs().mkv()
-                .discBox(0, 0)
-                .build();
+        //new DigitalContent.Builder("Ascenso y caída de la ciudad de Mahagonny").opera().at("Teatro Real").on("01/09/2010").fullHD().spaSubs().mkv()
+        //        .discBox(0, 0)
+        //        .build();
 
         new DigitalContent.Builder("Andrea Chénier").opera().atRoh().on("29/01/2015").fullHD().spaSubs().mkv()
                 .discBox(11, 16) // 1 2 y 4
@@ -1139,7 +1140,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Les contes d'Hoffmann").opera().atTheMet().on("31/01/2015").fullHD().spaSubs().mkv()
                 .discBox(10, 1) // parte 2
                 .discBox(1, 2) // 3
-                .discBox(0, 0) // 1
+                .discBox(3, 3) // 1
                 .build();
 
     }
