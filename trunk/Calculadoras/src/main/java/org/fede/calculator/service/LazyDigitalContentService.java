@@ -857,9 +857,14 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("17/08/2012").fullHD().engSubs().mkv()
                 .discBox(8, 14)
                 .build();
+        
         new DigitalContent.Builder("La Flauta Mágica").opera().atRoh().on("01/01/2003").dvd().spaSubs().iso().seenByFede()
-                .discBox(5, 1).imdb("http://www.imdb.com/title/tt0383058/").build();
-        new DigitalContent.Builder("Gianni Schicchi").opera().atGlyndebourne().on("01/01/2004").dvd().spaSubs().iso().seenByFede().discBox(10, 1).build();
+                .discBox(10, 1)
+                .imdb("http://www.imdb.com/title/tt0383058/").build();
+        
+        new DigitalContent.Builder("Gianni Schicchi").opera().atGlyndebourne().on("01/01/2004").dvd().spaSubs().iso().seenByFede()
+                .discBox(1, 2)
+                .build();
         new DigitalContent.Builder("Il Trittico").opera().at("Teatro Comunale di Modena").on("01/01/2007").dvd().spaSubs().iso().discBox(2, 15).build();
         new DigitalContent.Builder("La Bohème").opera().at("Teatro Real").on("01/01/2006").dvd().spaSubs().iso().seenByFede()
                 .discBox(2, 1)
@@ -1013,7 +1018,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         Set<Performance> walkureAtTheMet2012 = new DigitalContent.Builder("Die Walküre").opera().atTheMet().on("01/01/2011").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build().getPerformances();
         new DigitalContent.Builder(walkureAtTheMet2012).mkv().fullHD().spaSubs()
                 .discBox(5, 1) // parte 3
-                .discBox(0, 0) // partes 1 y 2
+                .discBox(10, 1) // parte 2
+                .discBox(1, 2) // parte 1
                 .build();
         
         /* --- */
@@ -1131,7 +1137,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("Les contes d'Hoffmann").opera().atTheMet().on("31/01/2015").fullHD().spaSubs().mkv()
-                .discBox(0, 0)
+                .discBox(10, 1) // parte 2
+                .discBox(1, 2) // 3
+                .discBox(0, 0) // 1
                 .build();
 
     }
