@@ -66,9 +66,9 @@ import org.fede.util.Predicate;
 @Service
 @Lazy
 public class LazyDigitalContentService implements DigitalContentService {
-    
+
     protected static final Comparator<OpusDTO> OPUS_COMPARATOR = new Comparator<OpusDTO>() {
-        
+
         @Override
         public int compare(OpusDTO o1, OpusDTO o2) {
             if (!o1.getType().equals(o2.getType())) {
@@ -77,18 +77,18 @@ public class LazyDigitalContentService implements DigitalContentService {
             return o1.getName().compareTo(o2.getName());
         }
     };
-    
+
     @PostConstruct
     public void initBasicObjects() throws ParseException {
-        
+
         this.initVenues();
         this.initBallets();
         this.initOperas();
         this.initBalletVideos();
         this.initOperaVideos();
-        
+
     }
-    
+
     private void initBallets() {
         new Opus.Builder("Giselle", "Le Corsaire").ballet().by("Adolphe Adam").build();
         new Opus.Builder("Raymonda").ballet().by("Alexander Glazunov").build();
@@ -112,25 +112,24 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("La fille mal gardée").ballet().build();
         new Opus.Builder("Legend of Love").by("Arif Malikov").ballet().build();
         new Opus.Builder("Manon").by("Massenet").ballet().build();
-        
+
         new Opus.Builder("La Valse").by("Ravel").ballet().build();
-        
+
         new Opus.Builder("Meditation from Thaïs").by("Jules Massenet").ballet().build();
-        
+
         new Opus.Builder("Voices of Spring").by("Johann Strauss").ballet().build();
-        
+
         new Opus.Builder("Monotones").by("Erik Satie").ballet().build();
         new Opus.Builder("Marguerite and Armand").by("Franz Liszt").ballet().build();
         new Opus.Builder("Sylvia").by("Léo Delibes").ballet().build();
         new Opus.Builder("La Dame Aux Camelias").by("Chopin").ballet().build();
         new Opus.Builder("A Midsummer Night's Dream").by("Felix Mendelssohn").ballet().build();
-        
+
         new Opus.Builder("La Creación").by("Joseph Haydn").ballet().build();
         new Opus.Builder("Ondine").by("Hans Werner Henze").ballet().build();
-        
-        
+
     }
-    
+
     private void initVenues() {
         new Venue.Builder("Teatro di San Carlo").city("Nápoles").italy()
                 .latLong(40.837556d, 14.2496541d)
@@ -147,11 +146,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Teatro Comunale di Modena").city("Módena").italy()
                 .latLong(44.646842d, 10.930176d)
                 .build();
-        
+
         new Venue.Builder("Teatro Comunale di Bologna").city("Bologna").italy()
                 .latLong(44.49649d, 11.350486d)
                 .build();
-        
+
         new Venue.Builder("Teatro Rossini").city("Pesaro").italy()
                 .latLong(43.907854d, 12.908755d)
                 .build();
@@ -237,33 +236,33 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Ciudad Prohibida").city("Beijing").country(CHINA)
                 .latLong(39.9161804d, 116.3970584d)
                 .build();
-        
+
         new Venue.Builder("Aix-en-Provence").city("Aix-en-Provence").country(FRANCE)
                 .latLong(43.5262164d, 5.4408571d)
                 .build();
-        
+
         new Venue.Builder("Stopera").city("Amsterdam").country(NETHERLANDS)
                 .latLong(52.367493d, 4.901872d)
                 .build();
-        
+
         new Venue.Builder("Los Angeles Opera").city("Los Angeles").usa()
                 .latLong(34.056553d, -118.248789d)
                 .build();
-        
+
         new Venue.Builder("Sadler's Wells").city("Londres").uk()
                 .latLong(51.5292663d, -0.1062039d)
                 .build();
-        
+
         new Venue.Builder("Teatro Regio").city("Parma").italy()
                 .latLong(44.803242d, 10.326742d)
                 .build();
-        
+
         new Venue.Builder("Opéra National du Rhin").city("Strasbourg").country(FRANCE)
                 .latLong(48.585726d, 7.752371d)
                 .build();
-        
+
     }
-    
+
     private void initOperas() {
         new Opus.Builder("Macbeth",
                 "Aida",
@@ -279,7 +278,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Don Carlo",
                 "I Due Foscari")
                 .italian().opera().by("Giuseppe Verdi").build();
-        
+
         new Opus.Builder("Parsifal",
                 "Rienzi",
                 "Das Rheingold",
@@ -290,7 +289,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Lohengrin",
                 "Tristan und Ilsode")
                 .german().opera().by("Richard Wagner").build();
-        
+
         new Opus.Builder("Anna Bolena",
                 "Don Pasquale",
                 "L'elisir d'amore",
@@ -298,9 +297,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Maria Stuarda")
                 .italian().opera().by("Gaetano Donizetti").build();
         new Opus.Builder("La Fille du Regiment").french().opera().by("Gaetano Donizetti").build();
-        
+
         new Opus.Builder("Fidelio").german().opera().by("Beethoven").build();
-        
+
         new Opus.Builder("Carmen").french().opera().by("Bizet").build();
         new Opus.Builder("Les Troyens").french().opera().by("Hector Berlioz").build();
         new Opus.Builder("I Puritani", "Norma").italian().opera().by("Vincenzo Bellini").build();
@@ -327,7 +326,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Faust", "Roméo et Juliette").french().opera().by("Gounod").build();
         new Opus.Builder("La Gioconda").french().opera().by("A. Ponchielli").build();
         new Opus.Builder("Le Grand Macabre").german().opera().by("Ligeti").build();
-        
+
         new Opus.Builder("Admeto",
                 "Alcina",
                 "Giulio Cesare",
@@ -335,18 +334,18 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Rodelinda",
                 "Tamerlano")
                 .italian().opera().by("Händel").build();
-        
+
         new Opus.Builder("Così Fan Tutte",
                 "Don Giovanni",
                 "Il Sogno di Scipione",
                 "La Clemenza di Tito",
                 "Le nozze di Figaro")
                 .italian().opera().by("W. A. Mozart").build();
-        
+
         new Opus.Builder("La Flauta Mágica",
                 "El rapto en el serrallo")
                 .german().opera().by("W. A. Mozart").build();
-        
+
         new Opus.Builder("Gianni Schicchi",
                 "Il Trittico",
                 "La Bohème",
@@ -357,9 +356,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Tosca",
                 "Turandot")
                 .italian().opera().by("Giacomo Puccini").build();
-        
+
         new Opus.Builder("Le comte Ory").french().opera().by("Rossini").build();
-        
+
         new Opus.Builder("Armida",
                 "Il Barbiere di Siviglia",
                 "Il turco in Italia",
@@ -370,18 +369,19 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Otello ossia Il moro di Venezia",
                 "Zelmira")
                 .italian().opera().by("Rossini").build();
-        
+
         new Opus.Builder("Boris Godunov").russian().opera().by("Mussorgsky").build();
-        
+
         new Opus.Builder("Cavalleria Rusticana").italian().opera().by("Mascagni").build();
-        
+
         new Opus.Builder("Ascenso y caída de la ciudad de Mahagonny").german().opera().by("Kurt Weill").build();
-        
+
         new Opus.Builder("Andrea Chénier").german().opera().by("Umberto Giordano").build();
-        
-        
+
+        new Opus.Builder("Les contes d'Hoffmann").french().opera().by("Offenbach").build();
+
     }
-    
+
     private void initBalletVideos() throws ParseException {
         new DigitalContent.Builder("Giselle").ballet().atRoh().on("29/04/2006").hd720().mkv()
                 .seenByAnaMaria()
@@ -480,13 +480,13 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Bayadère").ballet().atBolshoi().on("27/01/2013").fullHD().mkv()
                 .discBox(11, 14)
                 .seenByAnaMaria().build();
-        
+
         new DigitalContent.Builder("La Bayadère").ballet().atMariinsky().on("27/01/2013").fullHD().mkv()
                 .seenByAnaMaria()
                 .discBox(2, 16)
                 .discBox(1, 3)
                 .build();
-        
+
         new DigitalContent.Builder("Notre Dame de Paris").ballet().atBolshoi().on("14/02/2013").fullHD().mkv()
                 .discBox(2, 13)
                 .build();
@@ -524,11 +524,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByAnaMaria()
                 .seenByFede()
                 .build();
-        
+
         new DigitalContent.Builder("The Nutcracker").ballet().atMariinsky().on("01/01/2012").fullHD().mkv()
                 .discBox(8, 5)
                 .build();
-        
+
         new DigitalContent.Builder("The Sleeping Beauty").ballet().atBolshoi().on("20/11/2011").hd720().mkv().discBox(4, 5)
                 .imdb("http://www.imdb.com/title/tt2798186/")
                 .build();
@@ -554,73 +554,74 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(7, 1)
                 .discBox(9, 1)
                 .build();
-        
+
         new DigitalContent.Builder("Swan Lake").ballet().atZurich().on("05/12/2010").mkv().hd720()
                 .imdb("http://www.imdb.com/title/tt1754561/")
                 .discBox(6, 1)
                 .build();
-        
+
         new DigitalContent.Builder("Cinderella").ballet().at("Stopera").on("01/01/2012").mkv().fullHD()
                 .discBox(8, 1)
                 .build();
         new DigitalContent.Builder("Cinderella").ballet().atParis().on("01/01/2007").mkv().fullHD()
                 .discBox(1, 16)
                 .build();
-        
+
         Venue roh = Repository.VENUE.findById("ROH");
         Opus laValse = Repository.OPUS.findById(new Pair<>("La Valse", BALLET));
         Opus monotones = Repository.OPUS.findById(new Pair<>("Monotones", BALLET));
         Opus mAndA = Repository.OPUS.findById(new Pair<>("Marguerite and Armand", BALLET));
         Opus meditations = Repository.OPUS.findById(new Pair<>("Meditation from Thaïs", BALLET));
         Opus voices = Repository.OPUS.findById(new Pair<>("Voices of Spring", BALLET));
-        
+
         Date date = new SimpleDateFormat("dd/MM/yyyy").parse("01/02/2013");
-        
+
         Set<Performance> ashtonCelebration = new HashSet<>();
-        
+
         ashtonCelebration.add(new Performance(laValse, roh, date));
         ashtonCelebration.add(new Performance(monotones, roh, date));
         ashtonCelebration.add(new Performance(meditations, roh, date));
         ashtonCelebration.add(new Performance(voices, roh, date));
         ashtonCelebration.add(new Performance(mAndA, roh, date));
-        
+
         new DigitalContent.Builder(ashtonCelebration).fullHD().discBox(2, 16).mkv().build();
-        
+
         new DigitalContent.Builder("Sylvia").ballet().atRoh().on("01/01/2005").mkv().fullHD()
                 .discBox(6, 5)
                 .build();
-        
+
         new DigitalContent.Builder("The Nutcracker").ballet().atBolshoi().on("21/12/2014").mkv().fullHD()
                 .discBox(3, 16)
                 .seenByFede()
                 .seenByAnaMaria()
                 .build();
-        
+
         new DigitalContent.Builder("Coppelia").ballet().atParis().on("01/01/2011").mkv().fullHD()
                 .discBox(8, 5)
                 .build();
-        
+
         new DigitalContent.Builder("La Dame Aux Camelias").ballet().atParis().on("01/07/2008").mkv().fullHD()
-                .discBox(0, 0)
+                .discBox(0, 0) // parte 1
+                .discBox(5, 1) // parte 2 
                 .build();
-        
+
         new DigitalContent.Builder("A Midsummer Night's Dream").ballet().at("Sadler's Wells").on("01/02/1999").fullHD().mkv()
                 .discBox(5, 16)
                 .build();
-        
+
         new DigitalContent.Builder("La Creación").ballet().at("Opéra National du Rhin").on("29/03/2014").fullHD().mkv()
                 .discBox(5, 16)
                 .build();
-        
+
         new DigitalContent.Builder("Ondine").ballet().atRoh().on("01/01/2009").fullHD().mkv()
                 .discBox(0, 0) // falta parte 3
                 .discBox(11, 16)
                 .build();
-        
+
     }
-    
+
     private void initOperaVideos() throws ParseException {
-        
+
         new DigitalContent.Builder("La Gioconda").opera().atParis().on("13/05/2013").fullHD().spaSubs().mkv().seenByFede()
                 .discBox(1, 14)
                 .discBox(2, 14)
@@ -699,7 +700,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .imdb("http://www.imdb.com/title/tt3385804/").build();
         new DigitalContent.Builder("I Due Foscari").opera().at("Teatro di San Carlo").on("01/01/2001").dvd().spaSubs().iso().discBox(1, 6)
                 .imdb("http://www.imdb.com/title/tt0401393/").build();
-        
+
         new DigitalContent.Builder("La Forza del Destino").opera().at("Teatro Comunale di Firenze").on("01/01/2007").dvd().spaSubs().iso()
                 .discBox(12, 14)
                 .imdb("http://www.imdb.com/title/tt2196658/").build();
@@ -717,11 +718,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(11, 15)
                 .build();
         new DigitalContent.Builder("La Traviata").opera().atGlyndebourne().on("10/08/2014").fullHD().engSubs().mkv().seenByFede().discBox(12, 15).build();
-        
+
         new DigitalContent.Builder("La Traviata").opera().atRoh().on("17/06/2009").hd720().spaSubs().mkv()
                 .starringFleming()
                 .discBox(5, 5).build();
-        
+
         new DigitalContent.Builder("Macbeth").opera().atParis().on("04/04/2009").fullHD().spaSubs().mkv().discBox(9, 15)
                 .imdb("http://www.imdb.com/title/tt2705154/").build();
         new DigitalContent.Builder("Macbeth").opera().atTheMet().on("11/10/2014").fullHD()
@@ -881,7 +882,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         //new DigitalContent.Builder("Turandot").opera().atTheMet().on("01/01/1987").fullHD().spaSubs().mkv().discBox(3, 13).imdb("http://www.imdb.com/title/tt0220822/").build();
         new DigitalContent.Builder("Turandot").opera().at("Ciudad Prohibida").on("01/01/1999").dvd().spaSubs().mkv().discBox(5, 2)
                 .imdb("http://www.imdb.com/title/tt0205483/").build();
-        
+
         new DigitalContent.Builder("L'enfant et les sortilèges").opera().atGlyndebourne().on("19/08/2012").fullHD().engSubs().mkv().seenByFede().discBox(3, 6).build();
         new DigitalContent.Builder("L'heure espagnole").opera().atGlyndebourne().on("19/08/2012").fullHD().engSubs().mkv().seenByFede().discBox(3, 6).build();
         new DigitalContent.Builder("Ariadne auf Naxos").opera().atGlyndebourne().on("04/06/2013").fullHD().engSubs().mkv().seenByFede()
@@ -990,10 +991,35 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Fanciulla del West").opera().atTheMet().on("08/01/2011").spaSubs().dvd().dvdFormat().box("La Fanciulla del West")
                 .seenByFede()
                 .build();
-        new DigitalContent.Builder("Siegfried").opera().atTheMet().on("01/01/2011").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
+
+        /* --- */
+        Set<Performance> siegfriedAtTheMet2012 = new DigitalContent.Builder("Siegfried")
+                .opera()
+                .atTheMet()
+                .on("01/01/2011")
+                .spaSubs()
+                .br()
+                .box("Der Ring des Nibelungen")
+                .seenByFede()
+                .build().getPerformances();
+
+        new DigitalContent.Builder(siegfriedAtTheMet2012).mkv().fullHD().spaSubs().discBox(0, 0).build();
+
+        /* --- */
+        
         new DigitalContent.Builder("Gotterdammerung").opera().atTheMet().on("01/01/2012").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
-        new DigitalContent.Builder("Die Walküre").opera().atTheMet().on("01/01/2011").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
+        
+        /* --- */
+        Set<Performance> walkureAtTheMet2012 = new DigitalContent.Builder("Die Walküre").opera().atTheMet().on("01/01/2011").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build().getPerformances();
+        new DigitalContent.Builder(walkureAtTheMet2012).mkv().fullHD().spaSubs()
+                .discBox(5, 1) // parte 3
+                .discBox(0, 0) // partes 1 y 2
+                .build();
+        
+        /* --- */
+        
         new DigitalContent.Builder("Das Rheingold").opera().atTheMet().on("01/01/2010").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
+
         new DigitalContent.Builder("La Bohème").opera().at("Großes Festspielhaus").on("01/07/2012").spaSubs().br().box("La Bohème")
                 .starringNetrebko()
                 .seenByFede()
@@ -1001,99 +1027,99 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Lucia di Lammermoor").opera().atTheMet().on("07/02/2009").spaSubs().br()
                 .starringNetrebko()
                 .box("Lucia di Lammermoor").build();
-        
+
         new DigitalContent.Builder("Le nozze di Figaro").opera().at("Sydney Opera House").on("18/08/2010").spaSubs().br().seenByFede().box("Le nozze di Figaro").build();
         new DigitalContent.Builder("Turandot").opera().atTheMet().on("07/11/2009 ").spaSubs().br().seenByFede().box("Turandot").build();
         new DigitalContent.Builder("Don Pasquale").opera().atTheMet().on("13/11/2010 ").spaSubs().br().seenByFede()
                 .starringNetrebko()
                 .box("Don Pasquale").build();
-        
+
         new DigitalContent.Builder("Roméo et Juliette").opera().at("Großes Festspielhaus").on("02/08/2008").spaSubs().br().box("Roméo et Juliette")
                 .build();
-        
+
         new DigitalContent.Builder("Carmen").opera().atTheMet().on("01/11/2014").spaSubs().mkv().fullHD().discBox(1, 1)
                 .build();
-        
+
         new DigitalContent.Builder("Le Grand Macabre").opera().at("Gran Teatro del Liceo").on("01/11/2011").spaSubs().iso().dvd()
                 .discBox(7, 1)
                 .build();
-        
+
         new DigitalContent.Builder("L'elisir d'amore").opera().atRoh().on("26/11/2014").hd720().spaSubs().mkv()
                 .discBox(1, 3)
                 .build();
-        
+
         new DigitalContent.Builder("Otello ossia Il moro di Venezia").opera().atZurich().on("01/01/2011").dvd().spaSubs().mkv()
                 .discBox(6, 1)
                 .build();
-        
+
         new DigitalContent.Builder("Salome").opera().at("Teatro Comunale di Bologna").on("01/01/2010").fullHD().spaSubs().mkv()
                 .discBox(1, 16)
                 .build();
-        
+
         new DigitalContent.Builder("Elektra").opera().at("Aix-en-Provence").on("01/07/2013").dvd().spaSubs().iso()
                 .discBox(6, 1)
                 .build();
-        
+
         new DigitalContent.Builder("Fidelio").opera().atAllaScala().on("07/12/2014").fullHD().spaSubs().mkv()
                 .discBox(1, 3)
                 .build();
-        
+
         new DigitalContent.Builder("Elektra").opera().at("Großes Festspielhaus").on("01/01/2010").fullHD().spaSubs().mkv()
                 .imdb("http://www.imdb.com/title/tt1787688/")
                 .seenByFede()
                 .discBox(5, 5)
                 .build();
-        
+
         new DigitalContent.Builder("Il Trovatore").opera().at("Berlin State Opera").on("01/01/2014").fullHD().spaSubs().mkv()
                 .starringNetrebko()
                 .discBox(7, 5)
                 .discBox(6, 5)
                 .build();
-        
+
         new DigitalContent.Builder("L'Orfeo").opera().at("Teatro Real").on("01/01/2008").dvd().spaSubs().iso()
                 .discBox(7, 16)
                 .build();
-        
+
         new DigitalContent.Builder("Boris Godunov").opera().atTheMet().on("23/10/2010").hd720().engSubs().mkv()
                 .discBox(7, 5)
                 .build();
-        
+
         new DigitalContent.Builder("Le comte Ory").opera().atTheMet().on("09/04/2011").hd720().engSubs().mkv()
                 .discBox(2, 16)
                 .build();
-        
+
         new DigitalContent.Builder("Rigoletto").opera().at("Wiener Staatsoper").on("20/12/2014").fullHD().spaSubs().mkv()
                 .discBox(9, 16) // parte 3
                 .discBox(7, 16) // parte 2
                 .discBox(8, 16) // parte 1
                 .build();
-        
+
         new DigitalContent.Builder("La Traviata").opera().at("Los Angeles Opera").on("01/01/2006").fullHD().spaSubs().mkv()
                 .starringFleming()
                 .discBox(4, 16)
                 .discBox(3, 16)
                 .build();
-        
+
         new DigitalContent.Builder("Il Barbiere di Siviglia").opera().at("Teatro Regio").on("01/01/2011").fullHD().spaSubs().mkv()
                 .discBox(10, 16) // parte 2
                 .discBox(9, 16) // parte 1
                 .build();
-        
+
         new DigitalContent.Builder("Rodelinda").opera().atTheMet().on("03/12/2011").fullHD().spaSubs().mkv()
                 .starringFleming()
                 .discBox(4, 16)
                 .discBox(6, 16)
                 .discBox(7, 16)
                 .build();
-        
+
         new DigitalContent.Builder("Cavalleria Rusticana").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
                 .discBox(6, 16)
                 .build();
-        
+
         new DigitalContent.Builder("Pagliacci").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
                 .discBox(8, 16)
                 .build();
-        
+
         new DigitalContent.Builder("Ascenso y caída de la ciudad de Mahagonny").opera().at("Teatro Real").on("01/09/2010").fullHD().spaSubs().mkv()
                 .discBox(0, 0)
                 .build();
@@ -1103,14 +1129,18 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(10, 16) //3 5 6
                 .seenByFede()
                 .build();
-        
+
+        new DigitalContent.Builder("Les contes d'Hoffmann").opera().atTheMet().on("31/01/2015").fullHD().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
+
     }
-    
+
     @Override
     public Iterable<StorageBox> getAllBoxes() {
         return Repository.STORAGEBOX.findAll();
     }
-    
+
     @Override
     public List<DigitalContentDTO> getFullReport() {
         return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
@@ -1120,7 +1150,7 @@ public class LazyDigitalContentService implements DigitalContentService {
             }
         });
     }
-    
+
     private List<DigitalContentDTO> filteredReport(Collection<DigitalContent> elements, Predicate<DigitalContent> p) {
         List<DigitalContentDTO> answer = new ArrayList<>(elements.size());
         for (DigitalContent dc : elements) {
@@ -1131,15 +1161,15 @@ public class LazyDigitalContentService implements DigitalContentService {
         Collections.sort(answer);
         return answer;
     }
-    
+
     private static DigitalContentDTO toDto(DigitalContent dc) {
         DigitalContentDTO dto = new DigitalContentDTO();
-        
+
         List<String> boxNames = new ArrayList<>();
         for (StorageBox box : Repository.STORAGEBOX.boxesContaining(dc)) {
             boxNames.add(box.getName());
         }
-        
+
         dto.setBoxes(boxNames);
         dto.setDate(dc.getDate());
         dto.setFormat(dc.getFormat().name());
@@ -1156,7 +1186,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         dto.setVenues(toString(dc.getVenues()));
         return dto;
     }
-    
+
     private static List<String> toString(Collection<?> col) {
         List<String> answer = new ArrayList<>(col.size());
         for (Object o : col) {
@@ -1164,7 +1194,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         }
         return answer;
     }
-    
+
     @Override
     public List<DigitalContentDTO> getBoxReport(final String boxName) {
         return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
@@ -1180,7 +1210,7 @@ public class LazyDigitalContentService implements DigitalContentService {
             }
         });
     }
-    
+
     @Override
     public List<DigitalContentDTO> getComposerReport(final String composerName) {
         return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
@@ -1190,7 +1220,7 @@ public class LazyDigitalContentService implements DigitalContentService {
             }
         });
     }
-    
+
     @Override
     public List<DigitalContentDTO> getOpusReport(final String opusName) {
         return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
@@ -1200,7 +1230,7 @@ public class LazyDigitalContentService implements DigitalContentService {
             }
         });
     }
-    
+
     @Override
     public List<DigitalContentDTO> getVenueReport(final String venueName) {
         return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
@@ -1210,24 +1240,24 @@ public class LazyDigitalContentService implements DigitalContentService {
             }
         });
     }
-    
+
     @Override
     public List<DigitalContentDTO> getOpusTypeReport(String name) {
         final OpusType type = OpusType.valueOf(name);
         return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
-            
+
             @Override
             public boolean test(DigitalContent dc) {
                 return dc.getOpusTypes().contains(type);
             }
         });
     }
-    
+
     @Override
     public BoxLabelDTO getBoxLabel(String boxName) {
         return this.getBoxLabel(Repository.STORAGEBOX.findById(boxName));
     }
-    
+
     private BoxLabelDTO getBoxLabel(StorageBox box) {
         BoxLabelDTO dto = new BoxLabelDTO();
         dto.setBoxName(box.getName());
@@ -1244,7 +1274,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         dto.doneContent();
         return dto;
     }
-    
+
     @Override
     public List<BoxLabelDTO> getEveryBoxLabel() {
         Set<StorageBox> boxes = Repository.STORAGEBOX.findAll();
@@ -1255,7 +1285,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         Collections.sort(list);
         return list;
     }
-    
+
     @Override
     public List<VenueDTO> getVenues() {
         Set<Venue> allVenues = Repository.VENUE.findAll();
@@ -1271,7 +1301,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         }
         return list;
     }
-    
+
     @Override
     public VenueDetailDTO getVenueDetail(String venueName) {
         DateFormat yearFormat = new SimpleDateFormat("yyyy");
@@ -1285,7 +1315,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         dto.setWikipedia(venue.getWikipedia());
         return dto;
     }
-    
+
     @Override
     public List<OpusDTO> unseenBy(String personName) {
         Set<DigitalContent> allContent = Repository.DIGITALCONTENT.findAll();
@@ -1301,20 +1331,20 @@ public class LazyDigitalContentService implements DigitalContentService {
             answer.add(new OpusDTO(o.getTitle(), o.getType().name()));
         }
         Collections.sort(answer, OPUS_COMPARATOR);
-        
+
         return answer;
     }
-    
+
     @Override
     public List<OpusDTO> unavailableInHD() {
-        
+
         Set<Opus> notInHD = Repository.OPUS.findAll();
         for (DigitalContent dc : Repository.DIGITALCONTENT.findAll()) {
             if (dc.getQuality() == Quality.HD720 || dc.getQuality() == Quality.HD1080) {
                 notInHD.removeAll(dc.getOpuses());
             }
         }
-        
+
         List<OpusDTO> answer = new ArrayList<>(notInHD.size());
         for (Opus o : notInHD) {
             answer.add(new OpusDTO(o.getTitle(), o.getType().name()));
@@ -1322,5 +1352,5 @@ public class LazyDigitalContentService implements DigitalContentService {
         Collections.sort(answer, OPUS_COMPARATOR);
         return answer;
     }
-    
+
 }
