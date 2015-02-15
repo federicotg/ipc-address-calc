@@ -40,6 +40,7 @@ import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.web.dto.DollarReportDTO;
 import org.fede.calculator.web.dto.SavingsReportDTO;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,6 +48,7 @@ import org.springframework.stereotype.Service;
  * @author fede
  */
 @Service
+@Lazy
 public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
     @Override

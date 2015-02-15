@@ -49,6 +49,7 @@ import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
 import org.fede.calculator.web.dto.CanvasJSDatumDTO;
 import org.fede.calculator.web.dto.CanvasJSTitleDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
+import org.springframework.context.annotation.Lazy;
 
 import org.springframework.stereotype.Service;
 
@@ -57,6 +58,7 @@ import org.springframework.stereotype.Service;
  * @author fede
  */
 @Service
+@Lazy
 public class CanvasJSChartService implements ChartService, MathConstants {
 
     private static final Map<Integer, String> MONTH_NAMES = new HashMap<>();
