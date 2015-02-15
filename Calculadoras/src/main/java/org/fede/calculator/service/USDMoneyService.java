@@ -24,6 +24,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.web.dto.CurrencyDTO;
 import org.fede.calculator.web.dto.CurrencyLimitsDTO;
 import org.fede.calculator.web.dto.MoneyDTO;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
  * @author fede
  */
 @Service("usdMoneyService")
+@Lazy
 public class USDMoneyService implements MoneyService {
 
     private static final CurrencyDTO CURRENCY_DTO = new CurrencyDTO(

@@ -637,7 +637,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(5, 11)
                 .build();
         new DigitalContent.Builder("Norma").opera().at("Bayerische Staatsoper").on("01/01/2007").dvd().spaSubs().iso()
-                .discBox(0, 0) // vol 1
+                .discBox(4, 3) // vol 1
                 .discBox(3, 3) // vol 2
                 .build();
         new DigitalContent.Builder("Faust").opera().atRoh().on("01/01/2004").dvd().spaSubs().iso().discBox(2, 5).discBox(3, 5)
@@ -1009,11 +1009,18 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByFede()
                 .build().getPerformances();
 
-        new DigitalContent.Builder(siegfriedAtTheMet2012).mkv().fullHD().spaSubs().discBox(0, 0).build();
+        new DigitalContent.Builder(siegfriedAtTheMet2012).mkv().fullHD().spaSubs()
+                .discBox(0, 0) // 1 y 2
+                .discBox(4, 3) // 3
+                .build();
 
         /* --- */
         
-        new DigitalContent.Builder("Gotterdammerung").opera().atTheMet().on("01/01/2012").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
+        Set<Performance> gotterdammerungAtTheMet2012 = new DigitalContent.Builder("Gotterdammerung").opera().atTheMet().on("01/01/2012").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build().getPerformances();
+        new DigitalContent.Builder(gotterdammerungAtTheMet2012).mkv().fullHD().spaSubs()
+                .discBox(1, 5) // 1 y 3
+                .discBox(4, 3) // 2
+                .build();
         
         /* --- */
         Set<Performance> walkureAtTheMet2012 = new DigitalContent.Builder("Die Walküre").opera().atTheMet().on("01/01/2011").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build().getPerformances();

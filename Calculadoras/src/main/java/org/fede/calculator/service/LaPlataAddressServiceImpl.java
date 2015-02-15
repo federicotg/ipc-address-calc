@@ -18,6 +18,7 @@ package org.fede.calculator.service;
 
 import org.fede.calculator.lpadress.LaPlataAddress;
 import org.fede.calculator.web.dto.LaPlataAddressDTO;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
  * @author fede
  */
 @Service
+@Lazy
 public class LaPlataAddressServiceImpl implements LaPlataAddressService {
 
     @Override
