@@ -22,7 +22,7 @@ package org.fede.digitalcontent.model;
  */
 public enum Language {
    
-    ENGLISH("en"), FRENCH("fr"), ITALIAN("it"), GERMAN("de"), SPANISH("es"), CZECH("cz"), RUSSIAN("ru");
+    ENGLISH("en"), FRENCH("fr"), ITALIAN("it"), GERMAN("de"), SPANISH("es"), CZECH("cz"), RUSSIAN("ru"), HUNGARIAN("hu");
     
     private final String code;
     
