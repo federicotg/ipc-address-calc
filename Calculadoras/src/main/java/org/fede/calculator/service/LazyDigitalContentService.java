@@ -319,7 +319,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .french().opera().by("Ravel").build();
         new Opus.Builder("Ariadne auf Naxos", "Capriccio", "Intermezzo", "Salome", "Daphne", "Elektra")
                 .german().opera().by("Richard Strauss").build();
-        new Opus.Builder("Cherevichki The Tsarina's Slippers", "Eugene Onegin")
+        new Opus.Builder("Cherevichki The Tsarina's Slippers", "Eugene Onegin", "Iolanta")
                 .russian().opera().by("Tchaikovsky").build();
         new Opus.Builder("Orlando Furioso").italian().opera().by("Vivaldi").build();
         new Opus.Builder("Nixon in China", "Doctor Atomic").english().opera().by("John Adams").build();
@@ -379,6 +379,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Andrea Chénier").german().opera().by("Umberto Giordano").build();
 
         new Opus.Builder("Les contes d'Hoffmann").french().opera().by("Offenbach").build();
+        
+        new Opus.Builder("El castillo de Barbazul").language(Language.HUNGARIAN).opera().by("Bartók").build();
 
     }
 
@@ -1150,6 +1152,13 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(3, 3) // 1
                 .build();
 
+        new DigitalContent.Builder("El castillo de Barbazul").opera().atTheMet().on("14/02/2015").fullHD().spaSubs().mkv()
+                .discBox(0, 0) 
+                .build();
+
+        new DigitalContent.Builder("Iolanta").opera().atTheMet().on("14/02/2015").fullHD().spaSubs().mkv()
+                .discBox(0, 0) 
+                .build();
     }
 
     @Override
