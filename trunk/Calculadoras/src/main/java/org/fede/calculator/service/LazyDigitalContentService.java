@@ -879,8 +879,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Madama Butterfly").opera().at("Arena di Verona").on("01/01/2004").dvd().spaSubs().iso().discBox(1, 1).build();
         new DigitalContent.Builder("Manon Lescaut").opera().atRoh().on("01/01/1983").dvd().spaSubs().iso().discBox(2, 15)
                 .imdb("http://www.imdb.com/title/tt0254549/").build();
-        new DigitalContent.Builder("Tosca").opera().atAllaScala().on("01/01/2000").dvd().spaSubs().iso().discBox(3, 8)
+        
+        new DigitalContent.Builder("Tosca").opera().atAllaScala().on("01/01/2000").dvd().spaSubs().iso().discBox(0, 0)
                 .imdb("http://www.imdb.com/title/tt2385259/").build();
+        
         new DigitalContent.Builder("Tosca").opera().atRoh().on("17/07/2011").dvd().engSubs().mkv().seenByFede().discBox(6, 2).build();
         new DigitalContent.Builder("Tosca").opera().atTheMet().on("09/11/2013").fullHD().engSubs().mkv().discBox(5, 15)
                 .imdb("http://www.imdb.com/title/tt3315900/")
@@ -1119,6 +1121,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Il Barbiere di Siviglia").opera().at("Teatro Regio").on("01/01/2011").fullHD().spaSubs().mkv()
                 .discBox(10, 16) // parte 2
                 .discBox(9, 16) // parte 1
+                .seenByFede()
                 .build();
 
         new DigitalContent.Builder("Rodelinda").opera().atTheMet().on("03/12/2011").fullHD().spaSubs().mkv()
@@ -1153,11 +1156,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("El castillo de Barbazul").opera().atTheMet().on("14/02/2015").fullHD().spaSubs().mkv()
-                .discBox(0, 0) 
+                .discBox(3, 8) 
                 .build();
 
         new DigitalContent.Builder("Iolanta").opera().atTheMet().on("14/02/2015").fullHD().spaSubs().mkv()
-                .discBox(0, 0) 
+                .discBox(3, 8) 
                 .build();
     }
 
