@@ -603,7 +603,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("La Dame Aux Camelias").ballet().atParis().on("01/07/2008").mkv().fullHD()
-                .discBox(0, 0) // parte 1
+                .discBox(2, 4) // parte 1
                 .discBox(5, 1) // parte 2 
                 .build();
 
