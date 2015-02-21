@@ -709,7 +709,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .imdb("http://www.imdb.com/title/tt2196658/").build();
         new DigitalContent.Builder("La Traviata").opera().at("Großes Festspielhaus").on("01/01/2005").dvd().spaSubs().iso()
                 .seenByFede()
-                .discBox(2, 4)
+                .discBox(0, 0)
                 .starringNetrebko()
                 .imdb("http://www.imdb.com/title/tt0475165/").build();
         new DigitalContent.Builder("La Traviata").opera().atAllaScala().on("01/01/2007").hd720().mkv()
@@ -1012,7 +1012,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build().getPerformances();
 
         new DigitalContent.Builder(siegfriedAtTheMet2012).mkv().fullHD().spaSubs()
-                .discBox(0, 0) // 1 y 2
+                .discBox(5, 8) // 1 y 2
                 .discBox(4, 3) // 3
                 .build();
 
