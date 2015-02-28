@@ -366,6 +366,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "La Cenerentola",
                 "La Donna del Lago",
                 "Sigismondo",
+                "La Gazzetta",
                 "Otello ossia Il moro di Venezia",
                 "Zelmira")
                 .italian().opera().by("Rossini").build();
@@ -535,7 +536,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .imdb("http://www.imdb.com/title/tt2798186/")
                 .build();
         new DigitalContent.Builder("The Sleeping Beauty").ballet().atRoh().on("15/12/2011").hd720().mkv()
-                .discBox(7, 2)
+                .discBox(6, 8)
                 .discBox(9, 2)
                 .discBox(8, 2)
                 .discBox(2, 3)
@@ -642,7 +643,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(4, 3) // vol 1
                 .discBox(3, 3) // vol 2
                 .build();
-        new DigitalContent.Builder("Faust").opera().atRoh().on("01/01/2004").dvd().spaSubs().iso().discBox(2, 5).discBox(3, 5)
+        new DigitalContent.Builder("Faust").opera().atRoh().on("01/01/2004").dvd().spaSubs().iso()
+                .discBox(2, 5)
+                .discBox(7, 8)
                 .imdb("http://www.imdb.com/title/tt1954436/")
                 .seenByFede()
                 .build();
@@ -709,7 +712,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .imdb("http://www.imdb.com/title/tt2196658/").build();
         new DigitalContent.Builder("La Traviata").opera().at("Großes Festspielhaus").on("01/01/2005").dvd().spaSubs().iso()
                 .seenByFede()
-                .discBox(0, 0)
+                .discBox(7, 8)
                 .starringNetrebko()
                 .imdb("http://www.imdb.com/title/tt0475165/").build();
         new DigitalContent.Builder("La Traviata").opera().atAllaScala().on("01/01/2007").hd720().mkv()
@@ -880,7 +883,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Manon Lescaut").opera().atRoh().on("01/01/1983").dvd().spaSubs().iso().discBox(2, 15)
                 .imdb("http://www.imdb.com/title/tt0254549/").build();
         
-        new DigitalContent.Builder("Tosca").opera().atAllaScala().on("01/01/2000").dvd().spaSubs().iso().discBox(0, 0)
+        new DigitalContent.Builder("Tosca").opera().atAllaScala().on("01/01/2000").dvd().spaSubs().iso().discBox(7, 8)
                 .imdb("http://www.imdb.com/title/tt2385259/").build();
         
         new DigitalContent.Builder("Tosca").opera().atRoh().on("17/07/2011").dvd().engSubs().mkv().seenByFede().discBox(6, 2).build();
@@ -965,9 +968,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .imdb("http://www.imdb.com/title/tt2199386/").build();
         new DigitalContent.Builder("Gotterdammerung").opera().at("Palacio de las Artes Reina Sofía").on("01/01/2009").dvd().spaSubs().mkv().discBox(8, 11)
                 .imdb("http://www.imdb.com/title/tt2368889/").build();
-        new DigitalContent.Builder("Lohengrin").opera().at("Bayerische Staatsoper").on("01/01/2009").dvd().spaSubs().iso()
-                .discBox(6, 8)
-                .discBox(7, 8)
+        new DigitalContent.Builder("Lohengrin").opera().at("Bayerische Staatsoper").on("01/01/2009").fullHD().spaSubs().mkv()
+                .discBox(6, 8)// reemplazar por hd
+                .discBox(7, 8)//reemplazar por hd
                 .imdb("http://www.imdb.com/title/tt1570624/").build();
         new DigitalContent.Builder("Parsifal").opera().atTheMet().on("02/03/2013").fullHD().engSubs().mkv().seenByFede()
                 .discBox(9, 11)
@@ -1161,6 +1164,10 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("Iolanta").opera().atTheMet().on("14/02/2015").fullHD().spaSubs().mkv()
                 .discBox(3, 8) 
+                .build();
+        
+        new DigitalContent.Builder("La Gazzetta").opera().at("Gran Teatro del Liceo").on("01/06/2005").fullHD().spaSubs().mkv()
+                .discBox(0, 0) 
                 .build();
     }
 
