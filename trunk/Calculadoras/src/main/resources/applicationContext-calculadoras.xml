@@ -31,9 +31,13 @@
         <security:logout logout-url="/logout" logout-success-url="/" invalidate-session="true" />
     </security:http>
 
+    <bean id="passwordEncoder" class="org.springframework.security.authentication.encoding.ShaPasswordEncoder">
+        <constructor-arg value="512"/>
+    </bean>
+
     <security:authentication-manager>
         <security:authentication-provider>
-            <security:password-encoder hash="sha" />
+            <security:password-encoder ref="passwordEncoder" />
             <security:user-service properties="/WEB-INF/users.properties" />
         </security:authentication-provider>
     </security:authentication-manager>
