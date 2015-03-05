@@ -59,6 +59,9 @@ public class ChartController {
 
     @Resource(name = "expenseSeries")
     private List<ExpenseChartSeriesDTO> expenseSeries;
+    
+    @Resource(name = "consortiumExpenseSeries")
+    private List<ExpenseChartSeriesDTO> consortiumExpenseSeries;
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -159,22 +162,31 @@ public class ChartController {
 
     @RequestMapping(value = "expenses", method = RequestMethod.GET)
     public ModelAndView expenses() {
-        ModelAndView mav = new ModelAndView("expenseChart");
-        mav.addObject("uri", "expensesChart");
-        mav.addObject("title", "Gastos");
-        mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("series", this.expenseSeries);
+       return this.buildExpenseModelAndView("Gastos", this.expenseSeries);
+    }
 
+    
+    private ModelAndView buildExpenseModelAndView(String title, List<ExpenseChartSeriesDTO> dtoSeries){
         ExpenseChartDTO chartDto = new ExpenseChartDTO();
-        List<String> series = new ArrayList<>(this.expenseSeries.size());
-        for (ExpenseChartSeriesDTO e : this.expenseSeries) {
+        List<String> series = new ArrayList<>(dtoSeries.size());
+        for (ExpenseChartSeriesDTO e : dtoSeries) {
             series.add(e.getName());
         }
         chartDto.setSeries(series);
-        mav.addObject("dto", chartDto);
-        return mav;
+        return new ModelAndView("expenseChart")
+                .addObject("uri", "expensesChart")
+                .addObject("title", title)
+                .addObject("monthlyPeriods", this.monthlyPeriods)
+                .addObject("series", dtoSeries)
+                .addObject("dto", chartDto);
+        
     }
-
+    
+    @RequestMapping(value = "consortiumExpenses", method = RequestMethod.GET)
+    public ModelAndView consortiumExpenses() {
+        return this.buildExpenseModelAndView("Gastos Consorcio", this.consortiumExpenseSeries);
+    }
+    
     @RequestMapping(value = "expensesPercent", method = RequestMethod.GET)
     public ModelAndView expensesPercent() {
         ModelAndView mav = new ModelAndView("expenseChart");
