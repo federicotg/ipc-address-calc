@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Currency;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -62,9 +64,13 @@ import org.springframework.stereotype.Service;
 public class CanvasJSChartService implements ChartService, MathConstants {
 
     private static final Map<Integer, String> MONTH_NAMES = new HashMap<>();
+    
+    private static final String TOTAL_SERIES_NAME = "Total";
 
     @Resource(name = "expenseSeries")
     private List<ExpenseChartSeriesDTO> expenseSeries;
+    @Resource(name = "consortiumExpenseSeries")
+    private List<ExpenseChartSeriesDTO> consortiumExpenseSeries;
 
     static {
         MONTH_NAMES.put(1, "enero");
@@ -231,18 +237,45 @@ public class CanvasJSChartService implements ChartService, MathConstants {
     @Override
     public CanvasJSChartDTO expenses(int months, List<String> series) throws NoSeriesDataFoundException {
 
-        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(13);
+        final Set<ExpenseChartSeriesDTO> allExpenseSeries = new HashSet<>();
+        allExpenseSeries.addAll(this.expenseSeries);
+        allExpenseSeries.addAll(this.consortiumExpenseSeries);
+
+        List<CanvasJSDatumDTO> seriesList = new ArrayList<>();
+
         if (series != null) {
-            for (ExpenseChartSeriesDTO s : this.expenseSeries) {
-                if (series.contains(s.getName())) {
+
+            MoneyAmountSeries totalSeries = null;
+            final boolean collectTotal = series.contains(TOTAL_SERIES_NAME);
+
+            for (ExpenseChartSeriesDTO s : allExpenseSeries) {
+                if (!TOTAL_SERIES_NAME.equals(s.getName()) && series.contains(s.getName())) {
+
+                    MoneyAmountSeries eachSeries = JSONMoneyAmountSeries.readSeries(s.getSeriesName());
+                    if (collectTotal) {
+                        if (totalSeries == null) {
+                            totalSeries = eachSeries;
+                        } else {
+                            totalSeries = totalSeries.add(this.dollarToPesosIfNeeded(eachSeries));
+                        }
+                    }
+
                     seriesList.add(this.getDatum(
                             "line",
                             s.getColor(),
                             s.getName(),
-                            this.getRealPesosDatapoints(months, JSONMoneyAmountSeries.readSeries(s.getSeriesName()))));
+                            this.getRealPesosDatapoints(months, eachSeries)));
                 }
             }
+            if (collectTotal && totalSeries != null) {
+                seriesList.add(this.getDatum(
+                        "line",
+                        "red",
+                        "Total",
+                        this.getRealPesosDatapoints(months, totalSeries)));
+            }
         }
+
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO("Gastos");
         dto.setTitle(title);
@@ -265,7 +298,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
             for (ExpenseChartSeriesDTO s : this.expenseSeries) {
                 if (series.contains(s.getName())) {
                     MoneyAmountSeries eachSeries = JSONMoneyAmountSeries.readSeries(s.getSeriesName());
-                    if(eachSeries.getCurrency().equals(Currency.getInstance("USD"))){
+                    if (eachSeries.getCurrency().equals(Currency.getInstance("USD"))) {
                         eachSeries = ForeignExchange.USD_ARS.exchange(eachSeries, Currency.getInstance("ARS"));
                     }
                     if (sumSeries == null) {
@@ -451,36 +484,34 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         seriesList.add(this.getDatum("area", "gold", "Oro", datapoints));
         return dto;
     }
-    
-    
+
     @Override
     public CanvasJSChartDTO absa(int months) throws NoSeriesDataFoundException {
 
         final MoneyAmountSeries absa = readSeries("absa.json");
-        
+
         final MoneyAmountSeries absaNov99 = Inflation.ARS_INFLATION.adjust(absa, 1999, 11);
-        
+
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("ABSA: Promedio "+months+ " Meses");
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("ABSA: Promedio " + months + " Meses");
         dto.setTitle(title);
         dto.setXAxisTitle("Fecha");
 
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
         //yAxis.setValueFormatString("USD 0");
         yAxis.setTitle("Monto");
-        
+
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
         dto.setData(seriesList);
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         new SimpleAggregation(months).average(absaNov99).forEach(new MoneyAmountProcessorImpl(datapoints));
         seriesList.add(this.getDatum("line", "red", "Pesos nov. 99", datapoints));
-        
+
         final List<CanvasJSDatapointDTO> datapointsNominal = new ArrayList<>();
         new SimpleAggregation(months).average(absa).forEach(new MoneyAmountProcessorImpl(datapointsNominal));
         seriesList.add(this.getDatum("line", "black", "Pesos nominales", datapointsNominal));
-        
-        
+
         return dto;
     }
 
