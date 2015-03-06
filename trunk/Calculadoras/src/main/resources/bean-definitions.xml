@@ -144,6 +144,11 @@
             <property name="color" value="darkgreen" />
         </bean>  
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
+            <property name="name" value="Reparaciones" />
+            <property name="seriesName" value="consorcio-reparaciones.json" />
+            <property name="color" value="maroon" />
+        </bean>  
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO" >
             <property name="name" value="Seguros" />
             <property name="seriesName" value="consorcio-seguros.json" />
             <property name="color" value="magenta" />
