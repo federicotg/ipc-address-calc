@@ -20,6 +20,7 @@ import java.util.List;
 import org.fede.calculator.service.DigitalContentService;
 import org.fede.digitalcontent.dto.VenueDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,12 +33,13 @@ import org.springframework.web.servlet.ModelAndView;
  *
  * @author fede
  */
+@Lazy
 @Controller
 @RequestMapping("/dc")
 public class DigitalCollectionController {
 
     //private static final Logger LOG = Logger.getLogger(DigitalCollectionController.class.getName());
-    @Autowired
+    @Autowired @Lazy
     private DigitalContentService dcService;
 
     @RequestMapping(value = "/", method = RequestMethod.GET)

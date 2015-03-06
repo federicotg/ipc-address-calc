@@ -22,6 +22,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.ChartService;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -35,13 +36,14 @@ import org.springframework.web.servlet.ModelAndView;
  *
  * @author fede
  */
+@Lazy
 @Controller
 @RequestMapping("/chart")
 public class PublicChartController {
 
     private static final Logger LOG = Logger.getLogger(PublicChartController.class.getName());
 
-    @Autowired
+    @Autowired @Lazy
     private ChartService chartService;
 
     @ExceptionHandler(Exception.class)
