@@ -485,34 +485,4 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         return dto;
     }
 
-    @Override
-    public CanvasJSChartDTO absa(int months) throws NoSeriesDataFoundException {
-
-        final MoneyAmountSeries absa = readSeries("absa.json");
-
-        final MoneyAmountSeries absaNov99 = Inflation.ARS_INFLATION.adjust(absa, 1999, 11);
-
-        CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("ABSA: Promedio " + months + " Meses");
-        dto.setTitle(title);
-        dto.setXAxisTitle("Fecha");
-
-        CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
-        //yAxis.setValueFormatString("USD 0");
-        yAxis.setTitle("Monto");
-
-        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
-        dto.setData(seriesList);
-
-        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        new SimpleAggregation(months).average(absaNov99).forEach(new MoneyAmountProcessorImpl(datapoints));
-        seriesList.add(this.getDatum("line", "red", "Pesos nov. 99", datapoints));
-
-        final List<CanvasJSDatapointDTO> datapointsNominal = new ArrayList<>();
-        new SimpleAggregation(months).average(absa).forEach(new MoneyAmountProcessorImpl(datapointsNominal));
-        seriesList.add(this.getDatum("line", "black", "Pesos nominales", datapointsNominal));
-
-        return dto;
-    }
-
 }
