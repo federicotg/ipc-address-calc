@@ -50,5 +50,4 @@ public interface ChartService {
     
     CanvasJSChartDTO expensesPercentage(int months, List<String> series) throws NoSeriesDataFoundException;
     
-    CanvasJSChartDTO absa(int months) throws NoSeriesDataFoundException;
 }

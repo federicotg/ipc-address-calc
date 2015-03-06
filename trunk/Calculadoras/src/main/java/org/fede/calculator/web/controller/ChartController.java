@@ -317,11 +317,5 @@ public class ChartController {
         return this.chartService.savedSalaries();
     }
     
-    @ResponseBody
-    @RequestMapping(value = "absaChart", method = RequestMethod.GET)
-    public CanvasJSChartDTO absaChart()
-            throws NoSeriesDataFoundException {
-        return this.chartService.absa(12);
-    }
 
 }
