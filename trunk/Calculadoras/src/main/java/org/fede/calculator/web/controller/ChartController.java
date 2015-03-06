@@ -30,6 +30,7 @@ import org.fede.calculator.web.dto.CombinedChartDTO;
 import org.fede.calculator.web.dto.ExpenseChartDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -45,13 +46,14 @@ import org.springframework.web.servlet.ModelAndView;
  *
  * @author fede
  */
+@Lazy
 @Controller
 @RequestMapping("/secure/")
 public class ChartController {
 
     private static final Logger LOG = Logger.getLogger(ChartController.class.getName());
 
-    @Autowired
+    @Autowired @Lazy
     private ChartService chartService;
 
     @Resource(name = "monthlyPeriod")

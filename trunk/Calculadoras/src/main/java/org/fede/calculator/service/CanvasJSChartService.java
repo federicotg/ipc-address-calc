@@ -296,7 +296,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
             MoneyAmountSeries sumSeries = null;
             for (ExpenseChartSeriesDTO s : this.expenseSeries) {
-                if (series.contains(s.getName())) {
+                if (!TOTAL_SERIES_NAME.equals(s.getName()) && series.contains(s.getName())) {
                     MoneyAmountSeries eachSeries = JSONMoneyAmountSeries.readSeries(s.getSeriesName());
                     if (eachSeries.getCurrency().equals(Currency.getInstance("USD"))) {
                         eachSeries = ForeignExchange.USD_ARS.exchange(eachSeries, Currency.getInstance("ARS"));

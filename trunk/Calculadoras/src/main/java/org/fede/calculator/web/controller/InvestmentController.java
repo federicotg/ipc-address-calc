@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.InvestmentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -34,13 +35,14 @@ import org.springframework.web.servlet.ModelAndView;
  *
  * @author fede
  */
+@Lazy
 @Controller
 @RequestMapping("/secure/investment")
 public class InvestmentController {
 
     private static final Logger LOG = Logger.getLogger(InvestmentController.class.getName());
 
-    @Autowired
+    @Autowired @Lazy
     private InvestmentService investmentService;
 
     @ExceptionHandler(Exception.class)

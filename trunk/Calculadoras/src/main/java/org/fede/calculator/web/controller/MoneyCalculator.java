@@ -26,6 +26,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.MoneyService;
 import org.fede.calculator.web.dto.CurrencyLimitsDTO;
 import org.fede.calculator.web.dto.MoneyDTO;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -40,18 +41,19 @@ import org.springframework.web.servlet.ModelAndView;
  *
  * @author fede
  */
+@Lazy
 @Controller
 public class MoneyCalculator {
 
     private static final Logger LOG = Logger.getLogger(MoneyCalculator.class.getName());
 
-    @Resource(name = "argMoneyService")
+    @Resource(name = "argMoneyService") @Lazy
     private MoneyService arsMoneyService;
 
-    @Resource(name = "usdMoneyService")
+    @Resource(name = "usdMoneyService") @Lazy
     private MoneyService usdMoneyService;
 
-    @Resource(name = "moneyServices")
+    @Resource(name = "moneyServices") @Lazy
     private Map<String, MoneyService> moneyServices;
 
     @ExceptionHandler(Exception.class)

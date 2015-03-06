@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.web.controller;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  *
  * @author fede
  */
+@Lazy
 @Controller
 public class AuthenticationController {
     @RequestMapping(value = "/login", method = RequestMethod.GET)
