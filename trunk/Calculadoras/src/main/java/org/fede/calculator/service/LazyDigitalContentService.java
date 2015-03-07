@@ -1039,7 +1039,12 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         /* --- */
         
-        new DigitalContent.Builder("Das Rheingold").opera().atTheMet().on("01/01/2010").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build();
+        Set<Performance> dasRheingoldAtTheMet2012 = new DigitalContent.Builder("Das Rheingold").opera().atTheMet().on("01/01/2010").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build().getPerformances();
+        
+        new DigitalContent.Builder(dasRheingoldAtTheMet2012).mkv().fullHD().spaSubs()
+                .discBox(3, 5) // parte 1
+                .discBox(12, 16) // parte 2
+                .build();
 
         new DigitalContent.Builder("La Bohème").opera().at("Großes Festspielhaus").on("01/07/2012").spaSubs().br().box("La Bohème")
                 .starringNetrebko()
@@ -1167,7 +1172,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("La Gazzetta").opera().at("Gran Teatro del Liceo").on("01/06/2005").fullHD().spaSubs().mkv()
-                .discBox(0, 0) 
+                .discBox(12, 16)  // part 1
+                .discBox(0, 0)  // part 2
                 .build();
     }
 
