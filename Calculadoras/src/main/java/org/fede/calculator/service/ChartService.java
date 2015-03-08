@@ -26,19 +26,19 @@ import org.fede.calculator.web.dto.CanvasJSChartDTO;
  */
 public interface ChartService {
 
-    CanvasJSChartDTO unlp(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException;
+    CanvasJSChartDTO unlp(int months, boolean pn, boolean pr, boolean dn, boolean dr, int year, int month) throws NoSeriesDataFoundException;
 
-    CanvasJSChartDTO lifia(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException;
+    CanvasJSChartDTO lifia(int months, boolean pn, boolean pr, boolean dn, boolean dr, int year, int month) throws NoSeriesDataFoundException;
     
-    CanvasJSChartDTO interest(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException;
+    CanvasJSChartDTO interest(int months, boolean pn, boolean pr, boolean dn, boolean dr, int year, int month) throws NoSeriesDataFoundException;
     
-    CanvasJSChartDTO lifiaAndUnlp(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException;
+    CanvasJSChartDTO lifiaAndUnlp(int months, boolean pn, boolean pr, boolean dn, boolean dr, int year, int month) throws NoSeriesDataFoundException;
     
-    CanvasJSChartDTO lifiaUnlpAndInterest(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException;
+    CanvasJSChartDTO lifiaUnlpAndInterest(int months, boolean pn, boolean pr, boolean dn, boolean dr, int year, int month) throws NoSeriesDataFoundException;
     
-    CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException;
+    CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr, int year, int month) throws NoSeriesDataFoundException;
     
-    CanvasJSChartDTO expenses(int months, List<String> series) throws NoSeriesDataFoundException;
+    CanvasJSChartDTO expenses(int months, List<String> series, int year, int month) throws NoSeriesDataFoundException;
     
     CanvasJSChartDTO goldIncomeAndSavings() throws NoSeriesDataFoundException;
     

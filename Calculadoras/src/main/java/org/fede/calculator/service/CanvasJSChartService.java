@@ -34,7 +34,6 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.ForeignExchange.USD_ARS;
 import static org.fede.calculator.money.ForeignExchange.USD_XAU;
-import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import static org.fede.calculator.money.series.JSONMoneyAmountSeries.readSeries;
@@ -88,50 +87,61 @@ public class CanvasJSChartService implements ChartService, MathConstants {
     }
 
     @Override
-    public CanvasJSChartDTO unlp(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO unlp(int months, boolean pn, boolean pr, boolean dn, boolean dr, int year, int month) throws NoSeriesDataFoundException {
         return this.createCombinedChart(
                 "Sueldo UNLP",
-                readSeries("unlp.json"), months, pn, pr, dn, dr);
+                readSeries("unlp.json"), months, pn, pr, dn, dr, year, month);
     }
 
     @Override
-    public CanvasJSChartDTO lifia(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO lifia(int months, boolean pn, boolean pr, boolean dn, boolean dr, int year, int month) throws NoSeriesDataFoundException {
         return this.createCombinedChart(
                 "Sueldo LIFIA",
-                readSeries("lifia.json"), months, pn, pr, dn, dr);
+                readSeries("lifia.json"), months, pn, pr, dn, dr, year, month);
     }
 
     @Override
-    public CanvasJSChartDTO interest(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO interest(int months, boolean pn, boolean pr, boolean dn, boolean dr, int year, int month) throws NoSeriesDataFoundException {
         return this.createCombinedChart(
                 "Plazo Fijo",
-                readSeries("plazofijo.json"), months, pn, pr, dn, dr);
+                readSeries("plazofijo.json"), months, pn, pr, dn, dr, year, month);
     }
 
     @Override
-    public CanvasJSChartDTO lifiaAndUnlp(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO lifiaAndUnlp(int months, boolean pn, boolean pr, boolean dn, boolean dr, int year, int month) throws NoSeriesDataFoundException {
         return this.createCombinedChart("Sueldo LIFIA + UNLP",
                 readSeries("unlp.json").add(readSeries("lifia.json")),
-                months, pn, pr, dn, dr);
+                months, pn, pr, dn, dr, year,month);
     }
 
     @Override
-    public CanvasJSChartDTO lifiaUnlpAndInterest(int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO lifiaUnlpAndInterest(int months, boolean pn, boolean pr, boolean dn, boolean dr,
+            int year, int month) throws NoSeriesDataFoundException {
         return this.createCombinedChart("Sueldo LIFIA + UNLP + Plazo Fijo",
                 readSeries("unlp.json").add(readSeries("lifia.json").add(readSeries("plazofijo.json"))),
-                months, pn, pr, dn, dr);
+                months, pn, pr, dn, dr, year, month);
     }
 
     @Override
-    public CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr, int year, int month) throws NoSeriesDataFoundException {
         MoneyAmountSeries ars = readSeries("ahorros-peso.json");
         MoneyAmountSeries usd = USD_ARS.exchange(readSeries("ahorros-dolar.json"), Currency.getInstance("ARS"));
         return this.createCombinedChart("Ahorros",
                 usd.add(ars),
-                1, pn, pr, dn, dr);
+                1, pn, pr, dn, dr,
+                year, month);
     }
 
-    private CanvasJSChartDTO createCombinedChart(String titleText, MoneyAmountSeries series, int months, boolean pn, boolean pr, boolean dn, boolean dr) throws NoSeriesDataFoundException {
+    private CanvasJSChartDTO createCombinedChart(
+            String titleText, 
+            MoneyAmountSeries series, 
+            int months, 
+            boolean pn, 
+            boolean pr, 
+            boolean dn, 
+            boolean dr,
+            int year,
+            int month) throws NoSeriesDataFoundException {
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO(titleText);
         dto.setTitle(title);
@@ -143,13 +153,13 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(4);
         if (pr) {
-            seriesList.add(this.getDatum("line", "blue", "Pesos Reales", this.getRealPesosDatapoints(months, series)));
+            seriesList.add(this.getDatum("line", "blue", "Pesos Reales", this.getRealPesosDatapoints(months, series, year, month)));
         }
         if (pn) {
             seriesList.add(this.getDatum("line", "red", "Pesos Nominales", this.getNominalPesosDatapoints(months, series)));
         }
         if (dr) {
-            seriesList.add(this.getDatum("line", "green", "USD Reales", this.getRealUSDDatapoints(months, series)));
+            seriesList.add(this.getDatum("line", "green", "USD Reales", this.getRealUSDDatapoints(months, series, year, month)));
         }
         if (dn) {
             seriesList.add(this.getDatum("line", "black", "USD Nominales", this.getNominalUSDDatapoints(months, series)));
@@ -178,11 +188,11 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         return originalSeries;
     }
 
-    private List<CanvasJSDatapointDTO> getRealPesosDatapoints(int months, MoneyAmountSeries originalSeries) throws NoSeriesDataFoundException {
+    private List<CanvasJSDatapointDTO> getRealPesosDatapoints(int months, MoneyAmountSeries originalSeries, int year, int month) throws NoSeriesDataFoundException {
         MoneyAmountSeries sourceSeries = dollarToPesosIfNeeded(originalSeries);
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        MoneyAmountSeries series = new SimpleAggregation(months).average(ARS_INFLATION.adjust(sourceSeries, 1999, 11));
+        MoneyAmountSeries series = new SimpleAggregation(months).average(ARS_INFLATION.adjust(sourceSeries, year, month));
         series.forEach(new MoneyAmountProcessorImpl(datapoints));
         return datapoints;
     }
@@ -206,14 +216,14 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         return datapoints;
     }
 
-    private List<CanvasJSDatapointDTO> getRealUSDDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
+    private List<CanvasJSDatapointDTO> getRealUSDDatapoints(int months, MoneyAmountSeries sourceSeries, int year, int month) throws NoSeriesDataFoundException {
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         MoneyAmountSeries exchanged = sourceSeries;
         if (sourceSeries.getCurrency().equals(Currency.getInstance("ARS"))) {
             exchanged = USD_ARS.exchange(sourceSeries, Currency.getInstance("USD"));
         }
         MoneyAmountSeries series = new SimpleAggregation(months).average(
-                USD_INFLATION.adjust(exchanged, 1999, 11));
+                USD_INFLATION.adjust(exchanged, year, month));
         series.forEach(new MoneyAmountProcessorImpl(datapoints));
         return datapoints;
     }
@@ -235,7 +245,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
     }
 
     @Override
-    public CanvasJSChartDTO expenses(int months, List<String> series) throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO expenses(int months, List<String> series, int year, int month) throws NoSeriesDataFoundException {
 
         final Set<ExpenseChartSeriesDTO> allExpenseSeries = new HashSet<>();
         allExpenseSeries.addAll(this.expenseSeries);
@@ -264,7 +274,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
                             "line",
                             s.getColor(),
                             s.getName(),
-                            this.getRealPesosDatapoints(months, eachSeries)));
+                            this.getRealPesosDatapoints(months, eachSeries, year, month)));
                 }
             }
             if (collectTotal && totalSeries != null) {
@@ -272,7 +282,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
                         "line",
                         "red",
                         "Total",
-                        this.getRealPesosDatapoints(months, totalSeries)));
+                        this.getRealPesosDatapoints(months, totalSeries, year, month)));
             }
         }
 

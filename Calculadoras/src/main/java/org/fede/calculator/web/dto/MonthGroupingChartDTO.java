@@ -25,7 +25,19 @@ import javax.validation.constraints.Min;
 public class MonthGroupingChartDTO {
 
     @Min(1)
-    private int months = 6;
+    private int months = 12;
+
+    private int year = 1999;
+    private int month = 11;
+    private CurrencyLimitsDTO limit;
+
+    protected MonthGroupingChartDTO() {
+    }
+
+    
+    protected MonthGroupingChartDTO(CurrencyLimitsDTO arsLimits) {
+        this.limit = arsLimits;
+    }
 
     public int getMonths() {
         return months;
@@ -33,6 +45,30 @@ public class MonthGroupingChartDTO {
 
     public void setMonths(int months) {
         this.months = months;
+    }
+
+    public int getYear() {
+        return year;
+    }
+
+    public void setYear(int year) {
+        this.year = year;
+    }
+
+    public int getMonth() {
+        return month;
+    }
+
+    public void setMonth(int month) {
+        this.month = month;
+    }
+
+    public CurrencyLimitsDTO getLimit() {
+        return limit;
+    }
+
+    public void setLimit(CurrencyLimitsDTO limit) {
+        this.limit = limit;
     }
 
 }

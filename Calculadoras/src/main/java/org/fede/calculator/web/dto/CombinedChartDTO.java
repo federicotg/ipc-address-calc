@@ -27,6 +27,13 @@ public class CombinedChartDTO extends MonthGroupingChartDTO {
     private boolean dn = true;
     private boolean dr = true;
 
+    public CombinedChartDTO() {
+    }
+    
+    public CombinedChartDTO(CurrencyLimitsDTO arsLimits) {
+        super(arsLimits);
+    }
+    
     public boolean isPn() {
         return pn;
     }
@@ -59,4 +66,7 @@ public class CombinedChartDTO extends MonthGroupingChartDTO {
         this.dr = dr;
     }
 
+
+
+    
 }
