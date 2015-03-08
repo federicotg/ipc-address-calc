@@ -25,6 +25,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.ChartService;
+import org.fede.calculator.service.MoneyService;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CombinedChartDTO;
 import org.fede.calculator.web.dto.ExpenseChartDTO;
@@ -55,6 +56,12 @@ public class ChartController {
 
     @Autowired @Lazy
     private ChartService chartService;
+    
+    @Resource(name = "argMoneyService") @Lazy
+    private MoneyService arsMoneyService;
+
+    @Resource(name = "usdMoneyService") @Lazy
+    private MoneyService usdMoneyService;
 
     @Resource(name = "monthlyPeriod")
     private Map<String, Integer> monthlyPeriods;
@@ -79,13 +86,17 @@ public class ChartController {
         return "charts";
     }
 
+    private CombinedChartDTO createCombinedChartDTO(){
+        return new CombinedChartDTO(arsMoneyService.getLimits());
+    }
+    
     @RequestMapping(value = "unlp", method = RequestMethod.GET)
     public ModelAndView unlp() {
         ModelAndView mav = new ModelAndView("combinedChart");
         mav.addObject("uri", "unlpCombined");
         mav.addObject("title", "UNLP");
         mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("dto", new CombinedChartDTO());
+        mav.addObject("dto", this.createCombinedChartDTO());
         return mav;
     }
 
@@ -95,7 +106,7 @@ public class ChartController {
         mav.addObject("uri", "lifiaCombined");
         mav.addObject("title", "LIFIA");
         mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("dto", new CombinedChartDTO());
+        mav.addObject("dto", this.createCombinedChartDTO());
         return mav;
     }
 
@@ -105,7 +116,7 @@ public class ChartController {
         mav.addObject("uri", "interestCombined");
         mav.addObject("title", "Plazo Fijo");
         mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("dto", new CombinedChartDTO());
+        mav.addObject("dto", this.createCombinedChartDTO());
         return mav;
     }
 
@@ -115,7 +126,7 @@ public class ChartController {
         mav.addObject("uri", "lifiaAndUnlpCombined");
         mav.addObject("title", "LIFIA + UNLP");
         mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("dto", new CombinedChartDTO());
+        mav.addObject("dto", this.createCombinedChartDTO());
         return mav;
     }
 
@@ -125,7 +136,7 @@ public class ChartController {
         mav.addObject("uri", "lifiaUnlpAndInterestCombined");
         mav.addObject("title", "LIFIA + UNLP + Plazo Fijo");
         mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("dto", new CombinedChartDTO());
+        mav.addObject("dto", this.createCombinedChartDTO());
         return mav;
     }
 
@@ -134,7 +145,7 @@ public class ChartController {
         ModelAndView mav = new ModelAndView("combinedChart");
         mav.addObject("uri", "savingsCombined");
         mav.addObject("title", "Ahorros");
-        mav.addObject("dto", new CombinedChartDTO());
+        mav.addObject("dto", this.createCombinedChartDTO());
         return mav;
     }
 
@@ -169,7 +180,7 @@ public class ChartController {
 
     
     private ModelAndView buildExpenseModelAndView(String title, List<ExpenseChartSeriesDTO> dtoSeries){
-        ExpenseChartDTO chartDto = new ExpenseChartDTO();
+        ExpenseChartDTO chartDto = new ExpenseChartDTO(this.arsMoneyService.getLimits());
         List<String> series = new ArrayList<>(dtoSeries.size());
         for (ExpenseChartSeriesDTO e : dtoSeries) {
             series.add(e.getName());
@@ -197,7 +208,7 @@ public class ChartController {
         mav.addObject("monthlyPeriods", this.monthlyPeriods);
         mav.addObject("series", this.expenseSeries);
 
-        ExpenseChartDTO chartDto = new ExpenseChartDTO();
+        ExpenseChartDTO chartDto = new ExpenseChartDTO(this.arsMoneyService.getLimits());
         List<String> series = new ArrayList<>(this.expenseSeries.size());
         for (ExpenseChartSeriesDTO e : this.expenseSeries) {
             series.add(e.getName());
@@ -216,7 +227,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.unlp(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr());
+        return this.chartService.unlp(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -228,7 +239,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.lifia(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr());
+        return this.chartService.lifia(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -240,7 +251,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.interest(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr());
+        return this.chartService.interest(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -252,7 +263,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.lifiaAndUnlp(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr());
+        return this.chartService.lifiaAndUnlp(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -264,7 +275,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.lifiaUnlpAndInterest(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr());
+        return this.chartService.lifiaUnlpAndInterest(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -276,7 +287,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.savings(dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr());
+        return this.chartService.savings(dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -288,7 +299,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.expenses(dto.getMonths(), dto.getSeries());
+        return this.chartService.expenses(dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody

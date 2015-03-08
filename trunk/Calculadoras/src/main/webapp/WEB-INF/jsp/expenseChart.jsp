@@ -42,16 +42,18 @@
 
             function reloadChart() {
                 document.id('chartContainer').empty();
-                
+
                 var checkboxes = document.getElements('input[type=checkbox]');
                 var series = "";
-                for(var i=0;i<checkboxes.length;i++){
-                    if(checkboxes[i].checked){
-                        series +="&series="+checkboxes[i].value;
+                for (var i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].checked) {
+                        series += "&series=" + checkboxes[i].value;
                     }
                 }
                 var m = document.id('months').value;
-                showChart('/secure/${uri}.json', 'months=' + m+series, 'chartContainer');
+                var year = document.id('year').value;
+                var month = document.id('month').value;
+                showChart('/secure/${uri}.json', 'months=' + m + series+"&year="+year+"&month="+month, 'chartContainer');
             }
 
         </script>
@@ -63,13 +65,24 @@
             <c:if test="${not empty monthlyPeriods}">
                 <form:checkboxes items="${series}" path="series" itemValue="name" itemLabel="name" onchange="reloadChart()" /><br/>
                 <label for="months">Aplicar promedio </label>
-                
+
                 <form:select id="months" path="months" onchange="reloadChart()">
                     <c:forEach items="${monthlyPeriods}" var="p">
                         <form:option value="${p.value}">${p.key}</form:option>
                     </c:forEach>
                 </form:select><br/>
             </c:if>
+
+            <p>En valores de 
+                <form:select path="month" onchange="reloadChart()" id="month">
+                    <form:options items="${dto.limit.months}" itemLabel="name" itemValue="id"/>
+                </form:select> de 
+                <form:select path="year" onchange="reloadChart()"  id="year">
+                    <c:forEach begin="${dto.limit.yearFrom}" end="${dto.limit.yearTo}" var="year">
+                        <form:option label="${year}" value="${year}"/></c:forEach>
+                </form:select></p>
+
+
         </form:form>
         <div id="chartContainer" style="height:750px;"></div>
     </body>

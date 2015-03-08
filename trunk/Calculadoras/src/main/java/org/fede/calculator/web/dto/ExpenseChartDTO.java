@@ -22,10 +22,18 @@ import java.util.List;
  *
  * @author fede
  */
-public class ExpenseChartDTO extends MonthGroupingChartDTO{
+public class ExpenseChartDTO extends MonthGroupingChartDTO {
 
     private List<String> series;
 
+    public ExpenseChartDTO() {
+    }
+    
+
+    public ExpenseChartDTO(CurrencyLimitsDTO arsLimits) {
+        super(arsLimits);
+    }
+   
     public List<String> getSeries() {
         return series;
     }
@@ -33,5 +41,6 @@ public class ExpenseChartDTO extends MonthGroupingChartDTO{
     public void setSeries(List<String> series) {
         this.series = series;
     }
-    
+
+
 }
