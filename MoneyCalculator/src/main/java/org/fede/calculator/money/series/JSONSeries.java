@@ -31,6 +31,7 @@ import java.util.List;
  * Sueldo UNLP: mes liquidado (fecha del recibo, anterior a cobrarlo)
  * Sueldo LIFIA: mes de cobro (fecha de la factura)
  * Gastos: mes del pago (fecha del comprobate o débito de tarjeta)
+ * Gastos del consorcio: mes qie figura en la liquidacion de la administración
  * 
  * @author fede
  */
