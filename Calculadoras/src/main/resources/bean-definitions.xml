@@ -164,6 +164,15 @@
         </bean>
         
     </util:list>
+
     
+    <bean class="org.fede.calculator.service.CanvasJSExpenseChartService" name="consortiumExpensesService" lazy-init="true">
+        <property name="expenseSeries" ref="consortiumExpenseSeries" />
+    </bean>
+    
+    <bean class="org.fede.calculator.service.CanvasJSExpenseChartService" name="expensesService" lazy-init="true">
+        <property name="expenseSeries" ref="expenseSeries" />
+    </bean>
+
     
 </beans>

@@ -25,6 +25,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.ChartService;
+import org.fede.calculator.service.ExpenseChartService;
 import org.fede.calculator.service.MoneyService;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CombinedChartDTO;
@@ -54,23 +55,25 @@ public class ChartController {
 
     private static final Logger LOG = Logger.getLogger(ChartController.class.getName());
 
-    @Autowired @Lazy
+    @Autowired
+    @Lazy
     private ChartService chartService;
-    
-    @Resource(name = "argMoneyService") @Lazy
+
+    @Resource(name = "expensesService")
+    @Lazy
+    private ExpenseChartService expenseService;
+
+    @Resource(name = "consortiumExpensesService")
+    @Lazy
+    private ExpenseChartService consortiumExpenseService;
+
+    @Resource(name = "argMoneyService")
+    @Lazy
     private MoneyService arsMoneyService;
 
-    @Resource(name = "usdMoneyService") @Lazy
-    private MoneyService usdMoneyService;
-
     @Resource(name = "monthlyPeriod")
+    @Lazy
     private Map<String, Integer> monthlyPeriods;
-
-    @Resource(name = "expenseSeries")
-    private List<ExpenseChartSeriesDTO> expenseSeries;
-    
-    @Resource(name = "consortiumExpenseSeries")
-    private List<ExpenseChartSeriesDTO> consortiumExpenseSeries;
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -86,100 +89,90 @@ public class ChartController {
         return "charts";
     }
 
-    private CombinedChartDTO createCombinedChartDTO(){
+    private CombinedChartDTO createCombinedChartDTO() {
         return new CombinedChartDTO(arsMoneyService.getLimits());
     }
-    
+
     @RequestMapping(value = "unlp", method = RequestMethod.GET)
     public ModelAndView unlp() {
-        ModelAndView mav = new ModelAndView("combinedChart");
-        mav.addObject("uri", "unlpCombined");
-        mav.addObject("title", "UNLP");
-        mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("dto", this.createCombinedChartDTO());
-        return mav;
+        return new ModelAndView("combinedChart")
+                .addObject("uri", "unlpCombined")
+                .addObject("title", "UNLP")
+                .addObject("monthlyPeriods", this.monthlyPeriods)
+                .addObject("dto", this.createCombinedChartDTO());
     }
 
     @RequestMapping(value = "lifia", method = RequestMethod.GET)
     public ModelAndView lifia() {
-        ModelAndView mav = new ModelAndView("combinedChart");
-        mav.addObject("uri", "lifiaCombined");
-        mav.addObject("title", "LIFIA");
-        mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("dto", this.createCombinedChartDTO());
-        return mav;
+        return new ModelAndView("combinedChart")
+                .addObject("uri", "lifiaCombined")
+                .addObject("title", "LIFIA")
+                .addObject("monthlyPeriods", this.monthlyPeriods)
+                .addObject("dto", this.createCombinedChartDTO());
     }
 
     @RequestMapping(value = "interest", method = RequestMethod.GET)
     public ModelAndView interest() {
-        ModelAndView mav = new ModelAndView("combinedChart");
-        mav.addObject("uri", "interestCombined");
-        mav.addObject("title", "Plazo Fijo");
-        mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("dto", this.createCombinedChartDTO());
-        return mav;
+        return new ModelAndView("combinedChart")
+                .addObject("uri", "interestCombined")
+                .addObject("title", "Plazo Fijo")
+                .addObject("monthlyPeriods", this.monthlyPeriods)
+                .addObject("dto", this.createCombinedChartDTO());
     }
 
     @RequestMapping(value = "lifiaAndUnlp", method = RequestMethod.GET)
     public ModelAndView lifiaAndUnlp() {
-        ModelAndView mav = new ModelAndView("combinedChart");
-        mav.addObject("uri", "lifiaAndUnlpCombined");
-        mav.addObject("title", "LIFIA + UNLP");
-        mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("dto", this.createCombinedChartDTO());
-        return mav;
+        return new ModelAndView("combinedChart")
+                .addObject("uri", "lifiaAndUnlpCombined")
+                .addObject("title", "LIFIA + UNLP")
+                .addObject("monthlyPeriods", this.monthlyPeriods)
+                .addObject("dto", this.createCombinedChartDTO());
     }
 
     @RequestMapping(value = "lifiaUnlpAndInterest", method = RequestMethod.GET)
     public ModelAndView lifiaUnlpAndInterest() {
-        ModelAndView mav = new ModelAndView("combinedChart");
-        mav.addObject("uri", "lifiaUnlpAndInterestCombined");
-        mav.addObject("title", "LIFIA + UNLP + Plazo Fijo");
-        mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("dto", this.createCombinedChartDTO());
-        return mav;
+        return new ModelAndView("combinedChart")
+                .addObject("uri", "lifiaUnlpAndInterestCombined")
+                .addObject("title", "LIFIA + UNLP + Plazo Fijo")
+                .addObject("monthlyPeriods", this.monthlyPeriods)
+                .addObject("dto", this.createCombinedChartDTO());
     }
 
     @RequestMapping(value = "savings", method = RequestMethod.GET)
     public ModelAndView savings() {
-        ModelAndView mav = new ModelAndView("combinedChart");
-        mav.addObject("uri", "savingsCombined");
-        mav.addObject("title", "Ahorros");
-        mav.addObject("dto", this.createCombinedChartDTO());
-        return mav;
+        return new ModelAndView("combinedChart")
+                .addObject("uri", "savingsCombined")
+                .addObject("title", "Ahorros")
+                .addObject("dto", this.createCombinedChartDTO());
     }
 
     @RequestMapping(value = "goldSavings", method = RequestMethod.GET)
     public ModelAndView goldSavings() {
-        ModelAndView mav = new ModelAndView("simpleChart");
-        mav.addObject("uri", "goldSavingsChart");
-        mav.addObject("title", "Oro");
-        return mav;
+        return new ModelAndView("simpleChart")
+                .addObject("uri", "goldSavingsChart")
+                .addObject("title", "Oro");
     }
 
     @RequestMapping(value = "absa", method = RequestMethod.GET)
     public ModelAndView absa() {
-        ModelAndView mav = new ModelAndView("simpleChart");
-        mav.addObject("uri", "absaChart");
-        mav.addObject("title", "ABSA");
-        return mav;
+        return new ModelAndView("simpleChart")
+                .addObject("uri", "absaChart")
+                .addObject("title", "ABSA");
     }
-    
+
     @RequestMapping(value = "savedSalaries", method = RequestMethod.GET)
     public ModelAndView savedSalaries() {
-        ModelAndView mav = new ModelAndView("simpleChart");
-        mav.addObject("uri", "savedSalariesChart");
-        mav.addObject("title", "Salarios Promedio Anual Ahorrados");
-        return mav;
+        return new ModelAndView("simpleChart")
+                .addObject("uri", "savedSalariesChart")
+                .addObject("title", "Salarios Promedio Anual Ahorrados");
     }
 
     @RequestMapping(value = "expenses", method = RequestMethod.GET)
     public ModelAndView expenses() {
-       return this.buildExpenseModelAndView("Gastos", this.expenseSeries);
+        return this.buildExpenseModelAndView("Gastos", this.expenseService.getExpenseSeries(), "expensesChart");
     }
 
-    
-    private ModelAndView buildExpenseModelAndView(String title, List<ExpenseChartSeriesDTO> dtoSeries){
+    private ModelAndView buildExpenseModelAndView(String title, List<ExpenseChartSeriesDTO> dtoSeries, String uri) {
         ExpenseChartDTO chartDto = new ExpenseChartDTO(this.arsMoneyService.getLimits());
         List<String> series = new ArrayList<>(dtoSeries.size());
         for (ExpenseChartSeriesDTO e : dtoSeries) {
@@ -187,35 +180,35 @@ public class ChartController {
         }
         chartDto.setSeries(series);
         return new ModelAndView("expenseChart")
-                .addObject("uri", "expensesChart")
+                .addObject("uri", uri)
                 .addObject("title", title)
                 .addObject("monthlyPeriods", this.monthlyPeriods)
                 .addObject("series", dtoSeries)
                 .addObject("dto", chartDto);
-        
+
     }
-    
+
     @RequestMapping(value = "consortiumExpenses", method = RequestMethod.GET)
     public ModelAndView consortiumExpenses() {
-        return this.buildExpenseModelAndView("Gastos Consorcio", this.consortiumExpenseSeries);
+        return this.buildExpenseModelAndView("Gastos Consorcio", this.consortiumExpenseService.getExpenseSeries(), "consortiumExpensesChart");
     }
-    
+
     @RequestMapping(value = "expensesPercent", method = RequestMethod.GET)
     public ModelAndView expensesPercent() {
-        ModelAndView mav = new ModelAndView("expenseChart");
-        mav.addObject("uri", "expensesPercentChart");
-        mav.addObject("title", "Gastos / Ingresos");
-        mav.addObject("monthlyPeriods", this.monthlyPeriods);
-        mav.addObject("series", this.expenseSeries);
+        
 
         ExpenseChartDTO chartDto = new ExpenseChartDTO(this.arsMoneyService.getLimits());
-        List<String> series = new ArrayList<>(this.expenseSeries.size());
-        for (ExpenseChartSeriesDTO e : this.expenseSeries) {
+        List<String> series = new ArrayList<>();
+        for (ExpenseChartSeriesDTO e : this.expenseService.getExpenseSeries()) {
             series.add(e.getName());
         }
         chartDto.setSeries(series);
-        mav.addObject("dto", chartDto);
-        return mav;
+        return new ModelAndView("expenseChart")
+                .addObject("uri", "expensesPercentChart")
+                .addObject("title", "Gastos / Ingresos")
+                .addObject("monthlyPeriods", this.monthlyPeriods)
+                .addObject("series", this.expenseService.getExpenseSeries())
+                .addObject("dto", chartDto);
     }
 
     @ResponseBody
@@ -299,9 +292,21 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.expenses(dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth());
+        return this.expenseService.expenses(dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth());
     }
 
+    @ResponseBody
+    @RequestMapping(value = "consortiumExpensesChart", method = RequestMethod.GET)
+    public CanvasJSChartDTO consortiumExpensesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
+            throws NoSeriesDataFoundException {
+        if (errors.hasErrors()) {
+            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
+            notOk.setSuccessful(false);
+            return notOk;
+        }
+        return this.consortiumExpenseService.expenses(dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth());
+    }
+    
     @ResponseBody
     @RequestMapping(value = "expensesPercentChart", method = RequestMethod.GET)
     public CanvasJSChartDTO expensesPercentChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
@@ -311,7 +316,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.expensesPercentage(dto.getMonths(), dto.getSeries());
+        return this.expenseService.expensesPercentage(dto.getMonths(), dto.getSeries());
     }
 
     @ResponseBody
@@ -327,6 +332,5 @@ public class ChartController {
             throws NoSeriesDataFoundException {
         return this.chartService.savedSalaries();
     }
-    
 
 }
