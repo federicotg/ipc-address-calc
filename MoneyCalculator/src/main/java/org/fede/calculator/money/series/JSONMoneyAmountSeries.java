@@ -70,6 +70,15 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
     private final Currency currency;
     private final SortedMap<YearMonth, MoneyAmount> values;
 
+    private ThreadLocal<Calendar> calendar = new ThreadLocal<Calendar>() {
+
+        @Override
+        protected Calendar initialValue() {
+            return Calendar.getInstance();
+        }
+
+    };
+
     public JSONMoneyAmountSeries(Currency currency) {
         this.currency = currency;
         this.values = new TreeMap<>();
@@ -83,7 +92,7 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
     @Override
     public MoneyAmount getAmount(Date day) throws NoSeriesDataFoundException {
 
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = this.calendar.get();
         cal.setTime(day);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH);
@@ -126,15 +135,14 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
                 && Objects.equals(this.getTo(), other.getTo());
         if (!equal) {
             System.err.println("Not eq 1");
-            
+
             System.err.println(this.getCurrency());
             System.err.println(other.getCurrency());
             System.err.println(this.getFrom());
             System.err.println(other.getFrom());
             System.err.println(this.getTo());
             System.err.println(other.getTo());
-            
-            
+
             return false;
         }
         equal = true;
@@ -143,14 +151,14 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
                 Map.Entry<YearMonth, MoneyAmount> e = it.next();
                 equal &= e.getValue().equals(other.getAmount(e.getKey().getYear(), e.getKey().getMonth()));
             }
-        if (!equal) {
-            System.err.println("Not eq 2");
-        }
+            if (!equal) {
+                System.err.println("Not eq 2");
+            }
             return equal;
         } catch (NoSeriesDataFoundException ex) {
-            
+
             System.err.println("Not eq 2");
-        
+
             return false;
         }
 
@@ -180,10 +188,10 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
     @Override
     public MoneyAmountSeries add(final MoneyAmountSeries other) throws NoSeriesDataFoundException {
 
-        if(!other.getCurrency().equals(this.getCurrency())){
+        if (!other.getCurrency().equals(this.getCurrency())) {
             throw new IllegalArgumentException("Can't add different currencies.");
         }
-        
+
         if (this.getFrom().compareTo(other.getFrom()) > 0) {
             return other.add(this);
         }
