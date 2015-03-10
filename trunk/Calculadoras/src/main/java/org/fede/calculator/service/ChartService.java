@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.service;
 
-import java.util.List;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 
@@ -38,8 +37,6 @@ public interface ChartService {
     
     CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr, int year, int month) throws NoSeriesDataFoundException;
     
-    CanvasJSChartDTO expenses(int months, List<String> series, int year, int month) throws NoSeriesDataFoundException;
-    
     CanvasJSChartDTO goldIncomeAndSavings() throws NoSeriesDataFoundException;
     
     CanvasJSChartDTO savedSalaries() throws NoSeriesDataFoundException;
@@ -47,7 +44,5 @@ public interface ChartService {
     CanvasJSChartDTO hisotricDollar() throws NoSeriesDataFoundException;
     
     CanvasJSChartDTO historicGold() throws NoSeriesDataFoundException;
-    
-    CanvasJSChartDTO expensesPercentage(int months, List<String> series) throws NoSeriesDataFoundException;
-    
+       
 }
