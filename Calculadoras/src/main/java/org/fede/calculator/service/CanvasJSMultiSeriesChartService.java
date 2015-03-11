@@ -40,42 +40,48 @@ import org.springframework.context.annotation.Lazy;
  *
  * @author fede
  */
+public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService {
 
-public class CanvasJSExpenseChartService implements ExpenseChartService {
-
-    @Resource(name = "realPesosDatapointAssembler") @Lazy
+    @Resource(name = "realPesosDatapointAssembler")
+    @Lazy
     private CanvasJSDatapointAssembler realPesosDatapointAssembler;
 
-    @Resource(name = "nominalPesosDatapointAssembler") @Lazy
+    @Resource(name = "nominalPesosDatapointAssembler")
+    @Lazy
     private CanvasJSDatapointAssembler nominalPesosDatapointAssembler;
 
     private static final String TOTAL_SERIES_NAME = "Total";
 
-    private List<ExpenseChartSeriesDTO> expenseSeries;
+    private List<ExpenseChartSeriesDTO> series;
 
     @Override
-    public List<ExpenseChartSeriesDTO> getExpenseSeries() {
-        return expenseSeries;
+    public List<ExpenseChartSeriesDTO> getSeries() {
+        return series;
     }
 
     @Override
-    public void setExpenseSeries(List<ExpenseChartSeriesDTO> expenseSeries) {
-        this.expenseSeries = expenseSeries;
+    public void setSeries(List<ExpenseChartSeriesDTO> expenseSeries) {
+        this.series = expenseSeries;
     }
 
-    
     @Override
-    public CanvasJSChartDTO expenses(int months, List<String> series, int year, int month) throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO renderAbsoluteChart(String chartTitle, int months, List<String> seriesNames, int year, int month) throws NoSeriesDataFoundException {
 
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>();
 
-        if (series != null) {
+        if (seriesNames != null) {
 
             MoneyAmountSeries totalSeries = null;
-            final boolean collectTotal = series.contains(TOTAL_SERIES_NAME);
+            final boolean collectTotal = seriesNames.contains(TOTAL_SERIES_NAME);
+            String totalColor = "red";
 
-            for (ExpenseChartSeriesDTO s : this.expenseSeries) {
-                if (!TOTAL_SERIES_NAME.equals(s.getName()) && series.contains(s.getName())) {
+            for (ExpenseChartSeriesDTO s : this.series) {
+
+                if (TOTAL_SERIES_NAME.equals(s.getName())) {
+                    totalColor = s.getColor();
+                }
+
+                if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
 
                     MoneyAmountSeries eachSeries = JSONMoneyAmountSeries.readSeries(s.getSeriesName());
                     if (collectTotal) {
@@ -97,7 +103,7 @@ public class CanvasJSExpenseChartService implements ExpenseChartService {
             if (collectTotal && totalSeries != null) {
                 seriesList.add(this.getDatum(
                         "line",
-                        "red",
+                        totalColor,
                         "Total",
                         this.realPesosDatapointAssembler.getDatapoints(months, totalSeries, year, month)
                 ));
@@ -105,7 +111,7 @@ public class CanvasJSExpenseChartService implements ExpenseChartService {
         }
 
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Gastos");
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO(chartTitle);
         dto.setTitle(title);
         dto.setXAxisTitle("Fecha");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
@@ -117,14 +123,14 @@ public class CanvasJSExpenseChartService implements ExpenseChartService {
     }
 
     @Override
-    public CanvasJSChartDTO expensesPercentage(int months, List<String> series) throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO renderIncomeRelativeChart(String chartTitle, int months, List<String> seriesNames) throws NoSeriesDataFoundException {
 
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
-        if (series != null && !series.isEmpty()) {
+        if (seriesNames != null && !seriesNames.isEmpty()) {
 
             MoneyAmountSeries sumSeries = null;
-            for (ExpenseChartSeriesDTO s : this.expenseSeries) {
-                if (!TOTAL_SERIES_NAME.equals(s.getName()) && series.contains(s.getName())) {
+            for (ExpenseChartSeriesDTO s : this.series) {
+                if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
                     MoneyAmountSeries eachSeries = JSONMoneyAmountSeries.readSeries(s.getSeriesName());
                     if (eachSeries.getCurrency().equals(Currency.getInstance("USD"))) {
                         eachSeries = ForeignExchange.USD_ARS.exchange(eachSeries, Currency.getInstance("ARS"));
@@ -161,7 +167,7 @@ public class CanvasJSExpenseChartService implements ExpenseChartService {
         }
 
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Gastos / Ingresos");
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO(chartTitle);
         dto.setTitle(title);
         dto.setXAxisTitle("Fecha");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();

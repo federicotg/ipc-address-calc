@@ -25,11 +25,11 @@ import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
  *
  * @author fede
  */
-public interface ExpenseChartService {
+public interface MultiSeriesChartService {
     
 
-    CanvasJSChartDTO expenses(int months, List<String> series, int year, int month) throws NoSeriesDataFoundException;
-    CanvasJSChartDTO expensesPercentage(int months, List<String> series) throws NoSeriesDataFoundException;
-    List<ExpenseChartSeriesDTO> getExpenseSeries();
-    void setExpenseSeries(List<ExpenseChartSeriesDTO> expenseSeries);
+    CanvasJSChartDTO renderAbsoluteChart(String title, int months, List<String> series, int year, int month) throws NoSeriesDataFoundException;
+    CanvasJSChartDTO renderIncomeRelativeChart(String title, int months, List<String> series) throws NoSeriesDataFoundException;
+    List<ExpenseChartSeriesDTO> getSeries();
+    void setSeries(List<ExpenseChartSeriesDTO> expenseSeries);
 }
