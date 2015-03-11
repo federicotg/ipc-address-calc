@@ -165,13 +165,42 @@
         
     </util:list>
 
-    
-    <bean class="org.fede.calculator.service.CanvasJSExpenseChartService" name="consortiumExpensesService" lazy-init="true">
-        <property name="expenseSeries" ref="consortiumExpenseSeries" />
+
+    <util:list id="incomesSeries" value-type="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="UNLP" />
+            <property name="seriesName" value="unlp.json" />
+            <property name="color" value="Red" />
+        </bean>
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="LIFIA" />
+            <property name="seriesName" value="lifia.json" />
+            <property name="color" value="Green" />
+        </bean>
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="Interés" />
+            <property name="seriesName" value="plazofijo.json" />
+            <property name="color" value="Blue" />
+        </bean>
+        
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="Total" />
+            <property name="seriesName" value="" />
+            <property name="color" value="black" />
+        </bean>
+    </util:list>
+
+    <bean class="org.fede.calculator.service.CanvasJSMultiSeriesChartService" name="consortiumExpensesService" lazy-init="true">
+        <property name="series" ref="consortiumExpenseSeries" />
     </bean>
     
-    <bean class="org.fede.calculator.service.CanvasJSExpenseChartService" name="expensesService" lazy-init="true">
-        <property name="expenseSeries" ref="expenseSeries" />
+    <bean class="org.fede.calculator.service.CanvasJSMultiSeriesChartService" name="expensesService" lazy-init="true">
+        <property name="series" ref="expenseSeries" />
+    </bean>
+
+
+    <bean class="org.fede.calculator.service.CanvasJSMultiSeriesChartService" name="incomesService" lazy-init="true">
+        <property name="series" ref="incomesSeries" />
     </bean>
 
     
