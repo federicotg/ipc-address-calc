@@ -25,7 +25,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.ChartService;
-import org.fede.calculator.service.ExpenseChartService;
+import org.fede.calculator.service.MultiSeriesChartService;
 import org.fede.calculator.service.MoneyService;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CombinedChartDTO;
@@ -61,11 +61,16 @@ public class ChartController {
 
     @Resource(name = "expensesService")
     @Lazy
-    private ExpenseChartService expenseService;
+    private MultiSeriesChartService expenseService;
 
     @Resource(name = "consortiumExpensesService")
     @Lazy
-    private ExpenseChartService consortiumExpenseService;
+    private MultiSeriesChartService consortiumExpenseService;
+    
+    @Resource(name = "incomesService")
+    @Lazy
+    private MultiSeriesChartService incomesService;
+    
 
     @Resource(name = "argMoneyService")
     @Lazy
@@ -169,7 +174,7 @@ public class ChartController {
 
     @RequestMapping(value = "expenses", method = RequestMethod.GET)
     public ModelAndView expenses() {
-        return this.buildExpenseModelAndView("Gastos", this.expenseService.getExpenseSeries(), "expensesChart");
+        return this.buildExpenseModelAndView("Gastos", this.expenseService.getSeries(), "expensesChart");
     }
 
     private ModelAndView buildExpenseModelAndView(String title, List<ExpenseChartSeriesDTO> dtoSeries, String uri) {
@@ -190,7 +195,12 @@ public class ChartController {
 
     @RequestMapping(value = "consortiumExpenses", method = RequestMethod.GET)
     public ModelAndView consortiumExpenses() {
-        return this.buildExpenseModelAndView("Gastos Consorcio", this.consortiumExpenseService.getExpenseSeries(), "consortiumExpensesChart");
+        return this.buildExpenseModelAndView("Gastos Consorcio", this.consortiumExpenseService.getSeries(), "consortiumExpensesChart");
+    }
+    
+    @RequestMapping(value = "incomes", method = RequestMethod.GET)
+    public ModelAndView incomes() {
+        return this.buildExpenseModelAndView("Ingresos", this.incomesService.getSeries(), "incomesChart");
     }
 
     @RequestMapping(value = "expensesPercent", method = RequestMethod.GET)
@@ -199,7 +209,7 @@ public class ChartController {
 
         ExpenseChartDTO chartDto = new ExpenseChartDTO(this.arsMoneyService.getLimits());
         List<String> series = new ArrayList<>();
-        for (ExpenseChartSeriesDTO e : this.expenseService.getExpenseSeries()) {
+        for (ExpenseChartSeriesDTO e : this.expenseService.getSeries()) {
             series.add(e.getName());
         }
         chartDto.setSeries(series);
@@ -207,7 +217,7 @@ public class ChartController {
                 .addObject("uri", "expensesPercentChart")
                 .addObject("title", "Gastos / Ingresos")
                 .addObject("monthlyPeriods", this.monthlyPeriods)
-                .addObject("series", this.expenseService.getExpenseSeries())
+                .addObject("series", this.expenseService.getSeries())
                 .addObject("dto", chartDto);
     }
 
@@ -283,6 +293,20 @@ public class ChartController {
         return this.chartService.savings(dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
     }
 
+    
+    @ResponseBody
+    @RequestMapping(value = "incomesChart", method = RequestMethod.GET)
+    public CanvasJSChartDTO incomesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
+            throws NoSeriesDataFoundException {
+        if (errors.hasErrors()) {
+            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
+            notOk.setSuccessful(false);
+            return notOk;
+        }
+        return this.incomesService.renderAbsoluteChart("Ingresos", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth());
+    }
+
+    
     @ResponseBody
     @RequestMapping(value = "expensesChart", method = RequestMethod.GET)
     public CanvasJSChartDTO expensesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
@@ -292,7 +316,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.expenseService.expenses(dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth());
+        return this.expenseService.renderAbsoluteChart("Gastos", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -304,7 +328,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.consortiumExpenseService.expenses(dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth());
+        return this.consortiumExpenseService.renderAbsoluteChart("Gastos del Consorcio", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth());
     }
     
     @ResponseBody
@@ -316,7 +340,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.expenseService.expensesPercentage(dto.getMonths(), dto.getSeries());
+        return this.expenseService.renderIncomeRelativeChart("Gastos / Ingresos", dto.getMonths(), dto.getSeries());
     }
 
     @ResponseBody

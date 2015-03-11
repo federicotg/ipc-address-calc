@@ -40,6 +40,7 @@
             <li><a href="savings">Ahorros</a></li>
             <li><a href="savedSalaries">Sueldos Ahorrados</a></li>
             <li><a href="goldSavings">Oro</a></li>
+            <li><a href="incomes">Ingresos</a></li>
             <li><a href="expenses">Gastos</a></li>
             <li><a href="expensesPercent">Gastos / Ingresos</a></li>
             <li><a href="consortiumExpenses">Gastos del Consorcio</a></li>
