@@ -317,7 +317,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Hippolyte et Aricie").french().opera().by("Rameau").build();
         new Opus.Builder("L'enfant et les sortilèges", "L'heure espagnole")
                 .french().opera().by("Ravel").build();
-        new Opus.Builder("Ariadne auf Naxos", "Capriccio", "Intermezzo", "Salome", "Daphne", "Elektra")
+        new Opus.Builder("Ariadne auf Naxos", "Capriccio", "Intermezzo", "Salome", "Daphne", "Elektra", "Der Rosenkavalier")
                 .german().opera().by("Richard Strauss").build();
         new Opus.Builder("Cherevichki The Tsarina's Slippers", "Eugene Onegin", "Iolanta")
                 .russian().opera().by("Tchaikovsky").build();
@@ -1175,6 +1175,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(12, 16)  // part 1
                 .discBox(0, 0)  // part 2
                 .build();
+        
+        new DigitalContent.Builder("Der Rosenkavalier").opera().at("Festspielhaus Baden-Baden").on("01/01/2009").fullHD().spaSubs().mkv()       
+                .discBox(0, 0) 
+                .build();
+        
     }
 
     @Override
