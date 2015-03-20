@@ -287,7 +287,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Siegfried",
                 "Tannhauser",
                 "Lohengrin",
-                "Tristan und Ilsode")
+                "Tristan und Ilsode",
+                "El Holandés Errante")
                 .german().opera().by("Richard Wagner").build();
 
         new Opus.Builder("Anna Bolena",
@@ -1180,6 +1181,18 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(0, 0) 
                 .build();
         
+        new DigitalContent.Builder("La Donna del Lago").opera().atTheMet().on("14/03/2015").fullHD().spaSubs().mkv()       
+                .discBox(0, 0) 
+                .build();
+        
+        new DigitalContent.Builder("Norma").opera().at("Gran Teatro del Liceo").on("17/02/2015").fullHD().spaSubs().mkv()       
+                .discBox(0, 0) 
+                .build();
+        
+        new DigitalContent.Builder("El Holandés Errante").opera().atRoh().on("24/02/2015").fullHD().spaSubs().mkv()       
+                .discBox(0, 0) 
+                .build();
+               
     }
 
     @Override
