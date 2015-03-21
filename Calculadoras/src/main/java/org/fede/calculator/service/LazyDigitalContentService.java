@@ -1188,7 +1188,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("Norma").opera().at("Gran Teatro del Liceo").on("17/02/2015").fullHD().spaSubs().mkv()       
-                .discBox(0, 0) 
+                .discBox(2, 17) 
                 .build();
         
         new DigitalContent.Builder("El Holandés Errante").opera().atRoh().on("24/02/2015").fullHD().spaSubs().mkv()       
