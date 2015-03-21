@@ -20,6 +20,7 @@ import java.util.List;
 
 /**
  * Gold: http://www.bundesbank.de/cae/servlet/StatisticDownload?tsId=BBEX3.M.XAU.USD.EA.AC.C06&its_csvFormat=en&its_fileFormat=csv&mode=its
+ * Euro: https://www.statistics.dnb.nl/index.cgi?lang=uk&todo=Koersen
  * =====
  * Guía:
  * =====
