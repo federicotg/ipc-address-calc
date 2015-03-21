@@ -1179,10 +1179,12 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("Der Rosenkavalier").opera().at("Festspielhaus Baden-Baden").on("01/01/2009").fullHD().spaSubs().mkv()       
                 .discBox(0, 0) 
+                .discBox(1, 17) // 3 
                 .build();
         
         new DigitalContent.Builder("La Donna del Lago").opera().atTheMet().on("14/03/2015").fullHD().spaSubs().mkv()       
                 .discBox(0, 0) 
+                .discBox(1, 17) // 1
                 .build();
         
         new DigitalContent.Builder("Norma").opera().at("Gran Teatro del Liceo").on("17/02/2015").fullHD().spaSubs().mkv()       
