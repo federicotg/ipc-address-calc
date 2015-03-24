@@ -237,7 +237,7 @@
                 <version>1.5.1</version>
                 <executions>
                     <execution>
-                         <phase>package</phase>
+                         <phase>prepare-package</phase>
                         <goals>
                             <goal>compress</goal>
                         </goals>
