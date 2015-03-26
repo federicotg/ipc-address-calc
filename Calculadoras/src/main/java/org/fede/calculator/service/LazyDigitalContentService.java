@@ -621,7 +621,16 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(3, 3) // parte 3
                 .discBox(11, 16)
                 .build();
+        
+        new DigitalContent.Builder("Swan Lake").ballet().atRoh().on("17/03/2015").fullHD().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
 
+        new DigitalContent.Builder("Swan Lake").ballet().atBolshoi().on("25/03/2015").fullHD().mkv()
+                .discBox(0, 0)
+                .build();
+
+        
     }
 
     private void initOperaVideos() throws ParseException {
