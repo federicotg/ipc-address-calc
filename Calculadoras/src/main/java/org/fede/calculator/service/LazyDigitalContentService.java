@@ -623,7 +623,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("Swan Lake").ballet().atRoh().on("17/03/2015").fullHD().spaSubs().mkv()
-                .discBox(0, 0)
+                .discBox(3, 17) // 1 y 4
+                .discBox(4, 17) // 3
+                .discBox(0, 0) //2 
                 .build();
 
         new DigitalContent.Builder("Swan Lake").ballet().atBolshoi().on("25/03/2015").fullHD().mkv()
@@ -1183,7 +1185,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new DigitalContent.Builder("La Gazzetta").opera().at("Gran Teatro del Liceo").on("01/06/2005").fullHD().spaSubs().mkv()
                 .discBox(12, 16)  // part 1
-                .discBox(0, 0)  // part 2
+                .discBox(4, 17)  // part 2
                 .build();
         
         new DigitalContent.Builder("Der Rosenkavalier").opera().at("Festspielhaus Baden-Baden").on("01/01/2009").fullHD().spaSubs().mkv()       
@@ -1201,7 +1203,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("El Holandés Errante").opera().atRoh().on("24/02/2015").fullHD().spaSubs().mkv()       
-                .discBox(0, 0) 
+                .discBox(3, 17) 
                 .build();
                
     }
