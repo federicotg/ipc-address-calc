@@ -28,8 +28,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
- *
- * @author fede
+ * 
+ * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 @Service("usdMoneyService")
 @Lazy
@@ -63,7 +63,8 @@ public class USDMoneyService implements MoneyService {
     @Override
     public CurrencyLimitsDTO getLimits() {
 
-        return new CurrencyLimitsDTO(CURRENCY_DTO, USD_INFLATION.getFrom().getYear(), USD_INFLATION.getTo().getYear());
+        return new CurrencyLimitsDTO(CURRENCY_DTO, USD_INFLATION.getFrom().getYear(), USD_INFLATION.getTo().getYear(),
+                USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonth());
     }
 
 }

@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.service.ChartService;
 import org.fede.calculator.service.MultiSeriesChartService;
 import org.fede.calculator.service.MoneyService;
@@ -46,7 +47,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 /**
  *
- * @author fede
+ * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 @Lazy
 @Controller

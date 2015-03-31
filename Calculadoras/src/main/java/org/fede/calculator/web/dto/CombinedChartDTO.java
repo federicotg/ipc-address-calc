@@ -17,8 +17,8 @@
 package org.fede.calculator.web.dto;
 
 /**
- *
- * @author fede
+ * 
+ * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class CombinedChartDTO extends MonthGroupingChartDTO {
 

@@ -43,12 +43,16 @@ public class CurrencyLimitsDTO {
     private int yearFrom;
     private int yearTo;
     private List<MonthDTO> months;
+    private int referenceYear;
+    private int referenceMonth;
 
-    public CurrencyLimitsDTO(CurrencyDTO currency, int yearFrom, int yearTo) {
+    public CurrencyLimitsDTO(CurrencyDTO currency, int yearFrom, int yearTo, int referenceYear, int referenceMonth) {
         this.currency = currency;
         this.yearFrom = yearFrom;
         this.yearTo = yearTo;
         this.months = MONTHS;
+        this.referenceMonth = referenceMonth;
+        this.referenceYear= referenceYear;
     }
 
     public CurrencyDTO getCurrency() {
@@ -81,6 +85,22 @@ public class CurrencyLimitsDTO {
 
     public void setMonths(List<MonthDTO> months) {
         this.months = months;
+    }
+
+    public int getReferenceYear() {
+        return referenceYear;
+    }
+
+    public int getReferenceMonth() {
+        return referenceMonth;
+    }
+
+    public void setReferenceYear(int referenceYear) {
+        this.referenceYear = referenceYear;
+    }
+
+    public void setReferenceMonth(int referenceMonth) {
+        this.referenceMonth = referenceMonth;
     }
 
 
