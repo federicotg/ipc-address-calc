@@ -1213,7 +1213,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         
          new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("17/08/2012").fullHD().engSubs().mkv()
                  .discBox(5, 17) // 1
-                 .discBox(7, 17); //2
+                 .discBox(7, 17) //2
+                 .build();
         
     }
 
