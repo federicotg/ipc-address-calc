@@ -248,7 +248,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
                 YearMonth ym = new YearMonth(year, month);
                 if (ym.compareTo(savings.getFrom()) >= 0 && ym.compareTo(savings.getTo()) <= 0) {
                     CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
-                            "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-28"),
+                            "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-15"),
                             savings.getAmount(year, month).getAmount().divide(sueldo.getAmount(), CONTEXT)
                     );
                     datapoints.add(dataPoint);

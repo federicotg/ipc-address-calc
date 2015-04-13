@@ -383,6 +383,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Les contes d'Hoffmann").french().opera().by("Offenbach").build();
         
         new Opus.Builder("El castillo de Barbazul").language(Language.HUNGARIAN).opera().by("Bartók").build();
+        
+        new Opus.Builder("Rise and Fall of the City of Mahagonny").english().opera().by("Kurt Weill").build();
 
     }
 
@@ -629,7 +631,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("Swan Lake").ballet().atBolshoi().on("25/03/2015").fullHD().mkv()
-                .discBox(0, 0)
+                .discBox(6, 17) // 5 II
+                .discBox(0, 0) // 2 I
                 .build();
 
         
@@ -1159,10 +1162,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 16)
                 .build();
 
-        //new DigitalContent.Builder("Ascenso y caída de la ciudad de Mahagonny").opera().at("Teatro Real").on("01/09/2010").fullHD().spaSubs().mkv()
-        //        .discBox(0, 0)
-        //        .build();
-
         new DigitalContent.Builder("Andrea Chénier").opera().atRoh().on("29/01/2015").fullHD().spaSubs().mkv()
                 .discBox(11, 16) // 1 2 y 4
                 .discBox(10, 16) //3 5 6
@@ -1191,10 +1190,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Der Rosenkavalier").opera().at("Festspielhaus Baden-Baden").on("01/01/2009").fullHD().spaSubs().mkv()       
                 .discBox(0, 0) 
                 .discBox(1, 17) // 3 
+                .discBox(7, 17) // 2
                 .build();
         
         new DigitalContent.Builder("La Donna del Lago").opera().atTheMet().on("14/03/2015").fullHD().spaSubs().mkv()       
-                .discBox(0, 0) 
+                .discBox(6, 17)  // 2
                 .discBox(1, 17) // 1
                 .build();
         
@@ -1205,7 +1205,16 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("El Holandés Errante").opera().atRoh().on("24/02/2015").fullHD().spaSubs().mkv()       
                 .discBox(3, 17) 
                 .build();
-               
+
+         new DigitalContent.Builder("Rise and Fall of the City of Mahagonny").opera().atRoh().on("01/04/2015").fullHD().spaSubs().mkv()       
+                .discBox(5, 17) // 2 part I
+                 .discBox(0, 0) 
+                .build();
+        
+         new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("27/06/2012").fullHD().engSubs().mkv()
+                 .discBox(5, 17) // 1
+                 .discBox(7, 17); //2
+        
     }
 
     @Override
