@@ -632,7 +632,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("Swan Lake").ballet().atBolshoi().on("25/03/2015").fullHD().mkv()
                 .discBox(6, 17) // 5 II
-                .discBox(0, 0) // 2 I
+                .discBox(8, 17) // 2 I
                 .build();
 
         
@@ -1188,7 +1188,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         
         new DigitalContent.Builder("Der Rosenkavalier").opera().at("Festspielhaus Baden-Baden").on("01/01/2009").fullHD().spaSubs().mkv()       
-                .discBox(0, 0) 
+                .discBox(8, 17)  // 1
                 .discBox(1, 17) // 3 
                 .discBox(7, 17) // 2
                 .build();
