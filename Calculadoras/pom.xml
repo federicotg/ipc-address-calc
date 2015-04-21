@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.springframework.version>4.1.4.RELEASE</org.springframework.version>
         <spring-security.version>3.2.5.RELEASE</spring-security.version>
-        <com.google.appengine.version>1.9.18</com.google.appengine.version>
+        <com.google.appengine.version>1.9.19</com.google.appengine.version>
         <hibernate-validator-version>4.3.2.Final</hibernate-validator-version>
         <jackson2-version>2.5.1</jackson2-version>
     </properties>
