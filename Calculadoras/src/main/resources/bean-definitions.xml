@@ -92,12 +92,6 @@
             <property name="color" value="maroon" />
         </bean>
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
-            <property name="name" value="Gastos USD" />
-            <property name="seriesName" value="gastos-usd.json" />
-            <property name="color" value="grey" />
-        </bean>
-        
-        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Total" />
             <property name="seriesName" value="" />
             <property name="color" value="red" />
