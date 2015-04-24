@@ -127,6 +127,10 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new Opus.Builder("La Creación").by("Joseph Haydn").ballet().build();
         new Opus.Builder("Ondine").by("Hans Werner Henze").ballet().build();
+        
+        new Opus.Builder("Anna Karenina").by("Rodion Shchedrin").ballet().build();
+        
+        
 
     }
 
@@ -633,6 +637,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Swan Lake").ballet().atBolshoi().on("25/03/2015").fullHD().mkv()
                 .discBox(6, 17) // 5 II
                 .discBox(8, 17) // 2 I
+                .build();
+
+        new DigitalContent.Builder("Anna Karenina").ballet().atMariinsky().on("01/01/2014").fullHD().mkv()
+                .discBox(0, 0)
                 .build();
 
         
