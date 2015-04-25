@@ -127,10 +127,8 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new Opus.Builder("La Creación").by("Joseph Haydn").ballet().build();
         new Opus.Builder("Ondine").by("Hans Werner Henze").ballet().build();
-        
-        new Opus.Builder("Anna Karenina").by("Rodion Shchedrin").ballet().build();
-        
-        
+
+        new Opus.Builder("Anna Karenina", "The Little Humpbacked Horse").by("Rodion Shchedrin").ballet().build();
 
     }
 
@@ -385,9 +383,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Andrea Chénier").german().opera().by("Umberto Giordano").build();
 
         new Opus.Builder("Les contes d'Hoffmann").french().opera().by("Offenbach").build();
-        
+
         new Opus.Builder("El castillo de Barbazul").language(Language.HUNGARIAN).opera().by("Bartók").build();
-        
+
         new Opus.Builder("Rise and Fall of the City of Mahagonny").english().opera().by("Kurt Weill").build();
 
     }
@@ -627,11 +625,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(3, 3) // parte 3
                 .discBox(11, 16)
                 .build();
-        
+
         new DigitalContent.Builder("Swan Lake").ballet().atRoh().on("17/03/2015").fullHD().spaSubs().mkv()
                 .discBox(3, 17) // 1 y 4
                 .discBox(4, 17) // 3
-                .discBox(0, 0) //2 
+                .discBox(9, 17) // 2 
                 .build();
 
         new DigitalContent.Builder("Swan Lake").ballet().atBolshoi().on("25/03/2015").fullHD().mkv()
@@ -643,7 +641,10 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(0, 0)
                 .build();
 
-        
+        new DigitalContent.Builder("The Little Humpbacked Horse").ballet().atMariinsky().on("25/11/2013").fullHD().mkv()
+                .discBox(9, 17)
+                .build();
+
     }
 
     private void initOperaVideos() throws ParseException {
@@ -886,11 +887,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         //new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("17/08/2012").fullHD().engSubs().mkv()
         //        .discBox(8, 14)
         //        .build();
-        
+
         new DigitalContent.Builder("La Flauta Mágica").opera().atRoh().on("01/01/2003").dvd().spaSubs().iso().seenByFede()
                 .discBox(10, 1)
                 .imdb("http://www.imdb.com/title/tt0383058/").build();
-        
+
         new DigitalContent.Builder("Gianni Schicchi").opera().atGlyndebourne().on("01/01/2004").dvd().spaSubs().iso().seenByFede()
                 .discBox(1, 2)
                 .build();
@@ -905,10 +906,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Madama Butterfly").opera().at("Arena di Verona").on("01/01/2004").dvd().spaSubs().iso().discBox(1, 1).build();
         new DigitalContent.Builder("Manon Lescaut").opera().atRoh().on("01/01/1983").dvd().spaSubs().iso().discBox(2, 15)
                 .imdb("http://www.imdb.com/title/tt0254549/").build();
-        
+
         new DigitalContent.Builder("Tosca").opera().atAllaScala().on("01/01/2000").dvd().spaSubs().iso().discBox(7, 8)
                 .imdb("http://www.imdb.com/title/tt2385259/").build();
-        
+
         new DigitalContent.Builder("Tosca").opera().atRoh().on("17/07/2011").dvd().engSubs().mkv().seenByFede().discBox(6, 2).build();
         new DigitalContent.Builder("Tosca").opera().atTheMet().on("09/11/2013").fullHD().engSubs().mkv().discBox(5, 15)
                 .imdb("http://www.imdb.com/title/tt3315900/")
@@ -1045,13 +1046,12 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         /* --- */
-        
         Set<Performance> gotterdammerungAtTheMet2012 = new DigitalContent.Builder("Gotterdammerung").opera().atTheMet().on("01/01/2012").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build().getPerformances();
         new DigitalContent.Builder(gotterdammerungAtTheMet2012).mkv().fullHD().spaSubs()
                 .discBox(1, 5) // 1 y 3
                 .discBox(4, 3) // 2
                 .build();
-        
+
         /* --- */
         Set<Performance> walkureAtTheMet2012 = new DigitalContent.Builder("Die Walküre").opera().atTheMet().on("01/01/2011").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build().getPerformances();
         new DigitalContent.Builder(walkureAtTheMet2012).mkv().fullHD().spaSubs()
@@ -1059,11 +1059,10 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(10, 1) // parte 2
                 .discBox(1, 2) // parte 1
                 .build();
-        
+
         /* --- */
-        
         Set<Performance> dasRheingoldAtTheMet2012 = new DigitalContent.Builder("Das Rheingold").opera().atTheMet().on("01/01/2010").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build().getPerformances();
-        
+
         new DigitalContent.Builder(dasRheingoldAtTheMet2012).mkv().fullHD().spaSubs()
                 .discBox(3, 5) // parte 1
                 .discBox(12, 16) // parte 2
@@ -1183,47 +1182,48 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("El castillo de Barbazul").opera().atTheMet().on("14/02/2015").fullHD().spaSubs().mkv()
-                .discBox(3, 8) 
+                .discBox(3, 8)
                 .build();
 
         new DigitalContent.Builder("Iolanta").opera().atTheMet().on("14/02/2015").fullHD().spaSubs().mkv()
-                .discBox(3, 8) 
+                .discBox(3, 8)
                 .build();
-        
+
         new DigitalContent.Builder("La Gazzetta").opera().at("Gran Teatro del Liceo").on("01/06/2005").fullHD().spaSubs().mkv()
-                .discBox(12, 16)  // part 1
-                .discBox(4, 17)  // part 2
+                .discBox(12, 16) // part 1
+                .discBox(4, 17) // part 2
                 .build();
-        
-        new DigitalContent.Builder("Der Rosenkavalier").opera().at("Festspielhaus Baden-Baden").on("01/01/2009").fullHD().spaSubs().mkv()       
-                .discBox(8, 17)  // 1
+
+        new DigitalContent.Builder("Der Rosenkavalier").opera().at("Festspielhaus Baden-Baden").on("01/01/2009").fullHD().spaSubs().mkv()
+                .discBox(8, 17) // 1
                 .discBox(1, 17) // 3 
                 .discBox(7, 17) // 2
                 .build();
-        
-        new DigitalContent.Builder("La Donna del Lago").opera().atTheMet().on("14/03/2015").fullHD().spaSubs().mkv()       
-                .discBox(6, 17)  // 2
+
+        new DigitalContent.Builder("La Donna del Lago").opera().atTheMet().on("14/03/2015").fullHD().spaSubs().mkv()
+                .discBox(6, 17) // 2
                 .discBox(1, 17) // 1
                 .build();
-        
-        new DigitalContent.Builder("Norma").opera().at("Gran Teatro del Liceo").on("17/02/2015").fullHD().spaSubs().mkv()       
-                .discBox(2, 17) 
-                .build();
-        
-        new DigitalContent.Builder("El Holandés Errante").opera().atRoh().on("24/02/2015").fullHD().spaSubs().mkv()       
-                .discBox(3, 17) 
+
+        new DigitalContent.Builder("Norma").opera().at("Gran Teatro del Liceo").on("17/02/2015").fullHD().spaSubs().mkv()
+                .discBox(2, 17)
                 .build();
 
-         new DigitalContent.Builder("Rise and Fall of the City of Mahagonny").opera().atRoh().on("01/04/2015").fullHD().spaSubs().mkv()       
-                .discBox(5, 17) // 2 part I
-                 .discBox(0, 0) 
+        new DigitalContent.Builder("El Holandés Errante").opera().atRoh().on("24/02/2015").fullHD().spaSubs().mkv()
+                .discBox(3, 17)
                 .build();
-        
-         new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("17/08/2012").fullHD().engSubs().mkv()
-                 .discBox(5, 17) // 1
-                 .discBox(7, 17) //2
-                 .build();
-        
+
+        new DigitalContent.Builder("Rise and Fall of the City of Mahagonny").opera().atRoh().on("01/04/2015").fullHD().spaSubs().mkv()
+                .discBox(5, 17) // 2 part I
+                .discBox(9, 17) // 4 part II + Interviews
+                .discBox(0, 0) // Intro
+                .build();
+
+        new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("17/08/2012").fullHD().engSubs().mkv()
+                .discBox(5, 17) // 1
+                .discBox(7, 17) // 2
+                .build();
+
     }
 
     @Override
