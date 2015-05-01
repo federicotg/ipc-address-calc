@@ -36,7 +36,11 @@
 
             window.addEvent('domready', function () {
 
-                showChart('/secure/${uri}.json', 'months=6', 'chartContainer');
+                showChart('/secure/${uri}.json', 
+                          'months=' + ${dto.months}
+                        + '&year=' + ${dto.year}
+                        + '&month=' + ${dto.month},
+                'chartContainer');
 
             });
 
