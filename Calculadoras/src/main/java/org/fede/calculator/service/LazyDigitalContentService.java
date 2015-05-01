@@ -1163,6 +1163,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("Cavalleria Rusticana").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
                 .discBox(6, 16)
+                .seenByFede()
                 .build();
 
         new DigitalContent.Builder("Pagliacci").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
@@ -1182,6 +1183,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         new DigitalContent.Builder("El castillo de Barbazul").opera().atTheMet().on("14/02/2015").fullHD().spaSubs().mkv()
+                .seenByFede()
                 .discBox(3, 8)
                 .build();
 
