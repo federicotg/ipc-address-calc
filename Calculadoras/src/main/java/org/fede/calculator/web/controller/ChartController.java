@@ -24,7 +24,6 @@ import java.util.logging.Logger;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.service.ChartService;
 import org.fede.calculator.service.MultiSeriesChartService;
 import org.fede.calculator.service.MoneyService;
@@ -67,11 +66,10 @@ public class ChartController {
     @Resource(name = "consortiumExpensesService")
     @Lazy
     private MultiSeriesChartService consortiumExpenseService;
-    
+
     @Resource(name = "incomesService")
     @Lazy
     private MultiSeriesChartService incomesService;
-    
 
     @Resource(name = "argMoneyService")
     @Lazy
@@ -191,14 +189,13 @@ public class ChartController {
                 .addObject("monthlyPeriods", this.monthlyPeriods)
                 .addObject("series", dtoSeries)
                 .addObject("dto", chartDto);
-
     }
 
     @RequestMapping(value = "consortiumExpenses", method = RequestMethod.GET)
     public ModelAndView consortiumExpenses() {
         return this.buildExpenseModelAndView("Gastos Consorcio", this.consortiumExpenseService.getSeries(), "consortiumExpensesChart");
     }
-    
+
     @RequestMapping(value = "incomes", method = RequestMethod.GET)
     public ModelAndView incomes() {
         return this.buildExpenseModelAndView("Ingresos", this.incomesService.getSeries(), "incomesChart");
@@ -206,7 +203,6 @@ public class ChartController {
 
     @RequestMapping(value = "expensesPercent", method = RequestMethod.GET)
     public ModelAndView expensesPercent() {
-        
 
         ExpenseChartDTO chartDto = new ExpenseChartDTO(this.arsMoneyService.getLimits());
         List<String> series = new ArrayList<>();
@@ -231,7 +227,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.unlp(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
+        return this.chartService.unlp(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -243,7 +239,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.lifia(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
+        return this.chartService.lifia(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -255,7 +251,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.interest(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
+        return this.chartService.interest(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -267,7 +263,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.lifiaAndUnlp(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
+        return this.chartService.lifiaAndUnlp(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -279,7 +275,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.lifiaUnlpAndInterest(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
+        return this.chartService.lifiaUnlpAndInterest(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -291,10 +287,9 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.savings(dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.getYear(), dto.getMonth());
+        return this.chartService.savings(dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
     }
 
-    
     @ResponseBody
     @RequestMapping(value = "incomesChart", method = RequestMethod.GET)
     public CanvasJSChartDTO incomesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
@@ -307,7 +302,6 @@ public class ChartController {
         return this.incomesService.renderAbsoluteChart("Ingresos", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth());
     }
 
-    
     @ResponseBody
     @RequestMapping(value = "expensesChart", method = RequestMethod.GET)
     public CanvasJSChartDTO expensesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
@@ -331,7 +325,7 @@ public class ChartController {
         }
         return this.consortiumExpenseService.renderAbsoluteChart("Gastos del Consorcio", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth());
     }
-    
+
     @ResponseBody
     @RequestMapping(value = "expensesPercentChart", method = RequestMethod.GET)
     public CanvasJSChartDTO expensesPercentChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
