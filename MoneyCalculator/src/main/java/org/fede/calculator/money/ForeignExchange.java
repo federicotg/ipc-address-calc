@@ -38,6 +38,11 @@ public interface ForeignExchange extends Series {
             Currency.getInstance("XAU"),
             Currency.getInstance("USD"));
 
+    public static final ForeignExchange USD_EUR = new SimpleForeignExchange(
+            JSONIndexSeries.readSeries("euro-dolar.json"),
+            Currency.getInstance("USD"),
+            Currency.getInstance("EUR"));
+    
     MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
 
     MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException;
