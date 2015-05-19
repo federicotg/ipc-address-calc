@@ -26,7 +26,9 @@ public class CombinedChartDTO extends MonthGroupingChartDTO {
     private boolean pr = true;
     private boolean dn = true;
     private boolean dr = true;
-
+    private boolean en = true;
+    private boolean er = true;
+    
     public CombinedChartDTO() {
     }
     
@@ -66,7 +68,20 @@ public class CombinedChartDTO extends MonthGroupingChartDTO {
         this.dr = dr;
     }
 
+    public boolean isEn() {
+        return en;
+    }
 
+    public void setEn(boolean en) {
+        this.en = en;
+    }
 
-    
+    public boolean isEr() {
+        return er;
+    }
+
+    public void setEr(boolean er) {
+        this.er = er;
+    }
+   
 }

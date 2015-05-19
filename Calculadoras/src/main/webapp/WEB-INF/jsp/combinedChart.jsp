@@ -54,6 +54,8 @@
                 var pr = document.id('pr').checked;
                 var dn = document.id('dn').checked;
                 var dr = document.id('dr').checked;
+                var en = document.id('en').checked;
+                var er = document.id('er').checked;
                 var year = document.id('year').value;
                 var month = document.id('month').value;
                 showChart('/secure/${uri}.json',
@@ -62,10 +64,11 @@
                         + '&pr=' + pr
                         + '&dn=' + dn
                         + '&dr=' + dr
+                        + '&en=' + en
+                        + '&er=' + er
                         + '&year=' + year
-                        + '&month=' + month
-                        ,
-                        'chartContainer');
+                        + '&month=' + month,
+                'chartContainer');
             }
 
         </script>
@@ -81,16 +84,14 @@
                         <form:option value="${p.value}">${p.key}</form:option>
                     </c:forEach>
                 </form:select><br/>
-
-
-
             </c:if>
 
             <label for="pn">Pesos Nominales</label><form:checkbox id="pn" path="pn" onchange="reloadChart()"/><br/>
             <label for="pr">Pesos Reales</label><form:checkbox id="pr" path="pr" onchange="reloadChart()"/><br/>
             <label for="dn">Dólares Nominales</label><form:checkbox id="dn" path="dn" onchange="reloadChart()"/><br/>
-            <label for="dr">Dólares Reales</label><form:checkbox id="dr" path="dr" onchange="reloadChart()"/>
-
+            <label for="dr">Dólares Reales</label><form:checkbox id="dr" path="dr" onchange="reloadChart()"/><br/>
+            <label for="en">Euros Nominales</label><form:checkbox id="en" path="en" onchange="reloadChart()"/><br/>
+            <label for="er">Euros Reales</label><form:checkbox id="er" path="er" onchange="reloadChart()"/>
 
             <p>En valores de 
             <form:select path="month" onchange="reloadChart()" id="month">
