@@ -33,7 +33,7 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
     public final MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
         YearMonth maxFrom = this.maximumFrom(series);
         YearMonth minTo = series.getTo();
-        
+
         final int fromYear = maxFrom.getYear();
         final int fromMonth = maxFrom.getMonth();
 
@@ -42,7 +42,9 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
 
         final MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.getCurrency());
 
-        for (int m = fromMonth; m <= 12; m++) {
+        final int maxMonthForFirstYear = fromYear == toYear ? toMonth : 12;
+
+        for (int m = fromMonth; m <= maxMonthForFirstYear; m++) {
             //first year
             answer.putAmount(fromYear, m, this.adjust(series.getAmount(fromYear, m), fromYear, m, referenceYear, referenceMonth));
         }
@@ -51,12 +53,14 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
                 answer.putAmount(y, m, this.adjust(series.getAmount(y, m), y, m, referenceYear, referenceMonth));
             }
         }
-        for (int m = 1; m <= toMonth; m++) {
-            //last year
-            answer.putAmount(toYear, m, this.adjust(series.getAmount(toYear, m), toYear, m, referenceYear, referenceMonth));
+
+        if (fromYear < toYear) {
+            for (int m = 1; m <= toMonth; m++) {
+                //last year
+                answer.putAmount(toYear, m, this.adjust(series.getAmount(toYear, m), toYear, m, referenceYear, referenceMonth));
+            }
         }
         return answer;
-
     }
 
     @Override
