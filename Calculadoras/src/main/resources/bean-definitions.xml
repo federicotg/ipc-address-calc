@@ -91,12 +91,20 @@
             <property name="seriesName" value="expensas.json" />
             <property name="color" value="maroon" />
         </bean>
+        
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="XBOX" />
+            <property name="seriesName" value="xbox.json" />
+            <property name="color" value="green" />
+        </bean>
+        
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Total" />
             <property name="seriesName" value="" />
             <property name="color" value="red" />
         </bean>
-        
+                
+                                
     </util:list>
     
     
