@@ -72,9 +72,11 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
         final int toYear = this.getTo().getYear();
         final int toMonth = this.getTo().getMonth();
 
+        final int maxMonthForFirstYear = fromYear == toYear ? toMonth : 12;
+        
         MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.getCurrency());
 
-        for (int m = fromMonth; m <= 12; m++) {
+        for (int m = fromMonth; m <= maxMonthForFirstYear; m++) {
             //first year
             answer.putAmount(fromYear, m, this.adjust(amount, referenceYear, referenceMonth, fromYear, m));
         }
@@ -83,9 +85,12 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
                 answer.putAmount(y, m, this.adjust(amount, referenceYear, referenceMonth, y, m));
             }
         }
-        for (int m = 1; m <= toMonth; m++) {
-            //last year
-            answer.putAmount(toYear, m, this.adjust(amount, referenceYear, referenceMonth, toYear, m));
+
+        if (fromYear < toYear) {
+            for (int m = 1; m <= toMonth; m++) {
+                //last year
+                answer.putAmount(toYear, m, this.adjust(amount, referenceYear, referenceMonth, toYear, m));
+            }
         }
         return answer;
 
