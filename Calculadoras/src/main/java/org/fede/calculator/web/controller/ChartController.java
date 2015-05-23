@@ -214,7 +214,7 @@ public class ChartController {
                 .addObject("uri", "expensesPercentChart")
                 .addObject("title", "Gastos / Ingresos")
                 .addObject("monthlyPeriods", this.monthlyPeriods)
-                .addObject("series", this.expenseService.getSeries())
+                .addObject("series", this.expenseService.getSeriesWithoutTotal())
                 .addObject("dto", chartDto);
     }
 

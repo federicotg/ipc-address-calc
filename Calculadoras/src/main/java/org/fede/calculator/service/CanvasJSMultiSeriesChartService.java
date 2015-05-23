@@ -18,6 +18,7 @@ package org.fede.calculator.service;
 
 import java.util.ArrayList;
 import java.util.Currency;
+import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Resource;
 import org.fede.calculator.money.ForeignExchange;
@@ -59,6 +60,18 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
         return series;
     }
 
+    
+    @Override
+    public List<ExpenseChartSeriesDTO> getSeriesWithoutTotal() {
+        List<ExpenseChartSeriesDTO> list = new ArrayList(this.getSeries());
+        for(Iterator<ExpenseChartSeriesDTO> it = list.iterator();it.hasNext();){
+            if(TOTAL_SERIES_NAME.equals(it.next().getName())){
+                it.remove();
+            }
+        }
+        return list;
+    }
+    
     @Override
     public void setSeries(List<ExpenseChartSeriesDTO> expenseSeries) {
         this.series = expenseSeries;
