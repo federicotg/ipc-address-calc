@@ -97,7 +97,13 @@
             <property name="seriesName" value="xbox.json" />
             <property name="color" value="green" />
         </bean>
-        
+
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="Compras" />
+            <property name="seriesName" value="compras.json" />
+            <property name="color" value="grey" />
+        </bean>
+                        
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Total" />
             <property name="seriesName" value="" />
