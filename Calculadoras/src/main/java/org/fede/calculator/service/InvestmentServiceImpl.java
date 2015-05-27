@@ -111,7 +111,8 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final MoneyAmountSeries pesos = JSONMoneyAmountSeries.readSeries("ahorros-peso.json");
 
-        final MoneyAmountSeries dollars = JSONMoneyAmountSeries.readSeries("ahorros-dolar.json");
+        final MoneyAmountSeries dollarsAndGold = JSONMoneyAmountSeries.readSeries("ahorros-dolar.json")
+                .add(ForeignExchange.USD_XAU.exchange(JSONMoneyAmountSeries.readSeries("ahorros-oro.json"), Currency.getInstance("USD")));
 
         final IndexSeries dollarPrice = JSONIndexSeries.readSeries("peso-dolar-libre.json");
 
@@ -137,7 +138,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                 SavingsReportDTO dto = new SavingsReportDTO(year, month);
                 report.add(dto);
 
-                MoneyAmount usd = dollars.getAmount(year, month);
+                MoneyAmount usd = dollarsAndGold.getAmount(year, month);
                 MoneyAmount ars = pesos.getAmount(year, month);
 
                 dto.setNominalDollars(usd.getAmount());

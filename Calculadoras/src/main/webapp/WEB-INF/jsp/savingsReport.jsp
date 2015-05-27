@@ -79,13 +79,13 @@
                     <th>Mes</th>
                     <th>Dolar</th>
                     <th>+/- %</th>
-                    <th>Dólares</th>
+                    <th>Dólares+Oro</th>
                     <th>Pesos</th>
                     <th>Total USD</th>
                     <th>+/- %</th>
                     <th>Total Pesos</th>
                     <th>+/- %</th>
-                    <th>Dólares</th>
+                    <th>Dólares+Oro</th>
                     <th>Pesos</th>
                     <th>Total USD</th>
                     <th>+/- %</th>
@@ -93,11 +93,11 @@
                     <th>+/- %</th>
                     <th>Pesos</th>
                     <th>% Ahorro</th>
-                    <th>Dólares</th>
+                    <th>Dólares+Oro</th>
                     <th>% Ahorro</th>
                     <th>Pesos</th>
                     <th>% Ahorro</th>
-                    <th>Dólares</th>
+                    <th>Dólares+Oro</th>
                     <th>% Ahorro</th>
                 </tr>
             </thead>
@@ -132,13 +132,13 @@
                     <th>Mes</th>
                     <th>Dolar</th>
                     <th>+/- %</th>
-                    <th>Dólares</th>
+                    <th>Dólares+Oro</th>
                     <th>Pesos</th>
                     <th>Total USD</th>
                     <th>+/- %</th>
                     <th>Total Pesos</th>
                     <th>+/- %</th>
-                    <th>Dólares</th>
+                    <th>Dólares+Oro</th>
                     <th>Pesos</th>
                     <th>Total USD</th>
                     <th>+/- %</th>
@@ -146,11 +146,11 @@
                     <th>+/- %</th>
                     <th>Pesos</th>
                     <th>% Ahorro</th>
-                    <th>Dólares</th>
+                    <th>Dólares+Oro</th>
                     <th>% Ahorro</th>
                     <th>Pesos</th>
                     <th>% Ahorro</th>
-                    <th>Dólares</th>
+                    <th>Dólares+Oro</th>
                     <th>% Ahorro</th>
                 </tr>
                 <tr>
