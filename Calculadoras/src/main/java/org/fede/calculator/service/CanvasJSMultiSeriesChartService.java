@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Resource;
 import org.fede.calculator.money.ForeignExchange;
-import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -200,8 +199,8 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
     }
 
     @Override
-    public CanvasJSChartDTO renderIncomeRelativeChart(String chartTitle, int months, List<String> seriesNames) throws NoSeriesDataFoundException {
-
+    public CanvasJSChartDTO renderIncomeRelativeChart(String chartTitle, int months, List<String> seriesNames, String currencyCode) throws NoSeriesDataFoundException {
+        final Currency currency = Currency.getInstance(currencyCode);
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
         if (seriesNames != null && !seriesNames.isEmpty()) {
 
@@ -209,8 +208,10 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
             for (ExpenseChartSeriesDTO s : this.series) {
                 if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
                     MoneyAmountSeries eachSeries = JSONMoneyAmountSeries.readSeries(s.getSeriesName());
-                    if (eachSeries.getCurrency().equals(Currency.getInstance("USD"))) {
-                        eachSeries = ForeignExchange.USD_ARS.exchange(eachSeries, Currency.getInstance("ARS"));
+                    
+                    if (!eachSeries.getCurrency().equals(currency)) {
+                        // convert to desired currency if needed
+                        eachSeries = this.getForeignExchange(eachSeries.getCurrency(), currency).exchange(eachSeries, currency);
                     }
                     if (sumSeries == null) {
                         sumSeries = eachSeries;

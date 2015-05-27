@@ -29,7 +29,7 @@ public interface MultiSeriesChartService {
     
 
     CanvasJSChartDTO renderAbsoluteChart(String title, int months, List<String> series, int year, int month, String currencyCode) throws NoSeriesDataFoundException;
-    CanvasJSChartDTO renderIncomeRelativeChart(String title, int months, List<String> series) throws NoSeriesDataFoundException;
+    CanvasJSChartDTO renderIncomeRelativeChart(String title, int months, List<String> series, String currencyCode) throws NoSeriesDataFoundException;
     List<ExpenseChartSeriesDTO> getSeries();
     void setSeries(List<ExpenseChartSeriesDTO> expenseSeries);
     List<ExpenseChartSeriesDTO> getSeriesWithoutTotal();

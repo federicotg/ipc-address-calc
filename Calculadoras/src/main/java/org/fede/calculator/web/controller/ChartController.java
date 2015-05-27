@@ -362,7 +362,7 @@ public class ChartController {
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.expenseService.renderIncomeRelativeChart("Gastos / Ingresos", dto.getMonths(), dto.getSeries());
+        return this.expenseService.renderIncomeRelativeChart("Gastos / Ingresos", dto.getMonths(), dto.getSeries(), "ARS");
     }
 
     @ResponseBody
