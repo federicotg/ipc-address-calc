@@ -19,15 +19,18 @@ package org.fede.calculator.money.series;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 
@@ -65,6 +68,26 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
         } catch (IOException ioEx) {
             throw new IllegalArgumentException("Could not read series named " + name, ioEx);
         }
+    }
+
+    public static List<MoneyAmountSeries> convertoToDollar(List<MoneyAmountSeries> series) throws NoSeriesDataFoundException {
+        final List<MoneyAmountSeries> answer = new ArrayList<>(series.size());
+
+        for (MoneyAmountSeries s : series) {
+            if (s.getCurrency().equals(Currency.getInstance("USD"))) {
+                answer.add(s);
+            } else if (s.getCurrency().equals(Currency.getInstance("ARA"))) {
+                answer.add(ForeignExchange.USD_ARS.exchange(s, Currency.getInstance("USD")));
+            } else if (s.getCurrency().equals(Currency.getInstance("XAU"))) {
+                answer.add(ForeignExchange.USD_XAU.exchange(s, Currency.getInstance("USD")));
+            } else if (s.getCurrency().equals(Currency.getInstance("EUR"))) {
+                answer.add(ForeignExchange.USD_EUR.exchange(s, Currency.getInstance("USD")));
+            } else {
+                throw new IllegalArgumentException("Can't convert from " + s.getCurrency().toString() + " to USD.");
+            }
+        }
+
+        return answer;
     }
 
     private final Currency currency;
@@ -136,12 +159,12 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
         if (!equal) {
             /*System.err.println("Not eq 1");
 
-            System.err.println(this.getCurrency());
-            System.err.println(other.getCurrency());
-            System.err.println(this.getFrom());
-            System.err.println(other.getFrom());
-            System.err.println(this.getTo());
-            System.err.println(other.getTo());*/
+             System.err.println(this.getCurrency());
+             System.err.println(other.getCurrency());
+             System.err.println(this.getFrom());
+             System.err.println(other.getFrom());
+             System.err.println(this.getTo());
+             System.err.println(other.getTo());*/
 
             return false;
         }
@@ -152,8 +175,8 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
                 equal &= e.getValue().equals(other.getAmount(e.getKey().getYear(), e.getKey().getMonth()));
             }
             /*if (!equal) {
-                System.err.println("Not eq 2");
-            }*/
+             System.err.println("Not eq 2");
+             }*/
             return equal;
         } catch (NoSeriesDataFoundException ex) {
 
