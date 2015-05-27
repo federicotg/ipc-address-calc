@@ -63,7 +63,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
     
     @Override
     public List<ExpenseChartSeriesDTO> getSeriesWithoutTotal() {
-        List<ExpenseChartSeriesDTO> list = new ArrayList(this.getSeries());
+        List<ExpenseChartSeriesDTO> list = new ArrayList<>(this.getSeries());
         for(Iterator<ExpenseChartSeriesDTO> it = list.iterator();it.hasNext();){
             if(TOTAL_SERIES_NAME.equals(it.next().getName())){
                 it.remove();
