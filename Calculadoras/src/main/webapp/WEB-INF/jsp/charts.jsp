@@ -38,6 +38,7 @@
             <li><a href="lifiaAndUnlp">LIFIA + UNLP</a></li>
             <li><a href="lifiaUnlpAndInterest">LIFIA + UNLP + Plazo Fijo</a></li>
             <li><a href="savings">Ahorros</a></li>
+            <li><a href="savingsDetailed">Ahorros Detallados</a></li>
             <li><a href="savedSalaries">Sueldos Ahorrados</a></li>
             <li><a href="goldSavings">Oro</a></li>
             <li><a href="incomes">Ingresos</a></li>

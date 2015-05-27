@@ -170,9 +170,7 @@
             <property name="seriesName" value="" />
             <property name="color" value="red" />
         </bean>
-        
     </util:list>
-
 
     <util:list id="incomesSeries" value-type="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
@@ -197,6 +195,35 @@
             <property name="color" value="black" />
         </bean>
     </util:list>
+
+    <util:list id="savingsSeries" value-type="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="Pesos" />
+            <property name="seriesName" value="ahorros-peso.json" />
+            <property name="color" value="Blue" />
+        </bean>
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="Dólares" />
+            <property name="seriesName" value="ahorros-dolar.json" />
+            <property name="color" value="Green" />
+        </bean>
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="Oro" />
+            <property name="seriesName" value="ahorros-oro.json" />
+            <property name="color" value="Gold" />
+        </bean>
+        
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="Total" />
+            <property name="seriesName" value="" />
+            <property name="color" value="black" />
+        </bean>
+    </util:list>
+
+    <bean class="org.fede.calculator.service.CanvasJSMultiSeriesChartService" name="savingsService" lazy-init="true">
+        <property name="series" ref="savingsSeries" />
+    </bean>
+
 
     <bean class="org.fede.calculator.service.CanvasJSMultiSeriesChartService" name="consortiumExpensesService" lazy-init="true">
         <property name="series" ref="consortiumExpenseSeries" />

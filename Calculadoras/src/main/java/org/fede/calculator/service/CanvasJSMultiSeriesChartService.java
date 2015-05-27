@@ -18,10 +18,13 @@ package org.fede.calculator.service;
 
 import java.util.ArrayList;
 import java.util.Currency;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Resource;
 import org.fede.calculator.money.ForeignExchange;
+import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -46,6 +49,12 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
     @Resource(name = "realPesosDatapointAssembler")
     @Lazy
     private CanvasJSDatapointAssembler realPesosDatapointAssembler;
+    
+    @Resource(name = "realUSDDatapointAssembler")
+    @Lazy
+    private CanvasJSDatapointAssembler realUSDDatapointAssembler;
+    
+    
 
     @Resource(name = "nominalPesosDatapointAssembler")
     @Lazy
@@ -60,25 +69,76 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
         return series;
     }
 
-    
     @Override
     public List<ExpenseChartSeriesDTO> getSeriesWithoutTotal() {
         List<ExpenseChartSeriesDTO> list = new ArrayList<>(this.getSeries());
-        for(Iterator<ExpenseChartSeriesDTO> it = list.iterator();it.hasNext();){
-            if(TOTAL_SERIES_NAME.equals(it.next().getName())){
+        for (Iterator<ExpenseChartSeriesDTO> it = list.iterator(); it.hasNext();) {
+            if (TOTAL_SERIES_NAME.equals(it.next().getName())) {
                 it.remove();
             }
         }
         return list;
     }
-    
+
     @Override
     public void setSeries(List<ExpenseChartSeriesDTO> expenseSeries) {
         this.series = expenseSeries;
     }
 
+    private CanvasJSDatapointAssembler getAssemblerFor(Currency currency) {
+        Map<Currency, CanvasJSDatapointAssembler> assemblers = new HashMap<>();
+
+        assemblers.put(Currency.getInstance("USD"), realUSDDatapointAssembler);
+        assemblers.put(Currency.getInstance("ARS"),realPesosDatapointAssembler);
+
+        return assemblers.get(currency);
+    }
+
+    private ForeignExchange getForeignExchange(Currency from, Currency to) {
+
+        final Currency usd = Currency.getInstance("USD");
+        final Currency ars = Currency.getInstance("ARS");
+        final Currency eur = Currency.getInstance("EUR");
+        final Currency xau = Currency.getInstance("XAU");
+
+        if (from.equals(usd)) {
+            if (to.equals(ars)) {
+                return ForeignExchange.USD_ARS;
+            }
+        }
+
+        if (from.equals(ars)) {
+            if (to.equals(usd)) {
+                return ForeignExchange.USD_ARS;
+            }
+        }
+
+        if (from.equals(xau)) {
+            if (to.equals(usd)) {
+                return ForeignExchange.USD_XAU;
+            }
+        }
+
+        if (from.equals(eur)) {
+            if (to.equals(usd)) {
+                return ForeignExchange.USD_EUR;
+            }
+        }
+
+        throw new IllegalArgumentException("No currency conversion set up from " + from.toString() + " to " + to.toString());
+
+    }
+
     @Override
-    public CanvasJSChartDTO renderAbsoluteChart(String chartTitle, int months, List<String> seriesNames, int year, int month) throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO renderAbsoluteChart(
+            String chartTitle,
+            int months,
+            List<String> seriesNames,
+            int year,
+            int month,
+            String currencyCode) throws NoSeriesDataFoundException {
+
+        final Currency currency = Currency.getInstance(currencyCode);
 
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>();
 
@@ -97,11 +157,15 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                 if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
 
                     MoneyAmountSeries eachSeries = JSONMoneyAmountSeries.readSeries(s.getSeriesName());
+                    if (!eachSeries.getCurrency().equals(currency)) {
+                        // convert to desired currency if needed
+                        eachSeries = this.getForeignExchange(eachSeries.getCurrency(), currency).exchange(eachSeries, currency);
+                    }
                     if (collectTotal) {
                         if (totalSeries == null) {
                             totalSeries = eachSeries;
                         } else {
-                            totalSeries = totalSeries.add(BaseCanvasJSDatapointAssembler.dollarToPesosIfNeeded(eachSeries));
+                            totalSeries = totalSeries.add(eachSeries);
                         }
                     }
 
@@ -109,7 +173,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                             "line",
                             s.getColor(),
                             s.getName(),
-                            this.realPesosDatapointAssembler.getDatapoints(months, eachSeries, year, month)
+                            this.getAssemblerFor(currency).getDatapoints(months, eachSeries, year, month)
                     ));
                 }
             }
@@ -118,7 +182,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                         "line",
                         totalColor,
                         "Total",
-                        this.realPesosDatapointAssembler.getDatapoints(months, totalSeries, year, month)
+                        this.getAssemblerFor(currency).getDatapoints(months, totalSeries, year, month)
                 ));
             }
         }
@@ -128,7 +192,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
         dto.setTitle(title);
         dto.setXAxisTitle("Fecha");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
-        yAxis.setTitle("Pesos Reales");
+        yAxis.setTitle(currencyCode + " Reales");
         yAxis.setValueFormatString("$0");
         dto.setAxisY(yAxis);
         dto.setData(seriesList);
