@@ -29,14 +29,20 @@
               href="/images/favicon.png" />
         <title>${title}</title>
         <link rel="stylesheet" type="text/css" href="/styles/style.css" />
-        <%--script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/mootools/1.5.1/mootools-yui-compressed.js"></script--%>
-        <%--script type="text/javascript" src="/scripts/canvasjs.min.js"></script--%>
         <script type="text/javascript" src="/scripts/all.js"></script>
         <script type="text/javascript">
 
             window.addEvent('domready', function () {
 
                 reloadChart();
+                document.id('changeAll').addEvent('change', function(){
+                    
+                var state = document.id('changeAll').checked;
+                $$(".chbx").each(function(item, index){
+                        item.checked=state;
+                    });
+                reloadChart();    
+                });
 
             });
 
@@ -55,7 +61,7 @@
                 var month = document.id('month').value;
                 showChart('/secure/${uri}.json', 'months=' + m + series+"&year="+year+"&month="+month, 'chartContainer');
             }
-
+ 
         </script>
     </head>
     <body>
@@ -63,7 +69,8 @@
         <h1>${title}</h1>
         <form:form modelAttribute="dto">
             <c:if test="${not empty monthlyPeriods}">
-                <form:checkboxes items="${series}" path="series" itemValue="name" itemLabel="name" onchange="reloadChart()" /><br/>
+                <input type="checkbox" id="changeAll" checked="checked" /><label for="changeAll">Todos</label>
+                <form:checkboxes items="${series}" path="series" itemValue="name" cssClass="chbx" itemLabel="name" onchange="reloadChart()" /><br/>
                 <label for="months">Aplicar promedio </label>
 
                 <form:select id="months" path="months" onchange="reloadChart()">
