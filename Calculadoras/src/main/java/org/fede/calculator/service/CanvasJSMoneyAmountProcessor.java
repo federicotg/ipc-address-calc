@@ -36,7 +36,7 @@ public class CanvasJSMoneyAmountProcessor implements MoneyAmountProcessor {
         @Override
         public void process(int year, int month, MoneyAmount amount) {
             CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
-                    "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-28"), amount.getAmount());
+                    "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-15"), amount.getAmount());
             datapoints.add(dataPoint);
         }
 }
