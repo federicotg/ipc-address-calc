@@ -50,7 +50,9 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
             for (JSONDataPoint dp : series.getData()) {
                 interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), currency));
             }
-
+            if (series.getData().size() != interpolatedData.size()) {
+                throw new IllegalArgumentException("Series " + name + " has incorrect year and month sequence.");
+            }
             Map<YearMonth, MoneyAmount> extraData = new HashMap<>();
             YearMonth previousKey = interpolatedData.firstKey();
             MoneyAmount previousValue = interpolatedData.get(interpolatedData.firstKey());
