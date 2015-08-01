@@ -430,6 +430,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(10, 11)
                 .discBox(9, 12)
                 .discBox(10, 12)
+                .seenByAnaMaria()
                 .build();
         new DigitalContent.Builder("Marco Spada").ballet().atBolshoi().on("30/03/2014").fullHD().mkv()
                 .discBox(9, 4)
@@ -467,7 +468,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByElsa()
                 .imdb("http://www.imdb.com/title/tt1833535/")
                 .build();
-        new DigitalContent.Builder("La Source").ballet().atParis().on("11/04/2011").hd720().mkv().discBox(4, 7).build();
+        new DigitalContent.Builder("La Source").ballet().atParis().on("11/04/2011").hd720().mkv().discBox(4, 7)
+                .seenByAnaMaria()
+                .build();
         new DigitalContent.Builder("Lost Illusions").ballet().atBolshoi().on("20/10/2013").fullHD().mkv().discBox(4, 15)
                 .seenByAnaMaria()
                 .build();
@@ -553,6 +556,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         new DigitalContent.Builder("La fille mal gardée").ballet().atRoh().on("16/05/2012").hd720().mkv().discBox(8, 3)
                 .seenByFede()
+                .seenByAnaMaria()
                 .build();
         new DigitalContent.Builder("Legend of Love").ballet().atBolshoi().on("26/10/2014").fullHD().mkv()
                 .discBox(8, 2)

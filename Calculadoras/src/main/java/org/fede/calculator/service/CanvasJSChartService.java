@@ -31,6 +31,7 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.ForeignExchange.USD_ARS;
 import static org.fede.calculator.money.ForeignExchange.USD_XAU;
+import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import static org.fede.calculator.money.series.JSONMoneyAmountSeries.readSeries;
@@ -287,11 +288,9 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
     @Override
     public CanvasJSChartDTO hisotricDollar() throws NoSeriesDataFoundException {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.MONTH, -2);
-        final int todayMonth = cal.get(Calendar.MONTH) + 1;
-        final int todayYear = cal.get(Calendar.YEAR);
-
+        YearMonth latestData = Inflation.USD_INFLATION.getTo();
+        final int todayMonth = latestData.getMonth();
+        final int todayYear = latestData.getYear();
         final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
         final Currency ars = Currency.getInstance("ARS");
 
@@ -300,7 +299,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
                         USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), ars), todayYear, todayMonth);
         DateFormat df = new SimpleDateFormat("MMM/YYYY");
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Dólar en Pesos de " + df.format(cal.getTime()));
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Dólar en Pesos de " + todayMonth +"/"+todayYear);
         dto.setTitle(title);
         dto.setXAxisTitle("Año");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
