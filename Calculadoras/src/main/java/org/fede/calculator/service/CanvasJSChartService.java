@@ -17,14 +17,10 @@
 package org.fede.calculator.service;
 
 import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import javax.annotation.Resource;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
@@ -297,9 +293,9 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         final MoneyAmountSeries historicDollar = ARS_INFLATION.adjust(
                 USD_ARS.exchange(
                         USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), ars), todayYear, todayMonth);
-        DateFormat df = new SimpleDateFormat("MMM/YYYY");
+
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Dólar en Pesos de " + todayMonth +"/"+todayYear);
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Dólar en Pesos de " + MONTH_NAMES.get(todayMonth) +"/"+todayYear);
         dto.setTitle(title);
         dto.setXAxisTitle("Año");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
@@ -318,19 +314,19 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
     @Override
     public CanvasJSChartDTO historicGold() throws NoSeriesDataFoundException {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.MONTH, -2);
-        final int todayMonth = cal.get(Calendar.MONTH) + 1;
-        final int todayYear = cal.get(Calendar.YEAR);
+        
+        final YearMonth latestUSDCPIData = USD_INFLATION.getTo();
+        
+        final int todayMonth = latestUSDCPIData.getMonth();
+        final int todayYear = latestUSDCPIData.getYear();
 
         final Currency usd = Currency.getInstance("USD");
         final MoneyAmount oneTroyOunce = new MoneyAmount(BigDecimal.ONE, "XAU");
 
         final MoneyAmountSeries historicGold = USD_INFLATION.adjust(USD_XAU.exchange(oneTroyOunce, usd), todayYear, todayMonth);
 
-        DateFormat df = new SimpleDateFormat("MMM/YYYY", Locale.forLanguageTag("es-AR"));
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Onza Troy en USD de " + df.format(cal.getTime()));
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Onza Troy en USD de " + MONTH_NAMES.get(todayMonth) +" / "+todayYear);
         dto.setTitle(title);
         dto.setXAxisTitle("Año");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();

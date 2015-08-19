@@ -75,9 +75,9 @@ public class ChartController {
     @Lazy
     private MultiSeriesChartService savingsService;
 
-    @Resource(name = "argMoneyService")
+    @Resource(name = "usdMoneyService")
     @Lazy
-    private MoneyService arsMoneyService;
+    private MoneyService referenceMoneyService;
 
     @Resource(name = "monthlyPeriod")
     @Lazy
@@ -98,7 +98,7 @@ public class ChartController {
     }
 
     private CombinedChartDTO createCombinedChartDTO() {
-        return new CombinedChartDTO(arsMoneyService.getLimits());
+        return new CombinedChartDTO(referenceMoneyService.getLimits());
     }
 
     @RequestMapping(value = "unlp", method = RequestMethod.GET)
@@ -190,7 +190,7 @@ public class ChartController {
     }
 
     private ModelAndView buildExpenseModelAndView(String title, List<ExpenseChartSeriesDTO> dtoSeries, String uri, int months) {
-        ExpenseChartDTO chartDto = new ExpenseChartDTO(this.arsMoneyService.getLimits());
+        ExpenseChartDTO chartDto = new ExpenseChartDTO(this.referenceMoneyService.getLimits());
         chartDto.setMonths(months);
         List<String> series = new ArrayList<>(dtoSeries.size());
         for (ExpenseChartSeriesDTO e : dtoSeries) {
@@ -218,7 +218,7 @@ public class ChartController {
     @RequestMapping(value = "expensesPercent", method = RequestMethod.GET)
     public ModelAndView expensesPercent() {
 
-        ExpenseChartDTO chartDto = new ExpenseChartDTO(this.arsMoneyService.getLimits());
+        ExpenseChartDTO chartDto = new ExpenseChartDTO(this.referenceMoneyService.getLimits());
         List<String> series = new ArrayList<>();
         for (ExpenseChartSeriesDTO e : this.expenseService.getSeries()) {
             series.add(e.getName());
