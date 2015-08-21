@@ -93,11 +93,11 @@
                     <th>+/- %</th>
                     <th>Pesos</th>
                     <th>% Ahorro</th>
-                    <th>Dólares+Oro</th>
+                    <th>Dólares</th>
                     <th>% Ahorro</th>
                     <th>Pesos</th>
                     <th>% Ahorro</th>
-                    <th>Dólares+Oro</th>
+                    <th>Dólares</th>
                     <th>% Ahorro</th>
                 </tr>
             </thead>
