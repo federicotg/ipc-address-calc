@@ -53,18 +53,23 @@
             .ORATORIO{
                 background-color: burlywood;
             }
+            nav a {
+                background-color: cornsilk;
+                margin: 0.2em;
+                display:inline-block;
+            }
         </style>
     </head>
     <body>
         <%@include file="../jspf/menu.jspf" %>
         <h1 id="top">Contenido de las Cajas</h1>
-
+        <nav>
         <c:forEach items="${boxes}" var="boxLabel">
-            <a href="#${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> 
+            <a href="#${boxLabel.boxName}" class="opusSpan">Caja ${boxLabel.boxName}</a> 
         </c:forEach>
-        
+        </nav>
         <c:forEach items="${boxes}" var="boxLabel">
-            <h2><a id="${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> <a href="#top">&#x25B5; Volver al principio</a></h2>
+            <h2><a id="${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> <a href="#top">&#x25B5;</a></h2>
             <ul>
                 <c:forEach items="${boxLabel.contents}" var="medium">
                     <li>${medium.mediumName}
