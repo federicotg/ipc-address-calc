@@ -58,6 +58,9 @@
                 margin: 0.2em;
                 display:inline-block;
             }
+            .gotop{
+                font-size: 50%;
+            }
         </style>
     </head>
     <body>
@@ -69,7 +72,7 @@
         </c:forEach>
         </nav>
         <c:forEach items="${boxes}" var="boxLabel">
-            <h2><a id="${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> <a href="#top">&#x25B5;</a></h2>
+            <h2><a id="${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> <span class="gotop"><a href="#top">Volver al principio</a></span></h2>
             <ul>
                 <c:forEach items="${boxLabel.contents}" var="medium">
                     <li>${medium.mediumName}
