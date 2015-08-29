@@ -19,7 +19,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
-<html>
+<html lang="es">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -27,11 +27,11 @@
               type="image/png" 
               href="/images/favicon.png" />
         <link rel="stylesheet" type="text/css" href="/styles/style.css" />
-        <title>Catálogo</title>
+        <title>Catálogo de Contenidos Digitales</title>
     </head>
     <body>
         <%@include file="../jspf/menu.jspf" %>
-        <h1>Catálogo</h1>
+        <h1>Catálogo de Contenidos Digitales</h1>
         <ul>
             <li><a href="report">Reporte</a></li>
             <li><a href="boxes">Cajas</a></li>

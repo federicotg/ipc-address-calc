@@ -21,17 +21,17 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <!DOCTYPE html>
-<html>
+<html lang="es">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <link rel="icon" 
               type="image/png" 
               href="/images/favicon.png" />
-        <title>Login</title>
+        <title>Ingreso al Sistema</title>
     </head>
     <body>
-        <h1>Login</h1>
+        <h1>Ingreso al Sistema</h1>
         <form action="<c:url value='j_spring_security_check'/>" method="POST">
             <input type="text" name="j_username" />
             <input type="password" name="j_password"/>

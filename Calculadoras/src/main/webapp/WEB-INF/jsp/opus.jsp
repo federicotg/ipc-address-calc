@@ -20,14 +20,14 @@
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html>
+<html lang="es">
     <head profile="http://www.w3.org/25/10/profile">
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <link rel="icon" 
               type="image/png" 
               href="/images/favicon.png" />
-        <title>Opuses</title>
+        <title>${title}</title>
         <link rel="stylesheet" type="text/css" href="/styles/style.css" />
         <style type="text/css">
             li{
@@ -57,7 +57,7 @@
     </head>
     <body>
         <%@include file="../jspf/menu.jspf" %>
-        <h1>Opus</h1>
+        <h1>${title}</h1>
         <ul>
             <c:forEach items="${list}" var="op">
                 <li><span class="opusSpan ${op.type}">${op.name}</span></li>

@@ -20,14 +20,14 @@
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html>
+<html lang="es">
     <head profile="http://www.w3.org/25/10/profile">
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <link rel="icon" 
               type="image/png" 
               href="/images/favicon.png" />
-        <title>Cajas</title>
+        <title>Contenido de las Cajas</title>
         <link rel="stylesheet" type="text/css" href="/styles/style.css" />
         <style type="text/css">
             li{
@@ -57,14 +57,14 @@
     </head>
     <body>
         <%@include file="../jspf/menu.jspf" %>
-        <h1 id="top">Cajas</h1>
+        <h1 id="top">Contenido de las Cajas</h1>
 
         <c:forEach items="${boxes}" var="boxLabel">
-            <a href="#${boxLabel.boxName}">${boxLabel.boxName}</a> 
+            <a href="#${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> 
         </c:forEach>
         
         <c:forEach items="${boxes}" var="boxLabel">
-            <h2><a id="${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> <a href="#top">&#x25B5;</a></h2>
+            <h2><a id="${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> <a href="#top">&#x25B5; Volver al principio</a></h2>
             <ul>
                 <c:forEach items="${boxLabel.contents}" var="medium">
                     <li>${medium.mediumName}

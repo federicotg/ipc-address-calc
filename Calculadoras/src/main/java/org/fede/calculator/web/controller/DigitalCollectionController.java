@@ -103,13 +103,13 @@ public class DigitalCollectionController {
 
     @RequestMapping(value = "/unseen", method = RequestMethod.GET)
     public ModelAndView unseen() {
-        return new ModelAndView("opus", "list", this.dcService.unseenBy("Federico"));
+        return new ModelAndView("opus", "list", this.dcService.unseenBy("Federico")).addObject("title", "Obras no vistas");
 
     }
 
     @RequestMapping(value = "/notInHD", method = RequestMethod.GET)
     public ModelAndView notInHD() {
-        return new ModelAndView("opus", "list", this.dcService.unavailableInHD());
+        return new ModelAndView("opus", "list", this.dcService.unavailableInHD()).addObject("title", "Obras que no están en HD");
 
     }
 
