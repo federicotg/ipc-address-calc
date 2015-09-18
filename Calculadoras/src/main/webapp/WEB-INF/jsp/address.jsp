@@ -17,11 +17,13 @@
  
 --%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <html lang="es">
     <head profile="http://www.w3.org/2005/10/profile">
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <security:csrfMetaTags />
         <link rel="icon" 
               type="image/png" 
               href="/images/favicon.png" />
@@ -101,6 +103,12 @@
                         showResult(text + ' - ' + error, document.id('result'));
                     }
                 });
+                
+                
+                var csrfParameter = $$("meta[name='_csrf_parameter']").get("content")[0];
+                var csrfHeader = $$("meta[name='_csrf_header']").get("content")[0];
+                var csrfToken = $$("meta[name='" + csrfParameter + "']").get("content")[0];
+                req.setHeader(csrfHeader, csrfToken);
 
                 var streetAction = function (event) {
                     event.stop();

@@ -27,7 +27,7 @@
     <security:http auto-config="true" use-expressions="true">
         <!--<security:intercept-url pattern="/secure/**" access="isFullyAuthenticated() and (hasIpAddress('190.247.164.0/255') or hasIpAddress('127.0.0.1'))" />-->
         <security:intercept-url pattern="/secure/**" access="isFullyAuthenticated()" />
-        <security:form-login login-page="/login" authentication-failure-url="/login?login_error=1"/>
+        <security:form-login login-page="/login" />
         <security:logout logout-url="/logout" logout-success-url="/" invalidate-session="true" />
     </security:http>
 

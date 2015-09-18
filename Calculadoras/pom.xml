@@ -13,8 +13,8 @@
         <appengine.app.version>1</appengine.app.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.springframework.version>4.2.1.RELEASE</org.springframework.version>
-        <spring-security.version>3.2.7.RELEASE</spring-security.version>
-        <com.google.appengine.version>1.9.25</com.google.appengine.version>
+        <spring-security.version>4.0.2.RELEASE</spring-security.version>
+        <com.google.appengine.version>1.9.26</com.google.appengine.version>
         <hibernate-validator-version>4.3.2.Final</hibernate-validator-version>
         <jackson2-version>2.6.1</jackson2-version>
     </properties>

@@ -34,12 +34,12 @@
         <h1>Ingreso al Sistema</h1>
         
        
-        <spring:url value="j_spring_security_check" var="login"/>
+        <spring:url value="login" var="login"/>
         <form:form action="${login}" modelAttribute="form" method="POST">
-            <form:input path="j_username" />
-            <form:password path="j_password"/>
+            <form:input path="username" />
+            <form:password path="password"/>
             <form:button type="submit" name="submit">Ingreso</form:button>
-            <c:if test="${not empty param.login_error}">Nombre de usuario o contraseña incorrectos.</c:if>
+            <c:if test="${not empty param.error}">Nombre de usuario o contraseña incorrectos.</c:if>
         </form:form>
     </body>
 </html>
