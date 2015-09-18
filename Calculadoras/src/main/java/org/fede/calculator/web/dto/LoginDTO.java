@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 fede
+ * Copyright (C) 2015 Federico Tello Gentile <federicotg@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,24 +14,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.web.controller;
-
-import org.fede.calculator.web.dto.LoginDTO;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.ModelAndView;
+package org.fede.calculator.web.dto;
 
 /**
  *
- * @author fede
+ * @author Federico Tello Gentile <federicotg@gmail.com>
  */
-@Lazy
-@Controller
-public class AuthenticationController {
-    @RequestMapping(value = "/login", method = RequestMethod.GET)
-    public ModelAndView login() {
-        return new ModelAndView("login", "form", new LoginDTO());
+public class LoginDTO {
+
+    private String j_username;
+    private String j_password;
+
+    public String getJ_username() {
+        return j_username;
     }
+
+    public void setJ_username(String j_username) {
+        this.j_username = j_username;
+    }
+
+    public String getJ_password() {
+        return j_password;
+    }
+
+    public void setJ_password(String j_password) {
+        this.j_password = j_password;
+    }
+
 }
