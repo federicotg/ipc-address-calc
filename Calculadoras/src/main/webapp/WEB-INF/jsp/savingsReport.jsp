@@ -126,7 +126,6 @@
                         <td headers="usd3" class="valueTdUsd"><fmt:formatNumber type="CURRENCY">${item.nov99IncomeDollars}</fmt:formatNumber></td>
                         <td headers="savings" class="valueTdUsd last"><fmt:formatNumber type="PERCENT">${item.nov99DollarPctSaved}</fmt:formatNumber></td>
                     </tr></c:forEach></tbody>
-
             <tfoot>
                 <tr>
                     <th>Mes</th>
@@ -146,11 +145,11 @@
                     <th>+/- %</th>
                     <th>Pesos</th>
                     <th>% Ahorro</th>
-                    <th>Dólares+Oro</th>
+                    <th>Dólares</th>
                     <th>% Ahorro</th>
                     <th>Pesos</th>
                     <th>% Ahorro</th>
-                    <th>Dólares+Oro</th>
+                    <th>Dólares</th>
                     <th>% Ahorro</th>
                 </tr>
                 <tr>
