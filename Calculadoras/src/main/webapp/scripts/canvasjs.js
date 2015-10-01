@@ -1,5 +1,5 @@
 ﻿/**
-* @preserve CanvasJS HTML5 & JavaScript Charts - v1.5.5 GA- http://canvasjs.com/ 
+* @preserve CanvasJS HTML5 & JavaScript Charts - v1.7.0 GA - http://canvasjs.com/ 
 * Copyright 2013 fenopix
 */
 
@@ -35,7 +35,10 @@
 			zoomEnabled: false,
 			backgroundColor: "white",
 			theme: "theme1",
-			animationEnabled: isCanvasSupported ? true : false,
+			animationEnabled: false,
+			animationDuration: 1200,
+			dataPointMaxWidth: null,
+
 			colorSet: "colorSet1",
 			culture: "en",
 			creditText: "CanvasJS.com",
@@ -59,7 +62,34 @@
 			borderColor: "black",
 			cornerRadius: 0,
 			backgroundColor: null,
-			margin: 5
+			margin: 5,
+			wrap: true,
+			maxWidth: null,
+
+			dockInsidePlotArea: false
+			//toolTipContent: null//string - To be implemented (TBI)
+		},
+
+		Subtitle: {
+			padding: 0,
+			text: null,
+			verticalAlign: "top",//top, center, bottom
+			horizontalAlign: "center",//left, center, right
+			fontSize: 14,//in pixels
+			fontFamily: "Calibri",
+			fontWeight: "normal", //normal, bold, bolder, lighter,
+			fontColor: "black",
+			fontStyle: "normal", // normal, italic, oblique
+
+			borderThickness: 0,
+			borderColor: "black",
+			cornerRadius: 0,
+			backgroundColor: null,
+			margin: 2,
+			wrap: true,
+			maxWidth: null,
+
+			dockInsidePlotArea: false
 			//toolTipContent: null//string - To be implemented (TBI)
 		},
 
@@ -78,15 +108,40 @@
 			itemmouseover: null,
 			itemmouseout: null,
 			itemmousemove: null,
-			itemclick: null
+			itemclick: null,
+
+			dockInsidePlotArea: false,
+			reversed: false,
+
+			maxWidth: null,
+			maxHeight: null,
+
+			itemMaxWidth: null,
+			itemWidth: null,
+			itemWrap: true,
+			itemTextFormatter: null
 		},
 
 		ToolTip: {
 			enabled: true,
-			borderColor: null,
 			shared: false,
 			animationEnabled: true,
-			content: null
+			content: null,
+			contentFormatter: null,
+
+			reversed: false,
+
+			backgroundColor: null,
+
+			borderColor: null,
+			borderThickness: 2, //in pixels
+			cornerRadius: 5, // in pixels
+
+			fontSize: 14, // in pixels
+			fontColor: "#000000",
+			fontFamily: "Calibri, Arial, Georgia, serif;",
+			fontWeight: "normal", //normal, bold, bolder, lighter,
+			fontStyle: "italic"  // normal, italic, oblique
 		},
 
 		Axis: {
@@ -111,6 +166,7 @@
 			labelAutoFit: false,
 			labelWrap: true,
 			labelMaxWidth: null,//null for auto
+			labelFormatter: null,
 
 			prefix: "",
 			suffix: "",
@@ -123,9 +179,11 @@
 
 			lineColor: "black",
 			lineThickness: 1,
+			lineDashType: "solid",
 
 			gridColor: "A0A0A0",
 			gridThickness: 0,
+			gridDashType: "solid",
 
 			interlacedColor: null,
 
@@ -142,14 +200,19 @@
 			endValue: null,
 
 			color: "orange",
+			opacity: null,
 			thickness: 2,
+			lineDashType: "solid",
 			label: "",
 			labelBackgroundColor: "#EEEEEE",
 			labelFontFamily: "arial",
 			labelFontColor: "orange",
 			labelFontSize: 12,
 			labelFontWeight: "normal",
-			labelFontStyle: "normal"
+			labelFontStyle: "normal",
+			labelFormatter: null,
+
+			showOnTop: false
 		},
 
 		DataSeries: {
@@ -157,6 +220,7 @@
 			dataPoints: null,
 			label: "",
 			bevelEnabled: false,
+			highlightEnabled: true,
 
 			cursor: null,
 
@@ -171,10 +235,13 @@
 			indexLabelBackgroundColor: null,
 			indexLabelLineColor: null,
 			indexLabelLineThickness: 1,
+			indexLabelLineDashType: "solid",
 			indexLabelMaxWidth: null,
 			indexLabelWrap: true,
+			indexLabelFormatter: null,
 
 			lineThickness: 2,
+			lineDashType: "solid",
 
 			color: null,
 			risingColor: "white",
@@ -195,6 +262,8 @@
 			legendMarkerType: null,
 			legendMarkerColor: null,
 			legendText: null,
+			legendMarkerBorderColor: null,
+			legendMarkerBorderThickness: null,
 
 			markerType: "circle", //none, circle, square, cross, triangle, line
 			markerColor: null,
@@ -210,25 +279,6 @@
 
 			visible: true
 		},
-
-		CultureInfo: {
-			decimalSeparator: ".",
-			digitGroupSeparator: ",",
-			zoomText: "Zoom",
-			panText: "Pan",
-			resetText: "Reset",
-
-			menuText: "More Options",
-			saveJPGText: "Save as JPG",
-			savePNGText: "Save as PNG",
-
-			days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-			shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-
-			months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-			shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-		},
-
 
 		//Private
 		TextBlock: {
@@ -253,6 +303,24 @@
 			cornerRadius: 0,
 			backgroundColor: null,
 			textBaseline: "top"
+		},
+
+		CultureInfo: {
+			decimalSeparator: ".",
+			digitGroupSeparator: ",",
+			zoomText: "Zoom",
+			panText: "Pan",
+			resetText: "Reset",
+
+			menuText: "More Options",
+			saveJPGText: "Save as JPG",
+			savePNGText: "Save as PNG",
+
+			days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+			shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+
+			months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+			shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 		}
 	};
 
@@ -371,7 +439,15 @@
 					fontColor: "#3A3A3A",
 					fontWeight: "bold",
 					verticalAlign: "top",
-					margin: 10
+					margin: 5
+				},
+				Subtitle: {
+					fontFamily: isCanvasSupported ? "Calibri, Optima, Candara, Verdana, Geneva, sans-serif" : "calibri",
+					fontSize: 16,
+					fontColor: "#3A3A3A",
+					fontWeight: "bold",
+					verticalAlign: "top",
+					margin: 5
 				},
 				Axis: {
 					titleFontSize: 26,
@@ -421,12 +497,15 @@
 					fontFamily: "impact, charcoal, arial black, sans-serif",
 					fontSize: 32,//fontColor: "rgb(58,58,58)",
 					fontColor: "#333333",
-					//fontFamily: "arial black", fontSize: 30,//fontColor: "rgb(58,58,58)",
-					//fontFamily: "arial black",
-					//fontFamily: "Helvetica Neue, Helvetica", fontSize: 35,// fontColor: "rgb(58,58,58)",
-					//fontWeight: "bold",
 					verticalAlign: "top",
-					margin: 10
+					margin: 5
+				},
+				Subtitle: {
+					fontFamily: "impact, charcoal, arial black, sans-serif",
+					fontSize: 14,//fontColor: "rgb(58,58,58)",
+					fontColor: "#333333",
+					verticalAlign: "top",
+					margin: 5
 				},
 				Axis: {
 					titleFontSize: 22,
@@ -445,6 +524,7 @@
 					tickThickness: 2,
 					gridThickness: 2,
 					gridColor: "grey",
+					lineColor: "grey",
 					lineThickness: 0
 				},
 				Legend: {
@@ -469,18 +549,20 @@
 						colorSet: "colorSet1"
 					},
 				Title: {
-					//fontFamily: "impact, charcoal, arial black, sans-serif", fontSize: 30,//fontColor: "rgb(58,58,58)",
-					//fontFamily: "arial black", fontSize: 30,//fontColor: "rgb(58,58,58)",
-					//fontFamily: "arial black",
 					fontFamily: isCanvasSupported ? "Candara, Optima, Trebuchet MS, Helvetica Neue, Helvetica, Trebuchet MS, serif" : "calibri",
 					fontSize: 32,
-					//fontFamily: "Palatino Linotype, Book Antiqua, Palatino, serif", fontSize: 30,
-					//fontFamily: "Lucida Sans Unicode, Lucida Grande, Trebuchet MS, sans-serif", fontSize: 30,
-					//fontColor: "rgb(68,78,58)",
 					fontColor: "#3A3A3A",
 					fontWeight: "bold",
 					verticalAlign: "top",
-					margin: 10
+					margin: 5
+				},
+				Subtitle: {
+					fontFamily: isCanvasSupported ? "Candara, Optima, Trebuchet MS, Helvetica Neue, Helvetica, Trebuchet MS, serif" : "calibri",
+					fontSize: 16,
+					fontColor: "#3A3A3A",
+					fontWeight: "bold",
+					verticalAlign: "top",
+					margin: 5
 				},
 				Axis: {
 					titleFontSize: 22,
@@ -538,10 +620,10 @@
 
 	//#region Static Methods & variables
 
-	function extend(Child, Parent) {
-		Child.prototype = inherit(Parent.prototype);
-		Child.prototype.constructor = Child;
-		Child.parent = Parent.prototype;
+	function extend(derived, base) {
+		derived.prototype = inherit(base.prototype);
+		derived.prototype.constructor = derived;
+		derived.base = base.prototype;
 	}
 
 	function inherit(proto) {
@@ -699,6 +781,33 @@
 		return rgb;
 	}
 
+	function arrayIndexOf(elt /*, from*/) {
+		var len = this.length >>> 0;
+
+		var from = Number(arguments[1]) || 0;
+		from = (from < 0)
+			 ? Math.ceil(from)
+			 : Math.floor(from);
+		if (from < 0)
+			from += len;
+
+		for (; from < len; from++) {
+			if (from in this &&
+				this[from] === elt)
+				return from;
+		}
+		return -1;
+	};
+
+	//IE8- Fix: indexOf is not supported in IE8- for arrays
+	function addArrayIndexOf(obj) {
+		if (!obj.indexOf) {
+			obj.indexOf = arrayIndexOf;
+		}
+
+		return obj;
+	}
+
 	var fontHeightInPixels = {};
 	var textMeasureEl = null;
 	function getFontHeightInPixels(fontFamily, fontSize, fontWeight) {
@@ -743,6 +852,38 @@
 		}
 
 		return height;
+	}
+
+	function getLineDashArray(lineDashType, lineThickness) {
+		var lineDashArray = [];
+
+		lineDashType = lineDashType || "solid";
+
+		lineDashTypeMap = {
+			"solid": [],
+			"shortDash": [3, 1],
+			"shortDot": [1, 1],
+			"shortDashDot": [3, 1, 1, 1],
+			"shortDashDotDot": [3, 1, 1, 1, 1, 1],
+			"dot": [1, 2],
+			"dash": [4, 2],
+			"dashDot": [4, 2, 1, 2],
+			"longDash": [8, 2],
+			"longDashDot": [8, 2, 1, 2],
+			"longDashDotDot": [8, 2, 1, 2, 1, 2]
+		};
+
+		lineDashArray = lineDashTypeMap[lineDashType];
+
+		if (lineDashArray) {
+
+			for (var i = 0; i < lineDashArray.length; i++) {
+				lineDashArray[i] *= lineThickness;
+			}
+		} else
+			lineDashArray = [];
+
+		return lineDashArray;
 	}
 
 	//userCapture is optional. Defaults to false
@@ -1195,7 +1336,6 @@
 	var devicePixelBackingStoreRatio = optimizeForHiDPI ? devicePixelRatio / backingStoreRatio : 1;
 
 
-
 	function setCanvasSize(canvas, width, height) {
 
 		if (isCanvasSupported && !!optimizeForHiDPI) {
@@ -1261,7 +1401,7 @@
 		var e;
 
 
-		if (!!new Blob()) {
+		if (typeof (Blob) !== "undefined" && !!new Blob()) {
 
 			//alert("blob");
 			var imgData = img.replace(/^data:[a-z/]*;base64,/, '');
@@ -1334,12 +1474,13 @@
 		if (button.getAttribute("state") !== state) {
 
 			button.setAttribute("state", state);
+			button.setAttribute("type", 'button');
 			button.style.position = "relative";
 			button.style.margin = "0px 0px 0px 0px";
-			button.style.padding = "3px 4px 0px 4px";
-			button.style.cssFloat = "left";
+		    button.style.padding = "3px 4px 0px 4px";	
+		    button.style.cssFloat = "left";
 			button.setAttribute("title", chart._cultureInfo[state + "Text"]);
-			button.innerHTML = "<img style='height:16px;' src='" + base64Images[state].image + "' alt='" + chart._cultureInfo[state + "Text"] + "' />";
+		    button.innerHTML = "<img style='height:16px;' src='" + base64Images[state].image + "' alt='" + chart._cultureInfo[state + "Text"] + "' />";
 		}
 	}
 
@@ -1360,7 +1501,7 @@
 
 		for (var i = 0; i < arguments.length; i++) {
 			element = arguments[i];
-			if (element.style)
+			if (element && element.style)
 				element.style.display = "none";
 		}
 	}
@@ -1370,8 +1511,12 @@
 	//#region Class Definitions
 
 	//#region Class CanvasJSObject
-	function CanvasJSObject(defaultsKey, options, theme) {
+	function CanvasJSObject(defaultsKey, options, theme, parent) {
 		this._defaultsKey = defaultsKey;
+
+		this.parent = parent;
+
+		this._eventListeners = [];//Multidimentional array with an array for each event type
 
 		var currentThemeOptions = {};
 
@@ -1381,6 +1526,7 @@
 		this._options = options ? options : {};
 		this.setOptions(this._options, currentThemeOptions);
 	}
+
 	CanvasJSObject.prototype.setOptions = function (options, currentThemeOptions) {
 
 		if (!defaultOptions[this._defaultsKey]) {
@@ -1464,6 +1610,49 @@
 
 		return hasChanged;
 	};
+
+	CanvasJSObject.prototype.addEventListener = function (eventName, eventHandler, context) {
+		if (!eventName || !eventHandler)
+			return;
+
+		context = context || this;
+
+		this._eventListeners[eventName] = this._eventListeners[eventName] || [];
+
+		this._eventListeners[eventName].push({ context: context, eventHandler: eventHandler });
+	}
+
+	CanvasJSObject.prototype.removeEventListener = function (eventName, eventHandler) {
+		if (!eventName || !eventHandler || !this._eventListeners[eventName])
+			return;
+
+		var listeners = this._eventListeners[eventName];
+		for (var i = 0; i < listeners.length; i++) {
+
+			if (listeners[i].eventHandler === eventHandler) {
+				listeners[i].splice(i, 1);
+				break;
+			}
+		}
+	}
+
+	CanvasJSObject.prototype.removeAllEventListeners = function () {
+		this._eventListeners = [];
+	}
+
+	CanvasJSObject.prototype.dispatchEvent = function (eventName, eventParameter) {
+		if (!eventName || !this._eventListeners[eventName])
+			return;
+
+		eventParameter = eventParameter || {};
+
+		var listeners = this._eventListeners[eventName];
+		for (var i = 0; i < listeners.length; i++) {
+
+			listeners[i].eventHandler.call(listeners[i].context, eventParameter);
+		}
+	}
+
 	//#endregion Class CanvasJSObject
 
 	//#region Class Chart
@@ -1473,7 +1662,7 @@
 
 		options = options || {};
 
-		Chart.parent.constructor.call(this, "Chart", options, options.theme ? options.theme : "theme1");
+		Chart.base.constructor.call(this, "Chart", options, options.theme ? options.theme : "theme1");
 
 		var _this = this;
 
@@ -1486,6 +1675,11 @@
 		this._panTimerId = 0;
 		this._lastTouchEventType = "";
 		this._lastTouchData = null;
+		this.isAnimating = false;
+		this.renderCount = 0;
+		this.animatedRender = false;
+		this.disableToolTip = false;
+
 
 		this.panEnabled = false;
 		this._defaultCursor = "default";
@@ -1517,6 +1711,11 @@
 
 		this.width = width;
 		this.height = height;
+
+		this.x1 = this.y1 = 0;
+		this.x2 = this.width;
+		this.y2 = this.height;
+
 
 		this._selectedColorSet = typeof (colorSets[this.colorSet]) !== "undefined" ? colorSets[this.colorSet] : colorSets["colorSet1"];
 
@@ -1577,7 +1776,7 @@
 
 		this._toolBar = document.createElement("div");
 		this._toolBar.setAttribute("class", "canvasjs-chart-toolbar");
-		this._toolBar.style.cssText = "position: absolute; right: 2px; top: 0px;";
+		this._toolBar.style.cssText = "position: absolute; right: 1px; top: 1px;";
 		this._canvasJSContainer.appendChild(this._toolBar);
 
 
@@ -1633,12 +1832,12 @@
 
 		this._toolTip = new ToolTip(this, this._options.toolTip, this.theme);
 
-		this.layoutManager = new LayoutManager(this);
+
 		this.data = null;
 		this.axisX = null;
 		this.axisY = null;
 		this.axisY2 = null;
-		this.renderCount = 0;
+
 
 
 		this.sessionVariables = {
@@ -1677,13 +1876,14 @@
 			this.backgroundColor = "rgba(0,0,0,0)";
 
 		this.updateOption("culture");
-		this._cultureInfo = new CultureInfo(this, this._options.culture);
+		this._cultureInfo = new CultureInfo(this._options.culture);
 
 		this.updateOption("animationEnabled");
+		this.animationEnabled = this.animationEnabled && isCanvasSupported;
 
 		//Need to check this._options.zoomEnabled because this.zoomEnabled is used internally to keep track of state - and hence changes.
 		if (this._options.zoomEnabled) {
-
+        		  
 			if (!this._zoomButton) {
 
 				hide(this._zoomButton = document.createElement("button"));
@@ -1701,7 +1901,7 @@
 					} else {
 						_this.zoomEnabled = true;
 						_this.panEnabled = false;
-
+						
 						setButtonState(_this, _this._zoomButton, "pan");
 					}
 
@@ -1740,7 +1940,7 @@
 						_this.sessionVariables.axisX.internalMaximum = _this._options.axisX.maximum;
 					else
 						_this.sessionVariables.axisX.internalMaximum = null;
-
+					
 					_this.resetOverlayedCanvas();
 
 					hide(_this._zoomButton, _this._resetButton);
@@ -1777,7 +1977,21 @@
 			this.panEnabled = false;
 		}
 
-		if (this.exportEnabled && isCanvasSupported && !this._menuButton) {
+		// Update this.exportFileName.
+		if (typeof (this._options.exportFileName) !== "undefined") {
+			this.exportFileName = this._options.exportFileName;
+		}
+		// Update this.exportEnabled.
+		if (typeof (this._options.exportEnabled) !== "undefined") {
+			this.exportEnabled = this._options.exportEnabled;
+		}
+
+		if (this._menuButton) {
+			if (this.exportEnabled)
+				show(this._menuButton);
+			else
+				hide(this._menuButton);
+		} else if (this.exportEnabled && isCanvasSupported) {
 			this._menuButton = document.createElement("button");
 			setButtonState(this, this._menuButton, "menu");
 			this._toolBar.appendChild(this._menuButton);
@@ -1796,7 +2010,8 @@
 			}, true);
 		}
 
-		if (!this._exportMenu) {
+
+		if (!this._dropdownMenu && this.exportEnabled && isCanvasSupported) {
 			this._dropdownMenu = document.createElement("div");
 			this._dropdownMenu.setAttribute("tabindex", -1);
 			this._dropdownMenu.style.cssText = "position: absolute; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: pointer;right: 1px;top: 25px;min-width: 120px;outline: 0;border: 1px solid silver;font-size: 14px;font-family: Calibri, Verdana, sans-serif;padding: 5px 0px 5px 0px;text-align: left;background-color: #fff;line-height: 20px;box-shadow: 2px 2px 10px #888888;";
@@ -1879,11 +2094,12 @@
 		if (this._options.toolTip && this._toolTip._options !== this._options.toolTip)
 			this._toolTip._options = this._options.toolTip
 
-		this._toolTip.updateOption("enabled");
-		this._toolTip.updateOption("shared");
-		this._toolTip.updateOption("animationEnabled");
-		this._toolTip.updateOption("borderColor");
-		this._toolTip.updateOption("content");
+		for (var prop in this._toolTip._options) {
+
+			if (this._toolTip._options.hasOwnProperty(prop)) {
+				this._toolTip.updateOption(prop);
+			}
+		}
 
 	}
 
@@ -1920,6 +2136,17 @@
 		///</signature>
 		//this.width = this.width;
 
+		if (!this._animator)
+			this._animator = new Animator(this);
+		else {
+			this._animator.cancelAllAnimations();
+		}
+
+		this.removeAllEventListeners();
+
+		this.disableToolTip = false;
+
+
 		this.pieDoughnutClickHandler = null;
 		//this._touchCurrentCoordinates = null;
 
@@ -1927,6 +2154,8 @@
 			this.cancelRequestAnimFrame.call(window, this.animationRequestId);
 
 		this._updateOptions();
+
+		this.animatedRender = isCanvasSupported && this.animationEnabled && (this.renderCount === 0);
 
 		this._updateSize();
 
@@ -1952,7 +2181,10 @@
 			plotTypes: []//array of plotType: {type:"", axisYType: "primary", dataSeriesIndexes:[]}
 		};
 
-		this.layoutManager.reset();
+		this.layoutManager = new LayoutManager(0, 0, this.width, this.height, 2);
+
+		if (this.plotArea.layoutManager)
+			this.plotArea.layoutManager.reset();
 
 
 		this.data = [];
@@ -2058,7 +2290,8 @@
 		this._objectsInitialized = true;
 	}
 
-	Chart._supportedChartTypes = ["line", "stepLine", "spline", "column", "area", "stepArea", "splineArea", "bar", "bubble", "scatter",
+	//indexOf is not supported in IE8-
+	Chart._supportedChartTypes = addArrayIndexOf(["line", "stepLine", "spline", "column", "area", "stepArea", "splineArea", "bar", "bubble", "scatter",
 		"stackedColumn", "stackedColumn100", "stackedBar", "stackedBar100",
 		"stackedArea", "stackedArea100",
 		"candlestick",
@@ -2068,39 +2301,14 @@
 		"rangeArea",
 		"rangeSplineArea",
 		"pie", "doughnut", "funnel"
-	];
-
-	//indexOf is not supported in IE8-
-	if (!Chart._supportedChartTypes.indexOf) {
-		Chart._supportedChartTypes.indexOf = function (elt /*, from*/) {
-			var len = this.length >>> 0;
-
-			var from = Number(arguments[1]) || 0;
-			from = (from < 0)
-				 ? Math.ceil(from)
-				 : Math.floor(from);
-			if (from < 0)
-				from += len;
-
-			for (; from < len; from++) {
-				if (from in this &&
-					this[from] === elt)
-					return from;
-			}
-			return -1;
-		};
-	}
+	]);
 
 	Chart.prototype.render = function (options) {
-		//var dt = Date.now();
 		if (options)
 			this._options = options;
 
-		//var fontHeight = getFontHeightInPixels("'Nato Sans'", 18, false);
-
-		//console.log(fontHeight);
-
 		this._initialize();
+		var plotAreaElements = []; //Elements to be rendered inside the plotArea
 
 		//Create Primary and Secondary axis and assign them to the series
 		for (var i = 0; i < this.data.length; i++) {
@@ -2146,24 +2354,44 @@
 
 		if (this._options.title) {
 			this._title = new Title(this, this._options.title);
-			this._title.render();
+
+			if (!this._title.dockInsidePlotArea)
+				this._title.render();
+			else
+				plotAreaElements.push(this._title);
+		}
+
+		if (this._options.subtitles) {
+			for (var i = 0; i < this._options.subtitles.length; i++) {
+
+				this.subtitles = [];
+
+				var subtitle = new Subtitle(this, this._options.subtitles[i]);
+				this.subtitles.push(subtitle);
+
+				if (!subtitle.dockInsidePlotArea)
+					subtitle.render();
+				else
+					plotAreaElements.push(subtitle);
+			}
 		}
 
 		this.legend = new Legend(this, this._options.legend, this.theme);
 		for (var i = 0; i < this.data.length; i++) {
-			if (this.data[i].showInLegend)
+			if (this.data[i].showInLegend || this.data[i].type === "pie" || this.data[i].type === "doughnut") {
 				this.legend.dataSeries.push(this.data[i]);
+			}
 		}
-		this.legend.render();
+
+		if (!this.legend.dockInsidePlotArea)
+			this.legend.render();
+		else
+			plotAreaElements.push(this.legend);
 
 		//TBI: Revisit and check if the functionality is enough.
 		if (this.plotInfo.axisPlacement === "normal" || this.plotInfo.axisPlacement === "xySwapped") {
-			var freeSpace = this.layoutManager.getFreeSpace();
 
-			//window.alert(freeSpace.width + "; " + freeSpace.height);
-			//window.alert(this.width + "; " + this.height);
-			//window.alert(this._canvasJSContainer.clientWidth + "; " + this._canvasJSContainer.clientHeight);
-
+			//var freeSpace = this.layoutManager.getFreeSpace();
 
 			Axis.setLayoutAndRender(this.axisX, this.axisY, this.axisY2, this.plotInfo.axisPlacement, this.layoutManager.getFreeSpace());
 		} else if (this.plotInfo.axisPlacement === "none") {
@@ -2174,70 +2402,164 @@
 			return;
 		}
 
+		var index = 0;
+		for (index in plotAreaElements) {
+			plotAreaElements[index].render();
+		}
+
+		var animations = [];
+		if (this.animatedRender) {
+			var initialState = createCanvas(this.width, this.height);
+			var initialStateCtx = initialState.getContext("2d");
+			initialStateCtx.drawImage(this.canvas, 0, 0, this.width, this.height);
+		}
+
 		for (var i = 0; i < this.plotInfo.plotTypes.length; i++) {
 			var plotType = this.plotInfo.plotTypes[i];
 
 			for (var j = 0; j < plotType.plotUnits.length; j++) {
 
 				var plotUnit = plotType.plotUnits[j];
+				var animationInfo = null;
+
+				plotUnit.targetCanvas = null; //In case chart updates before the animation is complete, previous canvases need to be removed
+
+				if (this.animatedRender) {
+					plotUnit.targetCanvas = createCanvas(this.width, this.height);
+					plotUnit.targetCanvasCtx = plotUnit.targetCanvas.getContext("2d");
+				}
 
 				if (plotUnit.type === "line")
-					this.renderLine(plotUnit);
+					animationInfo = this.renderLine(plotUnit);
 				else if (plotUnit.type === "stepLine")
-					this.renderStepLine(plotUnit);
+					animationInfo = this.renderStepLine(plotUnit);
 				else if (plotUnit.type === "spline")
-					this.renderSpline(plotUnit);
+					animationInfo = this.renderSpline(plotUnit);
 				else if (plotUnit.type === "column")
-					this.renderColumn(plotUnit);
+					animationInfo = this.renderColumn(plotUnit);
 				else if (plotUnit.type === "bar")
-					this.renderBar(plotUnit);
+					animationInfo = this.renderBar(plotUnit);
 				else if (plotUnit.type === "area")
-					this.renderArea(plotUnit);
+					animationInfo = this.renderArea(plotUnit);
 				else if (plotUnit.type === "stepArea")
-					this.renderStepArea(plotUnit);
+					animationInfo = this.renderStepArea(plotUnit);
 				else if (plotUnit.type === "splineArea")
-					this.renderSplineArea(plotUnit);
+					animationInfo = this.renderSplineArea(plotUnit);
 				else if (plotUnit.type === "stackedColumn")
-					this.renderStackedColumn(plotUnit);
+					animationInfo = this.renderStackedColumn(plotUnit);
 				else if (plotUnit.type === "stackedColumn100")
-					this.renderStackedColumn100(plotUnit);
+					animationInfo = this.renderStackedColumn100(plotUnit);
 				else if (plotUnit.type === "stackedBar")
-					this.renderStackedBar(plotUnit);
+					animationInfo = this.renderStackedBar(plotUnit);
 				else if (plotUnit.type === "stackedBar100")
-					this.renderStackedBar100(plotUnit);
+					animationInfo = this.renderStackedBar100(plotUnit);
 				else if (plotUnit.type === "stackedArea")
-					this.renderStackedArea(plotUnit);
+					animationInfo = this.renderStackedArea(plotUnit);
 				else if (plotUnit.type === "stackedArea100")
-					this.renderStackedArea100(plotUnit);
+					animationInfo = this.renderStackedArea100(plotUnit);
 				else if (plotUnit.type === "bubble")
-					this.renderBubble(plotUnit);
+					animationInfo = animationInfo = this.renderBubble(plotUnit);
 				else if (plotUnit.type === "scatter")
-					this.renderScatter(plotUnit);
+					animationInfo = this.renderScatter(plotUnit);
 				else if (plotUnit.type === "pie")
 					this.renderPie(plotUnit);
 				else if (plotUnit.type === "doughnut")
 					this.renderPie(plotUnit);
 				else if (plotUnit.type === "candlestick")
-					this.renderCandlestick(plotUnit);
+					animationInfo = this.renderCandlestick(plotUnit);
 				else if (plotUnit.type === "ohlc")
-					this.renderCandlestick(plotUnit);
+					animationInfo = this.renderCandlestick(plotUnit);
 				else if (plotUnit.type === "rangeColumn")
-					this.renderRangeColumn(plotUnit);
+					animationInfo = this.renderRangeColumn(plotUnit);
 				else if (plotUnit.type === "rangeBar")
-					this.renderRangeBar(plotUnit);
+					animationInfo = this.renderRangeBar(plotUnit);
 				else if (plotUnit.type === "rangeArea")
-					this.renderRangeArea(plotUnit);
+					animationInfo = this.renderRangeArea(plotUnit);
 				else if (plotUnit.type === "rangeSplineArea")
-					this.renderRangeSplineArea(plotUnit);
+					animationInfo = this.renderRangeSplineArea(plotUnit);
 
 				for (var k = 0; k < plotUnit.dataSeriesIndexes.length; k++) {
 					this._dataInRenderedOrder.push(this.data[plotUnit.dataSeriesIndexes[k]]);
 				}
+
+				if (this.animatedRender && animationInfo)
+					animations.push(animationInfo);
 			}
 		}
 
-		if (this._indexLabels.length > 0)
-			this.renderIndexLabels();
+		if (this.animatedRender && this._indexLabels.length > 0) {
+			var indexLabelCanvas = createCanvas(this.width, this.height);
+			var indexLabelCanvasCtx = indexLabelCanvas.getContext("2d");
+			animations.push(this.renderIndexLabels(indexLabelCanvasCtx));
+		}
+
+		var _this = this;
+
+		if (animations.length > 0) {
+			//var animationCount = 0;
+			_this.disableToolTip = true;
+			_this._animator.animate(200, _this.animationDuration, function (fractionComplete) {
+
+				//console.log(fractionComplete);
+				//animationCount++;
+
+				_this.ctx.clearRect(0, 0, _this.width, _this.height);
+
+
+				//  _this.ctx.drawImage(initialState, 0, 0, _this.width * devicePixelBackingStoreRatio, _this.height * devicePixelBackingStoreRatio, 0, 0, _this.width, _this.height);                
+				_this.ctx.drawImage(initialState, 0, 0, Math.floor(_this.width * devicePixelBackingStoreRatio), Math.floor(_this.height * devicePixelBackingStoreRatio), 0, 0, _this.width, _this.height);
+
+				for (var l = 0; l < animations.length; l++) {
+
+					animationInfo = animations[l];
+
+					if (fractionComplete < 1 && typeof (animationInfo.startTimePercent) !== "undefined") {
+						if (fractionComplete >= animationInfo.startTimePercent) {
+							//animationInfo.animationCallback(AnimationHelper.easing.linear(fractionComplete - animationInfo.startTimePercent, 0, 1, 1 - animationInfo.startTimePercent), animationInfo);
+
+							animationInfo.animationCallback(animationInfo.easingFunction(fractionComplete - animationInfo.startTimePercent, 0, 1, 1 - animationInfo.startTimePercent), animationInfo);
+						}
+					} else {
+
+						animationInfo.animationCallback(animationInfo.easingFunction(fractionComplete, 0, 1, 1), animationInfo);
+					}
+				}
+
+				_this.dispatchEvent("dataAnimationIterationEnd",
+									{
+										chart: _this
+									});
+
+			}, function () {
+
+				animations = [];
+
+				var count = 0;
+
+				//Delete all render target canvases used for animation.
+				for (var i = 0; i < _this.plotInfo.plotTypes.length; i++) {
+					var plotType = _this.plotInfo.plotTypes[i];
+
+					for (var j = 0; j < plotType.plotUnits.length; j++) {
+						var plotUnit = plotType.plotUnits[j];
+						plotUnit.targetCanvas = null;
+					}
+				}
+
+				initialState = null;
+				_this.disableToolTip = false;
+				//console.log("*********** Animation Complete - " + animationCount + " ***********");
+
+			});
+		} else {
+			if (_this._indexLabels.length > 0)
+				_this.renderIndexLabels();
+
+			_this.dispatchEvent("dataAnimationIterationEnd",
+					{
+						chart: _this
+					});
+		}
 
 		this.attachPlotAreaEventHandlers();
 
@@ -3115,6 +3437,11 @@
 		if (!this.interactivityEnabled)
 			return;
 
+		if (this._ignoreNextEvent) {
+			this._ignoreNextEvent = false;
+			return;
+		}
+
 		// stop panning and zooming so we can draw
 		if (ev.preventManipulation) {
 			//alert("preventManipulation");
@@ -3239,6 +3566,7 @@
 
 
 		if ((!this.isDrag || !this.zoomEnabled) && this._eventManager) {
+
 			this._eventManager.mouseEventHandler(ev);
 			//this._updateToolTip(ev.x, ev.y);            
 		}
@@ -3359,6 +3687,9 @@
 						}
 					}
 
+					this._ignoreNextEvent = true;//Required so that click event doesn't fire after zooming into a section of the chart.
+
+
 					if (this.zoomEnabled && this._zoomButton.style.display === "none") {
 						show(this._zoomButton, this._resetButton);
 						setButtonState(this, this._zoomButton, "pan");
@@ -3392,7 +3723,7 @@
 
 			if (Math.abs(dragDelta) > 2 && Math.abs(dragDelta) < 8 && (this.panEnabled || this.zoomEnabled)) {
 				this._toolTip.hide();
-			} else if (this._toolTip.enabled && !this.panEnabled && !this.zoomEnabled) {
+			} else if (!this.panEnabled && !this.zoomEnabled) {
 				this._toolTip.mouseMoveHandler(x, y);
 			}
 
@@ -3453,7 +3784,7 @@
 			//} else if (this._toolTip.enabled)
 			//    this._toolTip.mouseMoveHandler(x, y);
 
-		} else if (this._toolTip.enabled)
+		} else
 			this._toolTip.mouseMoveHandler(x, y);
 	}
 
@@ -3504,6 +3835,8 @@
 				plotArea.ctx.translate(-plotArea.x1, -plotArea.y1);
 			}
 		}
+
+		plotArea.layoutManager = new LayoutManager(plotArea.x1, plotArea.y1, plotArea.x2, plotArea.y2, 2);
 	}
 
 	Chart.prototype.getPixelCoordinatesOnPlotArea = function (x, y) {
@@ -3513,241 +3846,297 @@
 
 	//#region Render Methods
 
-	Chart.prototype.renderIndexLabels = function () {
-		var ctx = this.plotArea.ctx;
+	Chart.prototype.renderIndexLabels = function (targetCtx) {
+		var ctx = targetCtx || this.plotArea.ctx;
 
-		ctx.textBaseline = "middle";
 		var plotArea = this.plotArea;
+
+		var mid = 0;
+		var yMinLimit = 0;
+		var yMaxLimit = 0;
+		var xMinLimit = 0;
+		var xMaxLimit = 0;
+		var marginX = 0, marginY = 0; // Margin between label and dataPoint / PlotArea
+		var offSetX = 0, offSetY = 0; // Distance to offSet textBlock (top) from dataPoint inorder to position it
+		var visibleWidth = 0;
+		var visibleHeight = 0;
 
 		for (var i = 0; i < this._indexLabels.length; i++) {
 
 			var indexLabel = this._indexLabels[i];
+			var chartTypeLower = indexLabel.chartType.toLowerCase();
 
 			var x, y, angle;
 
-			ctx.fillStyle = getProperty("indexLabelFontColor", indexLabel.dataPoint, indexLabel.dataSeries);
-			ctx.font = getFontString("indexLabel", indexLabel.dataPoint, indexLabel.dataSeries);
-			var indexLabelText = this.replaceKeywordsWithValue(getProperty("indexLabel", indexLabel.dataPoint, indexLabel.dataSeries), indexLabel.dataPoint, indexLabel.dataSeries, null, indexLabel.indexKeyword);
-			var textSize = { width: ctx.measureText(indexLabelText).width, height: getProperty("indexLabelFontSize", indexLabel.dataPoint, indexLabel.dataSeries) };
+			var fontColor = getProperty("indexLabelFontColor", indexLabel.dataPoint, indexLabel.dataSeries);
+			var fontSize = getProperty("indexLabelFontSize", indexLabel.dataPoint, indexLabel.dataSeries);
+			var fontFamily = getProperty("indexLabelFontFamily", indexLabel.dataPoint, indexLabel.dataSeries);
+			var fontStyle = getProperty("indexLabelFontStyle", indexLabel.dataPoint, indexLabel.dataSeries);
+			var fontWeight = getProperty("indexLabelFontWeight", indexLabel.dataPoint, indexLabel.dataSeries);
+			var backgroundColor = getProperty("indexLabelBackgroundColor", indexLabel.dataPoint, indexLabel.dataSeries);
+			var maxWidth = getProperty("indexLabelMaxWidth", indexLabel.dataPoint, indexLabel.dataSeries);
+			var indexLabelWrap = getProperty("indexLabelWrap", indexLabel.dataPoint, indexLabel.dataSeries);
+
+			var percentAndTotal = { percent: null, total: null };
+			var formatterParameter = null;
+
+			if (indexLabel.dataSeries.type.indexOf("stacked") >= 0 || indexLabel.dataSeries.type === "pie" || indexLabel.dataSeries.type === "doughnut")
+				percentAndTotal = this.getPercentAndTotal(indexLabel.dataSeries, indexLabel.dataPoint);
+
+			if (indexLabel.dataSeries.indexLabelFormatter || indexLabel.dataPoint.indexLabelFormatter)
+				formatterParameter = { chart: this._options, dataSeries: indexLabel.dataSeries, dataPoint: indexLabel.dataPoint, index: indexLabel.indexKeyword, total: percentAndTotal.total, percent: percentAndTotal.percent };
+
+
+			var indexLabelText = indexLabel.dataPoint.indexLabelFormatter ? indexLabel.dataPoint.indexLabelFormatter(formatterParameter)
+				: indexLabel.dataPoint.indexLabel ? this.replaceKeywordsWithValue(indexLabel.dataPoint.indexLabel, indexLabel.dataPoint, indexLabel.dataSeries, null, indexLabel.indexKeyword)
+				: indexLabel.dataSeries.indexLabelFormatter ? indexLabel.dataSeries.indexLabelFormatter(formatterParameter)
+				: indexLabel.dataSeries.indexLabel ? this.replaceKeywordsWithValue(indexLabel.dataSeries.indexLabel, indexLabel.dataPoint, indexLabel.dataSeries, null, indexLabel.indexKeyword) : null;
+
+			if (indexLabelText === null || indexLabelText === "")
+				continue;
+
 			var placement = getProperty("indexLabelPlacement", indexLabel.dataPoint, indexLabel.dataSeries);
 			var orientation = getProperty("indexLabelOrientation", indexLabel.dataPoint, indexLabel.dataSeries);
 			var angle = 0;
 
-			var yMinLimit = 0;
-			var yMaxLimit = 0;
-			var xMinLimit = 0;
-			var xMaxLimit = 0;
-			var offsetX = 0, offsetY = 0;
 			var direction = indexLabel.direction; // +1 for above the point and -1 for below the point
 
+			var axisX = indexLabel.dataSeries.axisX;
+			var axisY = indexLabel.dataSeries.axisY;
 
 
-			//So that indexLabel is skipped once the point is outside of plotArea
-			if (indexLabel.point.x < plotArea.x1 || indexLabel.point.x > plotArea.x2 || indexLabel.point.y < plotArea.y1 || indexLabel.point.y > plotArea.y2)
-				continue;
+			var textBlock = new TextBlock(ctx, {
+				x: 0,
+				y: 0,
+				maxWidth: maxWidth ? maxWidth : this.width * .5,
+				maxHeight: indexLabelWrap ? fontSize * 5 : fontSize * 1.5,
+				angle: orientation === "horizontal" ? 0 : -90,
+				text: indexLabelText,
+				padding: 0,
+				backgroundColor: backgroundColor,
+				horizontalAlign: "left",//left, center, right
+				fontSize: fontSize,//in pixels
+				fontFamily: fontFamily,
+				fontWeight: fontWeight, //normal, bold, bolder, lighter,
+				fontColor: fontColor,
+				fontStyle: fontStyle, // normal, italic, oblique
+				textBaseline: "top"
+			});
 
-			if (indexLabel.chartType === "column" || indexLabel.chartType === "stackedColumn" || indexLabel.chartType === "stackedColumn100"
-				|| indexLabel.chartType === "bar" || indexLabel.chartType === "stackedBar" || indexLabel.chartType === "stackedBar100"
-				|| indexLabel.chartType === "candlestick" || indexLabel.chartType === "ohlc"
-				|| indexLabel.chartType === "rangeColumn" || indexLabel.chartType === "rangeBar") {
+			var textSize = textBlock.measureText();
 
-				offsetY = 5;
-				offsetX = 5;
-				var width = Math.abs(indexLabel.bounds.x1, indexLabel.bounds.x2)
-				var height = Math.abs(indexLabel.bounds.y1, indexLabel.bounds.y2)
+			//if (indexLabel.dataPoint.x < axisX.minimum || indexLabel.dataPoint.x > axisX.maximum || indexLabel.dataPoint.y < axisY.minimum || indexLabel.dataPoint.y > axisY.maximum)
+			//	continue;
 
-				if (this.plotInfo.axisPlacement === "normal") {
+			if (chartTypeLower.indexOf("line") >= 0 || chartTypeLower.indexOf("area") >= 0
+					|| chartTypeLower.indexOf("bubble") >= 0 || chartTypeLower.indexOf("scatter") >= 0) {
 
-					if (placement !== "inside") {	//outside or auto
+				if (indexLabel.dataPoint.x < axisX.minimum || indexLabel.dataPoint.x > axisX.maximum || indexLabel.dataPoint.y < axisY.minimum || indexLabel.dataPoint.y > axisY.maximum)
+					continue;
+			}
+			else {
+				if (indexLabel.dataPoint.x < axisX.minimum || indexLabel.dataPoint.x > axisX.maximum)
+					continue;
+			}
 
-						yMinLimit = plotArea.y1;
-						yMaxLimit = plotArea.y2;
+			marginY = 2;
+			marginX = 2;
 
-					} else {
+			if (orientation === "horizontal") {
+				visibleWidth = textBlock.width;
+				visibleHeight = textBlock.height;
+			} else {
+				visibleHeight = textBlock.width;
+				visibleWidth = textBlock.height;
+			}
 
-						yMinLimit = indexLabel.bounds.y1;
-						yMaxLimit = indexLabel.bounds.y2;
-					}
+			if (this.plotInfo.axisPlacement === "normal") {
 
-					if (orientation === "horizontal") {
-						x = indexLabel.point.x - textSize.width / 2;
+				if (chartTypeLower.indexOf("line") >= 0 || chartTypeLower.indexOf("area") >= 0) {
 
-						if (direction >= 0) {
-							if (indexLabel.point.y - textSize.height / 2 - offsetY < yMinLimit + textSize.height / 2) {
-								if (placement === "auto")
-									y = Math.min(indexLabel.point.y + textSize.height / 2 + 1, yMaxLimit - textSize.height / 2 - offsetY);
-								else
-									y = Math.min(yMinLimit + textSize.height / 2 + 1, yMaxLimit - textSize.height / 2 - offsetY);
-								//y = Math.min(indexLabel.point.y - textSize.height / 2 - offsetY + 1, yMaxLimit - textSize.height / 2 - offsetY);
-							} else {
+					placement = "auto";
+					marginY = 4;
 
-								y = Math.min(indexLabel.point.y - textSize.height / 2 - offsetY + 1, yMaxLimit - textSize.height / 2 - offsetY);
+				} else if (chartTypeLower.indexOf("stacked") >= 0) {
 
-							}
-						}
-						else {
-							if (indexLabel.point.y + textSize.height / 2 + offsetY > yMaxLimit - textSize.height / 2 - 1) {
-								if (placement === "auto")
-									y = Math.max(indexLabel.point.y - textSize.height / 2 - 1, yMinLimit + textSize.height / 2 + offsetY);
-								else
-									y = Math.max(yMaxLimit - textSize.height / 2 - 1, yMinLimit + textSize.height / 2 + offsetY);
-								//y = Math.max(indexLabel.point.y + textSize.height / 2 + offsetY, yMinLimit + textSize.height / 2 + offsetY);
+					if (placement === "auto")
+						placement = "inside";
 
-							} else {
-								y = Math.max(indexLabel.point.y + textSize.height / 2 + offsetY, yMinLimit + textSize.height / 2 + offsetY);
-							}
-						}
+				} else if (chartTypeLower === "bubble" || chartTypeLower === "scatter") {
 
-						//y = yMinLimit;
-					}
-					else if (orientation === "vertical") {
-						x = indexLabel.point.x;
-						if (direction >= 0) {
-							if (indexLabel.point.y - offsetY < yMinLimit + textSize.width + 1) {
-								if (placement === "auto")
-									y = Math.min(indexLabel.point.y + textSize.width + 1, yMaxLimit);
-								else
-									y = Math.min(yMinLimit + textSize.width + 1, yMaxLimit);
-							} else {
-								y = Math.min(indexLabel.point.y - offsetY, yMaxLimit - 1);
-							}
-						}
-						else {
+					placement = "inside";
 
-							if (indexLabel.point.y + textSize.width + offsetY > yMaxLimit - 1) {
-								if (placement === "auto")
-									y = Math.max(indexLabel.point.y - offsetY, yMinLimit);
-								else
-									y = Math.max(yMaxLimit - 1, yMinLimit);
-
-							} else {
-
-								y = Math.max(indexLabel.point.y + textSize.width + offsetY, yMinLimit);
-
-							}
-						}
-
-						angle = -90;
-					}
-
-				} else if (this.plotInfo.axisPlacement === "xySwapped") {
-
-					if (placement !== "inside") {
-
-						xMinLimit = plotArea.x1;
-						xMaxLimit = plotArea.x2;
-
-					} else {
-
-						xMinLimit = indexLabel.bounds.x1;
-						xMaxLimit = indexLabel.bounds.x2;
-
-					}
-
-					if (orientation === "horizontal") {
-						y = indexLabel.point.y;
-
-						if (direction >= 0) {
-							if (indexLabel.point.x + offsetX > xMaxLimit - textSize.width) {
-								if (placement === "auto")
-									x = Math.max(indexLabel.point.x - textSize.width, xMinLimit);
-								else
-									x = Math.max(xMaxLimit - textSize.width, xMinLimit);
-							}
-							else {
-								x = Math.max(indexLabel.point.x + offsetX, xMinLimit);
-							}
-						}
-						else {
-							if (indexLabel.point.x - textSize.width - offsetX < xMinLimit) {
-								if (placement === "auto")
-									x = Math.min(indexLabel.point.x + 1, xMaxLimit);
-								else
-									x = Math.min(xMinLimit + 1, xMaxLimit);
-							} else {
-								x = Math.min(indexLabel.point.x - textSize.width - offsetX, xMaxLimit);
-							}
-						}
-					}
-					else if (orientation === "vertical") {
-						y = indexLabel.point.y + textSize.width / 2;
-
-						if (direction >= 0) {
-							if (indexLabel.point.x + textSize.height / 2 + offsetX > xMaxLimit - textSize.height / 2) {
-								if (placement === "auto")
-									x = Math.max(indexLabel.point.x - textSize.height / 2, xMinLimit);
-								else
-									x = Math.max(xMaxLimit - textSize.height / 2, xMinLimit);
-							} else {
-								x = Math.max(indexLabel.point.x + textSize.height / 2 + offsetX, xMinLimit);
-							}
-						}
-						else {
-							if (indexLabel.point.x - textSize.height / 2 - offsetX < xMinLimit + textSize.height / 2) {
-								if (placement === "auto")
-									x = Math.min(indexLabel.point.x + textSize.height / 2, xMaxLimit + textSize.height / 2);
-								else
-									x = Math.min(xMinLimit + textSize.height / 2, xMaxLimit + textSize.height / 2);
-
-							} else {
-								x = Math.min(indexLabel.point.x - textSize.height / 2 - offsetX, xMaxLimit + textSize.height / 2);
-							}
-						}
-
-						angle = -90;
-					}
 				}
 
-			} else {
+				x = indexLabel.point.x - visibleWidth / 2;
 
-				offsetY = 5;
+				if (placement !== "inside") {	//outside or auto
 
+					yMinLimit = plotArea.y1;
+					yMaxLimit = plotArea.y2;
 
-				if (orientation === "horizontal") {
+					if (direction > 0) {
+						y = indexLabel.point.y - visibleHeight - marginY;
 
-					x = indexLabel.point.x - textSize.width / 2;
+						if (y < yMinLimit) {
+							if (placement === "auto") {
+								y = Math.max(indexLabel.point.y, yMinLimit) + marginY;
+							}
+							else {
+								y = yMinLimit + marginY;
+							}
+						}
+					}
+					else {
+						y = indexLabel.point.y + marginY;
 
-					if (indexLabel.chartType === "bubble") {
-						offsetY = -textSize.height / 2;
+						if (y > yMaxLimit - visibleHeight - marginY) {
+							if (placement === "auto") {
+								y = Math.min(indexLabel.point.y, yMaxLimit) - visibleHeight - marginY;
+							}
+							else {
+								y = yMaxLimit - visibleHeight - marginY;
+							}
+						}
 					}
 
-					if (direction > 0)
-						y = Math.max(indexLabel.point.y - textSize.height / 2 - offsetY, plotArea.y1 + textSize.height / 2);
+				} else {
+
+
+					yMinLimit = Math.max(indexLabel.bounds.y1, plotArea.y1);
+					yMaxLimit = Math.min(indexLabel.bounds.y2, plotArea.y2);
+
+
+					if (chartTypeLower.indexOf("range") >= 0) {
+						if (direction > 0)
+							mid = Math.max(indexLabel.bounds.y1, plotArea.y1) + visibleHeight / 2 + marginY;
+						else
+							mid = Math.min(indexLabel.bounds.y2, plotArea.y2) - visibleHeight / 2 - marginY;
+					}
 					else
-						y = Math.min(indexLabel.point.y + textSize.height / 2 + offsetY, plotArea.y2 - textSize.height / 2);
+						mid = (Math.max(indexLabel.bounds.y1, plotArea.y1) + Math.min(indexLabel.bounds.y2, plotArea.y2)) / 2
 
-				} else if (orientation === "vertical") {
+					if (direction > 0) {
+						y = Math.max(indexLabel.point.y, mid) - visibleHeight / 2;
 
-					x = indexLabel.point.x;
+						if (y < yMinLimit && (chartTypeLower === "bubble" || chartTypeLower === "scatter")) {
+							y = Math.max(indexLabel.point.y - visibleHeight - marginY, plotArea.y1 + marginY);
+						}
+					}
+					else {
+						y = Math.min(indexLabel.point.y, mid) - visibleHeight / 2;
 
-					if (indexLabel.chartType === "bubble") {
-						offsetY = -textSize.width / 2;
+						if (y > yMaxLimit - visibleHeight - marginY && (chartTypeLower === "bubble" || chartTypeLower === "scatter")) {
+							y = Math.min(indexLabel.point.y + marginY, plotArea.y2 - visibleHeight - marginY);
+						}
+					}
+				}
+			}
+			else {
+
+				if (chartTypeLower.indexOf("line") >= 0 || chartTypeLower.indexOf("area") >= 0
+					|| chartTypeLower.indexOf("scatter") >= 0) {
+
+					placement = "auto";
+					marginX = 4;
+
+				} else if (chartTypeLower.indexOf("stacked") >= 0) {
+
+					if (placement === "auto")
+						placement = "inside";
+
+				} else if (chartTypeLower === "bubble") {
+
+					placement = "inside";
+
+				}
+
+				y = indexLabel.point.y - visibleHeight / 2;
+
+				if (placement !== "inside") {	//outside or auto
+
+					xMinLimit = plotArea.x1;
+					xMaxLimit = plotArea.x2;
+
+					if (direction < 0) {
+						x = indexLabel.point.x - visibleWidth - marginX;
+
+						if (x < xMinLimit) {
+							if (placement === "auto") {
+								x = Math.max(indexLabel.point.x, xMinLimit) + marginX;
+							}
+							else {
+								x = xMinLimit + marginX;
+							}
+						}
+					}
+					else {
+						x = indexLabel.point.x + marginX;
+
+						if (x > xMaxLimit - visibleWidth - marginX) {
+							if (placement === "auto") {
+								x = Math.min(indexLabel.point.x, xMaxLimit) - visibleWidth - marginX;
+							}
+							else {
+								x = xMaxLimit - visibleWidth - marginX;
+							}
+						}
 					}
 
-					if (direction > 0)
-						y = Math.max(indexLabel.point.y - offsetY, plotArea.y1 + textSize.width);
-					else
-						y = Math.min(indexLabel.point.y + textSize.width + offsetY, plotArea.y2);
+				} else {
 
-					angle = -90;
+					xMinLimit = Math.max(indexLabel.bounds.x1, plotArea.x1);
+					xMaxLimit = Math.min(indexLabel.bounds.x2, plotArea.x2);
+
+					if (chartTypeLower.indexOf("range") >= 0) {
+						if (direction < 0)
+							mid = Math.max(indexLabel.bounds.x1, plotArea.x1) + visibleWidth / 2 + marginX;
+						else
+							mid = Math.min(indexLabel.bounds.x2, plotArea.x2) - visibleWidth / 2 - marginX;
+					}
+					else
+						var mid = (Math.max(indexLabel.bounds.x1, plotArea.x1) + Math.min(indexLabel.bounds.x2, plotArea.x2)) / 2;
+
+					if (direction < 0) {
+						x = Math.max(indexLabel.point.x, mid) - visibleWidth / 2;
+
+						//if (y < xMinLimit) {
+						//	y = Math.max(indexLabel.point.y - visibleHeight - marginY, plotArea.y1 + marginY);
+						//}
+					}
+					else {
+						x = Math.min(indexLabel.point.x, mid) - visibleWidth / 2;
+
+						//if (y > xMaxLimit - visibleHeight - marginY) {
+						//	y = Math.min(indexLabel.point.y + marginY, plotArea.y2 - visibleHeight - marginY);
+						//}
+					}
 				}
 
 			}
 
-			ctx.save();
 
-			ctx.translate(x, y);
-			ctx.rotate(Math.PI / 180 * angle);
+			if (orientation === "vertical") {
+				y += visibleHeight;
+			}
 
-			ctx.fillText(indexLabelText, 0, 0);
+			textBlock.x = x;
+			textBlock.y = y;
 
-			ctx.restore();
+			//console.log(textBlock.text + ": " + textBlock.x + "; " + textBlock.y);
+
+			textBlock.render(true);
 		}
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.fadeInAnimation, easingFunction: AnimationHelper.easing.easeInQuad, animationBase: 0, startTimePercent: .7 };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderLine = function (plotUnit) {
 
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
+
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 		if (totalDataSeries <= 0)
 			return;
@@ -3772,6 +4161,11 @@
 			var dataSeries = this.data[dataSeriesIndex];
 			ctx.lineWidth = dataSeries.lineThickness;
 			var dataPoints = dataSeries.dataPoints;
+
+
+			if (ctx.setLineDash) {
+				ctx.setLineDash(getLineDashArray(dataSeries.lineDashType, dataSeries.lineThickness));
+			}
 
 			var seriesId = dataSeries.id;
 			this._eventManager.objectMap[seriesId] = { objectType: "dataSeries", dataSeriesIndex: dataSeriesIndex };
@@ -3887,13 +4281,14 @@
 						}
 					}
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "line",
 							dataPoint: dataPoints[i],
 							dataSeries: dataSeries,
 							point: { x: x, y: y },
+							direction: dataPoints[i].y >= 0 ? 1 : -1,
 							color: color
 						});
 
@@ -3917,10 +4312,15 @@
 
 		if (isCanvasSupported)
 			ghostCtx.beginPath();
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xClipAnimation, easingFunction: AnimationHelper.easing.linear, animationBase: 0 };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderStepLine = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
+
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 		if (totalDataSeries <= 0)
 			return;
@@ -3945,6 +4345,10 @@
 			var dataSeries = this.data[dataSeriesIndex];
 			ctx.lineWidth = dataSeries.lineThickness;
 			var dataPoints = dataSeries.dataPoints;
+
+			if (ctx.setLineDash) {
+				ctx.setLineDash(getLineDashArray(dataSeries.lineDashType, dataSeries.lineThickness));
+			}
 
 			var seriesId = dataSeries.id;
 			this._eventManager.objectMap[seriesId] = { objectType: "dataSeries", dataSeriesIndex: dataSeriesIndex };
@@ -4062,13 +4466,14 @@
 						}
 					}
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "stepLine",
 							dataPoint: dataPoints[i],
 							dataSeries: dataSeries,
 							point: { x: x, y: y },
+							direction: dataPoints[i].y >= 0 ? 1 : -1,
 							color: color
 						});
 
@@ -4090,6 +4495,10 @@
 
 		if (isCanvasSupported)
 			ghostCtx.beginPath();
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xClipAnimation, easingFunction: AnimationHelper.easing.linear, animationBase: 0 };
+		return animationInfo;
 	}
 
 	function getBezierPoints(points, tension) {
@@ -4128,7 +4537,8 @@
 	}
 
 	Chart.prototype.renderSpline = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
+
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 		if (totalDataSeries <= 0)
 			return;
@@ -4152,6 +4562,10 @@
 			var dataSeries = this.data[dataSeriesIndex];
 			ctx.lineWidth = dataSeries.lineThickness;
 			var dataPoints = dataSeries.dataPoints;
+
+			if (ctx.setLineDash) {
+				ctx.setLineDash(getLineDashArray(dataSeries.lineDashType, dataSeries.lineThickness));
+			}
 
 			var seriesId = dataSeries.id;
 			this._eventManager.objectMap[seriesId] = { objectType: "dataSeries", dataSeriesIndex: dataSeriesIndex };
@@ -4231,13 +4645,14 @@
 					}
 
 					//Add Labels
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "spline",
 							dataPoint: dataPoints[i],
 							dataSeries: dataSeries,
 							point: { x: x, y: y },
+							direction: dataPoints[i].y >= 0 ? 1 : -1,
 							color: color
 						});
 
@@ -4247,7 +4662,6 @@
 			}
 
 			renderBezier(pixels);
-
 		}
 
 		RenderHelper.drawMarkers(markers);
@@ -4297,6 +4711,10 @@
 					ghostCtx.stroke();
 			}
 		}
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xClipAnimation, easingFunction: AnimationHelper.easing.linear, animationBase: 0 };
+		return animationInfo;
 	}
 
 	var drawRect = function (ctx, x1, y1, x2, y2, color, borderThickness, borderColor, top, bottom, left, right, fillOpacity) {
@@ -4417,7 +4835,9 @@
 	}
 
 	Chart.prototype.renderColumn = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
+
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -4432,14 +4852,14 @@
 
 		var yZeroToPixel = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (0 - plotUnit.axisY.conversionParameters.minimum)) << 0;
 
-		var maxBarWidth = Math.min((this.width * .15), this.plotArea.width / plotUnit.plotType.totalDataSeries * .9) << 0;
+		var maxBarWidth = this.dataPointMaxWidth ? this.dataPointMaxWidth : Math.min((this.width * .15), this.plotArea.width / plotUnit.plotType.totalDataSeries * .9) << 0;
 		var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
 		var barWidth = (((plotArea.width / Math.abs(plotUnit.axisX.maximum - plotUnit.axisX.minimum)) * Math.abs(xMinDiff)) / plotUnit.plotType.totalDataSeries * .9) << 0;
 
 		if (barWidth > maxBarWidth)
 			barWidth = maxBarWidth;
 		else if (xMinDiff === Infinity) {
-			barWidth = maxBarWidth;
+			barWidth = maxBarWidth / plotUnit.plotType.totalDataSeries * .9;
 		} else if (barWidth < 1)
 			barWidth = 1;
 
@@ -4533,7 +4953,7 @@
 					if (isCanvasSupported)
 						drawRect(this._eventManager.ghostCtx, x1, y1, x2, y2, color, 0, null, false, false, false, false);
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "column",
@@ -4554,10 +4974,15 @@
 
 		if (isCanvasSupported)
 			this._eventManager.ghostCtx.restore();
+
+		//source and dest would be same when animation is not enabled
+		var animationBase = Math.min(yZeroToPixel, plotUnit.axisY.boundingRect.y2);
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.yScaleAnimation, easingFunction: AnimationHelper.easing.easeOutQuart, animationBase: animationBase };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderStackedColumn = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -4576,7 +5001,7 @@
 		//var yZeroToPixel = (axisYProps.y2 - axisYProps.height / rangeY * Math.abs(0 - plotUnit.axisY.minimum) + .5) << 0;
 		var yZeroToPixel = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (0 - plotUnit.axisY.conversionParameters.minimum)) << 0;
 
-		var maxBarWidth = this.width * .15 << 0;
+		var maxBarWidth = this.dataPointMaxWidth ? this.dataPointMaxWidth : this.width * .15 << 0;
 		var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
 		var barWidth = (((plotArea.width / Math.abs(plotUnit.axisX.maximum - plotUnit.axisX.minimum)) * Math.abs(xMinDiff)) / plotUnit.plotType.plotUnits.length * .9) << 0;
 
@@ -4633,7 +5058,7 @@
 						continue;
 
 					x = (plotUnit.axisX.conversionParameters.reference + plotUnit.axisX.conversionParameters.pixelPerUnit * (dataPointX - plotUnit.axisX.conversionParameters.minimum) + .5) << 0;
-					y = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (dataPoints[i].y - plotUnit.axisY.conversionParameters.minimum) + .5) << 0;
+					y = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (dataPoints[i].y - plotUnit.axisY.conversionParameters.minimum));
 
 					var x1 = x - (plotUnit.plotType.plotUnits.length * barWidth / 2) + (plotUnit.index * barWidth) << 0;
 					var x2 = x1 + barWidth << 0;
@@ -4674,7 +5099,7 @@
 						drawRect(this._eventManager.ghostCtx, x1, y1, x2, y2, color, 0, null, false, false, false, false);
 
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "stackedColumn",
@@ -4695,10 +5120,15 @@
 
 		if (isCanvasSupported)
 			this._eventManager.ghostCtx.restore();
+
+		//source and dest would be same when animation is not enabled
+		var animationBase = Math.min(yZeroToPixel, plotUnit.axisY.boundingRect.y2);
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.yScaleAnimation, easingFunction: AnimationHelper.easing.easeOutQuart, animationBase: animationBase };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderStackedColumn100 = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -4717,7 +5147,7 @@
 		//var yZeroToPixel = (axisYProps.y2 - axisYProps.height / rangeY * Math.abs(0 - plotUnit.axisY.minimum) + .5) << 0;
 		var yZeroToPixel = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (0 - plotUnit.axisY.conversionParameters.minimum)) << 0;
 
-		var maxBarWidth = this.width * .15 << 0;
+		var maxBarWidth = this.dataPointMaxWidth ? this.dataPointMaxWidth : this.width * .15 << 0;
 		var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
 		var barWidth = (((plotArea.width / Math.abs(plotUnit.axisX.maximum - plotUnit.axisX.minimum)) * Math.abs(xMinDiff)) / plotUnit.plotType.plotUnits.length * .9) << 0;
 
@@ -4780,7 +5210,8 @@
 					else
 						yPercent = 0;
 
-					y = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (yPercent - plotUnit.axisY.conversionParameters.minimum) + .5) << 0;
+					//y = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (yPercent - plotUnit.axisY.conversionParameters.minimum) + .5) << 0;
+					y = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (yPercent - plotUnit.axisY.conversionParameters.minimum));
 
 					var x1 = x - (plotUnit.plotType.plotUnits.length * barWidth / 2) + (plotUnit.index * barWidth) << 0;
 					var x2 = x1 + barWidth << 0;
@@ -4817,7 +5248,7 @@
 						drawRect(this._eventManager.ghostCtx, x1, y1, x2, y2, color, 0, null, false, false, false, false);
 
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "stackedColumn100",
@@ -4838,10 +5269,15 @@
 
 		if (isCanvasSupported)
 			this._eventManager.ghostCtx.restore();
+
+		//source and dest would be same when animation is not enabled
+		var animationBase = Math.min(yZeroToPixel, plotUnit.axisY.boundingRect.y2);
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.yScaleAnimation, easingFunction: AnimationHelper.easing.easeOutQuart, animationBase: animationBase };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderBar = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -4857,8 +5293,7 @@
 		//In case of Bar Chart, yZeroToPixel is x co-ordinate!
 		var yZeroToPixel = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (0 - plotUnit.axisY.conversionParameters.minimum)) << 0;
 
-		//var maxBarWidth = this.height * .15;
-		var maxBarWidth = Math.min((this.height * .15), this.plotArea.height / plotUnit.plotType.totalDataSeries * .9) << 0;
+		var maxBarWidth = this.dataPointMaxWidth ? this.dataPointMaxWidth : Math.min((this.height * .15), this.plotArea.height / plotUnit.plotType.totalDataSeries * .9) << 0;
 		var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
 		//var barWidth = (((plotArea.height / Math.abs(plotUnit.axisX.maximum - plotUnit.axisX.minimum)) * Math.abs(xMinDiff)) / totalDataSeries * .9) << 0;
 
@@ -4867,7 +5302,7 @@
 		if (barWidth > maxBarWidth)
 			barWidth = maxBarWidth;
 		else if (xMinDiff === Infinity) {
-			barWidth = maxBarWidth;
+			barWidth = maxBarWidth / plotUnit.plotType.totalDataSeries * .9;
 		} else if (barWidth < 1)
 			barWidth = 1;
 
@@ -4948,16 +5383,16 @@
 					if (isCanvasSupported)
 						drawRect(this._eventManager.ghostCtx, x1, y1, x2, y2, color, 0, null, false, false, false, false);
 
-
-					this._indexLabels.push({
-						chartType: "bar",
-						dataPoint: dataPoints[i],
-						dataSeries: dataSeries,
-						point: { x: dataPoints[i].y >= 0 ? x2 : x1, y: y1 + (y2 - y1) / 2 },
-						direction: dataPoints[i].y >= 0 ? 1 : -1,
-						bounds: { x1: Math.min(x1, x2), y1: y1, x2: Math.max(x1, x2), y2: y2 },
-						color: color
-					});
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter)
+						this._indexLabels.push({
+							chartType: "bar",
+							dataPoint: dataPoints[i],
+							dataSeries: dataSeries,
+							point: { x: dataPoints[i].y >= 0 ? x2 : x1, y: y1 + (y2 - y1) / 2 },
+							direction: dataPoints[i].y >= 0 ? 1 : -1,
+							bounds: { x1: Math.min(x1, x2), y1: y1, x2: Math.max(x1, x2), y2: y2 },
+							color: color
+						});
 				}
 			}
 		}
@@ -4966,10 +5401,15 @@
 
 		if (isCanvasSupported)
 			this._eventManager.ghostCtx.restore();
+
+		//source and dest would be same when animation is not enabled
+		var animationBase = Math.max(yZeroToPixel, plotUnit.axisX.boundingRect.x2);
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xScaleAnimation, easingFunction: AnimationHelper.easing.easeOutQuart, animationBase: animationBase };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderStackedBar = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -4988,7 +5428,7 @@
 		//var yZeroToPixel = (axisYProps.y2 - axisYProps.height / rangeY * Math.abs(0 - plotUnit.axisY.minimum) + .5) << 0;
 		var yZeroToPixel = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (0 - plotUnit.axisY.conversionParameters.minimum)) << 0;
 
-		var maxBarWidth = this.width * .15 << 0;
+		var maxBarWidth = this.dataPointMaxWidth ? this.dataPointMaxWidth : this.height * .15 << 0;
 		var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
 		var barWidth = (((plotArea.height / Math.abs(plotUnit.axisX.maximum - plotUnit.axisX.minimum)) * Math.abs(xMinDiff)) / plotUnit.plotType.plotUnits.length * .9) << 0;
 
@@ -5043,7 +5483,8 @@
 						continue;
 
 					y = (plotUnit.axisX.conversionParameters.reference + plotUnit.axisX.conversionParameters.pixelPerUnit * (dataPointX - plotUnit.axisX.conversionParameters.minimum) + .5) << 0;
-					x = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (dataPoints[i].y - plotUnit.axisY.conversionParameters.minimum) + .5) << 0;
+					//x = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (dataPoints[i].y - plotUnit.axisY.conversionParameters.minimum) + .5) << 0;
+					x = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (dataPoints[i].y - plotUnit.axisY.conversionParameters.minimum));
 
 					//var x1 = x - (plotUnit.plotType.plotUnits.length * barWidth / 2) + (plotUnit.index * barWidth) << 0;
 
@@ -5080,16 +5521,16 @@
 					if (isCanvasSupported)
 						drawRect(this._eventManager.ghostCtx, x1, y1, x2, y2, color, 0, null, false, false, false, false);
 
-
-					this._indexLabels.push({
-						chartType: "stackedBar",
-						dataPoint: dataPoints[i],
-						dataSeries: dataSeries,
-						point: { x: dataPoints[i].y >= 0 ? x2 : x1, y: y },
-						direction: dataPoints[i].y >= 0 ? 1 : -1,
-						bounds: { x1: Math.min(x1, x2), y1: y1, x2: Math.max(x1, x2), y2: y2 },
-						color: color
-					});
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter)
+						this._indexLabels.push({
+							chartType: "stackedBar",
+							dataPoint: dataPoints[i],
+							dataSeries: dataSeries,
+							point: { x: dataPoints[i].y >= 0 ? x2 : x1, y: y },
+							direction: dataPoints[i].y >= 0 ? 1 : -1,
+							bounds: { x1: Math.min(x1, x2), y1: y1, x2: Math.max(x1, x2), y2: y2 },
+							color: color
+						});
 				}
 			}
 		}
@@ -5098,10 +5539,15 @@
 
 		if (isCanvasSupported)
 			this._eventManager.ghostCtx.restore();
+
+		//source and dest would be same when animation is not enabled
+		var animationBase = Math.max(yZeroToPixel, plotUnit.axisX.boundingRect.x2);
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xScaleAnimation, easingFunction: AnimationHelper.easing.easeOutQuart, animationBase: animationBase };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderStackedBar100 = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -5120,7 +5566,7 @@
 		//var yZeroToPixel = (axisYProps.y2 - axisYProps.height / rangeY * Math.abs(0 - plotUnit.axisY.minimum) + .5) << 0;
 		var yZeroToPixel = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (0 - plotUnit.axisY.conversionParameters.minimum)) << 0;
 
-		var maxBarWidth = this.width * .15 << 0;
+		var maxBarWidth = this.dataPointMaxWidth ? this.dataPointMaxWidth : this.height * .15 << 0;
 		var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
 		var barWidth = (((plotArea.height / Math.abs(plotUnit.axisX.maximum - plotUnit.axisX.minimum)) * Math.abs(xMinDiff)) / plotUnit.plotType.plotUnits.length * .9) << 0;
 
@@ -5182,7 +5628,8 @@
 					else
 						yPercent = 0;
 
-					x = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (yPercent - plotUnit.axisY.conversionParameters.minimum) + .5) << 0;
+					//x = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (yPercent - plotUnit.axisY.conversionParameters.minimum) + .5) << 0;
+					x = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (yPercent - plotUnit.axisY.conversionParameters.minimum));
 
 					var y1 = y - (plotUnit.plotType.plotUnits.length * barWidth / 2) + (plotUnit.index * barWidth) << 0;
 					var y2 = y1 + barWidth << 0;
@@ -5218,16 +5665,16 @@
 					if (isCanvasSupported)
 						drawRect(this._eventManager.ghostCtx, x1, y1, x2, y2, color, 0, null, false, false, false, false);
 
-
-					this._indexLabels.push({
-						chartType: "stackedBar100",
-						dataPoint: dataPoints[i],
-						dataSeries: dataSeries,
-						point: { x: dataPoints[i].y >= 0 ? x2 : x1, y: y },
-						direction: dataPoints[i].y >= 0 ? 1 : -1,
-						bounds: { x1: Math.min(x1, x2), y1: y1, x2: Math.max(x1, x2), y2: y2 },
-						color: color
-					});
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter)
+						this._indexLabels.push({
+							chartType: "stackedBar100",
+							dataPoint: dataPoints[i],
+							dataSeries: dataSeries,
+							point: { x: dataPoints[i].y >= 0 ? x2 : x1, y: y },
+							direction: dataPoints[i].y >= 0 ? 1 : -1,
+							bounds: { x1: Math.min(x1, x2), y1: y1, x2: Math.max(x1, x2), y2: y2 },
+							color: color
+						});
 				}
 			}
 		}
@@ -5236,10 +5683,16 @@
 
 		if (isCanvasSupported)
 			this._eventManager.ghostCtx.restore();
+
+		//source and dest would be same when animation is not enabled
+		var animationBase = Math.max(yZeroToPixel, plotUnit.axisX.boundingRect.x2);
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xScaleAnimation, easingFunction: AnimationHelper.easing.easeOutQuart, animationBase: animationBase };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderArea = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
+
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -5301,6 +5754,10 @@
 				ctx.fillStyle = color;
 				ctx.strokeStyle = color;
 				ctx.lineWidth = dataSeries.lineThickness;
+
+				if (ctx.setLineDash) {
+					ctx.setLineDash(getLineDashArray(dataSeries.lineDashType, dataSeries.lineThickness));
+				}
 
 				var prevDataNull = true;
 				for (; i < dataPoints.length; i++) {
@@ -5375,7 +5832,7 @@
 						}
 					}
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "area",
@@ -5438,10 +5895,15 @@
 
 			startPoint = { x: x, y: y };
 		}
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xClipAnimation, easingFunction: AnimationHelper.easing.linear, animationBase: 0 };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderSplineArea = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
+
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -5505,6 +5967,10 @@
 				ctx.strokeStyle = color;
 				ctx.lineWidth = dataSeries.lineThickness;
 
+				if (ctx.setLineDash) {
+					ctx.setLineDash(getLineDashArray(dataSeries.lineDashType, dataSeries.lineThickness));
+				}
+
 				for (; i < dataPoints.length; i++) {
 
 					dataPointX = dataPoints[i].x.getTime ? dataPoints[i].x.getTime() : dataPoints[i].x;
@@ -5557,7 +6023,7 @@
 
 
 					//Render Index Labels
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "splineArea",
@@ -5633,10 +6099,15 @@
 				}
 			}
 		}
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xClipAnimation, easingFunction: AnimationHelper.easing.linear, animationBase: 0 };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderStepArea = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
+
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -5699,6 +6170,10 @@
 				ctx.fillStyle = color;
 				ctx.strokeStyle = color;
 				ctx.lineWidth = dataSeries.lineThickness;
+
+				if (ctx.setLineDash) {
+					ctx.setLineDash(getLineDashArray(dataSeries.lineDashType, dataSeries.lineThickness));
+				}
 
 				for (; i < dataPoints.length; i++) {
 
@@ -5780,7 +6255,7 @@
 						}
 					}
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "stepArea",
@@ -5842,10 +6317,15 @@
 
 			startPoint = { x: x, y: y };
 		}
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xClipAnimation, easingFunction: AnimationHelper.easing.linear, animationBase: 0 };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderStackedArea = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
+
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -5938,6 +6418,10 @@
 				ctx.strokeStyle = color;
 				ctx.lineWidth = dataSeries.lineThickness;
 
+				if (ctx.setLineDash) {
+					ctx.setLineDash(getLineDashArray(dataSeries.lineDashType, dataSeries.lineThickness));
+				}
+
 				for (i = 0; i < allXValues.length; i++) {
 
 					dataPointX = allXValues[i];
@@ -5956,7 +6440,8 @@
 						continue;
 
 					var x = (plotUnit.axisX.conversionParameters.reference + plotUnit.axisX.conversionParameters.pixelPerUnit * (dataPointX - plotUnit.axisX.conversionParameters.minimum) + .5) << 0;
-					var y = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (dataPoint.y - plotUnit.axisY.conversionParameters.minimum) + .5) << 0;
+					//var y = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (dataPoint.y - plotUnit.axisY.conversionParameters.minimum) + .5) << 0;
+					var y = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (dataPoint.y - plotUnit.axisY.conversionParameters.minimum));
 
 					var offset = offsetY[dataPointX] ? offsetY[dataPointX] : 0;
 
@@ -6049,7 +6534,7 @@
 						}
 					}
 
-					if (dataPoint.indexLabel || dataSeries.indexLabel) {
+					if (dataPoint.indexLabel || dataSeries.indexLabel || dataPoint.indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "stackedArea",
@@ -6101,10 +6586,15 @@
 
 		if (isCanvasSupported)
 			ghostCtx.restore();
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xClipAnimation, easingFunction: AnimationHelper.easing.linear, animationBase: 0 };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderStackedArea100 = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
+
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -6127,7 +6617,7 @@
 		//var yZeroToPixel = (axisYProps.y2 - axisYProps.height / rangeY * Math.abs(0 - plotUnit.axisY.minimum) + .5) << 0;
 		var yZeroToPixel = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (0 - plotUnit.axisY.conversionParameters.minimum)) << 0;
 
-		var maxBarWidth = this.width * .15 << 0;
+		var maxBarWidth = this.dataPointMaxWidth ? this.dataPointMaxWidth : this.width * .15 << 0;
 		var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
 		var barWidth = (((plotArea.width / Math.abs(plotUnit.axisX.maximum - plotUnit.axisX.minimum)) * Math.abs(xMinDiff)) * .9) << 0;
 
@@ -6204,6 +6694,10 @@
 				ctx.strokeStyle = color;
 				ctx.lineWidth = dataSeries.lineThickness;
 
+				if (ctx.setLineDash) {
+					ctx.setLineDash(getLineDashArray(dataSeries.lineDashType, dataSeries.lineThickness));
+				}
+
 				var bevelEnabled = (barWidth > 5) ? false : false;
 
 				//ctx.strokeStyle = "#4572A7 ";
@@ -6232,7 +6726,7 @@
 						yPercent = 0;
 
 					var x = (plotUnit.axisX.conversionParameters.reference + plotUnit.axisX.conversionParameters.pixelPerUnit * (dataPointX - plotUnit.axisX.conversionParameters.minimum) + .5) << 0;
-					var y = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (yPercent - plotUnit.axisY.conversionParameters.minimum) + .5) << 0;
+					var y = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (yPercent - plotUnit.axisY.conversionParameters.minimum));
 
 					var offset = offsetY[dataPointX] ? offsetY[dataPointX] : 0;
 
@@ -6322,7 +6816,7 @@
 						}
 					}
 
-					if (dataPoint.indexLabel || dataSeries.indexLabel) {
+					if (dataPoint.indexLabel || dataSeries.indexLabel || dataPoint.indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "stackedArea100",
@@ -6373,10 +6867,16 @@
 
 		if (isCanvasSupported)
 			ghostCtx.restore();
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xClipAnimation, easingFunction: AnimationHelper.easing.linear, animationBase: 0 };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderBubble = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
+
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -6391,7 +6891,7 @@
 
 		var yZeroToPixel = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (0 - plotUnit.axisY.conversionParameters.minimum)) << 0;
 
-		var maxBarWidth = this.width * .15 << 0;
+		var maxBarWidth = this.dataPointMaxWidth ? this.dataPointMaxWidth : this.width * .15 << 0;
 		var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
 		var barWidth = (((plotArea.width / Math.abs(plotUnit.axisX.maximum - plotUnit.axisX.minimum)) * Math.abs(xMinDiff)) / totalDataSeries * .9) << 0;
 
@@ -6504,7 +7004,7 @@
 						RenderHelper.drawMarker(x, y, this._eventManager.ghostCtx, markerProps.type, markerProps.size, markerColor, markerColor, markerProps.borderThickness);
 
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "bubble",
@@ -6512,6 +7012,7 @@
 							dataSeries: dataSeries,
 							point: { x: x, y: y },
 							direction: 1,
+							bounds: { x1: x - markerProps.size / 2, y1: y - markerProps.size / 2, x2: x + markerProps.size / 2, y2: y + markerProps.size / 2 },
 							color: color
 						});
 					}
@@ -6523,10 +7024,14 @@
 
 		if (isCanvasSupported)
 			this._eventManager.ghostCtx.restore();
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.fadeInAnimation, easingFunction: AnimationHelper.easing.easeInQuad, animationBase: 0 };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderScatter = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -6541,7 +7046,7 @@
 
 		var yZeroToPixel = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (0 - plotUnit.axisY.conversionParameters.minimum)) << 0;
 
-		var maxBarWidth = this.width * .15 << 0;
+		var maxBarWidth = this.dataPointMaxWidth ? this.dataPointMaxWidth : this.width * .15 << 0;
 		var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
 		var barWidth = (((plotArea.width / Math.abs(plotUnit.axisX.maximum - plotUnit.axisX.minimum)) * Math.abs(xMinDiff)) / totalDataSeries * .9) << 0;
 
@@ -6602,7 +7107,7 @@
 					var markerProps = dataSeries.getMarkerProperties(i, x, y, ctx);
 
 					ctx.globalAlpha = dataSeries.fillOpacity;
-					RenderHelper.drawMarker(markerProps.x, markerProps.y, markerProps.ctx, markerProps.type, markerProps.size, markerProps.color, markerProps.color, markerProps.thickness);
+					RenderHelper.drawMarker(markerProps.x, markerProps.y, markerProps.ctx, markerProps.type, markerProps.size, markerProps.color, markerProps.borderColor, markerProps.borderThickness);
 					ctx.globalAlpha = 1;
 
 
@@ -6636,7 +7141,7 @@
 					}
 					//markers.push();
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "scatter",
@@ -6644,6 +7149,7 @@
 							dataSeries: dataSeries,
 							point: { x: x, y: y },
 							direction: 1,
+							bounds: { x1: x - markerProps.size / 2, y1: y - markerProps.size / 2, x2: x + markerProps.size / 2, y2: y + markerProps.size / 2 },
 							color: color
 						});
 					}
@@ -6658,10 +7164,14 @@
 
 		if (isCanvasSupported)
 			this._eventManager.ghostCtx.restore();
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.fadeInAnimation, easingFunction: AnimationHelper.easing.easeInQuad, animationBase: 0 };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderCandlestick = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
 		var ghostCtx = this._eventManager.ghostCtx;
 
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
@@ -6677,8 +7187,7 @@
 
 		var yZeroToPixel = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (0 - plotUnit.axisY.conversionParameters.minimum)) << 0;
 
-		//var maxBarWidth = (this.width * .15);
-		var maxBarWidth = (this.width * .015);
+		var maxBarWidth = this.dataPointMaxWidth ? this.dataPointMaxWidth : (this.width * .015);
 		var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
 		var barWidth = (((plotArea.width / Math.abs(plotUnit.axisX.maximum - plotUnit.axisX.minimum)) * Math.abs(xMinDiff)) * .7) << 0;
 
@@ -6830,7 +7339,7 @@
 						}
 					}
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: dataSeries.type,
@@ -6851,10 +7360,14 @@
 
 		if (isCanvasSupported)
 			ghostCtx.restore();
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.fadeInAnimation, easingFunction: AnimationHelper.easing.easeInQuad, animationBase: 0 };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderRangeColumn = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -6869,7 +7382,7 @@
 
 		var yZeroToPixel = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (0 - plotUnit.axisY.conversionParameters.minimum)) << 0;
 
-		var maxBarWidth = (this.width * .03);
+		var maxBarWidth = this.dataPointMaxWidth ? this.dataPointMaxWidth : (this.width * .03);
 		//var maxBarWidth = (this.width * .015);
 		var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
 		//var barWidth = (((plotArea.width / Math.abs(plotUnit.axisX.maximum - plotUnit.axisX.minimum)) * Math.abs(xMinDiff)) * .9) << 0;
@@ -6878,7 +7391,7 @@
 		if (barWidth > maxBarWidth)
 			barWidth = maxBarWidth;
 		else if (xMinDiff === Infinity) {
-			barWidth = maxBarWidth;
+			barWidth = maxBarWidth / plotUnit.plotType.totalDataSeries * .9;
 		} else if (barWidth < 1)
 			barWidth = 1;
 
@@ -6960,7 +7473,7 @@
 						drawRect(this._eventManager.ghostCtx, x1, y1, x2, y2, color, 0, null, false, false, false, false);
 
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "rangeColumn",
@@ -6993,10 +7506,15 @@
 
 		if (isCanvasSupported)
 			this._eventManager.ghostCtx.restore();
+
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.fadeInAnimation, easingFunction: AnimationHelper.easing.easeInQuad, animationBase: 0 };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderRangeBar = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -7012,8 +7530,7 @@
 		//In case of Bar Chart, yZeroToPixel is x co-ordinate!
 		var yZeroToPixel = (plotUnit.axisY.conversionParameters.reference + plotUnit.axisY.conversionParameters.pixelPerUnit * (0 - plotUnit.axisY.conversionParameters.minimum)) << 0;
 
-		//var maxBarWidth = this.height * .15;
-		var maxBarWidth = Math.min((this.height * .15), this.plotArea.height / plotUnit.plotType.totalDataSeries * .9) << 0;
+		var maxBarWidth = this.dataPointMaxWidth ? this.dataPointMaxWidth : Math.min((this.height * .15), this.plotArea.height / plotUnit.plotType.totalDataSeries * .9) << 0;
 		var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
 		//var barWidth = (((plotArea.height / Math.abs(plotUnit.axisX.maximum - plotUnit.axisX.minimum)) * Math.abs(xMinDiff)) / totalDataSeries * .9) << 0;
 
@@ -7022,7 +7539,7 @@
 		if (barWidth > maxBarWidth)
 			barWidth = maxBarWidth;
 		else if (xMinDiff === Infinity) {
-			barWidth = maxBarWidth;
+			barWidth = maxBarWidth / plotUnit.plotType.totalDataSeries * .9;
 		} else if (barWidth < 1)
 			barWidth = 1;
 
@@ -7103,7 +7620,7 @@
 						drawRect(this._eventManager.ghostCtx, x1, y1, x2, y2, color, 0, null, false, false, false, false);
 
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "rangeBar",
@@ -7135,10 +7652,14 @@
 
 		if (isCanvasSupported)
 			this._eventManager.ghostCtx.restore();
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.fadeInAnimation, easingFunction: AnimationHelper.easing.easeInQuad, animationBase: 0 };
+		return animationInfo;
 	}
 
 	Chart.prototype.renderRangeArea = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -7202,6 +7723,10 @@
 				ctx.fillStyle = color;
 				ctx.strokeStyle = color;
 				ctx.lineWidth = dataSeries.lineThickness;
+
+				if (ctx.setLineDash) {
+					ctx.setLineDash(getLineDashArray(dataSeries.lineDashType, dataSeries.lineThickness));
+				}
 
 				var prevDataNull = true;
 				for (; i < dataPoints.length; i++) {
@@ -7301,7 +7826,7 @@
 						}
 					}
 
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "rangeArea",
@@ -7396,11 +7921,14 @@
 		}
 
 		//ctx.beginPath();
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xClipAnimation, easingFunction: AnimationHelper.easing.linear, animationBase: 0 };
+		return animationInfo;
 	}
 
 
 	Chart.prototype.renderRangeSplineArea = function (plotUnit) {
-		var ctx = this.plotArea.ctx;
+		var ctx = plotUnit.targetCanvasCtx || this.plotArea.ctx;
 		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
 
 		if (totalDataSeries <= 0)
@@ -7465,6 +7993,10 @@
 				ctx.fillStyle = color;
 				ctx.strokeStyle = color;
 				ctx.lineWidth = dataSeries.lineThickness;
+
+				if (ctx.setLineDash) {
+					ctx.setLineDash(getLineDashArray(dataSeries.lineDashType, dataSeries.lineThickness));
+				}
 
 				for (; i < dataPoints.length; i++) {
 
@@ -7541,7 +8073,7 @@
 
 
 					//Render Index Labels
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel) {
+					if (dataPoints[i].indexLabel || dataSeries.indexLabel || dataPoints[i].indexLabelFormatter || dataSeries.indexLabelFormatter) {
 
 						this._indexLabels.push({
 							chartType: "splineArea",
@@ -7643,6 +8175,10 @@
 				}
 			}
 		}
+
+		//source and dest would be same when animation is not enabled
+		var animationInfo = { source: ctx, dest: this.plotArea.ctx, animationCallback: AnimationHelper.xClipAnimation, easingFunction: AnimationHelper.easing.linear, animationBase: 0 };
+		return animationInfo;
 	}
 	//#region pieChart
 
@@ -7650,6 +8186,14 @@
 
 		if (typeof (fillOpacity) === "undefined")
 			fillOpacity = 1;
+
+		//IE8- FIX: In IE8- segment doesn't get draw if theta2 is equal to theta1 + 2*PI.
+		if (!isCanvasSupported) {
+			var theta2Mod = Number((theta2 % (2 * Math.PI)).toFixed(8));
+			var theta1Mod = Number((theta1 % (2 * Math.PI)).toFixed(8));
+			if (theta1Mod === theta2Mod)
+				theta2 -= .0001;
+		}
 
 		ctx.save();
 
@@ -7705,14 +8249,13 @@
 		var dataSeries = this.data[dataSeriesIndex];
 		var dataPoints = dataSeries.dataPoints;
 		var indexLabelLineEdgeLength = 10;
+		var explodeDuration = 500;
 
 		var plotArea = this.plotArea;
 
 		//var maxFrame = isCanvasSupported ? 300 : 4;
 		var totalRecursions = 0;
-		var animationParameter = { frame: 0, maxFrames: 1 };
 		var dataPointEOs = []; //dataPoint Extension Objects Behaves like a storage place for all additional data relating to dataPoints. Requred because actual dataPoints should not be modified.
-
 
 		var minDistanceBetweenLabels = 2;
 		var indexLabelRadiusToRadiusRatio = 1.3;
@@ -7720,28 +8263,25 @@
 		var precision = 6;
 
 		var center = { x: (plotArea.x2 + plotArea.x1) / 2, y: (plotArea.y2 + plotArea.y1) / 2 };
-		var outerRadius = dataSeries.indexLabelPlacement === "inside" ? (Math.min(plotArea.width, plotArea.height) * 0.95) / 2 : (Math.min(plotArea.width, plotArea.height) * 0.8) / 2;
+		var outerRadius = dataSeries.indexLabelPlacement === "inside" ? (Math.min(plotArea.width, plotArea.height) * 0.92) / 2 : (Math.min(plotArea.width, plotArea.height) * 0.8) / 2;
 		var innerRadius = outerRadius * .6;
 
 		var indexLabelRadius = outerRadius * indexLabelRadiusToRadiusRatio;
 		var newPieRadius = outerRadius;
 
-		function resetAnimationFrame(maxFrames) {
-			maxFrames = maxFrames || 1;
-
-			animationParameter.frame = 0;
-			animationParameter.maxFrames = maxFrames;
+		var sum = 0;
+		for (var j = 0; j < dataPoints.length; j++) {
+			sum += Math.abs(dataPoints[j].y);
 		}
+
+		if (sum === 0)
+			return;
 
 		function initLabels() {
 
 			if (!dataSeries || !dataPoints)
 				return;
 
-			var sum = 0;
-			for (var j = 0; j < dataPoints.length; j++) {
-				sum += Math.abs(dataPoints[j].y);
-			}
 
 			var noDPNearSouthPole = 0;
 			var noDPNearNorthPole = 0;
@@ -7755,7 +8295,19 @@
 
 				var dataPointEO = { id: id, objectType: "dataPoint", dataPointIndex: j, dataSeriesIndex: 0 };
 				dataPointEOs.push(dataPointEO);
-				var indexLabelText = dataPoint.indexLabel ? dataPoint.indexLabel : dataSeries.indexLabel ? dataSeries.indexLabel : dataPoint.label ? dataPoint.label : dataSeries.label ? dataSeries.label : '';
+
+				var percentAndTotal = { percent: null, total: null };
+				var formatterParameter = null;
+
+				percentAndTotal = _this.getPercentAndTotal(dataSeries, dataPoint);
+
+				if (dataSeries.indexLabelFormatter || dataPoint.indexLabelFormatter)
+					formatterParameter = { chart: _this._options, dataSeries: dataSeries, dataPoint: dataPoint, total: percentAndTotal.total, percent: percentAndTotal.percent };
+
+				var indexLabelText = dataPoint.indexLabelFormatter ? dataPoint.indexLabelFormatter(formatterParameter)
+                    : dataPoint.indexLabel ? _this.replaceKeywordsWithValue(dataPoint.indexLabel, dataPoint, dataSeries, j)
+                    : dataSeries.indexLabelFormatter ? dataSeries.indexLabelFormatter(formatterParameter)
+                    : dataSeries.indexLabel ? _this.replaceKeywordsWithValue(dataSeries.indexLabel, dataPoint, dataSeries, j) : dataPoint.label ? dataPoint.label : '';
 
 
 				_this._eventManager.objectMap[id] = dataPointEO;
@@ -7764,10 +8316,11 @@
 				dataPointEO.center = { x: center.x, y: center.y };
 				dataPointEO.y = dataPoint.y;
 				dataPointEO.radius = outerRadius;
-				dataPointEO.indexLabelText = _this.replaceKeywordsWithValue(indexLabelText, dataPoint, dataSeries, j);
+				dataPointEO.indexLabelText = indexLabelText;
 				dataPointEO.indexLabelPlacement = dataSeries.indexLabelPlacement;
 				dataPointEO.indexLabelLineColor = dataPoint.indexLabelLineColor ? dataPoint.indexLabelLineColor : dataSeries.indexLabelLineColor ? dataSeries.indexLabelLineColor : dataPoint.color ? dataPoint.color : dataSeries._colorSet[j % dataSeries._colorSet.length];
 				dataPointEO.indexLabelLineThickness = dataPoint.indexLabelLineThickness ? dataPoint.indexLabelLineThickness : dataSeries.indexLabelLineThickness;
+				dataPointEO.indexLabelLineDashType = dataPoint.indexLabelLineDashType ? dataPoint.indexLabelLineDashType : dataSeries.indexLabelLineDashType;
 				dataPointEO.indexLabelFontColor = dataPoint.indexLabelFontColor ? dataPoint.indexLabelFontColor : dataSeries.indexLabelFontColor;
 				dataPointEO.indexLabelFontStyle = dataPoint.indexLabelFontStyle ? dataPoint.indexLabelFontStyle : dataSeries.indexLabelFontStyle;
 				dataPointEO.indexLabelFontWeight = dataPoint.indexLabelFontWeight ? dataPoint.indexLabelFontWeight : dataSeries.indexLabelFontWeight;
@@ -7775,7 +8328,7 @@
 				dataPointEO.indexLabelFontFamily = dataPoint.indexLabelFontFamily ? dataPoint.indexLabelFontFamily : dataSeries.indexLabelFontFamily;
 				dataPointEO.indexLabelBackgroundColor = dataPoint.indexLabelBackgroundColor ? dataPoint.indexLabelBackgroundColor : dataSeries.indexLabelBackgroundColor ? dataSeries.indexLabelBackgroundColor : null;
 				dataPointEO.indexLabelMaxWidth = dataPoint.indexLabelMaxWidth ? dataPoint.indexLabelMaxWidth : dataSeries.indexLabelMaxWidth ? dataSeries.indexLabelMaxWidth : plotArea.width * .33;
-				dataPointEO.indexLabelWrap = dataPoint.indexLabelWrap ? dataPoint.indexLabelWrap : dataSeries.indexLabelWrap;
+				dataPointEO.indexLabelWrap = typeof (dataPoint.indexLabelWrap) !== "undefined" ? dataPoint.indexLabelWrap : dataSeries.indexLabelWrap;
 
 				dataPointEO.startAngle = j === 0 ? dataSeries.startAngle ? (dataSeries.startAngle / 180) * Math.PI : 0 : dataPointEOs[j - 1].endAngle;
 
@@ -7918,6 +8471,11 @@
 					//ctx.strokeStyle = dataPoints[i].color ? dataPoints[i].color : dataSeries._colorSet[i % dataSeries._colorSet.length];
 					ctx.strokeStyle = dataPointEO.indexLabelLineColor;
 					ctx.lineWidth = dataPointEO.indexLabelLineThickness;
+
+					if (ctx.setLineDash) {
+						ctx.setLineDash(getLineDashArray(dataPointEO.indexLabelLineDashType, dataPointEO.indexLabelLineThickness));
+					}
+
 					//ctx.lineWidth = 4;
 					ctx.beginPath();
 					ctx.moveTo(indexLabelLineStartX, indexLabelLineStartY);
@@ -7933,124 +8491,89 @@
 			}
 		}
 
-		function animate() {
+		function animate(fractionComplete) {
 
 			var ctx = _this.plotArea.ctx;
 
-			if (animationParameter !== null && animationParameter.frame < animationParameter.maxFrames) {
-				if (animationParameter.frame === 0)
-					animationParameter.prevMaxAngle = dataPointEOs[0].startAngle;
+			ctx.clearRect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
+			ctx.fillStyle = _this.backgroundColor;
+			ctx.fillRect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
 
-				ctx.clearRect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
-				ctx.fillStyle = _this.backgroundColor;
-				ctx.fillRect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
+			var maxAngle = dataPointEOs[0].startAngle + (2 * Math.PI * fractionComplete);
 
-				var maxAngle = animationParameter.prevMaxAngle + (2 * Math.PI / animationParameter.maxFrames);
+			for (var i = 0; i < dataPoints.length; i++) {
 
-				for (var i = 0; i < dataPoints.length; i++) {
+				var startAngle = i === 0 ? dataPointEOs[i].startAngle : endAngle;
+				var endAngle = startAngle + (dataPointEOs[i].endAngle - dataPointEOs[i].startAngle);
 
-					var startAngle = i === 0 ? dataPointEOs[i].startAngle : endAngle;
-					var endAngle = startAngle + (dataPointEOs[i].endAngle - dataPointEOs[i].startAngle);
+				var shouldBreak = false;
 
-					var shouldBreak = false;
+				if (endAngle > maxAngle) {
+					endAngle = maxAngle;
+					shouldBreak = true;
+				}
 
-					if (endAngle > maxAngle) {
-						endAngle = maxAngle;
-						shouldBreak = true;
+				var color = dataPoints[i].color ? dataPoints[i].color : dataSeries._colorSet[i % dataSeries._colorSet.length];
+
+				if (endAngle > startAngle)
+					drawSegment(_this.plotArea.ctx, dataPointEOs[i].center, dataPointEOs[i].radius, color, dataSeries.type, startAngle, endAngle, dataSeries.fillOpacity);
+
+				if (shouldBreak)
+					break;
+			}
+		}
+
+		function explodeToggle(fractionComplete) {
+
+			var ctx = _this.plotArea.ctx;
+
+			ctx.clearRect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
+			ctx.fillStyle = _this.backgroundColor;
+			ctx.fillRect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
+
+			for (var i = 0; i < dataPoints.length; i++) {
+
+				var startAngle = dataPointEOs[i].startAngle;
+				var endAngle = dataPointEOs[i].endAngle;
+
+				if (endAngle > startAngle) {
+
+
+					var offsetX = (outerRadius * .07 * Math.cos(dataPointEOs[i].midAngle));
+					var offsetY = (outerRadius * .07 * Math.sin(dataPointEOs[i].midAngle));
+					var isInTransition = false;
+
+					if (dataPoints[i].exploded) {
+						if (Math.abs(dataPointEOs[i].center.x - (center.x + offsetX)) > 0.000000001 || Math.abs(dataPointEOs[i].center.y - (center.y + offsetY)) > 0.000000001) {
+
+							dataPointEOs[i].center.x = center.x + offsetX * fractionComplete;
+							dataPointEOs[i].center.y = center.y + offsetY * fractionComplete;
+
+							isInTransition = true;
+						}
+					} else if (Math.abs(dataPointEOs[i].center.x - center.x) > 0 || Math.abs(dataPointEOs[i].center.y - center.y) > 0) {
+						dataPointEOs[i].center.x = center.x + offsetX * (1 - fractionComplete);
+						dataPointEOs[i].center.y = center.y + offsetY * (1 - fractionComplete);
+
+						isInTransition = true;
+					}
+
+					if (isInTransition) {
+						var entry = {};
+						entry.dataSeries = dataSeries;
+						entry.dataPoint = dataSeries.dataPoints[i];
+						entry.index = i;
+						_this._toolTip.highlightObjects([entry]);
 					}
 
 					var color = dataPoints[i].color ? dataPoints[i].color : dataSeries._colorSet[i % dataSeries._colorSet.length];
 
-					if (endAngle > startAngle)
-						drawSegment(_this.plotArea.ctx, dataPointEOs[i].center, dataPointEOs[i].radius, color, dataSeries.type, startAngle, endAngle, dataSeries.fillOpacity);
-
-					if (shouldBreak)
-						break;
+					drawSegment(_this.plotArea.ctx, dataPointEOs[i].center, dataPointEOs[i].radius, color, dataSeries.type, startAngle, endAngle, dataSeries.fillOpacity);
 				}
-
-				animationParameter.frame++;
-				animationParameter.prevMaxAngle = maxAngle;
-
-				if (animationParameter.frame < animationParameter.maxFrames) {
-					_this.animationRequestId = _this.requestAnimFrame.call(window, animate);
-				} else {
-					//renderLabels();
-					resetAnimationFrame(isCanvasSupported ? 15 : 4);
-					explodeToggle();
-				}
-
-				//console.log(animationParameter.frame);
-
 			}
-		}
 
-		function explodeToggle() {
-
-			var ctx = _this.plotArea.ctx;
-			var prevEndAngle = 0;
-
-			if (animationParameter !== null && animationParameter.frame < animationParameter.maxFrames) {
-
-				ctx.clearRect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
-				ctx.fillStyle = _this.backgroundColor;
-				ctx.fillRect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
-
-				//var maxAngle = animationParameter.prevMaxAngle + (2 * Math.PI / animationParameter.maxFrames);
-
-				for (var i = 0; i < dataPoints.length; i++) {
-
-					var startAngle = dataPointEOs[i].startAngle;
-					var endAngle = dataPointEOs[i].endAngle;
-
-					if (endAngle > startAngle) {
-
-
-						var offsetX = (outerRadius * .07 * Math.cos(dataPointEOs[i].midAngle));
-						var offsetY = (outerRadius * .07 * Math.sin(dataPointEOs[i].midAngle));
-						var isInTransition = false;
-
-						if (dataPoints[i].exploded) {
-							if (Math.abs(dataPointEOs[i].center.x - (center.x + offsetX)) > Math.abs(.5 * offsetX / animationParameter.maxFrames) || Math.abs(dataPointEOs[i].center.y - (center.y + offsetY)) > Math.abs(.5 * offsetY / animationParameter.maxFrames)) {
-								dataPointEOs[i].center.x += (offsetX / animationParameter.maxFrames);
-								dataPointEOs[i].center.y += (offsetY / animationParameter.maxFrames);
-
-								isInTransition = true;
-							}
-						} else if (Math.abs(dataPointEOs[i].center.x - center.x) > Math.abs(.5 * offsetX / animationParameter.maxFrames) || Math.abs(dataPointEOs[i].center.y - center.y) > Math.abs(.5 * offsetY / animationParameter.maxFrames)) {
-							dataPointEOs[i].center.x -= (offsetX / animationParameter.maxFrames);
-							dataPointEOs[i].center.y -= (offsetY / animationParameter.maxFrames);
-							isInTransition = true;
-						}
-
-						if (isInTransition) {
-							var entry = {};
-							entry.dataSeries = dataSeries;
-							entry.dataPoint = dataSeries.dataPoints[i];
-							entry.index = i;
-							_this._toolTip.highlightObjects([entry]);
-						}
-
-						var color = dataPoints[i].color ? dataPoints[i].color : dataSeries._colorSet[i % dataSeries._colorSet.length];
-
-						drawSegment(_this.plotArea.ctx, dataPointEOs[i].center, dataPointEOs[i].radius, color, dataSeries.type, startAngle, endAngle, dataSeries.fillOpacity);
-					}
-				}
-
-				animationParameter.frame++;
-
-				//window.alert("next??");
-				renderLabels();
-
-				//ctx.lineWidth = 4;
-
-				if (animationParameter.frame < animationParameter.maxFrames) {
-					_this.animationRequestId = _this.requestAnimFrame.call(window, explodeToggle);
-				}
-
-
-				//console.log(animationParameter.frame);
-
-			}
+			//window.alert("next??");
+			renderLabels();
 		}
 
 		function areDataPointsTooClose(first, second) {
@@ -8688,19 +9211,16 @@
 			}
 			//window.alert("next??");
 
-			//maxFrame = 50;
-			resetAnimationFrame(_this.animationEnabled && _this.renderCount === 0 ? isCanvasSupported ? 60 : 30 : 1);
-			//resetAnimationFrame(1);
-			animate();
-			//window.alert("next?");
-			//renderLabels();
+
+			//resetAnimationFrame(_this.animationEnabled && _this.renderCount === 0 ? isCanvasSupported ? 60 : 30 : 1);
+			//animate();
 
 			//console.log("totalRecursions: " + totalRecursions);
 		}
 
 		this.pieDoughnutClickHandler = function (e) {
 
-			if (animationParameter.frame !== animationParameter.maxFrames) {
+			if (_this.isAnimating) {
 				return;
 			}
 
@@ -8718,36 +9238,68 @@
 			else
 				dataPoint.exploded = true;
 
-			//resetAnimationFrame(_this.animationEnabled ? isCanvasSupported ? 15 : 4 : 1);
-			resetAnimationFrame(isCanvasSupported ? 15 : 4);
 
 			// So that it doesn't try to explode when there is only one segment
-			if (dataSeries.dataPoints.length > 1)
-				explodeToggle();
+			if (dataSeries.dataPoints.length > 1) {
+				_this._animator.animate(0, explodeDuration, function (fractionComplete) {
+
+					explodeToggle(fractionComplete);
+					renderChartElementsInPlotArea();
+					//console.log("Explode Start");
+
+				});
+			}
 
 			return;
 		}
 
 		initLabels();
 
-		//resetAnimationFrame();
 		positionLabels();
+
+		this.disableToolTip = true;
+		this._animator.animate(0, this.animatedRender ? this.animationDuration : 0, function (fractionComplete) {
+
+			animate(fractionComplete);
+			renderChartElementsInPlotArea();
+
+		}, function () {
+
+			_this.disableToolTip = false;
+			_this._animator.animate(0, _this.animatedRender ? explodeDuration : 0, function (fractionComplete) {
+
+				explodeToggle(fractionComplete);
+				renderChartElementsInPlotArea();
+
+			});
+
+			//console.log("Animation Complete");
+		});
+
+		function renderChartElementsInPlotArea() {
+
+			_this.plotArea.layoutManager.reset();
+
+			if (_this._title) {
+				if (_this._title.dockInsidePlotArea || (_this._title.horizontalAlign === "center" && _this._title.verticalAlign === "center"))
+					_this._title.render();
+			}
+
+			if (_this.subtitles)
+				for (var i = 0; i < _this.subtitles.length; i++) {
+					var subtitle = _this.subtitles[i];
+					if (subtitle.dockInsidePlotArea || (subtitle.horizontalAlign === "center" && subtitle.verticalAlign === "center"))
+						subtitle.render();
+				}
+
+			if (_this.legend) {
+				if (_this.legend.dockInsidePlotArea || (_this.legend.horizontalAlign === "center" && _this.legend.verticalAlign === "center"))
+					_this.legend.render();
+			}
+		}
 
 		//this.ctx.strokeRect(plotArea.x1 + 1, plotArea.y1, plotArea.width - 2, plotArea.height);
 	}
-
-	//var continuePrompt = true;
-	//function customPrompt(msg) {
-	//	if (!continuePrompt)
-	//		return;
-
-	//	var result = prompt("Custom Prompt", msg);
-
-	//	if (result !== null)
-	//		continuePrompt = true;
-	//	else
-	//		continuePrompt = false;
-	//}
 
 	//#endregion pieChart
 
@@ -8778,13 +9330,22 @@
 	//#endregion Class Chart
 
 	//#region Class LayoutManager
-	function LayoutManager(chart) {
+	function LayoutManager(x1, y1, x2, y2, padding) {
 
-		this._topOccupied = 0;
-		this._bottomOccupied = 0;
-		this._leftOccupied = 0;
-		this._rightOccupied = 0;
-		this.chart = chart;
+		if (typeof (padding) === "undefined")
+			padding = 0;
+
+		this._padding = padding;
+
+		this._x1 = x1;
+		this._y1 = y1;
+		this._x2 = x2;
+		this._y2 = y2;
+
+		this._topOccupied = this._padding;
+		this._bottomOccupied = this._padding;
+		this._leftOccupied = this._padding;
+		this._rightOccupied = this._padding;
 	}
 
 	LayoutManager.prototype.registerSpace = function (position, size) {
@@ -8819,26 +9380,27 @@
 		///</signature>
 
 		return {
-			x1: this._leftOccupied,
-			y1: this._topOccupied,
-			x2: this.chart.width - this._rightOccupied,
-			y2: this.chart.height - this._bottomOccupied,
-			width: (this.chart.width - this._rightOccupied) - this._leftOccupied,
-			height: (this.chart.height - this._bottomOccupied) - this._topOccupied
+			x1: this._x1 + this._leftOccupied,
+			y1: this._y1 + this._topOccupied,
+			x2: this._x2 - this._rightOccupied,
+			y2: this._y2 - this._bottomOccupied,
+			width: (this._x2 - this._x1) - this._rightOccupied - this._leftOccupied,
+			height: (this._y2 - this._y1) - this._bottomOccupied - this._topOccupied
 		};
 	}
 
 	LayoutManager.prototype.reset = function () {
-		this._topOccupied = 0;
-		this._bottomOccupied = 3;//so that there is enough padding in the bottom.
-		this._leftOccupied = 0;
-		this._rightOccupied = 0;
+		//so that there is enough padding.
+		this._topOccupied = this._padding;
+		this._bottomOccupied = this._padding;
+		this._leftOccupied = this._padding;
+		this._rightOccupied = this._padding;
 	}
 	//#endregion Class LayoutManager
 
 	//#region Class TextBlock
 	function TextBlock(ctx, options) {
-		TextBlock.parent.constructor.call(this, "TextBlock", options);
+		TextBlock.base.constructor.call(this, "TextBlock", options);
 
 		this.ctx = ctx;
 		this._isDirty = true;
@@ -8976,7 +9538,7 @@
 
 	TextBlock.prototype._wrapText = function wrapText() {
 		//this.ctx.save();
-		var text = new String(trimString(this.text));
+		var text = new String(trimString(String(this.text)));
 		var lines = [];
 		var font = this.ctx.font; // Save the current Font
 		var height = 0;
@@ -9021,7 +9583,7 @@
 	//#region Class Title
 
 	function Title(chart, options) {
-		Title.parent.constructor.call(this, "Title", options, chart.theme);
+		Title.base.constructor.call(this, "Title", options, chart.theme);
 
 		this.chart = chart;
 		this.canvas = chart.canvas;
@@ -9046,31 +9608,43 @@
 		if (!this.text)
 			return;
 
-		var freespace = this.chart.layoutManager.getFreeSpace();
-		var left = 0;
-		var top = 0;
+		var container = (!this.dockInsidePlotArea ? this.chart : this.chart.plotArea);
+		var freespace = container.layoutManager.getFreeSpace();
+		var left = freespace.x1;
+		var top = freespace.y1;
 		var angle = 0;
-		var maxWidth = 0;
 		var maxHeight = 0;
+		var containerMargin = 2; //Margin towards the container
+		var rightOffset = this.chart._menuButton && this.chart.exportEnabled && this.verticalAlign === "top" ? 22 : 0; //So that Title doesn't overlap menu button.
 
 		var textBlockHorizontalAlign;
 		var position;
 
 		if (this.verticalAlign === "top" || this.verticalAlign === "bottom") {
-			maxWidth = freespace.width - this.margin * 2;
-			maxHeight = freespace.height * .5 - this.margin * 2;
+			if (this.maxWidth === null)
+				this.maxWidth = freespace.width - containerMargin * 2 - rightOffset * (this.horizontalAlign === "center" ? 2 : 1);
+
+			maxHeight = freespace.height * .5 - this.margin - containerMargin;
 			angle = 0;
 		}
 		else if (this.verticalAlign === "center") {
 
 			if (this.horizontalAlign === "left" || this.horizontalAlign === "right") {
-				maxWidth = freespace.height - this.margin * 2;
-				maxHeight = freespace.width * .5 - this.margin * 2;
+				if (this.maxWidth === null)
+					this.maxWidth = freespace.height - containerMargin * 2;
+
+				maxHeight = freespace.width * .5 - this.margin - containerMargin;
 			} else if (this.horizontalAlign === "center") {
-				maxWidth = freespace.width - this.margin * 2;
-				maxHeight = freespace.height * .5 - this.margin * 2;
+				if (this.maxWidth === null)
+					this.maxWidth = freespace.width - containerMargin * 2;
+
+				maxHeight = freespace.height * .5 - containerMargin * 2;
 			}
 		}
+
+		if (!this.wrap)
+			maxHeight = Math.min(maxHeight, Math.max(this.fontSize * 1.5, this.fontSize + this.padding * 2.5));
+		//console.log(this.maxWidth);
 
 		var textBlock = new TextBlock(this.ctx, {
 			fontSize: this.fontSize, fontFamily: this.fontFamily, fontColor: this.fontColor,
@@ -9078,7 +9652,7 @@
 			horizontalAlign: this.horizontalAlign, verticalAlign: this.verticalAlign,
 			borderColor: this.borderColor, borderThickness: this.borderThickness,
 			backgroundColor: this.backgroundColor,
-			maxWidth: maxWidth, maxHeight: maxHeight,
+			maxWidth: this.maxWidth, maxHeight: maxHeight,
 			cornerRadius: this.cornerRadius,
 			text: this.text,
 			padding: this.padding,
@@ -9090,22 +9664,22 @@
 		if (this.verticalAlign === "top" || this.verticalAlign === "bottom") {
 
 			if (this.verticalAlign === "top") {
-				top = this.margin;
+				top = freespace.y1 + containerMargin;
 				position = "top";
 			}
 			else if (this.verticalAlign === "bottom") {
-				top = freespace.y2 - this.margin - textBlockSize.height;
+				top = freespace.y2 - containerMargin - textBlockSize.height;
 				position = "bottom";
 			}
 
 			if (this.horizontalAlign === "left") {
-				left = freespace.x1 + this.margin;
+				left = freespace.x1 + containerMargin;
 			}
 			else if (this.horizontalAlign === "center") {
-				left = freespace.x1 + (maxWidth / 2 - textBlockSize.width / 2) + this.margin;
+				left = freespace.x1 + freespace.width / 2 - textBlockSize.width / 2;
 			}
 			else if (this.horizontalAlign === "right") {
-				left = freespace.x2 - this.margin - textBlockSize.width;
+				left = freespace.x2 - containerMargin - textBlockSize.width - rightOffset;
 			}
 
 			textBlockHorizontalAlign = this.horizontalAlign;
@@ -9117,8 +9691,8 @@
 
 			if (this.horizontalAlign === "left") {
 
-				left = freespace.x1 + this.margin;
-				top = freespace.y2 - this.margin - (maxWidth / 2 - textBlockSize.width / 2);
+				left = freespace.x1 + containerMargin;
+				top = freespace.y2 - containerMargin - (this.maxWidth / 2 - textBlockSize.width / 2);
 				angle = -90;
 
 				position = "left";
@@ -9126,8 +9700,8 @@
 				this.height = textBlockSize.width;
 			}
 			else if (this.horizontalAlign === "right") {
-				left = freespace.x2 - this.margin;
-				top = freespace.y1 + this.margin + (maxWidth / 2 - textBlockSize.width / 2);
+				left = freespace.x2 - containerMargin;
+				top = freespace.y1 + containerMargin + (this.maxWidth / 2 - textBlockSize.width / 2);
 				angle = 90;
 
 				position = "right";
@@ -9135,8 +9709,8 @@
 				this.height = textBlockSize.width;
 			}
 			else if (this.horizontalAlign === "center") {
-				top = freespace.y1 + (freespace.height / 2 - textBlockSize.height / 2);
-				left = freespace.x1 + (freespace.width / 2 - textBlockSize.width / 2);
+				top = container.y1 + (container.height / 2 - textBlockSize.height / 2);
+				left = container.x1 + (container.width / 2 - textBlockSize.width / 2);
 
 				position = "center";
 				this.width = textBlockSize.width;
@@ -9152,7 +9726,10 @@
 		textBlock.horizontalAlign = textBlockHorizontalAlign;
 		textBlock.render(true);
 
-		this.chart.layoutManager.registerSpace(position, { width: this.width + this.margin * 2, height: this.height + this.margin * 2 });
+		container.layoutManager.registerSpace(position, {
+			width: this.width + (position === "left" || position === "right" ? this.margin + containerMargin : 0),
+			height: this.height + (position === "top" || position === "bottom" ? this.margin + containerMargin : 0)
+		});
 
 		this.bounds = { x1: left, y1: top, x2: left + this.width, y2: top + this.height };
 
@@ -9162,11 +9739,38 @@
 
 	//#endregion Class Title
 
+	//#region Class SubTitle
+
+	function Subtitle(chart, options) {
+		Subtitle.base.constructor.call(this, "Subtitle", options, chart.theme);
+
+		this.chart = chart;
+		this.canvas = chart.canvas;
+		this.ctx = this.chart.ctx;
+
+
+		if (typeof (this._options.fontSize) === "undefined") {
+
+			this.fontSize = this.chart.getAutoFontSize(this.fontSize);
+
+			//window.console.log("Chart Title fontSize: " + this.fontSize);
+		}
+
+		this.width = null,//read only
+		this.height = null//read only
+		this.bounds = { x1: null, y1: null, x2: null, y2: null };
+	}
+
+	extend(Subtitle, CanvasJSObject);
+	Subtitle.prototype.render = Title.prototype.render;
+
+	//#endregion Class SubTitle
+
 	//#region Legend
 
 	//TBI: Implement Markes for Legend
 	function Legend(chart, options, theme) {
-		Legend.parent.constructor.call(this, "Legend", options, theme);
+		Legend.base.constructor.call(this, "Legend", options, theme);
 
 		this.chart = chart;
 		this.canvas = chart.canvas;
@@ -9178,7 +9782,6 @@
 		//this.fontSize = 12,
 		this.height = 0,
 		this.orientation = null,
-		this.horizontalSpacing = 10;
 		this.dataSeries = [];
 		this.bounds = { x1: null, y1: null, x2: null, y2: null };
 
@@ -9188,11 +9791,15 @@
 		}
 
 		this.lineHeight = getFontHeightInPixels(this.fontFamily, this.fontSize, this.fontWeight);
+
+		this.horizontalSpacing = this.fontSize;
 	}
 	extend(Legend, CanvasJSObject);
 
 	Legend.prototype.render = function () {
-		var freeSpace = this.chart.layoutManager.getFreeSpace();
+
+		var container = (!this.dockInsidePlotArea ? this.chart : this.chart.plotArea);
+		var freeSpace = container.layoutManager.getFreeSpace();
 		var position = null;
 		var top = 0;
 		var left = 0;
@@ -9203,38 +9810,43 @@
 		var items = [];
 		var rows = [];
 
-
-
 		//this.ctx.font = getFontString("", this, null);
 		//this.ctx.fontColor = this.fontColor;
 
 		if (this.verticalAlign === "top" || this.verticalAlign === "bottom") {
 			this.orientation = "horizontal";
 			position = this.verticalAlign;
-			maxWidth = freeSpace.width * .9;
-			maxHeight = freeSpace.height * .5;
+
+			maxWidth = this.maxWidth !== null ? this.maxWidth : freeSpace.width * .7;
+			maxHeight = this.maxHeight !== null ? this.maxHeight : freeSpace.height * .5;
 		}
 		else if (this.verticalAlign === "center") {
 			this.orientation = "vertical";
 			position = this.horizontalAlign;
 
-			maxWidth = freeSpace.width * .5;
-			maxHeight = freeSpace.height * .9;
+			maxWidth = this.maxWidth !== null ? this.maxWidth : freeSpace.width * .5;
+			maxHeight = this.maxHeight !== null ? this.maxHeight : freeSpace.height * .7;
 		}
 
 		for (var i = 0; i < this.dataSeries.length; i++) {
 			var dataSeries = this.dataSeries[i];
 
-			var markerType = dataSeries.legendMarkerType ? dataSeries.legendMarkerType : (dataSeries.type === "line" || dataSeries.type === "stepLine" || dataSeries.type === "spline" || dataSeries.type === "scatter" || dataSeries.type === "bubble") && dataSeries.markerType ? dataSeries.markerType : DataSeries.getDefaultLegendMarker(dataSeries.type);
-			var legendText = dataSeries.legendText ? dataSeries.legendText : dataSeries.name;
-			var markerColor = dataSeries.legendMarkerColor ? dataSeries.legendMarkerColor : dataSeries.markerColor ? dataSeries.markerColor : dataSeries._colorSet[0];
-			var markerSize = (!dataSeries.markerSize && (dataSeries.type === "line" || dataSeries.type === "stepLine" || dataSeries.type === "spline")) ? 0 : this.lineHeight * .6;
-			var lineColor = dataSeries._colorSet[0];
 
 			if (dataSeries.type !== "pie" && dataSeries.type !== "doughnut" && dataSeries.type !== "funnel") {
+
+				var markerType = dataSeries.legendMarkerType ? dataSeries.legendMarkerType : (dataSeries.type === "line" || dataSeries.type === "stepLine" || dataSeries.type === "spline" || dataSeries.type === "scatter" || dataSeries.type === "bubble") && dataSeries.markerType ? dataSeries.markerType : DataSeries.getDefaultLegendMarker(dataSeries.type);
+				var legendText = dataSeries.legendText ? dataSeries.legendText : this.itemTextFormatter ? this.itemTextFormatter({ chart: this.chart, legend: this._options, dataSeries: dataSeries, dataPoint: null })
+					: dataSeries.name;
+				var markerColor = dataSeries.legendMarkerColor ? dataSeries.legendMarkerColor : dataSeries.markerColor ? dataSeries.markerColor : dataSeries._colorSet[0];
+				var markerSize = (!dataSeries.markerSize && (dataSeries.type === "line" || dataSeries.type === "stepLine" || dataSeries.type === "spline")) ? 0 : this.lineHeight * .6;
+				var markerBorderColor = dataSeries.legendMarkerBorderColor ? dataSeries.legendMarkerBorderColor : dataSeries.markerBorderColor;
+				var markerBorderThickness = dataSeries.legendMarkerBorderThickness ? dataSeries.legendMarkerBorderThickness : dataSeries.markerBorderThickness ? Math.max(1, Math.round(markerSize * .2)) : 0;
+				var lineColor = dataSeries._colorSet[0];
+
+				legendText = this.chart.replaceKeywordsWithValue(legendText, dataSeries.dataPoints[0], dataSeries, i);
 				var item = {
 					markerType: markerType, markerColor: markerColor, text: legendText, textBlock: null, chartType: dataSeries.type, markerSize: markerSize, lineColor: dataSeries._colorSet[0],
-					dataSeriesIndex: i, dataPointIndex: null
+					dataSeriesIndex: dataSeries.index, dataPointIndex: null, markerBorderColor: markerBorderColor, markerBorderThickness: markerBorderThickness
 				};
 
 				items.push(item);
@@ -9243,37 +9855,74 @@
 
 					var dataPoint = dataSeries.dataPoints[dataPointIndex];
 
-					markerType = dataPoint.legendMarkerType ? dataPoint.legendMarkerType : dataSeries.legendMarkerType ? dataSeries.legendMarkerType : DataSeries.getDefaultLegendMarker(dataSeries.type);
-					var legendText = dataPoint.legendText ? dataPoint.legendText : dataSeries.legendText ? dataSeries.legendText : dataPoint.name ? dataPoint.name : "DataPoint: " + (dataPointIndex + 1);
-					var markerColor = dataPoint.markerColor ? dataPoint.markerColor : dataSeries.markerColor ? dataSeries.markerColor : dataPoint.color ? dataPoint.color : dataSeries.color ? dataSeries.color : dataSeries._colorSet[dataPointIndex % dataSeries._colorSet.length];
-					var markerSize = ((dataPoint.markerSize === 0 || (dataSeries.markerSize === 0 && !dataPoint.markerSize))) ? 0 : this.lineHeight * .6;
+					var markerType = dataPoint.legendMarkerType ? dataPoint.legendMarkerType : dataSeries.legendMarkerType ? dataSeries.legendMarkerType : DataSeries.getDefaultLegendMarker(dataSeries.type);
+					var legendText = dataPoint.legendText ? dataPoint.legendText : dataSeries.legendText ? dataSeries.legendText : this.itemTextFormatter ? this.itemTextFormatter({ chart: this.chart, legend: this._options, dataSeries: dataSeries, dataPoint: dataPoint })
+						: dataPoint.name ? dataPoint.name : "DataPoint: " + (dataPointIndex + 1);
+					var markerColor = dataPoint.legendMarkerColor ? dataPoint.legendMarkerColor : dataSeries.legendMarkerColor ? dataSeries.legendMarkerColor : dataPoint.color ? dataPoint.color : dataSeries.color ? dataSeries.color : dataSeries._colorSet[dataPointIndex % dataSeries._colorSet.length];
+					var markerSize = this.lineHeight * .6;
+					var markerBorderColor = dataPoint.legendMarkerBorderColor ? dataPoint.legendMarkerBorderColor : dataSeries.legendMarkerBorderColor ? dataSeries.legendMarkerBorderColor : dataPoint.markerBorderColor ? dataPoint.markerBorderColor : dataSeries.markerBorderColor;
+					var markerBorderThickness = dataPoint.legendMarkerBorderThickness ? dataPoint.legendMarkerBorderThickness : dataSeries.legendMarkerBorderThickness ? dataSeries.legendMarkerBorderThickness : dataPoint.markerBorderThickness || dataSeries.markerBorderThickness ? Math.max(1, Math.round(markerSize * .2)) : 0;
+
+					legendText = this.chart.replaceKeywordsWithValue(legendText, dataPoint, dataSeries, dataPointIndex);
 
 					var item = {
 						markerType: markerType, markerColor: markerColor, text: legendText, textBlock: null, chartType: dataSeries.type, markerSize: markerSize,
-						dataSeriesIndex: i, dataPointIndex: dataPointIndex
+						dataSeriesIndex: i, dataPointIndex: dataPointIndex, markerBorderColor: markerBorderColor, markerBorderThickness: markerBorderThickness
 					};
 
-					items.push(item);
+					if (dataPoint.showInLegend || (dataSeries.showInLegend && dataPoint.showInLegend !== false)) {
+						items.push(item);
+					}
 				}
 			}
-
 			item = null;
 		}
-
+		if (this.reversed === true) {
+			items.reverse();
+		}
 
 		// Find out the required width and height of Legend and position the items relative to the container
 		if (items.length > 0) {
 			var row = null;
 			var rowIndex = 0; // required for vertical orientation
+			var textMaxWidth = 0;
+			var columnHeight = 0;
+
+			if (this.itemWidth !== null) {
+				if (this.itemMaxWidth !== null) {
+					textMaxWidth = Math.min(this.itemWidth, this.itemMaxWidth, maxWidth);
+				} else {
+					textMaxWidth = Math.min(this.itemWidth, maxWidth);
+				}
+			} else {
+				if (this.itemMaxWidth !== null) {
+					textMaxWidth = Math.min(this.itemMaxWidth, maxWidth);
+				} else {
+					textMaxWidth = maxWidth;
+				}
+			}
+			
+			markerSize = (markerSize === 0 ? this.lineHeight * .6 : markerSize);
+			textMaxWidth = textMaxWidth - (markerSize + this.horizontalSpacing * .1);
+
 			for (var i = 0; i < items.length; i++) {
 				var item = items[i];
 
+				if (item.chartType === "line" || item.chartType === "spline" || item.chartType === "stepLine") {
+					textMaxWidth = textMaxWidth - 2 * (this.lineHeight * .1);
+				}
+
+				if (maxHeight <= 0 || typeof (maxHeight) === "undefined" || textMaxWidth <= 0 || typeof (textMaxWidth) === "undefined") {
+					continue;
+				}
+
 				if (this.orientation === "horizontal") {
+
 					item.textBlock = new TextBlock(this.ctx, {
 						x: 0,
 						y: 0,//TBI
-						maxWidth: maxWidth,
-						maxHeight: this.lineHeight, //TBI: FontSize
+						maxWidth: textMaxWidth,
+						maxHeight: this.itemWrap ? maxHeight : this.lineHeight, //TBI: FontSize
 						angle: 0,
 						text: item.text,
 						horizontalAlign: "left",//left, center, right
@@ -9286,36 +9935,33 @@
 					});
 					item.textBlock.measureText();
 
+					if (this.itemWidth !== null) {
+						item.textBlock.width = this.itemWidth - (markerSize + this.horizontalSpacing * .1 + ((item.chartType === "line" || item.chartType === "spline" || item.chartType === "stepLine") ? 2 * (this.lineHeight * .1) : 0));
+					}
 
-					if (!row || row.width + item.textBlock.width + (row.width === 0 ? 0 : this.horizontalSpacing) > maxWidth) {
+					if (!row || row.width + Math.round(item.textBlock.width + this.horizontalSpacing * .1 + markerSize + (row.width === 0 ? 0 : (this.horizontalSpacing)) + ((item.chartType === "line" || item.chartType === "spline" || item.chartType === "stepLine") ? 2 * (this.lineHeight * .1) : 0)) > maxWidth) {
 						row = { items: [], width: 0 };
 						rows.push(row);
-						this.height = rows.length * (item.textBlock.height + 5);
+						this.height += columnHeight;
+						columnHeight = 0;
 					}
+
+					columnHeight = Math.max(columnHeight, item.textBlock.height);
 
 					item.textBlock.x = row.width;
 					item.textBlock.y = 0;
 
-					row.width += Math.round(item.textBlock.width + item.textBlock._lineHeight + (row.width === 0 ? 0 : item.textBlock._lineHeight * .5));
+					row.width += Math.round(item.textBlock.width + this.horizontalSpacing * .1 + markerSize + (row.width === 0 ? 0 : this.horizontalSpacing) + ((item.chartType === "line" || item.chartType === "spline" || item.chartType === "stepLine") ? 2 * (this.lineHeight * .1) : 0));
 					row.items.push(item);
 
 					this.width = Math.max(row.width, this.width);
-
 				} else {
-					if (this.height + this.lineHeight < maxHeight) {
-						row = { items: [], width: 0 };
-						rows.push(row);
-						this.height = rows.length * (this.lineHeight);
-					} else {
-						row = rows[rowIndex];
-						rowIndex = (rowIndex + 1) % rows.length
-					}
 
 					item.textBlock = new TextBlock(this.ctx, {
 						x: 0,
 						y: 0,//TBI
-						maxWidth: maxWidth,
-						maxHeight: this.fontSize * 1.5, //TBI: FontSize
+						maxWidth: textMaxWidth,
+						maxHeight: this.itemWrap === true ? maxHeight : this.fontSize * 1.5, //TBI: FontSize
 						angle: 0,
 						text: item.text,
 						horizontalAlign: "left",//left, center, right
@@ -9329,48 +9975,67 @@
 
 					item.textBlock.measureText();
 
-					item.textBlock.x = row.width; // relative to the row
-					item.textBlock.y = 0; // relative to the row
+					if (this.itemWidth !== null) {
+						item.textBlock.width = this.itemWidth - (markerSize + this.horizontalSpacing * .1 + ((item.chartType === "line" || item.chartType === "spline" || item.chartType === "stepLine") ? 2 * (this.lineHeight * .1) : 0));
+					}
 
-					row.width += item.textBlock.width + item.textBlock._lineHeight + (row.width === 0 ? 0 : item.textBlock._lineHeight * .5);
+					if (this.height <= maxHeight) {
+						row = { items: [], width: 0 };
+						rows.push(row);
+					} else {
+						row = rows[rowIndex];
+						rowIndex = (rowIndex + 1) % rows.length;
+					}
+
+					this.height += item.textBlock.height;
+
+					item.textBlock.x = row.width; // relative to the row                    
+					item.textBlock.y = 0; // relative to the row                                   
+
+					row.width += Math.round(item.textBlock.width + this.horizontalSpacing * .1 + markerSize + (row.width === 0 ? 0 : this.horizontalSpacing) + ((item.chartType === "line" || item.chartType === "spline" || item.chartType === "stepLine") ? 2 * (this.lineHeight * .1) : 0));
 					row.items.push(item);
 
 					this.width = Math.max(row.width, this.width);
 				}
 			}
 
-			this.height = rows.length * (this.lineHeight);
+			if (this.itemWrap === false) {
+				this.height = rows.length * (this.lineHeight);
+			} else {
+				this.height += columnHeight;
+			}
 
+			this.height = Math.min(maxHeight, this.height);
+			this.width = Math.min(maxWidth, this.width);
 		}
 
 		if (this.verticalAlign === "top") {
 			if (this.horizontalAlign === "left")
-				left = freeSpace.x1 + 2;
+				left = freeSpace.x1;
 			else if (this.horizontalAlign === "right")
-				left = freeSpace.x2 - this.width - 2;
+				left = freeSpace.x2 - this.width;
 			else
 				left = freeSpace.x1 + freeSpace.width / 2 - this.width / 2;
 
 			top = freeSpace.y1;
 		} else if (this.verticalAlign === "center") {
 			if (this.horizontalAlign === "left")
-				left = freeSpace.x1 + 2;
+				left = freeSpace.x1;
 			else if (this.horizontalAlign === "right")
-				left = freeSpace.x2 - this.width - 2;
+				left = freeSpace.x2 - this.width;
 			else
 				left = freeSpace.x1 + freeSpace.width / 2 - this.width / 2;
 
 			top = freeSpace.y1 + freeSpace.height / 2 - this.height / 2;
 		} else if (this.verticalAlign === "bottom") {
 			if (this.horizontalAlign === "left")
-				left = freeSpace.x1 + 2;
+				left = freeSpace.x1;
 			else if (this.horizontalAlign === "right")
-				left = freeSpace.x2 - this.width - 2;
+				left = freeSpace.x2 - this.width;
 			else
 				left = freeSpace.x1 + freeSpace.width / 2 - this.width / 2;
 
-
-			top = freeSpace.y2 - this.height - 5;
+			top = freeSpace.y2 - this.height;
 		}
 
 		this.items = items;
@@ -9387,35 +10052,55 @@
 			//delete item.textBlock;// Not Required anymore
 		}
 
+		var rowHeight = 0;
 		for (var i = 0; i < rows.length; i++) {
 			var row = rows[i];
+			var columnHeight = 0;
 			for (var itemIndex = 0; itemIndex < row.items.length; itemIndex++) {
 				var item = row.items[itemIndex];
 
-				var legendX = item.textBlock.x + left + (itemIndex === 0 ? item.markerSize * .2 : (this.lineHeight * .4) + (item.markerSize * .2));
-				var legendY = top + (i * this.lineHeight);
+				var itemX = item.textBlock.x + left + (itemIndex === 0 ? markerSize * .2 : this.horizontalSpacing);
+				var itemY = top + rowHeight;
 
-				var ghostX = legendX;
+				var ghostX = itemX;
 
 				if (!this.chart.data[item.dataSeriesIndex].visible)
 					this.ctx.globalAlpha = .5;
+
+				this.ctx.save();
+				this.ctx.rect(left, top, maxWidth, maxHeight);
+				this.ctx.clip();
 
 				if (item.chartType === "line" || item.chartType === "stepLine" || item.chartType === "spline") {
 					this.ctx.strokeStyle = item.lineColor;
 					this.ctx.lineWidth = Math.ceil(this.lineHeight / 8);
 					this.ctx.beginPath();
-					this.ctx.moveTo(legendX - this.lineHeight * .1, legendY + this.lineHeight / 2);
-					this.ctx.lineTo(legendX + this.lineHeight * .7, legendY + this.lineHeight / 2);
+					this.ctx.moveTo(itemX - this.lineHeight * .1, itemY + this.lineHeight / 2);
+					this.ctx.lineTo(itemX + this.lineHeight * .7, itemY + this.lineHeight / 2);
 					this.ctx.stroke();
 
 					ghostX -= this.lineHeight * .1;
 				}
 
-				RenderHelper.drawMarker(legendX + item.markerSize / 2, legendY + (this.lineHeight / 2), this.ctx, item.markerType, item.markerSize, item.markerColor, null, 0);
+				RenderHelper.drawMarker(itemX + markerSize / 2, itemY + (this.lineHeight / 2), this.ctx, item.markerType, item.markerSize, item.markerColor, item.markerBorderColor, item.markerBorderThickness);
 
-				item.textBlock.x = legendX + Math.round(this.lineHeight * .9);
-				item.textBlock.y = legendY;
+				item.textBlock.x = itemX + this.horizontalSpacing * .1 + markerSize;
+
+				if (item.chartType === "line" || item.chartType === "stepLine" || item.chartType === "spline") {
+					item.textBlock.x = item.textBlock.x + this.lineHeight * .1;
+				}
+
+				item.textBlock.y = itemY;
+
 				item.textBlock.render(true);
+
+				this.ctx.restore();
+
+				if (itemIndex > 0) {
+					columnHeight = Math.max(columnHeight, item.textBlock.height);
+				} else {
+					columnHeight = item.textBlock.height;
+				}
 
 				if (!this.chart.data[item.dataSeriesIndex].visible)
 					this.ctx.globalAlpha = 1;
@@ -9430,8 +10115,8 @@
 				item.x2 = this.chart._eventManager.objectMap[item.id].x2 = item.textBlock.x + item.textBlock.width;
 				item.y2 = this.chart._eventManager.objectMap[item.id].y2 = item.textBlock.y + item.textBlock.height;
 			}
+			rowHeight = rowHeight + columnHeight;
 		}
-
 
 		//this.ctx.beginPath();
 		//this.ctx.lineWidth = 2;
@@ -9439,8 +10124,7 @@
 		//this.ctx.rect(left, top, this.width, this.height);
 		//this.ctx.stroke();
 
-
-		this.chart.layoutManager.registerSpace(position, { width: this.width + 2 + 2, height: this.height + 5 + 5 });
+		container.layoutManager.registerSpace(position, { width: this.width + 2 + 2, height: this.height + 5 + 5 });
 
 		this.bounds = { x1: left, y1: top, x2: left + this.width, y2: top + this.height };
 	}
@@ -9449,7 +10133,7 @@
 
 	//#region Class PlotArea
 	function PlotArea(chart, options) {
-		PlotArea.parent.constructor.call(this, options);
+		PlotArea.base.constructor.call(this, options);
 
 		this.chart = chart;
 		this.canvas = chart.canvas;
@@ -9468,7 +10152,7 @@
 	//#region DataSeries
 
 	function DataSeries(chart, options, theme, index, id) {
-		DataSeries.parent.constructor.call(this, "DataSeries", options, theme);
+		DataSeries.base.constructor.call(this, "DataSeries", options, theme);
 
 		this.chart = chart;
 		this.canvas = chart.canvas;
@@ -9804,21 +10488,25 @@
 								if (angle < 0)
 									angle += Math.PI * 2;
 
-								angle = ((angle / Math.PI * 180 % 360) + 360) % 360;
-								var startAngle = ((visualInfo.startAngle / Math.PI * 180 % 360) + 360) % 360;
-								var endAngle = ((visualInfo.endAngle / Math.PI * 180 % 360) + 360) % 360;
+								angle = Number((((angle / Math.PI * 180 % 360) + 360) % 360).toFixed(12));
+								//console.log(angle);
+
+
+								var startAngle = Number((((visualInfo.startAngle / Math.PI * 180 % 360) + 360) % 360).toFixed(12));
+								var endAngle = Number((((visualInfo.endAngle / Math.PI * 180 % 360) + 360) % 360).toFixed(12));
 
 								//So that data point is detected when there is only one dataPoint
 								if (endAngle === 0 && visualInfo.endAngle > 1) {
 									endAngle = 360;
 								}
 
-								if (startAngle > endAngle) {
+								if (startAngle >= endAngle && dataPoint.y !== 0) {
 									endAngle += 360;
 
 									if (angle < startAngle)
 										angle += 360;
 								}
+
 
 								if (angle > startAngle && angle < endAngle) {
 									results.push({
@@ -9936,14 +10624,14 @@
 	//#region Axis
 
 	function Axis(chart, options, type, position) {
-		Axis.parent.constructor.call(this, "Axis", options, chart.theme);
+		Axis.base.constructor.call(this, "Axis", options, chart.theme);
 
 		this.chart = chart;
 		this.canvas = chart.canvas;
 		this.ctx = chart.ctx;
 		this.maxWidth = 0;
 		this.maxHeight = 0;
-		this.intervalStartPosition = 0;
+		this.intervalstartTimePercent = 0;
 		this.labels = [];
 		this._labels = null;
 
@@ -10011,7 +10699,7 @@
 			this.stripLines = [];
 
 			for (var i = 0; i < this._options.stripLines.length; i++) {
-				this.stripLines.push(new StripLine(this.chart, this._options.stripLines[i], chart.theme, ++this.chart._eventManager.lastObjectId));
+				this.stripLines.push(new StripLine(this.chart, this._options.stripLines[i], chart.theme, ++this.chart._eventManager.lastObjectId, this));
 			}
 		}
 
@@ -10073,12 +10761,13 @@
 			endPoint = addToDateTime(new Date(this.maximum), this.interval, this.intervalType)
 			//endPoint = this.maximum;
 
-			for (i = this.intervalStartPosition; i < endPoint; addToDateTime(i, this.interval, this.intervalType)) {
-
+			for (i = this.intervalstartTimePercent; i < endPoint; addToDateTime(i, this.interval, this.intervalType)) {
+                 
 				//var text = dateFormat(i, this.valueFormatString);
 				var timeInMilliseconds = i.getTime();
-				var text = this.type === "axisX" && this.labels[timeInMilliseconds] ? this.labels[timeInMilliseconds] : dateFormat(i, this.valueFormatString, this.chart._cultureInfo);
-
+				var text = this.labelFormatter ? this.labelFormatter({ chart: this.chart, axis: this._options, value: i, label: this.labels[i] ? this.labels[i] : null })
+					: this.type === "axisX" && this.labels[timeInMilliseconds] ? this.labels[timeInMilliseconds] : dateFormat(i, this.valueFormatString, this.chart._cultureInfo);
+				
 				textBlock = new TextBlock(this.ctx, {
 					x: 0,
 					y: 0,
@@ -10109,7 +10798,7 @@
 			//Check if it should be rendered as a category axis. If yes, then ceil the interval
 			if (this.labels && this.labels.length) {
 				var tempInterval = Math.ceil(this.interval);
-				var tempStartPoint = Math.ceil(this.intervalStartPosition);
+				var tempStartPoint = Math.ceil(this.intervalstartTimePercent);
 				var hasAllLabels = false;
 				for (i = tempStartPoint; i < this.maximum; i += tempInterval) {
 					if (this.labels[i]) {
@@ -10122,14 +10811,16 @@
 
 				if (hasAllLabels) {
 					this.interval = tempInterval;
-					this.intervalStartPosition = tempStartPoint;
+					this.intervalstartTimePercent = tempStartPoint;
 				}
 			}
 
-			for (i = this.intervalStartPosition; i <= endPoint; i += this.interval) {
+			//parseFloat & toPrecision are being used to avoid issues related to precision.
+			for (i = this.intervalstartTimePercent; i <= endPoint; i = parseFloat((i + this.interval).toFixed(14))) {
 
-				var text = this.type === "axisX" && this.labels[i] ? this.labels[i] : numberFormat(i, this.valueFormatString, this.chart._cultureInfo);
-
+				var text = this.labelFormatter ? this.labelFormatter({ chart: this.chart, axis: this._options, value: i, label: this.labels[i] ? this.labels[i] : null })
+					: this.type === "axisX" && this.labels[i] ? this.labels[i] : numberFormat(i, this.valueFormatString, this.chart._cultureInfo);
+				
 				textBlock = new TextBlock(this.ctx, {
 					x: 0,
 					y: 0,
@@ -10152,7 +10843,7 @@
 				this._labels.push({ position: i, textBlock: textBlock, effectiveHeight: null });
 			}
 		}
-
+           
 		for (var i = 0; i < this.stripLines.length; i++) {
 
 			var stripLine = this.stripLines[i];
@@ -10166,12 +10857,12 @@
 				maxWidth: labelMaxWidth,
 				maxHeight: labelMaxHeight,
 				angle: this.labelAngle,
-				text: stripLine.label,
+				text: stripLine.labelFormatter ? stripLine.labelFormatter({ chart: this.chart, axis: this, stripLine: stripLine }) : stripLine.label,
 				horizontalAlign: "left",//left, center, right
 				fontSize: stripLine.labelFontSize,//in pixels
 				fontFamily: stripLine.labelFontFamily,
 				fontWeight: stripLine.labelFontWeight, //normal, bold, bolder, lighter,
-				fontColor: stripLine.labelFontColor,
+				fontColor: stripLine._options.labelFontColor || stripLine.color,
 				fontStyle: stripLine.labelFontStyle, // normal, italic, oblique
 				textBaseline: "middle",
 				borderThickness: 0
@@ -10842,7 +11533,7 @@
 				label.textBlock.x = xy.x - (label.textBlock.width * Math.cos(Math.PI / 180 * this.labelAngle)) - this.tickLength - 5;
 
 				if (this.labelAngle === 0) {
-					label.textBlock.y = xy.y - label.textBlock.height / 2 + this.labelFontSize / 2;
+					label.textBlock.y = xy.y;
 				} else
 					label.textBlock.y = xy.y - (label.textBlock.width * Math.sin(Math.PI / 180 * this.labelAngle));
 
@@ -10925,7 +11616,7 @@
 				label.textBlock.x = xy.x + this.tickLength + 5;
 				//label.textBlock.y = xy.y - (label.textBlock.width * Math.sin(Math.PI / 180 * this.labelAngle));
 				if (this.labelAngle === 0) {
-					label.textBlock.y = xy.y - label.textBlock.height / 2 + this.labelFontSize / 2;
+					label.textBlock.y = xy.y;
 				}
 				else
 					label.textBlock.y = xy.y;
@@ -10980,7 +11671,7 @@
 				if (renderInterlacedGrid) {//So that the interlaced color alternates
 					interlacedGridStartPoint = this.getPixelCoordinatesOnAxis(this._labels[i].position);
 
-					if (i + 1 >= this._labels.length)
+					if (i + 1 >= this._labels.length - 1)
 						interlacedGridEndPoint = this.getPixelCoordinatesOnAxis(this.maximum);
 					else
 						interlacedGridEndPoint = this.getPixelCoordinatesOnAxis(this._labels[i + 1].position);
@@ -10996,16 +11687,16 @@
 
 			ctx.fillStyle = this.interlacedColor;
 
-			for (i = 0; i < this._labels.length; i++) {
-				if (this._labels[i].stripLine)
-					continue;
-
+			for (i = 0; i < this._labels.length; i++) {			 
+			        if (this._labels[i].stripLine)
+			            continue;
+			      
 				if (renderInterlacedGrid) {//So that the interlaced color alternates
 
 					interlacedGridEndPoint = this.getPixelCoordinatesOnAxis(this._labels[i].position);
 
-					if (i + 1 >= this._labels.length)
-						interlacedGridStartPoint = this.getPixelCoordinatesOnAxis(this.maximum);
+					if (i + 1 >= this._labels.length - 1)
+					    interlacedGridStartPoint = this.getPixelCoordinatesOnAxis(this.maximum);
 					else
 						interlacedGridStartPoint = this.getPixelCoordinatesOnAxis(this._labels[i + 1].position);
 
@@ -11014,7 +11705,7 @@
 				} else
 					renderInterlacedGrid = true;
 			}
-			//throw "123";
+			    //throw "123";
 		}
 
 		ctx.beginPath();
@@ -11026,9 +11717,7 @@
 		if (!(this.stripLines && this.stripLines.length > 0) || !thicknessType)
 			return;
 
-		var ctx = this.chart.plotArea.ctx;
-		var ghostCtx = this.chart._eventManager.ghostCtx;
-
+		var _this = this;
 
 		var i = 0;
 		for (i = 0; i < this.stripLines.length; i++) {
@@ -11043,60 +11732,13 @@
 			if (thicknessType === "pixel" && (stripLine.value < this.minimum || stripLine.value > this.maximum))
 				continue;
 
-			var xy = this.getPixelCoordinatesOnAxis(stripLine.value);
-
-			var lineWidth = Math.abs(thicknessType === "pixel" ? stripLine.thickness : this.conversionParameters.pixelPerUnit * stripLine.thickness);
-
-			if (lineWidth <= 0)
-				continue;
-
-			ctx.strokeStyle = stripLine.color;
-			ctx.beginPath();
-
-			var hexColor = intToHexColorString(stripLine.id);
-			//ghostCtx.strokeStyle = hexColor;
-			//ghostCtx.beginPath();
-			var x1, x2, y1, y2;
-
-			//ghostCtx.lineWidth = ctx.lineWidth = Math.abs(thicknessType === "pixel" ? stripLine.thickness : this.conversionParameters.pixelPerUnit * stripLine.thickness);
-
-
-			ctx.lineWidth = lineWidth
-
-			if (this._position === "bottom" || this._position === "top") {
-
-				var stripX = (ctx.lineWidth % 2 === 1) ? (xy.x << 0) + .5 : (xy.x << 0);
-
-				x1 = x2 = stripX;
-				y1 = this.chart.plotArea.y1;
-				y2 = this.chart.plotArea.y2;
+			if (stripLine.showOnTop) {
+				this.chart.addEventListener("dataAnimationIterationEnd", stripLine.render, stripLine);
 			}
-			else if (this._position === "left" || this._position === "right") {
-				var stripY = (ctx.lineWidth % 2 === 1) ? (xy.y << 0) + .5 : (xy.y << 0);
-
-				y1 = y2 = stripY;
-				x1 = this.chart.plotArea.x1;
-				x2 = this.chart.plotArea.x2;
-			}
-
-			ctx.moveTo(x1, y1);
-			ctx.lineTo(x2, y2);
-			ctx.stroke();
-
-
-			//ghostCtx.moveTo(x1, y1);
-			//ghostCtx.lineTo(x2, y2);
-			//ghostCtx.stroke();
-
-			//this.chart._eventManager.objectMap[stripLine.id] = {
-			//	objectType: "stripLine", stripLine: stripLine, stripLineIndex: i, axis: this,
-			//	x1: x1, y1: y1, x2: x2, y2: y2
-			//};
-
-			//{ objectType: "dat/aSeries", dataSeriesIndex: dataSeriesIndex };
+			else
+				stripLine.render();
 		}
-
-	}
+	};
 
 	Axis.prototype.renderGrid = function () {
 
@@ -11114,6 +11756,10 @@
 
 		ctx.lineWidth = this.gridThickness;
 		ctx.strokeStyle = this.gridColor;
+
+		if (ctx.setLineDash) {
+			ctx.setLineDash(getLineDashArray(this.gridDashType, this.gridThickness));
+		}
 
 
 		if (this._position === "bottom" || this._position === "top") {
@@ -11139,6 +11785,9 @@
 		else if (this._position === "left" || this._position === "right") {
 
 			for (var i = 0; i < this._labels.length && !this._labels[i].stripLine; i++) {
+
+				if (i === 0 && this.type === "axisY" && this.chart.axisX && this.chart.axisX.lineThickness)
+					continue;
 
 				if (this._labels[i].position < this.minimum || this._labels[i].position > this.maximum)
 					continue;
@@ -11167,6 +11816,10 @@
 				ctx.lineWidth = this.lineThickness;
 				ctx.strokeStyle = this.lineColor ? this.lineColor : "black";
 
+				if (ctx.setLineDash) {
+					ctx.setLineDash(getLineDashArray(this.lineDashType, this.lineThickness));
+				}
+
 				var lineY = (this.lineThickness % 2 === 1) ? (this.lineCoordinates.y1 << 0) + .5 : (this.lineCoordinates.y1 << 0);
 
 				ctx.beginPath();
@@ -11179,6 +11832,10 @@
 			if (this.lineThickness) {
 				ctx.lineWidth = this.lineThickness;
 				ctx.strokeStyle = this.lineColor;
+
+				if (ctx.setLineDash) {
+					ctx.setLineDash(getLineDashArray(this.lineDashType, this.lineThickness));
+				}
 
 				var lineX = (this.lineThickness % 2 === 1) ? (this.lineCoordinates.x1 << 0) + .5 : (this.lineCoordinates.x1 << 0);
 
@@ -11261,6 +11918,7 @@
 		var freeSpace = this.chart.layoutManager.getFreeSpace();
 		var availableWidth = 0;
 		var availableHeight = 0;
+		var isLessThanTwoDataPoints = false;
 
 		if (this._position === "bottom" || this._position === "top") {
 			this.maxWidth = freeSpace.width;
@@ -11275,15 +11933,17 @@
 		var min, max;
 		var minDiff;
 		var range;
+		var rangePadding = 0;
 
 		if (this.type === "axisX") {
 			min = (this.sessionVariables.internalMinimum !== null) ? this.sessionVariables.internalMinimum : this.dataInfo.viewPortMin;
 			max = (this.sessionVariables.internalMaximum !== null) ? this.sessionVariables.internalMaximum : this.dataInfo.viewPortMax;
 
 			if (max - min === 0) {
-				//max += 1;
-				max += .4;
-				min -= .4;
+				rangePadding = typeof (this._options.interval) === "undefined" ? .4 : this._options.interval;
+
+				max += rangePadding;
+				min -= rangePadding;
 			}
 
 			if (this.dataInfo.minDiff !== Infinity)
@@ -11291,34 +11951,57 @@
 			else if (max - min > 1) {
 				minDiff = Math.abs(max - min) * .5;
 			}
-			else
+			else {
 				minDiff = 1;
+
+				if (this.chart.plotInfo.axisXValueType === "dateTime")
+					isLessThanTwoDataPoints = true;
+			}
 
 		} else if (this.type === "axisY") {
 
-			min = typeof (this._options.minimum) === "undefined" ? this.dataInfo.viewPortMin : this._options.minimum;
-			max = typeof (this._options.maximum) === "undefined" ? this.dataInfo.viewPortMax : this._options.maximum;
+			min = typeof (this._options.minimum) === "undefined" || this._options.minimum === null ? this.dataInfo.viewPortMin : this._options.minimum;
+			max = typeof (this._options.maximum) === "undefined" || this._options.maximum === null ? this.dataInfo.viewPortMax : this._options.maximum;
+            
+			if (!isFinite(min) && !isFinite(max)) {
+				max = typeof (this._options.interval) === "undefined" ? -Infinity : this._options.interval;
+				min = 0;
+			}
+			else
+				if (min === 0 && max === 0) {// When all dataPoints are zero
+					max += 9;
+					min = 0;
+				}
+				else if (max - min === 0) {// When there is only a single dataPoint or when all dataPoints have same Y Value
+					rangePadding = Math.min(Math.abs(Math.abs(max) * .01), 5);
+					max += rangePadding;
+					min -= rangePadding;
+				}
+				else if (min > max) {
+					rangePadding = Math.min(Math.abs(Math.abs(max - min) * .01), 5);
 
-			// When there is only a single dataPoint or when all dapoints have same Y Value
-			if (max - min === 0) {
-				max += 5;
-				min -= 5;
-			}
-			else {
-				//var scaleFactor = Math.abs(max - min) * .01;
-				if (max !== 0)
-					max += Math.abs(.05);
-				if (min !== 0)
-					min -= Math.abs(.05);
-			}
+					if (max >= 0)
+						min = max - rangePadding;
+					else
+						max = min + rangePadding;
+				}
+				else {
+
+					rangePadding = Math.min(Math.abs(Math.abs(max - min) * .01), .05);
+
+					if (max !== 0)
+						max += rangePadding;
+					if (min !== 0)
+						min -= rangePadding;
+				}
 
 
 			//Apply includeZero
-			if (this.includeZero && typeof (this._options.minimum) === "undefined") {
+			if (this.includeZero && (typeof (this._options.minimum) === "undefined" || this._options.minimum === null)) {
 				if (min > 0)
 					min = 0;
 			}
-			if (this.includeZero && typeof (this._options.maximum) === "undefined") {
+			if (this.includeZero && (typeof (this._options.maximum) === "undefined" || this._options.maximum === null)) {
 				if (max < 0)
 					max = 0;
 			}
@@ -11472,13 +12155,16 @@
 				this.minimum = min - minDiff / 2;
 			}
 
-			if (this.sessionVariables.internalMaximum)
+			if (this.sessionVariables.internalMaximum !== null)
 				this.maximum = this.sessionVariables.internalMaximum;
 			else
 				this.maximum = max + minDiff / 2;
 
+
 			if (!this.valueFormatString) {
-				if (this.intervalType === "year") {
+				if (isLessThanTwoDataPoints) {
+					this.valueFormatString = "MMM DD YYYY HH:mm";
+				} else if (this.intervalType === "year") {
 					this.valueFormatString = "YYYY";
 				} else if (this.intervalType === "month") {
 					this.valueFormatString = "MMM YYYY";
@@ -11497,7 +12183,7 @@
 				}
 			}
 
-			this.intervalStartPosition = this.getLabelStartPoint(new Date(this.minimum), this.intervalType, this.interval);
+			this.intervalstartTimePercent = this.getLabelStartPoint(new Date(this.minimum), this.intervalType, this.interval);
 
 		} else {
 
@@ -11511,6 +12197,7 @@
 				this.interval = Axis.getNiceNumber(range / (noTicks - 1), true);
 			}
 
+
 			if (this.sessionVariables.internalMinimum !== null)
 				this.minimum = this.sessionVariables.internalMinimum;
 			else
@@ -11523,30 +12210,32 @@
 
 			//var nfrac = Math.max(-Math.floor(Math.log(d)/Math.LN10), 0); //number of fractional digits to show
 
+
+			if (this.maximum === 0 && this.minimum === 0) {
+
+				if (this._options.minimum === 0) {
+					this.maximum += 10;
+				}
+				else if (this._options.maximum === 0) {
+					this.minimum -= 10;
+				}
+
+				if (this._options && typeof (this._options.interval) === "undefined") {
+					this.interval = Axis.getNiceNumber((this.maximum - this.minimum) / (noTicks - 1), true);
+				}
+			}
+
 			if (this.type === "axisX") {
 				if (!(this.sessionVariables.internalMinimum !== null)) {
 					this.minimum = min - minDiff / 2;
 				}
-				if (!this.sessionVariables.internalMaximum) {
-
+				if (!(this.sessionVariables.internalMaximum !== null)) {
 					this.maximum = max + minDiff / 2;
 				}
 
-				this.intervalStartPosition = Math.floor((this.minimum + (this.interval * .2)) / this.interval) * this.interval;
+				this.intervalstartTimePercent = Math.floor((this.minimum + (this.interval * .2)) / this.interval) * this.interval;
 			} else if (this.type === "axisY") {
-				this.intervalStartPosition = this.minimum;
-				//Apply includeZero
-				//if (!(this._options && this._options.minimum) && this.includeZero) {
-				//if (this.includeZero) {
-				//    if (this.minimum > 0)
-				//        this.minimum = 0;
-				//}
-
-				////if (!(this._options && this._options.maximum) && this.includeZero) {
-				//if (this.includeZero) {
-				//    if (this.maximum < 0)
-				//        this.maximum = 0;
-				//}
+				this.intervalstartTimePercent = this.minimum;
 			}
 
 
@@ -11566,6 +12255,9 @@
 			if (range < 1) {
 				var numberOfDecimals = Math.floor(Math.abs(Math.log(range) / Math.LN10)) + 2;
 
+				if (isNaN(numberOfDecimals) || !isFinite(numberOfDecimals))
+					numberOfDecimals = 2;
+
 				if (numberOfDecimals > 2) {
 					for (var i = 0; i < numberOfDecimals - 2; i++)
 						this.valueFormatString += "#";
@@ -11573,7 +12265,7 @@
 			}
 
 		}
-
+		
 		//if (isDebugMode && window.console) {
 		//    window.console.log(this.type + ": Min = " + this.minimum);
 		//    window.console.log(this.type + ": Max = " + this.maximum);
@@ -11607,7 +12299,7 @@
 			else nf = 10;
 		}
 
-		return nf * Math.pow(10, exp);
+		return Number((nf * Math.pow(10, exp)).toFixed(20));
 	}
 
 	Axis.prototype.getLabelStartPoint = function () {
@@ -11688,13 +12380,17 @@
 
 	//#region StripLine
 
-	function StripLine(chart, options, theme, id) {
-		StripLine.parent.constructor.call(this, "StripLine", options, theme);
+	function StripLine(chart, options, theme, id, axis) {
+		StripLine.base.constructor.call(this, "StripLine", options, theme, axis);
 
-		this._thicknessType = "pixel";
 
 		this.id = id;
+		this.chart = chart;
+		this.ctx = this.chart.ctx;
 
+		this.label = this.label;
+
+		this._thicknessType = "pixel";
 		if (this.startValue !== null && this.endValue !== null) {
 
 			this.value = ((this.startValue.getTime ? this.startValue.getTime() : this.startValue) + (this.endValue.getTime ? this.endValue.getTime() : this.endValue)) / 2;
@@ -11704,12 +12400,62 @@
 	}
 	extend(StripLine, CanvasJSObject);
 
+	StripLine.prototype.render = function () {
+
+		var xy = this.parent.getPixelCoordinatesOnAxis(this.value);
+
+		var lineWidth = Math.abs(this._thicknessType === "pixel" ? this.thickness : this.parent.conversionParameters.pixelPerUnit * this.thickness);
+
+		if (lineWidth > 0) {
+			//var opacity = this.opacity === null ? ( this.showOnTop && this._thicknessType === "pixel" ? 1 : 1) : this.opacity;
+			var opacity = this.opacity === null ? 1 : this.opacity;
+
+			this.ctx.strokeStyle = this.color;
+			this.ctx.beginPath();
+
+			var oldGlobalAlpha = this.ctx.globalAlpha;
+			this.ctx.globalAlpha = opacity;
+
+			var hexColor = intToHexColorString(this.id);
+			var x1, x2, y1, y2;
+
+			this.ctx.lineWidth = lineWidth;
+
+
+			if (this.ctx.setLineDash) {
+				this.ctx.setLineDash(getLineDashArray(this.lineDashType, lineWidth));
+			}
+
+			if (this.parent._position === "bottom" || this.parent._position === "top") {
+
+				var stripX = (this.ctx.lineWidth % 2 === 1) ? (xy.x << 0) + .5 : (xy.x << 0);
+
+				x1 = x2 = stripX;
+				y1 = this.chart.plotArea.y1;
+				y2 = this.chart.plotArea.y2;
+			}
+			else if (this.parent._position === "left" || this.parent._position === "right") {
+				var stripY = (this.ctx.lineWidth % 2 === 1) ? (xy.y << 0) + .5 : (xy.y << 0);
+
+				y1 = y2 = stripY;
+				x1 = this.chart.plotArea.x1;
+				x2 = this.chart.plotArea.x2;
+			}
+
+			this.ctx.moveTo(x1, y1);
+			this.ctx.lineTo(x2, y2);
+			this.ctx.stroke();
+
+			this.ctx.globalAlpha = oldGlobalAlpha;
+		}
+	};
+
 	//#endregion StripLine
 
 	//#region ToolTip
 
 	function ToolTip(chart, options, theme) {
-		ToolTip.parent.constructor.call(this, "ToolTip", options, theme);
+		ToolTip.base.constructor.call(this, "ToolTip", options, theme);
 
 		this.chart = chart;
 		this.canvas = chart.canvas;
@@ -11740,11 +12486,11 @@
 			var toolTipHtml = "<div style=\" width: auto;";
 			toolTipHtml += "height: auto;";
 			toolTipHtml += "min-width: 50px;";
-			toolTipHtml += "line-height: 20px;";
+			toolTipHtml += "line-height: auto;";
 			toolTipHtml += "margin: 0px 0px 0px 0px;";
 			toolTipHtml += "padding: 5px;";
 			toolTipHtml += "font-family: Calibri, Arial, Georgia, serif;";
-			toolTipHtml += "font-weight: 400;";
+			toolTipHtml += "font-weight: normal;";
 			toolTipHtml += "font-style: " + (isCanvasSupported ? "italic;" : "normal;");
 			toolTipHtml += "font-size: 14px;";
 			toolTipHtml += "color: #000000;";
@@ -11800,7 +12546,7 @@
 	ToolTip.prototype._updateToolTip = function (mouseX, mouseY) {
 		//return;
 
-		if (!this.enabled)
+		if (this.chart.disableToolTip) // Disabled during animation, etc
 			return;
 
 		if (typeof (mouseX) === "undefined" || typeof (mouseY) === "undefined") {
@@ -11824,7 +12570,7 @@
 		var toolTipBottom;
 		var x = 0;
 
-		if (this.shared && this.chart.plotInfo.axisPlacement !== "none") {
+		if (this.shared && this.enabled && this.chart.plotInfo.axisPlacement !== "none") {
 			// && this.chart.plotInfo.axisPlacement !== "none"
 			if (this.chart.plotInfo.axisPlacement === "xySwapped") {
 				x = (this.chart.axisX.maximum - this.chart.axisX.minimum) / this.chart.axisX.lineCoordinates.height * ((this.chart.axisX.lineCoordinates.y2 - mouseY)) + this.chart.axisX.minimum;
@@ -11877,6 +12623,9 @@
 				if (id > 0 && typeof this.chart._eventManager.objectMap[id] !== "undefined") {//DataPoint/DataSeries event
 					eventObject = this.chart._eventManager.objectMap[id];
 
+					if (eventObject.objectType === "legendItem")
+						return;
+
 					//if (this.currentSeriesIndex === eventObject.dataSeriesIndex && this.currentDataPointIndex === eventObject.dataPointIndex)
 					//  return;
 					//else {
@@ -11905,10 +12654,10 @@
 					entry.dataPoint = dataPoint;
 					entry.index = this.currentDataPointIndex;
 					entry.distance = Math.abs(dataPoint.x - x);
-				} else if (dataSeries.type === "line" || dataSeries.type === "stepLine" || dataSeries.type === "spline" || dataSeries.type === "area" || dataSeries.type === "stepArea"
+				} else if (this.enabled && (dataSeries.type === "line" || dataSeries.type === "stepLine" || dataSeries.type === "spline" || dataSeries.type === "area" || dataSeries.type === "stepArea"
 						|| dataSeries.type === "splineArea" || dataSeries.type === "stackedArea" || dataSeries.type === "stackedArea100"
 						|| dataSeries.type === "rangeArea" || dataSeries.type === "rangeSplineArea"
-						|| dataSeries.type === "candlestick" || dataSeries.type === "ohlc") {
+						|| dataSeries.type === "candlestick" || dataSeries.type === "ohlc")) {
 					var x = (this.chart.axisX.maximum - this.chart.axisX.minimum) / this.chart.axisX.lineCoordinates.width * (mouseX - this.chart.axisX.lineCoordinates.x1) + this.chart.axisX.minimum.valueOf();
 
 					entry = dataSeries.getDataPointAtX(x, true);
@@ -11930,71 +12679,89 @@
 
 			this.highlightObjects(entries);
 
+			if (this.enabled) {
 
-			var toolTipInnerHtml = "";
+				var toolTipInnerHtml = "";
 
-			toolTipInnerHtml = this.getToolTipInnerHTML({ entries: entries });
+				toolTipInnerHtml = this.getToolTipInnerHTML({ entries: entries });
 
-			if (toolTipInnerHtml !== null) {
-				this.contentDiv.innerHTML = toolTipInnerHtml;
+				if (toolTipInnerHtml !== null) {
+					this.contentDiv.innerHTML = toolTipInnerHtml;
 
-				this.contentDiv.innerHTML = toolTipInnerHtml;
+					this.contentDiv.innerHTML = toolTipInnerHtml;
 
-				var previouslyHidden = false;
-				if (this.container.style.display === "none") {
-					previouslyHidden = true;
-					this.container.style.display = "block";
-				}
+					var previouslyHidden = false;
+					if (this.container.style.display === "none") {
+						previouslyHidden = true;
+						this.container.style.display = "block";
+					}
 
-				try {
-					this.contentDiv.style.borderRightColor = this.contentDiv.style.borderLeftColor = this.contentDiv.style.borderColor = this.borderColor ? this.borderColor : entries[0].dataPoint.color ? entries[0].dataPoint.color : entries[0].dataSeries.color ? entries[0].dataSeries.color : entries[0].dataSeries._colorSet[entries[0].index % entries[0].dataSeries._colorSet.length];
-				} catch (e) { }
+					try {
+						this.contentDiv.style.background = this.backgroundColor ? this.backgroundColor : isCanvasSupported ? "rgba(255,255,255,.9)" : "rgb(255,255,255)";
 
-				if (entries[0].dataSeries.type === "pie" || entries[0].dataSeries.type === "doughnut" || entries[0].dataSeries.type === "funnel" || entries[0].dataSeries.type === "bar" || entries[0].dataSeries.type === "rangeBar" || entries[0].dataSeries.type === "stackedBar" || entries[0].dataSeries.type === "stackedBar100") {
-					toolTipLeft = mouseX - 10 - this.container.clientWidth;
+						this.contentDiv.style.borderRightColor = this.contentDiv.style.borderLeftColor = this.contentDiv.style.borderColor = this.borderColor ? this.borderColor : entries[0].dataPoint.color ? entries[0].dataPoint.color : entries[0].dataSeries.color ? entries[0].dataSeries.color : entries[0].dataSeries._colorSet[entries[0].index % entries[0].dataSeries._colorSet.length];
+
+						this.contentDiv.style.borderWidth = (this.borderThickness || this.borderThickness === 0) ? this.borderThickness + "px" : 2 + "px";
+
+						this.contentDiv.style.borderRadius = (this.cornerRadius || this.cornerRadius === 0) ? this.cornerRadius + "px" : 5 + "px";
+						this.container.style.borderRadius = this.contentDiv.style.borderRadius;
+
+
+						this.contentDiv.style.fontSize = (this.fontSize || this.fontSize === 0) ? this.fontSize + "px" : 14 + "px";
+						this.contentDiv.style.color = this.fontColor ? this.fontColor : "#000000";
+						this.contentDiv.style.fontFamily = this.fontFamily ? this.fontFamily : "Calibri, Arial, Georgia, serif;";
+						this.contentDiv.style.fontWeight = this.fontWeight ? this.fontWeight : "normal";
+						this.contentDiv.style.fontStyle = this.fontStyle ? this.fontStyle : isCanvasSupported ? "italic" : "normal";
+
+					} catch (e) { }
+
+					if (entries[0].dataSeries.type === "pie" || entries[0].dataSeries.type === "doughnut" || entries[0].dataSeries.type === "funnel" || entries[0].dataSeries.type === "bar" || entries[0].dataSeries.type === "rangeBar" || entries[0].dataSeries.type === "stackedBar" || entries[0].dataSeries.type === "stackedBar100") {
+						toolTipLeft = mouseX - 10 - this.container.clientWidth;
+					} else {
+						toolTipLeft = (((this.chart.axisX.lineCoordinates.width / Math.abs(this.chart.axisX.maximum - this.chart.axisX.minimum)) * Math.abs(entries[0].dataPoint.x - this.chart.axisX.minimum)) + this.chart.axisX.lineCoordinates.x1 + .5) - this.container.clientWidth << 0;
+						toolTipLeft -= 10;
+					}
+
+
+					if (toolTipLeft < 0) {
+						toolTipLeft += this.container.clientWidth + 20;
+					}
+
+					if (toolTipLeft + this.container.clientWidth > this.chart._container.clientWidth)
+						toolTipLeft = Math.max(0, this.chart._container.clientWidth - this.container.clientWidth);
+
+					toolTipLeft += "px";
+
+					if (entries.length === 1 && !this.shared && (entries[0].dataSeries.type === "line" || entries[0].dataSeries.type === "stepLine" || entries[0].dataSeries.type === "spline" || entries[0].dataSeries.type === "area" || entries[0].dataSeries.type === "stepArea" || entries[0].dataSeries.type === "splineArea" || entries[0].dataSeries.type === "stackedArea" || entries[0].dataSeries.type === "stackedArea100")) {
+						toolTipBottom = (entries[0].dataSeries.axisY.lineCoordinates.y2 - entries[0].dataSeries.axisY.lineCoordinates.height / Math.abs(entries[0].dataSeries.axisY.maximum - entries[0].dataSeries.axisY.minimum) * Math.abs(entries[0].dataPoint.y - entries[0].dataSeries.axisY.minimum) + .5) << 0;
+					} else if (entries[0].dataSeries.type === "bar" || entries[0].dataSeries.type === "rangeBar" || entries[0].dataSeries.type === "stackedBar" || entries[0].dataSeries.type === "stackedBar100") {
+						toolTipBottom = (entries[0].dataSeries.axisX.lineCoordinates.y2 - entries[0].dataSeries.axisX.lineCoordinates.height / Math.abs(entries[0].dataSeries.axisX.maximum - entries[0].dataSeries.axisX.minimum) * Math.abs(entries[0].dataPoint.x - entries[0].dataSeries.axisX.minimum) + .5) << 0;
+					}
+					else {
+						toolTipBottom = mouseY;
+					}
+
+					toolTipBottom = (-toolTipBottom + 10);
+
+					if (toolTipBottom + this.container.clientHeight + 5 > 0) {
+						toolTipBottom -= toolTipBottom + this.container.clientHeight + 5 - 0
+					}
+
+					toolTipBottom += "px";
+
+					//this.container.style.right = toolTipRight;
+					this.container.style.left = toolTipLeft;
+					this.container.style.bottom = toolTipBottom;
+
+					if (!this.animationEnabled || previouslyHidden) {
+						this.disableAnimation();
+					}
+					else
+						this.enableAnimation();
 				} else {
-					toolTipLeft = (((this.chart.axisX.lineCoordinates.width / Math.abs(this.chart.axisX.maximum - this.chart.axisX.minimum)) * Math.abs(entries[0].dataPoint.x - this.chart.axisX.minimum)) + this.chart.axisX.lineCoordinates.x1 + .5) - this.container.clientWidth << 0;
-					toolTipLeft -= 10;
+					this.hide(false);
 				}
 
-
-				if (toolTipLeft < 0) {
-					toolTipLeft += this.container.clientWidth + 20;
-				}
-
-				if (toolTipLeft + this.container.clientWidth > this.chart._container.clientWidth)
-					toolTipLeft = Math.max(0, this.chart._container.clientWidth - this.container.clientWidth);
-
-				toolTipLeft += "px";
-
-				if (entries.length === 1 && !this.shared && (entries[0].dataSeries.type === "line" || entries[0].dataSeries.type === "stepLine" || entries[0].dataSeries.type === "spline" || entries[0].dataSeries.type === "area" || entries[0].dataSeries.type === "stepArea" || entries[0].dataSeries.type === "splineArea" || entries[0].dataSeries.type === "stackedArea" || entries[0].dataSeries.type === "stackedArea100")) {
-					toolTipBottom = (entries[0].dataSeries.axisY.lineCoordinates.y2 - entries[0].dataSeries.axisY.lineCoordinates.height / Math.abs(entries[0].dataSeries.axisY.maximum - entries[0].dataSeries.axisY.minimum) * Math.abs(entries[0].dataPoint.y - entries[0].dataSeries.axisY.minimum) + .5) << 0;
-				} else if (entries[0].dataSeries.type === "bar" || entries[0].dataSeries.type === "rangeBar" || entries[0].dataSeries.type === "stackedBar" || entries[0].dataSeries.type === "stackedBar100") {
-					toolTipBottom = (entries[0].dataSeries.axisX.lineCoordinates.y2 - entries[0].dataSeries.axisX.lineCoordinates.height / Math.abs(entries[0].dataSeries.axisX.maximum - entries[0].dataSeries.axisX.minimum) * Math.abs(entries[0].dataPoint.x - entries[0].dataSeries.axisX.minimum) + .5) << 0;
-				}
-				else {
-					toolTipBottom = mouseY;
-				}
-
-				toolTipBottom = (-toolTipBottom + 10);
-
-				if (toolTipBottom + this.container.clientHeight + 5 > 0) {
-					toolTipBottom -= toolTipBottom + this.container.clientHeight + 5 - 0
-				}
-
-				toolTipBottom += "px";
-
-				//this.container.style.right = toolTipRight;
-				this.container.style.left = toolTipLeft;
-				this.container.style.bottom = toolTipBottom;
-
-				if (!this.animationEnabled || previouslyHidden) {
-					this.disableAnimation();
-				}
-				else
-					this.enableAnimation();
-			} else {
-				this.hide(false);
 			}
 
 			//if (isDebugMode)
@@ -12005,8 +12772,8 @@
 
 	ToolTip.prototype.highlightObjects = function (entries) {
 
-		if (!this.enabled)
-			return;
+		//if (!this.enabled)
+		//	return;
 
 		//this.chart.overlaidCanvasCtx.clearRect(0, 0, this.chart.overlaidCanvas.width, this.chart.overlaidCanvas.height);
 		var overlaidCanvasCtx = this.chart.overlaidCanvasCtx;
@@ -12016,9 +12783,6 @@
 
 
 		var plotArea = this.chart.plotArea;
-		overlaidCanvasCtx.rect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
-		overlaidCanvasCtx.clip();
-		overlaidCanvasCtx.beginPath();
 		var offset = 0;
 
 
@@ -12032,26 +12796,16 @@
 				continue;
 
 			var dataSeries = this.chart.data[eventObject.dataSeriesIndex];
-			var dataPoint = this.chart.data[eventObject.dataPointIndex];
+			var dataPoint = dataSeries.dataPoints[eventObject.dataPointIndex];
 			var index = eventObject.dataPointIndex;
 
-			if (dataSeries.type === "line" || dataSeries.type === "stepLine" || dataSeries.type === "spline" || dataSeries.type === "scatter"
-				|| dataSeries.type === "area" || dataSeries.type === "stepArea" || dataSeries.type === "splineArea"
-				|| dataSeries.type === "stackedArea" || dataSeries.type === "stackedArea100"
-				|| dataSeries.type === "rangeArea" || dataSeries.type === "rangeSplineArea") {
-				var markerProps = dataSeries.getMarkerProperties(index, eventObject.x1, eventObject.y1, this.chart.overlaidCanvasCtx);
-				markerProps.size = Math.max(markerProps.size * 1.5 << 0, 10);
+			if (dataPoint.highlightEnabled !== false && (dataSeries.highlightEnabled === true || dataPoint.highlightEnabled === true)) {
 
-				markerProps.borderColor = markerProps.borderColor || "#FFFFFF";
-				markerProps.borderThickness = markerProps.borderThickness || Math.ceil(markerProps.size * .1);
-
-				//overlaidCanvasCtx.globalAlpha = .8;
-				RenderHelper.drawMarkers([markerProps]);
-				//overlaidCanvasCtx.globalAlpha = .8;
-
-				if (typeof (eventObject.y2) !== "undefined") {
-
-					var markerProps = dataSeries.getMarkerProperties(index, eventObject.x1, eventObject.y2, this.chart.overlaidCanvasCtx);
+				if (dataSeries.type === "line" || dataSeries.type === "stepLine" || dataSeries.type === "spline" || dataSeries.type === "scatter"
+					|| dataSeries.type === "area" || dataSeries.type === "stepArea" || dataSeries.type === "splineArea"
+					|| dataSeries.type === "stackedArea" || dataSeries.type === "stackedArea100"
+					|| dataSeries.type === "rangeArea" || dataSeries.type === "rangeSplineArea") {
+					var markerProps = dataSeries.getMarkerProperties(index, eventObject.x1, eventObject.y1, this.chart.overlaidCanvasCtx);
 					markerProps.size = Math.max(markerProps.size * 1.5 << 0, 10);
 
 					markerProps.borderColor = markerProps.borderColor || "#FFFFFF";
@@ -12060,73 +12814,86 @@
 					//overlaidCanvasCtx.globalAlpha = .8;
 					RenderHelper.drawMarkers([markerProps]);
 					//overlaidCanvasCtx.globalAlpha = .8;
+
+					if (typeof (eventObject.y2) !== "undefined") {
+
+						var markerProps = dataSeries.getMarkerProperties(index, eventObject.x1, eventObject.y2, this.chart.overlaidCanvasCtx);
+						markerProps.size = Math.max(markerProps.size * 1.5 << 0, 10);
+
+						markerProps.borderColor = markerProps.borderColor || "#FFFFFF";
+						markerProps.borderThickness = markerProps.borderThickness || Math.ceil(markerProps.size * .1);
+
+						//overlaidCanvasCtx.globalAlpha = .8;
+						RenderHelper.drawMarkers([markerProps]);
+						//overlaidCanvasCtx.globalAlpha = .8;
+					}
+				} else if (dataSeries.type === "bubble") {
+					var markerProps = dataSeries.getMarkerProperties(index, eventObject.x1, eventObject.y1, this.chart.overlaidCanvasCtx);
+					markerProps.size = eventObject.size;
+					markerProps.color = "white";
+					markerProps.borderColor = "white";
+					//markerProps.borderThickness = 2;
+					overlaidCanvasCtx.globalAlpha = .3;
+					RenderHelper.drawMarkers([markerProps]);
+					overlaidCanvasCtx.globalAlpha = 1;
+				} else if (dataSeries.type === "column" || dataSeries.type === "stackedColumn" || dataSeries.type === "stackedColumn100"
+					|| dataSeries.type === "bar" || dataSeries.type === "rangeBar" || dataSeries.type === "stackedBar" || dataSeries.type === "stackedBar100"
+					|| dataSeries.type === "rangeColumn") {
+					drawRect(overlaidCanvasCtx, eventObject.x1, eventObject.y1, eventObject.x2, eventObject.y2, "white", 0, null, false, false, false, false, .3);
 				}
-			} else if (dataSeries.type === "bubble") {
-				var markerProps = dataSeries.getMarkerProperties(index, eventObject.x1, eventObject.y1, this.chart.overlaidCanvasCtx);
-				markerProps.size = eventObject.size;
-				markerProps.color = "white";
-				markerProps.borderColor = "white";
-				//markerProps.borderThickness = 2;
-				overlaidCanvasCtx.globalAlpha = .3;
-				RenderHelper.drawMarkers([markerProps]);
-				overlaidCanvasCtx.globalAlpha = 1;
-			} else if (dataSeries.type === "column" || dataSeries.type === "stackedColumn" || dataSeries.type === "stackedColumn100"
-				|| dataSeries.type === "bar" || dataSeries.type === "rangeBar" || dataSeries.type === "stackedBar" || dataSeries.type === "stackedBar100"
-				|| dataSeries.type === "rangeColumn") {
-				drawRect(overlaidCanvasCtx, eventObject.x1, eventObject.y1, eventObject.x2, eventObject.y2, "white", 0, null, false, false, false, false, .3);
-			}
-			else if (dataSeries.type === "pie" || dataSeries.type === "doughnut") {
-				drawSegment(overlaidCanvasCtx, eventObject.center, eventObject.radius, "white", dataSeries.type, eventObject.startAngle, eventObject.endAngle, .3);
-			} else if (dataSeries.type === "candlestick") {
+				else if (dataSeries.type === "pie" || dataSeries.type === "doughnut") {
+					drawSegment(overlaidCanvasCtx, eventObject.center, eventObject.radius, "white", dataSeries.type, eventObject.startAngle, eventObject.endAngle, .3);
+				} else if (dataSeries.type === "candlestick") {
 
-				overlaidCanvasCtx.globalAlpha = 1;
-				overlaidCanvasCtx.strokeStyle = eventObject.color;
-				overlaidCanvasCtx.lineWidth = eventObject.borderThickness * 2;
-				offset = (overlaidCanvasCtx.lineWidth) % 2 === 0 ? 0 : .5;
+					overlaidCanvasCtx.globalAlpha = 1;
+					overlaidCanvasCtx.strokeStyle = eventObject.color;
+					overlaidCanvasCtx.lineWidth = eventObject.borderThickness * 2;
+					offset = (overlaidCanvasCtx.lineWidth) % 2 === 0 ? 0 : .5;
 
-				overlaidCanvasCtx.beginPath();
-				overlaidCanvasCtx.moveTo(eventObject.x3 - offset, eventObject.y2);
-				overlaidCanvasCtx.lineTo(eventObject.x3 - offset, Math.min(eventObject.y1, eventObject.y4));
-				overlaidCanvasCtx.stroke();
+					overlaidCanvasCtx.beginPath();
+					overlaidCanvasCtx.moveTo(eventObject.x3 - offset, eventObject.y2);
+					overlaidCanvasCtx.lineTo(eventObject.x3 - offset, Math.min(eventObject.y1, eventObject.y4));
+					overlaidCanvasCtx.stroke();
 
-				overlaidCanvasCtx.beginPath();
-				overlaidCanvasCtx.moveTo(eventObject.x3 - offset, Math.max(eventObject.y1, eventObject.y4));
-				overlaidCanvasCtx.lineTo(eventObject.x3 - offset, eventObject.y3);
-				overlaidCanvasCtx.stroke();
+					overlaidCanvasCtx.beginPath();
+					overlaidCanvasCtx.moveTo(eventObject.x3 - offset, Math.max(eventObject.y1, eventObject.y4));
+					overlaidCanvasCtx.lineTo(eventObject.x3 - offset, eventObject.y3);
+					overlaidCanvasCtx.stroke();
 
-				drawRect(overlaidCanvasCtx, eventObject.x1, Math.min(eventObject.y1, eventObject.y4), eventObject.x2, Math.max(eventObject.y1, eventObject.y4), "transparent", eventObject.borderThickness * 2, eventObject.color, false, false, false, false);
-				overlaidCanvasCtx.globalAlpha = 1;
+					drawRect(overlaidCanvasCtx, eventObject.x1, Math.min(eventObject.y1, eventObject.y4), eventObject.x2, Math.max(eventObject.y1, eventObject.y4), "transparent", eventObject.borderThickness * 2, eventObject.color, false, false, false, false);
+					overlaidCanvasCtx.globalAlpha = 1;
 
-			} else if (dataSeries.type === "ohlc") {
-				overlaidCanvasCtx.globalAlpha = 1;
+				} else if (dataSeries.type === "ohlc") {
+					overlaidCanvasCtx.globalAlpha = 1;
 
-				overlaidCanvasCtx.strokeStyle = eventObject.color;
-				overlaidCanvasCtx.lineWidth = eventObject.borderThickness * 2;
+					overlaidCanvasCtx.strokeStyle = eventObject.color;
+					overlaidCanvasCtx.lineWidth = eventObject.borderThickness * 2;
 
-				offset = (overlaidCanvasCtx.lineWidth) % 2 === 0 ? 0 : .5;
+					offset = (overlaidCanvasCtx.lineWidth) % 2 === 0 ? 0 : .5;
 
-				overlaidCanvasCtx.beginPath();
-				overlaidCanvasCtx.moveTo(eventObject.x3 - offset, eventObject.y2);
-				overlaidCanvasCtx.lineTo(eventObject.x3 - offset, eventObject.y3);
-				overlaidCanvasCtx.stroke();
+					overlaidCanvasCtx.beginPath();
+					overlaidCanvasCtx.moveTo(eventObject.x3 - offset, eventObject.y2);
+					overlaidCanvasCtx.lineTo(eventObject.x3 - offset, eventObject.y3);
+					overlaidCanvasCtx.stroke();
 
-				overlaidCanvasCtx.beginPath();
-				overlaidCanvasCtx.moveTo(eventObject.x3, eventObject.y1);
-				overlaidCanvasCtx.lineTo(eventObject.x1, eventObject.y1);
-				overlaidCanvasCtx.stroke();
+					overlaidCanvasCtx.beginPath();
+					overlaidCanvasCtx.moveTo(eventObject.x3, eventObject.y1);
+					overlaidCanvasCtx.lineTo(eventObject.x1, eventObject.y1);
+					overlaidCanvasCtx.stroke();
 
-				overlaidCanvasCtx.beginPath();
-				overlaidCanvasCtx.moveTo(eventObject.x3, eventObject.y4);
-				overlaidCanvasCtx.lineTo(eventObject.x2, eventObject.y4);
-				overlaidCanvasCtx.stroke();
+					overlaidCanvasCtx.beginPath();
+					overlaidCanvasCtx.moveTo(eventObject.x3, eventObject.y4);
+					overlaidCanvasCtx.lineTo(eventObject.x2, eventObject.y4);
+					overlaidCanvasCtx.stroke();
 
-				overlaidCanvasCtx.globalAlpha = 1;
+					overlaidCanvasCtx.globalAlpha = 1;
+				}
 			}
 		}
 
 		overlaidCanvasCtx.globalAlpha = 1;
 
-		overlaidCanvasCtx.restore();
+		overlaidCanvasCtx.beginPath();
 		return;
 	}
 
@@ -12147,13 +12914,14 @@
 			}
 		}
 
-		if (isToolTipDefinedInData && this.content && typeof (this.content) === "function") {
+		if (isToolTipDefinedInData && ((this.content && typeof (this.content) === "function") || this.contentFormatter)) {
 
-			toolTipInnerHtml = this.content({ entries: entries });
+			var param = { chart: this.chart, toolTip: this._options, entries: entries };
+			toolTipInnerHtml = this.contentFormatter ? this.contentFormatter(param) : this.content(param);
 
 		} else {
 
-			if (this.shared) {
+			if (this.shared && this.chart.plotInfo.axisPlacement !== "none") {
 
 				var toolTipInnerHtmlPrefix = "";
 
@@ -12197,10 +12965,23 @@
 					if (toolTipInnerHtml === null)
 						toolTipInnerHtml = "";
 
-					toolTipInnerHtml += this.chart.replaceKeywordsWithValue(toolTipContent, dataPoint, dataSeries, index);
 
-					if (i < entries.length - 1)
-						toolTipInnerHtml += "</br>";
+					if (this.reversed === true) {
+
+						toolTipInnerHtml = this.chart.replaceKeywordsWithValue(toolTipContent, dataPoint, dataSeries, index) + toolTipInnerHtml;
+
+						if (i < entries.length - 1)
+							toolTipInnerHtml = "</br>" + toolTipInnerHtml;
+
+					} else {
+
+						toolTipInnerHtml += this.chart.replaceKeywordsWithValue(toolTipContent, dataPoint, dataSeries, index);
+
+						if (i < entries.length - 1)
+							toolTipInnerHtml += "</br>";
+
+					}
+
 				}
 
 				if (toolTipInnerHtml !== null)
@@ -12280,6 +13061,44 @@
 			this.chart.resetOverlayedCanvas();
 	}
 
+	Chart.prototype.getPercentAndTotal = function (ds, dp) {
+
+		var dpX = null;
+		var total = null;
+		var percent = null;
+
+		if (ds.type.indexOf("stacked") >= 0) {
+			total = 0;
+			dpX = dp.x.getTime ? dp.x.getTime() : dp.x;
+			if (dpX in ds.plotUnit.yTotals) {
+				total = ds.plotUnit.yTotals[dpX];
+
+				if (!isNaN(dp.y)) {
+				    if (total === 0)
+				        percent = 0;
+                    else
+				        percent = (dp.y / total) * 100;
+				}
+				else
+				    percent = 0;
+			}
+		} else if (ds.type === "pie" || ds.type === "doughnut") {
+			total = 0;
+			for (i = 0; i < ds.dataPoints.length; i++) {
+
+				if (!isNaN(ds.dataPoints[i].y))
+					total += ds.dataPoints[i].y;
+			}
+
+			if (!isNaN(dp.y))
+				percent = (dp.y / total) * 100;
+			else
+				percent = 0;
+		}
+         
+		return { percent: percent, total: total };
+	}
+
 	Chart.prototype.replaceKeywordsWithValue = function (str, dp, ds, dpIndex, indexKeywordValue) {
 		//var regex = /\{\s*[a-zA-Z]+\s*\}|"[^"]*"|'[^']*'/g;
 		var regex = /\{.*?\}|"[^"]*"|'[^']*'/g;
@@ -12289,38 +13108,24 @@
 		if ((ds.type.indexOf("stacked") >= 0 || (ds.type === "pie" || ds.type === "doughnut")) && (str.indexOf("#percent") >= 0 || str.indexOf("#total") >= 0)) {
 			var percent = "#percent";
 			var total = "#total";
+			var dpX = null;
 
-			if (ds.type.indexOf("stacked") >= 0) {
-				total = 0;
-				if (ds.plotUnit.yTotals.length > 0) {
-					total = ds.plotUnit.yTotals[dp.x];
-
-					if (!isNaN(dp.y))
-						percent = (dp.y / total) * 100;
-					else
-						percent = 0;
-				}
-			} else if (ds.type === "pie" || ds.type === "doughnut") {
-				total = 0;
-				for (i = 0; i < ds.dataPoints.length; i++) {
-
-					if (!isNaN(ds.dataPoints[i].y))
-						total += ds.dataPoints[i].y;
-				}
-
-				if (!isNaN(dp.y))
-					percent = (dp.y / total) * 100;
-				else
-					percent = 0;
-			}
-
+			var percentAndTotal = this.getPercentAndTotal(ds, dp);
+			
+			total = percentAndTotal.total ? percentAndTotal.total : total;
+			percent = isNaN(percentAndTotal.percent) ? percent : percentAndTotal.percent;
+			
 			do {
 				var percentFormatString = "";
 				if (ds.percentFormatString)
 					percentFormatString = ds.percentFormatString;
 				else {
 					percentFormatString = "#,##0.";
-					var numberOfDecimals = Math.max(Math.ceil(Math.log(1 / percent) / Math.LN10), 2);
+					var numberOfDecimals = Math.max(Math.ceil(Math.log(1 / Math.abs(percent)) / Math.LN10), 2);
+
+					if (isNaN(numberOfDecimals) || !isFinite(numberOfDecimals))
+						numberOfDecimals = 2;
+
 					for (var n = 0; n < numberOfDecimals; n++) {
 						percentFormatString += "#";
 					}
@@ -12328,7 +13133,7 @@
 
 				str = str.replace("#percent", numberFormat(percent, percentFormatString, chart._cultureInfo));
 				str = str.replace("#total", numberFormat(total, ds.yValueFormatString ? ds.yValueFormatString : "#,##0.########"));
-			} while (str.indexOf("#percent") >= 0 || str.indexOf("#total") >= 0)
+			} while (str.indexOf("#percent") >= 0 || str.indexOf("#total") >= 0);
 		}
 
 
@@ -12578,7 +13383,7 @@
 			delete eventObjectMap.eventContext; // reference no longer required.
 		}
 
-		//This is just a quick fix. Need to find a better way of doing it.
+		//This is just a quick fix. Need to find a better way of calling internal event handlers.
 		if (eventType === "click" && eventObjectMap.objectType === "dataPoint" && this.chart.pieDoughnutClickHandler) {
 			this.chart.pieDoughnutClickHandler.call(this.chart.data[eventObjectMap.dataSeriesIndex], eventParameter);
 		}
@@ -12588,24 +13393,177 @@
 
 	//#region Class CultureInfo
 
-	function CultureInfo(chart, culture) {
+	function CultureInfo(culture) {
 
 		var cultureInfo;
 
 		if (culture && cultures[culture])
 			cultureInfo = cultures[culture];
 
-
-		Title.parent.constructor.call(this, "CultureInfo", cultureInfo, chart.theme);
-
-		this.chart = chart;
-		this.canvas = chart.canvas;
-		this.ctx = this.chart.ctx;
+		CultureInfo.base.constructor.call(this, "CultureInfo", cultureInfo);
 	}
 
 	extend(CultureInfo, CanvasJSObject);
 
 	//#endregion Class CultureInfo
+
+	//#region Animator
+
+
+	function Animator(chart) {
+
+		this.chart = chart;
+		this.ctx = this.chart.plotArea.ctx;
+		this.animations = [];
+		this.animationRequestId = null;
+	}
+
+	//Animator.prototype.animate = function (duration, base, dest, source, animationCallback, onComplete) {
+	Animator.prototype.animate = function (startDelay, duration, animationCallback, onComplete, easingFunction) {
+		var _this = this;
+
+		this.chart.isAnimating = true;
+		easingFunction = easingFunction || AnimationHelper.easing.linear;
+
+		if (animationCallback) {
+
+			this.animations.push({
+				startTime: (new Date()).getTime() + (startDelay ? startDelay : 0),
+				duration: duration,
+				animationCallback: animationCallback,
+				onComplete: onComplete
+			});
+		}
+
+		var remainingAnimations = [];
+
+		while (this.animations.length > 0) {
+
+			var animation = this.animations.shift();
+			var now = (new Date()).getTime();
+			var fractionComplete = 0;
+			//var fractionComplete = Math.min(((new Date()).getTime() - animation.startTime) / animation.duration, 1);
+
+			if (animation.startTime <= now) {
+				fractionComplete = easingFunction(Math.min((now - animation.startTime), animation.duration), 0, 1, animation.duration);
+				//var fractionComplete = AnimationHelper.easing.easeOutQuad(Math.min(((new Date()).getTime() - animation.startTime), animation.duration), 0, 1, animation.duration);
+
+				fractionComplete = Math.min(fractionComplete, 1);
+
+				if (isNaN(fractionComplete) || !isFinite(fractionComplete))
+					fractionComplete = 1;
+			}
+
+			if (fractionComplete < 1) {
+				remainingAnimations.push(animation);
+			}
+
+			animation.animationCallback(fractionComplete);
+
+			if (fractionComplete >= 1 && animation.onComplete)
+				animation.onComplete();
+		}
+
+		this.animations = remainingAnimations;
+
+		if (this.animations.length > 0) {
+			this.animationRequestId = this.chart.requestAnimFrame.call(window, function () {
+				_this.animate.call(_this);
+			});
+		} else {
+			this.chart.isAnimating = false;
+		}
+
+	}
+
+	Animator.prototype.cancelAllAnimations = function () {
+
+		this.animations = [];
+
+		if (this.animationRequestId) {
+			this.chart.cancelRequestAnimFrame.call(window, this.animationRequestId);
+		}
+
+		this.animationRequestId = null;
+		this.chart.isAnimating = false;
+	}
+
+	var AnimationHelper = {
+		yScaleAnimation: function (fractionComplete, animationInfo) {
+			if (fractionComplete === 0)
+				return;
+
+			var ctx = animationInfo.dest;
+			var sourceCanvas = animationInfo.source.canvas;
+			var base = animationInfo.animationBase;
+
+			var offsetY = (base - base * fractionComplete);
+
+			ctx.drawImage(sourceCanvas, 0, 0, sourceCanvas.width, sourceCanvas.height, 0, offsetY, ctx.canvas.width / devicePixelBackingStoreRatio, fractionComplete * ctx.canvas.height / devicePixelBackingStoreRatio);
+		},
+		xScaleAnimation: function (fractionComplete, animationInfo) {
+			if (fractionComplete === 0)
+				return;
+
+			var ctx = animationInfo.dest;
+			var sourceCanvas = animationInfo.source.canvas;
+			var base = animationInfo.animationBase;
+
+			var offsetX = (base - base * fractionComplete);
+
+			ctx.drawImage(sourceCanvas, 0, 0, sourceCanvas.width, sourceCanvas.height, offsetX, 0, fractionComplete * ctx.canvas.width / devicePixelBackingStoreRatio, ctx.canvas.height / devicePixelBackingStoreRatio);
+		},
+		xClipAnimation: function (fractionComplete, animationInfo) {
+
+			if (fractionComplete === 0)
+				return;
+
+			var ctx = animationInfo.dest;
+			var sourceCanvas = animationInfo.source.canvas;
+
+			ctx.save();
+
+			if (fractionComplete > 0)
+				ctx.drawImage(sourceCanvas, 0, 0, sourceCanvas.width * fractionComplete, sourceCanvas.height, 0, 0, sourceCanvas.width * fractionComplete / devicePixelBackingStoreRatio, sourceCanvas.height / devicePixelBackingStoreRatio);
+
+			ctx.restore();
+		},
+		fadeInAnimation: function (fractionComplete, animationInfo) {
+
+			if (fractionComplete === 0)
+				return;
+
+			var ctx = animationInfo.dest;
+			var sourceCanvas = animationInfo.source.canvas;
+
+			ctx.save();
+
+			ctx.globalAlpha = fractionComplete;
+
+			ctx.drawImage(sourceCanvas, 0, 0, sourceCanvas.width, sourceCanvas.height, 0, 0, ctx.canvas.width / devicePixelBackingStoreRatio, ctx.canvas.height / devicePixelBackingStoreRatio);
+
+			ctx.restore();
+		},
+		easing: {
+			linear: function (t, b, c, d) {
+				return c * t / d + b;
+			},
+			easeOutQuad: function (t, b, c, d) {
+				return -c * (t /= d) * (t - 2) + b;
+			},
+			easeOutQuart: function (t, b, c, d) {
+				return -c * ((t = t / d - 1) * t * t * t - 1) + b;
+			},
+			easeInQuad: function (t, b, c, d) {
+				return c * (t /= d) * t + b;
+			},
+			easeInQuart: function (t, b, c, d) {
+				return c * (t /= d) * t * t * t + b;
+			}
+		}
+	}
+
+	//#endregion Animator
 
 	//#region Render Helper
 
@@ -12744,10 +13702,31 @@
 		},
 		addCultureInfo: function (name, cultureInfo) {
 			cultures[name] = cultureInfo;
+		},
+		formatNumber: function (number, formatString, culture) {
+			culture = culture || "en";
+			formatString = formatString || "#,##0.##";
+
+			if (!cultures[culture])
+				throw "Unknown Culture Name";
+			else {
+				return numberFormat(number, formatString, new CultureInfo(culture));
+			}
+		},
+		formatDate: function (date, formatString, culture) {
+			culture = culture || "en";
+			formatString = formatString || "DD MMM YYYY";
+
+			if (!cultures[culture])
+				throw "Unknown Culture Name";
+			else {
+				return dateFormat(date, formatString, new CultureInfo(culture));
+			}
 		}
+
 	}
 
-	CanvasJS.Chart.version = "v1.5.5 GA";
+	CanvasJS.Chart.version = "v1.7.0 GA";
 	window.CanvasJS = CanvasJS;
 	//#endregion Public API
 

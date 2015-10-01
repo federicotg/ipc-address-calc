@@ -32,33 +32,38 @@
         <script type="text/javascript" src="/scripts/all.js"></script>
         <script type="text/javascript">
 
-            window.addEvent('domready', function () {
+            window.onload = function() {
 
                 reloadChart();
-                document.id('changeAll').addEvent('change', function(){
+                document.getElementById('changeAll').onchange = function(){
                     
-                var state = document.id('changeAll').checked;
-                $$(".chbx").each(function(item, index){
-                        item.checked=state;
-                    });
+                var state = document.getElementById('changeAll').checked;
+                var checkboxes = document.getElementsByClassName("chbx");
+                for(var i=0;i<checkboxes.length;i++){
+                        checkboxes[i].checked=state;
+                }
                 reloadChart();    
-                });
+                };
 
-            });
+            };
 
             function reloadChart() {
-                document.id('chartContainer').empty();
+                var node = document.getElementById('chartContainer');
+                
+                while (node.firstChild) {
+                    node.removeChild(node.firstChild);
+                }
 
-                var checkboxes = document.getElements('input[type=checkbox]');
+                var checkboxes = document.querySelectorAll('input[type=checkbox]');
                 var series = "";
                 for (var i = 0; i < checkboxes.length; i++) {
                     if (checkboxes[i].checked) {
                         series += "&series=" + checkboxes[i].value;
                     }
                 }
-                var m = document.id('months').value;
-                var year = document.id('year').value;
-                var month = document.id('month').value;
+                var m = document.getElementById('months').value;
+                var year = document.getElementById('year').value;
+                var month = document.getElementById('month').value;
                 showChart('/secure/${uri}.json', 'months=' + m + series+"&year="+year+"&month="+month, 'chartContainer');
             }
  

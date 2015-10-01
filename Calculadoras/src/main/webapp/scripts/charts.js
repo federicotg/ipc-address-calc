@@ -27,7 +27,7 @@ var reviver = function (key, value) {
 };
 
 
-function showChart(url, params, container) {
+/*function showChartMooTools(url, params, container) {
     var req = new Request({
         url: url,
         method: 'get',
@@ -55,4 +55,26 @@ function showChart(url, params, container) {
         req.send();
     }
 
+}*/
+
+function showChart(url, params, container) {
+
+    var client = new XMLHttpRequest();
+    client.onload = function () {
+        if (this.status == 200 && this.responseText != null) {
+            var chartObject = JSON.parse(this.responseText, reviver);
+            if (chartObject.successful) {
+                var chart = new CanvasJS.Chart(container, chartObject);
+                chart.render();
+            }
+        } else {
+            alert("Failure.");
+        }
+    };
+    
+    
+    client.open("GET", url+(params?"?"+params:""));
+    client.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+    client.send();
 }
+

@@ -34,14 +34,19 @@
         <script type="text/javascript" src="/scripts/all.js"></script>
         <script type="text/javascript">
 
-            window.addEvent('domready', function () {
+            window.onload = function () {
                 reloadChart();
-            });
+            };
 
             function reloadChart() {
-                document.id('chartContainer').empty();
+                var node = document.getElementById('chartContainer');
+                
+                while (node.firstChild) {
+                    node.removeChild(node.firstChild);
+                }
+                
                 showChart('${uri}.json', null, 'chartContainer');
-            }
+            };
 
         </script>
     </head>

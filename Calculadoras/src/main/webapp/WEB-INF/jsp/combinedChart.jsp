@@ -32,7 +32,7 @@
         <script type="text/javascript" src="/scripts/all.js"></script>
         <script type="text/javascript">
 
-            window.addEvent('domready', function () {
+            window.onload = function () {
 
                 showChart('/secure/${uri}.json', 
                           'months=' + ${dto.months}
@@ -40,22 +40,27 @@
                         + '&month=' + ${dto.month},
                 'chartContainer');
 
-            });
+            };
 
             function reloadChart() {
-                document.id('chartContainer').empty();
-                if (document.id('months')) {
-                    var m = document.id('months').value;
+                var node = document.getElementById('chartContainer');
+                
+                while (node.firstChild) {
+                    node.removeChild(node.firstChild);
+                }
+                
+                if (document.getElementById('months')) {
+                    var m = document.getElementById('months').value;
                 }
 
-                var pn = document.id('pn').checked;
-                var pr = document.id('pr').checked;
-                var dn = document.id('dn').checked;
-                var dr = document.id('dr').checked;
-                var en = document.id('en').checked;
-                var er = document.id('er').checked;
-                var year = document.id('year').value;
-                var month = document.id('month').value;
+                var pn = document.getElementById('pn').checked;
+                var pr = document.getElementById('pr').checked;
+                var dn = document.getElementById('dn').checked;
+                var dr = document.getElementById('dr').checked;
+                var en = document.getElementById('en').checked;
+                var er = document.getElementById('er').checked;
+                var year = document.getElementById('year').value;
+                var month = document.getElementById('month').value;
                 showChart('/secure/${uri}.json',
                         (m ? 'months=' + m : '')
                         + '&pn=' + pn
