@@ -54,8 +54,7 @@
             }
             
         </style>
-        <%--script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/mootools/1.5.1/mootools-yui-compressed.js"></script>
-        <script type="text/javascript" src="/scripts/accounting.min.js"></script--%>
+        <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/mootools/1.5.1/mootools-yui-compressed.js"></script>
         <script type="text/javascript" src="/scripts/all.js"></script>
         <script type="text/javascript">
             window.addEvent('domready', function () {
