@@ -48,12 +48,10 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
     @Resource(name = "realPesosDatapointAssembler")
     @Lazy
     private CanvasJSDatapointAssembler realPesosDatapointAssembler;
-    
+
     @Resource(name = "realUSDDatapointAssembler")
     @Lazy
     private CanvasJSDatapointAssembler realUSDDatapointAssembler;
-    
-    
 
     @Resource(name = "nominalPesosDatapointAssembler")
     @Lazy
@@ -88,7 +86,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
         Map<Currency, CanvasJSDatapointAssembler> assemblers = new HashMap<>();
 
         assemblers.put(Currency.getInstance("USD"), realUSDDatapointAssembler);
-        assemblers.put(Currency.getInstance("ARS"),realPesosDatapointAssembler);
+        assemblers.put(Currency.getInstance("ARS"), realPesosDatapointAssembler);
 
         return assemblers.get(currency);
     }
@@ -208,7 +206,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
             for (ExpenseChartSeriesDTO s : this.series) {
                 if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
                     MoneyAmountSeries eachSeries = JSONMoneyAmountSeries.readSeries(s.getSeriesName());
-                    
+
                     if (!eachSeries.getCurrency().equals(currency)) {
                         // convert to desired currency if needed
                         eachSeries = this.getForeignExchange(eachSeries.getCurrency(), currency).exchange(eachSeries, currency);
@@ -227,12 +225,15 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
                 @Override
                 public void process(int year, int month, MoneyAmount expensesSum) throws NoSeriesDataFoundException {
-                    percentSeries.putAmount(
-                            year,
-                            month,
-                            new MoneyAmount(
-                                    expensesSum.getAmount().divide(totalIncome.getAmount(year, month).getAmount(), CONTEXT),
-                                    totalIncome.getCurrency()));
+                    MoneyAmount incomeValue = totalIncome.getAmount(year, month);
+                    if (incomeValue != null) {
+                        percentSeries.putAmount(
+                                year,
+                                month,
+                                new MoneyAmount(
+                                        expensesSum.getAmount().divide(incomeValue.getAmount(), CONTEXT),
+                                        totalIncome.getCurrency()));
+                    }
                 }
             });
 
