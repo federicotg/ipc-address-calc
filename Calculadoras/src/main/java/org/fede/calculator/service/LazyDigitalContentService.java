@@ -634,6 +634,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(3, 17) // 1 y 4
                 .discBox(4, 17) // 3
                 .discBox(9, 17) // 2 
+                .seenByAnaMaria()
                 .build();
 
         new DigitalContent.Builder("Swan Lake").ballet().atBolshoi().on("25/03/2015").fullHD().mkv()
