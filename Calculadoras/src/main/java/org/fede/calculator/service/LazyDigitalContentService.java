@@ -106,7 +106,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Don Quichotte", "La Bayadère").ballet().by("Ludwig Minkus").build();
         new Opus.Builder("Notre Dame de Paris").ballet().by("Maurice Jarre").build();
         new Opus.Builder("Daphnis et Chloé").ballet().by("Ravel").build();
-        new Opus.Builder("Romeo and Juliet", "Cinderella").ballet().by("Sergey Prokofiev").build();
+        new Opus.Builder("Romeo and Juliet", "Cinderella", "Ivan the Terrible").ballet().by("Sergey Prokofiev").build();
         new Opus.Builder("Swan Lake", "The Nutcracker", "The Sleeping Beauty").ballet()
                 .by("Tchaikovsky").build();
         new Opus.Builder("La fille mal gardée").ballet().build();
@@ -650,6 +650,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(9, 17)
                 .build();
 
+        new DigitalContent.Builder("Ivan the Terrible").ballet().atBolshoi().on("19/04/2015").fullHD().mkv()
+                .discBox(10, 17) // Part I
+                .discBox(11, 17) // Part II
+                .build();
+        
     }
 
     private void initOperaVideos() throws ParseException {
@@ -1173,11 +1178,21 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(6, 16)
                 .seenByFede()
                 .build();
+        
+        new DigitalContent.Builder("Cavalleria Rusticana").opera().atTheMet().on("25/04/2015").fullHD().spaSubs().mkv()
+                .discBox(11, 17)
+                .seenByFede()
+                .build();
+        
 
         new DigitalContent.Builder("Pagliacci").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
                 .discBox(8, 16)
                 .build();
 
+        new DigitalContent.Builder("Pagliacci").opera().atTheMet().on("26/04/2015").fullHD().spaSubs().mkv()
+                .discBox(10, 17)
+                .build();
+        
         new DigitalContent.Builder("Andrea Chénier").opera().atRoh().on("29/01/2015").fullHD().spaSubs().mkv()
                 .discBox(11, 16) // 1 2 y 4
                 .discBox(10, 16) //3 5 6
@@ -1226,7 +1241,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Rise and Fall of the City of Mahagonny").opera().atRoh().on("01/04/2015").fullHD().spaSubs().mkv()
                 .discBox(5, 17) // 2 part I
                 .discBox(9, 17) // 4 part II + Interviews
-                .discBox(0, 0) // Intro
+                .discBox(11, 17) // Intro
                 .build();
 
         new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("17/08/2012").fullHD().engSubs().mkv()
