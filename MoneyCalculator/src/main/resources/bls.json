@@ -9141,6 +9141,13 @@
                                     "periodName": "August",
                                     "value": "238.316",
                                     "footnotes": [{}]
+                                },
+                                {
+                                    "year": "2015",
+                                    "period": "M09",
+                                    "periodName": "September",
+                                    "value": "237.945",
+                                    "footnotes": [{}]
                                 }
                                 ]
                         }]
