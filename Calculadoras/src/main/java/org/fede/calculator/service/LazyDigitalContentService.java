@@ -492,7 +492,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(11, 14)
                 .seenByAnaMaria().build();
 
-        new DigitalContent.Builder("La Bayadère").ballet().atMariinsky().on("27/01/2013").fullHD().mkv()
+        new DigitalContent.Builder("La Bayadère").ballet().atMariinsky().on("14/07/2014").fullHD().mkv()
                 .seenByAnaMaria()
                 .discBox(2, 16)
                 .discBox(1, 3)
