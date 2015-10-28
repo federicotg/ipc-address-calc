@@ -26,37 +26,6 @@ var reviver = function (key, value) {
     return value;
 };
 
-
-/*function showChartMooTools(url, params, container) {
-    var req = new Request({
-        url: url,
-        method: 'get',
-        headers: {'Content-Type': 'application/json;charset=UTF-8'},
-        urlEncoded: false,
-        onSuccess: function (responseText) {
-            if (this.status === 200) {
-                var chartObject = JSON.parse(responseText, reviver);
-                if (chartObject.successful) {
-                    var chart = new CanvasJS.Chart(container, chartObject);
-                    chart.render();
-                }
-            }
-        },
-        onFailure: function () {
-            alert("Failure.");
-        },
-        onException: function () {
-            alert("Exception");
-        }
-    });
-    if (params) {
-        req.send(params);
-    } else {
-        req.send();
-    }
-
-}*/
-
 function showChart(url, params, container) {
 
     var client = new XMLHttpRequest();
