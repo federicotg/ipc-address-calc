@@ -17,7 +17,6 @@
 package org.fede.calculator.service;
 
 import java.util.Currency;
-import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -44,7 +43,7 @@ public class USDMoneyService implements MoneyService {
     public MoneyDTO getMoney(MoneyDTO dto) throws NoSeriesDataFoundException {
 
         MoneyAmount amount = new MoneyAmount(dto.getAmount(), Currency.getInstance("USD"));
-        MoneyAmount result = Inflation.USD_INFLATION.adjust(amount, dto.getFromYear(), dto.getFromMonth(), dto.getToYear(), dto.getToMonth());
+        MoneyAmount result = USD_INFLATION.adjust(amount, dto.getFromYear(), dto.getFromMonth(), dto.getToYear(), dto.getToMonth());
         MoneyDTO answer = new MoneyDTO();
         answer.setAmount(result.getAmount());
         answer.setFromMonth(dto.getFromMonth());
