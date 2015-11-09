@@ -39,8 +39,8 @@ public class RealPesosCanvasJSDatapointAssembler extends BaseCanvasJSDatapointAs
         MoneyAmountSeries sourceSeries = dollarToPesosIfNeeded(originalSeries);
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        MoneyAmountSeries series = new SimpleAggregation(months).average(ARS_INFLATION.adjust(sourceSeries, year, month));
-        series.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
+        new SimpleAggregation(months).average(ARS_INFLATION.adjust(sourceSeries, year, month))
+                .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
     }
 

@@ -23,19 +23,20 @@ import java.util.Currency;
 import java.util.Date;
 import java.util.List;
 import org.fede.calculator.money.Aggregation;
-import org.fede.calculator.money.ForeignExchange;
 import static org.fede.calculator.money.ForeignExchange.USD_ARS;
-import org.fede.calculator.money.Inflation;
+import static org.fede.calculator.money.ForeignExchange.USD_XAU;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MathConstants;
+import static java.math.BigDecimal.ONE;
+import static java.math.BigDecimal.ZERO;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.JSONIndexSeries;
-import org.fede.calculator.money.series.JSONMoneyAmountSeries;
+import static org.fede.calculator.money.series.JSONMoneyAmountSeries.readSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.web.dto.DollarReportDTO;
@@ -56,10 +57,10 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final Date moment = new Date();
 
-        final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
+        final MoneyAmount oneDollar = new MoneyAmount(ONE, "USD");
         final Currency ars = Currency.getInstance("ARS");
 
-        final MoneyAmountSeries dolares = JSONMoneyAmountSeries.readSeries("dolares.json");
+        final MoneyAmountSeries dolares = readSeries("dolares.json");
         final Currency peso = Currency.getInstance("ARS");
 
         final List<DollarReportDTO> answer = new ArrayList<>();
@@ -72,22 +73,22 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                 answer.add(dto);
                 Date thenDate = createDate(year, month);
                 dto.setThen(thenDate);
-                MoneyAmount pesos = ForeignExchange.USD_ARS.exchange(dollar, peso, thenDate);
+                MoneyAmount pesos = USD_ARS.exchange(dollar, peso, thenDate);
                 dto.setNominalPesosThen(pesos.getAmount());
-                BigDecimal realPesos = Inflation.ARS_INFLATION.adjust(pesos, thenDate, moment).getAmount();
+                BigDecimal realPesos = ARS_INFLATION.adjust(pesos, thenDate, moment).getAmount();
                 dto.setRealPesosNow(realPesos);
                 dto.setNow(moment);
-                dto.setNominalPesosNow(ForeignExchange.USD_ARS.exchange(dollar, peso, moment).getAmount());
+                dto.setNominalPesosNow(USD_ARS.exchange(dollar, peso, moment).getAmount());
 
                 MoneyAmount oneDollarThen = USD_INFLATION.adjust(oneDollar, moment, thenDate);
 
-                MoneyAmount realDollarThen = Inflation.ARS_INFLATION.adjust(
-                        ForeignExchange.USD_ARS.exchange(oneDollarThen, ars, thenDate),
+                MoneyAmount realDollarThen = ARS_INFLATION.adjust(
+                        USD_ARS.exchange(oneDollarThen, ars, thenDate),
                         thenDate, moment);
 
                 dto.setRealUsdThen(realDollarThen.getAmount());
 
-                MoneyAmount oneDollarNow = ForeignExchange.USD_ARS.exchange(oneDollar, ars, moment);
+                MoneyAmount oneDollarNow = USD_ARS.exchange(oneDollar, ars, moment);
                 dto.setNominalUsdNow(oneDollarNow.getAmount());
 
             }
@@ -109,24 +110,22 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final List<SavingsReportDTO> report = new ArrayList<>();
 
-        final MoneyAmountSeries pesos = JSONMoneyAmountSeries.readSeries("ahorros-peso.json");
+        final MoneyAmountSeries pesos = readSeries("ahorros-peso.json");
 
-        final MoneyAmountSeries dollarsAndGold = JSONMoneyAmountSeries.readSeries("ahorros-dolar.json")
-                .add(ForeignExchange.USD_XAU.exchange(JSONMoneyAmountSeries.readSeries("ahorros-oro.json"), Currency.getInstance("USD")));
+        final MoneyAmountSeries dollarsAndGold = readSeries("ahorros-dolar.json")
+                .add(USD_XAU.exchange(readSeries("ahorros-oro.json"), Currency.getInstance("USD")));
 
         final IndexSeries dollarPrice = JSONIndexSeries.readSeries("peso-dolar-libre.json");
 
-        MoneyAmountSeries nominalIncomePesos = JSONMoneyAmountSeries.readSeries("lifia.json")
-                .add(JSONMoneyAmountSeries.readSeries("unlp.json"))
-                .add(JSONMoneyAmountSeries.readSeries("plazofijo.json"));
+        MoneyAmountSeries nominalIncomePesos = readSeries("lifia.json", "unlp.json", "plazofijo.json");
 
 
         Aggregation yearSum = new SimpleAggregation(12);
-        final MoneyAmountSeries nov99IncomePesos12 = yearSum.sum(Inflation.ARS_INFLATION.adjust(nominalIncomePesos, 1999, 11));
+        final MoneyAmountSeries nov99IncomePesos12 = yearSum.sum(ARS_INFLATION.adjust(nominalIncomePesos, 1999, 11));
 
 
-        MoneyAmountSeries nominalIncomeDollars = ForeignExchange.USD_ARS.exchange(nominalIncomePesos, Currency.getInstance("USD"));
-        final MoneyAmountSeries nov99IncomeDollars12 = yearSum.sum(Inflation.USD_INFLATION.adjust(nominalIncomeDollars, 1999, 11));
+        MoneyAmountSeries nominalIncomeDollars = USD_ARS.exchange(nominalIncomePesos, Currency.getInstance("USD"));
+        final MoneyAmountSeries nov99IncomeDollars12 = yearSum.sum(USD_INFLATION.adjust(nominalIncomeDollars, 1999, 11));
 
         final MoneyAmountSeries nominalIncomePesos12 = yearSum.sum(nominalIncomePesos);
         final MoneyAmountSeries nominalIncomeDollars12 = yearSum.sum(nominalIncomeDollars);
@@ -190,15 +189,15 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     }
 
     private static BigDecimal pctChange(BigDecimal now, BigDecimal then) {
-        if (then.compareTo(BigDecimal.ZERO) == 0) {
-            return BigDecimal.ONE;
+        if (then.compareTo(ZERO) == 0) {
+            return ONE;
         }
         return now.subtract(then).divide(then, CONTEXT);
     }
 
     private static BigDecimal savingsPct(BigDecimal savingsNow, BigDecimal savingsThen, BigDecimal avgIncome) {
         if (savingsNow.compareTo(savingsThen) == 0) {
-            return BigDecimal.ZERO;
+            return ZERO;
         }
         return savingsNow.subtract(savingsThen).divide(avgIncome, CONTEXT);
     }

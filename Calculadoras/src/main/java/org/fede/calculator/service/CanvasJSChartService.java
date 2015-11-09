@@ -190,6 +190,9 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
         return dto;
     }
+    
+    
+    
 
     private CanvasJSDatumDTO getDatum(String type, String color, String name, List<CanvasJSDatapointDTO> datapoints) {
         CanvasJSDatumDTO datum = new CanvasJSDatumDTO();

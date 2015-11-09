@@ -17,7 +17,7 @@
 package org.fede.calculator.service;
 
 import java.util.Currency;
-import org.fede.calculator.money.ForeignExchange;
+import static org.fede.calculator.money.ForeignExchange.USD_ARS;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 
@@ -29,7 +29,7 @@ public class BaseCanvasJSDatapointAssembler {
 
     public static MoneyAmountSeries dollarToPesosIfNeeded(MoneyAmountSeries originalSeries) throws NoSeriesDataFoundException {
         if (originalSeries.getCurrency().equals(Currency.getInstance("USD"))) {
-            return ForeignExchange.USD_ARS.exchange(originalSeries, Currency.getInstance("ARS"));
+            return USD_ARS.exchange(originalSeries, Currency.getInstance("ARS"));
         }
         return originalSeries;
     }

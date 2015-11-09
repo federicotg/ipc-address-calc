@@ -46,8 +46,8 @@ public class NominalUSDCanvasJSDatapointAssembler extends BaseCanvasJSDatapointA
         if (sourceSeries.getCurrency().equals(Currency.getInstance("ARS"))) {
             exchanged = USD_ARS.exchange(sourceSeries, Currency.getInstance("USD"));
         }
-        MoneyAmountSeries series = new SimpleAggregation(months).average(exchanged);
-        series.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
+        new SimpleAggregation(months).average(exchanged)
+                .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
     }
 

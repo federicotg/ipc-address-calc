@@ -49,7 +49,6 @@ public class NominalEURCanvasJSDatapointAssembler implements CanvasJSDatapointAs
         }
         
         MoneyAmountSeries euroSeries = ForeignExchange.USD_EUR.exchange(exchanged, Currency.getInstance("EUR"));
-        
         new SimpleAggregation(months).average(euroSeries)
                 .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;

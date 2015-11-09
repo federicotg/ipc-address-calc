@@ -21,6 +21,7 @@ import java.util.Currency;
 import java.util.List;
 import org.fede.calculator.money.ForeignExchange;
 import static org.fede.calculator.money.ForeignExchange.USD_ARS;
+import static org.fede.calculator.money.ForeignExchange.USD_EUR;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
@@ -47,9 +48,8 @@ public class RealEURCanvasJSDatapointAssembler implements CanvasJSDatapointAssem
         MoneyAmountSeries series = 
                 USD_INFLATION.adjust(exchanged, year, month);
         
-        
-        MoneyAmountSeries euroSeries = ForeignExchange.USD_EUR.exchange(series, Currency.getInstance("EUR"));
-        new SimpleAggregation(months).average(euroSeries)
+        new SimpleAggregation(months)
+                .average(USD_EUR.exchange(series, Currency.getInstance("EUR")))
                 .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
     }

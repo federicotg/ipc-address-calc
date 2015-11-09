@@ -41,8 +41,8 @@ public class NominalPesosCanvasJSDatapointAssembler extends BaseCanvasJSDatapoin
     public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries originalSeries) throws NoSeriesDataFoundException {
         MoneyAmountSeries sourceSeries = dollarToPesosIfNeeded(originalSeries);
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        MoneyAmountSeries series = new SimpleAggregation(months).average(sourceSeries);
-        series.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
+        new SimpleAggregation(months).average(sourceSeries)
+                .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
     }
 

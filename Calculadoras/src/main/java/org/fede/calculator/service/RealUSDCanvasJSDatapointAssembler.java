@@ -43,9 +43,9 @@ public class RealUSDCanvasJSDatapointAssembler implements CanvasJSDatapointAssem
         if (sourceSeries.getCurrency().equals(Currency.getInstance("ARS"))) {
             exchanged = USD_ARS.exchange(sourceSeries, Currency.getInstance("USD"));
         }
-        MoneyAmountSeries series = new SimpleAggregation(months).average(
-                USD_INFLATION.adjust(exchanged, year, month));
-        series.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
+        new SimpleAggregation(months)
+                .average(USD_INFLATION.adjust(exchanged, year, month))
+                .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
     }
     
