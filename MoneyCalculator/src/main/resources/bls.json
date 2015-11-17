@@ -9148,6 +9148,13 @@
                                     "periodName": "September",
                                     "value": "237.945",
                                     "footnotes": [{}]
+                                },
+                                {
+                                    "year": "2015",
+                                    "period": "M10",
+                                    "periodName": "October",
+                                    "value": "237.838",
+                                    "footnotes": [{}]
                                 }
                                 ]
                         }]
