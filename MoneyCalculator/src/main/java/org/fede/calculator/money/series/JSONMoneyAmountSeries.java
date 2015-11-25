@@ -40,7 +40,23 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountSeries {
 
-    public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
+    
+    public static MoneyAmountSeries readSeries(String... names) throws NoSeriesDataFoundException {
+        if(names.length == 0){
+            throw new IllegalArgumentException("You must at least read one series");
+        }
+        MoneyAmountSeries answer = null;
+        for(String seriesName : names){
+            if(answer == null){
+                answer = readSeries(seriesName);
+            }else{
+                answer = answer.add(readSeries(seriesName));
+            }
+        }
+        return answer;
+    }
+    
+    private static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
         try (InputStream is = JSONIndexSeries.class.getResourceAsStream("/" + name)) {
             JSONSeries series = new ObjectMapper().readValue(is, JSONSeries.class);
 
