@@ -106,7 +106,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
 
     @Override
-    public List<SavingsReportDTO> savings() throws NoSeriesDataFoundException {
+    public List<SavingsReportDTO> savings(final int toYear, final int toMonth) throws NoSeriesDataFoundException {
 
         final List<SavingsReportDTO> report = new ArrayList<>();
 
@@ -121,11 +121,11 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
 
         Aggregation yearSum = new SimpleAggregation(12);
-        final MoneyAmountSeries nov99IncomePesos12 = yearSum.sum(ARS_INFLATION.adjust(nominalIncomePesos, 1999, 11));
+        final MoneyAmountSeries nov99IncomePesos12 = yearSum.sum(ARS_INFLATION.adjust(nominalIncomePesos, toYear, toMonth));
 
 
         MoneyAmountSeries nominalIncomeDollars = USD_ARS.exchange(nominalIncomePesos, Currency.getInstance("USD"));
-        final MoneyAmountSeries nov99IncomeDollars12 = yearSum.sum(USD_INFLATION.adjust(nominalIncomeDollars, 1999, 11));
+        final MoneyAmountSeries nov99IncomeDollars12 = yearSum.sum(USD_INFLATION.adjust(nominalIncomeDollars, toYear, toMonth));
 
         final MoneyAmountSeries nominalIncomePesos12 = yearSum.sum(nominalIncomePesos);
         final MoneyAmountSeries nominalIncomeDollars12 = yearSum.sum(nominalIncomeDollars);
@@ -143,8 +143,8 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                 dto.setNominalDollars(usd.getAmount());
                 dto.setNominalPesos(ars.getAmount());
 
-                MoneyAmount nov99Usd = USD_INFLATION.adjust(usd, year, month, 1999, 11);
-                MoneyAmount nov99Ars = ARS_INFLATION.adjust(ars, year, month, 1999, 11);
+                MoneyAmount nov99Usd = USD_INFLATION.adjust(usd, year, month, toYear, toMonth);
+                MoneyAmount nov99Ars = ARS_INFLATION.adjust(ars, year, month, toYear, toMonth);
 
                 dto.setNov99Dollars(nov99Usd.getAmount());
                 dto.setNov99Pesos(nov99Ars.getAmount());
@@ -156,8 +156,8 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                 dto.setTotalNominalDollars(totNominalUSD.getAmount());
                 dto.setTotalNominalPesos(totNominalARS.getAmount());
 
-                dto.setTotalNov99Dollars(USD_INFLATION.adjust(totNominalUSD, year, month, 1999, 11).getAmount());
-                dto.setTotalNov99Pesos(ARS_INFLATION.adjust(totNominalARS, year, month, 1999, 11).getAmount());
+                dto.setTotalNov99Dollars(USD_INFLATION.adjust(totNominalUSD, year, month, toYear, toMonth).getAmount());
+                dto.setTotalNov99Pesos(ARS_INFLATION.adjust(totNominalARS, year, month, toYear, toMonth).getAmount());
 
                 dto.setPesosForDollar(dollarPrice.getIndex(year, month));
 

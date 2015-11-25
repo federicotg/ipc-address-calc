@@ -16,7 +16,10 @@
  */
 package org.fede.calculator.web.dto;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -103,5 +106,12 @@ public class CurrencyLimitsDTO {
         this.referenceMonth = referenceMonth;
     }
 
-
+    public String getReferenceDateString(){
+        DateFormat df = new SimpleDateFormat("MMM yyyy");
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, this.referenceYear);
+        cal.set(Calendar.MONTH, this.referenceMonth - 1);
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        return df.format(cal.getTime());
+    }
 }

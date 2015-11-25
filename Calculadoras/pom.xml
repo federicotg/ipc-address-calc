@@ -13,27 +13,27 @@
         <appengine.app.version>1</appengine.app.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.springframework.version>4.2.1.RELEASE</org.springframework.version>
-        <spring-security.version>4.0.2.RELEASE</spring-security.version>
+        <spring-security.version>4.0.3.RELEASE</spring-security.version>
         <com.google.appengine.version>1.9.28</com.google.appengine.version>
         <hibernate-validator-version>4.3.2.Final</hibernate-validator-version>
-        <jackson2-version>2.6.1</jackson2-version>
+        <jackson2-version>2.6.3</jackson2-version>
     </properties>
 
     <prerequisites>
         <maven>3.1.1</maven>
     </prerequisites>
 
-    <dependencyManagement>
+    <!--dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-framework-bom</artifactId>
-                <version>${org.springframework.version}</version>
+                
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
         </dependencies>
-    </dependencyManagement>
+    </dependencyManagement-->
 
 
     <dependencies>
@@ -58,17 +58,20 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
+            <version>${org.springframework.version}</version>
 
         </dependency>
         
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-orm</artifactId>
+            <version>${org.springframework.version}</version>
         </dependency>
         
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
+            <version>${org.springframework.version}</version>
 
         </dependency>
         

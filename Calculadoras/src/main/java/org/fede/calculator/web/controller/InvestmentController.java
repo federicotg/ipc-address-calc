@@ -16,11 +16,15 @@
  */
 package org.fede.calculator.web.controller;
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Resource;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.InvestmentService;
+import org.fede.calculator.service.MoneyService;
+import org.fede.calculator.web.dto.CurrencyLimitsDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -42,8 +46,17 @@ public class InvestmentController {
 
     private static final Logger LOG = Logger.getLogger(InvestmentController.class.getName());
 
-    @Autowired @Lazy
+    @Autowired
+    @Lazy
     private InvestmentService investmentService;
+
+    @Resource(name = "usdMoneyService")
+    @Lazy
+    private MoneyService usdService;
+
+    @Resource(name = "argMoneyService")
+    @Lazy
+    private MoneyService argService;
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -63,6 +76,29 @@ public class InvestmentController {
 
     @RequestMapping(value = "/savings", method = RequestMethod.GET)
     public ModelAndView savings() throws NoSeriesDataFoundException {
-        return new ModelAndView("savingsReport", "report", this.investmentService.savings());
+
+        CurrencyLimitsDTO usdLimits = this.usdService.getLimits();
+        CurrencyLimitsDTO argLimits = this.argService.getLimits();
+
+        final Comparator<CurrencyLimitsDTO> comparator = new Comparator<CurrencyLimitsDTO>() {
+            @Override
+            public int compare(CurrencyLimitsDTO o1, CurrencyLimitsDTO o2) {
+                if (o1.getReferenceYear() != o2.getReferenceYear()) {
+                    return Integer.compare(o1.getReferenceYear(), o2.getReferenceYear());
+                }
+                return Integer.compare(o1.getReferenceMonth(), o2.getReferenceMonth());
+            }
+        };
+
+        CurrencyLimitsDTO limits = null;
+        if (comparator.compare(argLimits, usdLimits) <= 0) {
+            limits = argLimits;
+        } else {
+            limits = usdLimits;
+        }
+
+        return new ModelAndView("savingsReport")
+                .addObject("report", this.investmentService.savings(limits.getReferenceYear(), limits.getReferenceMonth()))
+                .addObject("limits", limits);
     }
 }

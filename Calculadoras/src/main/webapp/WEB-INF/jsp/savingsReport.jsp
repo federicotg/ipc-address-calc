@@ -59,21 +59,19 @@
                 border-right-style: solid;
                 border-right-width: 1px;
             }
-
-
         </style>
     </head>
     <body>
         <%@include file="../jspf/menu.jspf" %>
-        <h1>Ahorros</h1>
+        <h1>Ahorros</h1>     
         <table>
             <thead>
                 <tr>
                     <th colspan="3"></th>
                     <th colspan="6">Nominal</th>
-                    <th colspan="6">Reales nov. 1999</th>
+                    <th colspan="6">Reales ${limits.referenceDateString}</th>
                     <th colspan="4">Ingreso Nominal</th>
-                    <th colspan="4">Ingreso Real nov. 1999</th>
+                    <th colspan="4">Ingreso Real ${limits.referenceDateString}</th>
                 </tr>
                 <tr>
                     <th id="month">Mes</th>
@@ -155,14 +153,11 @@
                 <tr>
                     <th colspan="3"></th>
                     <th colspan="6">Nominal</th>
-                    <th colspan="6">Reales nov. 1999</th>
+                    <th colspan="6">Reales ${limits.referenceDateString}</th>
                     <th colspan="4">Ingreso Nominal</th>
-                    <th colspan="4">Ingreso Real nov. 1999</th>
+                    <th colspan="4">Ingreso Real ${limits.referenceDateString}</th>
                 </tr>
             </tfoot>
-
-
         </table>
-
     </body>
 </html>
