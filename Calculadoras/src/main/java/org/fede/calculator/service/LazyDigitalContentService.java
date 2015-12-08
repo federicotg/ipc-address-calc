@@ -297,8 +297,10 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Don Pasquale",
                 "L'elisir d'amore",
                 "Lucia di Lammermoor",
-                "Maria Stuarda")
+                "Maria Stuarda",
+                "Poliuto")
                 .italian().opera().by("Gaetano Donizetti").build();
+        
         new Opus.Builder("La Fille du Regiment").french().opera().by("Gaetano Donizetti").build();
 
         new Opus.Builder("Fidelio").german().opera().by("Beethoven").build();
@@ -783,6 +785,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(9, 12)
                 .discBox(11, 12)
                 .imdb("http://www.imdb.com/title/tt2395995/").build();
+        
+        new DigitalContent.Builder("Otello").opera().atTheMet().on("17/10/2015").fullHD().spaSubs().mkv()
+                .discBox(0, 0)
+                .build();
+        
         new DigitalContent.Builder("Otello").opera().at("Teatro di San Carlo").on("22/04/2014").fullHD().engSubs().mkv()
                 .discBox(7, 4)
                 .discBox(8, 4)
@@ -876,6 +883,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("El rapto en el serrallo").opera().at("Bayerische Staatsoper").on("01/01/1980").fullHD().spaSubs().mkv()
                 .discBox(4, 11)
                 .imdb("http://www.imdb.com/title/tt0254303/").build();
+        
+        new DigitalContent.Builder("El rapto en el serrallo").opera().atGlyndebourne().on("19/07/2015").fullHD().engSubs().mkv()
+                .discBox(0, 0)
+                .build();
+        
         new DigitalContent.Builder("Il Sogno di Scipione").opera().at("Großes Festspielhaus").on("01/01/2006").dvd().spaSubs().iso().seenByFede().discBox(10, 3)
                 .imdb("http://www.imdb.com/title/tt1039909/").build();
         new DigitalContent.Builder("La Clemenza di Tito").opera().atTheMet().on("01/12/2012").fullHD().engSubs().mkv().seenByFede()
@@ -1248,6 +1260,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(5, 17) // 1
                 .discBox(7, 17) // 2
                 .build();
+        
+        new DigitalContent.Builder("Poliuto").opera().atGlyndebourne().on("15/07/2015").hd720().engSubs().mkv()
+                .discBox(0, 0)
+                .build();
+        
 
     }
 
