@@ -30,7 +30,7 @@ function showChart(url, params, container) {
 
     var client = new XMLHttpRequest();
     client.onload = function () {
-        if (this.status == 200 && this.responseText != null) {
+        if (this.status === 200 && this.responseText !== null) {
             var chartObject = JSON.parse(this.responseText, reviver);
             if (chartObject.successful) {
                 var chart = new CanvasJS.Chart(container, chartObject);

@@ -33,22 +33,16 @@
         <script type="text/javascript">
 
             window.onload = function () {
-
-                showChart('/secure/${uri}.json', 
-                          'months=' + ${dto.months}
-                        + '&year=' + ${dto.year}
-                        + '&month=' + ${dto.month},
-                'chartContainer');
-
+                reloadChart();
             };
 
             function reloadChart() {
                 var node = document.getElementById('chartContainer');
-                
+
                 while (node.firstChild) {
                     node.removeChild(node.firstChild);
                 }
-                
+
                 if (document.getElementById('months')) {
                     var m = document.getElementById('months').value;
                 }
@@ -61,6 +55,20 @@
                 var er = document.getElementById('er').checked;
                 var year = document.getElementById('year').value;
                 var month = document.getElementById('month').value;
+
+                var seriesCheckboxes = document.querySelectorAll(".seriesCbox");
+                var selectedSeries = null;
+                for (var i = 0; i < seriesCheckboxes.length; i++) {
+                    if (seriesCheckboxes[i].checked) {
+                        if (selectedSeries === null) {
+                            selectedSeries = seriesCheckboxes[i].value;
+                        } else {
+                            selectedSeries += ("," + seriesCheckboxes[i].value);
+                        }
+                    }
+                }
+
+
                 showChart('/secure/${uri}.json',
                         (m ? 'months=' + m : '')
                         + '&pn=' + pn
@@ -70,8 +78,9 @@
                         + '&en=' + en
                         + '&er=' + er
                         + '&year=' + year
-                        + '&month=' + month,
-                'chartContainer');
+                        + '&month=' + month
+                        + '&series=' + selectedSeries,
+                        'chartContainer');
             }
 
         </script>
@@ -89,21 +98,30 @@
                 </form:select><br/>
             </c:if>
 
-            <label for="pn">Pesos Nominales</label><form:checkbox id="pn" path="pn" onchange="reloadChart()"/><br/>
-            <label for="pr">Pesos Reales</label><form:checkbox id="pr" path="pr" onchange="reloadChart()"/><br/>
-            <label for="dn">Dólares Nominales</label><form:checkbox id="dn" path="dn" onchange="reloadChart()"/><br/>
-            <label for="dr">Dólares Reales</label><form:checkbox id="dr" path="dr" onchange="reloadChart()"/><br/>
-            <label for="en">Euros Nominales</label><form:checkbox id="en" path="en" onchange="reloadChart()"/><br/>
-            <label for="er">Euros Reales</label><form:checkbox id="er" path="er" onchange="reloadChart()"/>
 
+            <c:if test="${not empty stackedSeries}">
+                <fieldset>
+                    <c:forEach items="${stackedSeries}" var="s" varStatus="status">
+                        <label for="label${status.index}">${s}</label><form:checkbox id="label${status.index}" value="${s}" class="seriesCbox" path="series" onchange="reloadChart()"/><br/>
+                    </c:forEach>
+                </fieldset>
+            </c:if>
+            <fieldset>
+                <label for="pn">Pesos Nominales</label><form:checkbox id="pn" path="pn" onchange="reloadChart()"/><br/>
+                <label for="pr">Pesos Reales</label><form:checkbox id="pr" path="pr" onchange="reloadChart()"/><br/>
+                <label for="dn">Dólares Nominales</label><form:checkbox id="dn" path="dn" onchange="reloadChart()"/><br/>
+                <label for="dr">Dólares Reales</label><form:checkbox id="dr" path="dr" onchange="reloadChart()"/><br/>
+                <label for="en">Euros Nominales</label><form:checkbox id="en" path="en" onchange="reloadChart()"/><br/>
+                <label for="er">Euros Reales</label><form:checkbox id="er" path="er" onchange="reloadChart()"/>
+            </fieldset>
             <p>En valores de 
-            <form:select path="month" onchange="reloadChart()" id="month">
-                <form:options items="${dto.limit.months}" itemLabel="name" itemValue="id"/>
-            </form:select> de 
-            <form:select path="year" onchange="reloadChart()"  id="year">
-                <c:forEach begin="${dto.limit.yearFrom}" end="${dto.limit.yearTo}" var="year">
-                    <form:option label="${year}" value="${year}"/></c:forEach>
-            </form:select></p>
+                <form:select path="month" onchange="reloadChart()" id="month">
+                    <form:options items="${dto.limit.months}" itemLabel="name" itemValue="id"/>
+                </form:select> de 
+                <form:select path="year" onchange="reloadChart()"  id="year">
+                    <c:forEach begin="${dto.limit.yearFrom}" end="${dto.limit.yearTo}" var="year">
+                        <form:option label="${year}" value="${year}"/></c:forEach>
+                </form:select></p>
 
         </form:form>
         <div id="chartContainer" style="height:600px;"></div>

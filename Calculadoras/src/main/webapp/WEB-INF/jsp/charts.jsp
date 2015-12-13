@@ -32,11 +32,7 @@
         <%@include file="../jspf/menu.jspf" %>
         <h1>Visualización de Datos</h1>
         <ul>
-            <li><a href="unlp">UNLP</a></li>
-            <li><a href="lifia">LIFIA</a></li>
-            <li><a href="interest">Plazo Fijo</a></li>
-            <li><a href="lifiaAndUnlp">LIFIA + UNLP</a></li>
-            <li><a href="lifiaUnlpAndInterest">LIFIA + UNLP + Plazo Fijo</a></li>
+            <li><a href="lifiaUnlpAndInterest">Ingresos Combinados</a></li>
             <li><a href="savings">Ahorros</a></li>
             <li><a href="savingsDetailed">Ahorros Detallados</a></li>
             <li><a href="savedSalaries">Sueldos Ahorrados</a></li>

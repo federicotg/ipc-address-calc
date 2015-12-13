@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.service;
 
+import java.util.List;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 
@@ -24,17 +25,7 @@ import org.fede.calculator.web.dto.CanvasJSChartDTO;
  * @author fede
  */
 public interface ChartService {
-
-    CanvasJSChartDTO unlp(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en,boolean er, int year, int month) throws NoSeriesDataFoundException;
-
-    CanvasJSChartDTO lifia(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en,boolean er, int year, int month) throws NoSeriesDataFoundException;
-    
-    CanvasJSChartDTO interest(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en,boolean er, int year, int month) throws NoSeriesDataFoundException;
-    
-    CanvasJSChartDTO lifiaAndUnlp(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en,boolean er, int year, int month) throws NoSeriesDataFoundException;
-    
-    CanvasJSChartDTO lifiaUnlpAndInterest(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en,boolean er, int year, int month) throws NoSeriesDataFoundException;
-    
+  
     CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr, boolean en,boolean er, int year, int month) throws NoSeriesDataFoundException;
     
     CanvasJSChartDTO goldIncomeAndSavings() throws NoSeriesDataFoundException;
@@ -44,5 +35,8 @@ public interface ChartService {
     CanvasJSChartDTO hisotricDollar() throws NoSeriesDataFoundException;
     
     CanvasJSChartDTO historicGold() throws NoSeriesDataFoundException;
+    
+    CanvasJSChartDTO combinedIncomes(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en, boolean er,
+            int year, int month, List<String> seriesNames) throws NoSeriesDataFoundException;
        
 }

@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.web.dto;
 
+import java.util.List;
+
 /**
  * 
  * @author Federico Tello Gentile <federicotg@gmail.com>
@@ -28,6 +30,7 @@ public class CombinedChartDTO extends MonthGroupingChartDTO {
     private boolean dr = true;
     private boolean en = true;
     private boolean er = true;
+    private List<String> series;
     
     public CombinedChartDTO() {
     }
@@ -82,6 +85,14 @@ public class CombinedChartDTO extends MonthGroupingChartDTO {
 
     public void setEr(boolean er) {
         this.er = er;
+    }
+
+    public List<String> getSeries() {
+        return series;
+    }
+
+    public void setSeries(List<String> series) {
+        this.series = series;
     }
    
 }

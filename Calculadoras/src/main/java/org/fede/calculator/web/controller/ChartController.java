@@ -83,6 +83,10 @@ public class ChartController {
     @Lazy
     private Map<String, Integer> monthlyPeriods;
 
+    
+    @Resource(name = "incomesSeries")
+    private List<ExpenseChartSeriesDTO> incomeSeries;
+    
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public CanvasJSChartDTO errorHandler(Exception ex) {
@@ -139,11 +143,23 @@ public class ChartController {
 
     @RequestMapping(value = "lifiaUnlpAndInterest", method = RequestMethod.GET)
     public ModelAndView lifiaUnlpAndInterest() {
+        
+        final List<String> allSeriesNames = new ArrayList<>();
+        for(ExpenseChartSeriesDTO dto : incomeSeries){
+            if(dto.getSeriesName() != null && dto.getSeriesName().length() > 0){
+                allSeriesNames.add(dto.getName());
+            }
+        }
+        
+        final CombinedChartDTO dto = this.createCombinedChartDTO();
+        dto.setSeries(allSeriesNames);
+        
         return new ModelAndView("combinedChart")
                 .addObject("uri", "lifiaUnlpAndInterestCombined")
-                .addObject("title", "LIFIA + UNLP + Plazo Fijo")
+                .addObject("title", "Ingresos Combinados")
                 .addObject("monthlyPeriods", this.monthlyPeriods)
-                .addObject("dto", this.createCombinedChartDTO());
+                .addObject("stackedSeries", allSeriesNames)
+                .addObject("dto", dto);
     }
 
     @RequestMapping(value = "savings", method = RequestMethod.GET)
@@ -190,9 +206,9 @@ public class ChartController {
     }
 
     private ModelAndView buildExpenseModelAndView(String title, List<ExpenseChartSeriesDTO> dtoSeries, String uri, int months) {
-        ExpenseChartDTO chartDto = new ExpenseChartDTO(this.referenceMoneyService.getLimits());
+        final ExpenseChartDTO chartDto = new ExpenseChartDTO(this.referenceMoneyService.getLimits());
         chartDto.setMonths(months);
-        List<String> series = new ArrayList<>(dtoSeries.size());
+        final List<String> series = new ArrayList<>(dtoSeries.size());
         for (ExpenseChartSeriesDTO e : dtoSeries) {
             series.add(e.getName());
         }
@@ -233,63 +249,17 @@ public class ChartController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "unlpCombined", method = RequestMethod.GET)
-    public CanvasJSChartDTO unlpCombined(@ModelAttribute("dto") @Valid CombinedChartDTO dto, BindingResult errors)
-            throws NoSeriesDataFoundException {
-        if (errors.hasErrors()) {
-            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
-            notOk.setSuccessful(false);
-            return notOk;
-        }
-        return this.chartService.unlp(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "lifiaCombined", method = RequestMethod.GET)
-    public CanvasJSChartDTO lifiaCombined(@ModelAttribute("dto") @Valid CombinedChartDTO dto, BindingResult errors)
-            throws NoSeriesDataFoundException {
-        if (errors.hasErrors()) {
-            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
-            notOk.setSuccessful(false);
-            return notOk;
-        }
-        return this.chartService.lifia(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "interestCombined", method = RequestMethod.GET)
-    public CanvasJSChartDTO interestCombined(@ModelAttribute("dto") @Valid CombinedChartDTO dto, BindingResult errors)
-            throws NoSeriesDataFoundException {
-        if (errors.hasErrors()) {
-            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
-            notOk.setSuccessful(false);
-            return notOk;
-        }
-        return this.chartService.interest(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "lifiaAndUnlpCombined", method = RequestMethod.GET)
-    public CanvasJSChartDTO lifiaAndUnlpCombined(@ModelAttribute("dto") @Valid CombinedChartDTO dto, BindingResult errors)
-            throws NoSeriesDataFoundException {
-        if (errors.hasErrors()) {
-            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
-            notOk.setSuccessful(false);
-            return notOk;
-        }
-        return this.chartService.lifiaAndUnlp(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
-    }
-
-    @ResponseBody
     @RequestMapping(value = "lifiaUnlpAndInterestCombined", method = RequestMethod.GET)
-    public CanvasJSChartDTO lifiaUnlpAndInterestCombined(@ModelAttribute("dto") @Valid CombinedChartDTO dto, BindingResult errors)
+    public CanvasJSChartDTO lifiaUnlpAndInterestCombined(
+            @ModelAttribute("dto") @Valid CombinedChartDTO dto, 
+            BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
             CanvasJSChartDTO notOk = new CanvasJSChartDTO();
             notOk.setSuccessful(false);
             return notOk;
         }
-        return this.chartService.lifiaUnlpAndInterest(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
+        return this.chartService.combinedIncomes(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth(), dto.getSeries());
     }
 
     @ResponseBody
