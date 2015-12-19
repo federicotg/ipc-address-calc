@@ -9155,6 +9155,13 @@
                                     "periodName": "October",
                                     "value": "237.838",
                                     "footnotes": [{}]
+                                },
+                                {
+                                    "year": "2015",
+                                    "period": "M11",
+                                    "periodName": "November",
+                                    "value": "237.336",
+                                    "footnotes": [{}]
                                 }
                                 ]
                         }]
