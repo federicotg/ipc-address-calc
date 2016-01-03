@@ -12,10 +12,11 @@
     <properties>
         <appengine.app.version>1</appengine.app.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <org.springframework.version>4.2.1.RELEASE</org.springframework.version>
+        <org.springframework.version>4.2.2.RELEASE</org.springframework.version>
         <spring-security.version>4.0.3.RELEASE</spring-security.version>
         <com.google.appengine.version>1.9.30</com.google.appengine.version>
-        <hibernate-validator-version>4.3.2.Final</hibernate-validator-version>
+        <!--hibernate-validator-version>4.3.2.Final</hibernate-validator-version-->
+        <hibernate-validator-version>5.2.1.Final</hibernate-validator-version>
         <jackson2-version>2.6.3</jackson2-version>
     </properties>
 
