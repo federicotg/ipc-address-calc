@@ -145,7 +145,7 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO> {
         this.seenByAnaMaria = seenByAnaMaria;
     }
 
-    private int compareCollection(Collection<? extends Comparable> col1, Collection<? extends Comparable> col2) {
+    private <E extends Comparable<E>> int compareCollection(Collection<E> col1, Collection<E> col2) {
         if (col1 == null) {
             return col2 == null ? 0 : -1;
         }
