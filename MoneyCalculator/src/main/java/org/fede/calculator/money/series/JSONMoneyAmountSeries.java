@@ -41,22 +41,44 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountSeries {
 
     
-    public static MoneyAmountSeries readSeries(String... names) throws NoSeriesDataFoundException {
+    private static final Map<Currency, ForeignExchange> FOREIGN_EXCHANGES_BY_CURRENCY = new HashMap<>();
+    
+    static{
+        FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("USD"), ForeignExchange.NO_FX);
+        FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("ARS"), ForeignExchange.USD_ARS);
+        FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("EUR"), ForeignExchange.USD_EUR);
+        FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("XAU"), ForeignExchange.USD_XAU);
+    }
+    
+    private static ForeignExchange getForeignExchange(Currency from, Currency to){
+        if(from.equals(to)){
+            return ForeignExchange.NO_FX;
+        }
+        if(to.equals(Currency.getInstance("USD"))){
+            ForeignExchange answer = FOREIGN_EXCHANGES_BY_CURRENCY.get(from);
+            if(answer != null){
+                return answer;
+            }
+        }
+        throw new IllegalArgumentException("No foreign exchange from "+from.getSymbol()+" to "+to.getSymbol());
+    }
+    
+    
+    public static MoneyAmountSeries sumSeries(String... names) throws NoSeriesDataFoundException {
         if(names.length == 0){
             throw new IllegalArgumentException("You must at least read one series");
         }
         MoneyAmountSeries answer = null;
         for(String seriesName : names){
-            if(answer == null){
-                answer = readSeries(seriesName);
-            }else{
-                answer = answer.add(readSeries(seriesName));
+            if(seriesName!=null&& seriesName.length() > 0){
+                MoneyAmountSeries s = readSeries(seriesName);
+                answer = answer == null ? s : answer.add(s);
             }
         }
         return answer;
     }
-    
-    private static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
+
+    public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
         try (InputStream is = JSONIndexSeries.class.getResourceAsStream("/" + name)) {
             JSONSeries series = new ObjectMapper().readValue(is, JSONSeries.class);
 
@@ -88,7 +110,7 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
         }
     }
 
-    public static List<MoneyAmountSeries> convertoToDollar(List<MoneyAmountSeries> series) throws NoSeriesDataFoundException {
+    /*public static List<MoneyAmountSeries> convertoToDollar(List<MoneyAmountSeries> series) throws NoSeriesDataFoundException {
         final List<MoneyAmountSeries> answer = new ArrayList<>(series.size());
 
         for (MoneyAmountSeries s : series) {
@@ -106,7 +128,7 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
         }
 
         return answer;
-    }
+    }*/
 
     private final Currency currency;
     private final SortedMap<YearMonth, MoneyAmount> values;
@@ -206,6 +228,14 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
     }
 
     @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 37 * hash + Objects.hashCode(this.currency);
+        hash = 37 * hash + Objects.hashCode(this.values);
+        return hash;
+    }
+
+    @Override
     public void forEach(MoneyAmountProcessor processor) throws NoSeriesDataFoundException {
         for (Iterator<Map.Entry<YearMonth, MoneyAmount>> it = this.values.entrySet().iterator(); it.hasNext();) {
             Map.Entry<YearMonth, MoneyAmount> entry = it.next();
@@ -230,7 +260,9 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
     public MoneyAmountSeries add(final MoneyAmountSeries other) throws NoSeriesDataFoundException {
 
         if (!other.getCurrency().equals(this.getCurrency())) {
-            throw new IllegalArgumentException("Can't add different currencies.");
+            Currency usd = Currency.getInstance("USD");
+            return getForeignExchange(this.getCurrency(), usd).exchange(this, usd)
+                    .add(getForeignExchange(other.getCurrency(), usd).exchange(other, usd));
         }
 
         if (this.getFrom().compareTo(other.getFrom()) > 0) {

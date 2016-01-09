@@ -27,7 +27,7 @@ import java.util.Objects;
  * @author fede
  */
 public class MoneyAmount implements MathConstants {
-
+    
     private Currency currency;
     private BigDecimal amount;
 
@@ -97,7 +97,7 @@ public class MoneyAmount implements MathConstants {
 
     public MoneyAmount add(MoneyAmount other) {
         if (!other.getCurrency().equals(this.getCurrency())) {
-            throw new IllegalArgumentException("Can't add different currencies.");
+             throw new IllegalArgumentException("Money amounts must be in the same currency.");
         }
         return new MoneyAmount(this.getAmount().add(other.getAmount()), this.getCurrency());
     }
