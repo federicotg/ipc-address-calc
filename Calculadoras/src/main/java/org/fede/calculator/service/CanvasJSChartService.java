@@ -230,10 +230,20 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
     @Override
     public CanvasJSChartDTO savedSalaries() throws NoSeriesDataFoundException {
+
         Currency usd = Currency.getInstance("USD");
-        MoneyAmountSeries income = new SimpleAggregation(12).average(USD_ARS.exchange(
-                readSeries("unlp.json").add(readSeries("lifia.json")).add(readSeries("plazofijo.json")),
-                usd));
+        MoneyAmountSeries income = null;
+        for (ExpenseChartSeriesDTO incomeItem : this.incomeSeries) {
+            if (incomeItem.getSeriesName() != null && incomeItem.getSeriesName().length() > 0) {
+                if (income == null) {
+                    income = readSeries(incomeItem.getSeriesName());
+                } else {
+                    income = income.add(readSeries(incomeItem.getSeriesName()));
+                }
+            }
+        }
+
+        income = new SimpleAggregation(12).average(USD_ARS.exchange(income, usd));
 
         MoneyAmountSeries gold = USD_XAU.exchange(readSeries("ahorros-oro.json"), Currency.getInstance("USD"));
 
