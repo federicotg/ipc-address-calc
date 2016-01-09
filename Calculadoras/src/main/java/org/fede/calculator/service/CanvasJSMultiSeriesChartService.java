@@ -31,6 +31,7 @@ import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
+import static org.fede.calculator.money.series.JSONMoneyAmountSeries.sumSeries;
 import static org.fede.calculator.money.series.JSONMoneyAmountSeries.readSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -222,7 +223,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                 }
             }
 
-            final MoneyAmountSeries totalIncome = readSeries("unlp.json", "lifia.json", "plazofijo.json");
+            final MoneyAmountSeries totalIncome = sumSeries("unlp.json", "lifia.json", "plazofijo.json");
             final MoneyAmountSeries percentSeries = new JSONMoneyAmountSeries(sumSeries.getCurrency());
             sumSeries.forEach(new MoneyAmountProcessor() {
 

@@ -34,6 +34,7 @@ import static org.fede.calculator.money.series.JSONMoneyAmountSeries.readSeries;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
+import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.YearMonth;
@@ -98,6 +99,10 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
     @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
+    
+    @Resource(name = "savingsSeries")
+    private List<ExpenseChartSeriesDTO> savingsSeries;
+    
 
     @Override
     public CanvasJSChartDTO combinedIncomes(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en, boolean er,
@@ -191,18 +196,40 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         return datum;
     }
 
+    /**
+     * 
+     * @param dtos
+     * @return 
+     */
+    private MoneyAmountSeries sumSeries(List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException{
+        
+        List<String> seriesNames = new ArrayList<>(dtos.size());
+        for(ExpenseChartSeriesDTO dto : dtos){
+            seriesNames.add(dto.getSeriesName());
+        }
+        return JSONMoneyAmountSeries.sumSeries(seriesNames.toArray(new String[seriesNames.size()]));
+        
+    }
+    
     @Override
     public CanvasJSChartDTO goldIncomeAndSavings() throws NoSeriesDataFoundException {
 
         Currency xau = Currency.getInstance("XAU");
         Currency usd = Currency.getInstance("USD");
-        MoneyAmountSeries ars = USD_XAU.exchange(USD_ARS.exchange(readSeries("ahorros-peso.json"), usd), xau);
+        
+        /*MoneyAmountSeries arsSavings = USD_XAU.exchange(USD_ARS.exchange(readSeries("ahorros-peso.json"), usd), xau);
         MoneyAmountSeries usdSavings = USD_XAU.exchange(readSeries("ahorros-dolar.json"), xau);
-        MoneyAmountSeries income
+        MoneyAmountSeries goldSavings = readSeries("ahorros-oro.json");*/
+        
+        MoneyAmountSeries savings = USD_XAU.exchange(this.sumSeries(this.savingsSeries), xau);
+        
+        /*MoneyAmountSeries income
                 = USD_XAU.exchange(
                         USD_ARS.exchange(
                                 readSeries("unlp.json").add(readSeries("lifia.json")).add(readSeries("plazofijo.json")),
-                                usd), xau);
+                                usd), xau);*/
+        
+        MoneyAmountSeries income = USD_XAU.exchange(USD_ARS.exchange(this.sumSeries(this.incomeSeries), usd), xau);
 
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO("Oro");
@@ -217,7 +244,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         dto.setData(seriesList);
 
         List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        ars.add(usdSavings).forEach(new CanvasJSMoneyAmountProcessor(datapoints));
+        savings.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         seriesList.add(this.getDatum("line", "gold", "Ahorros", datapoints));
 
         datapoints = new ArrayList<>();
@@ -232,22 +259,12 @@ public class CanvasJSChartService implements ChartService, MathConstants {
     public CanvasJSChartDTO savedSalaries() throws NoSeriesDataFoundException {
 
         Currency usd = Currency.getInstance("USD");
-        MoneyAmountSeries income = null;
-        for (ExpenseChartSeriesDTO incomeItem : this.incomeSeries) {
-            if (incomeItem.getSeriesName() != null && incomeItem.getSeriesName().length() > 0) {
-                if (income == null) {
-                    income = readSeries(incomeItem.getSeriesName());
-                } else {
-                    income = income.add(readSeries(incomeItem.getSeriesName()));
-                }
-            }
-        }
+        MoneyAmountSeries income = new SimpleAggregation(12).average(USD_ARS.exchange(sumSeries(this.incomeSeries), usd));
 
-        income = new SimpleAggregation(12).average(USD_ARS.exchange(income, usd));
+        //MoneyAmountSeries gold = USD_XAU.exchange(readSeries("ahorros-oro.json"), Currency.getInstance("USD"));
 
-        MoneyAmountSeries gold = USD_XAU.exchange(readSeries("ahorros-oro.json"), Currency.getInstance("USD"));
-
-        final MoneyAmountSeries savings = gold.add(USD_ARS.exchange(readSeries("ahorros-peso.json"), usd).add(readSeries("ahorros-dolar.json")));
+        //final MoneyAmountSeries savings = gold.add(USD_ARS.exchange(readSeries("ahorros-peso.json"), usd).add(readSeries("ahorros-dolar.json")));
+        final MoneyAmountSeries savings = this.sumSeries(this.savingsSeries);
 
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO("Sueldos Ahorrados");

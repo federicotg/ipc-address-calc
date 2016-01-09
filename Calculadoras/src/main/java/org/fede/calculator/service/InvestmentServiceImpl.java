@@ -37,6 +37,7 @@ import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import static org.fede.calculator.money.series.JSONMoneyAmountSeries.readSeries;
+import static org.fede.calculator.money.series.JSONMoneyAmountSeries.sumSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.web.dto.DollarReportDTO;
@@ -117,7 +118,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final IndexSeries dollarPrice = JSONIndexSeries.readSeries("peso-dolar-libre.json");
 
-        MoneyAmountSeries nominalIncomePesos = readSeries("lifia.json", "unlp.json", "plazofijo.json");
+        MoneyAmountSeries nominalIncomePesos = sumSeries("lifia.json", "unlp.json", "plazofijo.json");
 
 
         Aggregation yearSum = new SimpleAggregation(12);
