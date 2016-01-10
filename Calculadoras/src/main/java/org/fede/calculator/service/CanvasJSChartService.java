@@ -98,10 +98,9 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
     @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
-    
+
     @Resource(name = "savingsSeries")
     private List<ExpenseChartSeriesDTO> savingsSeries;
-    
 
     @Override
     public CanvasJSChartDTO combinedIncomes(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en, boolean er,
@@ -194,13 +193,11 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         return datum;
     }
 
-
-    
     @Override
     public CanvasJSChartDTO goldIncomeAndSavings() throws NoSeriesDataFoundException {
 
         Currency xau = Currency.getInstance("XAU");
-        
+
         MoneyAmountSeries savings = Util.sumSeries(this.savingsSeries).exchangeInto(xau);
         MoneyAmountSeries income = Util.sumSeries(this.incomeSeries).exchangeInto(xau);
 
@@ -223,6 +220,52 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         datapoints = new ArrayList<>();
         income.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         seriesList.add(this.getDatum("line", "orange", "Ingresos", datapoints));
+
+        return dto;
+
+    }
+
+    @Override
+    public CanvasJSChartDTO savingsAndIncomeEvolution() throws NoSeriesDataFoundException {
+        final Currency usd = Currency.getInstance("USD");
+
+        YearMonth lastInflationData = Inflation.USD_INFLATION.getTo();
+
+        MoneyAmountSeries lastYearSavings = new SimpleAggregation(12)
+                .change(
+                        Inflation.USD_INFLATION.adjust(
+                                Util.sumSeries(this.savingsSeries).exchangeInto(usd),
+                                lastInflationData.getYear(),
+                                lastInflationData.getMonth()));
+
+        MoneyAmountSeries lastYearIncome = new SimpleAggregation(12)
+                .change(
+                        new SimpleAggregation(12).sum(
+                        Inflation.USD_INFLATION.adjust(
+                                Util.sumSeries(this.incomeSeries).exchangeInto(usd),
+                                lastInflationData.getYear(),
+                                lastInflationData.getMonth()
+                        )));
+
+        CanvasJSChartDTO dto = new CanvasJSChartDTO();
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Cambio Anual");
+        dto.setTitle(title);
+        dto.setXAxisTitle("Año");
+        CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
+        yAxis.setTitle("USD Reales");
+        //yAxis.setValueFormatString("0");
+        dto.setAxisY(yAxis);
+
+        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(2);
+        dto.setData(seriesList);
+
+        List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        lastYearSavings.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
+        seriesList.add(this.getDatum("line", "gold", "Ahorro Anual", datapoints));
+
+        datapoints = new ArrayList<>();
+        lastYearIncome.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
+        seriesList.add(this.getDatum("line", "orange", "Ingreso Anual", datapoints));
 
         return dto;
 

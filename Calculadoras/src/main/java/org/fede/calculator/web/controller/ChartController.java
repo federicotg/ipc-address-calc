@@ -177,6 +177,15 @@ public class ChartController {
                 .addObject("title", "Oro");
     }
 
+    @RequestMapping(value = "savingsAndIncomeChange", method = RequestMethod.GET)
+    public ModelAndView savingsAndIncomeChange() {
+        return new ModelAndView("simpleChart")
+                .addObject("uri", "savingsAndIncomeChangeChart")
+                .addObject("title", "Cambio Promedio Anual Anual");
+    }
+
+    
+    
     @RequestMapping(value = "absa", method = RequestMethod.GET)
     public ModelAndView absa() {
         return new ModelAndView("simpleChart")
@@ -342,6 +351,13 @@ public class ChartController {
         return this.chartService.goldIncomeAndSavings();
     }
 
+    @ResponseBody
+    @RequestMapping(value = "savingsAndIncomeChangeChart", method = RequestMethod.GET)
+    public CanvasJSChartDTO savingsAndIncomeChangeChart()
+            throws NoSeriesDataFoundException {
+        return this.chartService.savingsAndIncomeEvolution();
+    }
+    
     @ResponseBody
     @RequestMapping(value = "savedSalariesChart", method = RequestMethod.GET)
     public CanvasJSChartDTO savedSalariesChart()

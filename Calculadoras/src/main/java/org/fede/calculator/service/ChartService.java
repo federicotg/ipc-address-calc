@@ -39,4 +39,5 @@ public interface ChartService {
     CanvasJSChartDTO combinedIncomes(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en, boolean er,
             int year, int month, List<String> seriesNames) throws NoSeriesDataFoundException;
        
+    CanvasJSChartDTO savingsAndIncomeEvolution() throws NoSeriesDataFoundException;
 }
