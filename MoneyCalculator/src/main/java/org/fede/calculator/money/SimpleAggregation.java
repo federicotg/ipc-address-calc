@@ -17,6 +17,8 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import java.util.LinkedList;
+import java.util.List;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountTransform;
 
@@ -30,7 +32,7 @@ public class SimpleAggregation implements Aggregation, MathConstants {
 
     private static interface AggregationFunction {
 
-        MoneyAmount apply(MoneyAmount lastValues[]);
+        MoneyAmount apply(List<MoneyAmount> lastValues);
     }
 
     private final int months;
@@ -39,42 +41,36 @@ public class SimpleAggregation implements Aggregation, MathConstants {
         this.months = months;
     }
 
-    private MoneyAmount avg(MoneyAmount lastValues[]) {
-        int total = 0;
+    private MoneyAmount avg(List<MoneyAmount> lastValues) {
         BigDecimal sum = ZERO;
         for (MoneyAmount lastValue : lastValues) {
-            if (lastValue != null) {
-                total++;
-                sum = sum.add(lastValue.getAmount());
-            }
+            sum = sum.add(lastValue.getAmount());
         }
-        return new MoneyAmount(sum.divide(new BigDecimal(total), CONTEXT), lastValues[0].getCurrency());
+        return new MoneyAmount(sum.divide(new BigDecimal(lastValues.size()), CONTEXT), lastValues.get(0).getCurrency());
     }
 
-    private MoneyAmount sum(MoneyAmount lastValues[]) {
+    private MoneyAmount sum(List<MoneyAmount> lastValues) {
 
         BigDecimal sum = ZERO;
         for (MoneyAmount lastValue : lastValues) {
-            if (lastValue != null) {
-                sum = sum.add(lastValue.getAmount());
-            }
+            sum = sum.add(lastValue.getAmount());
         }
-        return new MoneyAmount(sum, lastValues[0].getCurrency());
+        return new MoneyAmount(sum, lastValues.get(0).getCurrency());
+    }
+    
+    private MoneyAmount change(List<MoneyAmount> lastValues){
+        return new MoneyAmount(lastValues.get(0).getAmount().subtract(lastValues.get(lastValues.size()-1).getAmount()), lastValues.get(0).getCurrency());
     }
 
     private MoneyAmountSeries aggregate(MoneyAmountSeries series, final AggregationFunction aggregationFunction) {
-        if (this.months == 1) {
-            return series;
-        }
-        final MoneyAmount lastValues[] = new MoneyAmount[this.months];
-        final int index[] = new int[]{0};
-
+        final LinkedList<MoneyAmount> lastValues = new LinkedList<>();
         return series.map(new MoneyAmountTransform() {
-
             @Override
             public MoneyAmount transform(int year, int month, MoneyAmount amount) {
-                lastValues[index[0]] = amount;
-                index[0] = (index[0] + 1) % months;
+                lastValues.addFirst(amount);
+                if(lastValues.size()>months){
+                    lastValues.removeLast();
+                }
                 return aggregationFunction.apply((lastValues));
             }
         });
@@ -82,25 +78,10 @@ public class SimpleAggregation implements Aggregation, MathConstants {
 
     @Override
     public MoneyAmountSeries average(MoneyAmountSeries series) {
-        /*if(this.months == 1){
-         return series;
-         }
-         final MoneyAmount lastValues[] = new MoneyAmount[this.months];
-         final int index[] = new int[]{0};
-
-         return series.map(new MoneyAmountTransform() {
-
-         @Override
-         public MoneyAmount transform(int year, int month, MoneyAmount amount) {
-         lastValues[index[0]] = amount;
-         index[0] = (index[0] + 1) % months;
-         return avg(lastValues);
-         }
-         });*/
         return this.aggregate(series, new AggregationFunction() {
 
             @Override
-            public MoneyAmount apply(MoneyAmount[] lastValues) {
+            public MoneyAmount apply(List<MoneyAmount> lastValues) {
                 return avg(lastValues);
             }
         });
@@ -111,10 +92,21 @@ public class SimpleAggregation implements Aggregation, MathConstants {
         return this.aggregate(series, new AggregationFunction() {
 
             @Override
-            public MoneyAmount apply(MoneyAmount[] lastValues) {
+            public MoneyAmount apply(List<MoneyAmount> lastValues) {
                 return sum(lastValues);
             }
         });
     }
 
+    @Override
+    public MoneyAmountSeries change(MoneyAmountSeries series) {
+        return this.aggregate(series, new AggregationFunction() {
+
+            @Override
+            public MoneyAmount apply(List<MoneyAmount> lastValues) {
+                return change(lastValues);
+            }
+        });
+    }
+    
 }

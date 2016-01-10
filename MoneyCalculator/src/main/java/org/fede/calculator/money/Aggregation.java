@@ -26,5 +26,6 @@ public interface Aggregation {
     
     MoneyAmountSeries average(MoneyAmountSeries series);
     MoneyAmountSeries sum(MoneyAmountSeries series);
+    MoneyAmountSeries change(MoneyAmountSeries series);
     
 }
