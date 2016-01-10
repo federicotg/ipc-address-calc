@@ -19,7 +19,6 @@ package org.fede.calculator.service;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.List;
-import static org.fede.calculator.money.ForeignExchange.USD_ARS;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
@@ -39,12 +38,8 @@ public class RealUSDCanvasJSDatapointAssembler implements CanvasJSDatapointAssem
     public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries, int year, int month) throws NoSeriesDataFoundException {
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        MoneyAmountSeries exchanged = sourceSeries;
-        if (sourceSeries.getCurrency().equals(Currency.getInstance("ARS"))) {
-            exchanged = USD_ARS.exchange(sourceSeries, Currency.getInstance("USD"));
-        }
         new SimpleAggregation(months)
-                .average(USD_INFLATION.adjust(exchanged, year, month))
+                .average(USD_INFLATION.adjust(sourceSeries.exchangeInto(Currency.getInstance("USD")), year, month))
                 .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
     }

@@ -17,6 +17,7 @@
 package org.fede.calculator.service;
 
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
@@ -30,7 +31,7 @@ import org.springframework.stereotype.Component;
  * @author fede
  */
 @Component("nominalPesosDatapointAssembler") @Lazy
-public class NominalPesosCanvasJSDatapointAssembler extends BaseCanvasJSDatapointAssembler implements CanvasJSDatapointAssembler {
+public class NominalPesosCanvasJSDatapointAssembler implements CanvasJSDatapointAssembler {
 
     @Override
     public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries originalSeries, int year, int month) throws NoSeriesDataFoundException {
@@ -39,7 +40,7 @@ public class NominalPesosCanvasJSDatapointAssembler extends BaseCanvasJSDatapoin
 
     @Override
     public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries originalSeries) throws NoSeriesDataFoundException {
-        MoneyAmountSeries sourceSeries = dollarToPesosIfNeeded(originalSeries);
+        MoneyAmountSeries sourceSeries = originalSeries.exchangeInto(Currency.getInstance("ARS"));
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         new SimpleAggregation(months).average(sourceSeries)
                 .forEach(new CanvasJSMoneyAmountProcessor(datapoints));

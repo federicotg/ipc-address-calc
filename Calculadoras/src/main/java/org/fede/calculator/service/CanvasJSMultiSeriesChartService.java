@@ -23,15 +23,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Resource;
-import org.fede.calculator.money.ForeignExchange;
-import static org.fede.calculator.money.ForeignExchange.USD_ARS;
-import static org.fede.calculator.money.ForeignExchange.USD_EUR;
-import static org.fede.calculator.money.ForeignExchange.USD_XAU;
+import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.series.JSONMoneyAmountSeries;
-import static org.fede.calculator.money.series.JSONMoneyAmountSeries.sumSeries;
 import static org.fede.calculator.money.series.JSONMoneyAmountSeries.readSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -41,6 +37,7 @@ import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
 import org.fede.calculator.web.dto.CanvasJSDatumDTO;
 import org.fede.calculator.web.dto.CanvasJSTitleDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
+import org.fede.util.Util;
 import org.springframework.context.annotation.Lazy;
 
 /**
@@ -64,6 +61,9 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
     private static final String TOTAL_SERIES_NAME = "Total";
 
     private List<ExpenseChartSeriesDTO> series;
+    
+    @Resource(name = "incomesSeries")
+    private List<ExpenseChartSeriesDTO> incomeSeries;
 
     @Override
     public List<ExpenseChartSeriesDTO> getSeries() {
@@ -95,41 +95,6 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
         return assemblers.get(currency);
     }
 
-    private ForeignExchange getForeignExchange(Currency from, Currency to) {
-
-        final Currency usd = Currency.getInstance("USD");
-        final Currency ars = Currency.getInstance("ARS");
-        final Currency eur = Currency.getInstance("EUR");
-        final Currency xau = Currency.getInstance("XAU");
-
-        if (from.equals(usd)) {
-            if (to.equals(ars)) {
-                return USD_ARS;
-            }
-        }
-
-        if (from.equals(ars)) {
-            if (to.equals(usd)) {
-                return USD_ARS;
-            }
-        }
-
-        if (from.equals(xau)) {
-            if (to.equals(usd)) {
-                return USD_XAU;
-            }
-        }
-
-        if (from.equals(eur)) {
-            if (to.equals(usd)) {
-                return USD_EUR;
-            }
-        }
-
-        throw new IllegalArgumentException("No currency conversion set up from " + from.toString() + " to " + to.toString());
-
-    }
-
     @Override
     public CanvasJSChartDTO renderAbsoluteChart(
             String chartTitle,
@@ -157,11 +122,8 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
                 if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
 
-                    MoneyAmountSeries eachSeries = readSeries(s.getSeriesName());
-                    if (!eachSeries.getCurrency().equals(currency)) {
-                        // convert to desired currency if needed
-                        eachSeries = this.getForeignExchange(eachSeries.getCurrency(), currency).exchange(eachSeries, currency);
-                    }
+                    MoneyAmountSeries eachSeries = readSeries(s.getSeriesName()).exchangeInto(currency);
+                    
                     if (collectTotal) {
                         if (totalSeries == null) {
                             totalSeries = eachSeries;
@@ -209,12 +171,8 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
             MoneyAmountSeries sumSeries = null;
             for (ExpenseChartSeriesDTO s : this.series) {
                 if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
-                    MoneyAmountSeries eachSeries = readSeries(s.getSeriesName());
-
-                    if (!eachSeries.getCurrency().equals(currency)) {
-                        // convert to desired currency if needed
-                        eachSeries = this.getForeignExchange(eachSeries.getCurrency(), currency).exchange(eachSeries, currency);
-                    }
+                    MoneyAmountSeries eachSeries = readSeries(s.getSeriesName()).exchangeInto(currency);
+                    
                     if (sumSeries == null) {
                         sumSeries = eachSeries;
                     } else {
@@ -223,7 +181,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                 }
             }
 
-            final MoneyAmountSeries totalIncome = sumSeries("unlp.json", "lifia.json", "plazofijo.json");
+            final MoneyAmountSeries totalIncome = Util.sumSeries(this.incomeSeries);
             final MoneyAmountSeries percentSeries = new JSONMoneyAmountSeries(sumSeries.getCurrency());
             sumSeries.forEach(new MoneyAmountProcessor() {
 

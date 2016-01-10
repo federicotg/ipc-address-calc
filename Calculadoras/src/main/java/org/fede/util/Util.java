@@ -16,8 +16,14 @@
  */
 package org.fede.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.money.series.JSONMoneyAmountSeries;
+import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 
 /**
  *
@@ -38,5 +44,15 @@ public class Util {
             }
         }
         return sb.toString();
+    }
+    
+    public static MoneyAmountSeries sumSeries(List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException{
+        
+        List<String> seriesNames = new ArrayList<>(dtos.size());
+        for(ExpenseChartSeriesDTO dto : dtos){
+            seriesNames.add(dto.getSeriesName());
+        }
+        return JSONMoneyAmountSeries.sumSeries(seriesNames.toArray(new String[seriesNames.size()]));
+        
     }
 }
