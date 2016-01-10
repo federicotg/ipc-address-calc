@@ -124,7 +124,6 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         MoneyAmountSeries nominalIncomePesos = Util.sumSeries(this.incomeSeries);
 
-
         Aggregation yearSum = new SimpleAggregation(12);
         final MoneyAmountSeries nov99IncomePesos12 = yearSum.sum(ARS_INFLATION.adjust(nominalIncomePesos, toYear, toMonth));
 
