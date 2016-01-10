@@ -128,8 +128,6 @@ public class DollarTest {
             MoneyAmount adjusted
                     = new CPIInflation(new CachedSeries(new DollarCPISeries(new MockBlsCPISource())), Currency.getInstance("USD"))
                     .adjust(oneHundred, 1923, 12, 2013, 12);
-            System.out.println(expected);
-            System.out.println(adjusted);
             assertEquals(expected, adjusted);
         } catch (Exception ex) {
             System.err.println(ex.getMessage());

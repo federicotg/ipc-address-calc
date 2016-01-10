@@ -80,12 +80,25 @@ public class ForeignExchanges {
         if (from.equals(to)) {
             return NO_FX;
         }
+
+        Currency usd = null;
+        Currency other = null;
+
         if (to.equals(Currency.getInstance("USD"))) {
-            ForeignExchange answer = FOREIGN_EXCHANGES_BY_CURRENCY.get(from);
+            usd = to;
+            other = from;
+        } else if (from.equals(Currency.getInstance("USD"))) {
+            usd = from;
+            other = to;
+        }
+
+        if (usd != null) {
+            ForeignExchange answer = FOREIGN_EXCHANGES_BY_CURRENCY.get(other);
             if (answer != null) {
                 return answer;
+            } else {
+                throw new IllegalArgumentException("No foreign exchange from " + from.getSymbol() + " to " + to.getSymbol());
             }
-            throw new IllegalArgumentException("No foreign exchange from " + from.getSymbol() + " to " + to.getSymbol());
         }
 
         return new CompoundForeignExchange(getForeignExchange(from, Currency.getInstance("USD")), getForeignExchange(to, Currency.getInstance("USD")));
