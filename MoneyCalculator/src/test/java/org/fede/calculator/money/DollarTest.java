@@ -24,7 +24,7 @@ import java.util.Currency;
 import static org.fede.calculator.money.ArgCurrency.*;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import static org.fede.calculator.money.ForeignExchange.USD_ARS;
+import static org.fede.calculator.money.ForeignExchanges.USD_ARS;
 import org.fede.calculator.money.series.CachedSeries;
 import org.fede.calculator.money.series.DollarCPISeries;
 import org.fede.calculator.money.series.IndexSeries;
@@ -216,7 +216,7 @@ public class DollarTest {
         for (int year = ARS_INFLATION.getFrom().getYear(); year < ARS_INFLATION.getTo().getYear(); year++) {
             for (int month = 1; month <= 12; month++) {
                 MoneyAmount oneDollarBackThen = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth, year, month);
-                MoneyAmount pesosBackThen = ForeignExchange.USD_ARS.exchange(oneDollarBackThen, ars, year, month);
+                MoneyAmount pesosBackThen = USD_ARS.exchange(oneDollarBackThen, ars, year, month);
                 MoneyAmount ma = ARS_INFLATION.adjust(pesosBackThen, year, month, todayYear, todayMonth);
                 expected.putAmount(year, month, ma);
             }
@@ -365,7 +365,7 @@ public class DollarTest {
     @Test
     public void convertAustrales() throws NoSeriesDataFoundException {
         MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
-        MoneyAmount australes = ForeignExchange.USD_ARS.exchange(oneDollar, Currency.getInstance("ARS"), 1989, 12);
+        MoneyAmount australes = USD_ARS.exchange(oneDollar, Currency.getInstance("ARS"), 1989, 12);
         assertTrue(australes.getAmount().compareTo(new BigDecimal("1000")) > 0);
     }
 

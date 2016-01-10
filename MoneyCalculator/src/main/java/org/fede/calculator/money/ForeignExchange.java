@@ -16,16 +16,11 @@
  */
 package org.fede.calculator.money;
 
-import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import org.fede.calculator.money.series.IndexSeriesSupport;
-import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.Series;
-import org.fede.calculator.money.series.YearMonth;
+
 
 /**
  *
@@ -33,43 +28,6 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public interface ForeignExchange extends Series {
 
-    public static final ForeignExchange USD_ARS = new SimpleForeignExchange(
-            JSONIndexSeries.readSeries("peso-dolar-libre.json"),
-            Currency.getInstance("USD"),
-            Currency.getInstance("ARS"));
-
-    public static final ForeignExchange USD_XAU = new SimpleForeignExchange(
-            JSONIndexSeries.readSeries("gold.json"),
-            Currency.getInstance("XAU"),
-            Currency.getInstance("USD"));
-
-    public static final ForeignExchange USD_EUR = new SimpleForeignExchange(
-            JSONIndexSeries.readSeries("euro-dolar.json"),
-            Currency.getInstance("USD"),
-            Currency.getInstance("EUR"));
-    
-    
-    public static final ForeignExchange NO_FX = new SimpleForeignExchange(new IndexSeriesSupport() {
-        @Override
-        public YearMonth getFrom() {
-            return new YearMonth(1, 1);
-        }
-
-        @Override
-        public YearMonth getTo() {
-            return new YearMonth(5000, 12);
-        }
-
-        @Override
-        public BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException {
-            return BigDecimal.ONE;
-        }
-
-        @Override
-        public BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException {
-            return BigDecimal.ONE;
-        }
-    }, Currency.getInstance("USD"), Currency.getInstance("USD"));
     
     
     MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
@@ -102,19 +60,4 @@ public interface ForeignExchange extends Series {
      */
     MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) throws NoSeriesDataFoundException;
 
-    /**
-     * Convierte cada money amount de la serie a la moneda especificada según el
-     * tipo de cambio de la fecha especificada. Útil para convertir toda una
-     * serie de valores a un tipo de cambio fijo de un momento dado.
-     *
-     * @param series
-     * @param targetCurrency
-     * @param referenceYear
-     * @param referenceMonth
-     * @return
-     * @throws NoSeriesDataFoundException
-     */
-   // MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
-
-    //MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException;
 }

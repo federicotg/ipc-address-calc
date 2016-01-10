@@ -42,4 +42,6 @@ public interface MoneyAmountSeries extends Series {
     MoneyAmountSeries map(MoneyAmountTransform processor);
 
     MoneyAmountSeries add(MoneyAmountSeries other) throws NoSeriesDataFoundException;
+    
+    MoneyAmountSeries exchangeInto(Currency currency) throws NoSeriesDataFoundException;
 }

@@ -18,9 +18,6 @@ package org.fede.calculator.money;
  */
 import java.math.BigDecimal;
 import java.util.Currency;
-import org.fede.calculator.money.ForeignExchange;
-import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -59,7 +56,7 @@ public class GoldTest {
     @Test
     public void usdToGold() throws NoSeriesDataFoundException {
         MoneyAmount usd = new MoneyAmount(new BigDecimal("1000"), Currency.getInstance("USD"));
-        MoneyAmount gold = ForeignExchange.USD_XAU.exchange(usd, Currency.getInstance("XAU"), 2013, 7);
+        MoneyAmount gold = ForeignExchanges.USD_XAU.exchange(usd, Currency.getInstance("XAU"), 2013, 7);
         
         assertEquals(Currency.getInstance("XAU"), gold.getCurrency());
         

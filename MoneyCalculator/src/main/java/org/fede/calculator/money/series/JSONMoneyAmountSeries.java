@@ -19,18 +19,16 @@ package org.fede.calculator.money.series;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import org.fede.calculator.money.ForeignExchange;
+import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 
@@ -41,28 +39,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountSeries {
 
     
-    private static final Map<Currency, ForeignExchange> FOREIGN_EXCHANGES_BY_CURRENCY = new HashMap<>();
-    
-    static{
-        FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("USD"), ForeignExchange.NO_FX);
-        FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("ARS"), ForeignExchange.USD_ARS);
-        FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("EUR"), ForeignExchange.USD_EUR);
-        FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("XAU"), ForeignExchange.USD_XAU);
-    }
-    
-    private static ForeignExchange getForeignExchange(Currency from, Currency to){
-        if(from.equals(to)){
-            return ForeignExchange.NO_FX;
-        }
-        if(to.equals(Currency.getInstance("USD"))){
-            ForeignExchange answer = FOREIGN_EXCHANGES_BY_CURRENCY.get(from);
-            if(answer != null){
-                return answer;
-            }
-        }
-        throw new IllegalArgumentException("No foreign exchange from "+from.getSymbol()+" to "+to.getSymbol());
-    }
-    
+  
     
     public static MoneyAmountSeries sumSeries(String... names) throws NoSeriesDataFoundException {
         if(names.length == 0){
@@ -110,27 +87,8 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
         }
     }
 
-    /*public static List<MoneyAmountSeries> convertoToDollar(List<MoneyAmountSeries> series) throws NoSeriesDataFoundException {
-        final List<MoneyAmountSeries> answer = new ArrayList<>(series.size());
-
-        for (MoneyAmountSeries s : series) {
-            if (s.getCurrency().equals(Currency.getInstance("USD"))) {
-                answer.add(s);
-            } else if (s.getCurrency().equals(Currency.getInstance("ARA"))) {
-                answer.add(ForeignExchange.USD_ARS.exchange(s, Currency.getInstance("USD")));
-            } else if (s.getCurrency().equals(Currency.getInstance("XAU"))) {
-                answer.add(ForeignExchange.USD_XAU.exchange(s, Currency.getInstance("USD")));
-            } else if (s.getCurrency().equals(Currency.getInstance("EUR"))) {
-                answer.add(ForeignExchange.USD_EUR.exchange(s, Currency.getInstance("USD")));
-            } else {
-                throw new IllegalArgumentException("Can't convert from " + s.getCurrency().toString() + " to USD.");
-            }
-        }
-
-        return answer;
-    }*/
-
     private final Currency currency;
+    
     private final SortedMap<YearMonth, MoneyAmount> values;
 
     private ThreadLocal<Calendar> calendar = new ThreadLocal<Calendar>() {
@@ -197,15 +155,6 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
                 && Objects.equals(this.getFrom(), other.getFrom())
                 && Objects.equals(this.getTo(), other.getTo());
         if (!equal) {
-            /*System.err.println("Not eq 1");
-
-             System.err.println(this.getCurrency());
-             System.err.println(other.getCurrency());
-             System.err.println(this.getFrom());
-             System.err.println(other.getFrom());
-             System.err.println(this.getTo());
-             System.err.println(other.getTo());*/
-
             return false;
         }
         equal = true;
@@ -214,9 +163,6 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
                 Map.Entry<YearMonth, MoneyAmount> e = it.next();
                 equal &= e.getValue().equals(other.getAmount(e.getKey().getYear(), e.getKey().getMonth()));
             }
-            /*if (!equal) {
-             System.err.println("Not eq 2");
-             }*/
             return equal;
         } catch (NoSeriesDataFoundException ex) {
 
@@ -261,8 +207,7 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
 
         if (!other.getCurrency().equals(this.getCurrency())) {
             Currency usd = Currency.getInstance("USD");
-            return getForeignExchange(this.getCurrency(), usd).exchange(this, usd)
-                    .add(getForeignExchange(other.getCurrency(), usd).exchange(other, usd));
+            return this.exchangeInto(usd).add(other.exchangeInto(usd));
         }
 
         if (this.getFrom().compareTo(other.getFrom()) > 0) {
@@ -315,6 +260,11 @@ public class JSONMoneyAmountSeries extends SeriesSupport implements MoneyAmountS
                 }
             }
         });
+    }
+
+    @Override
+    public MoneyAmountSeries exchangeInto(Currency currency) throws NoSeriesDataFoundException {
+        return ForeignExchanges.getForeignExchange(this.getCurrency(), currency).exchange(this, currency);
     }
 
 }
