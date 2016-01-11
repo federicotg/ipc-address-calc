@@ -215,6 +215,7 @@
                             <targetPath>WEB-INF</targetPath>
                         </resource>
                     </webResources>
+                    <warSourceExcludes>**/accounting.js,**/canvasjs.js,**/charts.js,**/all.js</warSourceExcludes>
                 </configuration>
             </plugin>
 
@@ -235,7 +236,7 @@
                 </configuration>
             </plugin>
             
-            <plugin>
+            <!--plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>yuicompressor-maven-plugin</artifactId>
                 <version>1.5.1</version>
@@ -252,18 +253,15 @@
                     <jswarn>false</jswarn>
                     <aggregations>
                         <aggregation>
-                            <!-- remove files after aggregation (default: false)-->
+
                             <removeIncluded>true</removeIncluded>
                             
-                            <!-- insert new line after each concatenation (default: false) -->
+
                             <insertNewLine>true</insertNewLine>
                             <output>${project.build.directory}/${project.build.finalName}/scripts/all.js</output>
-                            <!-- files to include, path relative to output's directory or absolute path-->
-                            <!--inputDir>base directory for non absolute includes, default to parent dir of output</inputDir-->
                             <includes>
                                 <include>**/*.js</include>
                             </includes>
-                            <!-- files to exclude, path relative to output's directory-->
                             <excludes>
                                 <exclude>**/*.min.js</exclude>
                                 <exclude>**/compressed.css</exclude>
@@ -272,8 +270,31 @@
                         </aggregation>
                     </aggregations>
                 </configuration>
-            </plugin>
+            </plugin-->
             
+            
+            <plugin>
+                <groupId>com.samaxes.maven</groupId>
+                <artifactId>minify-maven-plugin</artifactId>
+                <version>1.7.4</version>
+                <executions>
+                    <execution>
+                        <id>default-minify</id>
+                        <configuration>
+                            <jsSourceIncludes>
+                                <jsSourceInclude>**/*.js</jsSourceInclude>
+                            </jsSourceIncludes>
+                            <nosuffix>true</nosuffix>
+                            <jsSourceDir>/scripts</jsSourceDir>
+                            <jsFinalFile>all.min.js</jsFinalFile>
+                            <jsEngine>CLOSURE</jsEngine>
+                        </configuration>
+                        <goals>
+                            <goal>minify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             
         </plugins>
     </build>

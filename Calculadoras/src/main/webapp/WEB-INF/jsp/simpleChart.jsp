@@ -29,7 +29,7 @@
               href="/images/favicon.png" />
         <title>${title}</title>
         <link rel="stylesheet" type="text/css" href="/styles/style.css" />
-        <script type="text/javascript" src="/scripts/all.js"></script>
+        <script type="text/javascript" src="/scripts/all.min.js"></script>
         <script type="text/javascript">
 
             window.onload = function () {
