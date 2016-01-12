@@ -290,6 +290,7 @@
                             </cssSourceIncludes>
                             <cssFinalFile>style.min.css</cssFinalFile>
                             <nosuffix>true</nosuffix>
+                            <munge>true</munge>
                             <jsSourceDir>/scripts</jsSourceDir>
                             <jsFinalFile>all.min.js</jsFinalFile>
                             <jsEngine>CLOSURE</jsEngine>
