@@ -28,7 +28,7 @@
               type="image/png" 
               href="/images/favicon.png" />
         <title>¿Entre Qué y Qué?</title>
-        <link rel="stylesheet" type="text/css" href="/styles/style.css"/>
+        <link rel="stylesheet" type="text/css" href="/styles/style.min.css"/>
         <style type="text/css">
             .group{
                 border-color: gray;

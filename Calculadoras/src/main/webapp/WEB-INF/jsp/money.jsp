@@ -30,7 +30,7 @@
               type="image/png" 
               href="/images/favicon.png" />
         <title>Calculadora de Inflación</title>
-        <link rel="stylesheet" type="text/css" href="/styles/style.css"/>
+        <link rel="stylesheet" type="text/css" href="/styles/style.min.css"/>
         <style type="text/css">
             input[type="text"]{
                 width:8em;

@@ -28,7 +28,7 @@
               type="image/png" 
               href="/images/favicon.png" />
         <title>${title}</title>
-        <link rel="stylesheet" type="text/css" href="/styles/style.css" />
+        <link rel="stylesheet" type="text/css" href="/styles/style.min.css" />
         <script type="text/javascript" src="/scripts/all.min.js"></script>
         <script type="text/javascript">
 

@@ -215,7 +215,7 @@
                             <targetPath>WEB-INF</targetPath>
                         </resource>
                     </webResources>
-                    <warSourceExcludes>**/accounting.js,**/canvasjs.js,**/charts.js,**/all.js</warSourceExcludes>
+                    <warSourceExcludes>**/accounting.js,**/canvasjs.js,**/charts.js,**/style.css</warSourceExcludes>
                 </configuration>
             </plugin>
 
@@ -284,10 +284,16 @@
                             <jsSourceIncludes>
                                 <jsSourceInclude>**/*.js</jsSourceInclude>
                             </jsSourceIncludes>
+                            <cssSourceDir>/styles</cssSourceDir>
+                            <cssSourceIncludes>
+                                <cssSourceInclude>**</cssSourceInclude>
+                            </cssSourceIncludes>
+                            <cssFinalFile>style.min.css</cssFinalFile>
                             <nosuffix>true</nosuffix>
                             <jsSourceDir>/scripts</jsSourceDir>
                             <jsFinalFile>all.min.js</jsFinalFile>
                             <jsEngine>CLOSURE</jsEngine>
+                            <closureLanguage>ECMASCRIPT5</closureLanguage>
                         </configuration>
                         <goals>
                             <goal>minify</goal>

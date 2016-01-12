@@ -26,7 +26,7 @@
         <link rel="icon" 
               type="image/png" 
               href="/images/favicon.png" />
-        <link rel="stylesheet" type="text/css" href="/styles/style.css" />
+        <link rel="stylesheet" type="text/css" href="/styles/style.min.css" />
         <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/mootools/1.5.1/mootools-yui-compressed.js"></script>
         <style>
             html, body, #map-canvas {

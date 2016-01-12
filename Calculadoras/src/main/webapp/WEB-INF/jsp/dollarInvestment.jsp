@@ -29,7 +29,7 @@
               type="image/png" 
               href="/images/favicon.png" />
         <title>Inversión USD</title>
-        <link rel="stylesheet" type="text/css" href="/styles/style.css" />
+        <link rel="stylesheet" type="text/css" href="/styles/style.min.css" />
         <style type="text/css">
 
             #chart{
