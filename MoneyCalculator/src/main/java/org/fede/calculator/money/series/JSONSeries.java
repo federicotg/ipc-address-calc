@@ -36,7 +36,7 @@ import java.util.List;
  * 
  * @author fede
  */
-class JSONSeries {
+public class JSONSeries {
 
     private String currency;
     private List<JSONDataPoint> data;

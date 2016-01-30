@@ -29,7 +29,7 @@ import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
-import static org.fede.calculator.money.series.JSONMoneyAmountSeries.readSeries;
+import static org.fede.util.Util.readSeries;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;

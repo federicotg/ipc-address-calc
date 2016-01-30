@@ -23,14 +23,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Resource;
-import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.series.JSONMoneyAmountSeries;
-import static org.fede.calculator.money.series.JSONMoneyAmountSeries.readSeries;
+import static org.fede.util.Util.readSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.web.dto.CanvasJSAxisDTO;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
@@ -182,7 +181,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
             }
 
             final MoneyAmountSeries totalIncome = Util.sumSeries(this.incomeSeries);
-            final MoneyAmountSeries percentSeries = new JSONMoneyAmountSeries(sumSeries.getCurrency());
+            final MoneyAmountSeries percentSeries = new SortedMapMoneyAmountSeries(sumSeries.getCurrency());
             sumSeries.forEach(new MoneyAmountProcessor() {
 
                 @Override

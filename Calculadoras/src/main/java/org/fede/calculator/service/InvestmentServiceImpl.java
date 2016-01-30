@@ -36,8 +36,8 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.JSONIndexSeries;
-import org.fede.calculator.money.series.JSONMoneyAmountSeries;
-import static org.fede.calculator.money.series.JSONMoneyAmountSeries.readSeries;
+import static org.fede.util.Util.sumSeries;
+import static org.fede.util.Util.readSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.web.dto.DollarReportDTO;
@@ -118,7 +118,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final MoneyAmountSeries pesos = readSeries("ahorros-peso.json");
 
-        final MoneyAmountSeries dollarsAndGold = JSONMoneyAmountSeries.sumSeries("ahorros-dolar.json", "ahorros-oro.json");
+        final MoneyAmountSeries dollarsAndGold = sumSeries("ahorros-dolar.json", "ahorros-oro.json");
 
         final IndexSeries dollarPrice = JSONIndexSeries.readSeries("peso-dolar-libre.json");
 

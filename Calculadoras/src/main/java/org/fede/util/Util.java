@@ -16,13 +16,26 @@
  */
 package org.fede.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Currency;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.series.JSONMoneyAmountSeries;
+import org.fede.calculator.money.series.InterpolationStrategy;
+import org.fede.calculator.money.series.JSONDataPoint;
+import org.fede.calculator.money.series.JSONSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
+import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 
 /**
@@ -45,14 +58,61 @@ public class Util {
         }
         return sb.toString();
     }
-    
-    public static MoneyAmountSeries sumSeries(List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException{
-        
+
+    public static MoneyAmountSeries sumSeries(List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException {
+
         List<String> seriesNames = new ArrayList<>(dtos.size());
-        for(ExpenseChartSeriesDTO dto : dtos){
+        for (ExpenseChartSeriesDTO dto : dtos) {
             seriesNames.add(dto.getSeriesName());
         }
-        return JSONMoneyAmountSeries.sumSeries(seriesNames.toArray(new String[seriesNames.size()]));
-        
+        return sumSeries(seriesNames.toArray(new String[seriesNames.size()]));
+
     }
+
+    public static MoneyAmountSeries sumSeries(String... names) throws NoSeriesDataFoundException {
+        if (names.length == 0) {
+            throw new IllegalArgumentException("You must at least read one series");
+        }
+        MoneyAmountSeries answer = null;
+        for (String seriesName : names) {
+            if (seriesName != null && seriesName.length() > 0) {
+                MoneyAmountSeries s = readSeries(seriesName);
+                answer = answer == null ? s : answer.add(s);
+            }
+        }
+        return answer;
+    }
+
+    public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
+        try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
+            JSONSeries series = new ObjectMapper().readValue(is, JSONSeries.class);
+
+            final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
+            SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
+            final Currency currency = Currency.getInstance(series.getCurrency());
+            for (JSONDataPoint dp : series.getData()) {
+                interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), currency));
+            }
+            if (series.getData().size() != interpolatedData.size()) {
+                throw new IllegalArgumentException("Series " + name + " has incorrect year and month sequence.");
+            }
+            Map<YearMonth, MoneyAmount> extraData = new HashMap<>();
+            YearMonth previousKey = interpolatedData.firstKey();
+            MoneyAmount previousValue = interpolatedData.get(interpolatedData.firstKey());
+            for (Map.Entry<YearMonth, MoneyAmount> entry : interpolatedData.entrySet()) {
+                while (previousKey.monthsUntil(entry.getKey()) > 1) {
+                    previousKey = previousKey.next();
+                    extraData.put(previousKey, strategy.interpolate(previousValue, currency));
+                }
+                previousValue = entry.getValue();
+                previousKey = entry.getKey();
+            }
+            interpolatedData.putAll(extraData);
+
+            return new SortedMapMoneyAmountSeries(currency, interpolatedData);
+        } catch (IOException ioEx) {
+            throw new IllegalArgumentException("Could not read series named " + name, ioEx);
+        }
+    }
+
 }

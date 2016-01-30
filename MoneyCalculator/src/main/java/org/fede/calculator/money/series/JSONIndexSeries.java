@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 
+
 /**
  *
  * @author fede

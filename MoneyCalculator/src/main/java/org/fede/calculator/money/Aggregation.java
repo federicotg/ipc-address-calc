@@ -23,9 +23,11 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
  * @author fede
  */
 public interface Aggregation {
-    
-    MoneyAmountSeries average(MoneyAmountSeries series);
-    MoneyAmountSeries sum(MoneyAmountSeries series);
-    MoneyAmountSeries change(MoneyAmountSeries series);
-    
+
+    MoneyAmountSeries average(MoneyAmountSeries series) throws NoSeriesDataFoundException;
+
+    MoneyAmountSeries sum(MoneyAmountSeries series) throws NoSeriesDataFoundException;
+
+    MoneyAmountSeries change(MoneyAmountSeries series) throws NoSeriesDataFoundException;
+
 }

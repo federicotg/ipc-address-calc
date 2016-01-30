@@ -62,7 +62,7 @@ public class SimpleAggregation implements Aggregation, MathConstants {
         return new MoneyAmount(lastValues.get(0).getAmount().subtract(lastValues.get(lastValues.size()-1).getAmount()), lastValues.get(0).getCurrency());
     }
 
-    private MoneyAmountSeries aggregate(MoneyAmountSeries series, final AggregationFunction aggregationFunction) {
+    private MoneyAmountSeries aggregate(MoneyAmountSeries series, final AggregationFunction aggregationFunction) throws NoSeriesDataFoundException {
         final LinkedList<MoneyAmount> lastValues = new LinkedList<>();
         return series.map(new MoneyAmountTransform() {
             @Override
@@ -77,7 +77,7 @@ public class SimpleAggregation implements Aggregation, MathConstants {
     }
 
     @Override
-    public MoneyAmountSeries average(MoneyAmountSeries series) {
+    public MoneyAmountSeries average(MoneyAmountSeries series) throws NoSeriesDataFoundException {
         return this.aggregate(series, new AggregationFunction() {
 
             @Override
@@ -88,7 +88,7 @@ public class SimpleAggregation implements Aggregation, MathConstants {
     }
 
     @Override
-    public MoneyAmountSeries sum(MoneyAmountSeries series) {
+    public MoneyAmountSeries sum(MoneyAmountSeries series) throws NoSeriesDataFoundException {
         return this.aggregate(series, new AggregationFunction() {
 
             @Override
@@ -99,7 +99,7 @@ public class SimpleAggregation implements Aggregation, MathConstants {
     }
 
     @Override
-    public MoneyAmountSeries change(MoneyAmountSeries series) {
+    public MoneyAmountSeries change(MoneyAmountSeries series) throws NoSeriesDataFoundException {
         return this.aggregate(series, new AggregationFunction() {
 
             @Override

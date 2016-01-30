@@ -18,9 +18,9 @@ package org.fede.calculator.money;
 
 import java.util.Calendar;
 import java.util.Date;
-import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesSupport;
+import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 
 /**
@@ -40,7 +40,7 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
         final int toYear = minTo.getYear();
         final int toMonth = minTo.getMonth();
 
-        final MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.getCurrency());
+        final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(this.getCurrency());
 
         final int maxMonthForFirstYear = fromYear == toYear ? toMonth : 12;
 
@@ -74,7 +74,7 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
 
         final int maxMonthForFirstYear = fromYear == toYear ? toMonth : 12;
         
-        MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.getCurrency());
+        MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(this.getCurrency());
 
         for (int m = fromMonth; m <= maxMonthForFirstYear; m++) {
             //first year

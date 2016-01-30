@@ -23,9 +23,9 @@ import java.util.Date;
 import static org.fede.calculator.money.MathConstants.ROUNDING_MODE;
 import static org.fede.calculator.money.MathConstants.SCALE;
 import org.fede.calculator.money.series.IndexSeries;
-import org.fede.calculator.money.series.JSONMoneyAmountSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesSupport;
+import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 
 /**
@@ -94,7 +94,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         final int toYear = to.getYear();
         final int toMonth = to.getMonth();
 
-        final MoneyAmountSeries answer = new JSONMoneyAmountSeries(targetCurrency);
+        final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(targetCurrency);
 
         for (int m = fromMonth; m <= (fromYear == toYear? toMonth : 12); m++) {
             //first year
@@ -130,7 +130,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         final int toYear = this.getTo().getYear();
         final int toMonth = this.getTo().getMonth();
 
-        final MoneyAmountSeries answer = new JSONMoneyAmountSeries(targetCurrency);
+        final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(targetCurrency);
 
         for (int m = fromMonth; m <= 12; m++) {
             //first year

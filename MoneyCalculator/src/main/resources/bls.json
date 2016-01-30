@@ -9162,6 +9162,13 @@
                                     "periodName": "November",
                                     "value": "237.336",
                                     "footnotes": [{}]
+                                },
+                                {
+                                    "year": "2015",
+                                    "period": "M12",
+                                    "periodName": "December",
+                                    "value": "236.525",
+                                    "footnotes": [{}]
                                 }
                                 ]
                         }]

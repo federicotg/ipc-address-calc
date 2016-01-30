@@ -39,7 +39,7 @@ public interface MoneyAmountSeries extends Series {
     
     void forEachNonZero(MoneyAmountProcessor processor) throws NoSeriesDataFoundException;
 
-    MoneyAmountSeries map(MoneyAmountTransform processor);
+    MoneyAmountSeries map(MoneyAmountTransform processor) throws NoSeriesDataFoundException;
 
     MoneyAmountSeries add(MoneyAmountSeries other) throws NoSeriesDataFoundException;
     
