@@ -9170,10 +9170,30 @@
                                     "value": "236.525",
                                     "footnotes": [{}]
                                 }
+                                
                                 ]
                         }]
         }
+    },
+    
+    
+            {
+        "status": "REQUEST_SUCCEEDED",
+        "responseTime": 19,
+        "message": [],
+        "Results": {
+            "series":
+                    [{
+                            "seriesID": "CUUR0000SA0",
+                            "data": [
+    
+    {"year": "2016","period": "M01","periodName": "January", "value": "236.916","footnotes": [{}]}
+                                
+    ]
+}]
+        }
     }
+    
     
     
     ]
