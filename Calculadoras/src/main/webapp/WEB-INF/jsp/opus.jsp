@@ -44,15 +44,7 @@
             ul{
                 list-style-type: square;
             }
-            .BALLET{
-                background-color: khaki;
-            }
-            .OPERA{
-                background-color: peachpuff;
-            }
-            .ORATORIO{
-                background-color: burlywood;
-            }
+
         </style>
     </head>
     <body>

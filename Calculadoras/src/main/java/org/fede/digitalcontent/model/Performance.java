@@ -176,13 +176,16 @@ public class Performance {
 
     public String getDetailedTitle() {
         DateFormat yearFormat = new SimpleDateFormat("yyyy");
+
+        Venue venue = this.getVenue();
+        Date d = this.getDate();
         StringBuilder sb = new StringBuilder(30);
         sb.append(this.getTitle())
-                .append(" @ ")
-                .append(this.getVenue().getName())
-                .append(" (")
-                .append(yearFormat.format(this.getDate()))
-                .append(")");
+                .append(venue != null?" @ ":"")
+                .append(venue != null ? venue.getName() : "")
+                .append(d != null ? " (":"")
+                .append(d != null ? yearFormat.format(d) : "")
+                .append(d != null ? ")":"");
         return sb.toString();
     }
 }

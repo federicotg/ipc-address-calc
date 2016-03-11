@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.PostConstruct;
@@ -83,6 +84,8 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         this.initVenues();
         this.initBallets();
+        this.initTheXFiles();
+        this.initSports();
         this.initOperas();
         this.initBalletVideos();
         this.initOperaVideos();
@@ -300,7 +303,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Maria Stuarda",
                 "Poliuto")
                 .italian().opera().by("Gaetano Donizetti").build();
-        
+
         new Opus.Builder("La Fille du Regiment").french().opera().by("Gaetano Donizetti").build();
 
         new Opus.Builder("Fidelio").german().opera().by("Beethoven").build();
@@ -389,6 +392,67 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("El castillo de Barbazul").language(Language.HUNGARIAN).opera().by("Bartók").build();
 
         new Opus.Builder("Rise and Fall of the City of Mahagonny").english().opera().by("Kurt Weill").build();
+
+    }
+
+    
+     private void initSports() {
+        
+         new Opus.Builder("Cruzeiro - Estudiantes")
+                .by("Estudiantes").sport().language(Language.SPANISH).build();
+        
+        new Opus.Builder("Boca - Estudiantes")
+                .by("Estudiantes").sport().language(Language.SPANISH).build();
+     }
+    
+    private void initTheXFiles() {
+        new Opus.Builder(
+                "Pilot", "Deep Throat", "Squeeze", "Conduit", "The Jersey Devil", "Shadows",
+                "Ghost in the Machine", "Ice", "Space", "Fallen Angel", "Eve", "Fire", "Beyond the Sea", "Gender Bender", "Lazarus",
+                "Young at Heart", "E.B.E.", "Miracle Man", "Shapes", "Darkness Falls", "Tooms", "Born Again", "Roland", "The Erlenmeyer Flask")
+                .by("The X-Files").episode().english().build();
+
+        new Opus.Builder("The X-Files: The Game").by("The X-Files").game().english().build();
+
+        new Opus.Builder(
+                "Extras Season 1",
+                "Extras Season 2",
+                "Extras Season 3",
+                "Extras Season 4",
+                "Extras Season 5",
+                "Extras Season 6",
+                "Extras Season 7",
+                "Extras Season 8",
+                "Extras Season 9",
+                "Extras Fight The Future",
+                "Extras I Want To Believe").by("The X-Files").episode().english().build();
+
+        new Opus.Builder("Little Green Men",
+                "The Host",
+                "Blood",
+                "Sleepless",
+                "Duane Barry",
+                "Ascension",
+                "3",
+                "One Breath",
+                "Firewalker",
+                "Red Museum",
+                "Excelsis Dei",
+                "Aubrey",
+                "Irresistible",
+                "Die Hand Die Verletzt",
+                "Fresh Bones",
+                "Colony",
+                "End Game",
+                "Fearful Symmetry",
+                "Dod Kalm",
+                "Humbug",
+                "The Calusari",
+                "F.Emasculata",
+                "Soft Light",
+                "Our Town",
+                "Anasazi")
+                .by("The X-Files").episode().english().build();
 
     }
 
@@ -644,10 +708,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 17) // 2 I
                 .build();
 
-        new DigitalContent.Builder("Anna Karenina").ballet().atMariinsky().on("01/01/2014").fullHD().mkv()
-                .discBox(0, 0)
-                .build();
-
         new DigitalContent.Builder("The Little Humpbacked Horse").ballet().atMariinsky().on("25/11/2013").fullHD().mkv()
                 .discBox(9, 17)
                 .build();
@@ -656,7 +716,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(10, 17) // Part I
                 .discBox(11, 17) // Part II
                 .build();
-        
+
     }
 
     private void initOperaVideos() throws ParseException {
@@ -732,7 +792,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .imdb("http://www.imdb.com/title/tt2573426/").build();
         // no existe el Disco... slot libre
         //new DigitalContent.Builder("Don Carlo").opera().atRoh().on("01/01/2008").dvd().engSubs().mkv().discBox(7, 2).imdb("http://www.imdb.com/title/tt2074354/").build();
-        
+
         new DigitalContent.Builder("Falstaff").opera().at("Teatro Comunale di Firenze").on("01/01/2006").dvd().spaSubs().iso().seenByFede().discBox(2, 2)
                 .imdb("http://www.imdb.com/title/tt2199446/").build();
         new DigitalContent.Builder("Falstaff").opera().atGlyndebourne().on("01/01/2009").fullHD().engSubs().mkv()
@@ -785,11 +845,12 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(9, 12)
                 .discBox(11, 12)
                 .imdb("http://www.imdb.com/title/tt2395995/").build();
-        
+
         new DigitalContent.Builder("Otello").opera().atTheMet().on("17/10/2015").fullHD().spaSubs().mkv()
-                .discBox(0, 0)
+                .discBox(1, 18) // parte 2
+                .discBox(0, 0) // parte 1
                 .build();
-        
+
         new DigitalContent.Builder("Otello").opera().at("Teatro di San Carlo").on("22/04/2014").fullHD().engSubs().mkv()
                 .discBox(7, 4)
                 .discBox(8, 4)
@@ -883,11 +944,13 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("El rapto en el serrallo").opera().at("Bayerische Staatsoper").on("01/01/1980").fullHD().spaSubs().mkv()
                 .discBox(4, 11)
                 .imdb("http://www.imdb.com/title/tt0254303/").build();
-        
+
         new DigitalContent.Builder("El rapto en el serrallo").opera().atGlyndebourne().on("19/07/2015").fullHD().engSubs().mkv()
-                .discBox(0, 0)
+                .discBox(12, 17) // parte 2
+                .discBox(1, 18) //parte 1
+                .discBox(6, 18) // parte 3
                 .build();
-        
+
         new DigitalContent.Builder("Il Sogno di Scipione").opera().at("Großes Festspielhaus").on("01/01/2006").dvd().spaSubs().iso().seenByFede().discBox(10, 3)
                 .imdb("http://www.imdb.com/title/tt1039909/").build();
         new DigitalContent.Builder("La Clemenza di Tito").opera().atTheMet().on("01/12/2012").fullHD().engSubs().mkv().seenByFede()
@@ -1190,12 +1253,11 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(6, 16)
                 .seenByFede()
                 .build();
-        
+
         new DigitalContent.Builder("Cavalleria Rusticana").opera().atTheMet().on("25/04/2015").fullHD().spaSubs().mkv()
                 .discBox(11, 17)
                 .seenByFede()
                 .build();
-        
 
         new DigitalContent.Builder("Pagliacci").opera().at("Teatro Real").on("01/01/2007").fullHD().spaSubs().mkv()
                 .discBox(8, 16)
@@ -1204,7 +1266,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Pagliacci").opera().atTheMet().on("26/04/2015").fullHD().spaSubs().mkv()
                 .discBox(10, 17)
                 .build();
-        
+
         new DigitalContent.Builder("Andrea Chénier").opera().atRoh().on("29/01/2015").fullHD().spaSubs().mkv()
                 .discBox(11, 16) // 1 2 y 4
                 .discBox(10, 16) //3 5 6
@@ -1260,11 +1322,98 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(5, 17) // 1
                 .discBox(7, 17) // 2
                 .build();
-        
-        new DigitalContent.Builder("Poliuto").opera().atGlyndebourne().on("15/07/2015").hd720().engSubs().mkv()
-                .discBox(0, 0)
+
+        new DigitalContent.Builder("Tannhauser").opera().atTheMet().on("31/10/2015").fullHD().spaSubs().mkv()
+                .discBox(12, 17) // partes 2 y 3
+                .discBox(1, 18) // parte 1
                 .build();
+
+        for (String title : new String[]{
+            "Extras Season 1", "Extras Season 2", "Extras Season 3", "Extras Season 4",
+            "Pilot", "Deep Throat", "Squeeze", "Conduit", "The Jersey Devil", "Shadows"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(2, 18).build();
+        }
+
+        for (String title : new String[]{
+            "Extras Season 5", "Extras Season 6", "Extras Season 7", "Extras Season 8", "Extras Fight The Future", "Extras I Want To Believe",
+            "Ghost in the Machine", "Ice", "Space", "Fallen Angel", "Eve", "Fire"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(3, 18).build();
+        }
+
+        for (String title : new String[]{"Extras Season 9", "Beyond the Sea", "Gender Bender", "Lazarus", "Young at Heart", "E.B.E.", "Miracle Man"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(4, 18).build();
+        }
+
+        for (String title : new String[]{"Shapes", "Darkness Falls", "Tooms", "Born Again", "Roland", "The Erlenmeyer Flask"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(5, 18).build();
+        }
+        new DigitalContent.Builder("The X-Files: The Game").game().iso()
+                .discBox(4, 18)
+                .discBox(5, 18)
+                .build();
+
+        for (String title : new String[]{
+            "Little Green Men",
+            "The Host",
+            "Blood",
+            "Sleepless",
+            "Duane Barry",
+            "Ascension"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(6, 18).build();
+        }
+        for (String title : new String[]{
+            "3",
+            "One Breath",
+            "Firewalker",
+            "Red Museum",
+            "Excelsis Dei",
+            "Aubrey"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(7, 18).build();
+        }
+
+        for(String title: new String[]{"Boca - Estudiantes", "Cruzeiro - Estudiantes"}){
+            new DigitalContent.Builder(title).sport().dvd().mkv().discBox(7, 18).build();
+        }
         
+        for (String title : new String[]{
+            "Irresistible",
+            "Die Hand Die Verletzt",
+            "Fresh Bones",
+            "Colony",
+            "End Game",
+            "Fearful Symmetry"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(8, 18).build();
+        }
+        for (String title : new String[]{
+            "Dod Kalm",
+            "Humbug",
+            "The Calusari",
+            "F.Emasculata",
+            "Soft Light",
+            "Our Town"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(9, 18).build();
+        }
+        for (String title : new String[]{"Anasazi"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(10, 18).build();
+        }
 
     }
 
@@ -1309,7 +1458,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         dto.setLanguage(list(dc.getLanguages()));
         dto.setMusicBy(toString(dc.getMusicComposers()));
         dto.setOpusTypes(toString(dc.getOpusTypes()));
-        dto.setQuality(dc.getQuality().toString());
+        dto.setQuality(dc.getQuality() != null ? dc.getQuality().toString() : "");
         dto.setSeenByAnaMaria(dc.isSeenBy(Repository.PERSON.findById("Ana María")));
         dto.setSeenByElsa(dc.isSeenBy(Repository.PERSON.findById("Elsa")));
         dto.setSeenByFede(dc.isSeenBy(Repository.PERSON.findById("Federico")));
@@ -1322,7 +1471,7 @@ public class LazyDigitalContentService implements DigitalContentService {
     private static List<String> toString(Collection<?> col) {
         List<String> answer = new ArrayList<>(col.size());
         for (Object o : col) {
-            answer.add(o.toString());
+            answer.add(o != null ? o.toString() : "");
         }
         return answer;
     }
@@ -1453,6 +1602,14 @@ public class LazyDigitalContentService implements DigitalContentService {
         Set<DigitalContent> allContent = Repository.DIGITALCONTENT.findAll();
         Person p = Repository.PERSON.findById(personName);
         Set<Opus> allOpuses = Repository.OPUS.findAll();
+        
+        for (Iterator<Opus> it = allOpuses.iterator(); it.hasNext();) {
+            Opus opus = it.next();
+            if (opus.getType() == OpusType.GAME || opus.getType() == OpusType.SPORT) {
+                it.remove();
+            }
+        }
+        
         for (DigitalContent dc : allContent) {
             if (dc.isSeenBy(p)) {
                 allOpuses.removeAll(dc.getOpuses());
@@ -1471,6 +1628,13 @@ public class LazyDigitalContentService implements DigitalContentService {
     public List<OpusDTO> unavailableInHD() {
 
         Set<Opus> notInHD = Repository.OPUS.findAll();
+        for (Iterator<Opus> it = notInHD.iterator(); it.hasNext();) {
+            Opus opus = it.next();
+            if (opus.getType() == OpusType.GAME || opus.getType() == OpusType.SPORT) {
+                it.remove();
+            }
+        }
+
         for (DigitalContent dc : Repository.DIGITALCONTENT.findAll()) {
             if (dc.getQuality() == Quality.HD720 || dc.getQuality() == Quality.HD1080) {
                 notInHD.removeAll(dc.getOpuses());

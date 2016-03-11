@@ -23,6 +23,6 @@ package org.fede.digitalcontent.model;
  */
 public enum OpusType {
 
-    BALLET, OPERA, CONCERT, PLAY, STUDIO, ORATORIO, DOCUMENTARY;
+    BALLET, OPERA, CONCERT, PLAY, STUDIO, ORATORIO, DOCUMENTARY, EPISODE, MOVIE, GAME, SPORT;
 
 }

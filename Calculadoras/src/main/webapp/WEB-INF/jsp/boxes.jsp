@@ -32,7 +32,7 @@
         <style type="text/css">
             li{
                 line-height: 2.3em;
-                
+
             }
             .opusSpan{
                 border-radius: 0.2em;
@@ -43,15 +43,6 @@
             }
             ul{
                 list-style-type: square;
-            }
-            .BALLET{
-                background-color: khaki;
-            }
-            .OPERA{
-                background-color: peachpuff;
-            }
-            .ORATORIO{
-                background-color: burlywood;
             }
             nav a {
                 background-color: cornsilk;
@@ -67,9 +58,9 @@
         <%@include file="../jspf/menu.jspf" %>
         <h1 id="top">Contenido de las Cajas</h1>
         <nav>
-        <c:forEach items="${boxes}" var="boxLabel">
-            <a href="#${boxLabel.boxName}" class="opusSpan">Caja ${boxLabel.boxName}</a> 
-        </c:forEach>
+            <c:forEach items="${boxes}" var="boxLabel">
+                <a href="#${boxLabel.boxName}" class="opusSpan">Caja ${boxLabel.boxName}</a> 
+            </c:forEach>
         </nav>
         <c:forEach items="${boxes}" var="boxLabel">
             <h2><a id="${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> <span class="gotop"><a href="#top">Volver al principio</a></span></h2>

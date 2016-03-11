@@ -164,6 +164,22 @@ public class DigitalContent {
             return this;
         }
 
+        public Builder episode() {
+            this.opusType = OpusType.EPISODE;
+            return this;
+        }
+        
+        public Builder sport() {
+            this.opusType = OpusType.SPORT;
+            return this;
+        }
+        
+        public Builder game() {
+            this.opusType = OpusType.GAME;
+            return this;
+        }
+        
+        
         public Builder type(OpusType type) {
             this.opusType = type;
             return this;
@@ -251,8 +267,8 @@ public class DigitalContent {
 
                 Opus opus = OPUS.findById(new Pair<>(this.title, this.opusType));
                 Venue place = VENUE.findById(this.venue);
-                Date moment = df.parse(date);
-                if (opus == null || place == null || moment == null || formatType == null) {
+                Date moment = date == null?null:df.parse(date);
+                if (opus == null){// || place == null || moment == null || formatType == null) {
                     throw new IllegalArgumentException("Opus, Venue, Date and FormatType are required.");
                 }
 

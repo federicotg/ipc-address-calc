@@ -49,6 +49,27 @@ public class Opus {
             }
             return this;
         }
+        
+        public Builder episode() {
+            for (Opus opus : this.opuses) {
+                opus.setType(OpusType.EPISODE);
+            }
+            return this;
+        }
+        
+        public Builder sport() {
+            for (Opus opus : this.opuses) {
+                opus.setType(OpusType.SPORT);
+            }
+            return this;
+        }
+
+        public Builder game() {
+            for (Opus opus : this.opuses) {
+                opus.setType(OpusType.GAME);
+            }
+            return this;
+        }        
 
         public Builder ballet() {
             for (Opus opus : this.opuses) {

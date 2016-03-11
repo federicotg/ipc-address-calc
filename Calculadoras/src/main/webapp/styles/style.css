@@ -104,3 +104,21 @@ tbody tr:nth-child(even) {
 tbody tr:hover {
     background-color: cornsilk;
 }
+.BALLET{
+    background-color: khaki;
+}
+.OPERA{
+    background-color: peachpuff;
+}
+.ORATORIO{
+    background-color: burlywood;
+}
+.EPISODE{
+    background-color: lavender;
+}
+.GAME{
+    background-color: gold;
+}
+.SPORT{
+    background-color: floralwhite;
+}            
