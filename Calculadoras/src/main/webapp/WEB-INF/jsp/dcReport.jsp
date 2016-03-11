@@ -50,7 +50,7 @@
                     <th id="box">Caja</th>
                     <th id="type">Tipo</th>
                     <th id="title">Título</th>
-                    <th id="music">Música</th>
+                    <th id="music">Grupo</th>
                     <th id="date">Fecha</th>
                     <th id="venue">Lugar</th>
                     <th id="quality">Calidad</th>
