@@ -17,6 +17,7 @@
  
 --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
@@ -63,10 +64,10 @@
             </c:forEach>
         </nav>
         <c:forEach items="${boxes}" var="boxLabel">
-            <h2><a id="${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> <span class="gotop"><a href="#top">Volver al principio</a></span></h2>
+            <h2><a id="${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> <span class="gotop"><fmt:formatNumber minFractionDigits="2" maxFractionDigits="2" groupingUsed="true">${boxLabel.sizeInGB}</fmt:formatNumber>  <abbr title="Gibibyte">GiB</abbr> <a href="#top">Volver al principio</a></span></h2>
             <ul>
                 <c:forEach items="${boxLabel.contents}" var="medium">
-                    <li>${medium.mediumName}
+                    <li>${medium.mediumName} <span class="gotop"><fmt:formatNumber minFractionDigits="2" maxFractionDigits="2" groupingUsed="true">${medium.sizeInGB}</fmt:formatNumber> GiB</span> 
                         <c:forEach items="${medium.opus}" var="op" varStatus="status">
                             <span class="opusSpan ${op.type}">${op.name}</span><c:if test="${not status.last}"> </c:if>
                         </c:forEach>

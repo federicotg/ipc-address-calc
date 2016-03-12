@@ -57,6 +57,7 @@ import org.fede.digitalcontent.model.Person;
 import org.fede.digitalcontent.model.Quality;
 import org.fede.digitalcontent.model.Repository;
 import org.fede.digitalcontent.model.StorageMedium;
+import org.fede.digitalcontent.model.StorageMediumRepository;
 import org.fede.digitalcontent.model.Venue;
 import org.fede.util.Predicate;
 
@@ -82,6 +83,7 @@ public class LazyDigitalContentService implements DigitalContentService {
     @PostConstruct
     public void initBasicObjects() throws ParseException {
 
+
         this.initVenues();
         this.initBallets();
         this.initTheXFiles();
@@ -89,8 +91,30 @@ public class LazyDigitalContentService implements DigitalContentService {
         this.initOperas();
         this.initBalletVideos();
         this.initOperaVideos();
-
+        // last
+        this.initSizes();
     }
+    
+    private void initSizes(){
+        final StorageMediumRepository repo = Repository.STORAGE;
+        repo.findById("18-01").setSize(23809270814l);
+        repo.findById("11-01").setSize(8335715119l);
+        repo.findById("11-02").setSize(8474569322l);
+        repo.findById("11-03").setSize(7672195406l);
+        repo.findById("11-04").setSize(24075335475l);
+        repo.findById("11-05").setSize(24005313725l);
+        repo.findById("11-06").setSize(7545019645l);
+        repo.findById("11-07").setSize(8496653663l);
+        repo.findById("11-08").setSize(24203506911l);
+        repo.findById("11-09").setSize(8436873593l);
+        repo.findById("11-10").setSize(8425758288l);
+        repo.findById("11-11").setSize(8104299674l);
+        repo.findById("11-12").setSize(8262949279l);
+        
+        
+        
+    }
+    
 
     private void initBallets() {
         new Opus.Builder("Giselle", "Le Corsaire").ballet().by("Adolphe Adam").build();
@@ -403,6 +427,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         
         new Opus.Builder("Boca - Estudiantes")
                 .by("Estudiantes").sport().language(Language.SPANISH).build();
+        
+        new Opus.Builder("Estudiantes Campeón 2009")
+                .by("Estudiantes").sport().language(Language.SPANISH).build();        
+        
      }
     
     private void initTheXFiles() {
@@ -1066,9 +1094,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Orlando Furioso").opera().at("War Memorial Opera House").on("01/01/1990").dvd().spaSubs().iso()
                 .discBox(6, 9)
                 .imdb("http://www.imdb.com/title/tt0240782/").build();
-        new DigitalContent.Builder("Das Rheingold").opera().at("Royal Danish Theatre").on("01/01/2006").dvd().spaSubs().iso().seenByFede().discBox(3, 4)
+        new DigitalContent.Builder("Das Rheingold").opera().at("Royal Danish Theatre").on("01/01/2006")
+                .dvd().spaSubs().iso().seenByFede().discBox(3, 4)
                 .imdb("http://www.imdb.com/title/tt2199364/").build();
-        new DigitalContent.Builder("Das Rheingold").opera().at("Palacio de las Artes Reina Sofía").on("01/01/2009").dvd().spaSubs().mkv().discBox(8, 11).build();
+        new DigitalContent.Builder("Das Rheingold").opera().at("Palacio de las Artes Reina Sofía")
+                .on("01/01/2009").dvd().spaSubs().mkv().discBox(8, 11).build();
         new DigitalContent.Builder("Die Walküre").opera().at("Royal Danish Theatre").on("01/01/2006").dvd().spaSubs().iso().seenByFede()
                 .discBox(4, 4)
                 .discBox(5, 4)
@@ -1133,14 +1163,25 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         /* --- */
-        Set<Performance> gotterdammerungAtTheMet2012 = new DigitalContent.Builder("Gotterdammerung").opera().atTheMet().on("01/01/2012").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build().getPerformances();
+        Set<Performance> gotterdammerungAtTheMet2012 = new DigitalContent.Builder("Gotterdammerung")
+                .opera()
+                .atTheMet()
+                .on("01/01/2012")
+                .spaSubs().br()
+                .box("Der Ring des Nibelungen")
+                .seenByFede()
+                .build()
+                .getPerformances();
+        
         new DigitalContent.Builder(gotterdammerungAtTheMet2012).mkv().fullHD().spaSubs()
                 .discBox(1, 5) // 1 y 3
                 .discBox(4, 3) // 2
                 .build();
 
         /* --- */
-        Set<Performance> walkureAtTheMet2012 = new DigitalContent.Builder("Die Walküre").opera().atTheMet().on("01/01/2011").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build().getPerformances();
+        Set<Performance> walkureAtTheMet2012 = new DigitalContent.Builder("Die Walküre").opera()
+                .atTheMet().on("01/01/2011").spaSubs().br().box("Der Ring des Nibelungen")
+                .seenByFede().build().getPerformances();
         new DigitalContent.Builder(walkureAtTheMet2012).mkv().fullHD().spaSubs()
                 .discBox(5, 1) // parte 3
                 .discBox(10, 1) // parte 2
@@ -1148,7 +1189,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
 
         /* --- */
-        Set<Performance> dasRheingoldAtTheMet2012 = new DigitalContent.Builder("Das Rheingold").opera().atTheMet().on("01/01/2010").spaSubs().br().box("Der Ring des Nibelungen").seenByFede().build().getPerformances();
+        Set<Performance> dasRheingoldAtTheMet2012 = new DigitalContent.Builder("Das Rheingold")
+                .opera().atTheMet().on("01/01/2010").spaSubs().br().box("Der Ring des Nibelungen")
+                .seenByFede().build().getPerformances();
 
         new DigitalContent.Builder(dasRheingoldAtTheMet2012).mkv().fullHD().spaSubs()
                 .discBox(3, 5) // parte 1
@@ -1163,7 +1206,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .starringNetrebko()
                 .box("Lucia di Lammermoor").build();
 
-        new DigitalContent.Builder("Le nozze di Figaro").opera().at("Sydney Opera House").on("18/08/2010").spaSubs().br().seenByFede().box("Le nozze di Figaro").build();
+        new DigitalContent.Builder("Le nozze di Figaro").opera().at("Sydney Opera House").on("18/08/2010")
+                .spaSubs().br().seenByFede().box("Le nozze di Figaro").build();
         new DigitalContent.Builder("Turandot").opera().atTheMet().on("07/11/2009 ").spaSubs().br().seenByFede().box("Turandot").build();
         new DigitalContent.Builder("Don Pasquale").opera().atTheMet().on("13/11/2010 ").spaSubs().br().seenByFede()
                 .starringNetrebko()
@@ -1383,9 +1427,17 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .discBox(7, 18).build();
         }
 
-        for(String title: new String[]{"Boca - Estudiantes", "Cruzeiro - Estudiantes"}){
-            new DigitalContent.Builder(title).sport().dvd().mkv().discBox(7, 18).build();
-        }
+        new DigitalContent.Builder("Boca - Estudiantes").sport().dvd().on("13/12/2006").mkv().discBox(7, 18)
+                .seenByFede()
+                .build();
+            
+        new DigitalContent.Builder("Cruzeiro - Estudiantes").sport().dvd().on("15/07/2009").mkv().discBox(7, 18)
+                .seenByFede()
+                .build();
+        
+        new DigitalContent.Builder("Estudiantes Campeón 2009").sport().dvd().dvdFormat().box("Estudiantes Campeón 2009")
+                .seenByFede()
+                .build();
         
         for (String title : new String[]{
             "Irresistible",
@@ -1542,9 +1594,11 @@ public class LazyDigitalContentService implements DigitalContentService {
     private BoxLabelDTO getBoxLabel(StorageBox box) {
         BoxLabelDTO dto = new BoxLabelDTO();
         dto.setBoxName(box.getName());
+        dto.setSize(box.size());
         for (StorageMedium medium : box.getMedia()) {
             final MediumContentDTO mDto = new MediumContentDTO();
             mDto.setMediumName(medium.getName());
+            mDto.setSize(medium.getSize());
             for (DigitalContent dc : medium.getContents()) {
                 for (Performance p : dc.getPerformances()) {
                     mDto.addOpus(p.getDetailedTitle(), p.getOpusType().name());

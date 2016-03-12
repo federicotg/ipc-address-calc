@@ -27,6 +27,8 @@ import java.util.Set;
 public class StorageMedium {
 
     private String name;
+    
+    private long size;
 
     private Set<DigitalContent> contents;
 
@@ -66,4 +68,13 @@ public class StorageMedium {
         return contents.toString();
     }
 
+    public void setSize(long bytes){
+        this.size = bytes;
+    }
+
+    public long getSize() {
+        return size;
+    }
+    
+    
 }

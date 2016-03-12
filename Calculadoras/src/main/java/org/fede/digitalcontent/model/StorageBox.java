@@ -89,5 +89,18 @@ public class StorageBox {
         final StorageBox other = (StorageBox) obj;
         return Objects.equals(this.name, other.name);
     }
+    
+    public long size(){
+        if(this.media == null){
+            return 0l;
+        }
+        
+        long size = 0l;
+        for(StorageMedium m : this.media){
+            size += m.getSize();
+        }
+        
+        return size;
+    }
 
 }

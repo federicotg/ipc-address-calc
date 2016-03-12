@@ -16,6 +16,8 @@
  */
 package org.fede.digitalcontent.dto;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.Collection;
 import java.util.TreeSet;
 
@@ -25,7 +27,10 @@ import java.util.TreeSet;
  */
 public class MediumContentDTO implements Comparable<MediumContentDTO> {
 
+    private static final BigDecimal BYTES_IN_A_GB = new BigDecimal(1024 * 1024 * 1024);
+    
     private String mediumName;
+    private long size;
     private Collection<OpusDTO> opus = new TreeSet<>();
 
     public String getMediumName() {
@@ -51,6 +56,18 @@ public class MediumContentDTO implements Comparable<MediumContentDTO> {
 
     public void addOpus(String name, String type) {
         this.opus.add(new OpusDTO(name, type));
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
+    }
+    
+    public BigDecimal getSizeInGB(){
+        return new BigDecimal(this.size).setScale(6).divide(BYTES_IN_A_GB, MathContext.DECIMAL32);
     }
 
 }

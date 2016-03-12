@@ -16,6 +16,8 @@
  */
 package org.fede.digitalcontent.dto;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,7 +28,10 @@ import java.util.List;
  */
 public class BoxLabelDTO implements Comparable<BoxLabelDTO> {
 
+    private static final BigDecimal BYTES_IN_A_GB = new BigDecimal(1024 * 1024 * 1024);
+    
     private String boxName;
+    private long size;
     private List<MediumContentDTO> contents = new ArrayList<>();
 
     public String getBoxName() {
@@ -58,4 +63,11 @@ public class BoxLabelDTO implements Comparable<BoxLabelDTO> {
         return this.getBoxName().compareTo(o.getBoxName());
     }
 
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+    public BigDecimal getSizeInGB(){
+        return new BigDecimal(this.size).setScale(6).divide(BYTES_IN_A_GB, MathContext.DECIMAL32);
+    }
 }
