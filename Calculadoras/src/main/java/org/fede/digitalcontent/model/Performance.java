@@ -162,7 +162,9 @@ public class Performance {
 
     @Override
     public String toString() {
-        return this.opus.toString() + " @ " + this.venue.toString() + " on " + this.date.toString();
+        return this.opus.toString() 
+                + (this.venue == null ? "": " @ " + this.venue.toString()) 
+                + (this.date == null ? "" : " on " + this.date.toString());
     }
 
     public boolean includesComposer(String name) {
@@ -177,12 +179,12 @@ public class Performance {
     public String getDetailedTitle() {
         DateFormat yearFormat = new SimpleDateFormat("yyyy");
 
-        Venue venue = this.getVenue();
+        Venue v = this.getVenue();
         Date d = this.getDate();
         StringBuilder sb = new StringBuilder(30);
         sb.append(this.getTitle())
-                .append(venue != null?" @ ":"")
-                .append(venue != null ? venue.getName() : "")
+                .append(v != null?" @ ":"")
+                .append(v != null ? v.getName() : "")
                 .append(d != null ? " (":"")
                 .append(d != null ? yearFormat.format(d) : "")
                 .append(d != null ? ")":"");

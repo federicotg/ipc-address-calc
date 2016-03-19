@@ -16,8 +16,12 @@
  */
 package org.fede.calculator;
 
+import java.util.HashSet;
 import java.util.Set;
 import org.fede.calculator.service.DigitalContentService;
+import org.fede.digitalcontent.model.DigitalContent;
+import org.fede.digitalcontent.model.OpusType;
+import org.fede.digitalcontent.model.Performance;
 import org.fede.digitalcontent.model.Repository;
 import org.fede.digitalcontent.model.StorageMedium;
 import org.junit.Test;
@@ -34,15 +38,12 @@ import org.springframework.test.context.web.WebAppConfiguration;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration({
-    "/applicationContext-calculadoras.xml"
-})
+@ContextConfiguration({"file:src/main/webapp/WEB-INF/calculadoras-servlet.xml", "file:src/main/resources/applicationContext-calculadoras.xml"})
 public class DigitalCollectionTest {
 
-    
     @Autowired
     private DigitalContentService digitalContentService;
-    
+
     public DigitalCollectionTest() {
     }
 
@@ -53,14 +54,43 @@ public class DigitalCollectionTest {
     public void distRepo() {
 
         assertNotNull(this.digitalContentService);
-        
+
         Set<StorageMedium> all = Repository.STORAGE.findAll();
         assertNotNull(all);
         assertFalse(all.isEmpty());
-        
+
         for (StorageMedium disc : Repository.STORAGE.findAll()) {
             assertNotNull(disc);
-            System.out.println(disc.getName());
+            // System.out.println(disc.getName());
+        }
+    }
+
+    private Set<StorageMedium> storageMediumFor(DigitalContent dc) {
+        Set<StorageMedium> set = new HashSet<>();
+        for (StorageMedium disc : Repository.STORAGE.findAll()) {
+            if (disc.getContents().contains(dc)) {
+                set.add(disc);
+            }
+        }
+        return set;
+    }
+
+    @Test
+    public void singleStorageMediumDigitalContent() {
+        for (DigitalContent dc : Repository.DIGITALCONTENT.findAll()) {
+
+            if (storageMediumFor(dc).size() == 1) {
+                StorageMedium disc = storageMediumFor(dc).iterator().next();
+                if (disc.getContents().size() == 1) {
+                    for (Performance p : dc.getPerformances()) {
+                        if (p.getOpusType().equals(OpusType.BALLET)
+                                || p.getOpusType().equals(OpusType.OPERA)
+                                || p.getOpusType().equals(OpusType.ORATORIO)) {
+                            System.out.println(disc.getName() + " " + p.getDetailedTitle());
+                        }
+                    }
+                }
+            }
         }
     }
 }

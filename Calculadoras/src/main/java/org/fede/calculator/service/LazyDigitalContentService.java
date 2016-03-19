@@ -83,7 +83,6 @@ public class LazyDigitalContentService implements DigitalContentService {
     @PostConstruct
     public void initBasicObjects() throws ParseException {
 
-
         this.initVenues();
         this.initBallets();
         this.initTheXFiles();
@@ -94,10 +93,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         // last
         this.initSizes();
     }
-    
-    private void initSizes(){
+
+    private void initSizes() {
         final StorageMediumRepository repo = Repository.STORAGE;
-        repo.findById("18-01").setSize(23809270814l);
+
         repo.findById("11-01").setSize(8335715119l);
         repo.findById("11-02").setSize(8474569322l);
         repo.findById("11-03").setSize(7672195406l);
@@ -110,11 +109,22 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("11-10").setSize(8425758288l);
         repo.findById("11-11").setSize(8104299674l);
         repo.findById("11-12").setSize(8262949279l);
-        
-        
-        
+
+        repo.findById("18-01").setSize(23809270814l);
+        repo.findById("18-06").setSize(23873717071l);
+        repo.findById("18-07").setSize(22683178310l);
+        repo.findById("18-08").setSize(21108708017l);
+        repo.findById("18-09").setSize(21186373918l);
+        repo.findById("18-10").setSize(22915434845l);
+        repo.findById("18-11").setSize(22959785253l);
+        repo.findById("18-12").setSize(22906853814l);
+
+        repo.findById("3-09").setSize(23744018119l);
+        repo.findById("3-10").setSize(24090135203l);
+
+        repo.findById("6-01").setSize(23786572018l);
+
     }
-    
 
     private void initBallets() {
         new Opus.Builder("Giselle", "Le Corsaire").ballet().by("Adolphe Adam").build();
@@ -419,26 +429,25 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     }
 
-    
-     private void initSports() {
-        
-         new Opus.Builder("Cruzeiro - Estudiantes")
+    private void initSports() {
+
+        new Opus.Builder("Cruzeiro - Estudiantes")
                 .by("Estudiantes").sport().language(Language.SPANISH).build();
-        
+
         new Opus.Builder("Boca - Estudiantes")
                 .by("Estudiantes").sport().language(Language.SPANISH).build();
-        
+
         new Opus.Builder("Estudiantes Campeón 2009")
-                .by("Estudiantes").sport().language(Language.SPANISH).build();        
-        
-     }
-    
+                .by("Estudiantes").sport().language(Language.SPANISH).build();
+
+    }
+
     private void initTheXFiles() {
         new Opus.Builder(
                 "Pilot", "Deep Throat", "Squeeze", "Conduit", "The Jersey Devil", "Shadows",
                 "Ghost in the Machine", "Ice", "Space", "Fallen Angel", "Eve", "Fire", "Beyond the Sea", "Gender Bender", "Lazarus",
                 "Young at Heart", "E.B.E.", "Miracle Man", "Shapes", "Darkness Falls", "Tooms", "Born Again", "Roland", "The Erlenmeyer Flask")
-                .by("The X-Files").episode().english().build();
+                .by("The X-Files Season 1").episode().english().build();
 
         new Opus.Builder("The X-Files: The Game").by("The X-Files").game().english().build();
 
@@ -480,7 +489,91 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Soft Light",
                 "Our Town",
                 "Anasazi")
-                .by("The X-Files").episode().english().build();
+                .by("The X-Files Season 2").episode().english().build();
+
+        new Opus.Builder(
+                "The Blessing Way",
+                "Paper Clip",
+                "D.P.O.",
+                "Clyde Bruckman's Final Repose",
+                "The List",
+                "2Shy",
+                "The Walk",
+                "Oubliette",
+                "Nisei",
+                "731",
+                "Revelations",
+                "War of the Coprophages",
+                "Syzygy",
+                "Grotesque",
+                "Piper Maru",
+                "Apocrypha",
+                "Pusher",
+                "Teso Dos Bichos",
+                "Hell Money",
+                "Jose Chung's 'From Outer Space'",
+                "Avatar",
+                "Quagmire",
+                "WetWired",
+                "Talitha Cumi").by("The X-Files Season 3").episode().english().build();
+
+        new Opus.Builder(
+                "Herrenvolk",
+                "Home",
+                "Teliko",
+                "Unruhe",
+                "The Field Where I Died",
+                "Sanguinarium",
+                "Musings of a Cigarette Smoking Man",
+                "Tunguska",
+                "Terma",
+                "Paper Hearts",
+                "El Mundo Gira",
+                "Leonard Betts",
+                "Never Again",
+                "Memento Mori",
+                "Kaddish",
+                "Unrequited",
+                "Tempus Fugit",
+                "Max",
+                "Synchrony",
+                "Small Potatoes",
+                "Zero Sum",
+                "Elegy",
+                "Demons",
+                "Gethsemane"
+        ).by("The X-Files Season 4").episode().english().build();
+
+        new Opus.Builder(
+                "Redux",
+                "Redux II",
+                "Unusual Suspects",
+                "Detour",
+                "The Post-Modern Prometheus",
+                "Christmas Carol",
+                "Emily",
+                "Kitsunegari",
+                "Schizogeny",
+                "Chinga",
+                "Kill Switch",
+                "Bad Blood",
+                "Patient X",
+                "The Red and the Black",
+                "Travelers",
+                "Mind's Eye",
+                "All Souls",
+                "The Pine Bluff Variant",
+                "Folie à Deux",
+                "The End"
+        ).by("The X-Files Season 5").episode().english().build();
+
+        new Opus.Builder(
+                "My Struggle",
+                "Founder's Mutation",
+                "Mulder and Scully Meet the Were-Monster",
+                "Home Again",
+                "Babylon",
+                "My Struggle II").by("The X-Files Season 10").episode().english().build();
 
     }
 
@@ -492,11 +585,10 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .imdb("http://www.imdb.com/title/tt1596783/")
                 .build();
         new DigitalContent.Builder("Giselle").ballet().atRoh().on("27/01/2014").fullHD().mkv().discBox(7, 15).build();
-        new DigitalContent.Builder("Le Corsaire").ballet().atBolshoi().on("11/03/2012").hd720().mkv().discBox(9, 3)
-                .imdb("http://www.imdb.com/title/tt2798336/")
-                .seenByAnaMaria()
-                .seenByFede()
-                .build();
+
+        new DigitalContent.Builder("Le Corsaire").ballet().atBolshoi().on("11/03/2012").hd720().mkv()
+                .discBox(9, 3).imdb("http://www.imdb.com/title/tt2798336/").seenByAnaMaria().seenByFede().build();
+
         new DigitalContent.Builder("Raymonda").ballet().atBolshoi().on("24/06/2012").hd720().mkv()
                 .discBox(6, 12)
                 .discBox(8, 12)
@@ -1172,7 +1264,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .seenByFede()
                 .build()
                 .getPerformances();
-        
+
         new DigitalContent.Builder(gotterdammerungAtTheMet2012).mkv().fullHD().spaSubs()
                 .discBox(1, 5) // 1 y 3
                 .discBox(4, 3) // 2
@@ -1430,15 +1522,15 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Boca - Estudiantes").sport().dvd().on("13/12/2006").mkv().discBox(7, 18)
                 .seenByFede()
                 .build();
-            
+
         new DigitalContent.Builder("Cruzeiro - Estudiantes").sport().dvd().on("15/07/2009").mkv().discBox(7, 18)
                 .seenByFede()
                 .build();
-        
+
         new DigitalContent.Builder("Estudiantes Campeón 2009").sport().dvd().dvdFormat().box("Estudiantes Campeón 2009")
                 .seenByFede()
                 .build();
-        
+
         for (String title : new String[]{
             "Irresistible",
             "Die Hand Die Verletzt",
@@ -1461,10 +1553,76 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .seenByFede()
                     .discBox(9, 18).build();
         }
-        for (String title : new String[]{"Anasazi"}) {
+        for (String title : new String[]{
+            "Anasazi",
+            "The Blessing Way",
+            "Paper Clip",
+            "D.P.O.",
+            "Clyde Bruckman's Final Repose",
+            "The List",
+            "My Struggle"}) {
             new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
                     .seenByFede()
                     .discBox(10, 18).build();
+        }
+
+        for (String title : new String[]{
+            "2Shy",
+            "The Walk",
+            "Oubliette",
+            "Nisei",
+            "731",
+            "Revelations",
+            "Founder's Mutation"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(11, 18).build();
+        }
+
+        for (String title : new String[]{
+            "War of the Coprophages",
+            "Syzygy",
+            "Grotesque",
+            "Piper Maru",
+            "Apocrypha",
+            "Pusher",
+            "Mulder and Scully Meet the Were-Monster"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(12, 18).build();
+        }
+
+        for (String title : new String[]{
+            "Teso Dos Bichos",
+            "Hell Money",
+            "Jose Chung's 'From Outer Space'",
+            "Avatar",
+            "Home Again"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(9, 3).build();
+        }
+
+        for (String title : new String[]{
+            "Quagmire",
+            "WetWired",
+            "Talitha Cumi",
+            "Herrenvolk",
+            "My Struggle II"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(10, 3).build();
+        }
+
+        for (String title : new String[]{
+            "Babylon",
+            "Redux",
+            "Redux II",
+            "Unusual Suspects",
+            "Detour"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(1, 6).build();
         }
 
     }
@@ -1656,14 +1814,14 @@ public class LazyDigitalContentService implements DigitalContentService {
         Set<DigitalContent> allContent = Repository.DIGITALCONTENT.findAll();
         Person p = Repository.PERSON.findById(personName);
         Set<Opus> allOpuses = Repository.OPUS.findAll();
-        
+
         for (Iterator<Opus> it = allOpuses.iterator(); it.hasNext();) {
             Opus opus = it.next();
             if (opus.getType() == OpusType.GAME || opus.getType() == OpusType.SPORT) {
                 it.remove();
             }
         }
-        
+
         for (DigitalContent dc : allContent) {
             if (dc.isSeenBy(p)) {
                 allOpuses.removeAll(dc.getOpuses());

@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.springframework.version>4.2.2.RELEASE</org.springframework.version>
         <spring-security.version>4.0.3.RELEASE</spring-security.version>
-        <com.google.appengine.version>1.9.32</com.google.appengine.version>
+        <com.google.appengine.version>1.9.34</com.google.appengine.version>
         <!--hibernate-validator-version>4.3.2.Final</hibernate-validator-version-->
         <hibernate-validator-version>5.2.1.Final</hibernate-validator-version>
         <jackson2-version>2.6.3</jackson2-version>
@@ -194,11 +194,14 @@
 
     <build>
         
-        <testResources>
+        <!--testResources>
             <testResource>
-            <directory>src/main/webapp/WEB-INF</directory>
+                <directory>src/main/webapp/WEB-INF</directory>
             </testResource>
-        </testResources>
+            <testResource>
+                <directory>src/main/resources</directory>
+            </testResource>
+        </testResources-->
         
         <!-- for hot reload of the web application-->
         <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/classes</outputDirectory>
