@@ -9187,7 +9187,8 @@
                             "seriesID": "CUUR0000SA0",
                             "data": [
     
-    {"year": "2016","period": "M01","periodName": "January", "value": "236.916","footnotes": [{}]}
+    {"year": "2016","period": "M01","periodName": "January", "value": "236.916","footnotes": [{}]},
+    {"year": "2016","period": "M02","periodName": "February", "value": "237.111","footnotes": [{}]}
                                 
     ]
 }]

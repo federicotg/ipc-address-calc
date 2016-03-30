@@ -36,6 +36,11 @@ public class JSONDataPoint implements Comparable<JSONDataPoint> {
         this.month = month;
     }
 
+    public JSONDataPoint(int year, int month, BigDecimal value) {
+        this.year = year;
+        this.month = month;
+        this.value = value;
+    }
   
     public int getYear() {
         return year;

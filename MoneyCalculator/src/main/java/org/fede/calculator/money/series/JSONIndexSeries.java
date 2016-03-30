@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.List;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 
-
 /**
  *
  * @author fede
@@ -33,10 +32,10 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 public class JSONIndexSeries extends IndexSeriesSupport implements IndexSeries {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-       
+
     public static IndexSeries readSeries(String name) {
         try (InputStream is = JSONIndexSeries.class.getResourceAsStream("/" + name)) {
-           
+
             List<JSONDataPoint> data = MAPPER.readValue(is, new TypeReference<List<JSONDataPoint>>() {
             });
             return new JSONIndexSeries(data);

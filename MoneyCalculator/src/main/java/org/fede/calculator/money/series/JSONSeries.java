@@ -42,6 +42,15 @@ public class JSONSeries {
     private List<JSONDataPoint> data;
     private String interpolation = "NO_INTERPOLATION";
 
+    public JSONSeries() {
+    }
+
+    public JSONSeries(String currency, List<JSONDataPoint> data, String interpolation) {
+        this.currency = currency;
+        this.data = data;
+        this.interpolation = interpolation;
+    }
+    
     public String getCurrency() {
         return currency;
     }
