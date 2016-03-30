@@ -39,10 +39,10 @@
             <li><a href="goldSavings">Oro</a></li>
             <li><a href="incomes">Ingresos</a></li>
             <li><a href="expenses">Gastos</a></li>
+            <li><a href="consultatio">Consultatio Plus F.C.I.</a></li>
             <li><a href="expensesPercent">Gastos / Ingresos</a></li>
             <li><a href="consortiumExpenses">Gastos del Consorcio</a></li>
             <li><a href="savingsAndIncomeChange">Cambio Anual de Ingresos y Ahorros</a></li>
-            
         </ul>
         <h1>Reportes</h1>
         <ul>

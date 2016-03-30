@@ -77,6 +77,13 @@ public class Opus {
             }
             return this;
         }
+        
+        public Builder movie() {
+            for (Opus opus : this.opuses) {
+                opus.setType(OpusType.MOVIE);
+            }
+            return this;
+        }
 
         public Builder oratorio() {
             for (Opus opus : this.opuses) {

@@ -51,7 +51,7 @@ import org.fede.digitalcontent.model.Language;
 import org.fede.digitalcontent.model.Opus;
 import org.fede.digitalcontent.model.OpusType;
 import static org.fede.digitalcontent.model.OpusType.BALLET;
-import org.fede.digitalcontent.model.Pair;
+import org.fede.util.Pair;
 import org.fede.digitalcontent.model.Performance;
 import org.fede.digitalcontent.model.Person;
 import org.fede.digitalcontent.model.Quality;
@@ -123,6 +123,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("3-10").setSize(24090135203l);
 
         repo.findById("6-01").setSize(23786572018l);
+        
+        repo.findById("7-03").setSize(24081187584l);
+        
+        repo.findById("9-01").setSize(23266263358l);
+        
 
     }
 
@@ -450,6 +455,13 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .by("The X-Files Season 1").episode().english().build();
 
         new Opus.Builder("The X-Files: The Game").by("The X-Files").game().english().build();
+
+        new Opus.Builder("The X-Files: I Want to Believe")
+                .by("The X-Files")
+                .movie()
+                .english()
+                .imdb("http://www.imdb.com/title/tt0443701/")
+                .build();
 
         new Opus.Builder(
                 "Extras Season 1",
@@ -1625,6 +1637,27 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .discBox(1, 6).build();
         }
 
+        new DigitalContent.Builder("The X-Files: I Want to Believe").type(OpusType.MOVIE).fullHD().spaSubs().mkv()
+                .seenByFede()
+                .discBox(3, 7).build();
+        new DigitalContent.Builder("The Post-Modern Prometheus").episode().fullHD().spaSubs().mkv()
+                .seenByFede()
+                .discBox(3, 7).build();
+        new DigitalContent.Builder("Christmas Carol").episode().fullHD().spaSubs().mkv()
+                .seenByFede()
+                .discBox(3, 7).build();
+
+        for (String title : new String[]{
+                "Emily",
+                "Kitsunegari",
+                "Schizogeny",
+                "Chinga",
+                "Kill Switch"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(1, 9).build();
+        }
+        
     }
 
     @Override

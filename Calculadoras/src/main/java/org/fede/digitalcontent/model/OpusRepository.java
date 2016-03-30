@@ -16,6 +16,8 @@
  */
 package org.fede.digitalcontent.model;
 
+import org.fede.util.Pair;
+
 /**
  *
  * @author fede

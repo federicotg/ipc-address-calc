@@ -16,20 +16,28 @@
  */
 package org.fede.util;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Currency;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.money.series.ConsultatioDataPoint;
 import org.fede.calculator.money.series.InterpolationStrategy;
 import org.fede.calculator.money.series.JSONDataPoint;
 import org.fede.calculator.money.series.JSONSeries;
@@ -43,6 +51,22 @@ import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
  * @author fede
  */
 public class Util {
+
+    private static ObjectMapper MAPPER = new ObjectMapper();
+
+    private static final Set<String> CONSULTATIO_SERIES;
+
+    static {
+        CONSULTATIO_SERIES = new HashSet<>();
+        CONSULTATIO_SERIES.add("CAHORROA.json");
+        CONSULTATIO_SERIES.add("CAPLUSA.json");
+        CONSULTATIO_SERIES.add("CBAL01.json");
+        CONSULTATIO_SERIES.add("CDeudaA.json");
+        CONSULTATIO_SERIES.add("CGRO01.json");
+        CONSULTATIO_SERIES.add("CPYMESA.json");
+        CONSULTATIO_SERIES.add("CRVariable.json");
+        CONSULTATIO_SERIES.add("CRentaNacionalA.json");
+    }
 
     public static <T> String list(Collection<T> elements) {
         return list(elements, ", ");
@@ -85,8 +109,12 @@ public class Util {
 
     public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
         try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
-            JSONSeries series = new ObjectMapper().readValue(is, JSONSeries.class);
-
+            JSONSeries series;
+            if (CONSULTATIO_SERIES.contains(name)) {
+                series = readConsultatioSeries(is);
+            } else {
+                series = MAPPER.readValue(is, JSONSeries.class);
+            }
             final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
             SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
             final Currency currency = Currency.getInstance(series.getCurrency());
@@ -115,4 +143,47 @@ public class Util {
         }
     }
 
+    private static JSONSeries readConsultatioSeries(InputStream is) throws IOException {
+
+        List<ConsultatioDataPoint> data = MAPPER.readValue(is, new TypeReference<List<ConsultatioDataPoint>>() {
+        });
+
+        Map<Pair<Integer, Integer>, List<BigDecimal>> groups = new HashMap<>();
+
+        List<JSONDataPoint> points = new ArrayList<>(data.size());
+        Calendar cal = Calendar.getInstance();
+        for (ConsultatioDataPoint c : data) {
+            cal.setTime(c.getDate());
+
+            Pair<Integer, Integer> key = new Pair<>(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH)+1);
+            List<BigDecimal> values = groups.get(key);
+
+            if (values == null) {
+                values = new ArrayList<>(32);
+                groups.put(key, values);
+            }
+            values.add(c.getValue());
+        }
+
+        for (Map.Entry<Pair<Integer, Integer>, List<BigDecimal>> entry : groups.entrySet()) {
+            points.add(new JSONDataPoint(entry.getKey().getFirst(), entry.getKey().getSecond(), avg(entry.getValue())));
+        }
+
+        return new JSONSeries("ARS", points, "LAST_VALUE_INTERPOLATION");
+    }
+
+    private static BigDecimal sum(List<BigDecimal> list) {
+        BigDecimal total = BigDecimal.ZERO;
+        for (BigDecimal v : list) {
+            total = total.add(v);
+        }
+        return total;
+    }
+
+    private static BigDecimal avg(List<BigDecimal> list) {
+        if (list.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        return sum(list).setScale(7, RoundingMode.HALF_UP).divide(new BigDecimal(list.size()), MathContext.DECIMAL32);
+    }
 }

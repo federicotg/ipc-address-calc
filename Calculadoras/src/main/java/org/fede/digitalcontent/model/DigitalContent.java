@@ -16,6 +16,7 @@
  */
 package org.fede.digitalcontent.model;
 
+import org.fede.util.Pair;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;

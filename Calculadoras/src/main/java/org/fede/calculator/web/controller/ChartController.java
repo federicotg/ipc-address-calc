@@ -74,7 +74,11 @@ public class ChartController {
     @Resource(name = "savingsService")
     @Lazy
     private MultiSeriesChartService savingsService;
-
+    
+    @Resource(name = "fciService")
+    @Lazy
+    private MultiSeriesChartService fciService;
+    
     @Resource(name = "usdMoneyService")
     @Lazy
     private MoneyService referenceMoneyService;
@@ -210,6 +214,12 @@ public class ChartController {
         return this.buildExpenseModelAndView("Gastos", this.expenseService.getSeries(), "expensesChart");
     }
 
+    
+    @RequestMapping(value = "consultatio", method = RequestMethod.GET)
+    public ModelAndView consultatio() {
+        return this.buildExpenseModelAndView("Consultatio Plus F.C.I.", this.fciService.getSeries(), "fciChart");
+    }
+    
     private ModelAndView buildExpenseModelAndView(String title, List<ExpenseChartSeriesDTO> dtoSeries, String uri) {
         return this.buildExpenseModelAndView(title, dtoSeries, uri, 12);
     }
@@ -306,7 +316,20 @@ public class ChartController {
         }
         return this.expenseService.renderAbsoluteChart("Gastos", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "ARS");
     }
-
+    
+    @ResponseBody
+    @RequestMapping(value = "fciChart", method = RequestMethod.GET)
+    public CanvasJSChartDTO fciChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors) 
+            throws NoSeriesDataFoundException {
+        if (errors.hasErrors()) {
+            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
+            notOk.setSuccessful(false);
+            return notOk;
+        }
+        return this.fciService.renderAbsoluteChart("Consultatio Plus F.C.I.", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "ARS");
+    }
+    
+    
     @ResponseBody
     @RequestMapping(value = "savingsDetailChart", method = RequestMethod.GET)
     public CanvasJSChartDTO savingsChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
