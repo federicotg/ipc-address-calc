@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.digitalcontent.model;
+package org.fede.util;
 
 import java.util.Objects;
 
@@ -24,8 +24,8 @@ import java.util.Objects;
  * @param <A>
  * @param <B>
  */
-public class Pair<A,B> {
-    
+public class Pair<A, B> {
+
     private A first;
     private B second;
 
@@ -60,19 +60,11 @@ public class Pair<A,B> {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Pair<?, ?> other = (Pair<?, ?>) obj;
-        if (!Objects.equals(this.first, other.first)) {
-            return false;
-        }
-        return Objects.equals(this.second, other.second);
+
+        return obj instanceof Pair<?, ?>
+                && Objects.equals(this.first, ((Pair<?, ?>) obj).first)
+                && Objects.equals(this.second, ((Pair<?, ?>) obj).second);
+
     }
-    
-    
-    
+
 }
