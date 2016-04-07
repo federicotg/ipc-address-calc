@@ -1,3 +1,10 @@
+package org.fede.calculator.money.series;
+
+
+import java.math.BigDecimal;
+import java.util.Date;
+import org.fede.calculator.money.MoneyAmount;
+
 
 /*
  * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
@@ -15,12 +22,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 /**
  *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class Investment {
+
     private InvestmentType type;
     private InvestmentEvent in;
     private InvestmentAsset investment;
@@ -57,7 +64,25 @@ public class Investment {
     public void setOut(InvestmentEvent out) {
         this.out = out;
     }
-    
-    
-    
+
+    public boolean isValid() {
+        return this.getType().isValid(this.getIn(), this.getOut(), this.getInvestment());
+    }
+
+    public MoneyAmount getInvestedAmount() {
+        return this.getIn().getMoneyAmount();
+    }
+
+    public boolean isCurrent() {
+        return this.getOut() == null || this.getOut().getDate().after(new Date());
+    }
+
+    public MoneyAmount getInvestmentValue() {
+        return this.getInvestment().getMoneyAmount();
+    }
+
+    public Date getInvestmentDate() {
+        return this.getIn().getDate();
+    }
+
 }

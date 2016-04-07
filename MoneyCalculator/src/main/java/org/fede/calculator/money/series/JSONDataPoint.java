@@ -23,14 +23,15 @@ import java.math.BigDecimal;
  * @author fede
  */
 public class JSONDataPoint implements Comparable<JSONDataPoint> {
+
     private int year;
     private int month;
     private BigDecimal value;
 
-    public JSONDataPoint(){
-        
+    public JSONDataPoint() {
+
     }
-    
+
     public JSONDataPoint(int year, int month) {
         this.year = year;
         this.month = month;
@@ -41,7 +42,7 @@ public class JSONDataPoint implements Comparable<JSONDataPoint> {
         this.month = month;
         this.value = value;
     }
-  
+
     public int getYear() {
         return year;
     }
@@ -68,10 +69,25 @@ public class JSONDataPoint implements Comparable<JSONDataPoint> {
 
     @Override
     public int compareTo(JSONDataPoint o) {
-        if(this.year == o.year){
+        if (this.year == o.year) {
             return this.month - o.month;
         }
         return this.year - o.year;
     }
-       
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 89 * hash + this.year;
+        hash = 89 * hash + this.month;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof JSONDataPoint
+                && ((JSONDataPoint) obj).getYear() == this.getYear()
+                && ((JSONDataPoint) obj).getMonth() == this.getMonth();
+    }
+
 }

@@ -25,7 +25,7 @@ import org.fede.calculator.money.series.YearMonth;
  *
  * @author fede
  */
-public final class CPIInflation extends BaseInflation implements Inflation {
+public final class CPIInflation extends BaseInflation {
 
     private final IndexSeries series;
     private final Currency currency;

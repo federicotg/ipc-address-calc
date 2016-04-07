@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import org.fede.calculator.money.series.InvestmentType;
+import org.fede.calculator.money.series.Investment;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -41,19 +43,41 @@ import static org.junit.Assert.*;
  */
 public class InvestmentTest {
 
+    private final DateFormat df = DateFormat.getDateInstance();
+    private final NumberFormat nf = NumberFormat.getNumberInstance();
+
     private List<Investment> inv;
 
     public InvestmentTest() throws IOException {
         this.inv = this.read("investments.json");
+        this.nf.setMaximumFractionDigits(2);
+    }
+
+    @Test
+    public void allOK() {
+        for (Investment i : this.inv) {
+            assertTrue(i.isValid());
+        }
+    }
+
+    @Test
+    public void allPFAreNotCurrent() {
+        for (Investment i : this.inv) {
+            assertTrue(!i.getType().equals(InvestmentType.PF) || !i.isCurrent());
+        }
+    }
+
+    @Test
+    public void allUSDAreCurrent() {
+        for (Investment i : this.inv) {
+            assertTrue(!i.getType().equals(InvestmentType.USD) || i.isCurrent());
+        }
     }
 
     @Test
     public void pf() throws NoSeriesDataFoundException {
 
         assertFalse(inv.isEmpty());
-        final DateFormat df = DateFormat.getDateInstance();
-        final NumberFormat nf = NumberFormat.getNumberInstance();
-        nf.setMaximumFractionDigits(2);
         //final String message = "Invertí {0} el {1}. El {2} cobré {3}. En {4} del {5} puse {6} y recuperé {7}. Gané {8}";
         final String message = "{0}\t{1}\t{2}";
 
@@ -67,18 +91,8 @@ public class InvestmentTest {
                     MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getIn().getDate(), investment.getOut().getDate());
                     String outDate = df.format(investment.getOut().getDate());
 
-                    System.out.println(MessageFormat.format(message, outDate, nf.format(realIn.getAmount()), nf.format(nominalOut.getAmount().subtract(realIn.getAmount()))));
+                    System.out.println(MessageFormat.format(message, outDate, this.nf.format(realIn.getAmount()), this.nf.format(nominalOut.getAmount().subtract(realIn.getAmount()))));
 
-                    /*System.out.println(MessageFormat.format(message, 
-                        nf.format(nominalIn.getAmount()),
-                        df.format(investment.getIn().getDate()),
-                        outDate,
-                        nf.format(nominalOut.getAmount()),
-                        nominalIn.getCurrency(),
-                        outDate,
-                        nf.format(realIn.getAmount()),
-                        nf.format(nominalOut.getAmount()),
-                        nf.format(nominalOut.getAmount().subtract(realIn.getAmount()))));*/
                 }
             }
         }
@@ -88,34 +102,28 @@ public class InvestmentTest {
     public void usd() throws NoSeriesDataFoundException, ParseException {
 
         System.out.println("-----------------------------------");
-        
-        assertFalse(inv.isEmpty());
-        final DateFormat df = DateFormat.getDateInstance();
-        final NumberFormat nf = NumberFormat.getNumberInstance();
-        nf.setMaximumFractionDigits(2);
 
-        final ForeignExchange usdToDollar =  ForeignExchanges.getForeignExchange(Currency.getInstance("USD"), Currency.getInstance("ARS"));
-        
+        assertFalse(inv.isEmpty());
+
+        final ForeignExchange usdToDollar = ForeignExchanges.getForeignExchange(Currency.getInstance("USD"), Currency.getInstance("ARS"));
+
         final String message = "{0}\t{1}\t{2}";
         final Date feb2016 = new SimpleDateFormat("dd/MM/yyyy").parse("28/02/2016");
         for (Investment investment : inv) {
             if (investment.getType().equals(InvestmentType.USD)) {
-                MoneyAmount nominalIn = new MoneyAmount(investment.getIn().getAmount(), investment.getIn().getCurrency());
-                MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getIn().getDate(), feb2016);
-                String outDate = df.format(feb2016);
-                
+                MoneyAmount nominalIn = investment.getInvestedAmount();
+                MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getInvestmentDate(), feb2016);
+
                 MoneyAmount feb2016ARSValue = usdToDollar.exchange(
-                        new MoneyAmount(
-                                investment.getInvestment().getAmount(), 
-                                investment.getInvestment().getCurrency()), 
+                        investment.getInvestmentValue(),
                         Currency.getInstance("ARS"), feb2016);
-                
+
                 System.out.println(
                         MessageFormat.format(
-                                message, 
-                                investment.getIn().getDate(), 
-                                nf.format(realIn.getAmount()), 
-                                nf.format(feb2016ARSValue.getAmount().subtract(realIn.getAmount()))));
+                                message,
+                                investment.getInvestmentDate(),
+                                this.nf.format(realIn.getAmount()),
+                                this.nf.format(feb2016ARSValue.getAmount().subtract(realIn.getAmount()))));
             }
         }
     }

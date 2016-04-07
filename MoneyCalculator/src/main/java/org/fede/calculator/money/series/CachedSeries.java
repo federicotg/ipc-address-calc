@@ -27,7 +27,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public final class CachedSeries extends IndexSeriesSupport {
 
-    private class IndexKey {
+    private static class IndexKey {
 
         private final int year;
         private final int month;

@@ -29,7 +29,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  *
  * @author fede
  */
-public class JSONIndexSeries extends IndexSeriesSupport implements IndexSeries {
+public class JSONIndexSeries extends IndexSeriesSupport {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 

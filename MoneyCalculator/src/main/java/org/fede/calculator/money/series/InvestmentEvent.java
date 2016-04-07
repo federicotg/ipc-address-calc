@@ -1,7 +1,10 @@
+package org.fede.calculator.money.series;
+
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.util.Date;
+import org.fede.calculator.money.MoneyAmount;
 
 /*
  * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
@@ -25,17 +28,17 @@ import java.util.Date;
  */
 public class InvestmentEvent {
 
-    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="dd/MM/yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private Date date;
     private BigDecimal amount;
     private String currency;
 
     public Date getDate() {
-        return date;
+        return new Date(date.getTime());
     }
 
     public void setDate(Date date) {
-        this.date = date;
+        this.date = new Date(date.getTime());
     }
 
     public BigDecimal getAmount() {
@@ -52,6 +55,10 @@ public class InvestmentEvent {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public MoneyAmount getMoneyAmount() {
+        return new MoneyAmount(this.getAmount(), this.getCurrency());
     }
 
 }

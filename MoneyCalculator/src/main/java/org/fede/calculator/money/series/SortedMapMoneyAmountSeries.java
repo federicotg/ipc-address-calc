@@ -30,7 +30,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
-public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport implements MoneyAmountSeries {
+public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
     private SortedMap<YearMonth, MoneyAmount> values;
 

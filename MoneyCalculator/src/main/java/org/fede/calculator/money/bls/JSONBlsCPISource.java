@@ -19,6 +19,7 @@ package org.fede.calculator.money.bls;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -41,8 +42,10 @@ public class JSONBlsCPISource implements BlsCPISource {
     @Override
     public BlsResponse getResponse(int year) throws NoSeriesDataFoundException, IOException {
         if (this.list == null) {
-            this.list = new ObjectMapper().readValue(JSONBlsCPISource.class.getResourceAsStream("/" + name), new TypeReference<List<BlsResponse>>() {
-            });
+            try (InputStream in = JSONBlsCPISource.class.getResourceAsStream("/" + name)) {
+                this.list = new ObjectMapper().readValue(in, new TypeReference<List<BlsResponse>>() {
+                });
+            }
         }
 
         Iterator<BlsResponse> it = this.list.iterator();
