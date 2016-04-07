@@ -16,6 +16,10 @@
  */
 package org.fede.calculator.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,6 +39,8 @@ import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.IndexSeries;
+import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import static org.fede.util.Util.sumSeries;
 import static org.fede.util.Util.readSeries;
@@ -59,16 +65,49 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     private List<ExpenseChartSeriesDTO> incomeSeries;
 
     @Override
-    public List<DollarReportDTO> newDollar() throws NoSeriesDataFoundException {
+    public List<DollarReportDTO> dollar() throws NoSeriesDataFoundException {
+
+        final List<Investment> investments = read("investments.json");
+        final MoneyAmount oneDollar = new MoneyAmount(ONE, "USD");
+        final List<DollarReportDTO> answer = new ArrayList<>(investments.size());
+        final Date moment = ForeignExchanges.USD_ARS.getTo().asDate();
+        final Currency ars = Currency.getInstance("ARS");
         
-        return null;
-        
+        for (Investment inv : investments) {
+            if (inv.getType().equals(InvestmentType.USD)) {
+                DollarReportDTO dto = new DollarReportDTO();
+
+                answer.add(dto);
+
+                dto.setUsd(inv.getInvestmentValue().getAmount());
+
+                Date thenDate = inv.getInvestmentDate();
+                dto.setThen(thenDate);
+
+                dto.setNominalPesosThen(inv.getInvestedAmount().getAmount());
+                dto.setRealPesosNow(ARS_INFLATION.adjust(inv.getInvestedAmount(), thenDate, moment).getAmount());
+                dto.setNow(moment);
+                dto.setNominalPesosNow(ForeignExchanges.USD_ARS.exchange(inv.getInvestmentValue(), ars, moment).getAmount());
+
+                MoneyAmount oneDollarThen = USD_INFLATION.adjust(oneDollar, moment, thenDate);
+
+                MoneyAmount realDollarThen = ARS_INFLATION.adjust(
+                        ForeignExchanges.USD_ARS.exchange(oneDollarThen, ars, thenDate),
+                        thenDate, moment);
+
+                dto.setRealUsdThen(realDollarThen.getAmount());
+
+                MoneyAmount oneDollarNow = ForeignExchanges.USD_ARS.exchange(oneDollar, ars, moment);
+                dto.setNominalUsdNow(oneDollarNow.getAmount());
+
+            }
+        }
+
+        return answer;
+
     }
-    
-    
-    
-    
-    @Override
+
+    /*@Override
     public List<DollarReportDTO> dollar() throws NoSeriesDataFoundException {
 
         final Date moment = new Date();
@@ -107,16 +146,15 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
             }
         });
         return answer;
-    }
+    }*/
 
-    private Date createDate(int year, int month) {
+    /*private Date createDate(int year, int month) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, year);
         cal.set(Calendar.MONTH, month - 1);
         cal.set(Calendar.DAY_OF_MONTH, 1);
         return cal.getTime();
-    }
-
+    }*/
 
     @Override
     public List<SavingsReportDTO> savings(final int toYear, final int toMonth) throws NoSeriesDataFoundException {
@@ -133,7 +171,6 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         Aggregation yearSum = new SimpleAggregation(12);
         final MoneyAmountSeries nov99IncomePesos12 = yearSum.sum(ARS_INFLATION.adjust(nominalIncomePesos, toYear, toMonth));
-
 
         MoneyAmountSeries nominalIncomeDollars = nominalIncomePesos.exchangeInto(Currency.getInstance("USD"));
         final MoneyAmountSeries nov99IncomeDollars12 = yearSum.sum(USD_INFLATION.adjust(nominalIncomeDollars, toYear, toMonth));
@@ -211,6 +248,17 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
             return ZERO;
         }
         return savingsNow.subtract(savingsThen).divide(avgIncome, CONTEXT);
+    }
+
+    private static List<Investment> read(String name) {
+        try (InputStream in = InvestmentServiceImpl.class.getResourceAsStream("/" + name);) {
+            ObjectMapper om = new ObjectMapper();
+
+            return om.readValue(in, new TypeReference<List<Investment>>() {
+            });
+        } catch (IOException ioEx) {
+            throw new IllegalArgumentException("Could not read investments from resource " + name, ioEx);
+        }
     }
 
 }

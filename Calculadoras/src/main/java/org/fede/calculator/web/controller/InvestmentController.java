@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Resource;
+import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.InvestmentService;
 import org.fede.calculator.service.MoneyService;
@@ -68,10 +69,9 @@ public class InvestmentController {
 
     @RequestMapping(value = "/dollar", method = RequestMethod.GET)
     public ModelAndView dollarInvestment() throws NoSeriesDataFoundException {
-        ModelAndView mav = new ModelAndView("dollarInvestment");
-        mav.addObject("report", this.investmentService.dollar());
-        mav.addObject("moment", new Date());
-        return mav;
+        return new ModelAndView("dollarInvestment")
+                .addObject("report", this.investmentService.dollar())
+                .addObject("moment", ForeignExchanges.USD_ARS.getTo().asDate());
     }
 
     @RequestMapping(value = "/savings", method = RequestMethod.GET)
