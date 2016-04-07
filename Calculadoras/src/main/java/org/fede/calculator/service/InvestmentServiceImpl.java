@@ -57,18 +57,25 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
     @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
+
+    @Override
+    public List<DollarReportDTO> newDollar() throws NoSeriesDataFoundException {
+        
+        return null;
+        
+    }
+    
+    
+    
     
     @Override
     public List<DollarReportDTO> dollar() throws NoSeriesDataFoundException {
 
         final Date moment = new Date();
-
         final MoneyAmount oneDollar = new MoneyAmount(ONE, "USD");
         final Currency ars = Currency.getInstance("ARS");
-
         final MoneyAmountSeries dolares = readSeries("dolares.json");
         final Currency peso = Currency.getInstance("ARS");
-
         final List<DollarReportDTO> answer = new ArrayList<>();
 
         dolares.forEachNonZero(new MoneyAmountProcessor() {

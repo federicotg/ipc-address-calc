@@ -29,6 +29,8 @@ public interface InvestmentService {
     
     List<DollarReportDTO> dollar() throws NoSeriesDataFoundException;
     
+    List<DollarReportDTO> newDollar() throws NoSeriesDataFoundException;
+    
     List<SavingsReportDTO> savings(int year, int month) throws NoSeriesDataFoundException;
     
 }
