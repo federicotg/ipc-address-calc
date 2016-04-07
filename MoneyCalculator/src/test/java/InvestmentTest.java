@@ -49,7 +49,7 @@ public class InvestmentTest {
     private List<Investment> inv;
 
     public InvestmentTest() throws IOException {
-        this.inv = this.read("investments.json");
+        this.inv = this.read("investments-test.json");
         this.nf.setMaximumFractionDigits(2);
     }
 

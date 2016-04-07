@@ -16,6 +16,9 @@
  */
 package org.fede.calculator.money.series;
 
+import java.util.Calendar;
+import java.util.Date;
+
 /**
  *
  * @author fede
@@ -77,6 +80,13 @@ public class YearMonth implements Comparable<YearMonth> {
     public String toString() {
         return "YearMonth{" + "year=" + year + ", month=" + month + '}';
     }
-    
-    
+
+    public Date asDate() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, this.year);
+        cal.set(Calendar.MONTH, this.month - 1);
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        return cal.getTime();
+    }
+
 }
