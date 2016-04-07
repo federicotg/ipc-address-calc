@@ -88,7 +88,7 @@ public class InvestmentTest {
                     MoneyAmount nominalIn = new MoneyAmount(investment.getIn().getAmount(), investment.getIn().getCurrency());
                     MoneyAmount nominalOut = new MoneyAmount(investment.getOut().getAmount(), investment.getIn().getCurrency());
 
-                    MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getIn().getDate(), investment.getOut().getDate());
+                    MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getInvestmentDate(), investment.getOut().getDate());
                     String outDate = df.format(investment.getOut().getDate());
 
                     System.out.println(MessageFormat.format(message, outDate, this.nf.format(realIn.getAmount()), this.nf.format(nominalOut.getAmount().subtract(realIn.getAmount()))));
