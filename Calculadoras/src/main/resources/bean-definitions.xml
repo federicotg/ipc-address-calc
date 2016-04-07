@@ -224,18 +224,27 @@
 
 
     <util:list id="fciSeries" value-type="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
-        
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="Ahorro Plus Argentina FCI" />
+            <property name="seriesName" value="CAPLUSA.json" />
+            <property name="color" value="magenta" />
+        </bean>
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="Renta Nacional FCI" />
+            <property name="seriesName" value="CRentaNacionalA.json" />
+            <property name="color" value="red" />
+        </bean>
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="Abierto Pymes FCI" />
+            <property name="seriesName" value="CPYMESA.json" />
+            <property name="color" value="Pink" />
+        </bean>
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Renta Fija Argentina FCI" />
             <property name="seriesName" value="CAHORROA.json" />
             <property name="color" value="Blue" />
         </bean>
         
-        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
-            <property name="name" value="Ahorro Plus Argentina FCI" />
-            <property name="seriesName" value="CAPLUSA.json" />
-            <property name="color" value="magenta" />
-        </bean>
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Balance Fund FCI" />
             <property name="seriesName" value="CBAL01.json" />
@@ -252,26 +261,11 @@
             <property name="seriesName" value="CGRO01.json" />
             <property name="color" value="DarkOrange" />
         </bean>
-
-        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
-            <property name="name" value="Abierto Pymes FCI" />
-            <property name="seriesName" value="CPYMESA.json" />
-            <property name="color" value="Pink" />
-        </bean>
-
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Renta Variable FCI" />
             <property name="seriesName" value="CRVariable.json" />
             <property name="color" value="black" />
         </bean>
-        
-        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
-            <property name="name" value="Renta Nacional FCI" />
-            <property name="seriesName" value="CRentaNacionalA.json" />
-            <property name="color" value="red" />
-        </bean>        
-        
-                                                                                                
     </util:list>
 
 
