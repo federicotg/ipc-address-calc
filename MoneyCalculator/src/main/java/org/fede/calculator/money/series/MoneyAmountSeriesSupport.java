@@ -21,8 +21,6 @@ import java.util.Calendar;
 import java.util.Currency;
 import java.util.Date;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;

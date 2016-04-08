@@ -16,8 +16,6 @@
  */
 package org.fede.calculator.money.series;
 
-import java.math.BigDecimal;
-import java.text.MessageFormat;
 import java.util.Currency;
 import java.util.Iterator;
 import java.util.Map;
@@ -48,7 +46,7 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
         this(currency, new TreeMap<YearMonth, MoneyAmount>());
     }
     
-    public SortedMapMoneyAmountSeries(final String currency, final YearMonth from, final YearMonth to, final int[] values) {
+    /*public SortedMapMoneyAmountSeries(final String currency, final YearMonth from, final YearMonth to, final int[] values) {
         this(currency);
         if (from.monthsUntil(to) != values.length) {
             throw new IllegalArgumentException(
@@ -63,7 +61,7 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
             this.values.put(ym, new MoneyAmount(new BigDecimal(values[i++]), this.getCurrency()));
             ym = ym.next();
         }
-    }
+    }*/
 
     @Override
     protected MoneyAmountSeries createNew() {

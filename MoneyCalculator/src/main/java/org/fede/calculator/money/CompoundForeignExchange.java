@@ -27,8 +27,8 @@ import org.fede.calculator.money.series.YearMonth;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class CompoundForeignExchange extends SeriesSupport implements ForeignExchange{
-    private ForeignExchange first;
-    private ForeignExchange second;
+    private final ForeignExchange first;
+    private final ForeignExchange second;
     
     public CompoundForeignExchange(ForeignExchange first, ForeignExchange second){
         this.first = first;
