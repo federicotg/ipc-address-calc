@@ -28,21 +28,21 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 public enum InterpolationStrategy {
 
     NO_INTERPOLATION {
-                @Override
-                public MoneyAmount interpolate(MoneyAmount lastValue, Currency currency) throws NoSeriesDataFoundException {
-                    throw new NoSeriesDataFoundException("No value for specified year and month.");
-                }
-            }, LAST_VALUE_INTERPOLATION {
-                @Override
-                public MoneyAmount interpolate(MoneyAmount lastValue, Currency currency) throws NoSeriesDataFoundException {
-                    return lastValue;
-                }
-            }, ZERO_VALUE_INTERPOLATION {
-                @Override
-                public MoneyAmount interpolate(MoneyAmount lastValue, Currency currency) throws NoSeriesDataFoundException {
-                    return new MoneyAmount(BigDecimal.ZERO, currency);
-                }
-            };
+        @Override
+        public MoneyAmount interpolate(MoneyAmount lastValue, Currency currency) throws NoSeriesDataFoundException {
+            throw new NoSeriesDataFoundException("No value for specified year and month.");
+        }
+    }, LAST_VALUE_INTERPOLATION {
+        @Override
+        public MoneyAmount interpolate(MoneyAmount lastValue, Currency currency) throws NoSeriesDataFoundException {
+            return lastValue;
+        }
+    }, ZERO_VALUE_INTERPOLATION {
+        @Override
+        public MoneyAmount interpolate(MoneyAmount lastValue, Currency currency) throws NoSeriesDataFoundException {
+            return new MoneyAmount(BigDecimal.ZERO, currency);
+        }
+    };
 
     public abstract MoneyAmount interpolate(MoneyAmount lastValue, Currency currency) throws NoSeriesDataFoundException;
 
