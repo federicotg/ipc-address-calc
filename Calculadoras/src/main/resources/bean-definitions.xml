@@ -98,17 +98,14 @@
             <property name="color" value="green" />
         </bean>
 
-                       
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Total" />
             <property name="seriesName" value="" />
             <property name="color" value="red" />
         </bean>
-                
-                                
     </util:list>
-    
-    
+
+
     <util:list id="consortiumExpenseSeries" value-type="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Administración" />
