@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.money.series;
 
+import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.Currency;
@@ -206,9 +207,9 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
         hash = 37 * hash + Objects.hashCode(this.getCurrency());
         hash = 37 * hash + Objects.hashCode(this.getFrom());
         hash = 37 * hash + Objects.hashCode(this.getTo());
-        
+
         final int[] holder = new int[]{3};
-        
+
         try {
             this.forEach(new MoneyAmountProcessor() {
                 @Override
@@ -217,9 +218,24 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
                 }
             });
         } catch (NoSeriesDataFoundException ex) {
-            
+
         }
-        
+
         return 37 * hash + holder[0];
     }
+
+    @Override
+    public final MoneyAmount getAmount(YearMonth moment) throws NoSeriesDataFoundException {
+        return this.getAmount(moment.getYear(), moment.getMonth());
+    }
+
+    @Override
+    public final MoneyAmount getAmountOrElseZero(YearMonth moment) throws NoSeriesDataFoundException {
+        if (this.hasValue(moment)) {
+            return this.getAmount(moment);
+        }
+        return new MoneyAmount(BigDecimal.ZERO, this.currency);
+    }
+
+    protected abstract boolean hasValue(YearMonth moment);
 }

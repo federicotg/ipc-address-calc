@@ -30,6 +30,10 @@ public interface MoneyAmountSeries extends Series {
     MoneyAmount getAmount(Date day) throws NoSeriesDataFoundException;
 
     MoneyAmount getAmount(int year, int month) throws NoSeriesDataFoundException;
+    
+    MoneyAmount getAmount(YearMonth moment) throws NoSeriesDataFoundException;
+    
+    MoneyAmount getAmountOrElseZero(YearMonth moment) throws NoSeriesDataFoundException;
 
     void putAmount(int year, int month, MoneyAmount amount);
 

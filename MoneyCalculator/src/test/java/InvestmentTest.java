@@ -74,7 +74,7 @@ public class InvestmentTest {
         }
     }
 
-    @Test
+    //@Test
     public void pf() throws NoSeriesDataFoundException {
 
         assertFalse(inv.isEmpty());
@@ -98,7 +98,7 @@ public class InvestmentTest {
         }
     }
 
-    @Test
+    //@Test
     public void usd() throws NoSeriesDataFoundException, ParseException {
 
         System.out.println("-----------------------------------");
@@ -127,6 +127,10 @@ public class InvestmentTest {
             }
         }
     }
+    
+
+
+    
 
     private List<Investment> read(String name) throws IOException {
         try (InputStream in = InvestmentTest.class.getResourceAsStream("/" + name);) {

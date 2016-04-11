@@ -84,5 +84,5 @@ public class Investment {
     public Date getInvestmentDate() {
         return this.getIn().getDate();
     }
-
+    
 }

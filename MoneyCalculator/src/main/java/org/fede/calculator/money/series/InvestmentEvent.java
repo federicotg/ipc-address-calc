@@ -28,7 +28,7 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public class InvestmentEvent {
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy", timezone = "GMT-3")
     private Date date;
     private BigDecimal amount;
     private String currency;

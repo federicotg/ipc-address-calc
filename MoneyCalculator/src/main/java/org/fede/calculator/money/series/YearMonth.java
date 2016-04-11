@@ -89,4 +89,12 @@ public class YearMonth implements Comparable<YearMonth> {
         return cal.getTime();
     }
 
+    public YearMonth min(YearMonth other){
+        return this.compareTo(other) < 0 ? this : other;
+    }
+    
+    public YearMonth max(YearMonth other){
+        return this.compareTo(other) < 0 ? other : this;
+    }
+    
 }

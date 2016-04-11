@@ -32,7 +32,6 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
     private SortedMap<YearMonth, MoneyAmount> values;
 
-
     public SortedMapMoneyAmountSeries(final Currency currency, final SortedMap<YearMonth, MoneyAmount> values) {
         super(currency);
         this.values = values;
@@ -41,11 +40,11 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
     public SortedMapMoneyAmountSeries(final String currency) {
         this(Currency.getInstance(currency), new TreeMap<YearMonth, MoneyAmount>());
     }
-    
+
     public SortedMapMoneyAmountSeries(final Currency currency) {
         this(currency, new TreeMap<YearMonth, MoneyAmount>());
     }
-    
+
     /*public SortedMapMoneyAmountSeries(final String currency, final YearMonth from, final YearMonth to, final int[] values) {
         this(currency);
         if (from.monthsUntil(to) != values.length) {
@@ -62,7 +61,6 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
             ym = ym.next();
         }
     }*/
-
     @Override
     protected MoneyAmountSeries createNew() {
         return new SortedMapMoneyAmountSeries(this.getCurrency());
@@ -94,6 +92,11 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
             Map.Entry<YearMonth, MoneyAmount> entry = it.next();
             processor.process(entry.getKey().getYear(), entry.getKey().getMonth(), entry.getValue());
         }
+    }
+
+    @Override
+    protected boolean hasValue(YearMonth moment) {
+        return this.values.containsKey(moment);
     }
 
 }
