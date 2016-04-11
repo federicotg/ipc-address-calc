@@ -18,20 +18,13 @@
 package org.fede.calculator.money.series;
 
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import java.util.Date;
-import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
-
-
 
 /**
  *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 
-@JsonTypeInfo(
+/*@JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
         visible = true,
@@ -39,8 +32,8 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = CertificateDepositInvestment.class, name = "PF"),
     @JsonSubTypes.Type(value = CurrencyInvestment.class, name = "USD")
-})
-public abstract class Investment {
+})*/
+public class Investment {
 
     private InvestmentType type;
     private InvestmentEvent in;
@@ -83,17 +76,5 @@ public abstract class Investment {
         return this.getType().isValid(this.getIn(), this.getOut(), this.getInvestment());
     }
 
-    public MoneyAmount getInvestedAmount() {
-        return this.getIn().getMoneyAmount();
-    }
-
-    public MoneyAmount getInvestmentValue() {
-        return this.getInvestment().getMoneyAmount();
-    }
-
-    public Date getInvestmentDate() {
-        return this.getIn().getDate();
-    }
     
-    public abstract MoneyAmountSeries getMoneyAmountSeries() throws NoSeriesDataFoundException;
 }

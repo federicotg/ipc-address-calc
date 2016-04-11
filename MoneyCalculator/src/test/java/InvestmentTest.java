@@ -34,8 +34,6 @@ import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.series.CertificateDepositInvestment;
-import org.fede.calculator.money.series.CurrencyInvestment;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -73,14 +71,13 @@ public class InvestmentTest {
         for (Investment investment : inv) {
             if (investment.getType().equals(InvestmentType.PF)) {
                 
-                assertTrue(investment instanceof CertificateDepositInvestment);
                 
                 if (investment.getIn().getCurrency().equals(investment.getOut().getCurrency())
                         && investment.getIn().getCurrency().equals("ARS")) {
                     MoneyAmount nominalIn = new MoneyAmount(investment.getIn().getAmount(), investment.getIn().getCurrency());
                     MoneyAmount nominalOut = new MoneyAmount(investment.getOut().getAmount(), investment.getIn().getCurrency());
 
-                    MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getInvestmentDate(), investment.getOut().getDate());
+                    MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getIn().getDate(), investment.getOut().getDate());
                     String outDate = df.format(investment.getOut().getDate());
 
                     System.out.println(MessageFormat.format(message, outDate, this.nf.format(realIn.getAmount()), this.nf.format(nominalOut.getAmount().subtract(realIn.getAmount()))));
@@ -103,26 +100,23 @@ public class InvestmentTest {
         final Date feb2016 = new SimpleDateFormat("dd/MM/yyyy").parse("28/02/2016");
         for (Investment investment : inv) {
             if (investment.getType().equals(InvestmentType.USD)) {
-                assertTrue(investment instanceof CurrencyInvestment);
-                MoneyAmount nominalIn = investment.getInvestedAmount();
-                MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getInvestmentDate(), feb2016);
+
+                MoneyAmount nominalIn = investment.getInvestment().getMoneyAmount();
+                MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getIn().getDate(), feb2016);
 
                 MoneyAmount feb2016ARSValue = usdToDollar.exchange(
-                        investment.getInvestmentValue(),
+                        investment.getInvestment().getMoneyAmount(),
                         Currency.getInstance("ARS"), feb2016);
 
                 System.out.println(
                         MessageFormat.format(
                                 message,
-                                investment.getInvestmentDate(),
+                                investment.getIn().getDate(),
                                 this.nf.format(realIn.getAmount()),
                                 this.nf.format(feb2016ARSValue.getAmount().subtract(realIn.getAmount()))));
             }
         }
     }
-    
-
-
     
 
     private List<Investment> read(String name) throws IOException {
