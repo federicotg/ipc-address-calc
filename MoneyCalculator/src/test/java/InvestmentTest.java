@@ -34,6 +34,8 @@ import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.money.series.CertificateDepositInvestment;
+import org.fede.calculator.money.series.CurrencyInvestment;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -69,7 +71,7 @@ public class InvestmentTest {
 
     @Test
     public void allUSDAreCurrent() {
-        for (Investment i : this.inv) {
+        for (Investment i : this.inv) {          
             assertTrue(!i.getType().equals(InvestmentType.USD) || i.isCurrent());
         }
     }
@@ -83,6 +85,9 @@ public class InvestmentTest {
 
         for (Investment investment : inv) {
             if (investment.getType().equals(InvestmentType.PF)) {
+                
+                assertTrue(investment instanceof CertificateDepositInvestment);
+                
                 if (investment.getIn().getCurrency().equals(investment.getOut().getCurrency())
                         && investment.getIn().getCurrency().equals("ARS")) {
                     MoneyAmount nominalIn = new MoneyAmount(investment.getIn().getAmount(), investment.getIn().getCurrency());
@@ -111,6 +116,7 @@ public class InvestmentTest {
         final Date feb2016 = new SimpleDateFormat("dd/MM/yyyy").parse("28/02/2016");
         for (Investment investment : inv) {
             if (investment.getType().equals(InvestmentType.USD)) {
+                assertTrue(investment instanceof CurrencyInvestment);
                 MoneyAmount nominalIn = investment.getInvestedAmount();
                 MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getInvestmentDate(), feb2016);
 

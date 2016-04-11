@@ -1,11 +1,3 @@
-package org.fede.calculator.money.series;
-
-
-import java.math.BigDecimal;
-import java.util.Date;
-import org.fede.calculator.money.MoneyAmount;
-
-
 /*
  * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
  *
@@ -22,10 +14,31 @@ import org.fede.calculator.money.MoneyAmount;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+package org.fede.calculator.money.series;
+
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.util.Date;
+import org.fede.calculator.money.MoneyAmount;
+
+
+
 /**
  *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
+
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        visible = true,
+        property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = CertificateDepositInvestment.class, name = "PF"),
+    @JsonSubTypes.Type(value = CurrencyInvestment.class, name = "USD")
+})
 public class Investment {
 
     private InvestmentType type;
