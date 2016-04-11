@@ -23,9 +23,9 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Currency;
-import java.util.Date;
 import java.util.List;
 import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.ForeignExchanges.getForeignExchange;
@@ -39,6 +39,11 @@ import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
+import org.fede.calculator.service.CanvasJSMoneyAmountProcessor;
+import org.fede.calculator.web.dto.CanvasJSChartDTO;
+import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
+import org.fede.calculator.web.dto.CanvasJSDatumDTO;
+import org.fede.calculator.web.dto.CanvasJSTitleDTO;
 import org.fede.util.Util;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -147,36 +152,27 @@ public class IndexTest {
 
     }
 
+    
     @Test
-    public void tna() throws NoSeriesDataFoundException, IOException {
-        List<Investment> investments = this.read("investments-test.json");
+    public void chart(){
+        
+        CanvasJSChartDTO chart = new CanvasJSChartDTO();
+        chart.setTitle(new CanvasJSTitleDTO("R"));
+        
+         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
+        chart.setData(seriesList);
 
-        for (Investment i : investments) {
-            MoneyAmount in = i.getInvestedAmount();
-            MoneyAmount out = null;
-            Date outDate = null;
-            if (i.getOut() != null) {
-                out = i.getOut().getMoneyAmount();
-                outDate = i.getOut().getDate();
-            } else {
-                out = i.getInvestmentValue();
-                outDate = new Date();
-            }
-
-            out = ForeignExchanges.getForeignExchange(out.getCurrency(), in.getCurrency()).exchange(out, in.getCurrency(), outDate);
-            Calendar outCal = Calendar.getInstance();
-            Calendar inCal = Calendar.getInstance();
-            outCal.setTime(outDate);
-            inCal.setTime(i.getInvestmentDate());
-
-            final int days = daysBetween(inCal, outCal);
-            System.out.println(i.getInvestmentDate() + " " + i.getType() + " " + out.getAmount().subtract(in.getAmount()).divide(new BigDecimal(days), MathContext.DECIMAL128).multiply(new BigDecimal(365)).divide(i.getInvestedAmount().getAmount(), MathContext.DECIMAL128));
-        }
-
-    }
-    
-    
-    public void test(){
+        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        
+        CanvasJSDatumDTO datum = new CanvasJSDatumDTO();
+        datum.setType("bar");
+        datum.setColor("black");
+        datum.setLegendText("l");
+        datum.setShowInLegend(true);
+        datum.setName("n");
+        datum.setDataPoints(datapoints);
+        
+        seriesList.add(datum);
         
     }
 
@@ -189,31 +185,6 @@ public class IndexTest {
         }
     }
 
-    private static int daysBetween(Calendar day1, Calendar day2) {
-        Calendar dayOne = (Calendar) day1.clone(),
-                dayTwo = (Calendar) day2.clone();
 
-        if (dayOne.get(Calendar.YEAR) == dayTwo.get(Calendar.YEAR)) {
-            return Math.abs(dayOne.get(Calendar.DAY_OF_YEAR) - dayTwo.get(Calendar.DAY_OF_YEAR));
-        } else {
-            if (dayTwo.get(Calendar.YEAR) > dayOne.get(Calendar.YEAR)) {
-                //swap them
-                Calendar temp = dayOne;
-                dayOne = dayTwo;
-                dayTwo = temp;
-            }
-            int extraDays = 0;
-
-            int dayOneOriginalYearDays = dayOne.get(Calendar.DAY_OF_YEAR);
-
-            while (dayOne.get(Calendar.YEAR) > dayTwo.get(Calendar.YEAR)) {
-                dayOne.add(Calendar.YEAR, -1);
-                // getActualMaximum() important for leap years
-                extraDays += dayOne.getActualMaximum(Calendar.DAY_OF_YEAR);
-            }
-
-            return extraDays - dayTwo.get(Calendar.DAY_OF_YEAR) + dayOneOriginalYearDays;
-        }
-    }
 
 }

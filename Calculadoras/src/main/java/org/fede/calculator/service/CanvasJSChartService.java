@@ -378,4 +378,11 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         return dto;
     }
 
+    @Override
+    public CanvasJSChartDTO investmentReturns() throws NoSeriesDataFoundException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    
+    
 }

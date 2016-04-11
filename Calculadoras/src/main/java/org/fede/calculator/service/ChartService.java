@@ -40,4 +40,6 @@ public interface ChartService {
             int year, int month, List<String> seriesNames) throws NoSeriesDataFoundException;
        
     CanvasJSChartDTO savingsAndIncomeEvolution() throws NoSeriesDataFoundException;
+    
+    CanvasJSChartDTO investmentReturns() throws NoSeriesDataFoundException;
 }
