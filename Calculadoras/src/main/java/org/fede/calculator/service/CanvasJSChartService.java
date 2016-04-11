@@ -55,7 +55,7 @@ import org.springframework.stereotype.Service;
 @Lazy
 public class CanvasJSChartService implements ChartService, MathConstants {
 
-    private static final Map<Integer, String> MONTH_NAMES = new HashMap<>();
+    private static final Map<Integer, String> MONTH_NAMES = new HashMap<>(12, 1.0f);
 
     static {
         MONTH_NAMES.put(1, "enero");
@@ -318,6 +318,13 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
         final Currency ars = Currency.getInstance("ARS");
 
+        /**
+         * - tomo USD 1.00, 
+         * - lo ajusto por la inflación de USA y obtengo una serie,
+         * - cada valor de la serie lo paso a pesos según valor dolar de cada momento,
+         * - cada valor lo paso a pesos de hoy.
+         * 
+         */
         final MoneyAmountSeries historicDollar = ARS_INFLATION.adjust(
                 ForeignExchanges.USD_ARS.exchange(
                         USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), ars), todayYear, todayMonth);
