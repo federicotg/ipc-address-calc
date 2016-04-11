@@ -21,5 +21,20 @@ package org.fede.calculator.money.series;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class CertificateDepositInvestment extends Investment {
-    
+
+    @Override
+    public MoneyAmountSeries getMoneyAmountSeries() {
+        YearMonth start = new YearMonth(this.getInvestmentDate());
+        YearMonth end = new YearMonth(this.getOut().getDate());
+        SortedMapMoneyAmountSeries series = new SortedMapMoneyAmountSeries(this.getIn().getCurrency());
+        while (start.compareTo(end) < 0) {
+            series.putAmount(start.getYear(), start.getMonth(), this.getInvestedAmount());
+            start = start.next();
+        }
+        if (start.compareTo(end) == 0) {
+            series.putAmount(start.getYear(), start.getMonth(), this.getOut().getMoneyAmount());
+        }
+        return series;
+    }
+
 }

@@ -28,6 +28,14 @@ public class YearMonth implements Comparable<YearMonth> {
     private final int year;
     private final int month;
 
+    
+    public YearMonth(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        this.year = cal.get(Calendar.YEAR);
+        this.month = cal.get(Calendar.MONTH) + 1;
+    }
+    
     public YearMonth(int year, int month) {
         this.year = year;
         this.month = month;

@@ -62,19 +62,6 @@ public class InvestmentTest {
         }
     }
 
-    @Test
-    public void allPFAreNotCurrent() {
-        for (Investment i : this.inv) {
-            assertTrue(!i.getType().equals(InvestmentType.PF) || !i.isCurrent());
-        }
-    }
-
-    @Test
-    public void allUSDAreCurrent() {
-        for (Investment i : this.inv) {          
-            assertTrue(!i.getType().equals(InvestmentType.USD) || i.isCurrent());
-        }
-    }
 
     //@Test
     public void pf() throws NoSeriesDataFoundException {
