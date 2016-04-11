@@ -174,6 +174,11 @@ public class IndexTest {
         }
 
     }
+    
+    
+    public void test(){
+        
+    }
 
     private List<Investment> read(String name) throws IOException {
         try (InputStream in = IndexTest.class.getResourceAsStream("/" + name);) {
