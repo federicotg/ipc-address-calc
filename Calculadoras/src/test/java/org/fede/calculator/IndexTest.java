@@ -149,7 +149,7 @@ public class IndexTest {
 
     @Test
     public void tna() throws NoSeriesDataFoundException, IOException {
-        List<Investment> investments = this.read("investments.json");
+        List<Investment> investments = this.read("investments-test.json");
 
         for (Investment i : investments) {
             MoneyAmount in = i.getInvestedAmount();
