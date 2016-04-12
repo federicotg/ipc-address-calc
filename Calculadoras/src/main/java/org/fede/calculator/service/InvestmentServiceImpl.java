@@ -271,9 +271,9 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         final List<Investment> items = read(investmentSeries);
         
         for (Investment item : items) {
-            
+
             final Date until = this.untilDate(item, targetCurrency);
-            
+
             InvestmentReportDTO dto = new InvestmentReportDTO(
                     item.getIn().getDate(),
                     until,
