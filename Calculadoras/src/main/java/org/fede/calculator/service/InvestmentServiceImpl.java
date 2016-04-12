@@ -233,7 +233,6 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                     this.finalAmount(item, targetCurrency, until),
                     this.inflation(targetCurrency, item.getInitialDate(), until),
                     item.getOut() == null));
-
         }
         return report;
     }
@@ -258,14 +257,14 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     private Date untilDate(Investment item, Currency targetCurrency) {
         return item.getOut() != null
                 ? item.getOut().getDate()
-                : ForeignExchanges.getForeignExchange(item.getInvestment().getMoneyAmount().getCurrency(), targetCurrency).getTo().asToDate();
+                : ForeignExchanges.getForeignExchange(item.getMoneyAmount().getCurrency(), targetCurrency).getTo().asToDate();
     }
 
     private BigDecimal finalAmount(Investment investment, Currency targetCurrency, Date date) throws NoSeriesDataFoundException {
         if (investment.getOut() != null) {
             return changeCurrency(investment.getOut().getMoneyAmount(), targetCurrency, investment.getOut().getDate()).getAmount();
         }
-        return changeCurrency(investment.getInvestment().getMoneyAmount(), targetCurrency, date).getAmount();
+        return changeCurrency(investment.getMoneyAmount(), targetCurrency, date).getAmount();
     }
 
     private BigDecimal inflation(Currency targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
