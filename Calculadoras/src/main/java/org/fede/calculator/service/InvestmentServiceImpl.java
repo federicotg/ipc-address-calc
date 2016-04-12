@@ -245,7 +245,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         MoneyAmount amount;
         if (targetCurrency.equals(investment.getInitialCurrency())) {
-            amount = investment.getIn().getMoneyAmount();
+            amount = investment.getInitialMoneyAmount();
         } else if (targetCurrency.equals(investment.getCurrency())) {
             amount = investment.getMoneyAmount();
         } else {
@@ -262,9 +262,9 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
     private BigDecimal finalAmount(Investment investment, Currency targetCurrency, Date date) throws NoSeriesDataFoundException {
         if (investment.getOut() != null) {
-            return changeCurrency(investment.getOut().getMoneyAmount(), targetCurrency, investment.getOut().getDate()).getAmount();
+            return this.changeCurrency(investment.getOut().getMoneyAmount(), targetCurrency, investment.getOut().getDate()).getAmount();
         }
-        return changeCurrency(investment.getMoneyAmount(), targetCurrency, date).getAmount();
+        return this.changeCurrency(investment.getMoneyAmount(), targetCurrency, date).getAmount();
     }
 
     private BigDecimal inflation(Currency targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
