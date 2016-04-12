@@ -78,15 +78,15 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
                 answer.add(dto);
 
-                dto.setUsd(inv.getInvestmentValue().getAmount());
+                dto.setUsd(inv.getIn().getAmount());
 
-                Date thenDate = inv.getInvestmentDate();
+                Date thenDate = inv.getIn().getDate();
                 dto.setThen(thenDate);
 
-                dto.setNominalPesosThen(inv.getInvestedAmount().getAmount());
-                dto.setRealPesosNow(ARS_INFLATION.adjust(inv.getInvestedAmount(), thenDate, moment).getAmount());
+                dto.setNominalPesosThen(inv.getIn().getAmount());
+                dto.setRealPesosNow(ARS_INFLATION.adjust(inv.getIn().getMoneyAmount(), thenDate, moment).getAmount());
                 dto.setNow(moment);
-                dto.setNominalPesosNow(ForeignExchanges.USD_ARS.exchange(inv.getInvestmentValue(), ars, moment).getAmount());
+                dto.setNominalPesosNow(ForeignExchanges.USD_ARS.exchange(inv.getInvestment().getMoneyAmount(), ars, moment).getAmount());
 
                 MoneyAmount oneDollarThen = USD_INFLATION.adjust(oneDollar, moment, thenDate);
 
