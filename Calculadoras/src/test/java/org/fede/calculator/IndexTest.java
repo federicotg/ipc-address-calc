@@ -22,7 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.text.DateFormat;
 import java.text.MessageFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Currency;
@@ -40,10 +42,12 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.service.CanvasJSMoneyAmountProcessor;
+import org.fede.calculator.service.InvestmentServiceImpl;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
 import org.fede.calculator.web.dto.CanvasJSDatumDTO;
 import org.fede.calculator.web.dto.CanvasJSTitleDTO;
+import org.fede.calculator.web.dto.InvestmentReportDTO;
 import org.fede.util.Util;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -57,7 +61,7 @@ public class IndexTest {
     public IndexTest() {
     }
 
-   // @Test
+    // @Test
     public void youIndexARS() throws NoSeriesDataFoundException {
 
         MoneyAmountSeries dollar = Util.readSeries("ahorros-dolar.json");
@@ -124,7 +128,7 @@ public class IndexTest {
         });
     }
 
-   // @Test
+    // @Test
     public void historicDollar() throws NoSeriesDataFoundException {
 
         YearMonth latestData = Inflation.USD_INFLATION.getTo();
@@ -139,41 +143,43 @@ public class IndexTest {
 
         YearMonth comparisonYM = new YearMonth(2004, 1);
 
-        MoneyAmount oneDollarInDollarInComparisonYM
-                = ARS_INFLATION.adjust(
-                        ForeignExchanges.getForeignExchange(oneDollar.getCurrency(), ars).exchange(
-                        USD_INFLATION.adjust(oneDollar, latestData.getYear(), latestData.getMonth(), comparisonYM.getYear(), comparisonYM.getMonth()),
-                        ars, comparisonYM.getYear(), comparisonYM.getMonth()),
-                        comparisonYM.getYear(), comparisonYM.getMonth(),
-                        todayYear, todayMonth
-                );
+        MoneyAmount oneDollarInDollarInComparisonYM = ARS_INFLATION.adjust(
+                ForeignExchanges.getForeignExchange(oneDollar.getCurrency(), ars).exchange(
+                USD_INFLATION.adjust(oneDollar, latestData.getYear(), latestData.getMonth(), comparisonYM.getYear(), comparisonYM.getMonth()),
+                ars, comparisonYM.getYear(), comparisonYM.getMonth()),
+                comparisonYM.getYear(), comparisonYM.getMonth(),
+                todayYear, todayMonth);
 
         assertEquals(oneDollarInDollarInComparisonYM, historicDollar.getAmount(comparisonYM));
 
     }
 
-    
     @Test
-    public void chart(){
-        
-        CanvasJSChartDTO chart = new CanvasJSChartDTO();
-        chart.setTitle(new CanvasJSTitleDTO("R"));
-        
-         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
-        chart.setData(seriesList);
+    public void chart() throws NoSeriesDataFoundException {
 
-        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
+        NumberFormat money = NumberFormat.getCurrencyInstance();
+        NumberFormat pct = NumberFormat.getPercentInstance();
+        DateFormat date = DateFormat.getDateInstance(DateFormat.SHORT);
         
-        CanvasJSDatumDTO datum = new CanvasJSDatumDTO();
-        datum.setType("bar");
-        datum.setColor("black");
-        datum.setLegendText("l");
-        datum.setShowInLegend(true);
-        datum.setName("n");
-        datum.setDataPoints(datapoints);
+        List<InvestmentReportDTO> report = new InvestmentServiceImpl().investment("ARS", "investments-test.json");
         
-        seriesList.add(datum);
+        String messagePattern = "{0} a {1} {2} -> {3} {4} {5} {6} {7}";
         
+        for (InvestmentReportDTO r : report) {
+            assertEquals("ARS", r.getCurrency());
+            System.out.println(MessageFormat.format(messagePattern, 
+                    date.format(r.getFrom()), 
+                    date.format(r.getTo()),
+                    money.format(r.getInitialAmount()), 
+                    money.format(r.getFinalAmount()),
+                    money.format(r.getDifferenceAmount()),
+                    pct.format(r.getPct()),
+                    pct.format(r.getInflationPct()),
+                    pct.format(r.getDifferencePct())
+                    ));
+            
+            
+        }
     }
 
     private List<Investment> read(String name) throws IOException {
@@ -184,7 +190,5 @@ public class IndexTest {
             });
         }
     }
-
-
 
 }

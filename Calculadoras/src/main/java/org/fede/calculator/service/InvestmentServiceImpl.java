@@ -31,8 +31,11 @@ import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MathConstants;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.Resource;
 import org.fede.calculator.money.ForeignExchanges;
+import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -47,6 +50,7 @@ import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.web.dto.DollarReportDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
+import org.fede.calculator.web.dto.InvestmentReportDTO;
 import org.fede.calculator.web.dto.SavingsReportDTO;
 import org.fede.util.Util;
 import org.springframework.context.annotation.Lazy;
@@ -71,7 +75,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         final List<DollarReportDTO> answer = new ArrayList<>(investments.size());
         final Date moment = ForeignExchanges.USD_ARS.getTo().asDate();
         final Currency ars = Currency.getInstance("ARS");
-        
+
         for (Investment inv : investments) {
             if (inv.getType().equals(InvestmentType.USD)) {
                 DollarReportDTO dto = new DollarReportDTO();
@@ -147,14 +151,13 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return answer;
     }*/
 
-    /*private Date createDate(int year, int month) {
+ /*private Date createDate(int year, int month) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, year);
         cal.set(Calendar.MONTH, month - 1);
         cal.set(Calendar.DAY_OF_MONTH, 1);
         return cal.getTime();
     }*/
-
     @Override
     public List<SavingsReportDTO> savings(final int toYear, final int toMonth) throws NoSeriesDataFoundException {
 
@@ -258,6 +261,75 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         } catch (IOException ioEx) {
             throw new IllegalArgumentException("Could not read investments from resource " + name, ioEx);
         }
+    }
+
+    @Override
+    public List<InvestmentReportDTO> investment(String currency, String investmentSeries) throws NoSeriesDataFoundException {
+
+        final Currency targetCurrency = Currency.getInstance(currency);
+        final List<InvestmentReportDTO> report = new ArrayList<>();
+        final List<Investment> items = read(investmentSeries);
+        
+        for (Investment item : items) {
+            
+            final Date until = this.untilDate(item, targetCurrency);
+            
+            InvestmentReportDTO dto = new InvestmentReportDTO(
+                    item.getIn().getDate(),
+                    until,
+                    currency,
+                    this.initialAmount(item, targetCurrency),
+                    this.finalAmount(item, targetCurrency, until),
+                    this.inflation(targetCurrency, item.getIn().getDate(), until),
+                    item.getOut() == null);
+            report.add(dto);
+        }
+        return report;
+    }
+
+    private MoneyAmount changeCurrency(MoneyAmount ma, Currency targetCurrency, Date date) throws NoSeriesDataFoundException {
+        return ForeignExchanges.getForeignExchange(ma.getCurrency(), targetCurrency).exchange(ma, targetCurrency, date);
+    }
+
+    private BigDecimal initialAmount(Investment investment, Currency targetCurrency) throws NoSeriesDataFoundException{
+        final Currency inCurrency = Currency.getInstance(investment.getIn().getCurrency());
+        final Currency investmentCurrency = Currency.getInstance(investment.getInvestment().getCurrency());
+
+        MoneyAmount amount;
+        if(targetCurrency.equals(inCurrency)){
+            amount = investment.getIn().getMoneyAmount();
+        }else if(targetCurrency.equals(investmentCurrency)){
+            amount = investment.getInvestment().getMoneyAmount();
+        }else{
+            amount = this.changeCurrency(investment.getIn().getMoneyAmount(), targetCurrency, investment.getIn().getDate());
+        }
+        return amount.getAmount();
+    }
+    
+    private Date untilDate(Investment item, Currency targetCurrency){
+        return item.getOut() != null 
+                ? item.getOut().getDate()
+                : ForeignExchanges.getForeignExchange(item.getInvestment().getMoneyAmount().getCurrency(), targetCurrency).getTo().asToDate();
+    }
+    
+    private BigDecimal finalAmount(Investment investment, Currency targetCurrency, Date date) throws NoSeriesDataFoundException{
+        if(investment.getOut() != null){
+            return changeCurrency(investment.getOut().getMoneyAmount(), targetCurrency, investment.getOut().getDate()).getAmount();
+        }
+        return changeCurrency(investment.getInvestment().getMoneyAmount(), targetCurrency, date).getAmount();
+    }
+    
+    private BigDecimal inflation(Currency targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
+        Map<Currency, Inflation> map = new HashMap<>(2, 1.0f);
+        
+        map.put(Currency.getInstance("USD"), USD_INFLATION);
+        map.put(Currency.getInstance("ARS"), ARS_INFLATION);
+        
+        Inflation inflation = map.get(targetCurrency);
+        if(inflation == null){
+            throw new IllegalArgumentException("Inflation for currency "+targetCurrency+" is unknown.");
+        }
+        return inflation.adjust(new MoneyAmount(ONE, targetCurrency), from, to).getAmount().subtract(ONE);
     }
 
 }
