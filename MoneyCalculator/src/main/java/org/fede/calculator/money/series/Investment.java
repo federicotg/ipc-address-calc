@@ -17,6 +17,10 @@
 
 package org.fede.calculator.money.series;
 
+import java.util.Currency;
+import java.util.Date;
+import org.fede.calculator.money.MoneyAmount;
+
 
 
 /**
@@ -76,5 +80,24 @@ public class Investment {
         return this.getType().isValid(this.getIn(), this.getOut(), this.getInvestment());
     }
 
+    public Date getInitialDate(){
+        return this.getIn().getDate();
+    }
+    
+    public Currency getInitialCurrency(){
+        return Currency.getInstance(this.getIn().getCurrency());
+    }
+    
+    public MoneyAmount getInitialMoneyAmount(){
+        return this.getIn().getMoneyAmount();
+    }
+    
+    public MoneyAmount getMoneyAmount(){
+        return this.getInvestment().getMoneyAmount();
+    }
+    
+    public Currency getCurrency(){
+        return Currency.getInstance(this.getInvestment().getCurrency());
+    }
     
 }
