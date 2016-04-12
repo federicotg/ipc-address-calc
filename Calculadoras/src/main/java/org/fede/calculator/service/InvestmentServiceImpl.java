@@ -110,54 +110,6 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
     }
 
-    /*@Override
-    public List<DollarReportDTO> dollar() throws NoSeriesDataFoundException {
-
-        final Date moment = new Date();
-        final MoneyAmount oneDollar = new MoneyAmount(ONE, "USD");
-        final Currency ars = Currency.getInstance("ARS");
-        final MoneyAmountSeries dolares = readSeries("dolares.json");
-        final Currency peso = Currency.getInstance("ARS");
-        final List<DollarReportDTO> answer = new ArrayList<>();
-
-        dolares.forEachNonZero(new MoneyAmountProcessor() {
-            @Override
-            public void process(int year, int month, MoneyAmount dollar) throws NoSeriesDataFoundException {
-                DollarReportDTO dto = new DollarReportDTO();
-                dto.setUsd(dollar.getAmount());
-                answer.add(dto);
-                Date thenDate = createDate(year, month);
-                dto.setThen(thenDate);
-                MoneyAmount pesos = ForeignExchanges.USD_ARS.exchange(dollar, peso, thenDate);
-                dto.setNominalPesosThen(pesos.getAmount());
-                BigDecimal realPesos = ARS_INFLATION.adjust(pesos, thenDate, moment).getAmount();
-                dto.setRealPesosNow(realPesos);
-                dto.setNow(moment);
-                dto.setNominalPesosNow(ForeignExchanges.USD_ARS.exchange(dollar, peso, moment).getAmount());
-
-                MoneyAmount oneDollarThen = USD_INFLATION.adjust(oneDollar, moment, thenDate);
-
-                MoneyAmount realDollarThen = ARS_INFLATION.adjust(
-                        ForeignExchanges.USD_ARS.exchange(oneDollarThen, ars, thenDate),
-                        thenDate, moment);
-
-                dto.setRealUsdThen(realDollarThen.getAmount());
-
-                MoneyAmount oneDollarNow = ForeignExchanges.USD_ARS.exchange(oneDollar, ars, moment);
-                dto.setNominalUsdNow(oneDollarNow.getAmount());
-
-            }
-        });
-        return answer;
-    }*/
-
- /*private Date createDate(int year, int month) {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, year);
-        cal.set(Calendar.MONTH, month - 1);
-        cal.set(Calendar.DAY_OF_MONTH, 1);
-        return cal.getTime();
-    }*/
     @Override
     public List<SavingsReportDTO> savings(final int toYear, final int toMonth) throws NoSeriesDataFoundException {
 
@@ -268,21 +220,20 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final Currency targetCurrency = Currency.getInstance(currency);
         final List<InvestmentReportDTO> report = new ArrayList<>();
-        final List<Investment> items = read(investmentSeries);
-        
-        for (Investment item : items) {
+
+        for (Investment item : read(investmentSeries)) {
 
             final Date until = this.untilDate(item, targetCurrency);
 
-            InvestmentReportDTO dto = new InvestmentReportDTO(
-                    item.getIn().getDate(),
+            report.add(new InvestmentReportDTO(
+                    item.getInitialDate(),
                     until,
                     currency,
                     this.initialAmount(item, targetCurrency),
                     this.finalAmount(item, targetCurrency, until),
-                    this.inflation(targetCurrency, item.getIn().getDate(), until),
-                    item.getOut() == null);
-            report.add(dto);
+                    this.inflation(targetCurrency, item.getInitialDate(), until),
+                    item.getOut() == null));
+
         }
         return report;
     }
@@ -291,43 +242,41 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return ForeignExchanges.getForeignExchange(ma.getCurrency(), targetCurrency).exchange(ma, targetCurrency, date);
     }
 
-    private BigDecimal initialAmount(Investment investment, Currency targetCurrency) throws NoSeriesDataFoundException{
-        final Currency inCurrency = Currency.getInstance(investment.getIn().getCurrency());
-        final Currency investmentCurrency = Currency.getInstance(investment.getInvestment().getCurrency());
+    private BigDecimal initialAmount(Investment investment, Currency targetCurrency) throws NoSeriesDataFoundException {
 
         MoneyAmount amount;
-        if(targetCurrency.equals(inCurrency)){
+        if (targetCurrency.equals(investment.getInitialCurrency())) {
             amount = investment.getIn().getMoneyAmount();
-        }else if(targetCurrency.equals(investmentCurrency)){
-            amount = investment.getInvestment().getMoneyAmount();
-        }else{
-            amount = this.changeCurrency(investment.getIn().getMoneyAmount(), targetCurrency, investment.getIn().getDate());
+        } else if (targetCurrency.equals(investment.getCurrency())) {
+            amount = investment.getMoneyAmount();
+        } else {
+            amount = this.changeCurrency(investment.getMoneyAmount(), targetCurrency, investment.getInitialDate());
         }
         return amount.getAmount();
     }
-    
-    private Date untilDate(Investment item, Currency targetCurrency){
-        return item.getOut() != null 
+
+    private Date untilDate(Investment item, Currency targetCurrency) {
+        return item.getOut() != null
                 ? item.getOut().getDate()
                 : ForeignExchanges.getForeignExchange(item.getInvestment().getMoneyAmount().getCurrency(), targetCurrency).getTo().asToDate();
     }
-    
-    private BigDecimal finalAmount(Investment investment, Currency targetCurrency, Date date) throws NoSeriesDataFoundException{
-        if(investment.getOut() != null){
+
+    private BigDecimal finalAmount(Investment investment, Currency targetCurrency, Date date) throws NoSeriesDataFoundException {
+        if (investment.getOut() != null) {
             return changeCurrency(investment.getOut().getMoneyAmount(), targetCurrency, investment.getOut().getDate()).getAmount();
         }
         return changeCurrency(investment.getInvestment().getMoneyAmount(), targetCurrency, date).getAmount();
     }
-    
+
     private BigDecimal inflation(Currency targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
         Map<Currency, Inflation> map = new HashMap<>(2, 1.0f);
-        
+
         map.put(Currency.getInstance("USD"), USD_INFLATION);
         map.put(Currency.getInstance("ARS"), ARS_INFLATION);
-        
+
         Inflation inflation = map.get(targetCurrency);
-        if(inflation == null){
-            throw new IllegalArgumentException("Inflation for currency "+targetCurrency+" is unknown.");
+        if (inflation == null) {
+            throw new IllegalArgumentException("Inflation for currency " + targetCurrency + " is unknown.");
         }
         return inflation.adjust(new MoneyAmount(ONE, targetCurrency), from, to).getAmount().subtract(ONE);
     }
