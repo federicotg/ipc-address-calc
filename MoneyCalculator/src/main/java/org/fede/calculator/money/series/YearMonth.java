@@ -89,6 +89,15 @@ public class YearMonth implements Comparable<YearMonth> {
         return "YearMonth{" + "year=" + year + ", month=" + month + '}';
     }
 
+    public Date asToDate() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, this.year);
+        cal.set(Calendar.MONTH, this.month - 1);
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+        return cal.getTime();
+    }
+    
     public Date asDate() {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, this.year);
