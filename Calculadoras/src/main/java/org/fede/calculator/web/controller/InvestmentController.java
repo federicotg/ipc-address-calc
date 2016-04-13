@@ -17,11 +17,9 @@
 package org.fede.calculator.web.controller;
 
 import java.util.Comparator;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Resource;
-import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.InvestmentService;
 import org.fede.calculator.service.MoneyService;
