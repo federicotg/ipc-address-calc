@@ -97,13 +97,6 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
             }
         });
 
-        /* for (Iterator<Map.Entry<YearMonth, MoneyAmount>> it = this.values.entrySet().iterator(); it.hasNext();) {
-            Map.Entry<YearMonth, MoneyAmount> entry = it.next();
-            answer.putAmount(
-                    entry.getKey().getYear(),
-                    entry.getKey().getMonth(),
-                    transform.transform(entry.getKey().getYear(), entry.getKey().getMonth(), entry.getValue()));
-        }*/
         return answer;
     }
 
@@ -122,7 +115,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
         final YearMonth otherStart = other.getFrom();
         final YearMonth otherEnd = other.getTo();
 
-        final MoneyAmountSeries answer = this.createNew();//new JSONMoneyAmountSeries(this.getCurrency());
+        final MoneyAmountSeries answer = this.createNew();
         //this empieza antes o son iguales
         this.forEach(new MoneyAmountProcessor() {
 
@@ -187,10 +180,6 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
                 }
             });
 
-            /*for (Iterator<Map.Entry<YearMonth, MoneyAmount>> it = this.values.entrySet().iterator(); it.hasNext();) {
-                Map.Entry<YearMonth, MoneyAmount> e = it.next();
-                equal &= e.getValue().equals(other.getAmount(e.getKey().getYear(), e.getKey().getMonth()));
-            }*/
             return holder[0];
         } catch (NoSeriesDataFoundException ex) {
 
