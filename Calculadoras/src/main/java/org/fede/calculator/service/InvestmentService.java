@@ -28,10 +28,10 @@ import org.fede.calculator.web.dto.SavingsReportDTO;
  */
 public interface InvestmentService {
     
-    List<DollarReportDTO> dollar() throws NoSeriesDataFoundException;
+    //List<DollarReportDTO> dollar() throws NoSeriesDataFoundException;
     
     List<SavingsReportDTO> savings(int year, int month) throws NoSeriesDataFoundException;
     
-    public List<InvestmentReportDTO> investment(String currency, String investmentSeries) throws NoSeriesDataFoundException;
+    public List<InvestmentReportDTO> investment(String currency) throws NoSeriesDataFoundException;
     
 }

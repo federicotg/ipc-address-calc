@@ -28,7 +28,7 @@
         <link rel="icon" 
               type="image/png" 
               href="/images/favicon.png" />
-        <title>Inversión USD</title>
+        <title>Inversión</title>
         <link rel="stylesheet" type="text/css" href="/styles/style.min.css" />
         <style type="text/css">
 
@@ -43,39 +43,33 @@
     </head>
     <body>
         <%@include file="../jspf/menu.jspf" %>
-        <h1>Inversión USD</h1>
+        <h1>Inversión</h1>
         <table>
             <thead>
                 <tr>
-                    <th colspan="2">Compra</th>
-                    <th colspan="2">Pesos</th>
-                    <th colspan="3">Valor de venta (<fmt:formatDate value="${moment}" pattern="MMM/YYYY"/>)</th>
-                    <th colspan="2">Tipo de Cambio Real</th>
-                </tr>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Dólares</th>
-                    <th>Nominales</th>
-                    <th>Reales al <fmt:formatDate value="${moment}" pattern="MMM/YYYY"/></th>
-                    <th>Pesos</th>
-                    <th>Diferencia</th>
-                    <th>%</th>
-                    <th>$/USD</th>
-                    <th>Dif. dólar hoy</th>
+                    <th>Tipo</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                    <th>Inversión</th>
+                    <th>Retorno</th>
+                    <th>+/-</th>
+                    <th>+/- %</th>
+                    <th>Inflación</th>
+                    <th>+/- % Real</th>
                 </tr>
             </thead>
             <tbody>
                 <c:forEach items="${report}" var="item">
                     <tr>
-                        <td><fmt:formatDate value="${item.then}" pattern="MMM/YYYY"/></td>
-                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.usd}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.nominalPesosThen}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.realPesosNow}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.nominalPesosNow}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.nominalPesosNow - item.realPesosNow}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${(item.nominalPesosNow - item.realPesosNow) / item.realPesosNow}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.realUsdThen}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${(item.realUsdThen - item.nominalUsdNow) / item.nominalUsdNow}</fmt:formatNumber></td>
+                        <td>${item.type}</td>
+                        <td><fmt:formatDate value="${item.from}" type="date" /></td>
+                        <td><fmt:formatDate value="${item.to}" type="date" /></td>
+                        <td class="valueTd">${item.currency} <fmt:formatNumber type="CURRENCY">${item.initialAmount}</fmt:formatNumber></td>
+                        <td class="valueTd">${item.currency} <fmt:formatNumber type="CURRENCY">${item.finalAmount}</fmt:formatNumber></td>
+                        <td class="valueTd">${item.currency} <fmt:formatNumber type="CURRENCY">${item.differenceAmount}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.pct}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.inflationPct}</fmt:formatNumber></td>
+                        <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.differencePct}</fmt:formatNumber></td>
                         </tr>
                 </c:forEach>
             </tbody>

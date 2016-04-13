@@ -154,7 +154,7 @@ public class IndexTest {
         NumberFormat pct = NumberFormat.getPercentInstance();
         DateFormat date = DateFormat.getDateInstance(DateFormat.SHORT);
         
-        List<InvestmentReportDTO> report = new InvestmentServiceImpl().investment("ARS", "investments-test.json");
+        List<InvestmentReportDTO> report = new InvestmentServiceImpl().investment("ARS");
         
         String messagePattern = "{0} a {1} {2} -> {3} {4} {5} {6} {7}";
         

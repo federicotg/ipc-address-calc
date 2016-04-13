@@ -67,7 +67,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
 
-    @Override
+   // @Override
     public List<DollarReportDTO> dollar() throws NoSeriesDataFoundException {
 
         final List<Investment> investments = read("investments.json");
@@ -93,16 +93,12 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                 dto.setNominalPesosNow(ForeignExchanges.USD_ARS.exchange(inv.getInvestment().getMoneyAmount(), ars, moment).getAmount());
 
                 MoneyAmount oneDollarThen = USD_INFLATION.adjust(oneDollar, moment, thenDate);
-
                 MoneyAmount realDollarThen = ARS_INFLATION.adjust(
                         ForeignExchanges.USD_ARS.exchange(oneDollarThen, ars, thenDate),
                         thenDate, moment);
-
                 dto.setRealUsdThen(realDollarThen.getAmount());
-
                 MoneyAmount oneDollarNow = ForeignExchanges.USD_ARS.exchange(oneDollar, ars, moment);
                 dto.setNominalUsdNow(oneDollarNow.getAmount());
-
             }
         }
 
@@ -114,11 +110,8 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     public List<SavingsReportDTO> savings(final int toYear, final int toMonth) throws NoSeriesDataFoundException {
 
         final List<SavingsReportDTO> report = new ArrayList<>();
-
         final MoneyAmountSeries pesos = readSeries("ahorros-peso.json");
-
         final MoneyAmountSeries dollarsAndGold = sumSeries("ahorros-dolar.json", "ahorros-oro.json");
-
         final IndexSeries dollarPrice = JSONIndexSeries.readSeries("peso-dolar-libre.json");
 
         MoneyAmountSeries nominalIncomePesos = Util.sumSeries(this.incomeSeries);
@@ -216,16 +209,17 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     }
 
     @Override
-    public List<InvestmentReportDTO> investment(String currency, String investmentSeries) throws NoSeriesDataFoundException {
+    public List<InvestmentReportDTO> investment(String currency) throws NoSeriesDataFoundException {
 
         final Currency targetCurrency = Currency.getInstance(currency);
         final List<InvestmentReportDTO> report = new ArrayList<>();
 
-        for (Investment item : read(investmentSeries)) {
+        for (Investment item : read("investments.json")) {
 
             final Date until = this.untilDate(item, targetCurrency);
 
             report.add(new InvestmentReportDTO(
+                    item.getType().name(),
                     item.getInitialDate(),
                     until,
                     currency,

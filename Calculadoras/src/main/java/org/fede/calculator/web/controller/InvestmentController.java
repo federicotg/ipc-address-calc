@@ -70,9 +70,15 @@ public class InvestmentController {
     @RequestMapping(value = "/dollar", method = RequestMethod.GET)
     public ModelAndView dollarInvestment() throws NoSeriesDataFoundException {
         return new ModelAndView("dollarInvestment")
-                .addObject("report", this.investmentService.dollar())
-                .addObject("moment", ForeignExchanges.USD_ARS.getTo().asDate());
+                .addObject("report", this.investmentService.investment("USD"));
     }
+    
+    @RequestMapping(value = "/peso", method = RequestMethod.GET)
+    public ModelAndView pesoInvestment() throws NoSeriesDataFoundException {
+        return new ModelAndView("dollarInvestment")
+                .addObject("report", this.investmentService.investment("ARS"));
+    }
+    
 
     @RequestMapping(value = "/savings", method = RequestMethod.GET)
     public ModelAndView savings() throws NoSeriesDataFoundException {

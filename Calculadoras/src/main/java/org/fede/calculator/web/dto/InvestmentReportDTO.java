@@ -26,6 +26,7 @@ import java.util.Date;
  */
 public class InvestmentReportDTO {
 
+    private String type;
     private Date from;
     private Date to;
     private String currency;
@@ -37,21 +38,21 @@ public class InvestmentReportDTO {
     private BigDecimal differencePct;
     private boolean current;
 
-    public InvestmentReportDTO(Date from, Date to, String currency, BigDecimal initialAmount, BigDecimal finalAmount, BigDecimal inflationPct, boolean current) {
+    public InvestmentReportDTO(String type, Date from, Date to, String currency, BigDecimal initialAmount, BigDecimal finalAmount, BigDecimal inflationPct, boolean current) {
+        this.type = type;
         this.from = from;
         this.to = to;
         this.currency = currency;
         this.initialAmount = initialAmount;
         this.finalAmount = finalAmount;
         this.inflationPct = inflationPct;
-        
+
         this.differenceAmount = finalAmount.subtract(initialAmount);
         this.pct = this.differenceAmount.divide(this.initialAmount, MathContext.DECIMAL128);
         this.differencePct = this.pct.subtract(this.inflationPct);
         this.current = current;
     }
-    
-    
+
     public Date getFrom() {
         return from;
     }
@@ -131,8 +132,13 @@ public class InvestmentReportDTO {
     public void setCurrent(boolean current) {
         this.current = current;
     }
-    
-    
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
 }
