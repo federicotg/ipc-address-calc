@@ -32,19 +32,21 @@ public class ForeignExchanges {
 
     private static final Map<Currency, ForeignExchange> FOREIGN_EXCHANGES_BY_CURRENCY = new HashMap<>();
 
+    private static final Currency USD = Currency.getInstance("USD");
+    
     public static final ForeignExchange USD_ARS = new SimpleForeignExchange(
             JSONIndexSeries.readSeries("peso-dolar-libre.json"),
-            Currency.getInstance("USD"),
+            USD,
             Currency.getInstance("ARS"));
 
     public static final ForeignExchange USD_XAU = new SimpleForeignExchange(
             JSONIndexSeries.readSeries("gold.json"),
             Currency.getInstance("XAU"),
-            Currency.getInstance("USD"));
+            USD);
 
     public static final ForeignExchange USD_EUR = new SimpleForeignExchange(
             JSONIndexSeries.readSeries("euro-dolar.json"),
-            Currency.getInstance("USD"),
+            USD,
             Currency.getInstance("EUR"));
 
     public static final ForeignExchange NO_FX = new SimpleForeignExchange(new IndexSeriesSupport() {
@@ -67,10 +69,10 @@ public class ForeignExchanges {
         public BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException {
             return BigDecimal.ONE;
         }
-    }, Currency.getInstance("USD"), Currency.getInstance("USD"));
+    }, USD, USD);
 
     static {
-        FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("USD"), NO_FX);
+        FOREIGN_EXCHANGES_BY_CURRENCY.put(USD, NO_FX);
         FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("ARS"), USD_ARS);
         FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("EUR"), USD_EUR);
         FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("XAU"), USD_XAU);
@@ -84,10 +86,10 @@ public class ForeignExchanges {
         Currency usd = null;
         Currency other = null;
 
-        if (to.equals(Currency.getInstance("USD"))) {
+        if (to.equals(USD)) {
             usd = to;
             other = from;
-        } else if (from.equals(Currency.getInstance("USD"))) {
+        } else if (from.equals(USD)) {
             usd = from;
             other = to;
         }
@@ -101,7 +103,7 @@ public class ForeignExchanges {
             }
         }
 
-        return new CompoundForeignExchange(getForeignExchange(from, Currency.getInstance("USD")), getForeignExchange(to, Currency.getInstance("USD")));
+        return new CompoundForeignExchange(getForeignExchange(from, USD), getForeignExchange(to, USD));
 
     }
 

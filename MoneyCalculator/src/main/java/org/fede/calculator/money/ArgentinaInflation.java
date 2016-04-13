@@ -26,16 +26,15 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class ArgentinaInflation extends BaseInflation {
 
-    private final Inflation basicInflation = new CPIInflation(new ArgentinaCompoundCPISeries(), Currency.getInstance("ARS"));
+    private static final Currency ARS = Currency.getInstance("ARS");
+    
+    private final Inflation basicInflation = new CPIInflation(new ArgentinaCompoundCPISeries(), ARS);
 
     @Override
     public MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoSeriesDataFoundException {
-        amount.assertCurrency(Currency.getInstance("ARS"));
-
+        amount.assertCurrency(ARS);
         MoneyAmount uncorrectedValue = this.basicInflation.adjust(amount, fromYear, fromMonth, toYear, toMonth);
-
-        return new MoneyAmount(ArgCurrency.convertTo(uncorrectedValue.getAmount(), fromYear, fromMonth, toYear, toMonth), Currency.getInstance("ARS"));
-
+        return new MoneyAmount(ArgCurrency.convertTo(uncorrectedValue.getAmount(), fromYear, fromMonth, toYear, toMonth), ARS);
     }
 
     @Override

@@ -17,7 +17,7 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import static java.math.RoundingMode.HALF_UP;
 import java.text.NumberFormat;
 import java.util.Currency;
 import java.util.Objects;
@@ -68,8 +68,8 @@ public class MoneyAmount implements MathConstants {
     public boolean equals(Object obj) {
         return obj instanceof MoneyAmount
                 && ((MoneyAmount) obj).currency.equals(this.currency)
-                && ((MoneyAmount) obj).amount.setScale(5, RoundingMode.HALF_UP)
-                .compareTo(this.amount.setScale(5, RoundingMode.HALF_UP)) == 0;
+                && ((MoneyAmount) obj).amount.setScale(5, HALF_UP)
+                .compareTo(this.amount.setScale(5, HALF_UP)) == 0;
     }
 
     @Override
