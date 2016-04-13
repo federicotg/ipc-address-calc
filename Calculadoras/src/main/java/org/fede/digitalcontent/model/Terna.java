@@ -45,14 +45,15 @@ public class Terna<A, B, C> extends Pair<A, B> {
 
     @Override
     public boolean equals(Object obj) {
-        return super.equals(obj)
-                && Objects.equals(this.third, ((Terna) obj).getThird());
+        return obj instanceof Terna 
+                && Objects.equals(this.getFirst(), ((Terna) obj).getFirst())
+                && Objects.equals(this.getSecond(), ((Terna) obj).getSecond())
+                && Objects.equals(this.third, ((Terna) obj).third);
     }
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        return 37 * hash + super.hashCode();
+        return Objects.hash(this.getFirst(), this.getSecond(), this.getThird());
     }
 
 }
