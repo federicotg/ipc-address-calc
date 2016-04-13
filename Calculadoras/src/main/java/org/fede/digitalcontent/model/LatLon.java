@@ -16,34 +16,33 @@
  */
 package org.fede.digitalcontent.model;
 
+import org.fede.util.Pair;
+
 /**
  *
  * @author fede
  */
-public class LatLon {
+public class LatLon extends Pair<Double, Double>{
 
-    private Double lat;
-    private Double lon;
-
+    
     public LatLon(Double lat, Double lon) {
-        this.lat = lat;
-        this.lon = lon;
+        super(lat, lon);
     }
 
     public Double getLat() {
-        return lat;
+        return getFirst();
     }
 
     public void setLat(Double lat) {
-        this.lat = lat;
+        this.setFirst(lat);
     }
 
     public Double getLon() {
-        return lon;
+        return getSecond();
     }
 
     public void setLon(Double lon) {
-        this.lon = lon;
+        this.setSecond(lon);
     }
 
 }
