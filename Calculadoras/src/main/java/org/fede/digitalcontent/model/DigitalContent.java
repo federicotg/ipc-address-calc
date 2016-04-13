@@ -121,7 +121,7 @@ public class DigitalContent {
         }
 
         public Builder seenByCristina() {
-            this.viewers.add("Crsitina");
+            this.viewers.add("Cristina");
             return this;
         }
 
