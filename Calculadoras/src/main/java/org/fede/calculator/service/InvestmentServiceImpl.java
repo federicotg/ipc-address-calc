@@ -64,16 +64,26 @@ import org.springframework.stereotype.Service;
 @Lazy
 public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
+    private final Map<Currency, Inflation> map = new HashMap<>(2, 1.0f);
+
     @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
 
-   // @Override
+    public InvestmentServiceImpl() {
+        map.put(Currency.getInstance("USD"), USD_INFLATION);
+        map.put(Currency.getInstance("ARS"), ARS_INFLATION);
+
+    }
+
+    // @Override
     public List<DollarReportDTO> dollar() throws NoSeriesDataFoundException {
 
         final List<Investment> investments = read("investments.json");
         final MoneyAmount oneDollar = new MoneyAmount(ONE, "USD");
         final List<DollarReportDTO> answer = new ArrayList<>(investments.size());
-        final Date moment = ForeignExchanges.USD_ARS.getTo().asDate();
+        //final Date moment = ForeignExchanges.USD_ARS.getTo().asDate();
+        final Date moment = USD_INFLATION.getTo().asToDate();
+        
         final Currency ars = Currency.getInstance("ARS");
 
         for (Investment inv : investments) {
@@ -251,7 +261,8 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     private Date untilDate(Investment item, Currency targetCurrency) {
         return item.getOut() != null
                 ? item.getOut().getDate()
-                : ForeignExchanges.getForeignExchange(item.getMoneyAmount().getCurrency(), targetCurrency).getTo().asToDate();
+                //: ForeignExchanges.getForeignExchange(item.getMoneyAmount().getCurrency(), targetCurrency).getTo().asToDate();
+                : this.map.get(targetCurrency).getTo().asToDate();
     }
 
     private BigDecimal finalAmount(Investment investment, Currency targetCurrency, Date date) throws NoSeriesDataFoundException {
@@ -262,10 +273,6 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     }
 
     private BigDecimal inflation(Currency targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
-        Map<Currency, Inflation> map = new HashMap<>(2, 1.0f);
-
-        map.put(Currency.getInstance("USD"), USD_INFLATION);
-        map.put(Currency.getInstance("ARS"), ARS_INFLATION);
 
         Inflation inflation = map.get(targetCurrency);
         if (inflation == null) {
