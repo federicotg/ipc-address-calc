@@ -39,6 +39,15 @@
             .valueTd{
                 text-align: right;
             }
+
+            .loss {
+                color: red;
+            }
+
+            .win {
+                color: green;
+            }
+
         </style>
     </head>
     <body>
@@ -69,7 +78,11 @@
                         <td class="valueTd">${item.currency} <fmt:formatNumber type="CURRENCY">${item.differenceAmount}</fmt:formatNumber></td>
                         <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.pct}</fmt:formatNumber></td>
                         <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.inflationPct}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.differencePct}</fmt:formatNumber></td>
+                        <c:choose>
+                            <c:when test="${item.differencePct ge 0}"><td class="valueTd win"></c:when>
+                            <c:otherwise><td class="valueTd loss"></c:otherwise>
+                            </c:choose>
+                            <fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.differencePct}</fmt:formatNumber></td>
                         </tr>
                 </c:forEach>
             </tbody>

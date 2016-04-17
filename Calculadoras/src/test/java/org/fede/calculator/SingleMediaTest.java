@@ -21,7 +21,6 @@ import org.fede.calculator.service.DigitalContentService;
 import org.fede.digitalcontent.model.DigitalContent;
 import org.fede.digitalcontent.model.Repository;
 import org.fede.digitalcontent.model.StorageMedium;
-import org.fede.digitalcontent.model.StorageMediumRepository;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.runner.RunWith;

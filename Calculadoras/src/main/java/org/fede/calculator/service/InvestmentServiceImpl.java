@@ -31,6 +31,8 @@ import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MathConstants;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Resource;
@@ -238,6 +240,13 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                     this.inflation(targetCurrency, item.getInitialDate(), until),
                     item.getOut() == null));
         }
+        Collections.sort(report, new Comparator<InvestmentReportDTO>(){
+            @Override
+            public int compare(InvestmentReportDTO o1, InvestmentReportDTO o2) {
+                return o1.getFrom().compareTo(o2.getFrom());
+            }
+            
+        });
         return report;
     }
 
