@@ -121,12 +121,18 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         repo.findById("3-09").setSize(23744018119l);
         repo.findById("3-10").setSize(24090135203l);
+        
+        repo.findById("4-01").setSize(22610819214l);
 
         repo.findById("6-01").setSize(23786572018l);
         
         repo.findById("7-03").setSize(24081187584l);
         
         repo.findById("9-01").setSize(23266263358l);
+        
+        repo.findById("2-02").setSize(22531026141l);
+        
+        
         
 
     }
@@ -1658,6 +1664,26 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .discBox(1, 9).build();
         }
         
+        for (String title : new String[]{
+                "Bad Blood",
+                "Patient X",
+                "The Red and the Black",
+                "Travelers"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(1, 4).build();
+        }
+
+        for (String title : new String[]{
+                "Mind's Eye",
+                "All Souls",
+                "The Pine Bluff Variant",
+                "Folie à Deux"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(2, 2).build();
+        }
+
     }
 
     @Override

@@ -79,7 +79,8 @@ public class ChartController {
     @Lazy
     private MultiSeriesChartService fciService;
     
-    @Resource(name = "usdMoneyService")
+    //@Resource(name = "usdMoneyService")
+    @Resource(name = "argMoneyService")
     @Lazy
     private MoneyService referenceMoneyService;
 
