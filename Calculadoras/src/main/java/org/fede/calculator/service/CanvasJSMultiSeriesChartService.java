@@ -17,7 +17,6 @@
 package org.fede.calculator.service;
 
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -103,8 +102,6 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
             int month,
             String currencyCode) throws NoSeriesDataFoundException {
 
-        //final Currency currency = Currency.getInstance(currencyCode);
-
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>();
 
         if (seriesNames != null) {
@@ -163,7 +160,6 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
     @Override
     public CanvasJSChartDTO renderIncomeRelativeChart(String chartTitle, int months, List<String> seriesNames, String currencyCode) throws NoSeriesDataFoundException {
-        //final Currency currency = Currency.getInstance(currencyCode);
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
         if (seriesNames != null && !seriesNames.isEmpty()) {
 

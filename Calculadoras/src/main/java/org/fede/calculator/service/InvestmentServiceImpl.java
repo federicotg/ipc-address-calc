@@ -85,8 +85,6 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         //final Date moment = ForeignExchanges.USD_ARS.getTo().asDate();
         final Date moment = USD_INFLATION.getTo().asToDate();
         
-        //final Currency ars = Currency.getInstance("ARS");
-
         for (Investment inv : investments) {
             if (inv.getType().equals(InvestmentType.USD)) {
                 DollarReportDTO dto = new DollarReportDTO();
@@ -222,7 +220,6 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     @Override
     public List<InvestmentReportDTO> investment(String currency) throws NoSeriesDataFoundException {
 
-        //final Currency targetCurrency = Currency.getInstance(currency);
         final List<InvestmentReportDTO> report = new ArrayList<>();
 
         for (Investment item : read("investments.json")) {
