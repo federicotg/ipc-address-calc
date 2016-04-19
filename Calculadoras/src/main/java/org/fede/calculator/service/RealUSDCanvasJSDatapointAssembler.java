@@ -39,7 +39,7 @@ public class RealUSDCanvasJSDatapointAssembler implements CanvasJSDatapointAssem
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         new SimpleAggregation(months)
-                .average(USD_INFLATION.adjust(sourceSeries.exchangeInto(Currency.getInstance("USD")), year, month))
+                .average(USD_INFLATION.adjust(sourceSeries.exchangeInto("USD"), year, month))
                 .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
     }

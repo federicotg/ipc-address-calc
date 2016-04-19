@@ -17,7 +17,6 @@
 package org.fede.calculator.service;
 
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
@@ -41,7 +40,7 @@ public class NominalUSDCanvasJSDatapointAssembler implements CanvasJSDatapointAs
     @Override
     public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        new SimpleAggregation(months).average(sourceSeries.exchangeInto(Currency.getInstance("USD")))
+        new SimpleAggregation(months).average(sourceSeries.exchangeInto("USD"))
                 .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
     }

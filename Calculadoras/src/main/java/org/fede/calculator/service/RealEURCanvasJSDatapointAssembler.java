@@ -17,7 +17,6 @@
 package org.fede.calculator.service;
 
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -40,10 +39,10 @@ public class RealEURCanvasJSDatapointAssembler implements CanvasJSDatapointAssem
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         
         MoneyAmountSeries series = 
-                USD_INFLATION.adjust(sourceSeries.exchangeInto(Currency.getInstance("USD")), year, month);
+                USD_INFLATION.adjust(sourceSeries.exchangeInto("USD"), year, month);
         
         new SimpleAggregation(months)
-                .average(series.exchangeInto(Currency.getInstance("EUR")))
+                .average(series.exchangeInto("EUR"))
                 .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
     }

@@ -117,7 +117,7 @@ public class Util {
             }
             final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
             SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
-            final Currency currency = Currency.getInstance(series.getCurrency());
+            final String currency = series.getCurrency();
             for (JSONDataPoint dp : series.getData()) {
                 interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), currency));
             }

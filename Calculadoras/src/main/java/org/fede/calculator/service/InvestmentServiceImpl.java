@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.Date;
 import java.util.List;
 import org.fede.calculator.money.Aggregation;
@@ -66,14 +65,14 @@ import org.springframework.stereotype.Service;
 @Lazy
 public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
-    private final Map<Currency, Inflation> map = new HashMap<>(2, 1.0f);
+    private final Map<String, Inflation> map = new HashMap<>(2, 1.0f);
 
     @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
 
     public InvestmentServiceImpl() {
-        map.put(Currency.getInstance("USD"), USD_INFLATION);
-        map.put(Currency.getInstance("ARS"), ARS_INFLATION);
+        map.put("USD", USD_INFLATION);
+        map.put("ARS", ARS_INFLATION);
 
     }
 
@@ -86,7 +85,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         //final Date moment = ForeignExchanges.USD_ARS.getTo().asDate();
         final Date moment = USD_INFLATION.getTo().asToDate();
         
-        final Currency ars = Currency.getInstance("ARS");
+        //final Currency ars = Currency.getInstance("ARS");
 
         for (Investment inv : investments) {
             if (inv.getType().equals(InvestmentType.USD)) {
@@ -102,14 +101,14 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                 dto.setNominalPesosThen(inv.getIn().getAmount());
                 dto.setRealPesosNow(ARS_INFLATION.adjust(inv.getIn().getMoneyAmount(), thenDate, moment).getAmount());
                 dto.setNow(moment);
-                dto.setNominalPesosNow(ForeignExchanges.USD_ARS.exchange(inv.getInvestment().getMoneyAmount(), ars, moment).getAmount());
+                dto.setNominalPesosNow(ForeignExchanges.USD_ARS.exchange(inv.getInvestment().getMoneyAmount(), "ARS", moment).getAmount());
 
                 MoneyAmount oneDollarThen = USD_INFLATION.adjust(oneDollar, moment, thenDate);
                 MoneyAmount realDollarThen = ARS_INFLATION.adjust(
-                        ForeignExchanges.USD_ARS.exchange(oneDollarThen, ars, thenDate),
+                        ForeignExchanges.USD_ARS.exchange(oneDollarThen, "ARS", thenDate),
                         thenDate, moment);
                 dto.setRealUsdThen(realDollarThen.getAmount());
-                MoneyAmount oneDollarNow = ForeignExchanges.USD_ARS.exchange(oneDollar, ars, moment);
+                MoneyAmount oneDollarNow = ForeignExchanges.USD_ARS.exchange(oneDollar, "ARS", moment);
                 dto.setNominalUsdNow(oneDollarNow.getAmount());
             }
         }
@@ -131,7 +130,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         Aggregation yearSum = new SimpleAggregation(12);
         final MoneyAmountSeries nov99IncomePesos12 = yearSum.sum(ARS_INFLATION.adjust(nominalIncomePesos, toYear, toMonth));
 
-        MoneyAmountSeries nominalIncomeDollars = nominalIncomePesos.exchangeInto(Currency.getInstance("USD"));
+        MoneyAmountSeries nominalIncomeDollars = nominalIncomePesos.exchangeInto("USD");
         final MoneyAmountSeries nov99IncomeDollars12 = yearSum.sum(USD_INFLATION.adjust(nominalIncomeDollars, toYear, toMonth));
 
         final MoneyAmountSeries nominalIncomePesos12 = yearSum.sum(nominalIncomePesos);
@@ -156,9 +155,9 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                 dto.setNov99Dollars(nov99Usd.getAmount());
                 dto.setNov99Pesos(nov99Ars.getAmount());
 
-                MoneyAmount totNominalUSD = usd.add(ForeignExchanges.USD_ARS.exchange(ars, Currency.getInstance("USD"), year, month));
+                MoneyAmount totNominalUSD = usd.add(ForeignExchanges.USD_ARS.exchange(ars, "USD", year, month));
 
-                MoneyAmount totNominalARS = ars.add(ForeignExchanges.USD_ARS.exchange(usd, Currency.getInstance("ARS"), year, month));
+                MoneyAmount totNominalARS = ars.add(ForeignExchanges.USD_ARS.exchange(usd, "ARS", year, month));
 
                 dto.setTotalNominalDollars(totNominalUSD.getAmount());
                 dto.setTotalNominalPesos(totNominalARS.getAmount());
@@ -223,21 +222,21 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     @Override
     public List<InvestmentReportDTO> investment(String currency) throws NoSeriesDataFoundException {
 
-        final Currency targetCurrency = Currency.getInstance(currency);
+        //final Currency targetCurrency = Currency.getInstance(currency);
         final List<InvestmentReportDTO> report = new ArrayList<>();
 
         for (Investment item : read("investments.json")) {
 
-            final Date until = this.untilDate(item, targetCurrency);
+            final Date until = this.untilDate(item, currency);
 
             report.add(new InvestmentReportDTO(
                     item.getType().name(),
                     item.getInitialDate(),
                     until,
                     currency,
-                    this.initialAmount(item, targetCurrency),
-                    this.finalAmount(item, targetCurrency, until),
-                    this.inflation(targetCurrency, item.getInitialDate(), until),
+                    this.initialAmount(item, currency),
+                    this.finalAmount(item, currency, until),
+                    this.inflation(currency, item.getInitialDate(), until),
                     item.getOut() == null));
         }
         Collections.sort(report, new Comparator<InvestmentReportDTO>(){
@@ -250,11 +249,11 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return report;
     }
 
-    private MoneyAmount changeCurrency(MoneyAmount ma, Currency targetCurrency, Date date) throws NoSeriesDataFoundException {
+    private MoneyAmount changeCurrency(MoneyAmount ma, String targetCurrency, Date date) throws NoSeriesDataFoundException {
         return ForeignExchanges.getForeignExchange(ma.getCurrency(), targetCurrency).exchange(ma, targetCurrency, date);
     }
 
-    private BigDecimal initialAmount(Investment investment, Currency targetCurrency) throws NoSeriesDataFoundException {
+    private BigDecimal initialAmount(Investment investment, String targetCurrency) throws NoSeriesDataFoundException {
 
         MoneyAmount amount;
         if (targetCurrency.equals(investment.getInitialCurrency())) {
@@ -267,21 +266,21 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return amount.getAmount();
     }
 
-    private Date untilDate(Investment item, Currency targetCurrency) {
+    private Date untilDate(Investment item, String targetCurrency) {
         return item.getOut() != null
                 ? item.getOut().getDate()
                 //: ForeignExchanges.getForeignExchange(item.getMoneyAmount().getCurrency(), targetCurrency).getTo().asToDate();
                 : this.map.get(targetCurrency).getTo().asToDate();
     }
 
-    private BigDecimal finalAmount(Investment investment, Currency targetCurrency, Date date) throws NoSeriesDataFoundException {
+    private BigDecimal finalAmount(Investment investment, String targetCurrency, Date date) throws NoSeriesDataFoundException {
         if (investment.getOut() != null) {
             return this.changeCurrency(investment.getOut().getMoneyAmount(), targetCurrency, investment.getOut().getDate()).getAmount();
         }
         return this.changeCurrency(investment.getMoneyAmount(), targetCurrency, date).getAmount();
     }
 
-    private BigDecimal inflation(Currency targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
+    private BigDecimal inflation(String targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
 
         Inflation inflation = map.get(targetCurrency);
         if (inflation == null) {

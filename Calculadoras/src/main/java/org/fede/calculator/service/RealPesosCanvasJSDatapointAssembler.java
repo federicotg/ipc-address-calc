@@ -37,7 +37,7 @@ public class RealPesosCanvasJSDatapointAssembler implements CanvasJSDatapointAss
     @Override
     public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries originalSeries, int year, int month) throws NoSeriesDataFoundException {
 
-        MoneyAmountSeries sourceSeries = originalSeries.exchangeInto(Currency.getInstance("ARS"));
+        MoneyAmountSeries sourceSeries = originalSeries.exchangeInto("ARS");
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         new SimpleAggregation(months).average(ARS_INFLATION.adjust(sourceSeries, year, month))

@@ -61,7 +61,7 @@ public class IndexTest {
         MoneyAmountSeries gold = Util.readSeries("ahorros-oro.json");
         MoneyAmountSeries peso = Util.readSeries("ahorros-peso.json");
 
-        final Currency target = Currency.getInstance("USD");
+        final String target = "USD";
 
         MoneyAmountSeries proportionInUSD = new SortedMapMoneyAmountSeries("USD");
 
@@ -70,8 +70,8 @@ public class IndexTest {
         final YearMonth end = dollar.getTo().max(gold.getTo());
 
         final MoneyAmount oneUSD = new MoneyAmount(BigDecimal.ONE, "USD");
-        final MoneyAmount oneARS = getForeignExchange(oneUSD.getCurrency(), Currency.getInstance("ARS")).exchange(oneUSD, Currency.getInstance("ARS"), start.getYear(), start.getMonth());
-        final MoneyAmount oneXAU = getForeignExchange(oneUSD.getCurrency(), Currency.getInstance("XAU")).exchange(oneUSD, Currency.getInstance("XAU"), start.getYear(), start.getMonth());
+        final MoneyAmount oneARS = getForeignExchange(oneUSD.getCurrency(), "ARS").exchange(oneUSD, "ARS", start.getYear(), start.getMonth());
+        final MoneyAmount oneXAU = getForeignExchange(oneUSD.getCurrency(), "XAU").exchange(oneUSD, "XAU", start.getYear(), start.getMonth());
 
         while (start.compareTo(end) <= 0) {
             MoneyAmount usdSavings = dollar.getAmountOrElseZero(start);
@@ -128,7 +128,7 @@ public class IndexTest {
         final int todayMonth = latestData.getMonth();
         final int todayYear = latestData.getYear();
         final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
-        final Currency ars = Currency.getInstance("ARS");
+        final String ars = "ARS";
 
         final MoneyAmountSeries historicDollar = ARS_INFLATION.adjust(
                 ForeignExchanges.USD_ARS.exchange(
@@ -147,7 +147,7 @@ public class IndexTest {
 
     }
 
-    @Test
+   // @Test
     public void chart() throws NoSeriesDataFoundException {
 
         NumberFormat money = NumberFormat.getCurrencyInstance();
@@ -184,4 +184,13 @@ public class IndexTest {
         }
     }
 
+    
+    @Test
+    public void currency() {
+        for(Currency c : Currency.getAvailableCurrencies()){
+            System.out.println(c.getDisplayName()+ "\t" + c.getSymbol());
+        }
+        assertNotNull(Currency.getInstance("asda"));
+    }
+    
 }

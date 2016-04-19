@@ -34,15 +34,12 @@ import org.springframework.stereotype.Service;
 @Lazy
 public class USDMoneyService implements MoneyService {
 
-    private static final CurrencyDTO CURRENCY_DTO = new CurrencyDTO(
-            USD_INFLATION.getCurrency().getDisplayName(ES_AR),
-            USD_INFLATION.getCurrency().getSymbol(ES_AR),
-            USD_INFLATION.getCurrency().getCurrencyCode());
+    private static final CurrencyDTO CURRENCY_DTO = new CurrencyDTO(Currency.getInstance(USD_INFLATION.getCurrency()));
 
     @Override
     public MoneyDTO getMoney(MoneyDTO dto) throws NoSeriesDataFoundException {
 
-        MoneyAmount amount = new MoneyAmount(dto.getAmount(), Currency.getInstance("USD"));
+        MoneyAmount amount = new MoneyAmount(dto.getAmount(), "USD");
         MoneyAmount result = USD_INFLATION.adjust(amount, dto.getFromYear(), dto.getFromMonth(), dto.getToYear(), dto.getToMonth());
         MoneyDTO answer = new MoneyDTO();
         answer.setAmount(result.getAmount());

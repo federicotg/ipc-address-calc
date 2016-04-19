@@ -16,6 +16,9 @@
  */
 package org.fede.calculator.web.dto;
 
+import java.util.Currency;
+import static org.fede.calculator.service.MoneyService.ES_AR;
+
 /**
  *
  * @author fede
@@ -27,16 +30,21 @@ public class CurrencyDTO {
     private String iso4217;
 
     public CurrencyDTO() {
-        
+
     }
-    
+
+    public CurrencyDTO(Currency currency) {
+        this(currency.getDisplayName(ES_AR),
+                currency.getSymbol(ES_AR),
+                currency.getCurrencyCode());
+    }
+
     public CurrencyDTO(String name, String symbol, String iso4217) {
         this.name = name;
         this.symbol = symbol;
         this.iso4217 = iso4217;
     }
 
-    
     public String getName() {
         return name;
     }
@@ -60,6 +68,5 @@ public class CurrencyDTO {
     public void setIso4217(String iso4217) {
         this.iso4217 = iso4217;
     }
-    
-    
+
 }

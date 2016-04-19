@@ -85,11 +85,11 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
         this.series = expenseSeries;
     }
 
-    private CanvasJSDatapointAssembler getAssemblerFor(Currency currency) {
-        Map<Currency, CanvasJSDatapointAssembler> assemblers = new HashMap<>();
+    private CanvasJSDatapointAssembler getAssemblerFor(String currency) {
+        Map<String, CanvasJSDatapointAssembler> assemblers = new HashMap<>();
 
-        assemblers.put(Currency.getInstance("USD"), realUSDDatapointAssembler);
-        assemblers.put(Currency.getInstance("ARS"), realPesosDatapointAssembler);
+        assemblers.put("USD", realUSDDatapointAssembler);
+        assemblers.put("ARS", realPesosDatapointAssembler);
 
         return assemblers.get(currency);
     }
@@ -103,7 +103,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
             int month,
             String currencyCode) throws NoSeriesDataFoundException {
 
-        final Currency currency = Currency.getInstance(currencyCode);
+        //final Currency currency = Currency.getInstance(currencyCode);
 
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>();
 
@@ -121,7 +121,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
                 if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
 
-                    MoneyAmountSeries eachSeries = readSeries(s.getSeriesName()).exchangeInto(currency);
+                    MoneyAmountSeries eachSeries = readSeries(s.getSeriesName()).exchangeInto(currencyCode);
                     
                     if (collectTotal) {
                         if (totalSeries == null) {
@@ -135,7 +135,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                             "line",
                             s.getColor(),
                             s.getName(),
-                            this.getAssemblerFor(currency).getDatapoints(months, eachSeries, year, month)
+                            this.getAssemblerFor(currencyCode).getDatapoints(months, eachSeries, year, month)
                     ));
                 }
             }
@@ -144,7 +144,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                         "line",
                         totalColor,
                         "Total",
-                        this.getAssemblerFor(currency).getDatapoints(months, totalSeries, year, month)
+                        this.getAssemblerFor(currencyCode).getDatapoints(months, totalSeries, year, month)
                 ));
             }
         }
@@ -163,14 +163,14 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
     @Override
     public CanvasJSChartDTO renderIncomeRelativeChart(String chartTitle, int months, List<String> seriesNames, String currencyCode) throws NoSeriesDataFoundException {
-        final Currency currency = Currency.getInstance(currencyCode);
+        //final Currency currency = Currency.getInstance(currencyCode);
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
         if (seriesNames != null && !seriesNames.isEmpty()) {
 
             MoneyAmountSeries sumSeries = null;
             for (ExpenseChartSeriesDTO s : this.series) {
                 if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
-                    MoneyAmountSeries eachSeries = readSeries(s.getSeriesName()).exchangeInto(currency);
+                    MoneyAmountSeries eachSeries = readSeries(s.getSeriesName()).exchangeInto(currencyCode);
                     
                     if (sumSeries == null) {
                         sumSeries = eachSeries;

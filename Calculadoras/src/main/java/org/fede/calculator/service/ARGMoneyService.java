@@ -35,15 +35,12 @@ import org.springframework.stereotype.Service;
 @Lazy
 public class ARGMoneyService implements MoneyService {
 
-    private static final CurrencyDTO CURRENCY_DTO = new CurrencyDTO(
-            ARS_INFLATION.getCurrency().getDisplayName(ES_AR),
-            ARS_INFLATION.getCurrency().getSymbol(ES_AR),
-            ARS_INFLATION.getCurrency().getCurrencyCode());
+    private static final CurrencyDTO CURRENCY_DTO = new CurrencyDTO(Currency.getInstance(ARS_INFLATION.getCurrency()));
 
     @Override
     public MoneyDTO getMoney(MoneyDTO dto) throws NoSeriesDataFoundException {
 
-        MoneyAmount amount = new MoneyAmount(dto.getAmount(), Currency.getInstance("ARS"));
+        MoneyAmount amount = new MoneyAmount(dto.getAmount(), "ARS");
         MoneyAmount result = ARS_INFLATION.adjust(amount, dto.getFromYear(), dto.getFromMonth(), dto.getToYear(), dto.getToMonth());
         MoneyDTO answer = new MoneyDTO();
         answer.setAmount(result.getAmount());
