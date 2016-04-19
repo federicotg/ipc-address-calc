@@ -30,9 +30,9 @@ public interface ForeignExchange extends Series {
 
     
     
-    MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
+    MoneyAmount exchange(MoneyAmount amount, String targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
 
-    MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException;
+    MoneyAmount exchange(MoneyAmount amount, String targetCurrency, Date moment) throws NoSeriesDataFoundException;
 
     /**
      * Convierte cada money amount de la serie a la moneda especificada según el
@@ -45,7 +45,7 @@ public interface ForeignExchange extends Series {
      * @return
      * @throws NoSeriesDataFoundException
      */
-    MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) throws NoSeriesDataFoundException;
+    MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency) throws NoSeriesDataFoundException;
 
     /**
      * Convierte el money amount especificado en la serie de valores donde en
@@ -58,6 +58,6 @@ public interface ForeignExchange extends Series {
      * @return
      * @throws NoSeriesDataFoundException
      */
-    MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) throws NoSeriesDataFoundException;
+    MoneyAmountSeries exchange(MoneyAmount amount, String targetCurrency) throws NoSeriesDataFoundException;
 
 }

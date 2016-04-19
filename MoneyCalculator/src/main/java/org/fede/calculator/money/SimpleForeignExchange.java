@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
-import java.util.Currency;
 import java.util.Date;
 import static org.fede.calculator.money.MathConstants.ROUNDING_MODE;
 import static org.fede.calculator.money.MathConstants.SCALE;
@@ -38,13 +37,13 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     private final IndexSeries exchangeRatesSeries;
 
-    private final Currency fromCurrency;
+    private final String fromCurrency;
 
-    private final Currency targetCurrency;
+    private final String targetCurrency;
 
     public SimpleForeignExchange(IndexSeries exchangeRatesSeries,
-            Currency fromCurrency,
-            Currency targetCurrency) {
+            String fromCurrency,
+            String targetCurrency) {
         this.exchangeRatesSeries = exchangeRatesSeries;
         this.fromCurrency = fromCurrency;
         this.targetCurrency = targetCurrency;
@@ -61,7 +60,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int year, int month) throws NoSeriesDataFoundException {
+    public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, int year, int month) throws NoSeriesDataFoundException {
         if(amount.getCurrency().equals(targetCurrency)){
             return amount;
         }
@@ -77,7 +76,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     }
 
     @Override
-    public MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) throws NoSeriesDataFoundException {
+    public MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency) throws NoSeriesDataFoundException {
 
         
         
@@ -114,7 +113,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException {
+    public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, Date moment) throws NoSeriesDataFoundException {
         Calendar cal = Calendar.getInstance();
         cal.setTime(moment);
         int year = cal.get(Calendar.YEAR);
@@ -123,7 +122,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     }
 
     @Override
-    public MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) throws NoSeriesDataFoundException {
+    public MoneyAmountSeries exchange(MoneyAmount amount, String targetCurrency) throws NoSeriesDataFoundException {
 
         final int fromYear = this.getFrom().getYear();
         final int fromMonth = this.getFrom().getMonth();

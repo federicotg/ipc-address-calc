@@ -26,7 +26,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class ArgentinaInflation extends BaseInflation {
 
-    private static final Currency ARS = Currency.getInstance("ARS");
+    private static final String ARS = "ARS";
     
     private final Inflation basicInflation = new CPIInflation(new ArgentinaCompoundCPISeries(), ARS);
 
@@ -38,7 +38,7 @@ public class ArgentinaInflation extends BaseInflation {
     }
 
     @Override
-    public Currency getCurrency() {
+    public String getCurrency() {
         return this.basicInflation.getCurrency();
     }
 

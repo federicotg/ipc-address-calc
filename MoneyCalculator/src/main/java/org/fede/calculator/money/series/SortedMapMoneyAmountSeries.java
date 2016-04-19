@@ -32,16 +32,12 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
     private SortedMap<YearMonth, MoneyAmount> values;
 
-    public SortedMapMoneyAmountSeries(final Currency currency, final SortedMap<YearMonth, MoneyAmount> values) {
+    public SortedMapMoneyAmountSeries(final String currency, final SortedMap<YearMonth, MoneyAmount> values) {
         super(currency);
         this.values = values;
     }
 
     public SortedMapMoneyAmountSeries(final String currency) {
-        this(Currency.getInstance(currency), new TreeMap<YearMonth, MoneyAmount>());
-    }
-
-    public SortedMapMoneyAmountSeries(final Currency currency) {
         this(currency, new TreeMap<YearMonth, MoneyAmount>());
     }
 

@@ -28,7 +28,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class CompoundForeignExchange extends SeriesSupport implements ForeignExchange{
     
-    private static final Currency USD = Currency.getInstance("USD");
+    private static final String USD = "USD";
     
     private final ForeignExchange first;
     private final ForeignExchange second;
@@ -55,22 +55,22 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
+    public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
         return this.second.exchange(this.first.exchange(amount, USD, referenceYear, referenceMonth), targetCurrency, referenceYear, referenceMonth);
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) throws NoSeriesDataFoundException {
+    public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, Date moment) throws NoSeriesDataFoundException {
         return this.second.exchange(this.first.exchange(amount, USD, moment), targetCurrency, moment);
     }
 
     @Override
-    public MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) throws NoSeriesDataFoundException {
+    public MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency) throws NoSeriesDataFoundException {
         return this.second.exchange(this.first.exchange(series, USD), targetCurrency);
     }
 
     @Override
-    public MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) throws NoSeriesDataFoundException {
+    public MoneyAmountSeries exchange(MoneyAmount amount, String targetCurrency) throws NoSeriesDataFoundException {
         return this.second.exchange(this.first.exchange(amount, USD), targetCurrency);
     }
     

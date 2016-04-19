@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import org.fede.calculator.money.series.IndexSeries;
 import java.math.BigDecimal;
-import java.util.Currency;
 import org.fede.calculator.money.series.YearMonth;
 
 /**
@@ -28,9 +27,9 @@ import org.fede.calculator.money.series.YearMonth;
 public final class CPIInflation extends BaseInflation {
 
     private final IndexSeries series;
-    private final Currency currency;
+    private final String currency;
 
-    public CPIInflation(IndexSeries cpiSeries, Currency currency) {
+    public CPIInflation(IndexSeries cpiSeries, String currency) {
         this.series = cpiSeries;
         this.currency = currency;
     }
@@ -44,7 +43,7 @@ public final class CPIInflation extends BaseInflation {
     }
 
     @Override
-    public Currency getCurrency() {
+    public String getCurrency() {
         return this.currency;
     }
 

@@ -94,7 +94,7 @@ public class InvestmentTest {
 
         assertFalse(inv.isEmpty());
 
-        final ForeignExchange usdToDollar = ForeignExchanges.getForeignExchange(Currency.getInstance("USD"), Currency.getInstance("ARS"));
+        final ForeignExchange usdToDollar = ForeignExchanges.getForeignExchange("USD", "ARS");
 
         final String message = "{0}\t{1}\t{2}";
         final Date feb2016 = new SimpleDateFormat("dd/MM/yyyy").parse("28/02/2016");
@@ -106,7 +106,7 @@ public class InvestmentTest {
 
                 MoneyAmount feb2016ARSValue = usdToDollar.exchange(
                         investment.getInvestment().getMoneyAmount(),
-                        Currency.getInstance("ARS"), feb2016);
+                        "ARS", feb2016);
 
                 System.out.println(
                         MessageFormat.format(

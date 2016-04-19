@@ -17,7 +17,6 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
-import java.util.Currency;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 
@@ -29,21 +28,21 @@ public enum InterpolationStrategy {
 
     NO_INTERPOLATION {
         @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, Currency currency) throws NoSeriesDataFoundException {
+        public MoneyAmount interpolate(MoneyAmount lastValue, String currency) throws NoSeriesDataFoundException {
             throw new NoSeriesDataFoundException("No value for specified year and month.");
         }
     }, LAST_VALUE_INTERPOLATION {
         @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, Currency currency) throws NoSeriesDataFoundException {
+        public MoneyAmount interpolate(MoneyAmount lastValue, String currency) throws NoSeriesDataFoundException {
             return lastValue;
         }
     }, ZERO_VALUE_INTERPOLATION {
         @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, Currency currency) throws NoSeriesDataFoundException {
+        public MoneyAmount interpolate(MoneyAmount lastValue, String currency) throws NoSeriesDataFoundException {
             return new MoneyAmount(BigDecimal.ZERO, currency);
         }
     };
 
-    public abstract MoneyAmount interpolate(MoneyAmount lastValue, Currency currency) throws NoSeriesDataFoundException;
+    public abstract MoneyAmount interpolate(MoneyAmount lastValue, String currency) throws NoSeriesDataFoundException;
 
 }

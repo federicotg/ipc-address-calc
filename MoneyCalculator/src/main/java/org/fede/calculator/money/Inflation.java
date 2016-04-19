@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.money;
 
-import java.util.Currency;
 import java.util.Date;
 import org.fede.calculator.money.series.DollarCPISeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -28,7 +27,7 @@ import org.fede.calculator.money.series.Series;
  */
 public interface Inflation extends Series{
     
-    public static final Inflation USD_INFLATION = new CPIInflation(new DollarCPISeries(), Currency.getInstance("USD"));
+    public static final Inflation USD_INFLATION = new CPIInflation(new DollarCPISeries(), "USD");
     public static final Inflation ARS_INFLATION = new ArgentinaInflation();
 
     /**
@@ -61,13 +60,13 @@ public interface Inflation extends Series{
      * Calcula el valor ajustado por inflación del monto especificado en cada mes que se pueda.
      * @param amount el monto a ajustar
      * @param referenceYear el año del monto
-     * @param referenceMonth el mes dle monto
+     * @param referenceMonth el mes del monto
      * @return el valor especificado expresado en valores ajustados para cada mes de la serie.
      * @throws NoSeriesDataFoundException 
      */
     MoneyAmountSeries adjust(MoneyAmount amount, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException;
     
-    Currency getCurrency();
+    String getCurrency();
     
     
     

@@ -67,7 +67,7 @@ public class SimpleAggregationTest {
             ascendingValues.put(ym, new MoneyAmount(new BigDecimal(s), "ARS"));
             ym = ym.next();
         }
-        this.asc = new SortedMapMoneyAmountSeries(Currency.getInstance("ARS"), ascendingValues);
+        this.asc = new SortedMapMoneyAmountSeries("ARS", ascendingValues);
     }
 
     @Test

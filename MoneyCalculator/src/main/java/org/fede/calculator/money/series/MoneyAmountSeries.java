@@ -37,7 +37,7 @@ public interface MoneyAmountSeries extends Series {
 
     void putAmount(int year, int month, MoneyAmount amount);
 
-    Currency getCurrency();
+    String getCurrency();
 
     void forEach(MoneyAmountProcessor processor) throws NoSeriesDataFoundException;
     
@@ -47,5 +47,5 @@ public interface MoneyAmountSeries extends Series {
 
     MoneyAmountSeries add(MoneyAmountSeries other) throws NoSeriesDataFoundException;
     
-    MoneyAmountSeries exchangeInto(Currency currency) throws NoSeriesDataFoundException;
+    MoneyAmountSeries exchangeInto(String currency) throws NoSeriesDataFoundException;
 }

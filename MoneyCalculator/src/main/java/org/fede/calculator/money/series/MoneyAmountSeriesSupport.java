@@ -41,9 +41,9 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
     };
 
-    private final Currency currency;
+    private final String currency;
 
-    protected MoneyAmountSeriesSupport(Currency currency) {
+    protected MoneyAmountSeriesSupport(String currency) {
         this.currency = currency;
     }
 
@@ -58,7 +58,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     }
 
     @Override
-    public final Currency getCurrency() {
+    public final String getCurrency() {
         return currency;
     }
 
@@ -76,7 +76,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     }
 
     @Override
-    public final MoneyAmountSeries exchangeInto(Currency currency) throws NoSeriesDataFoundException {
+    public final MoneyAmountSeries exchangeInto(String currency) throws NoSeriesDataFoundException {
         return ForeignExchanges.getForeignExchange(this.getCurrency(), currency).exchange(this, currency);
     }
 
@@ -104,7 +104,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     public final MoneyAmountSeries add(final MoneyAmountSeries other) throws NoSeriesDataFoundException {
 
         if (!other.getCurrency().equals(this.getCurrency())) {
-            Currency usd = Currency.getInstance("USD");
+            String usd = "USD";
             return this.exchangeInto(usd).add(other.exchangeInto(usd));
         }
 

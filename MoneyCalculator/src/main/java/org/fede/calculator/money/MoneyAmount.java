@@ -28,16 +28,17 @@ import java.util.Objects;
  */
 public class MoneyAmount implements MathConstants {
     
-    private Currency currency;
+    private String currency;
     private BigDecimal amount;
 
-    public MoneyAmount(BigDecimal amount, Currency currency) {
-        this.amount = amount;
-        this.currency = currency;
-    }
+//    public MoneyAmount(BigDecimal amount, Currency currency) {
+//        this.amount = amount;
+//        this.currency = currency;
+//    }
 
     public MoneyAmount(BigDecimal amount, String currencySymbol) {
-        this(amount, Currency.getInstance(currencySymbol));
+        this.amount = amount;
+        this.currency = currencySymbol;
     }
 
     public MoneyAmount adjust(BigDecimal divisor, BigDecimal factor) {
@@ -49,7 +50,7 @@ public class MoneyAmount implements MathConstants {
                 .multiply(factor), this.currency);
     }
 
-    public MoneyAmount exchange(Currency newCurrency, BigDecimal exchangeRate) {
+    public MoneyAmount exchange(String newCurrency, BigDecimal exchangeRate) {
         if(this.isZero()){
             return new MoneyAmount(BigDecimal.ZERO, newCurrency);
         }
@@ -74,16 +75,16 @@ public class MoneyAmount implements MathConstants {
 
     @Override
     public String toString() {
-        return this.currency.toString() + " " + this.amount.toString();
+        return this.currency + " " + this.amount.toString();
     }
 
-    public void assertCurrency(Currency currency) {
+    public void assertCurrency(String currency) {
         if (!this.currency.equals(currency)) {
             throw new IllegalArgumentException("Unexpected currency.");
         }
     }
 
-    public Currency getCurrency() {
+    public String getCurrency() {
         return this.currency;
     }
 
@@ -107,6 +108,6 @@ public class MoneyAmount implements MathConstants {
     }
 
     public void appendTo(StringBuilder sb, NumberFormat nf) {
-        sb.append(this.currency.getSymbol()).append(" ").append(nf.format(this.amount));
+        sb.append(this.currency).append(" ").append(nf.format(this.amount));
     }
 }

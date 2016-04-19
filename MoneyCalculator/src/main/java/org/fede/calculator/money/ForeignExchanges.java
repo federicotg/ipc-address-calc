@@ -30,24 +30,24 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class ForeignExchanges {
 
-    private static final Map<Currency, ForeignExchange> FOREIGN_EXCHANGES_BY_CURRENCY = new HashMap<>();
+    private static final Map<String, ForeignExchange> FOREIGN_EXCHANGES_BY_CURRENCY = new HashMap<>();
 
-    private static final Currency USD = Currency.getInstance("USD");
+    private static final String USD = "USD";
     
     public static final ForeignExchange USD_ARS = new SimpleForeignExchange(
             JSONIndexSeries.readSeries("peso-dolar-libre.json"),
             USD,
-            Currency.getInstance("ARS"));
+            "ARS");
 
     public static final ForeignExchange USD_XAU = new SimpleForeignExchange(
             JSONIndexSeries.readSeries("gold.json"),
-            Currency.getInstance("XAU"),
+            "XAU",
             USD);
 
     public static final ForeignExchange USD_EUR = new SimpleForeignExchange(
             JSONIndexSeries.readSeries("euro-dolar.json"),
             USD,
-            Currency.getInstance("EUR"));
+            "EUR");
 
     public static final ForeignExchange NO_FX = new SimpleForeignExchange(new IndexSeriesSupport() {
         @Override
@@ -73,18 +73,18 @@ public class ForeignExchanges {
 
     static {
         FOREIGN_EXCHANGES_BY_CURRENCY.put(USD, NO_FX);
-        FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("ARS"), USD_ARS);
-        FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("EUR"), USD_EUR);
-        FOREIGN_EXCHANGES_BY_CURRENCY.put(Currency.getInstance("XAU"), USD_XAU);
+        FOREIGN_EXCHANGES_BY_CURRENCY.put("ARS", USD_ARS);
+        FOREIGN_EXCHANGES_BY_CURRENCY.put("EUR", USD_EUR);
+        FOREIGN_EXCHANGES_BY_CURRENCY.put("XAU", USD_XAU);
     }
 
-    public static ForeignExchange getForeignExchange(Currency from, Currency to) {
+    public static ForeignExchange getForeignExchange(String from, String to) {
         if (from.equals(to)) {
             return NO_FX;
         }
 
-        Currency usd = null;
-        Currency other = null;
+        String usd = null;
+        String other = null;
 
         if (to.equals(USD)) {
             usd = to;
@@ -99,7 +99,7 @@ public class ForeignExchanges {
             if (answer != null) {
                 return answer;
             } else {
-                throw new IllegalArgumentException("No foreign exchange from " + from.getSymbol() + " to " + to.getSymbol());
+                throw new IllegalArgumentException("No foreign exchange from " + from + " to " + to);
             }
         }
 
