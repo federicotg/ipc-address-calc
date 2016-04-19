@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.money;
 
-import java.util.Currency;
 import org.fede.calculator.money.series.ArgentinaCompoundCPISeries;
 import org.fede.calculator.money.series.YearMonth;
 

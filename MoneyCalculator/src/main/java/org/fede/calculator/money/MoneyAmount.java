@@ -19,7 +19,6 @@ package org.fede.calculator.money;
 import java.math.BigDecimal;
 import static java.math.RoundingMode.HALF_UP;
 import java.text.NumberFormat;
-import java.util.Currency;
 import java.util.Objects;
 
 /**

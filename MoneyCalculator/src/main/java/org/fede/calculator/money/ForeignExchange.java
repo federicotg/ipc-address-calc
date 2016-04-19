@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.money;
 
-import java.util.Currency;
 import java.util.Date;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.Series;

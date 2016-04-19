@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.money.series;
 
-import java.util.Currency;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;

@@ -17,7 +17,6 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
-import java.util.Currency;
 import java.util.HashMap;
 import java.util.Map;
 import org.fede.calculator.money.series.IndexSeriesSupport;

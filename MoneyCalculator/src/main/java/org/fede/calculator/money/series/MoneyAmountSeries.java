@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.money.series;
 
-import java.util.Currency;
 import java.util.Date;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;

@@ -17,7 +17,6 @@
 
 package org.fede.calculator.money.series;
 
-import java.util.Currency;
 import java.util.Date;
 import org.fede.calculator.money.MoneyAmount;
 
@@ -84,8 +83,8 @@ public class Investment {
         return this.getIn().getDate();
     }
     
-    public Currency getInitialCurrency(){
-        return Currency.getInstance(this.getIn().getCurrency());
+    public String getInitialCurrency(){
+        return this.getIn().getCurrency();
     }
     
     public MoneyAmount getInitialMoneyAmount(){
@@ -96,8 +95,8 @@ public class Investment {
         return this.getInvestment().getMoneyAmount();
     }
     
-    public Currency getCurrency(){
-        return Currency.getInstance(this.getInvestment().getCurrency());
+    public String getCurrency(){
+        return this.getInvestment().getCurrency();
     }
     
 }

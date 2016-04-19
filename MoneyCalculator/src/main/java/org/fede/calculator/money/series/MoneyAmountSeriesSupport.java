@@ -19,7 +19,6 @@ package org.fede.calculator.money.series;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.Calendar;
-import java.util.Currency;
 import java.util.Date;
 import java.util.Objects;
 import org.fede.calculator.money.ForeignExchanges;
