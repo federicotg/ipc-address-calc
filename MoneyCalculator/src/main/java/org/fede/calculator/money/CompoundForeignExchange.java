@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.util.Date;
+import java.util.Objects;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesSupport;
 import org.fede.calculator.money.series.YearMonth;
@@ -71,6 +72,18 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
     @Override
     public MoneyAmountSeries exchange(MoneyAmount amount, String targetCurrency) throws NoSeriesDataFoundException {
         return this.second.exchange(this.first.exchange(amount, USD), targetCurrency);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.first, this.second);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof CompoundForeignExchange
+                && Objects.equals(this.first, ((CompoundForeignExchange) obj).first)
+                && Objects.equals(this.second, ((CompoundForeignExchange) obj).second);
     }
     
     

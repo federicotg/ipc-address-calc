@@ -22,6 +22,7 @@ import java.util.Map;
 import org.fede.calculator.money.series.IndexSeriesSupport;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.YearMonth;
+import org.fede.util.Pair;
 
 /**
  *
@@ -29,10 +30,12 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class ForeignExchanges {
 
-    private static final Map<String, ForeignExchange> FOREIGN_EXCHANGES_BY_CURRENCY = new HashMap<>();
+    private static final Map<String, String> INTERMEDIATE_FOREIGN_EXCHANGES = new HashMap<>();
+
+    private static final Map<Pair<String, String>, ForeignExchange> DIRECT_FOREIGN_EXCHANGES = new HashMap<>();
 
     private static final String USD = "USD";
-    
+
     public static final ForeignExchange USD_ARS = new SimpleForeignExchange(
             JSONIndexSeries.readSeries("peso-dolar-libre.json"),
             USD,
@@ -47,6 +50,11 @@ public class ForeignExchanges {
             JSONIndexSeries.readSeries("euro-dolar.json"),
             USD,
             "EUR");
+
+    public static final ForeignExchange ARS_CONAAFA = new SimpleForeignExchange(
+            JSONIndexSeries.readSeries("CONAAFA_AR-peso.json"),
+            "ARA",
+            "CONAAFA");
 
     public static final ForeignExchange NO_FX = new SimpleForeignExchange(new IndexSeriesSupport() {
         @Override
@@ -70,40 +78,51 @@ public class ForeignExchanges {
         }
     }, USD, USD);
 
+    private static void map(String from, String to, ForeignExchange fx) {
+        DIRECT_FOREIGN_EXCHANGES.put(new Pair<>(from, to), fx);
+        DIRECT_FOREIGN_EXCHANGES.put(new Pair<>(to, from), fx);
+    }
+
     static {
-        FOREIGN_EXCHANGES_BY_CURRENCY.put(USD, NO_FX);
-        FOREIGN_EXCHANGES_BY_CURRENCY.put("ARS", USD_ARS);
-        FOREIGN_EXCHANGES_BY_CURRENCY.put("EUR", USD_EUR);
-        FOREIGN_EXCHANGES_BY_CURRENCY.put("XAU", USD_XAU);
+
+        // direct conversions
+        map("ARS", "USD", USD_ARS);
+        map("EUR", "USD", USD_EUR);
+        map("XAU", "USD", USD_XAU);
+        map("ARS", "USD", USD_ARS);
+        map("ARS", "CONAAFA", ARS_CONAAFA);
+
+        INTERMEDIATE_FOREIGN_EXCHANGES.put("CONAAFA", "ARS");
+        INTERMEDIATE_FOREIGN_EXCHANGES.put("EUR", "USD");
+        INTERMEDIATE_FOREIGN_EXCHANGES.put("XAU", "USD");
+        INTERMEDIATE_FOREIGN_EXCHANGES.put("ARS", "USD");
     }
 
     public static ForeignExchange getForeignExchange(String from, String to) {
+        System.out.println(from + " -> " + to);
         if (from.equals(to)) {
             return NO_FX;
         }
 
-        String usd = null;
-        String other = null;
-
-        if (to.equals(USD)) {
-            usd = to;
-            other = from;
-        } else if (from.equals(USD)) {
-            usd = from;
-            other = to;
+        ForeignExchange answer = DIRECT_FOREIGN_EXCHANGES.get(new Pair<>(from, to));
+        if (answer != null) {
+            return answer;
         }
 
-        if (usd != null) {
-            ForeignExchange answer = FOREIGN_EXCHANGES_BY_CURRENCY.get(other);
-            if (answer != null) {
-                return answer;
-            } else {
-                throw new IllegalArgumentException("No foreign exchange from " + from + " to " + to);
-            }
+        String intermediate = INTERMEDIATE_FOREIGN_EXCHANGES.get(from);
+        if (intermediate == null) {
+            intermediate = INTERMEDIATE_FOREIGN_EXCHANGES.get(to);
         }
 
-        return new CompoundForeignExchange(getForeignExchange(from, USD), getForeignExchange(to, USD));
+        if (intermediate == null) {
 
+            throw new IllegalArgumentException("No FX from " + from + " to " + to);
+        }
+
+        return new CompoundForeignExchange(
+                DIRECT_FOREIGN_EXCHANGES.get(new Pair<>(from, intermediate)),
+                getForeignExchange(intermediate, to)
+        );
     }
 
 }

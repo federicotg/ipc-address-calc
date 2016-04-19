@@ -19,6 +19,7 @@ package org.fede.calculator.money;
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 import static org.fede.calculator.money.MathConstants.ROUNDING_MODE;
 import static org.fede.calculator.money.MathConstants.SCALE;
 import org.fede.calculator.money.series.IndexSeries;
@@ -61,7 +62,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     @Override
     public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, int year, int month) throws NoSeriesDataFoundException {
-        if(amount.getCurrency().equals(targetCurrency)){
+        if (amount.getCurrency().equals(targetCurrency)) {
             return amount;
         }
         if (this.targetCurrency.equals(targetCurrency)) {
@@ -78,16 +79,14 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     @Override
     public MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency) throws NoSeriesDataFoundException {
 
-        
-        
         YearMonth from = this.exchangeRatesSeries.maximumFrom(series);
         //YearMonth to = this.exchangeRatesSeries.minimumTo(series);
         YearMonth to = series.getTo();
 
-        if(from.compareTo(to)>0){
+        if (from.compareTo(to) > 0) {
             throw new IllegalArgumentException("From cannot be after to.");
         }
-        
+
         final int fromYear = from.getYear();
         final int fromMonth = from.getMonth();
         final int toYear = to.getYear();
@@ -95,7 +94,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
         final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(targetCurrency);
 
-        for (int m = fromMonth; m <= (fromYear == toYear? toMonth : 12); m++) {
+        for (int m = fromMonth; m <= (fromYear == toYear ? toMonth : 12); m++) {
             //first year
             answer.putAmount(fromYear, m, this.exchange(series.getAmount(fromYear, m), targetCurrency, fromYear, m));
         }
@@ -145,7 +144,20 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
             answer.putAmount(toYear, m, this.exchange(amount, targetCurrency, toYear, m));
         }
         return answer;
-        
+
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.fromCurrency, this.targetCurrency);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof SimpleForeignExchange
+                && Objects.equals(this.fromCurrency, ((SimpleForeignExchange) obj).fromCurrency)
+                && Objects.equals(this.targetCurrency, ((SimpleForeignExchange) obj).targetCurrency);
+
     }
 
 }
