@@ -184,13 +184,5 @@ public class IndexTest {
         }
     }
 
-    
-    @Test
-    public void currency() {
-        for(Currency c : Currency.getAvailableCurrencies()){
-            System.out.println(c.getDisplayName()+ "\t" + c.getSymbol());
-        }
-        assertNotNull(Currency.getInstance("asda"));
-    }
-    
+        
 }

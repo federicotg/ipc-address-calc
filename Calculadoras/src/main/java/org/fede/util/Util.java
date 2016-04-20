@@ -26,7 +26,6 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Currency;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -52,20 +51,20 @@ import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
  */
 public class Util {
 
-    private static ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static final Set<String> CONSULTATIO_SERIES;
 
     static {
         CONSULTATIO_SERIES = new HashSet<>();
-        CONSULTATIO_SERIES.add("CAHORROA.json");
-        CONSULTATIO_SERIES.add("CAPLUSA.json");
-        CONSULTATIO_SERIES.add("CBAL01.json");
-        CONSULTATIO_SERIES.add("CDeudaA.json");
-        CONSULTATIO_SERIES.add("CGRO01.json");
-        CONSULTATIO_SERIES.add("CPYMESA.json");
-        CONSULTATIO_SERIES.add("CRVariable.json");
-        CONSULTATIO_SERIES.add("CRentaNacionalA.json");
+        CONSULTATIO_SERIES.add("fci/CAHORROA.json");
+        CONSULTATIO_SERIES.add("fci/CAPLUSA.json");
+        CONSULTATIO_SERIES.add("fci/CBAL01.json");
+        CONSULTATIO_SERIES.add("fci/CDeudaA.json");
+        CONSULTATIO_SERIES.add("fci/CGRO01.json");
+        CONSULTATIO_SERIES.add("fci/CPYMESA.json");
+        CONSULTATIO_SERIES.add("fci/CRVariable.json");
+        CONSULTATIO_SERIES.add("fci/CRentaNacionalA.json");
     }
 
     public static <T> String list(Collection<T> elements) {

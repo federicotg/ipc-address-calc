@@ -84,7 +84,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         final List<DollarReportDTO> answer = new ArrayList<>(investments.size());
         //final Date moment = ForeignExchanges.USD_ARS.getTo().asDate();
         final Date moment = USD_INFLATION.getTo().asToDate();
-        
+
         for (Investment inv : investments) {
             if (inv.getType().equals(InvestmentType.USD)) {
                 DollarReportDTO dto = new DollarReportDTO();
@@ -119,9 +119,13 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     public List<SavingsReportDTO> savings(final int toYear, final int toMonth) throws NoSeriesDataFoundException {
 
         final List<SavingsReportDTO> report = new ArrayList<>();
-        final MoneyAmountSeries pesos = readSeries("ahorros-peso.json");
-        final MoneyAmountSeries dollarsAndGold = sumSeries("ahorros-dolar.json", "ahorros-oro.json");
-        final IndexSeries dollarPrice = JSONIndexSeries.readSeries("peso-dolar-libre.json");
+        
+        final MoneyAmountSeries canaafa = readSeries("saving/ahorros-conaafa.json").exchangeInto("ARS");
+        
+        final MoneyAmountSeries pesos = readSeries("saving/ahorros-peso.json").add(canaafa);
+        final MoneyAmountSeries dollarsAndGold = sumSeries("saving/ahorros-dolar.json", "saving/ahorros-oro.json");
+        final IndexSeries dollarPrice = JSONIndexSeries.readSeries("index/peso-dolar-libre.json");
+        
 
         MoneyAmountSeries nominalIncomePesos = Util.sumSeries(this.incomeSeries);
 
@@ -236,12 +240,12 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                     this.inflation(currency, item.getInitialDate(), until),
                     item.getOut() == null));
         }
-        Collections.sort(report, new Comparator<InvestmentReportDTO>(){
+        Collections.sort(report, new Comparator<InvestmentReportDTO>() {
             @Override
             public int compare(InvestmentReportDTO o1, InvestmentReportDTO o2) {
                 return o1.getFrom().compareTo(o2.getFrom());
             }
-            
+
         });
         return report;
     }
@@ -264,10 +268,15 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     }
 
     private Date untilDate(Investment item, String targetCurrency) {
-        return item.getOut() != null
-                ? item.getOut().getDate()
-                //: ForeignExchanges.getForeignExchange(item.getMoneyAmount().getCurrency(), targetCurrency).getTo().asToDate();
-                : this.map.get(targetCurrency).getTo().asToDate();
+        return min(
+                item.getInitialDate(),
+                item.getOut() != null
+                        ? item.getOut().getDate()
+                        : this.map.get(targetCurrency).getTo().asToDate());
+    }
+
+    private Date min(Date d1, Date d2) {
+        return d1.compareTo(d2) < 0 ? d1 : d2;
     }
 
     private BigDecimal finalAmount(Investment investment, String targetCurrency, Date date) throws NoSeriesDataFoundException {

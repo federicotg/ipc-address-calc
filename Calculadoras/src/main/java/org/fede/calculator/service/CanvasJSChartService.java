@@ -124,12 +124,13 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
     @Override
     public CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr, boolean en, boolean er, int year, int month) throws NoSeriesDataFoundException {
-        MoneyAmountSeries ars = readSeries("ahorros-peso.json");
-        MoneyAmountSeries usd = readSeries("ahorros-dolar.json").exchangeInto("ARS");
-        MoneyAmountSeries gold = readSeries("ahorros-oro.json").exchangeInto("ARS");
+        MoneyAmountSeries ars = readSeries("saving/ahorros-peso.json");
+        MoneyAmountSeries usd = readSeries("saving/ahorros-dolar.json").exchangeInto("ARS");
+        MoneyAmountSeries gold = readSeries("saving/ahorros-oro.json").exchangeInto("ARS");
+        MoneyAmountSeries conaafa = readSeries("saving/ahorros-conaafa.json").exchangeInto("ARS");
 
         return this.createCombinedChart("Ahorros",
-                usd.add(ars).add(gold),
+                usd.add(ars).add(gold).add(conaafa),
                 1, pn, pr, dn, dr, en, er,
                 year, month);
     }
@@ -168,7 +169,6 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         if (dn) {
             seriesList.add(this.getDatum("line", "black", "USD Nominales", this.nominalUSDDatapointAssembler.getDatapoints(months, series)));
         }
-
         if (er) {
             seriesList.add(this.getDatum("line", "gold", "EUR Reales", this.realEURDatapointAssembler.getDatapoints(months, series, year, month)));
         }
