@@ -70,6 +70,9 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
 
+    @Resource(name = "investments")
+    private List<String> investmentSeries;
+    
     public InvestmentServiceImpl() {
         map.put("USD", USD_INFLATION);
         map.put("ARS", ARS_INFLATION);
@@ -225,8 +228,13 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     public List<InvestmentReportDTO> investment(String currency) throws NoSeriesDataFoundException {
 
         final List<InvestmentReportDTO> report = new ArrayList<>();
-
-        for (Investment item : read("investments.json")) {
+        final List<Investment> investments = new ArrayList<>();
+        
+        for(String fileName : this.investmentSeries){
+            investments.addAll(read(fileName));
+        }
+        
+        for (Investment item : investments) {
 
             final Date until = this.untilDate(item, currency);
 

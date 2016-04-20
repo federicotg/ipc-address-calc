@@ -272,9 +272,6 @@
     </util:list>
 
 
-
-
-
     <bean class="org.fede.calculator.service.CanvasJSMultiSeriesChartService" name="savingsService" lazy-init="true">
         <property name="series" ref="savingsSeries" />
     </bean>
@@ -297,5 +294,8 @@
         <property name="series" ref="fciSeries" />
     </bean>
     
+    <util:list id="investments" value-type="javax.lang.String">
+        <value>investments.json</value>
+    </util:list>
             
 </beans>

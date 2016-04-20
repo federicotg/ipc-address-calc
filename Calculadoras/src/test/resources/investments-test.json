@@ -8,6 +8,7 @@
 {"type": "USD", "in":{"date":"01/06/2005", "amount":"25000", "currency":"ARS"}, "investment":{"currency":"USD", "amount":"3254.36"}, "out":null},
 {"type": "USD", "in":{"date":"01/08/2006", "amount":"5000", "currency":"ARS"}, "investment":{"currency":"USD", "amount":"647"}, "out":null},
 {"type": "USD", "in":{"date":"05/09/2007", "amount":"6000", "currency":"ARS"}, "investment":{"currency":"USD", "amount":"1974"}, "out":null},
+{"type": "FCI", "in":{"date":"05/04/2016", "amount":"6000", "currency":"ARS"}, "investment":{"currency":"USD", "amount":"514"}, "out":null},
 {"type": "USD", "in":{"date":"21/12/2015", "amount":"10500", "currency":"ARS"}, "investment":{"currency":"USD", "amount":"698.36"}, "out":null}
 
 ]

@@ -147,34 +147,6 @@ public class IndexTest {
 
     }
 
-   // @Test
-    public void chart() throws NoSeriesDataFoundException {
-
-        NumberFormat money = NumberFormat.getCurrencyInstance();
-        NumberFormat pct = NumberFormat.getPercentInstance();
-        DateFormat date = DateFormat.getDateInstance(DateFormat.SHORT);
-        
-        List<InvestmentReportDTO> report = new InvestmentServiceImpl().investment("ARS");
-        
-        String messagePattern = "{0} a {1} {2} -> {3} {4} {5} {6} {7}";
-        
-        for (InvestmentReportDTO r : report) {
-            assertEquals("ARS", r.getCurrency());
-            System.out.println(MessageFormat.format(messagePattern, 
-                    date.format(r.getFrom()), 
-                    date.format(r.getTo()),
-                    money.format(r.getInitialAmount()), 
-                    money.format(r.getFinalAmount()),
-                    money.format(r.getDifferenceAmount()),
-                    pct.format(r.getPct()),
-                    pct.format(r.getInflationPct()),
-                    pct.format(r.getDifferencePct())
-                    ));
-            
-            
-        }
-    }
-
     private List<Investment> read(String name) throws IOException {
         try (InputStream in = IndexTest.class.getResourceAsStream("/" + name);) {
             ObjectMapper om = new ObjectMapper();
