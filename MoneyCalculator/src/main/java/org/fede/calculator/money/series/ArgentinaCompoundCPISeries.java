@@ -25,8 +25,8 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public class ArgentinaCompoundCPISeries extends IndexSeriesSupport {
 
-    private final IndexSeries cqpSeries = JSONIndexSeries.readSeries("cqp.json");
-    private final IndexSeries indecSeries = JSONIndexSeries.readSeries("indec.json");
+    private final IndexSeries cqpSeries = JSONIndexSeries.readSeries("index/cqp.json");
+    private final IndexSeries indecSeries = JSONIndexSeries.readSeries("index/indec.json");
     private static final BigDecimal CORRECTION_FACTOR = new BigDecimal("1.84856478083063");
 
     @Override

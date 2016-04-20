@@ -27,9 +27,7 @@ import org.fede.calculator.money.series.YearMonth;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class CompoundForeignExchange extends SeriesSupport implements ForeignExchange{
-    
-    private static final String USD = "USD";
-    
+   
     private final ForeignExchange first;
     private final ForeignExchange second;
     
@@ -56,22 +54,23 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
 
     @Override
     public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
-        return this.second.exchange(this.first.exchange(amount, USD, referenceYear, referenceMonth), targetCurrency, referenceYear, referenceMonth);
+        return this.second.exchange(
+                this.first.exchange(amount, this.first.getTargetCurrency(), referenceYear, referenceMonth), targetCurrency, referenceYear, referenceMonth);
     }
 
     @Override
     public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, Date moment) throws NoSeriesDataFoundException {
-        return this.second.exchange(this.first.exchange(amount, USD, moment), targetCurrency, moment);
+        return this.second.exchange(this.first.exchange(amount, this.first.getTargetCurrency(), moment), targetCurrency, moment);
     }
 
     @Override
     public MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency) throws NoSeriesDataFoundException {
-        return this.second.exchange(this.first.exchange(series, USD), targetCurrency);
+        return this.second.exchange(this.first.exchange(series, this.first.getTargetCurrency()), targetCurrency);
     }
 
     @Override
     public MoneyAmountSeries exchange(MoneyAmount amount, String targetCurrency) throws NoSeriesDataFoundException {
-        return this.second.exchange(this.first.exchange(amount, USD), targetCurrency);
+        return this.second.exchange(this.first.exchange(amount, this.first.getTargetCurrency()), targetCurrency);
     }
 
     @Override
@@ -84,6 +83,11 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
         return obj instanceof CompoundForeignExchange
                 && Objects.equals(this.first, ((CompoundForeignExchange) obj).first)
                 && Objects.equals(this.second, ((CompoundForeignExchange) obj).second);
+    }
+
+    @Override
+    public String getTargetCurrency() {
+        return this.second.getTargetCurrency();
     }
     
     

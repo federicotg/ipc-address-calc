@@ -103,7 +103,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
                 answer.putAmount(y, m, this.exchange(series.getAmount(y, m), targetCurrency, y, m));
             }
         }
-        for (int m = 1; m <= toMonth; m++) {
+        for (int m = fromYear == toYear ? from.getMonth() : 1; m <= toMonth; m++) {
             //last year
             answer.putAmount(toYear, m, this.exchange(series.getAmount(toYear, m), targetCurrency, toYear, m));
         }
@@ -159,5 +159,12 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
                 && Objects.equals(this.targetCurrency, ((SimpleForeignExchange) obj).targetCurrency);
 
     }
+
+    @Override
+    public String getTargetCurrency() {
+        return targetCurrency;
+    }
+    
+    
 
 }

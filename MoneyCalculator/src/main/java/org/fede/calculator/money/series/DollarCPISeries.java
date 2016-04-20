@@ -38,7 +38,7 @@ public final class DollarCPISeries extends IndexSeriesSupport {
     private final BlsCPISource source;
 
     public DollarCPISeries() {
-        this(new CachingBlsSource(new JSONBlsCPISource("bls.json")));
+        this(new CachingBlsSource(new JSONBlsCPISource("index/bls.json")));
     }
 
     public DollarCPISeries(BlsCPISource source) {

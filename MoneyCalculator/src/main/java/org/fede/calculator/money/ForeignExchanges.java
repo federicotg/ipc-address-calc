@@ -37,24 +37,24 @@ public class ForeignExchanges {
     private static final String USD = "USD";
 
     public static final ForeignExchange USD_ARS = new SimpleForeignExchange(
-            JSONIndexSeries.readSeries("peso-dolar-libre.json"),
+            JSONIndexSeries.readSeries("index/peso-dolar-libre.json"),
             USD,
             "ARS");
 
     public static final ForeignExchange USD_XAU = new SimpleForeignExchange(
-            JSONIndexSeries.readSeries("gold.json"),
+            JSONIndexSeries.readSeries("index/gold.json"),
             "XAU",
             USD);
 
     public static final ForeignExchange USD_EUR = new SimpleForeignExchange(
-            JSONIndexSeries.readSeries("euro-dolar.json"),
+            JSONIndexSeries.readSeries("index/euro-dolar.json"),
             USD,
             "EUR");
 
     public static final ForeignExchange ARS_CONAAFA = new SimpleForeignExchange(
-            JSONIndexSeries.readSeries("CONAAFA_AR-peso.json"),
-            "ARA",
-            "CONAAFA");
+            JSONIndexSeries.readSeries("index/CONAAFA_AR-peso.json"),
+            "CONAAFA",
+            "ARS");
 
     public static final ForeignExchange NO_FX = new SimpleForeignExchange(new IndexSeriesSupport() {
         @Override
@@ -99,7 +99,6 @@ public class ForeignExchanges {
     }
 
     public static ForeignExchange getForeignExchange(String from, String to) {
-        System.out.println(from + " -> " + to);
         if (from.equals(to)) {
             return NO_FX;
         }
