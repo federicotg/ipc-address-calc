@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.money.series;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -66,9 +65,8 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
     }
 
     @Override
-    public void forEach(MoneyAmountProcessor processor) throws NoSeriesDataFoundException {
-        for (Iterator<Map.Entry<YearMonth, MoneyAmount>> it = this.values.entrySet().iterator(); it.hasNext();) {
-            Map.Entry<YearMonth, MoneyAmount> entry = it.next();
+    public void forEach(final MoneyAmountProcessor processor) throws NoSeriesDataFoundException {
+        for (Map.Entry<YearMonth, MoneyAmount> entry : this.values.entrySet()) {
             processor.process(entry.getKey().getYear(), entry.getKey().getMonth(), entry.getValue());
         }
     }
