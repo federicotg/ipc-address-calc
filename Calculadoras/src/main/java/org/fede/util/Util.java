@@ -51,8 +51,6 @@ import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
  */
 public class Util {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
     private static final Set<String> CONSULTATIO_SERIES;
 
     static {
@@ -89,7 +87,6 @@ public class Util {
             seriesNames.add(dto.getSeriesName());
         }
         return sumSeries(seriesNames.toArray(new String[seriesNames.size()]));
-
     }
 
     public static MoneyAmountSeries sumSeries(String... names) throws NoSeriesDataFoundException {
@@ -106,13 +103,26 @@ public class Util {
         return answer;
     }
 
+    public static <T> T read(String name, TypeReference<T> typeReference) {
+        try (InputStream in = Util.class.getResourceAsStream("/" + name);) {
+            ObjectMapper om = new ObjectMapper();
+
+            return om.readValue(in, typeReference);
+        } catch (IOException ioEx) {
+            throw new IllegalArgumentException("Could not read investments from resource " + name, ioEx);
+        }
+    }
+
     public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
         try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
+
+            ObjectMapper om = new ObjectMapper();
+
             JSONSeries series;
             if (CONSULTATIO_SERIES.contains(name)) {
-                series = readConsultatioSeries(is);
+                series = readConsultatioSeries(is, om);
             } else {
-                series = MAPPER.readValue(is, JSONSeries.class);
+                series = om.readValue(is, JSONSeries.class);
             }
             final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
             SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
@@ -142,9 +152,9 @@ public class Util {
         }
     }
 
-    private static JSONSeries readConsultatioSeries(InputStream is) throws IOException {
+    private static JSONSeries readConsultatioSeries(InputStream is, ObjectMapper om) throws IOException {
 
-        List<ConsultatioDataPoint> data = MAPPER.readValue(is, new TypeReference<List<ConsultatioDataPoint>>() {
+        List<ConsultatioDataPoint> data = om.readValue(is, new TypeReference<List<ConsultatioDataPoint>>() {
         });
 
         Map<Pair<Integer, Integer>, List<BigDecimal>> groups = new HashMap<>();
@@ -154,7 +164,7 @@ public class Util {
         for (ConsultatioDataPoint c : data) {
             cal.setTime(c.getDate());
 
-            Pair<Integer, Integer> key = new Pair<>(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH)+1);
+            Pair<Integer, Integer> key = new Pair<>(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1);
             List<BigDecimal> values = groups.get(key);
 
             if (values == null) {

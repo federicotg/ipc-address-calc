@@ -17,9 +17,6 @@
 package org.fede.calculator.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,13 +40,10 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.Investment;
-import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.JSONIndexSeries;
-import static org.fede.util.Util.sumSeries;
 import static org.fede.util.Util.readSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.web.dto.DollarReportDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 import org.fede.calculator.web.dto.InvestmentReportDTO;
 import org.fede.calculator.web.dto.SavingsReportDTO;
@@ -73,48 +67,13 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     @Resource(name = "investments")
     private List<String> investmentSeries;
     
+    @Resource(name = "savingsReportSeries")
+    private Map<String, String> savingsReportSeries;
+    
+            
     public InvestmentServiceImpl() {
         map.put("USD", USD_INFLATION);
         map.put("ARS", ARS_INFLATION);
-
-    }
-
-    // @Override
-    public List<DollarReportDTO> dollar() throws NoSeriesDataFoundException {
-
-        final List<Investment> investments = read("investments.json");
-        final MoneyAmount oneDollar = new MoneyAmount(ONE, "USD");
-        final List<DollarReportDTO> answer = new ArrayList<>(investments.size());
-        //final Date moment = ForeignExchanges.USD_ARS.getTo().asDate();
-        final Date moment = USD_INFLATION.getTo().asToDate();
-
-        for (Investment inv : investments) {
-            if (inv.getType().equals(InvestmentType.USD)) {
-                DollarReportDTO dto = new DollarReportDTO();
-
-                answer.add(dto);
-
-                dto.setUsd(inv.getIn().getAmount());
-
-                Date thenDate = inv.getIn().getDate();
-                dto.setThen(thenDate);
-
-                dto.setNominalPesosThen(inv.getIn().getAmount());
-                dto.setRealPesosNow(ARS_INFLATION.adjust(inv.getIn().getMoneyAmount(), thenDate, moment).getAmount());
-                dto.setNow(moment);
-                dto.setNominalPesosNow(ForeignExchanges.USD_ARS.exchange(inv.getInvestment().getMoneyAmount(), "ARS", moment).getAmount());
-
-                MoneyAmount oneDollarThen = USD_INFLATION.adjust(oneDollar, moment, thenDate);
-                MoneyAmount realDollarThen = ARS_INFLATION.adjust(
-                        ForeignExchanges.USD_ARS.exchange(oneDollarThen, "ARS", thenDate),
-                        thenDate, moment);
-                dto.setRealUsdThen(realDollarThen.getAmount());
-                MoneyAmount oneDollarNow = ForeignExchanges.USD_ARS.exchange(oneDollar, "ARS", moment);
-                dto.setNominalUsdNow(oneDollarNow.getAmount());
-            }
-        }
-
-        return answer;
 
     }
 
@@ -123,14 +82,20 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final List<SavingsReportDTO> report = new ArrayList<>();
         
-        final MoneyAmountSeries canaafa = readSeries("saving/ahorros-conaafa.json").exchangeInto("ARS");
-        
-        final MoneyAmountSeries pesos = readSeries("saving/ahorros-peso.json").add(canaafa);
-        final MoneyAmountSeries dollarsAndGold = sumSeries("saving/ahorros-dolar.json", "saving/ahorros-oro.json");
-        final IndexSeries dollarPrice = JSONIndexSeries.readSeries("index/peso-dolar-libre.json");
-        
+//        final MoneyAmountSeries canaafa = readSeries("saving/ahorros-conaafa.json").exchangeInto("ARS");
+//        final MoneyAmountSeries pesos = readSeries("saving/ahorros-peso.json").add(canaafa);
+//        final MoneyAmountSeries dollarsAndGold = sumSeries("saving/ahorros-dolar.json", "saving/ahorros-oro.json");
+//        final IndexSeries dollarPrice = JSONIndexSeries.readSeries("index/peso-dolar-libre.json");
 
-        MoneyAmountSeries nominalIncomePesos = Util.sumSeries(this.incomeSeries);
+        final MoneyAmountSeries pesos = readSeries(this.savingsReportSeries.get("pesos"))
+                .add(readSeries(this.savingsReportSeries.get("conaafa")).exchangeInto("ARS"));
+        
+        final MoneyAmountSeries dollarsAndGold = readSeries(this.savingsReportSeries.get("dollars"))
+                .add(readSeries(this.savingsReportSeries.get("gold")));
+        
+        final IndexSeries dollarPrice = JSONIndexSeries.readSeries(this.savingsReportSeries.get("dollarPrice"));
+
+        final MoneyAmountSeries nominalIncomePesos = Util.sumSeries(this.incomeSeries);
 
         Aggregation yearSum = new SimpleAggregation(12);
         final MoneyAmountSeries nov99IncomePesos12 = yearSum.sum(ARS_INFLATION.adjust(nominalIncomePesos, toYear, toMonth));
@@ -213,17 +178,6 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return savingsNow.subtract(savingsThen).divide(avgIncome, CONTEXT);
     }
 
-    private static List<Investment> read(String name) {
-        try (InputStream in = InvestmentServiceImpl.class.getResourceAsStream("/" + name);) {
-            ObjectMapper om = new ObjectMapper();
-
-            return om.readValue(in, new TypeReference<List<Investment>>() {
-            });
-        } catch (IOException ioEx) {
-            throw new IllegalArgumentException("Could not read investments from resource " + name, ioEx);
-        }
-    }
-
     @Override
     public List<InvestmentReportDTO> investment(String currency) throws NoSeriesDataFoundException {
 
@@ -231,7 +185,8 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         final List<Investment> investments = new ArrayList<>();
         
         for(String fileName : this.investmentSeries){
-            investments.addAll(read(fileName));
+            investments.addAll(Util.read(fileName, new TypeReference<List<Investment>>() {
+            }));
         }
         
         for (Investment item : investments) {
