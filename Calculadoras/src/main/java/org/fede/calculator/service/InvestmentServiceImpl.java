@@ -276,15 +276,15 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     }
 
     private Date untilDate(Investment item, String targetCurrency) {
-        return min(
+        return max(
                 item.getInitialDate(),
                 item.getOut() != null
                         ? item.getOut().getDate()
                         : this.map.get(targetCurrency).getTo().asToDate());
     }
 
-    private Date min(Date d1, Date d2) {
-        return d1.compareTo(d2) < 0 ? d1 : d2;
+    private Date max(Date d1, Date d2) {
+        return d1.compareTo(d2) > 0 ? d1 : d2;
     }
 
     private BigDecimal finalAmount(Investment investment, String targetCurrency, Date date) throws NoSeriesDataFoundException {

@@ -210,14 +210,12 @@
             <property name="seriesName" value="saving/ahorros-oro.json" />
             <property name="color" value="Gold" />
         </bean>
-
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Acciones Argentina FCI" />
             <property name="seriesName" value="saving/ahorros-conaafa.json" />
             <property name="color" value="Red" />
         </bean>
-                        
-        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Total" />
             <property name="seriesName" value="" />
             <property name="color" value="black" />
@@ -294,7 +292,7 @@
         <property name="series" ref="fciSeries" />
     </bean>
     
-    <util:list id="investments" value-type="javax.lang.String">
+    <util:list id="investments" value-type="java.lang.String">
         <value>investments.json</value>
     </util:list>
             
