@@ -40,22 +40,6 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
         this(currency, new TreeMap<YearMonth, MoneyAmount>());
     }
 
-    /*public SortedMapMoneyAmountSeries(final String currency, final YearMonth from, final YearMonth to, final int[] values) {
-        this(currency);
-        if (from.monthsUntil(to) != values.length) {
-            throw new IllegalArgumentException(
-                    MessageFormat.format(
-                            "There must be one value for each month. There were {0} months and {1} values.",
-                            from.monthsUntil(to),
-                            values.length));
-        }
-        YearMonth ym = from;
-        int i = 0;
-        while(ym.compareTo(to) <= 0){
-            this.values.put(ym, new MoneyAmount(new BigDecimal(values[i++]), this.getCurrency()));
-            ym = ym.next();
-        }
-    }*/
     @Override
     protected MoneyAmountSeries createNew() {
         return new SortedMapMoneyAmountSeries(this.getCurrency());
