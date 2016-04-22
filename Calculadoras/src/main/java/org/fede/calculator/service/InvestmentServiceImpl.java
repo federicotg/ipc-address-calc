@@ -41,13 +41,13 @@ import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.JSONIndexSeries;
-import static org.fede.util.Util.readSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 import org.fede.calculator.web.dto.InvestmentReportDTO;
 import org.fede.calculator.web.dto.SavingsReportDTO;
-import org.fede.util.Util;
+import static org.fede.util.Util.read;
+import static org.fede.util.Util.sumSeries;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -66,47 +66,35 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
     @Resource(name = "investments")
     private List<String> investmentSeries;
-    
+
     @Resource(name = "savingsReportSeries")
-    private Map<String, String> savingsReportSeries;
-    
-            
+    private Map<String, List<String>> savingsReportSeries;
+
     public InvestmentServiceImpl() {
         map.put("USD", USD_INFLATION);
         map.put("ARS", ARS_INFLATION);
-
     }
 
     @Override
     public List<SavingsReportDTO> savings(final int toYear, final int toMonth) throws NoSeriesDataFoundException {
 
-        final List<SavingsReportDTO> report = new ArrayList<>();
-        
-//        final MoneyAmountSeries canaafa = readSeries("saving/ahorros-conaafa.json").exchangeInto("ARS");
-//        final MoneyAmountSeries pesos = readSeries("saving/ahorros-peso.json").add(canaafa);
-//        final MoneyAmountSeries dollarsAndGold = sumSeries("saving/ahorros-dolar.json", "saving/ahorros-oro.json");
-//        final IndexSeries dollarPrice = JSONIndexSeries.readSeries("index/peso-dolar-libre.json");
+        final MoneyAmountSeries pesos = sumSeries("ARS", this.savingsReportSeries.get("ars"));
+        final MoneyAmountSeries dollarsAndGold = sumSeries("USD", this.savingsReportSeries.get("usd"));
+        final IndexSeries dollarPrice = JSONIndexSeries.readSeries(this.savingsReportSeries.get("ars-usd-fx").iterator().next());
 
-        final MoneyAmountSeries pesos = readSeries(this.savingsReportSeries.get("pesos"))
-                .add(readSeries(this.savingsReportSeries.get("conaafa")).exchangeInto("ARS"))
-                .add(readSeries(this.savingsReportSeries.get("conbala")).exchangeInto("ARS"));
-        
-        final MoneyAmountSeries dollarsAndGold = readSeries(this.savingsReportSeries.get("dollars"))
-                .add(readSeries(this.savingsReportSeries.get("gold")));
-        
-        final IndexSeries dollarPrice = JSONIndexSeries.readSeries(this.savingsReportSeries.get("dollarPrice"));
+        final MoneyAmountSeries nominalIncomePesos = sumSeries(this.incomeSeries);
 
-        final MoneyAmountSeries nominalIncomePesos = Util.sumSeries(this.incomeSeries);
-
-        Aggregation yearSum = new SimpleAggregation(12);
+        final Aggregation yearSum = new SimpleAggregation(12);
         final MoneyAmountSeries nov99IncomePesos12 = yearSum.sum(ARS_INFLATION.adjust(nominalIncomePesos, toYear, toMonth));
 
-        MoneyAmountSeries nominalIncomeDollars = nominalIncomePesos.exchangeInto("USD");
+        final MoneyAmountSeries nominalIncomeDollars = nominalIncomePesos.exchangeInto("USD");
         final MoneyAmountSeries nov99IncomeDollars12 = yearSum.sum(USD_INFLATION.adjust(nominalIncomeDollars, toYear, toMonth));
 
         final MoneyAmountSeries nominalIncomePesos12 = yearSum.sum(nominalIncomePesos);
         final MoneyAmountSeries nominalIncomeDollars12 = yearSum.sum(nominalIncomeDollars);
 
+        final List<SavingsReportDTO> report = new ArrayList<>();
+        
         pesos.forEach(new MoneyAmountProcessor() {
             @Override
             public void process(int year, int month, MoneyAmount amount) throws NoSeriesDataFoundException {
@@ -184,12 +172,12 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final List<InvestmentReportDTO> report = new ArrayList<>();
         final List<Investment> investments = new ArrayList<>();
-        
-        for(String fileName : this.investmentSeries){
-            investments.addAll(Util.read(fileName, new TypeReference<List<Investment>>() {
+
+        for (String fileName : this.investmentSeries) {
+            investments.addAll(read(fileName, new TypeReference<List<Investment>>() {
             }));
         }
-        
+
         for (Investment item : investments) {
 
             final Date until = this.untilDate(item, currency);

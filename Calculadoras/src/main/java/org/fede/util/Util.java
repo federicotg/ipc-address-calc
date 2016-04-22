@@ -86,17 +86,21 @@ public class Util {
         for (ExpenseChartSeriesDTO dto : dtos) {
             seriesNames.add(dto.getSeriesName());
         }
-        return sumSeries(seriesNames.toArray(new String[seriesNames.size()]));
+        return sumSeries("USD", seriesNames.toArray(new String[seriesNames.size()]));
     }
 
-    public static MoneyAmountSeries sumSeries(String... names) throws NoSeriesDataFoundException {
+    public static MoneyAmountSeries sumSeries(String currency, List<String> names) throws NoSeriesDataFoundException {
+        return sumSeries(currency, names.toArray(new String[names.size()]));
+    }
+    
+    public static MoneyAmountSeries sumSeries(String currency, String... names) throws NoSeriesDataFoundException {
         if (names.length == 0) {
             throw new IllegalArgumentException("You must at least read one series");
         }
         MoneyAmountSeries answer = null;
         for (String seriesName : names) {
             if (seriesName != null && seriesName.length() > 0) {
-                MoneyAmountSeries s = readSeries(seriesName);
+                MoneyAmountSeries s = readSeries(seriesName).exchangeInto(currency);
                 answer = answer == null ? s : answer.add(s);
             }
         }
