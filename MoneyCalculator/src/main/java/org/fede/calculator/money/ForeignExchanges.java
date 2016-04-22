@@ -55,6 +55,11 @@ public class ForeignExchanges {
             JSONIndexSeries.readSeries("index/CONAAFA_AR-peso.json"),
             "CONAAFA",
             "ARS");
+    
+    public static final ForeignExchange ARS_CONBALA = new SimpleForeignExchange(
+            JSONIndexSeries.readSeries("index/CONBALA_AR-peso.json"),
+            "CONBALA",
+            "ARS");
 
     public static final ForeignExchange NO_FX = new SimpleForeignExchange(new IndexSeriesSupport() {
         @Override
@@ -91,8 +96,10 @@ public class ForeignExchanges {
         map("XAU", "USD", USD_XAU);
         map("ARS", "USD", USD_ARS);
         map("ARS", "CONAAFA", ARS_CONAAFA);
+        map("ARS", "CONBALA", ARS_CONBALA);
 
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CONAAFA", "ARS");
+        INTERMEDIATE_FOREIGN_EXCHANGES.put("CONBALA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("EUR", "USD");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("XAU", "USD");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("ARS", "USD");
