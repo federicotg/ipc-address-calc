@@ -50,4 +50,7 @@ public class ExpenseChartSeriesDTO {
         this.seriesName = seriesName;
     }
 
+    public boolean isTotal(){
+        return this.seriesName == null || this.seriesName.length() == 0;
+    }
 }

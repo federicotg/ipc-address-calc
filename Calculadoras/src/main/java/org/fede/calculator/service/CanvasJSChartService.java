@@ -127,8 +127,8 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         
         MoneyAmountSeries savingsSum = null;
         for(ExpenseChartSeriesDTO dto : this.savingsSeries){
-            if(dto.getName() != null && dto.getName().length() > 0){
-                MoneyAmountSeries s = readSeries(dto.getName()).exchangeInto("ARS");
+            if(!dto.isTotal()){
+                MoneyAmountSeries s = readSeries(dto.getSeriesName()).exchangeInto("ARS");
                 if(savingsSum == null){
                     savingsSum = s;
                 }else{

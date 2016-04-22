@@ -88,7 +88,8 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 //        final IndexSeries dollarPrice = JSONIndexSeries.readSeries("index/peso-dolar-libre.json");
 
         final MoneyAmountSeries pesos = readSeries(this.savingsReportSeries.get("pesos"))
-                .add(readSeries(this.savingsReportSeries.get("conaafa")).exchangeInto("ARS"));
+                .add(readSeries(this.savingsReportSeries.get("conaafa")).exchangeInto("ARS"))
+                .add(readSeries(this.savingsReportSeries.get("conbala")).exchangeInto("ARS"));
         
         final MoneyAmountSeries dollarsAndGold = readSeries(this.savingsReportSeries.get("dollars"))
                 .add(readSeries(this.savingsReportSeries.get("gold")));

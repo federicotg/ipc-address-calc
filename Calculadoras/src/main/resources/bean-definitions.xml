@@ -215,6 +215,14 @@
             <property name="seriesName" value="saving/ahorros-conaafa.json" />
             <property name="color" value="Red" />
         </bean>
+        
+        <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
+            <property name="name" value="Balance Fund FCI" />
+            <property name="seriesName" value="saving/ahorros-conbala.json" />
+            <property name="color" value="magenta" />
+        </bean>
+        
+        
          <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Total" />
             <property name="seriesName" value="" />
@@ -298,6 +306,7 @@
             
     <util:map id="savingsReportSeries" key-type="java.lang.String" value-type="java.lang.String">
         <entry key="conaafa" value="saving/ahorros-conaafa.json" />
+        <entry key="conbala" value="saving/ahorros-conbala.json" />
         <entry key="pesos" value="saving/ahorros-peso.json" />
         <entry key="dollars" value="saving/ahorros-dolar.json" />
         <entry key="gold" value="saving/ahorros-oro.json" />
