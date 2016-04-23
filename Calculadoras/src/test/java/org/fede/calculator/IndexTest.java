@@ -121,6 +121,11 @@ public class IndexTest {
         });
     }
 
+    @Test
+    public void ok() {
+        assertTrue(1==1);
+    }
+    
     // @Test
     public void historicDollar() throws NoSeriesDataFoundException {
 

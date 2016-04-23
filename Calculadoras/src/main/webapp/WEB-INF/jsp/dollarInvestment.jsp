@@ -75,17 +75,30 @@
                         <td><fmt:formatDate value="${item.to}" type="date" /></td>
                         <td class="valueTd">${item.currency} <fmt:formatNumber type="CURRENCY">${item.initialAmount}</fmt:formatNumber></td>
                         <td class="valueTd">${item.currency} <fmt:formatNumber type="CURRENCY">${item.finalAmount}</fmt:formatNumber></td>
-                        <td class="valueTd">${item.currency} <fmt:formatNumber type="CURRENCY">${item.differenceAmount}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.pct}</fmt:formatNumber></td>
-                        <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.inflationPct}</fmt:formatNumber></td>
-                        <c:choose>
-                            <c:when test="${item.differencePct ge 0}"><td class="valueTd win"></c:when>
-                            <c:otherwise><td class="valueTd loss"></c:otherwise>
-                            </c:choose>
+                        <c:choose><c:when test="${item.differenceAmount ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
+                            ${item.currency} <fmt:formatNumber type="CURRENCY">${item.differenceAmount}</fmt:formatNumber></td>
+                        <c:choose><c:when test="${item.pct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
+                            <fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.pct}</fmt:formatNumber></td>
+                            <td class="valueTd">
+                            <fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.inflationPct}</fmt:formatNumber></td>
+                        <c:choose><c:when test="${item.differencePct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
                             <fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.differencePct}</fmt:formatNumber></td>
                         </tr>
                 </c:forEach>
             </tbody>
+            <tfoot>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                    <th>Inversión</th>
+                    <th>Retorno</th>
+                    <th>+/-</th>
+                    <th>+/- %</th>
+                    <th>Inflación</th>
+                    <th>+/- % Real</th>
+                </tr>
+            </tfoot>
         </table>
 
     </body>

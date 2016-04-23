@@ -100,6 +100,9 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
     @Resource(name = "savingsSeries")
     private List<ExpenseChartSeriesDTO> savingsSeries;
+    
+    @Resource(name = "colors")
+    private List<String> colors;
 
     @Override
     public CanvasJSChartDTO combinedIncomes(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en, boolean er,
@@ -172,22 +175,22 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(6);
         if (pr) {
-            seriesList.add(this.getDatum("line", "blue", "Pesos Reales", this.realPesosDatapointAssembler.getDatapoints(months, series, year, month)));
+            seriesList.add(this.getDatum("line", colors.get(0), "Pesos Reales", this.realPesosDatapointAssembler.getDatapoints(months, series, year, month)));
         }
         if (pn) {
-            seriesList.add(this.getDatum("line", "red", "Pesos Nominales", this.nominalPesosDatapointAssembler.getDatapoints(months, series)));
+            seriesList.add(this.getDatum("line", colors.get(1), "Pesos Nominales", this.nominalPesosDatapointAssembler.getDatapoints(months, series)));
         }
         if (dr) {
-            seriesList.add(this.getDatum("line", "green", "USD Reales", this.realUSDDatapointAssembler.getDatapoints(months, series, year, month)));
+            seriesList.add(this.getDatum("line", colors.get(2), "USD Reales", this.realUSDDatapointAssembler.getDatapoints(months, series, year, month)));
         }
         if (dn) {
-            seriesList.add(this.getDatum("line", "black", "USD Nominales", this.nominalUSDDatapointAssembler.getDatapoints(months, series)));
+            seriesList.add(this.getDatum("line", colors.get(3), "USD Nominales", this.nominalUSDDatapointAssembler.getDatapoints(months, series)));
         }
         if (er) {
-            seriesList.add(this.getDatum("line", "gold", "EUR Reales", this.realEURDatapointAssembler.getDatapoints(months, series, year, month)));
+            seriesList.add(this.getDatum("line", colors.get(4), "EUR Reales", this.realEURDatapointAssembler.getDatapoints(months, series, year, month)));
         }
         if (en) {
-            seriesList.add(this.getDatum("line", "pink", "EUR Nominales", this.nominalEURDatapointAssembler.getDatapoints(months, series)));
+            seriesList.add(this.getDatum("line", colors.get(5), "EUR Nominales", this.nominalEURDatapointAssembler.getDatapoints(months, series)));
         }
 
         dto.setData(seriesList);
@@ -226,11 +229,11 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
         List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         savings.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
-        seriesList.add(this.getDatum("line", "gold", "Ahorros", datapoints));
+        seriesList.add(this.getDatum("line", this.colors.get(0), "Ahorros", datapoints));
 
         datapoints = new ArrayList<>();
         income.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
-        seriesList.add(this.getDatum("line", "orange", "Ingresos", datapoints));
+        seriesList.add(this.getDatum("line", this.colors.get(1), "Ingresos", datapoints));
 
         return dto;
 
@@ -271,11 +274,11 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
         List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         lastYearSavings.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
-        seriesList.add(this.getDatum("line", "gold", "Ahorro Anual", datapoints));
+        seriesList.add(this.getDatum("line", this.colors.get(0), "Ahorro Anual", datapoints));
 
         datapoints = new ArrayList<>();
         lastYearIncome.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
-        seriesList.add(this.getDatum("line", "orange", "Ingreso Anual", datapoints));
+        seriesList.add(this.getDatum("line", this.colors.get(1), "Ingreso Anual", datapoints));
 
         return dto;
 
@@ -314,7 +317,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
                 }
             }
         });
-        seriesList.add(this.getDatum("line", "red", "Sueldos", datapoints));
+        seriesList.add(this.getDatum("line", this.colors.get(0), "Sueldos", datapoints));
 
         return dto;
 
@@ -352,7 +355,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         historicDollar.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
-        seriesList.add(this.getDatum("area", "darkgreen", "Dólar", datapoints));
+        seriesList.add(this.getDatum("area", this.colors.get(0), "Dólar", datapoints));
         return dto;
     }
 
@@ -382,7 +385,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         historicGold.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
-        seriesList.add(this.getDatum("area", "gold", "Oro", datapoints));
+        seriesList.add(this.getDatum("area", this.colors.get(0), "Oro", datapoints));
         return dto;
     }
 

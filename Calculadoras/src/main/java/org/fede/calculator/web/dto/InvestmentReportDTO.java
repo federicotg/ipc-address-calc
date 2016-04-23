@@ -18,6 +18,7 @@ package org.fede.calculator.web.dto;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.Date;
 
 /**
@@ -46,10 +47,9 @@ public class InvestmentReportDTO {
         this.initialAmount = initialAmount;
         this.finalAmount = finalAmount;
         this.inflationPct = inflationPct;
-
-        this.differenceAmount = finalAmount.subtract(initialAmount);
-        this.pct = this.differenceAmount.divide(this.initialAmount, MathContext.DECIMAL128);
-        this.differencePct = this.pct.subtract(this.inflationPct);
+        this.differenceAmount = finalAmount.subtract(initialAmount).setScale(4, RoundingMode.HALF_UP);
+        this.pct = this.differenceAmount.divide(this.initialAmount, MathContext.DECIMAL128).setScale(4, RoundingMode.HALF_UP);
+        this.differencePct = this.pct.subtract(this.inflationPct).setScale(4, RoundingMode.HALF_UP);
         this.current = current;
     }
 

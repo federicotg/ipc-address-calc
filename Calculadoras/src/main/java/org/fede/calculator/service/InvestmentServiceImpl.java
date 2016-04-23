@@ -78,11 +78,11 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     @Override
     public List<SavingsReportDTO> savings(final int toYear, final int toMonth) throws NoSeriesDataFoundException {
 
-        final MoneyAmountSeries pesos = sumSeries("ARS", this.savingsReportSeries.get("ars"));
-        final MoneyAmountSeries dollarsAndGold = sumSeries("USD", this.savingsReportSeries.get("usd"));
-        final IndexSeries dollarPrice = JSONIndexSeries.readSeries(this.savingsReportSeries.get("ars-usd-fx").iterator().next());
+        final MoneyAmountSeries pesos = sumSeries("ARS", this.savingsReportSeries.get("ars").toArray(new String[0]));
+        final MoneyAmountSeries dollarsAndGold = sumSeries("USD", this.savingsReportSeries.get("usd").toArray(new String[0]));
+        final IndexSeries dollarPrice = JSONIndexSeries.readSeries(this.savingsReportSeries.get("fx").iterator().next());
 
-        final MoneyAmountSeries nominalIncomePesos = sumSeries(this.incomeSeries);
+        final MoneyAmountSeries nominalIncomePesos = sumSeries("ARS", this.incomeSeries);
 
         final Aggregation yearSum = new SimpleAggregation(12);
         final MoneyAmountSeries nov99IncomePesos12 = yearSum.sum(ARS_INFLATION.adjust(nominalIncomePesos, toYear, toMonth));
@@ -94,7 +94,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         final MoneyAmountSeries nominalIncomeDollars12 = yearSum.sum(nominalIncomeDollars);
 
         final List<SavingsReportDTO> report = new ArrayList<>();
-        
+
         pesos.forEach(new MoneyAmountProcessor() {
             @Override
             public void process(int year, int month, MoneyAmount amount) throws NoSeriesDataFoundException {
@@ -243,6 +243,9 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         Inflation inflation = map.get(targetCurrency);
         if (inflation == null) {
             throw new IllegalArgumentException("Inflation for currency " + targetCurrency + " is unknown.");
+        }
+        if(from.equals(to)){
+            return BigDecimal.ZERO;
         }
         return inflation.adjust(new MoneyAmount(ONE, targetCurrency), from, to).getAmount().subtract(ONE);
     }

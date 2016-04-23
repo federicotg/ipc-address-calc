@@ -80,19 +80,18 @@ public class Util {
         return sb.toString();
     }
 
-    public static MoneyAmountSeries sumSeries(List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException {
-
+    public static MoneyAmountSeries sumSeries(String currency, List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException {
         List<String> seriesNames = new ArrayList<>(dtos.size());
         for (ExpenseChartSeriesDTO dto : dtos) {
             seriesNames.add(dto.getSeriesName());
         }
-        return sumSeries("USD", seriesNames.toArray(new String[seriesNames.size()]));
-    }
-
-    public static MoneyAmountSeries sumSeries(String currency, List<String> names) throws NoSeriesDataFoundException {
-        return sumSeries(currency, names.toArray(new String[names.size()]));
+        return sumSeries(currency, seriesNames.toArray(new String[seriesNames.size()]));
     }
     
+    public static MoneyAmountSeries sumSeries(List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException {
+        return sumSeries("USD", dtos);
+    }
+   
     public static MoneyAmountSeries sumSeries(String currency, String... names) throws NoSeriesDataFoundException {
         if (names.length == 0) {
             throw new IllegalArgumentException("You must at least read one series");

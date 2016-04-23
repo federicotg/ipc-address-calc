@@ -17,7 +17,11 @@
 package org.fede.calculator;
 
 import java.text.MessageFormat;
+import java.util.List;
+import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.DigitalContentService;
+import org.fede.calculator.service.InvestmentService;
+import org.fede.calculator.web.dto.InvestmentReportDTO;
 import org.fede.digitalcontent.model.DigitalContent;
 import org.fede.digitalcontent.model.Repository;
 import org.fede.digitalcontent.model.StorageMedium;
@@ -33,17 +37,17 @@ import org.springframework.test.context.web.WebAppConfiguration;
  *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
-
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 @ContextConfiguration("/applicationContext-calculadoras.xml")
 public class SingleMediaTest {
-    
+
     @Autowired
     private DigitalContentService service;
     
-    
+    @Autowired
+    private InvestmentService investments;
+
     public SingleMediaTest() {
     }
 
@@ -52,23 +56,31 @@ public class SingleMediaTest {
     //
     @Test
     public void singles() {
-    
+
         assertNotNull(this.service);
-        
-        for(StorageMedium disc : Repository.STORAGE.findAll()){
+
+        /*for (StorageMedium disc : Repository.STORAGE.findAll()) {
             DigitalContent dc = disc.getContents().iterator().next();
-            if(disc.getContents().size() == 1 && this.isInOneMedium(dc)){
+            if (disc.getContents().size() == 1 && this.isInOneMedium(dc)) {
                 System.out.println(MessageFormat.format("{0}\t{1}", disc.getName(), dc.toString()));
             }
-        }
-    
+        }*/
+
     }
+
     
-    
-    private boolean isInOneMedium(DigitalContent dc){
+    @Test
+    public void report() throws NoSeriesDataFoundException {
+        List<InvestmentReportDTO> report = this.investments.investment("USD");
+        for(InvestmentReportDTO dto : report){
+            System.out.println(dto.getInflationPct());
+        }
+    }
+
+    private boolean isInOneMedium(DigitalContent dc) {
         int count = 0;
-        for(StorageMedium disc : Repository.STORAGE.findAll()){
-            if(disc.contains(dc)){
+        for (StorageMedium disc : Repository.STORAGE.findAll()) {
+            if (disc.contains(dc)) {
                 count++;
             }
         }

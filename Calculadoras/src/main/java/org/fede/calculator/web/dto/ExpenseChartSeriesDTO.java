@@ -23,7 +23,7 @@ package org.fede.calculator.web.dto;
 public class ExpenseChartSeriesDTO {
 
     private String name;
-    private String color;
+    //private String color;
     private String seriesName;
 
     public String getName() {
@@ -32,14 +32,6 @@ public class ExpenseChartSeriesDTO {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
     }
 
     public String getSeriesName() {

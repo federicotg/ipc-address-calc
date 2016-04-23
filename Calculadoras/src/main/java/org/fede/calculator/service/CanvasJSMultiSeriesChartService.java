@@ -63,6 +63,9 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
     @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
 
+    @Resource(name = "colors")
+    private List<String> colors;
+    
     @Override
     public List<ExpenseChartSeriesDTO> getSeries() {
         return series;
@@ -108,13 +111,11 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
             MoneyAmountSeries totalSeries = null;
             final boolean collectTotal = seriesNames.contains(TOTAL_SERIES_NAME);
-            String totalColor = "red";
+            //String totalColor = "red";
 
+            Iterator<String> colorIterator = this.colors.iterator();
+            
             for (ExpenseChartSeriesDTO s : this.series) {
-
-                if (TOTAL_SERIES_NAME.equals(s.getName())) {
-                    totalColor = s.getColor();
-                }
 
                 if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
 
@@ -130,7 +131,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
                     seriesList.add(this.getDatum(
                             "line",
-                            s.getColor(),
+                            colorIterator.next(),
                             s.getName(),
                             this.getAssemblerFor(currencyCode).getDatapoints(months, eachSeries, year, month)
                     ));
@@ -139,7 +140,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
             if (collectTotal && totalSeries != null) {
                 seriesList.add(this.getDatum(
                         "line",
-                        totalColor,
+                        colorIterator.next(),
                         "Total",
                         this.getAssemblerFor(currencyCode).getDatapoints(months, totalSeries, year, month)
                 ));
@@ -176,7 +177,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                 }
             }
 
-            final MoneyAmountSeries totalIncome = Util.sumSeries(this.incomeSeries);
+            final MoneyAmountSeries totalIncome = Util.sumSeries("ARS", this.incomeSeries);
             final MoneyAmountSeries percentSeries = new SortedMapMoneyAmountSeries(sumSeries.getCurrency());
             sumSeries.forEach(new MoneyAmountProcessor() {
 
@@ -196,7 +197,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
             seriesList.add(this.getDatum(
                     "line",
-                    "red",
+                    this.colors.get(0),
                     "Gastos / Ingresos",
                     this.nominalPesosDatapointAssembler.getDatapoints(months, percentSeries)));
         }
