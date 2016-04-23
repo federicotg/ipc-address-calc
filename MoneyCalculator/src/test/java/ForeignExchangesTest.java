@@ -17,7 +17,7 @@
 
 import org.fede.calculator.money.CompoundForeignExchange;
 import org.fede.calculator.money.ForeignExchange;
-import static org.fede.calculator.money.ForeignExchanges.NO_FX;
+import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.ForeignExchanges.USD_ARS;
 import static org.fede.calculator.money.ForeignExchanges.USD_EUR;
 import static org.fede.calculator.money.ForeignExchanges.USD_XAU;
@@ -55,17 +55,24 @@ public class ForeignExchangesTest {
     public void tearDown() {
     }
 
+    private void identity(String currency){
+        assertEquals(ForeignExchanges.getIdentityForeignExchange(currency), getForeignExchange(currency, currency));
+    }
+    
     // TODO add test methods here.
     // The methods must be annotated with annotation @Test. For example:
     //
     @Test
     public void gettingThem() {
 
-        assertEquals(NO_FX, getForeignExchange("USD", "USD"));
-        assertEquals(NO_FX, getForeignExchange("ARS", "ARS"));
-        assertEquals(NO_FX, getForeignExchange("CONAAFA", "CONAAFA"));
-        assertEquals(NO_FX, getForeignExchange("XAU", "XAU"));
-
+        this.identity("ARS");
+        this.identity("USD");
+        this.identity("EUR");
+        this.identity("XAU");
+        this.identity("CONBALA");
+        this.identity("CONAAFA");
+        
+        
         assertEquals(USD_ARS, getForeignExchange("USD", "ARS"));
         assertEquals(USD_XAU, getForeignExchange("USD", "XAU"));
         assertEquals(USD_EUR, getForeignExchange("USD", "EUR"));

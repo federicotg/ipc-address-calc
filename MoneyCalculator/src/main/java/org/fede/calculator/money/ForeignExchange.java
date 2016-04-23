@@ -60,5 +60,6 @@ public interface ForeignExchange extends Series {
     MoneyAmountSeries exchange(MoneyAmount amount, String targetCurrency) throws NoSeriesDataFoundException;
     
     String getTargetCurrency();
+    String getSourceCurrency();
 
 }

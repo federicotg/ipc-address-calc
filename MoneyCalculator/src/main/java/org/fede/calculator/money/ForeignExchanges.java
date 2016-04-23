@@ -19,6 +19,8 @@ package org.fede.calculator.money;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.IndexSeriesSupport;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.YearMonth;
@@ -61,7 +63,7 @@ public class ForeignExchanges {
             "CONBALA",
             "ARS");
 
-    public static final ForeignExchange NO_FX = new SimpleForeignExchange(new IndexSeriesSupport() {
+    private static final IndexSeries CONSTANT_INDEX = new IndexSeriesSupport() {
         @Override
         public YearMonth getFrom() {
             return new YearMonth(1, 1);
@@ -81,7 +83,20 @@ public class ForeignExchanges {
         public BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException {
             return BigDecimal.ONE;
         }
-    }, USD, USD);
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(this);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return this == obj;
+        }
+        
+    };
+    
+    
 
     private static void map(String from, String to, ForeignExchange fx) {
         DIRECT_FOREIGN_EXCHANGES.put(new Pair<>(from, to), fx);
@@ -89,7 +104,7 @@ public class ForeignExchanges {
     }
 
     static {
-
+       
         // direct conversions
         map("ARS", "USD", USD_ARS);
         map("EUR", "USD", USD_EUR);
@@ -107,7 +122,7 @@ public class ForeignExchanges {
 
     public static ForeignExchange getForeignExchange(String from, String to) {
         if (from.equals(to)) {
-            return NO_FX;
+            return getIdentityForeignExchange(from);
         }
 
         ForeignExchange answer = DIRECT_FOREIGN_EXCHANGES.get(new Pair<>(from, to));
@@ -131,4 +146,8 @@ public class ForeignExchanges {
         );
     }
 
+    public static ForeignExchange getIdentityForeignExchange(String currency){
+        return new SimpleForeignExchange(CONSTANT_INDEX, currency, currency);
+    }
+    
 }

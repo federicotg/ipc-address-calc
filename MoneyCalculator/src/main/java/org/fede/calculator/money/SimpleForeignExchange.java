@@ -80,7 +80,6 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     public MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency) throws NoSeriesDataFoundException {
 
         YearMonth from = this.exchangeRatesSeries.maximumFrom(series);
-        //YearMonth to = this.exchangeRatesSeries.minimumTo(series);
         YearMonth to = series.getTo();
 
         if (from.compareTo(to) > 0) {
@@ -149,20 +148,25 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.fromCurrency, this.targetCurrency);
+        return Objects.hash(this.fromCurrency, this.targetCurrency, this.exchangeRatesSeries);
     }
 
     @Override
     public boolean equals(Object obj) {
         return obj instanceof SimpleForeignExchange
                 && Objects.equals(this.fromCurrency, ((SimpleForeignExchange) obj).fromCurrency)
-                && Objects.equals(this.targetCurrency, ((SimpleForeignExchange) obj).targetCurrency);
-
+                && Objects.equals(this.targetCurrency, ((SimpleForeignExchange) obj).targetCurrency)
+                && Objects.equals(this.exchangeRatesSeries, ((SimpleForeignExchange) obj).exchangeRatesSeries);
     }
 
     @Override
     public String getTargetCurrency() {
         return targetCurrency;
+    }
+
+    @Override
+    public String getSourceCurrency() {
+        return this.fromCurrency;
     }
     
     

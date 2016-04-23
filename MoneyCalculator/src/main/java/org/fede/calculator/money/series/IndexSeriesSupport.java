@@ -19,6 +19,7 @@ package org.fede.calculator.money.series;
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
@@ -27,6 +28,8 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public abstract class IndexSeriesSupport extends SeriesSupport implements IndexSeries {
 
+    private int hashValue = 0;
+
     @Override
     public final BigDecimal getIndex(Date day) throws NoSeriesDataFoundException {
         Calendar cal = Calendar.getInstance();
@@ -34,6 +37,54 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH);
         return this.getIndex(year, month + 1);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj instanceof IndexSeries) {
+            try {
+                IndexSeries other = (IndexSeries) obj;
+
+                final int months = this.getFrom().monthsUntil(this.getTo());
+                YearMonth ym = this.getFrom();
+                int i = 0;
+
+                boolean equal = this.getFrom().equals(other.getFrom()) && this.getTo().equals(other.getTo());
+                while (equal && i < months) {
+                    equal &= this.getIndex(ym.getYear(), ym.getMonth()).compareTo(
+                            other.getIndex(ym.getYear(), ym.getMonth())) == 0;
+                    ym = ym.next();
+                }
+                return equal;
+            } catch (NoSeriesDataFoundException ex) {
+                throw new IllegalStateException("Can't compute IndexSeries hashCode", ex);
+            }
+        }
+        return false;
+
+    }
+
+    @Override
+    public int hashCode() {
+        if (this.hashValue == 0) {
+
+            this.hashValue = 7;
+            this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getFrom());
+            this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getTo());
+
+            try {
+                final int months = this.getFrom().monthsUntil(this.getTo());
+                YearMonth ym = this.getFrom();
+                for (int i = 0; i < months; i++) {
+                    this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getIndex(ym.getYear(), ym.getMonth()));
+                    ym = ym.next();
+                }
+            } catch (NoSeriesDataFoundException ex) {
+                throw new IllegalStateException("Can't compute IndexSeries hashCode", ex);
+            }
+        }
+        return this.hashValue;
     }
 
 }
