@@ -71,7 +71,7 @@ public class SingleMediaTest {
     
     @Test
     public void report() throws NoSeriesDataFoundException {
-        List<InvestmentReportDTO> report = this.investments.investment("USD");
+        List<InvestmentReportDTO> report = this.investments.investment("USD", "all", false);
         for(InvestmentReportDTO dto : report){
             System.out.println(dto.getInflationPct());
         }

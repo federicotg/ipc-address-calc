@@ -31,6 +31,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -66,17 +67,20 @@ public class InvestmentController {
     }
 
     @RequestMapping(value = "/dollar", method = RequestMethod.GET)
-    public ModelAndView dollarInvestment() throws NoSeriesDataFoundException {
+    public ModelAndView dollarInvestment(
+            @RequestParam(name = "current", defaultValue = "false", required = false) boolean current,
+            @RequestParam(name = "type", defaultValue = "all", required = false) String type) throws NoSeriesDataFoundException {
         return new ModelAndView("dollarInvestment")
-                .addObject("report", this.investmentService.investment("USD"));
+                .addObject("report", this.investmentService.investment("USD", type, current));
     }
-    
+
     @RequestMapping(value = "/peso", method = RequestMethod.GET)
-    public ModelAndView pesoInvestment() throws NoSeriesDataFoundException {
+    public ModelAndView pesoInvestment(
+            @RequestParam(name = "current", defaultValue = "false", required = false) boolean current,
+            @RequestParam(name = "type", defaultValue = "all", required = false) String type) throws NoSeriesDataFoundException {
         return new ModelAndView("dollarInvestment")
-                .addObject("report", this.investmentService.investment("ARS"));
+                .addObject("report", this.investmentService.investment("ARS", type, current));
     }
-    
 
     @RequestMapping(value = "/savings", method = RequestMethod.GET)
     public ModelAndView savings() throws NoSeriesDataFoundException {

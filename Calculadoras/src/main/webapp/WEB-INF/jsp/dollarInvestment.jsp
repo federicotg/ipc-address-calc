@@ -53,6 +53,15 @@
     <body>
         <%@include file="../jspf/menu.jspf" %>
         <h1>Inversión</h1>
+        
+        <ul>
+            <li><a href="?type=PF">PF</a></li>
+            <li><a href="?type=USD">USD</a></li>
+            <li><a href="?type=FCI">FCI</a></li>
+            <li><a href="?type=PF&current=true">PF Actuales</a></li>
+        </ul>
+        
+        
         <table>
             <thead>
                 <tr>

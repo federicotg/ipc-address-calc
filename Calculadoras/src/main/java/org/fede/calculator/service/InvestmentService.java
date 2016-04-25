@@ -29,6 +29,6 @@ public interface InvestmentService {
     
     List<SavingsReportDTO> savings(int year, int month) throws NoSeriesDataFoundException;
     
-    public List<InvestmentReportDTO> investment(String currency) throws NoSeriesDataFoundException;
+    public List<InvestmentReportDTO> investment(String currency, String type, boolean current) throws NoSeriesDataFoundException;
     
 }

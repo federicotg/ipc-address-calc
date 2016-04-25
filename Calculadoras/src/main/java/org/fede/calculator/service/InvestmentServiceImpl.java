@@ -40,6 +40,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -167,8 +168,12 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return savingsNow.subtract(savingsThen).divide(avgIncome, CONTEXT);
     }
 
+    private boolean isCurrent(Investment inv) {
+        return inv.getOut() == null || !new Date().after(inv.getOut().getDate());
+    }
+
     @Override
-    public List<InvestmentReportDTO> investment(String currency) throws NoSeriesDataFoundException {
+    public List<InvestmentReportDTO> investment(String currency, String type, boolean current) throws NoSeriesDataFoundException {
 
         final List<InvestmentReportDTO> report = new ArrayList<>();
         final List<Investment> investments = new ArrayList<>();
@@ -179,18 +184,21 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         }
 
         for (Investment item : investments) {
+            if (("all".equals(type) || item.getType().equals(InvestmentType.valueOf(type)))
+                    && (!current || this.isCurrent(item))) {
+                
+                final Date until = this.untilDate(item, currency);
 
-            final Date until = this.untilDate(item, currency);
-
-            report.add(new InvestmentReportDTO(
-                    item.getType().name(),
-                    item.getInitialDate(),
-                    until,
-                    currency,
-                    this.initialAmount(item, currency),
-                    this.finalAmount(item, currency, until),
-                    this.inflation(currency, item.getInitialDate(), until),
-                    item.getOut() == null));
+                report.add(new InvestmentReportDTO(
+                        item.getType().name(),
+                        item.getInitialDate(),
+                        until,
+                        currency,
+                        this.initialAmount(item, currency),
+                        this.finalAmount(item, currency, until),
+                        this.inflation(currency, item.getInitialDate(), until),
+                        item.getOut() == null));
+            }
         }
         Collections.sort(report, new Comparator<InvestmentReportDTO>() {
             @Override
@@ -244,7 +252,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         if (inflation == null) {
             throw new IllegalArgumentException("Inflation for currency " + targetCurrency + " is unknown.");
         }
-        if(from.equals(to)){
+        if (from.equals(to)) {
             return BigDecimal.ZERO;
         }
         return inflation.adjust(new MoneyAmount(ONE, targetCurrency), from, to).getAmount().subtract(ONE);
