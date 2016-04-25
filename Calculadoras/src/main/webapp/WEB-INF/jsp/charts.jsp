@@ -32,23 +32,12 @@
         <%@include file="../jspf/menu.jspf" %>
         <h1>Visualización de Datos</h1>
         <ul>
-            <li><a href="lifiaUnlpAndInterest">Ingresos Combinados</a></li>
-            <li><a href="savings">Ahorros</a></li>
-            <li><a href="savingsDetailed">Ahorros Detallados</a></li>
-            <li><a href="savedSalaries">Sueldos Ahorrados</a></li>
-            <li><a href="goldSavings">Oro</a></li>
-            <li><a href="incomes">Ingresos</a></li>
-            <li><a href="expenses">Gastos</a></li>
-            <li><a href="consultatio">Consultatio Plus F.C.I.</a></li>
-            <li><a href="expensesPercent">Gastos / Ingresos</a></li>
-            <li><a href="consortiumExpenses">Gastos del Consorcio</a></li>
+            <li>Ingresos: <a href="lifiaUnlpAndInterest">Combinados</a> | <a href="incomes">Segregados</a></li>
+            <li>Ahorros: <a href="savings">Combinados</a> | <a href="savingsDetailed">Detallados</a> | <a href="investment/savings">Tabla</a> | <a href="savedSalaries">Sueldos Ahorrados</a> | <a href="goldSavings">Oro</a></li>
+            <li>Gastos: <a href="expenses">Propios</a> | <a href="consortiumExpenses">Del Consorcio</a> | <a href="expensesPercent">Gastos / Ingresos</a></li>
             <li><a href="savingsAndIncomeChange">Cambio Anual de Ingresos y Ahorros</a></li>
-        </ul>
-        <h1>Reportes</h1>
-        <ul>
-            <li><a href="investment/dollar">Dólar</a> <a href="investment/peso">Peso</a></li>
-            
-            <li><a href="investment/savings">Ahorros</a></li>
+            <li>Inversiones: <a href="investment/dollar">Dólar</a> | <a href="investment/peso">Peso</a></li>
+            <li><a href="consultatio">Consultatio Plus F.C.I.</a></li>
         </ul>
     </body>
 </html>
