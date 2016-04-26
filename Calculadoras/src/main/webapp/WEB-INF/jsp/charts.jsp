@@ -36,8 +36,7 @@
             <li>Ahorros: <a href="savings">Combinados</a> | <a href="savingsDetailed">Detallados</a> | <a href="investment/savings">Tabla</a> | <a href="savedSalaries">Sueldos Ahorrados</a> | <a href="goldSavings">Oro</a></li>
             <li>Gastos: <a href="expenses">Propios</a> | <a href="consortiumExpenses">Del Consorcio</a> | <a href="expensesPercent">Gastos / Ingresos</a></li>
             <li><a href="savingsAndIncomeChange">Cambio Anual de Ingresos y Ahorros</a></li>
-            <li>Inversiones Actuales <a href="investment/dollar?current=true">Dólar</a> | <a href="investment/peso?current=true">Peso</a></li>
-            <li>Inversiones <a href="investment/dollar">Dólar</a> | <a href="investment/peso">Peso</a></li>
+            <li>Inversiones <a href="investment/current">Actuales</a> | <a href="investment/past">Pasadas</a></li>
             <li><a href="consultatio">Consultatio Plus F.C.I.</a></li>
         </ul>
     </body>
