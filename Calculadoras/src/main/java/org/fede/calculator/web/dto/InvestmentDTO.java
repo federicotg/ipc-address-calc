@@ -39,9 +39,7 @@ public class InvestmentDTO {
         this.initialAmount = initialAmount;
         this.finalAmount = finalAmount;
         this.differenceAmount = finalAmount.subtract(initialAmount).setScale(4, RoundingMode.HALF_UP);
-
         this.pct = this.differenceAmount.divide(initialAmount, MathContext.DECIMAL128).setScale(4, RoundingMode.HALF_UP);
-
         this.to = to;
     }
 

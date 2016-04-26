@@ -67,22 +67,18 @@ public class InvestmentController {
         return "redirect:/secure/";
     }
 
-    @RequestMapping(value = "/dollar", method = RequestMethod.GET)
-    public ModelAndView dollarInvestment(
-            @RequestParam(name = "current", defaultValue = "false", required = false) boolean current,
-            @RequestParam(name = "type", defaultValue = "all", required = false) String type) throws NoSeriesDataFoundException {
+    @RequestMapping(value = "/past", method = RequestMethod.GET)
+    public ModelAndView dollarInvestment() throws NoSeriesDataFoundException {
         return new ModelAndView("dollarInvestment")
-                .addObject("report", this.investmentService.investment("USD", current))
-                .addObject("total", current ? this.investmentService.currentInvestment("USD"): null);
+                .addObject("reportARS", this.investmentService.pastInvestmentsReport("ARS"))
+                .addObject("reportUSD", this.investmentService.pastInvestmentsReport("USD"));
     }
 
-    @RequestMapping(value = "/peso", method = RequestMethod.GET)
-    public ModelAndView pesoInvestment(
-            @RequestParam(name = "current", defaultValue = "false", required = false) boolean current,
-            @RequestParam(name = "type", defaultValue = "all", required = false) String type) throws NoSeriesDataFoundException {
+    @RequestMapping(value = "/current", method = RequestMethod.GET)
+    public ModelAndView pesoInvestment() throws NoSeriesDataFoundException {
         return new ModelAndView("dollarInvestment")
-                .addObject("report", this.investmentService.investment("ARS", current))
-                .addObject("total", current ? this.investmentService.currentInvestment("ARS") : null);
+                .addObject("reportARS", this.investmentService.currentInvestmentsReport("ARS"))
+                .addObject("reportUSD", this.investmentService.currentInvestmentsReport("USD"));
     }
 
     @RequestMapping(value = "/savings", method = RequestMethod.GET)

@@ -44,10 +44,12 @@ import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
+import org.fede.calculator.web.dto.DetailedInvestmentReportDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 import org.fede.calculator.web.dto.InvestmentDTO;
 import org.fede.calculator.web.dto.InvestmentReportDTO;
 import org.fede.calculator.web.dto.SavingsReportDTO;
+import org.fede.util.Predicate;
 import static org.fede.util.Util.read;
 import static org.fede.util.Util.sumSeries;
 import org.springframework.context.annotation.Lazy;
@@ -173,44 +175,44 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return inv.getOut() == null || !new Date().after(inv.getOut().getDate());
     }
 
-    @Override
-    public List<InvestmentReportDTO> investment(String currency, boolean current) throws NoSeriesDataFoundException {
-
-        final List<InvestmentReportDTO> report = new ArrayList<>();
-        final List<Investment> investments = new ArrayList<>();
-
-        for (String fileName : this.investmentSeries) {
-            investments.addAll(read(fileName, new TypeReference<List<Investment>>() {
-            }));
-        }
-
-        Date untilDate = this.map.get(currency).getTo().asToDate();
-
-        for (Investment item : investments) {
-            if ((!current || (this.isCurrent(item) && item.getInitialDate().before(untilDate)))) {
-
-                final Date until = this.untilDate(item, currency);
-
-                report.add(new InvestmentReportDTO(
-                        item.getType().name(),
-                        item.getInitialDate(),
-                        until,
-                        currency,
-                        this.initialAmount(item, currency).getAmount(),
-                        this.finalAmount(item, currency, until).getAmount(),
-                        this.inflation(currency, item.getInitialDate(), until),
-                        item.getOut() == null));
-            }
-        }
-        Collections.sort(report, new Comparator<InvestmentReportDTO>() {
-            @Override
-            public int compare(InvestmentReportDTO o1, InvestmentReportDTO o2) {
-                return o1.getFrom().compareTo(o2.getFrom());
-            }
-
-        });
-        return report;
-    }
+    //@Override
+//    public List<InvestmentReportDTO> investment(String currency, boolean current) throws NoSeriesDataFoundException {
+//
+//        final List<InvestmentReportDTO> report = new ArrayList<>();
+//        final List<Investment> investments = new ArrayList<>();
+//
+//        for (String fileName : this.investmentSeries) {
+//            investments.addAll(read(fileName, new TypeReference<List<Investment>>() {
+//            }));
+//        }
+//
+//        Date untilDate = this.map.get(currency).getTo().asToDate();
+//
+//        for (Investment item : investments) {
+//            if ((!current || (this.isCurrent(item) && item.getInitialDate().before(untilDate)))) {
+//
+//                final Date until = this.untilDate(item, currency);
+//
+//                report.add(new InvestmentReportDTO(
+//                        item.getType().name(),
+//                        item.getInitialDate(),
+//                        until,
+//                        currency,
+//                        this.initialAmount(item, currency).getAmount(),
+//                        this.finalAmount(item, currency, until).getAmount(),
+//                        this.inflation(currency, item.getInitialDate(), until),
+//                        item.getOut() == null));
+//            }
+//        }
+//        Collections.sort(report, new Comparator<InvestmentReportDTO>() {
+//            @Override
+//            public int compare(InvestmentReportDTO o1, InvestmentReportDTO o2) {
+//                return o1.getFrom().compareTo(o2.getFrom());
+//            }
+//
+//        });
+//        return report;
+//    }
 
     private MoneyAmount changeCurrency(MoneyAmount ma, String targetCurrency, Date date) throws NoSeriesDataFoundException {
         return ForeignExchanges.getForeignExchange(ma.getCurrency(), targetCurrency).exchange(ma, targetCurrency, date);
@@ -250,18 +252,72 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
     private BigDecimal inflation(String targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
 
+        if (from.equals(to)) {
+            return ZERO;
+        }
+
         Inflation inflation = map.get(targetCurrency);
         if (inflation == null) {
             throw new IllegalArgumentException("Inflation for currency " + targetCurrency + " is unknown.");
         }
-        if (from.equals(to)) {
-            return BigDecimal.ZERO;
-        }
         return inflation.adjust(new MoneyAmount(ONE, targetCurrency), from, to).getAmount().subtract(ONE);
     }
 
+    // @Override
+//    public InvestmentDTO currentInvestment(String currency) throws NoSeriesDataFoundException {
+//        final List<Investment> investments = new ArrayList<>();
+//        for (String fileName : this.investmentSeries) {
+//            investments.addAll(read(fileName, new TypeReference<List<Investment>>() {
+//            }));
+//        }
+//
+//        final Inflation inflation = this.map.get(currency);
+//        final YearMonth until = inflation.getTo();
+//        final Date untilDate = until.asToDate();
+//
+//        MoneyAmount initialAmount = new MoneyAmount(ZERO, currency);
+//        MoneyAmount currentAmount = new MoneyAmount(ZERO, currency);
+//
+//        for (Investment item : investments) {
+//            if (this.isCurrent(item) && item.getInitialDate().before(untilDate)) {
+//                YearMonth start = new YearMonth(item.getInitialDate());
+//                initialAmount = initialAmount.add(inflation.adjust(this.initialAmount(item, currency), start.getYear(), start.getMonth(), until.getYear(), until.getMonth()));
+//                currentAmount = currentAmount.add(this.finalAmount(item, currency, untilDate));
+//            }
+//        }
+//
+//        return new InvestmentDTO(currency, initialAmount.getAmount(), currentAmount.getAmount(), untilDate);
+//    }
+
     @Override
-    public InvestmentDTO currentInvestment(String currency) throws NoSeriesDataFoundException {
+    public DetailedInvestmentReportDTO currentInvestmentsReport(String currency) throws NoSeriesDataFoundException {
+        return this.investmentReport(currency,
+                new Predicate<Investment>() {
+            @Override
+            public boolean test(Investment item) {
+                return isCurrent(item);
+            }
+        });
+
+    }
+
+    @Override
+    public DetailedInvestmentReportDTO pastInvestmentsReport(String currency) throws NoSeriesDataFoundException {
+        return this.investmentReport(currency,
+                new Predicate<Investment>() {
+            @Override
+            public boolean test(Investment item) {
+                return !isCurrent(item);
+            }
+        });
+    }
+
+    private DetailedInvestmentReportDTO investmentReport(String currency, Predicate<Investment> filter) throws NoSeriesDataFoundException {
+
+        if (!this.map.containsKey(currency)) {
+            throw new IllegalArgumentException("Currency " + currency + " does not have a known inflation index.");
+        }
+
         final List<Investment> investments = new ArrayList<>();
         for (String fileName : this.investmentSeries) {
             investments.addAll(read(fileName, new TypeReference<List<Investment>>() {
@@ -272,17 +328,37 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         final YearMonth until = inflation.getTo();
         final Date untilDate = until.asToDate();
 
-        MoneyAmount initialAmount = new MoneyAmount(BigDecimal.ZERO, currency);
-        MoneyAmount currentAmount = new MoneyAmount(BigDecimal.ZERO, currency);
+        MoneyAmount initialAmount = new MoneyAmount(ZERO, currency);
+        MoneyAmount currentAmount = new MoneyAmount(ZERO, currency);
+
+        final List<InvestmentReportDTO> report = new ArrayList<>();
 
         for (Investment item : investments) {
-            if (this.isCurrent(item) && item.getInitialDate().before(untilDate)) {
+            if (filter.test(item)) {
+
                 YearMonth start = new YearMonth(item.getInitialDate());
                 initialAmount = initialAmount.add(inflation.adjust(this.initialAmount(item, currency), start.getYear(), start.getMonth(), until.getYear(), until.getMonth()));
                 currentAmount = currentAmount.add(this.finalAmount(item, currency, untilDate));
+
+                final Date itemUntil = this.untilDate(item, currency);
+
+                report.add(new InvestmentReportDTO(
+                        item.getType().name(),
+                        item.getInitialDate(),
+                        itemUntil,
+                        currency,
+                        this.initialAmount(item, currency).getAmount(),
+                        this.finalAmount(item, currency, itemUntil).getAmount(),
+                        this.inflation(currency, item.getInitialDate(), itemUntil),
+                        item.getOut() == null));
+
             }
         }
 
-        return new InvestmentDTO(currency, initialAmount.getAmount(), currentAmount.getAmount(), untilDate);
+        return new DetailedInvestmentReportDTO(
+                new InvestmentDTO(currency, initialAmount.getAmount(), currentAmount.getAmount(), untilDate),
+                report);
+
     }
+
 }
