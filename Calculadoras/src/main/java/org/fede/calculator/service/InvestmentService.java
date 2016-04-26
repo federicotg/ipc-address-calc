@@ -18,6 +18,7 @@ package org.fede.calculator.service;
 
 import java.util.List;
 import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.web.dto.InvestmentDTO;
 import org.fede.calculator.web.dto.InvestmentReportDTO;
 import org.fede.calculator.web.dto.SavingsReportDTO;
 
@@ -26,9 +27,10 @@ import org.fede.calculator.web.dto.SavingsReportDTO;
  * @author fede
  */
 public interface InvestmentService {
-    
+
     List<SavingsReportDTO> savings(int year, int month) throws NoSeriesDataFoundException;
-    
-    public List<InvestmentReportDTO> investment(String currency, String type, boolean current) throws NoSeriesDataFoundException;
-    
+
+    List<InvestmentReportDTO> investment(String currency, boolean current) throws NoSeriesDataFoundException;
+
+    InvestmentDTO currentInvestment(String currency) throws NoSeriesDataFoundException;
 }

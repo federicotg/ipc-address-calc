@@ -53,15 +53,32 @@
     <body>
         <%@include file="../jspf/menu.jspf" %>
         <h1>Inversión</h1>
-        
-        <ul>
-            <li><a href="?type=PF">PF</a></li>
-            <li><a href="?type=USD">USD</a></li>
-            <li><a href="?type=FCI">FCI</a></li>
-            <li><a href="?type=PF&current=true">PF Actuales</a></li>
-        </ul>
-        
-        
+
+        <c:if test="${not empty total}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hasta</th>
+                        <th>Inversión</th>
+                        <th>Retorno</th>
+                        <th>+/-</th>
+                        <th>+/- %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><fmt:formatDate value="${total.to}" type="date" /></td>
+                        <td class="valueTd">${total.currency} <fmt:formatNumber type="CURRENCY">${total.initialAmount}</fmt:formatNumber></td>
+                        <td class="valueTd">${total.currency} <fmt:formatNumber type="CURRENCY">${total.finalAmount}</fmt:formatNumber></td>
+                        <c:choose><c:when test="${total.differenceAmount ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
+                            ${total.currency} <fmt:formatNumber type="CURRENCY">${total.differenceAmount}</fmt:formatNumber></td>
+                        <c:choose><c:when test="${item.pct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
+                            <fmt:formatNumber type="PERCENT" minFractionDigits="2">${total.pct}</fmt:formatNumber></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p></p>
+        </c:if>
         <table>
             <thead>
                 <tr>

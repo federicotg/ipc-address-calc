@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.web.controller;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -71,7 +72,8 @@ public class InvestmentController {
             @RequestParam(name = "current", defaultValue = "false", required = false) boolean current,
             @RequestParam(name = "type", defaultValue = "all", required = false) String type) throws NoSeriesDataFoundException {
         return new ModelAndView("dollarInvestment")
-                .addObject("report", this.investmentService.investment("USD", type, current));
+                .addObject("report", this.investmentService.investment("USD", current))
+                .addObject("total", current ? this.investmentService.currentInvestment("USD"): null);
     }
 
     @RequestMapping(value = "/peso", method = RequestMethod.GET)
@@ -79,7 +81,8 @@ public class InvestmentController {
             @RequestParam(name = "current", defaultValue = "false", required = false) boolean current,
             @RequestParam(name = "type", defaultValue = "all", required = false) String type) throws NoSeriesDataFoundException {
         return new ModelAndView("dollarInvestment")
-                .addObject("report", this.investmentService.investment("ARS", type, current));
+                .addObject("report", this.investmentService.investment("ARS", current))
+                .addObject("total", current ? this.investmentService.currentInvestment("ARS") : null);
     }
 
     @RequestMapping(value = "/savings", method = RequestMethod.GET)

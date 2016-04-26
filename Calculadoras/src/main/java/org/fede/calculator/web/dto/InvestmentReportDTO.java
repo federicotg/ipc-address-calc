@@ -17,40 +17,28 @@
 package org.fede.calculator.web.dto;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.Date;
 
 /**
  *
  * @author fede
  */
-public class InvestmentReportDTO {
+public class InvestmentReportDTO extends InvestmentDTO {
 
     private String type;
     private Date from;
-    private Date to;
-    private String currency;
-    private BigDecimal initialAmount;
-    private BigDecimal finalAmount;
-    private BigDecimal differenceAmount;
-    private BigDecimal pct;
+
     private BigDecimal inflationPct;
     private BigDecimal differencePct;
     private boolean current;
 
     public InvestmentReportDTO(String type, Date from, Date to, String currency, BigDecimal initialAmount, BigDecimal finalAmount, BigDecimal inflationPct, boolean current) {
+        super(currency, initialAmount, finalAmount, to);
         this.type = type;
         this.from = from;
-        this.to = to;
-        this.currency = currency;
-        this.initialAmount = initialAmount;
-        this.finalAmount = finalAmount;
         this.inflationPct = inflationPct;
-        this.differenceAmount = finalAmount.subtract(initialAmount).setScale(4, RoundingMode.HALF_UP);
-        this.pct = this.differenceAmount.divide(this.initialAmount, MathContext.DECIMAL128).setScale(4, RoundingMode.HALF_UP);
-        this.differencePct = this.pct.subtract(this.inflationPct).setScale(4, RoundingMode.HALF_UP);
         this.current = current;
+        this.differencePct = this.getPct().subtract(this.inflationPct);
     }
 
     public Date getFrom() {
@@ -59,54 +47,6 @@ public class InvestmentReportDTO {
 
     public void setFrom(Date from) {
         this.from = from;
-    }
-
-    public Date getTo() {
-        return to;
-    }
-
-    public void setTo(Date to) {
-        this.to = to;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public BigDecimal getInitialAmount() {
-        return initialAmount;
-    }
-
-    public void setInitialAmount(BigDecimal initialAmount) {
-        this.initialAmount = initialAmount;
-    }
-
-    public BigDecimal getFinalAmount() {
-        return finalAmount;
-    }
-
-    public void setFinalAmount(BigDecimal finalAmount) {
-        this.finalAmount = finalAmount;
-    }
-
-    public BigDecimal getDifferenceAmount() {
-        return differenceAmount;
-    }
-
-    public void setDifferenceAmount(BigDecimal differenceAmount) {
-        this.differenceAmount = differenceAmount;
-    }
-
-    public BigDecimal getPct() {
-        return pct;
-    }
-
-    public void setPct(BigDecimal pct) {
-        this.pct = pct;
     }
 
     public BigDecimal getInflationPct() {
