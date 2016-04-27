@@ -62,7 +62,7 @@ public class Pair<A, B> {
     public boolean equals(Object obj) {
 
         return obj != null
-                && obj.getClass().equals(this.getClass())
+                && obj.getClass().equals(Pair.class)
                 && Objects.equals(this.first, ((Pair<?, ?>) obj).first)
                 && Objects.equals(this.second, ((Pair<?, ?>) obj).second);
 
