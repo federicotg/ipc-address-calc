@@ -63,6 +63,8 @@ import org.springframework.stereotype.Service;
 @Lazy
 public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
+    private static final TypeReference<List<Investment>> TYPE_REFERENCE = new TypeReference<List<Investment>>() {
+            };
     private static final Map<String, Inflation> MAP = new ConcurrentHashMap<>(2, 1.0f);
 
     static {
@@ -86,8 +88,12 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     @Override
     public List<SavingsReportDTO> savings(final int toYear, final int toMonth) throws NoSeriesDataFoundException {
 
-        final MoneyAmountSeries pesos = sumSeries("ARS", this.savingsReportSeries.get("ars").toArray(new String[0]));
-        final MoneyAmountSeries dollarsAndGold = sumSeries("USD", this.savingsReportSeries.get("usd").toArray(new String[0]));
+        final MoneyAmountSeries pesos = sumSeries("ARS", this.savingsReportSeries.get("ars")
+                .toArray(new String[this.savingsReportSeries.get("ars").size()]));
+        
+        final MoneyAmountSeries dollarsAndGold = sumSeries("USD", this.savingsReportSeries.get("usd")
+                .toArray(new String[this.savingsReportSeries.get("usd").size()]));
+        
         final IndexSeries dollarPrice = JSONIndexSeries.readSeries(this.savingsReportSeries.get("fx").iterator().next());
 
         final MoneyAmountSeries nominalIncomePesos = sumSeries("ARS", this.incomeSeries);
@@ -259,8 +265,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final List<Investment> investments = new ArrayList<>();
         for (String fileName : this.investmentSeries) {
-            investments.addAll(read(fileName, new TypeReference<List<Investment>>() {
-            }));
+            investments.addAll(read(fileName, TYPE_REFERENCE));
         }
 
         final Inflation inflation = MAP.get(currency);
@@ -286,7 +291,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                     currentAmount = currentAmount.add(finalAmount(item, currency, untilDate));
                 }
 
-                final Date itemUntil = this.untilDate(item, currency);
+                final Date itemUntil = untilDate(item, currency);
 
                 report.add(new InvestmentReportDTO(
                         item.getType().name(),

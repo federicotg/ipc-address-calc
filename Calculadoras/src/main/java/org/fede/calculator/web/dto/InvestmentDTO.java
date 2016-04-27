@@ -40,7 +40,7 @@ public class InvestmentDTO {
         this.finalAmount = finalAmount;
         this.differenceAmount = finalAmount.subtract(initialAmount).setScale(4, RoundingMode.HALF_UP);
         this.pct = this.differenceAmount.divide(initialAmount, MathContext.DECIMAL128).setScale(4, RoundingMode.HALF_UP);
-        this.to = to;
+        this.to = new Date(to.getTime());
     }
 
     public String getCurrency() {

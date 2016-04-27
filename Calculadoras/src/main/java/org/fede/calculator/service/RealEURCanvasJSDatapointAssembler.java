@@ -37,12 +37,8 @@ public class RealEURCanvasJSDatapointAssembler implements CanvasJSDatapointAssem
     public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries, int year, int month) throws NoSeriesDataFoundException {
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        
-        MoneyAmountSeries series = 
-                USD_INFLATION.adjust(sourceSeries.exchangeInto("USD"), year, month);
-        
         new SimpleAggregation(months)
-                .average(series.exchangeInto("EUR"))
+                .average(USD_INFLATION.adjust(sourceSeries.exchangeInto("USD"), year, month).exchangeInto("EUR"))
                 .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
     }

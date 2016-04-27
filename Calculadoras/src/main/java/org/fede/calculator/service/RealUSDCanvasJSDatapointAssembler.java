@@ -17,7 +17,6 @@
 package org.fede.calculator.service;
 
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.NoSeriesDataFoundException;

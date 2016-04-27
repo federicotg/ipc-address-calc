@@ -17,7 +17,6 @@
 package org.fede.calculator.service;
 
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -37,10 +36,8 @@ public class RealPesosCanvasJSDatapointAssembler implements CanvasJSDatapointAss
     @Override
     public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries originalSeries, int year, int month) throws NoSeriesDataFoundException {
 
-        MoneyAmountSeries sourceSeries = originalSeries.exchangeInto("ARS");
-
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        new SimpleAggregation(months).average(ARS_INFLATION.adjust(sourceSeries, year, month))
+        new SimpleAggregation(months).average(ARS_INFLATION.adjust(originalSeries.exchangeInto("ARS"), year, month))
                 .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
     }
