@@ -62,18 +62,16 @@ public class PublicChartController {
 
     @RequestMapping(value = "realPesosForDollar", method = GET)
     public ModelAndView realDollarPrice() {
-        ModelAndView mav = new ModelAndView("simpleChart");
-        mav.addObject("uri", "realPesosForDollarChart");
-        mav.addObject("title", "Dólar en Pesos Reales");
-        return mav;
+        return new ModelAndView("simpleChart")
+                .addObject("uri", "realPesosForDollarChart")
+                .addObject("title", "Dólar en Pesos Reales");
     }
 
     @RequestMapping(value = "realDollarsForTroyOunce", method = GET)
     public ModelAndView realGoldPrice() {
-        ModelAndView mav = new ModelAndView("simpleChart");
-        mav.addObject("uri", "realDollarsForTroyOunceChart");
-        mav.addObject("title", "Oro en Dólares Reales");
-        return mav;
+        return new ModelAndView("simpleChart")
+                .addObject("uri", "realDollarsForTroyOunceChart")
+                .addObject("title", "Oro en Dólares Reales");
     }
 
     @ResponseBody

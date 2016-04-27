@@ -74,12 +74,11 @@ public class ChartController {
     @Resource(name = "savingsService")
     @Lazy
     private MultiSeriesChartService savingsService;
-    
+
     @Resource(name = "fciService")
     @Lazy
     private MultiSeriesChartService fciService;
-    
-    //@Resource(name = "usdMoneyService")
+
     @Resource(name = "argMoneyService")
     @Lazy
     private MoneyService referenceMoneyService;
@@ -88,10 +87,9 @@ public class ChartController {
     @Lazy
     private Map<String, Integer> monthlyPeriods;
 
-    
     @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
-    
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public CanvasJSChartDTO errorHandler(Exception ex) {
@@ -148,17 +146,17 @@ public class ChartController {
 
     @RequestMapping(value = "lifiaUnlpAndInterest", method = RequestMethod.GET)
     public ModelAndView lifiaUnlpAndInterest() {
-        
+
         final List<String> allSeriesNames = new ArrayList<>();
-        for(ExpenseChartSeriesDTO dto : incomeSeries){
-            if(dto.getSeriesName() != null && dto.getSeriesName().length() > 0){
+        for (ExpenseChartSeriesDTO dto : incomeSeries) {
+            if (dto.getSeriesName() != null && dto.getSeriesName().length() > 0) {
                 allSeriesNames.add(dto.getName());
             }
         }
-        
+
         final CombinedChartDTO dto = this.createCombinedChartDTO();
         dto.setSeries(allSeriesNames);
-        
+
         return new ModelAndView("combinedChart")
                 .addObject("uri", "lifiaUnlpAndInterestCombined")
                 .addObject("title", "Ingresos Combinados")
@@ -189,8 +187,6 @@ public class ChartController {
                 .addObject("title", "Cambio Promedio Anual Anual");
     }
 
-    
-    
     @RequestMapping(value = "absa", method = RequestMethod.GET)
     public ModelAndView absa() {
         return new ModelAndView("simpleChart")
@@ -215,12 +211,11 @@ public class ChartController {
         return this.buildExpenseModelAndView("Gastos", this.expenseService.getSeries(), "expensesChart");
     }
 
-    
     @RequestMapping(value = "consultatio", method = RequestMethod.GET)
     public ModelAndView consultatio() {
         return this.buildExpenseModelAndView("Consultatio Plus F.C.I.", this.fciService.getSeries(), "fciChart");
     }
-    
+
     private ModelAndView buildExpenseModelAndView(String title, List<ExpenseChartSeriesDTO> dtoSeries, String uri) {
         return this.buildExpenseModelAndView(title, dtoSeries, uri, 12);
     }
@@ -268,16 +263,20 @@ public class ChartController {
                 .addObject("dto", chartDto);
     }
 
+    private CanvasJSChartDTO notOkResponse() {
+        CanvasJSChartDTO notOk = new CanvasJSChartDTO();
+        notOk.setSuccessful(false);
+        return notOk;
+    }
+
     @ResponseBody
     @RequestMapping(value = "lifiaUnlpAndInterestCombined", method = RequestMethod.GET)
     public CanvasJSChartDTO lifiaUnlpAndInterestCombined(
-            @ModelAttribute("dto") @Valid CombinedChartDTO dto, 
+            @ModelAttribute("dto") @Valid CombinedChartDTO dto,
             BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
-            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
-            notOk.setSuccessful(false);
-            return notOk;
+            return this.notOkResponse();
         }
         return this.chartService.combinedIncomes(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth(), dto.getSeries());
     }
@@ -287,9 +286,7 @@ public class ChartController {
     public CanvasJSChartDTO savingsCombined(@ModelAttribute("dto") @Valid CombinedChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
-            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
-            notOk.setSuccessful(false);
-            return notOk;
+            return this.notOkResponse();
         }
         return this.chartService.savings(dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
     }
@@ -299,9 +296,7 @@ public class ChartController {
     public CanvasJSChartDTO incomesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
-            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
-            notOk.setSuccessful(false);
-            return notOk;
+            return this.notOkResponse();
         }
         return this.incomesService.renderAbsoluteChart("Ingresos", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "ARS");
     }
@@ -311,36 +306,28 @@ public class ChartController {
     public CanvasJSChartDTO expensesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
-            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
-            notOk.setSuccessful(false);
-            return notOk;
+            return this.notOkResponse();
         }
         return this.expenseService.renderAbsoluteChart("Gastos", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "ARS");
     }
-    
+
     @ResponseBody
     @RequestMapping(value = "fciChart", method = RequestMethod.GET)
-    public CanvasJSChartDTO fciChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors) 
+    public CanvasJSChartDTO fciChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
-            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
-            notOk.setSuccessful(false);
-            return notOk;
+            return this.notOkResponse();
         }
         return this.fciService.renderAbsoluteChart("Consultatio Plus F.C.I.", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "ARS");
     }
-    
-    
+
     @ResponseBody
     @RequestMapping(value = "savingsDetailChart", method = RequestMethod.GET)
     public CanvasJSChartDTO savingsChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
-            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
-            notOk.setSuccessful(false);
-            return notOk;
+            return this.notOkResponse();
         }
-
         return this.savingsService.renderAbsoluteChart("Ahorros", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "USD");
     }
 
@@ -349,9 +336,7 @@ public class ChartController {
     public CanvasJSChartDTO consortiumExpensesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
-            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
-            notOk.setSuccessful(false);
-            return notOk;
+            return this.notOkResponse();
         }
         return this.consortiumExpenseService.renderAbsoluteChart("Gastos del Consorcio", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "ARS");
     }
@@ -361,9 +346,7 @@ public class ChartController {
     public CanvasJSChartDTO expensesPercentChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
-            CanvasJSChartDTO notOk = new CanvasJSChartDTO();
-            notOk.setSuccessful(false);
-            return notOk;
+            return this.notOkResponse();
         }
         return this.expenseService.renderIncomeRelativeChart("Gastos / Ingresos", dto.getMonths(), dto.getSeries(), "ARS");
     }
@@ -381,7 +364,7 @@ public class ChartController {
             throws NoSeriesDataFoundException {
         return this.chartService.savingsAndIncomeEvolution();
     }
-    
+
     @ResponseBody
     @RequestMapping(value = "savedSalariesChart", method = RequestMethod.GET)
     public CanvasJSChartDTO savedSalariesChart()

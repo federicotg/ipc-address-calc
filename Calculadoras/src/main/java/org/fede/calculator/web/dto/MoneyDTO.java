@@ -44,7 +44,6 @@ public class MoneyDTO {
     private String message;
     private String toCurrencySymbol;
     private CurrencyDTO currency;
-    //private String fromIso4217;
 
     public BigDecimal getAmount() {
         return amount;

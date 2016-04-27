@@ -38,7 +38,6 @@ import org.springframework.web.servlet.ModelAndView;
 @RequestMapping("/dc")
 public class DigitalCollectionController {
 
-    //private static final Logger LOG = Logger.getLogger(DigitalCollectionController.class.getName());
     @Autowired @Lazy
     private DigitalContentService dcService;
 
@@ -54,10 +53,8 @@ public class DigitalCollectionController {
 
     @RequestMapping(value = "/report/box/{box}", method = RequestMethod.GET)
     public ModelAndView boxReport(@PathVariable String box) {
-        ModelAndView mav = new ModelAndView("dcReport", "list", this.dcService.getBoxReport(box));
-        mav.addObject("boxLabel", this.dcService.getBoxLabel(box));
-
-        return mav;
+        return new ModelAndView("dcReport", "list", this.dcService.getBoxReport(box))
+                .addObject("boxLabel", this.dcService.getBoxLabel(box));
     }
 
     @RequestMapping(value = "/report/composer/{name:.+}", method = RequestMethod.GET)

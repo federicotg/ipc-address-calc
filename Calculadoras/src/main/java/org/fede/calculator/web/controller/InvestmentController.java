@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.web.controller;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,7 +31,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -46,6 +44,16 @@ import org.springframework.web.servlet.ModelAndView;
 public class InvestmentController {
 
     private static final Logger LOG = Logger.getLogger(InvestmentController.class.getName());
+
+    private static final Comparator<CurrencyLimitsDTO> COMPARATOR = new Comparator<CurrencyLimitsDTO>() {
+            @Override
+            public int compare(CurrencyLimitsDTO o1, CurrencyLimitsDTO o2) {
+                if (o1.getReferenceYear() != o2.getReferenceYear()) {
+                    return Integer.compare(o1.getReferenceYear(), o2.getReferenceYear());
+                }
+                return Integer.compare(o1.getReferenceMonth(), o2.getReferenceMonth());
+            }
+        };
 
     @Autowired
     @Lazy
@@ -66,16 +74,20 @@ public class InvestmentController {
 
         return "redirect:/secure/";
     }
+    
+    private static <T> T min(T left, T right, Comparator<T> comparator){
+        return comparator.compare(left, right) < 0 ? left: right;
+    }
 
     @RequestMapping(value = "/past", method = RequestMethod.GET)
-    public ModelAndView dollarInvestment() throws NoSeriesDataFoundException {
+    public ModelAndView pastInvestment() throws NoSeriesDataFoundException {
         return new ModelAndView("dollarInvestment")
                 .addObject("reportARS", this.investmentService.pastInvestmentsReport("ARS"))
                 .addObject("reportUSD", this.investmentService.pastInvestmentsReport("USD"));
     }
 
     @RequestMapping(value = "/current", method = RequestMethod.GET)
-    public ModelAndView pesoInvestment() throws NoSeriesDataFoundException {
+    public ModelAndView currentInvestment() throws NoSeriesDataFoundException {
         return new ModelAndView("dollarInvestment")
                 .addObject("reportARS", this.investmentService.currentInvestmentsReport("ARS"))
                 .addObject("reportUSD", this.investmentService.currentInvestmentsReport("USD"));
@@ -84,26 +96,8 @@ public class InvestmentController {
     @RequestMapping(value = "/savings", method = RequestMethod.GET)
     public ModelAndView savings() throws NoSeriesDataFoundException {
 
-        CurrencyLimitsDTO usdLimits = this.usdService.getLimits();
-        CurrencyLimitsDTO argLimits = this.argService.getLimits();
-
-        final Comparator<CurrencyLimitsDTO> comparator = new Comparator<CurrencyLimitsDTO>() {
-            @Override
-            public int compare(CurrencyLimitsDTO o1, CurrencyLimitsDTO o2) {
-                if (o1.getReferenceYear() != o2.getReferenceYear()) {
-                    return Integer.compare(o1.getReferenceYear(), o2.getReferenceYear());
-                }
-                return Integer.compare(o1.getReferenceMonth(), o2.getReferenceMonth());
-            }
-        };
-
-        CurrencyLimitsDTO limits = null;
-        if (comparator.compare(argLimits, usdLimits) <= 0) {
-            limits = argLimits;
-        } else {
-            limits = usdLimits;
-        }
-
+        final CurrencyLimitsDTO limits = min(this.argService.getLimits(), this.usdService.getLimits(), COMPARATOR);
+       
         return new ModelAndView("savingsReport")
                 .addObject("report", this.investmentService.savings(limits.getReferenceYear(), limits.getReferenceMonth()))
                 .addObject("limits", limits);

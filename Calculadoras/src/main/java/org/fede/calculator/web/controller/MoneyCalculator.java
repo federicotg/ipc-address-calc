@@ -47,13 +47,16 @@ public class MoneyCalculator {
 
     private static final Logger LOG = Logger.getLogger(MoneyCalculator.class.getName());
 
-    @Resource(name = "argMoneyService") @Lazy
+    @Resource(name = "argMoneyService")
+    @Lazy
     private MoneyService arsMoneyService;
 
-    @Resource(name = "usdMoneyService") @Lazy
+    @Resource(name = "usdMoneyService")
+    @Lazy
     private MoneyService usdMoneyService;
 
-    @Resource(name = "moneyServices") @Lazy
+    @Resource(name = "moneyServices")
+    @Lazy
     private Map<String, MoneyService> moneyServices;
 
     @ExceptionHandler(Exception.class)
@@ -68,11 +71,10 @@ public class MoneyCalculator {
 
     @RequestMapping(value = "/money", method = RequestMethod.GET)
     public ModelAndView showMoneyForm() {
-        ModelAndView mav = new ModelAndView(
+        return new ModelAndView(
                 "money",
-                "limits", Arrays.asList(new CurrencyLimitsDTO[]{usdMoneyService.getLimits(), arsMoneyService.getLimits()}));
-        mav.addObject("dto", new MoneyDTO());
-        return mav;
+                "limits", Arrays.asList(new CurrencyLimitsDTO[]{usdMoneyService.getLimits(), arsMoneyService.getLimits()}))
+                .addObject("dto", new MoneyDTO());
     }
 
     @RequestMapping(value = "/money", method = RequestMethod.POST)

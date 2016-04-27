@@ -23,7 +23,6 @@ package org.fede.calculator.web.dto;
 public class ExpenseChartSeriesDTO {
 
     private String name;
-    //private String color;
     private String seriesName;
 
     public String getName() {
