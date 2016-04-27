@@ -29,8 +29,8 @@ import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Resource;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
@@ -63,8 +63,13 @@ import org.springframework.stereotype.Service;
 @Lazy
 public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
-    private final Map<String, Inflation> map = new HashMap<>(2, 1.0f);
+    private static final Map<String, Inflation> MAP = new ConcurrentHashMap<>(2, 1.0f);
 
+    static {
+        MAP.put("USD", USD_INFLATION);
+        MAP.put("ARS", ARS_INFLATION);
+    }
+    
     @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
 
@@ -75,8 +80,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     private Map<String, List<String>> savingsReportSeries;
 
     public InvestmentServiceImpl() {
-        map.put("USD", USD_INFLATION);
-        map.put("ARS", ARS_INFLATION);
+        
     }
 
     @Override
@@ -175,49 +179,11 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return inv.getOut() == null || !new Date().after(inv.getOut().getDate());
     }
 
-    //@Override
-//    public List<InvestmentReportDTO> investment(String currency, boolean current) throws NoSeriesDataFoundException {
-//
-//        final List<InvestmentReportDTO> report = new ArrayList<>();
-//        final List<Investment> investments = new ArrayList<>();
-//
-//        for (String fileName : this.investmentSeries) {
-//            investments.addAll(read(fileName, new TypeReference<List<Investment>>() {
-//            }));
-//        }
-//
-//        Date untilDate = this.map.get(currency).getTo().asToDate();
-//
-//        for (Investment item : investments) {
-//            if ((!current || (this.isCurrent(item) && item.getInitialDate().before(untilDate)))) {
-//
-//                final Date until = this.untilDate(item, currency);
-//
-//                report.add(new InvestmentReportDTO(
-//                        item.getType().name(),
-//                        item.getInitialDate(),
-//                        until,
-//                        currency,
-//                        this.initialAmount(item, currency).getAmount(),
-//                        this.finalAmount(item, currency, until).getAmount(),
-//                        this.inflation(currency, item.getInitialDate(), until),
-//                        item.getOut() == null));
-//            }
-//        }
-//        Collections.sort(report, new Comparator<InvestmentReportDTO>() {
-//            @Override
-//            public int compare(InvestmentReportDTO o1, InvestmentReportDTO o2) {
-//                return o1.getFrom().compareTo(o2.getFrom());
-//            }
-//
-//        });
-//        return report;
-//    }
-    private MoneyAmount changeCurrency(MoneyAmount ma, String targetCurrency, Date date) throws NoSeriesDataFoundException {
+    private static MoneyAmount changeCurrency(MoneyAmount ma, String targetCurrency, Date date) throws NoSeriesDataFoundException {
         return ForeignExchanges.getForeignExchange(ma.getCurrency(), targetCurrency).exchange(ma, targetCurrency, date);
     }
 
-    private MoneyAmount initialAmount(Investment investment, String targetCurrency) throws NoSeriesDataFoundException {
+    private static MoneyAmount initialAmount(Investment investment, String targetCurrency) throws NoSeriesDataFoundException {
 
         MoneyAmount amount;
         if (targetCurrency.equals(investment.getInitialCurrency())) {
@@ -225,68 +191,43 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         } else if (targetCurrency.equals(investment.getCurrency())) {
             amount = investment.getMoneyAmount();
         } else {
-            amount = this.changeCurrency(investment.getMoneyAmount(), targetCurrency, investment.getInitialDate());
+            amount = changeCurrency(investment.getMoneyAmount(), targetCurrency, investment.getInitialDate());
         }
         return amount;
     }
 
-    private Date untilDate(Investment item, String targetCurrency) {
+    private static Date untilDate(Investment item, String targetCurrency) {
         return max(
                 item.getInitialDate(),
                 item.getOut() != null
                         ? item.getOut().getDate()
-                        : this.map.get(targetCurrency).getTo().asToDate());
+                        : MAP.get(targetCurrency).getTo().asToDate());
     }
 
-    private Date max(Date d1, Date d2) {
+    private static Date max(Date d1, Date d2) {
         return d1.compareTo(d2) > 0 ? d1 : d2;
     }
 
-    private MoneyAmount finalAmount(Investment investment, String targetCurrency, Date date) throws NoSeriesDataFoundException {
+    private static MoneyAmount finalAmount(Investment investment, String targetCurrency, Date date) throws NoSeriesDataFoundException {
         if (investment.getOut() != null) {
-            return this.changeCurrency(investment.getOut().getMoneyAmount(), targetCurrency, investment.getOut().getDate());
+            return changeCurrency(investment.getOut().getMoneyAmount(), targetCurrency, investment.getOut().getDate());
         }
-        return this.changeCurrency(investment.getMoneyAmount(), targetCurrency, date);
+        return changeCurrency(investment.getMoneyAmount(), targetCurrency, date);
     }
 
-    private BigDecimal inflation(String targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
+    private static BigDecimal inflation(String targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
 
         if (from.equals(to)) {
             return ZERO;
         }
 
-        Inflation inflation = map.get(targetCurrency);
+        Inflation inflation = MAP.get(targetCurrency);
         if (inflation == null) {
             throw new IllegalArgumentException("Inflation for currency " + targetCurrency + " is unknown.");
         }
         return inflation.adjust(new MoneyAmount(ONE, targetCurrency), from, to).getAmount().subtract(ONE);
     }
 
-    // @Override
-//    public InvestmentDTO currentInvestment(String currency) throws NoSeriesDataFoundException {
-//        final List<Investment> investments = new ArrayList<>();
-//        for (String fileName : this.investmentSeries) {
-//            investments.addAll(read(fileName, new TypeReference<List<Investment>>() {
-//            }));
-//        }
-//
-//        final Inflation inflation = this.map.get(currency);
-//        final YearMonth until = inflation.getTo();
-//        final Date untilDate = until.asToDate();
-//
-//        MoneyAmount initialAmount = new MoneyAmount(ZERO, currency);
-//        MoneyAmount currentAmount = new MoneyAmount(ZERO, currency);
-//
-//        for (Investment item : investments) {
-//            if (this.isCurrent(item) && item.getInitialDate().before(untilDate)) {
-//                YearMonth start = new YearMonth(item.getInitialDate());
-//                initialAmount = initialAmount.add(inflation.adjust(this.initialAmount(item, currency), start.getYear(), start.getMonth(), until.getYear(), until.getMonth()));
-//                currentAmount = currentAmount.add(this.finalAmount(item, currency, untilDate));
-//            }
-//        }
-//
-//        return new InvestmentDTO(currency, initialAmount.getAmount(), currentAmount.getAmount(), untilDate);
-//    }
     @Override
     public DetailedInvestmentReportDTO currentInvestmentsReport(String currency) throws NoSeriesDataFoundException {
         return this.investmentReport(currency,
@@ -312,7 +253,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
     private DetailedInvestmentReportDTO investmentReport(String currency, Predicate<Investment> filter, boolean includeTotal) throws NoSeriesDataFoundException {
 
-        if (!this.map.containsKey(currency)) {
+        if (!MAP.containsKey(currency)) {
             throw new IllegalArgumentException("Currency " + currency + " does not have a known inflation index.");
         }
 
@@ -322,7 +263,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
             }));
         }
 
-        final Inflation inflation = this.map.get(currency);
+        final Inflation inflation = MAP.get(currency);
         final YearMonth until = inflation.getTo();
         final Date untilDate = until.asToDate();
 
@@ -336,9 +277,15 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
                 if (includeTotal) {
                     YearMonth start = new YearMonth(item.getInitialDate());
-                    initialAmount = initialAmount.add(inflation.adjust(this.initialAmount(item, currency), start.getYear(), start.getMonth(), until.getYear(), until.getMonth()));
-                    currentAmount = currentAmount.add(this.finalAmount(item, currency, untilDate));
+                    initialAmount = initialAmount.add(
+                            inflation.adjust(initialAmount(item, currency), 
+                                    start.getYear(), 
+                                    start.getMonth(), 
+                                    until.getYear(), 
+                                    until.getMonth()));
+                    currentAmount = currentAmount.add(finalAmount(item, currency, untilDate));
                 }
+
                 final Date itemUntil = this.untilDate(item, currency);
 
                 report.add(new InvestmentReportDTO(
@@ -346,10 +293,9 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                         item.getInitialDate(),
                         itemUntil,
                         currency,
-                        this.initialAmount(item, currency).getAmount(),
-                        this.finalAmount(item, currency, itemUntil).getAmount(),
-                        this.inflation(currency, item.getInitialDate(), itemUntil),
-                        item.getOut() == null));
+                        initialAmount(item, currency).getAmount(),
+                        finalAmount(item, currency, itemUntil).getAmount(),
+                        inflation(currency, item.getInitialDate(), itemUntil)));
 
             }
         }
@@ -358,12 +304,13 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
             public int compare(InvestmentReportDTO o1, InvestmentReportDTO o2) {
                 return o1.getFrom().compareTo(o2.getFrom());
             }
-
         });
-        return new DetailedInvestmentReportDTO(
-                includeTotal ? new InvestmentDTO(currency, initialAmount.getAmount(), currentAmount.getAmount(), untilDate) : null,
-                report);
 
+        return new DetailedInvestmentReportDTO(
+                includeTotal 
+                        ? new InvestmentDTO(currency, initialAmount.getAmount(), currentAmount.getAmount(), untilDate) 
+                        : null,
+                report);
     }
 
 }
