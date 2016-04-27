@@ -16,22 +16,14 @@
  */
 package org.fede.calculator.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.SimpleAggregation;
-import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-
 /**
  *
  * @author fede
  */
-@Component("nominalPesosDatapointAssembler") @Lazy
-public class NominalPesosCanvasJSDatapointAssembler implements CanvasJSDatapointAssembler {
+//@Component("nominalPesosDatapointAssembler") @Lazy
+public class NominalPesosCanvasJSDatapointAssembler  {
 
+    /*
     @Override
     public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries originalSeries, int year, int month) throws NoSeriesDataFoundException {
         return this.getDatapoints(months, originalSeries);
@@ -44,6 +36,6 @@ public class NominalPesosCanvasJSDatapointAssembler implements CanvasJSDatapoint
         new SimpleAggregation(months).average(sourceSeries)
                 .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
-    }
+    }*/
 
 }

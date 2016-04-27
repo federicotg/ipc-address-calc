@@ -111,7 +111,6 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
             MoneyAmountSeries totalSeries = null;
             final boolean collectTotal = seriesNames.contains(TOTAL_SERIES_NAME);
-            //String totalColor = "red";
 
             Iterator<String> colorIterator = this.colors.iterator();
             

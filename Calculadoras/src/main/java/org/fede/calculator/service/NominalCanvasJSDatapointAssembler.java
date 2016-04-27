@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 fede
+ * Copyright (C) 2016 Federico Tello Gentile <federico.gentile@despegar.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,14 +16,26 @@
  */
 package org.fede.calculator.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import org.fede.calculator.money.NoSeriesDataFoundException;
+import org.fede.calculator.money.SimpleAggregation;
+import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
+
 /**
  *
- * @author fede
+ * @author Federico Tello Gentile <federicotg@gmail.com>
  */
-//@Component("nominalEURDatapointAssembler") @Lazy
-public class NominalEURCanvasJSDatapointAssembler  {
+public class NominalCanvasJSDatapointAssembler implements CanvasJSDatapointAssembler {
 
-   /* @Override
+    private final String currency;
+
+    protected NominalCanvasJSDatapointAssembler(String currency) {
+        this.currency = currency;
+    }
+
+    @Override
     public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries, int year, int month) throws NoSeriesDataFoundException {
         return this.getDatapoints(months, sourceSeries);
     }
@@ -31,10 +43,9 @@ public class NominalEURCanvasJSDatapointAssembler  {
     @Override
     public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        new SimpleAggregation(months).average(sourceSeries.exchangeInto("EUR"))
+        new SimpleAggregation(months).average(sourceSeries.exchangeInto(this.currency))
                 .forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         return datapoints;
-    }*/
-    
+    }
 
 }

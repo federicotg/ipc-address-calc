@@ -25,8 +25,6 @@
     </util:map>
     
    
-   
-   
     <util:list id="expenseSeries" value-type="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Cablevisión" />
@@ -169,11 +167,6 @@
             <property name="seriesName" value="income/lifia.json" />
 
         </bean>
-        <!--bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
-            <property name="name" value="Interés" />
-            <property name="seriesName" value="income/plazofijo.json" />
-            <property name="color" value="Blue" />
-        </bean-->
 
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
             <property name="name" value="Despegar" />
@@ -221,8 +214,6 @@
 
         </bean>
     </util:list>
-
-
 
     <util:list id="fciSeries" value-type="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
         <bean class="org.fede.calculator.web.dto.ExpenseChartSeriesDTO">
@@ -337,5 +328,17 @@
         <value>#ff9999</value>
     </util:list>
             
-                                    
+
+    <bean class="org.fede.calculator.service.NominalCanvasJSDatapointAssembler" name="nominalUSDDatapointAssembler" lazy-init="true">
+        <constructor-arg value="USD"/>
+    </bean>
+    
+    <bean class="org.fede.calculator.service.NominalCanvasJSDatapointAssembler" name="nominalARSDatapointAssembler" lazy-init="true">
+        <constructor-arg value="ARS"/>
+    </bean>
+    
+    <bean class="org.fede.calculator.service.NominalCanvasJSDatapointAssembler" name="nominalEURDatapointAssembler" lazy-init="true">
+        <constructor-arg value="EUR"/>
+    </bean>
+                                                                                                            
 </beans>
