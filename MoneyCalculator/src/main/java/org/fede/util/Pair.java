@@ -61,7 +61,8 @@ public class Pair<A, B> {
     @Override
     public boolean equals(Object obj) {
 
-        return obj instanceof Pair<?, ?>
+        return obj != null
+                && obj.getClass().equals(this.getClass())
                 && Objects.equals(this.first, ((Pair<?, ?>) obj).first)
                 && Objects.equals(this.second, ((Pair<?, ?>) obj).second);
 
