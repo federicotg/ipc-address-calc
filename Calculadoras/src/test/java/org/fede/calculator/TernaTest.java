@@ -55,7 +55,7 @@ public class TernaTest {
     //
     @Test
     public void equality() {
-        assertEquals(new Terna(1, 2, 3), new Terna<>(1, 2, 3));
+        assertEquals(new Terna<>(1, 2, 3), new Terna<>(1, 2, 3));
 
         assertFalse(new Pair<>(1, 2).equals(new Terna<>(1, 2, 3)));
         assertFalse(new Terna<>(1, 2, 3).equals(new Pair<>(1, 2)));

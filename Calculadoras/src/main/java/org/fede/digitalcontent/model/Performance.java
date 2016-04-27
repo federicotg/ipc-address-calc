@@ -41,7 +41,7 @@ public class Performance {
 
     public Performance(Opus opus, Venue venue, Date date) {
         this.opus = opus;
-        this.date = new Date(date.getTime());
+        this.date = date;
         this.venue = venue;
         this.roles = new HashSet<>();
         this.resources = new HashSet<>();
@@ -56,11 +56,11 @@ public class Performance {
     }
 
     public Date getDate() {
-        return new Date(date.getTime());
+        return date;
     }
 
     public void setDate(Date date) {
-        this.date = new Date(date.getTime());
+        this.date = date;
     }
 
     public Set<Role> getRoles() {
