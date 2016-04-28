@@ -27,13 +27,8 @@ import java.util.Objects;
  */
 public class MoneyAmount implements MathConstants {
     
-    private String currency;
-    private BigDecimal amount;
-
-//    public MoneyAmount(BigDecimal amount, Currency currency) {
-//        this.amount = amount;
-//        this.currency = currency;
-//    }
+    private final String currency;
+    private final BigDecimal amount;
 
     public MoneyAmount(BigDecimal amount, String currencySymbol) {
         this.amount = amount;

@@ -71,9 +71,6 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
     
     @Override
     public MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency) throws NoSeriesDataFoundException {
-        
-        
-        
         return this.second.exchange(this.first.exchange(series, this.getFirstTargetCurrency(series.getCurrency())), targetCurrency);
     }
 
