@@ -142,7 +142,7 @@ public class Util {
             for (Map.Entry<YearMonth, MoneyAmount> entry : interpolatedData.entrySet()) {
                 while (previousKey.monthsUntil(entry.getKey()) > 1) {
                     previousKey = previousKey.next();
-                    extraData.put(previousKey, strategy.interpolate(previousValue, currency));
+                    extraData.put(previousKey, strategy.interpolate(previousValue, previousKey, currency));
                 }
                 previousValue = entry.getValue();
                 previousKey = entry.getKey();
