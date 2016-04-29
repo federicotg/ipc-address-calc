@@ -32,11 +32,9 @@ public class JSONBlsCPISource implements BlsCPISource {
 
     private final String name;
     private List<BlsResponse> list;
-    //private final BlsCPISource alternateSource;
 
     public JSONBlsCPISource(String name) {
         this.name = name;
-        //this.alternateSource = new URLConnectionBlsCPISource();
     }
 
     @Override

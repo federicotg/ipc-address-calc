@@ -41,6 +41,12 @@ public class SimpleAggregation implements Aggregation, MathConstants {
         this.months = months;
     }
 
+    private void checkCurrency(String expectedCurrency, MoneyAmount lastValue) {
+        if (!expectedCurrency.equals(lastValue.getCurrency())) {
+            throw new IllegalArgumentException("All money amounts must be in the same currency before aggregating them.");
+        }
+    }
+
     private MoneyAmount avg(List<MoneyAmount> lastValues) {
         BigDecimal sum = ZERO;
         for (MoneyAmount lastValue : lastValues) {
@@ -57,18 +63,24 @@ public class SimpleAggregation implements Aggregation, MathConstants {
         }
         return new MoneyAmount(sum, lastValues.get(0).getCurrency());
     }
-    
-    private MoneyAmount change(List<MoneyAmount> lastValues){
-        return new MoneyAmount(lastValues.get(0).getAmount().subtract(lastValues.get(lastValues.size()-1).getAmount()), lastValues.get(0).getCurrency());
+
+    private MoneyAmount change(List<MoneyAmount> lastValues) {
+        return new MoneyAmount(lastValues.get(0).getAmount().subtract(lastValues.get(lastValues.size() - 1).getAmount()), lastValues.get(0).getCurrency());
     }
 
     private MoneyAmountSeries aggregate(MoneyAmountSeries series, final AggregationFunction aggregationFunction) throws NoSeriesDataFoundException {
         final LinkedList<MoneyAmount> lastValues = new LinkedList<>();
+        
+        final String seriesCurrency = series.getCurrency();
+        
         return series.map(new MoneyAmountTransform() {
             @Override
             public MoneyAmount transform(int year, int month, MoneyAmount amount) {
+                
+                checkCurrency(seriesCurrency, amount);
+                
                 lastValues.addFirst(amount);
-                if(lastValues.size()>months){
+                if (lastValues.size() > months) {
                     lastValues.removeLast();
                 }
                 return aggregationFunction.apply((lastValues));
@@ -108,5 +120,5 @@ public class SimpleAggregation implements Aggregation, MathConstants {
             }
         });
     }
-    
+
 }
