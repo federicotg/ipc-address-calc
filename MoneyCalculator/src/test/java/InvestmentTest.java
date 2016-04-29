@@ -26,7 +26,6 @@ import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Currency;
 import java.util.Date;
 import java.util.List;
 import org.fede.calculator.money.ForeignExchange;
@@ -46,7 +45,7 @@ public class InvestmentTest {
     private final DateFormat df = DateFormat.getDateInstance();
     private final NumberFormat nf = NumberFormat.getNumberInstance();
 
-    private List<Investment> inv;
+    private final List<Investment> inv;
 
     public InvestmentTest() throws IOException {
         this.inv = this.read("investments-test.json");
