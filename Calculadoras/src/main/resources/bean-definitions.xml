@@ -333,7 +333,7 @@
         <constructor-arg value="USD"/>
     </bean>
     
-    <bean class="org.fede.calculator.service.NominalCanvasJSDatapointAssembler" name="nominalARSDatapointAssembler" lazy-init="true">
+    <bean class="org.fede.calculator.service.NominalCanvasJSDatapointAssembler" name="nominalPesosDatapointAssembler" lazy-init="true">
         <constructor-arg value="ARS"/>
     </bean>
     
