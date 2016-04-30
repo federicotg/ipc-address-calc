@@ -184,7 +184,7 @@ public class ChartController {
     public ModelAndView savingsAndIncomeChange() {
         return new ModelAndView("simpleChart")
                 .addObject("uri", "savingsAndIncomeChangeChart")
-                .addObject("title", "Cambio Promedio Anual Anual");
+                .addObject("title", "Cambio Promedio Anual");
     }
 
     @RequestMapping(value = "absa", method = RequestMethod.GET)
