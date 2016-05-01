@@ -116,7 +116,7 @@ public class Util {
         }
     }
 
-    public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
+    public static MoneyAmountSeries readSeriesOld(String name) throws NoSeriesDataFoundException {
         try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
 
             ObjectMapper om = new ObjectMapper();
@@ -155,6 +155,49 @@ public class Util {
         }
     }
 
+    
+    public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
+        try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
+
+            ObjectMapper om = new ObjectMapper();
+
+            JSONSeries series;
+            if (CONSULTATIO_SERIES.contains(name)) {
+                series = readConsultatioSeries(is, om);
+            } else {
+                series = om.readValue(is, JSONSeries.class);
+            }
+            
+            SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
+            final String currency = series.getCurrency();
+            for (JSONDataPoint dp : series.getData()) {
+                interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), currency));
+            }
+            if (series.getData().size() != interpolatedData.size()) {
+                throw new IllegalArgumentException("Series " + name + " has incorrect year and month sequence.");
+            }
+            
+            final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
+           
+            YearMonth ym = interpolatedData.firstKey();
+            final YearMonth last = interpolatedData.lastKey();
+            while(ym.monthsUntil(last) > 0){
+                YearMonth next = ym.next();
+                if(!interpolatedData.containsKey(next)){
+                    interpolatedData.put(next, strategy.interpolate(interpolatedData.get(ym), ym, currency));
+                }
+                ym = ym.next();
+            }
+            return new SortedMapMoneyAmountSeries(currency, interpolatedData);
+        } catch (IOException ioEx) {
+            throw new IllegalArgumentException("Could not read series named " + name, ioEx);
+        }
+    }
+
+    
+    
+    
+    
     private static JSONSeries readConsultatioSeries(InputStream is, ObjectMapper om) throws IOException {
 
         List<ConsultatioDataPoint> data = om.readValue(is, new TypeReference<List<ConsultatioDataPoint>>() {
