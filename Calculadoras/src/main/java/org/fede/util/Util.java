@@ -116,7 +116,7 @@ public class Util {
         }
     }
 
-    public static MoneyAmountSeries readSeriesOld(String name) throws NoSeriesDataFoundException {
+    /*public static MoneyAmountSeries readSeriesOld(String name) throws NoSeriesDataFoundException {
         try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
 
             ObjectMapper om = new ObjectMapper();
@@ -153,37 +153,32 @@ public class Util {
         } catch (IOException ioEx) {
             throw new IllegalArgumentException("Could not read series named " + name, ioEx);
         }
-    }
+    }*/
 
     
     public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
         try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
 
-            ObjectMapper om = new ObjectMapper();
+            final ObjectMapper om = new ObjectMapper();
+            final JSONSeries series = CONSULTATIO_SERIES.contains(name)
+                    ? readConsultatioSeries(is, om)
+                    : om.readValue(is, JSONSeries.class);
 
-            JSONSeries series;
-            if (CONSULTATIO_SERIES.contains(name)) {
-                series = readConsultatioSeries(is, om);
-            } else {
-                series = om.readValue(is, JSONSeries.class);
-            }
-            
-            SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
+            final SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
             final String currency = series.getCurrency();
             for (JSONDataPoint dp : series.getData()) {
-                interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), currency));
+                if (interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), currency)) != null) {
+                    throw new IllegalArgumentException("Series " + name + " has two values for year " + dp.getYear() + " and month " + dp.getMonth());
+                }
             }
-            if (series.getData().size() != interpolatedData.size()) {
-                throw new IllegalArgumentException("Series " + name + " has incorrect year and month sequence.");
-            }
-            
+
             final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
-           
+
             YearMonth ym = interpolatedData.firstKey();
             final YearMonth last = interpolatedData.lastKey();
-            while(ym.monthsUntil(last) > 0){
+            while (ym.monthsUntil(last) > 0) {
                 YearMonth next = ym.next();
-                if(!interpolatedData.containsKey(next)){
+                if (!interpolatedData.containsKey(next)) {
                     interpolatedData.put(next, strategy.interpolate(interpolatedData.get(ym), ym, currency));
                 }
                 ym = ym.next();
@@ -193,9 +188,6 @@ public class Util {
             throw new IllegalArgumentException("Could not read series named " + name, ioEx);
         }
     }
-
-    
-    
     
     
     private static JSONSeries readConsultatioSeries(InputStream is, ObjectMapper om) throws IOException {
