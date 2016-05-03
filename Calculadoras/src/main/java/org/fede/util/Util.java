@@ -51,6 +51,9 @@ import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
  */
 public class Util {
 
+    
+    private static final Map<String, MoneyAmountSeries> CACHE = new HashMap<>();
+    
     private static final Set<String> CONSULTATIO_SERIES;
 
     static {
@@ -116,47 +119,14 @@ public class Util {
         }
     }
 
-    /*public static MoneyAmountSeries readSeriesOld(String name) throws NoSeriesDataFoundException {
-        try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
-
-            ObjectMapper om = new ObjectMapper();
-
-            JSONSeries series;
-            if (CONSULTATIO_SERIES.contains(name)) {
-                series = readConsultatioSeries(is, om);
-            } else {
-                series = om.readValue(is, JSONSeries.class);
-            }
-            final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
-            SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
-            final String currency = series.getCurrency();
-            for (JSONDataPoint dp : series.getData()) {
-                interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), currency));
-            }
-            if (series.getData().size() != interpolatedData.size()) {
-                throw new IllegalArgumentException("Series " + name + " has incorrect year and month sequence.");
-            }
-            Map<YearMonth, MoneyAmount> extraData = new HashMap<>();
-            YearMonth previousKey = interpolatedData.firstKey();
-            MoneyAmount previousValue = interpolatedData.get(interpolatedData.firstKey());
-            for (Map.Entry<YearMonth, MoneyAmount> entry : interpolatedData.entrySet()) {
-                while (previousKey.monthsUntil(entry.getKey()) > 1) {
-                    previousKey = previousKey.next();
-                    extraData.put(previousKey, strategy.interpolate(previousValue, previousKey, currency));
-                }
-                previousValue = entry.getValue();
-                previousKey = entry.getKey();
-            }
-            interpolatedData.putAll(extraData);
-
-            return new SortedMapMoneyAmountSeries(currency, interpolatedData);
-        } catch (IOException ioEx) {
-            throw new IllegalArgumentException("Could not read series named " + name, ioEx);
-        }
-    }*/
-
-    
+   
     public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
+        
+        MoneyAmountSeries answer = CACHE.get(name);
+        if(answer != null){
+            return answer;
+        }
+        
         try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
 
             final ObjectMapper om = new ObjectMapper();
@@ -183,7 +153,10 @@ public class Util {
                 }
                 ym = ym.next();
             }
-            return new SortedMapMoneyAmountSeries(currency, interpolatedData);
+            answer = new SortedMapMoneyAmountSeries(currency, interpolatedData);
+            CACHE.put(name, answer);
+            
+            return answer;
         } catch (IOException ioEx) {
             throw new IllegalArgumentException("Could not read series named " + name, ioEx);
         }
