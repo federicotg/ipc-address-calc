@@ -34,11 +34,11 @@ public class InvestmentEvent {
     private String currency;
 
     public Date getDate() {
-        return new Date(date.getTime());
+        return date;
     }
 
     public void setDate(Date date) {
-        this.date = new Date(date.getTime());
+        this.date = date;
     }
 
     public BigDecimal getAmount() {
