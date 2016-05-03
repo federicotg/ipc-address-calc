@@ -31,15 +31,6 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements MoneyAmountSeries {
 
-    private final ThreadLocal<Calendar> calendar = new ThreadLocal<Calendar>() {
-
-        @Override
-        protected Calendar initialValue() {
-            return Calendar.getInstance();
-        }
-
-    };
-
     private final String currency;
 
     protected MoneyAmountSeriesSupport(String currency) {
@@ -49,7 +40,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     @Override
     public final MoneyAmount getAmount(Date day) throws NoSeriesDataFoundException {
 
-        Calendar cal = this.calendar.get();
+        Calendar cal = Calendar.getInstance();
         cal.setTime(day);
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH);
@@ -83,7 +74,6 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
     @Override
     public final MoneyAmountSeries map(final MoneyAmountTransform transform) throws NoSeriesDataFoundException {
-        //MoneyAmountSeries answer = new JSONMoneyAmountSeries(this.getCurrency());
         final MoneyAmountSeries answer = this.createNew();
 
         this.forEach(new MoneyAmountProcessor() {
