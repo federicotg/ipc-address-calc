@@ -107,7 +107,7 @@ public class IndexTest {
                 BigDecimal adjustedYouIndex = USD_INFLATION.adjust(index, start.getYear(), start.getMonth(),
                         USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonth()).getAmount();
 
-                System.out.println(MessageFormat.format("{0}\t{1}", youIndex, adjustedYouIndex));
+               // System.out.println(MessageFormat.format("{0}\t{1}", youIndex, adjustedYouIndex));
 
                 proportionInUSD.putAmount(start.getYear(), start.getMonth(), new MoneyAmount(youIndex, target));
             }
