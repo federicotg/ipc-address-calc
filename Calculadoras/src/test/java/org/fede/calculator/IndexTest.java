@@ -22,10 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.text.DateFormat;
 import java.text.MessageFormat;
-import java.text.NumberFormat;
-import java.util.Currency;
 import java.util.List;
 import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.ForeignExchanges.getForeignExchange;
@@ -35,12 +32,9 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.series.Investment;
-import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
-import org.fede.calculator.service.InvestmentServiceImpl;
-import org.fede.calculator.web.dto.InvestmentReportDTO;
 import org.fede.util.Util;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -102,10 +96,10 @@ public class IndexTest {
                         .add(arsPrice.multiply(arsSavingsPercent))
                         .add(xauPrice.multiply(xauSavingsPercent));
 
-                final MoneyAmount index = new MoneyAmount(youIndex, target);
+               // final MoneyAmount index = new MoneyAmount(youIndex, target);
 
-                BigDecimal adjustedYouIndex = USD_INFLATION.adjust(index, start.getYear(), start.getMonth(),
-                        USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonth()).getAmount();
+                //BigDecimal adjustedYouIndex = USD_INFLATION.adjust(index, start.getYear(), start.getMonth(),
+                //        USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonth()).getAmount();
 
                // System.out.println(MessageFormat.format("{0}\t{1}", youIndex, adjustedYouIndex));
 
