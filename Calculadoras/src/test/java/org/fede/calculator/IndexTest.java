@@ -113,12 +113,12 @@ public class IndexTest {
             }
             start = start.next();
         }
-        proportionInUSD.forEach(new MoneyAmountProcessor() {
-            @Override
-            public void process(int year, int month, MoneyAmount amount) throws NoSeriesDataFoundException {
+        //proportionInUSD.forEach(new MoneyAmountProcessor() {
+         //   @Override
+          //  public void process(int year, int month, MoneyAmount amount) throws NoSeriesDataFoundException {
                 //System.out.println(MessageFormat.format("{0}{1}\t{2}", String.valueOf(year), month, amount.getAmount()));
-            }
-        });
+            //}
+        //});
     }
 
     @Test
