@@ -57,6 +57,11 @@ public class DigitalCollectionController {
                 .addObject("boxLabel", this.dcService.getBoxLabel(box));
     }
 
+    /**
+     * 
+     * @param name name of the composer, any character (that's the regexp for).
+     * @return 
+     */
     @RequestMapping(value = "/report/composer/{name:.+}", method = RequestMethod.GET)
     public ModelAndView composerReport(@PathVariable String name) {
         return new ModelAndView("dcReport", "list", this.dcService.getComposerReport(name));
