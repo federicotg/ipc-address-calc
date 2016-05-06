@@ -29,13 +29,15 @@ public class InvestmentReportDTO extends InvestmentDTO {
     private Date from;
     private BigDecimal inflationPct;
     private BigDecimal differencePct;
+    private String investmentCurrency;
 
-    public InvestmentReportDTO(String type, Date from, Date to, String currency, BigDecimal initialAmount, BigDecimal finalAmount, BigDecimal inflationPct) {
+    public InvestmentReportDTO(String type, Date from, Date to, String currency, BigDecimal initialAmount, BigDecimal finalAmount, BigDecimal inflationPct, String investmentCurrency) {
         super(currency, initialAmount, finalAmount, to);
         this.type = type;
         this.from = new Date(from.getTime());
         this.inflationPct = inflationPct;
         this.differencePct = this.getPct().subtract(this.inflationPct);
+        this.investmentCurrency = investmentCurrency;
     }
 
     public Date getFrom() {
@@ -62,13 +64,20 @@ public class InvestmentReportDTO extends InvestmentDTO {
         this.differencePct = differencePct;
     }
 
-
     public String getType() {
         return type;
     }
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getInvestmentCurrency() {
+        return investmentCurrency;
+    }
+
+    public void setInvestmentCurrency(String investmentCurrency) {
+        this.investmentCurrency = investmentCurrency;
     }
 
 }

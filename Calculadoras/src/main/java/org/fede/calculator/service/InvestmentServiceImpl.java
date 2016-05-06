@@ -168,7 +168,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     }
 
     private static BigDecimal pctChange(BigDecimal now, BigDecimal then) {
-        if (then.compareTo(ZERO) == 0) {
+        if (then.signum() == 0) {
             return ONE;
         }
         return now.subtract(then).divide(then, CONTEXT);
@@ -300,7 +300,8 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                         currency,
                         initialAmount(item, currency).getAmount(),
                         finalAmount(item, currency, itemUntil).getAmount(),
-                        inflation(currency, item.getInitialDate(), itemUntil)));
+                        inflation(currency, item.getInitialDate(), itemUntil),
+                        item.getInvestment().getCurrency()));
 
             }
         }

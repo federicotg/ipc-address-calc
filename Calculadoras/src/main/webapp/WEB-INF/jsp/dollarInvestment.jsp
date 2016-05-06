@@ -53,6 +53,10 @@
                 float: left;
             }
 
+            td {
+                font-size: 90%;
+            }
+            
         </style>
     </head>
     <body>
@@ -89,6 +93,7 @@
                 <thead>
                     <tr>
                         <th>Tipo</th>
+                        <th>Moneda</th>
                         <th>Desde</th>
                         <th>Hasta</th>
                         <th>Inversión</th>
@@ -103,6 +108,7 @@
                     <c:forEach items="${reportARS.detail}" var="item">
                         <tr>
                             <td>${item.type}</td>
+                            <td>${item.investmentCurrency}</td>
                             <td><fmt:formatDate value="${item.from}" type="date" /></td>
                             <td><fmt:formatDate value="${item.to}" type="date" /></td>
                             <td class="valueTd">${item.currency} <fmt:formatNumber type="CURRENCY">${item.initialAmount}</fmt:formatNumber></td>
@@ -121,6 +127,7 @@
                 <tfoot>
                     <tr>
                         <th>Tipo</th>
+                        <th>Moneda</th>
                         <th>Desde</th>
                         <th>Hasta</th>
                         <th>Inversión</th>
@@ -166,6 +173,7 @@
                 <thead>
                     <tr>
                         <th>Tipo</th>
+                        <th>Moneda</th>
                         <th>Desde</th>
                         <th>Hasta</th>
                         <th>Inversión</th>
@@ -180,6 +188,7 @@
                     <c:forEach items="${reportUSD.detail}" var="item">
                         <tr>
                             <td>${item.type}</td>
+                            <td>${item.investmentCurrency}</td>
                             <td><fmt:formatDate value="${item.from}" type="date" /></td>
                             <td><fmt:formatDate value="${item.to}" type="date" /></td>
                             <td class="valueTd">${item.currency} <fmt:formatNumber type="CURRENCY">${item.initialAmount}</fmt:formatNumber></td>
@@ -198,6 +207,7 @@
                 <tfoot>
                     <tr>
                         <th>Tipo</th>
+                        <th>Moneda</th>
                         <th>Desde</th>
                         <th>Hasta</th>
                         <th>Inversión</th>
