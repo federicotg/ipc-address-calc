@@ -175,7 +175,7 @@ public class Util {
         for (ConsultatioDataPoint c : data) {
             cal.setTime(c.getDate());
 
-            Pair<Integer, Integer> key = new Pair<>(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1);
+            final Pair<Integer, Integer> key = new Pair<>(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1);
             List<BigDecimal> values = groups.get(key);
 
             if (values == null) {
