@@ -131,6 +131,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("9-01").setSize(23266263358l);
 
         repo.findById("2-02").setSize(22531026141l);
+        
+        repo.findById("9-08").setSize(21943779127l);
 
     }
 
@@ -1689,6 +1691,16 @@ public class LazyDigitalContentService implements DigitalContentService {
             new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
                     .seenByFede()
                     .discBox(6, 9).build();
+        }
+
+        for (String title : new String[]{
+            "Sanguinarium",
+            "Musings of a Cigarette Smoking Man",
+            "Tunguska",
+            "Terma"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(8, 9).build();
         }
 
     }
