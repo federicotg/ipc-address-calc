@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.PostConstruct;
+import java.util.stream.Collectors;
 import org.fede.digitalcontent.dto.BoxLabelDTO;
 import org.fede.digitalcontent.dto.DigitalContentDTO;
 import org.fede.digitalcontent.dto.MediumContentDTO;
@@ -45,8 +45,6 @@ import static org.fede.digitalcontent.model.Country.NETHERLANDS;
 import org.fede.digitalcontent.model.DigitalContent;
 import org.fede.digitalcontent.model.DigitalContentRepository;
 import org.fede.digitalcontent.model.StorageBox;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
 import org.fede.digitalcontent.model.Language;
 import org.fede.digitalcontent.model.Opus;
 import org.fede.digitalcontent.model.OpusType;
@@ -59,14 +57,11 @@ import org.fede.digitalcontent.model.Repository;
 import org.fede.digitalcontent.model.StorageMedium;
 import org.fede.digitalcontent.model.StorageMediumRepository;
 import org.fede.digitalcontent.model.Venue;
-import org.fede.util.Predicate;
 
 /**
  *
  * @author fede
  */
-@Service
-@Lazy
 public class LazyDigitalContentService implements DigitalContentService {
 
     protected static final Comparator<OpusDTO> OPUS_COMPARATOR = new Comparator<OpusDTO>() {
@@ -80,8 +75,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         }
     };
 
-    @PostConstruct
-    public void initBasicObjects() throws ParseException {
+    public LazyDigitalContentService() throws ParseException {
+        this.initBasicObjects();
+    }
+
+    private void initBasicObjects() throws ParseException {
 
         this.initVenues();
         this.initBallets();
@@ -1712,34 +1710,20 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @Override
     public List<DigitalContentDTO> getFullReport() {
-        return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
-            @Override
-            public boolean test(DigitalContent t) {
-                return true;
-            }
-        });
+        
+        return DigitalContentRepository.DIGITALCONTENT.stream()
+                .map(dc -> toDto(dc))
+                .sorted()
+                .collect(Collectors.toList());
     }
 
-    private List<DigitalContentDTO> filteredReport(Collection<DigitalContent> elements, Predicate<DigitalContent> p) {
-        List<DigitalContentDTO> answer = new ArrayList<>(elements.size());
-        for (DigitalContent dc : elements) {
-            if (p.test(dc)) {
-                answer.add(toDto(dc));
-            }
-        }
-        Collections.sort(answer);
-        return answer;
-    }
 
     private static DigitalContentDTO toDto(DigitalContent dc) {
         DigitalContentDTO dto = new DigitalContentDTO();
-
-        List<String> boxNames = new ArrayList<>();
-        for (StorageBox box : Repository.STORAGEBOX.boxesContaining(dc)) {
-            boxNames.add(box.getName());
-        }
-
-        dto.setBoxes(boxNames);
+        dto.setBoxes(Repository.STORAGEBOX.stream()
+                .filter(box -> box.contains(dc))
+                .map(box -> box.getName())
+                .collect(Collectors.toList()));
         dto.setDate(dc.getDate());
         dto.setFormat(dc.getFormat().name());
         dto.setImdb(dc.getImdb());
@@ -1766,60 +1750,58 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @Override
     public List<DigitalContentDTO> getBoxReport(final String boxName) {
-        return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
-            @Override
-            public boolean test(DigitalContent dc) {
-                Set<StorageBox> boxes = Repository.STORAGEBOX.boxesContaining(dc);
-                for (StorageBox box : boxes) {
-                    if (box.getName().equals(boxName)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        });
+        return DigitalContentRepository.DIGITALCONTENT.stream().filter(dc -> 
+            Repository.STORAGEBOX.stream().filter(box -> box.contains(dc)).anyMatch(box -> box.getName().equals(boxName)))
+                .map(dc -> toDto(dc))
+                .sorted()
+                .collect(Collectors.toList());
+        
+
     }
 
     @Override
     public List<DigitalContentDTO> getComposerReport(final String composerName) {
-        return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
-            @Override
-            public boolean test(DigitalContent dc) {
-                return dc.includesComposer(composerName);
-            }
-        });
+        
+        return DigitalContentRepository.DIGITALCONTENT.stream()
+                .filter(dc -> dc.includesComposer(composerName))
+                .map(dc -> toDto(dc))
+                .sorted()
+                .collect(Collectors.toList());
+
     }
 
     @Override
     public List<DigitalContentDTO> getOpusReport(final String opusName) {
-        return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
-            @Override
-            public boolean test(DigitalContent dc) {
-                return dc.includesOpus(opusName);
-            }
-        });
+        return DigitalContentRepository.DIGITALCONTENT.stream()
+                .filter(dc -> dc.includesOpus(opusName))
+                .map(dc -> toDto(dc))
+                .sorted()
+                .collect(Collectors.toList());
+        
+
     }
 
     @Override
     public List<DigitalContentDTO> getVenueReport(final String venueName) {
-        return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
-            @Override
-            public boolean test(DigitalContent dc) {
-                return dc.includesVenue(venueName);
-            }
-        });
+        
+        return DigitalContentRepository.DIGITALCONTENT.stream()
+                .filter(dc -> dc.includesVenue(venueName))
+                .map(dc -> toDto(dc))
+                .sorted()
+                .collect(Collectors.toList());
+        
     }
 
     @Override
     public List<DigitalContentDTO> getOpusTypeReport(String name) {
         final OpusType type = OpusType.valueOf(name);
-        return this.filteredReport(DigitalContentRepository.DIGITALCONTENT.findAll(), new Predicate<DigitalContent>() {
-
-            @Override
-            public boolean test(DigitalContent dc) {
-                return dc.getOpusTypes().contains(type);
-            }
-        });
+        
+        return DigitalContentRepository.DIGITALCONTENT.stream()
+                .filter(dc -> dc.getOpusTypes().contains(type))
+                .map(dc -> toDto(dc))
+                .sorted()
+                .collect(Collectors.toList());
+        
     }
 
     @Override
@@ -1859,18 +1841,16 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @Override
     public List<VenueDTO> getVenues() {
-        Set<Venue> allVenues = Repository.VENUE.findAll();
-        List<VenueDTO> list = new ArrayList<>(allVenues.size());
-        for (Venue v : allVenues) {
-            VenueDTO dto = new VenueDTO();
-            dto.setName(v.getName());
-            dto.setCountry(v.getCountryName());
-            dto.setCity(v.getCityName());
-            dto.setLatLon(v.getLatLon());
-            dto.setWikipedia(v.getWikipedia());
-            list.add(dto);
-        }
-        return list;
+        
+        return Repository.VENUE.stream()
+                .map(v -> new VenueDTO(
+                    v.getName(), 
+                    v.getCityName(),
+                    v.getCountryName(),
+                    v.getWikipedia(),
+                    v.getLatLon()))
+                .collect(Collectors.toList());
+        
     }
 
     @Override

@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import static org.fede.digitalcontent.model.Repository.OPUS;
 import static org.fede.digitalcontent.model.Repository.VENUE;
@@ -488,7 +489,7 @@ public class DigitalContent {
 
     public boolean includesVenue(String venueName) {
         for (Performance p : this.performances) {
-            if (p.getVenue().getName().equals(venueName)) {
+            if (Optional.ofNullable(p.getVenue()).map(venue -> venue.getName().equals(venueName)).orElse(false)) {
                 return true;
             }
         }

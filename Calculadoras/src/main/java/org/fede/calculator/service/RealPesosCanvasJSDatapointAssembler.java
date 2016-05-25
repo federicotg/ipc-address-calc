@@ -23,14 +23,11 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 /**
  *
  * @author fede
  */
-@Component("realPesosDatapointAssembler") @Lazy
 public class RealPesosCanvasJSDatapointAssembler implements CanvasJSDatapointAssembler {
 
     @Override

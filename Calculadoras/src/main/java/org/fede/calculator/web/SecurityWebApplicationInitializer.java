@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 fede
+ * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,14 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.util;
+package org.fede.calculator.web;
+
+import org.springframework.core.annotation.Order;
+import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
 
 /**
  *
- * @author fede
- * @param <T>
+ * @author Federico Tello Gentile <federicotg@gmail.com>
  */
-public interface Predicate<T> {
-    boolean test(T t);
-    
+@Order(1)
+public class SecurityWebApplicationInitializer extends AbstractSecurityWebApplicationInitializer {
+
 }

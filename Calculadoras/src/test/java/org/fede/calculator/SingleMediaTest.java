@@ -16,8 +16,8 @@
  */
 package org.fede.calculator;
 
-import java.text.MessageFormat;
 import java.util.List;
+import org.fede.calculator.config.AppConfig;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.DigitalContentService;
 import org.fede.calculator.service.InvestmentService;
@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 /**
@@ -39,7 +40,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration("/applicationContext-calculadoras.xml")
+@ContextConfiguration(classes = {AppConfig.class}, loader=AnnotationConfigContextLoader.class)
 public class SingleMediaTest {
 
     @Autowired
@@ -69,7 +70,7 @@ public class SingleMediaTest {
     }
 
     
-    @Test
+    //@Test
     public void report() throws NoSeriesDataFoundException {
         List<InvestmentReportDTO> report = this.investments.pastInvestmentsReport("USD").getDetail();
         for(InvestmentReportDTO dto : report){

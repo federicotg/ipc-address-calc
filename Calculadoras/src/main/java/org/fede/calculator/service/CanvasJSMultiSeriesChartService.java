@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Resource;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -36,7 +35,6 @@ import org.fede.calculator.web.dto.CanvasJSDatumDTO;
 import org.fede.calculator.web.dto.CanvasJSTitleDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 import org.fede.util.Util;
-import org.springframework.context.annotation.Lazy;
 
 /**
  *
@@ -44,27 +42,36 @@ import org.springframework.context.annotation.Lazy;
  */
 public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService {
 
-    @Resource(name = "realPesosDatapointAssembler")
-    @Lazy
     private CanvasJSDatapointAssembler realPesosDatapointAssembler;
 
-    @Resource(name = "realUSDDatapointAssembler")
-    @Lazy
     private CanvasJSDatapointAssembler realUSDDatapointAssembler;
 
-    @Resource(name = "nominalPesosDatapointAssembler")
-    @Lazy
     private CanvasJSDatapointAssembler nominalPesosDatapointAssembler;
 
     private static final String TOTAL_SERIES_NAME = "Total";
 
     private List<ExpenseChartSeriesDTO> series;
     
-    @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
 
-    @Resource(name = "colors")
     private List<String> colors;
+    
+    
+    public CanvasJSMultiSeriesChartService(
+            CanvasJSDatapointAssembler realPesosAssembler,
+            CanvasJSDatapointAssembler realUSDAssembler,
+            CanvasJSDatapointAssembler nominalPesosAssembler,
+            List<ExpenseChartSeriesDTO> incomeSeries,
+            List<ExpenseChartSeriesDTO> series,
+            List<String> colors){
+        this.nominalPesosDatapointAssembler = nominalPesosAssembler;
+        this.colors = colors;
+        this.incomeSeries = incomeSeries;
+        this.series = series;
+        this.realPesosDatapointAssembler = realPesosAssembler;
+        this.realUSDDatapointAssembler = realUSDAssembler;
+    }
+    
     
     @Override
     public List<ExpenseChartSeriesDTO> getSeries() {

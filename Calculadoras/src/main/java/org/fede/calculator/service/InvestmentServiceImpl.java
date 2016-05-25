@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.Resource;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
@@ -49,18 +48,13 @@ import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 import org.fede.calculator.web.dto.InvestmentDTO;
 import org.fede.calculator.web.dto.InvestmentReportDTO;
 import org.fede.calculator.web.dto.SavingsReportDTO;
-import org.fede.util.Predicate;
 import static org.fede.util.Util.read;
 import static org.fede.util.Util.sumSeries;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
 
 /**
  *
  * @author fede
  */
-@Service
-@Lazy
 public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
     private static final TypeReference<List<Investment>> TYPE_REFERENCE = new TypeReference<List<Investment>>() {
@@ -72,17 +66,19 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         MAP.put("ARS", ARS_INFLATION);
     }
     
-    @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
 
-    @Resource(name = "investments")
     private List<String> investmentSeries;
 
-    @Resource(name = "savingsReportSeries")
     private Map<String, List<String>> savingsReportSeries;
 
-    public InvestmentServiceImpl() {
-        
+    public InvestmentServiceImpl(
+            List<ExpenseChartSeriesDTO> incomeSeries,
+            List<String> investmentSeries,
+            Map<String, List<String>> savingsReportSeries) {
+        this.incomeSeries = incomeSeries;
+        this.investmentSeries = investmentSeries;
+        this.savingsReportSeries = savingsReportSeries;
     }
 
     @Override
@@ -236,28 +232,16 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
     @Override
     public DetailedInvestmentReportDTO currentInvestmentsReport(String currency) throws NoSeriesDataFoundException {
-        return this.investmentReport(currency,
-                new Predicate<Investment>() {
-            @Override
-            public boolean test(Investment item) {
-                return isCurrent(item);
-            }
-        }, true);
+        return this.investmentReport(currency, (item) -> isCurrent(item), true);
 
     }
 
     @Override
     public DetailedInvestmentReportDTO pastInvestmentsReport(String currency) throws NoSeriesDataFoundException {
-        return this.investmentReport(currency,
-                new Predicate<Investment>() {
-            @Override
-            public boolean test(Investment item) {
-                return !isCurrent(item);
-            }
-        }, false);
+        return this.investmentReport(currency, (item) -> !isCurrent(item), false);
     }
 
-    private DetailedInvestmentReportDTO investmentReport(String currency, Predicate<Investment> filter, boolean includeTotal) throws NoSeriesDataFoundException {
+    private DetailedInvestmentReportDTO investmentReport(String currency, java.util.function.Predicate<Investment> filter, boolean includeTotal) throws NoSeriesDataFoundException {
 
         if (!MAP.containsKey(currency)) {
             throw new IllegalArgumentException("Currency " + currency + " does not have a known inflation index.");

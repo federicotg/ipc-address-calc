@@ -17,8 +17,8 @@
 package org.fede.digitalcontent.model;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -32,12 +32,8 @@ public class PerformanceRepository extends BaseRepository<Terna<Opus, Venue, Dat
     }
 
     public Set<Performance> findByVenue(Venue venue) {
-        Set<Performance> answer = new HashSet<>();
-        for (Performance p : this.findAll()) {
-            if (p.getVenue().equals(venue)) {
-                answer.add(p);
-            }
-        }
-        return answer;
+        
+        return this.stream().filter(p -> p.getVenue().equals(venue)).collect(Collectors.toSet());
+        
     }
 }

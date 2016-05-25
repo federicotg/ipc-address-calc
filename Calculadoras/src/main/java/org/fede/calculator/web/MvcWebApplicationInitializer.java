@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 fede
+ * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,24 +16,27 @@
  */
 package org.fede.calculator.web;
 
-import com.google.appengine.api.utils.SystemProperty;
-import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.web.context.support.XmlWebApplicationContext;
+import org.fede.calculator.config.AppConfig;
+import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 /**
  *
- * @author fede
+ * @author Federico Tello Gentile <federicotg@gmail.com>
  */
-public class NonValidatingXmlWebApplicationContext extends XmlWebApplicationContext {
+public class MvcWebApplicationInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
     @Override
-    protected void initBeanDefinitionReader(XmlBeanDefinitionReader beanDefinitionReader) {
-        super.initBeanDefinitionReader(beanDefinitionReader);
-        if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Production) {
-            beanDefinitionReader.setValidating(false);
-            beanDefinitionReader.setNamespaceAware(true);
-        }
-
+    protected Class<?>[] getRootConfigClasses() {
+        return new Class[]{AppConfig.class,SecurityConfig.class};
     }
 
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        return new Class[]{MvcConfig.class};
+    }
+
+    @Override
+    protected String[] getServletMappings() {
+        return new String[]{"/"};
+    }
 }

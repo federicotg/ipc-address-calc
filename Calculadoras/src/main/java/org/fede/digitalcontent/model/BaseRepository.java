@@ -16,11 +16,11 @@
  */
 package org.fede.digitalcontent.model;
 
-import org.fede.util.Predicate;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  *
@@ -42,18 +42,15 @@ public abstract class BaseRepository<K, T> implements Repository<K, T> {
         return new HashSet<>(this.instances.values());
     }
 
-    @Override
-    public final Set<T> filter(Predicate<T> predicate) {
-        Set<T> answer = new HashSet<>();
-        for (T t : this.instances.values()) {
-            if (predicate.test(t)) {
-                answer.add(t);
-            }
-        }
-        return answer;
-    }
-    
+   
     protected void add(K key, T entity){
         this.instances.put(key, entity);
     }
+
+    @Override
+    public final Stream<T> stream() {
+        return this.instances.values().stream();
+    }
+    
+    
 }

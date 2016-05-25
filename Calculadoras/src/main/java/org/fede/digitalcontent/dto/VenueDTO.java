@@ -29,6 +29,14 @@ public class VenueDTO {
     private String wikipedia;
     private LatLon latLon;
 
+    public VenueDTO(String name, String city, String country, String wikipedia, LatLon latLon) {
+        this.name = name;
+        this.city = city;
+        this.country = country;
+        this.wikipedia = wikipedia;
+        this.latLon = latLon;
+    }
+
     public String getName() {
         return name;
     }

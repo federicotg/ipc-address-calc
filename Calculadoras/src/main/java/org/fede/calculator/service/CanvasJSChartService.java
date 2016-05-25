@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Resource;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.ForeignExchanges;
@@ -42,16 +41,12 @@ import org.fede.calculator.web.dto.CanvasJSDatumDTO;
 import org.fede.calculator.web.dto.CanvasJSTitleDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 import org.fede.util.Util;
-import org.springframework.context.annotation.Lazy;
 
-import org.springframework.stereotype.Service;
 
 /**
  *
  * @author fede
  */
-@Service
-@Lazy
 public class CanvasJSChartService implements ChartService, MathConstants {
 
     private static final Map<Integer, String> MONTH_NAMES = new HashMap<>(12, 1.0f);
@@ -71,37 +66,43 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         MONTH_NAMES.put(12, "diciembre");
     }
 
-    @Resource(name = "realPesosDatapointAssembler")
-    @Lazy
+    public CanvasJSChartService(
+            CanvasJSDatapointAssembler realPesosDatapointAssembler, 
+            CanvasJSDatapointAssembler nominalPesosDatapointAssembler, 
+            CanvasJSDatapointAssembler realUSDDatapointAssembler, 
+            CanvasJSDatapointAssembler nominalUSDDatapointAssembler, 
+            CanvasJSDatapointAssembler realEURDatapointAssembler, 
+            CanvasJSDatapointAssembler nominalEURDatapointAssembler, 
+            List<ExpenseChartSeriesDTO> incomeSeries, 
+            List<ExpenseChartSeriesDTO> savingsSeries, 
+            List<String> colors) {
+        this.realPesosDatapointAssembler = realPesosDatapointAssembler;
+        this.nominalPesosDatapointAssembler = nominalPesosDatapointAssembler;
+        this.realUSDDatapointAssembler = realUSDDatapointAssembler;
+        this.nominalUSDDatapointAssembler = nominalUSDDatapointAssembler;
+        this.realEURDatapointAssembler = realEURDatapointAssembler;
+        this.nominalEURDatapointAssembler = nominalEURDatapointAssembler;
+        this.incomeSeries = incomeSeries;
+        this.savingsSeries = savingsSeries;
+        this.colors = colors;
+    }
+    
     private CanvasJSDatapointAssembler realPesosDatapointAssembler;
 
-    @Resource(name = "nominalPesosDatapointAssembler")
-    @Lazy
     private CanvasJSDatapointAssembler nominalPesosDatapointAssembler;
 
-    @Resource(name = "realUSDDatapointAssembler")
-    @Lazy
     private CanvasJSDatapointAssembler realUSDDatapointAssembler;
 
-    @Resource(name = "nominalUSDDatapointAssembler")
-    @Lazy
     private CanvasJSDatapointAssembler nominalUSDDatapointAssembler;
 
-    @Resource(name = "realEURDatapointAssembler")
-    @Lazy
     private CanvasJSDatapointAssembler realEURDatapointAssembler;
 
-    @Resource(name = "nominalEURDatapointAssembler")
-    @Lazy
     private CanvasJSDatapointAssembler nominalEURDatapointAssembler;
 
-    @Resource(name = "incomesSeries")
     private List<ExpenseChartSeriesDTO> incomeSeries;
 
-    @Resource(name = "savingsSeries")
     private List<ExpenseChartSeriesDTO> savingsSeries;
     
-    @Resource(name = "colors")
     private List<String> colors;
 
     @Override

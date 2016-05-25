@@ -16,8 +16,8 @@
  */
 package org.fede.digitalcontent.model;
 
-import org.fede.util.Predicate;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  *
@@ -39,5 +39,5 @@ public interface Repository<K, T> {
     void add(T entity);
     T findById(K id);
     Set<T> findAll();
-    Set<T> filter(Predicate<T> predicate);
+    Stream<T> stream();
 }

@@ -24,15 +24,12 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.web.dto.CurrencyDTO;
 import org.fede.calculator.web.dto.CurrencyLimitsDTO;
 import org.fede.calculator.web.dto.MoneyDTO;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
 
 /**
  *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
-@Service("argMoneyService")
-@Lazy
+
 public class ARGMoneyService implements MoneyService {
 
     private static final CurrencyDTO CURRENCY_DTO = new CurrencyDTO(Currency.getInstance(ARS_INFLATION.getCurrency()));

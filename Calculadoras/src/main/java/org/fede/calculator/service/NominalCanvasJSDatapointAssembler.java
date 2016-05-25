@@ -31,7 +31,7 @@ public class NominalCanvasJSDatapointAssembler implements CanvasJSDatapointAssem
 
     private final String currency;
 
-    protected NominalCanvasJSDatapointAssembler(String currency) {
+    public NominalCanvasJSDatapointAssembler(String currency) {
         this.currency = currency;
     }
 
