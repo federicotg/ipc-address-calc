@@ -47,7 +47,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http.authorizeRequests().antMatchers("/secure/**").access("isFullyAuthenticated()")
-                .and().formLogin().loginProcessingUrl("/login")
+                .and().formLogin().loginPage("/loginPage").loginProcessingUrl("/login")
                 .and().headers().contentTypeOptions().disable()
                 .and().logout().logoutUrl("/logout").logoutSuccessUrl("/").invalidateHttpSession(true);
     }

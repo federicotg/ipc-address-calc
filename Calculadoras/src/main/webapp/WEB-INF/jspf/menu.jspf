@@ -18,15 +18,20 @@
 --%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
+
 <navbar>
-    <ul>
-        <li><a href="/">¿Entre Qué y Qué?</a></li>
-        <li><a href="/money">Inflación</a></li>
-        <li><a href="/chart/">Gráficos</a></li>
-        <li><a href="/dc/">Catálogo</a></li>
-        <sec:authorize access="isFullyAuthenticated()">
-            <li><a href="/secure/">Estadísticas</a></li>
-            <li><a href="/logout">Cerrar sesión</a></li>
-        </sec:authorize>
-    </ul>
+    <form method="post" action="${pageContext.request.contextPath}/logout" id="form-logout">
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+        <ul>
+            <li><a href="/">¿Entre Qué y Qué?</a></li>
+            <li><a href="/money">Inflación</a></li>
+            <li><a href="/chart/">Gráficos</a></li>
+            <li><a href="/dc/">Catálogo</a></li>
+                <sec:authorize access="isFullyAuthenticated()">
+                <li><a href="/secure/">Estadísticas</a></li>
+                <li><input type="submit" value="Cerrar sesión"></li>
+                </sec:authorize>
+        </ul>
+        
+    </form>
 </navbar>
