@@ -38,6 +38,5 @@ public interface Repository<K, T> {
     
     void add(T entity);
     T findById(K id);
-    Set<T> findAll();
     Stream<T> stream();
 }

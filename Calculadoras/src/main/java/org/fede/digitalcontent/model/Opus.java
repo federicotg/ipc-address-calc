@@ -19,6 +19,8 @@ package org.fede.digitalcontent.model;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
@@ -242,14 +244,18 @@ public class Opus {
         this.resources.add(new WebResource(uri, type));
     }
 
-    public Set<Person> getMusicComposers() {
-        Set<Person> answer = new HashSet<>();
-        for (Role r : this.authors) {
-            if (r.getType().equals(RoleType.COMPOSER)) {
-                answer.add(r.getPerson());
-            }
-        }
-        return answer;
+    public Stream<Person> getMusicComposers() {
+        return this.authors.stream()
+                .filter(r -> r.getType().equals(RoleType.COMPOSER))
+                .map(r -> r.getPerson());
+        
+//        Set<Person> answer = new HashSet<>();
+//        for (Role r : this.authors) {
+//            if (r.getType().equals(RoleType.COMPOSER)) {
+//                answer.add(r.getPerson());
+//            }
+//        }
+//        return answer;
     }
 
     @Override

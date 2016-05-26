@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  *
@@ -112,7 +113,7 @@ public class Performance {
         return this.opus.getLanguage();
     }
 
-    public Set<Person> getMusicComposers() {
+    public Stream<Person> getMusicComposers() {
         return this.opus.getMusicComposers();
     }
 
@@ -168,12 +169,13 @@ public class Performance {
     }
 
     public boolean includesComposer(String name) {
-        for (Person composer : this.getMusicComposers()) {
-            if (composer.getName().equals(name)) {
-                return true;
-            }
-        }
-        return false;
+        return this.getMusicComposers().anyMatch(composer -> composer.getName().equals(name));
+//        for (Person composer : this.getMusicComposers()) {
+//            if (composer.getName().equals(name)) {
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     public String getDetailedTitle() {
@@ -183,7 +185,7 @@ public class Performance {
         Date d = this.getDate();
         StringBuilder sb = new StringBuilder(30);
         sb.append(this.getTitle())
-                .append(v != null?" @ ":"")
+                .append(v != null ? " @ ":"")
                 .append(v != null ? v.getName() : "")
                 .append(d != null ? " (":"")
                 .append(d != null ? yearFormat.format(d) : "")

@@ -17,9 +17,7 @@
 package org.fede.digitalcontent.model;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -37,12 +35,6 @@ public abstract class BaseRepository<K, T> implements Repository<K, T> {
         return this.instances.get(id);
     }
 
-    @Override
-    public final Set<T> findAll() {
-        return new HashSet<>(this.instances.values());
-    }
-
-   
     protected void add(K key, T entity){
         this.instances.put(key, entity);
     }
