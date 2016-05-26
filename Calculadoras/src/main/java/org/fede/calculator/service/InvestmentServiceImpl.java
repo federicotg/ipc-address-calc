@@ -29,6 +29,7 @@ import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import org.fede.calculator.money.ForeignExchanges;
@@ -57,14 +58,14 @@ import static org.fede.util.Util.sumSeries;
 public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
     private static final TypeReference<List<Investment>> TYPE_REFERENCE = new TypeReference<List<Investment>>() {
-            };
+    };
     private static final Map<String, Inflation> MAP = new ConcurrentHashMap<>(2, 1.0f);
 
     static {
         MAP.put("USD", USD_INFLATION);
         MAP.put("ARS", ARS_INFLATION);
     }
-    
+
     private List<ExpenseChartSeriesDTO> incomeSeries;
 
     private List<String> investmentSeries;
@@ -85,10 +86,10 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final MoneyAmountSeries pesos = sumSeries("ARS", this.savingsReportSeries.get("ars")
                 .toArray(new String[this.savingsReportSeries.get("ars").size()]));
-        
+
         final MoneyAmountSeries dollarsAndGold = sumSeries("USD", this.savingsReportSeries.get("usd")
                 .toArray(new String[this.savingsReportSeries.get("usd").size()]));
-        
+
         final IndexSeries dollarPrice = JSONIndexSeries.readSeries(this.savingsReportSeries.get("fx").iterator().next());
 
         final MoneyAmountSeries nominalIncomePesos = sumSeries("ARS", this.incomeSeries);
@@ -107,47 +108,47 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         pesos.forEach((int year, int month, MoneyAmount amount) -> {
             SavingsReportDTO dto = new SavingsReportDTO(year, month);
             report.add(dto);
-            
+
             MoneyAmount usd = dollarsAndGold.getAmount(year, month);
             MoneyAmount ars = pesos.getAmount(year, month);
-            
+
             dto.setNominalDollars(usd.getAmount());
             dto.setNominalPesos(ars.getAmount());
-            
+
             MoneyAmount nov99Usd = USD_INFLATION.adjust(usd, year, month, toYear, toMonth);
             MoneyAmount nov99Ars = ARS_INFLATION.adjust(ars, year, month, toYear, toMonth);
-            
+
             dto.setNov99Dollars(nov99Usd.getAmount());
             dto.setNov99Pesos(nov99Ars.getAmount());
-            
+
             MoneyAmount totNominalUSD = usd.add(ForeignExchanges.USD_ARS.exchange(ars, "USD", year, month));
-            
+
             MoneyAmount totNominalARS = ars.add(ForeignExchanges.USD_ARS.exchange(usd, "ARS", year, month));
-            
+
             dto.setTotalNominalDollars(totNominalUSD.getAmount());
             dto.setTotalNominalPesos(totNominalARS.getAmount());
-            
+
             dto.setTotalNov99Dollars(USD_INFLATION.adjust(totNominalUSD, year, month, toYear, toMonth).getAmount());
             dto.setTotalNov99Pesos(ARS_INFLATION.adjust(totNominalARS, year, month, toYear, toMonth).getAmount());
-            
+
             dto.setPesosForDollar(dollarPrice.getIndex(year, month));
-            
+
             dto.setNominalIncomePesos(nominalIncomePesos12.getAmount(year, month).getAmount());
             dto.setNominalIncomeDollars(nominalIncomeDollars12.getAmount(year, month).getAmount());
             dto.setNov99IncomePesos(nov99IncomePesos12.getAmount(year, month).getAmount());
             dto.setNov99IncomeDollars(nov99IncomeDollars12.getAmount(year, month).getAmount());
-            
+
             if (report.size() > 12) {
                 SavingsReportDTO otherDto = report.get(report.size() - 13);
-                
+
                 dto.setPesosForDollarPctVar(pctChange(dto.getPesosForDollar(), otherDto.getPesosForDollar()));
-                
+
                 dto.setTotalNominalDollarsPctVar(pctChange(dto.getTotalNominalDollars(), otherDto.getTotalNominalDollars()));
                 dto.setTotalNominalPesosPctVar(pctChange(dto.getTotalNominalPesos(), otherDto.getTotalNominalPesos()));
-                
+
                 dto.setTotalNov99DollarsPctVar(pctChange(dto.getTotalNov99Dollars(), otherDto.getTotalNov99Dollars()));
                 dto.setTotalNov99PesosPctVar(pctChange(dto.getTotalNov99Pesos(), otherDto.getTotalNov99Pesos()));
-                
+
                 dto.setNominalPesosPctSaved(savingsPct(dto.getTotalNominalPesos(), otherDto.getTotalNominalPesos(), dto.getNominalIncomePesos()));
                 dto.setNov99PesosPctSaved(savingsPct(dto.getTotalNov99Pesos(), otherDto.getTotalNov99Pesos(), dto.getNov99IncomePesos()));
                 dto.setNominalDollarPctSaved(savingsPct(dto.getTotalNominalDollars(), otherDto.getTotalNominalDollars(), dto.getNominalIncomeDollars()));
@@ -236,7 +237,8 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return this.investmentReport(currency, (item) -> !isCurrent(item), false);
     }
 
-    private DetailedInvestmentReportDTO investmentReport(String currency, Predicate<Investment> filter, boolean includeTotal) throws NoSeriesDataFoundException {
+    private DetailedInvestmentReportDTO investmentReport(String currency, Predicate<Investment> filter, boolean includeTotal)
+            throws NoSeriesDataFoundException {
 
         if (!MAP.containsKey(currency)) {
             throw new IllegalArgumentException("Currency " + currency + " does not have a known inflation index.");
@@ -262,10 +264,10 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                 if (includeTotal) {
                     YearMonth start = new YearMonth(item.getInitialDate());
                     initialAmount = initialAmount.add(
-                            inflation.adjust(initialAmount(item, currency), 
-                                    start.getYear(), 
-                                    start.getMonth(), 
-                                    until.getYear(), 
+                            inflation.adjust(initialAmount(item, currency),
+                                    start.getYear(),
+                                    start.getMonth(),
+                                    until.getYear(),
                                     until.getMonth()));
                     currentAmount = currentAmount.add(finalAmount(item, currency, untilDate));
                 }
@@ -283,12 +285,12 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                         item.getInvestment().getCurrency()));
             }
         }
-        
+
         Collections.sort(report, (InvestmentReportDTO o1, InvestmentReportDTO o2) -> o1.getFrom().compareTo(o2.getFrom()));
 
         return new DetailedInvestmentReportDTO(
-                includeTotal 
-                        ? new InvestmentDTO(currency, initialAmount.getAmount(), currentAmount.getAmount(), untilDate) 
+                includeTotal
+                        ? new InvestmentDTO(currency, initialAmount.getAmount(), currentAmount.getAmount(), untilDate)
                         : null,
                 report);
     }

@@ -111,9 +111,7 @@ public class Util {
 
     public static <T> T read(String name, TypeReference<T> typeReference) {
         try (InputStream in = Util.class.getResourceAsStream("/" + name);) {
-            ObjectMapper om = new ObjectMapper();
-
-            return om.readValue(in, typeReference);
+            return new ObjectMapper().readValue(in, typeReference);
         } catch (IOException ioEx) {
             throw new IllegalArgumentException("Could not read investments from resource " + name, ioEx);
         }
