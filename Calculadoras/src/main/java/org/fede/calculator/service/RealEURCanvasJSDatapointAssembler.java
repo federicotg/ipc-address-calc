@@ -31,7 +31,8 @@ import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
 public class RealEURCanvasJSDatapointAssembler implements CanvasJSDatapointAssembler {
 
     @Override
-    public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries, int year, int month) throws NoSeriesDataFoundException {
+    public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries, int year, int month) 
+            throws NoSeriesDataFoundException {
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         new SimpleAggregation(months)
@@ -41,7 +42,8 @@ public class RealEURCanvasJSDatapointAssembler implements CanvasJSDatapointAssem
     }
     
     @Override
-    public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
+    public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries) 
+            throws NoSeriesDataFoundException {
         return this.getDatapoints(months, sourceSeries, 1999, 11);
     }
 
