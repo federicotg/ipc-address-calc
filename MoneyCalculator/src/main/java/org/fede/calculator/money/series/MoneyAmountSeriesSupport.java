@@ -108,7 +108,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
             }
         });
 
-        // si el otro termina despues tengo que copiar sus valores al resultado.
+        // si el otro termina después tengo que copiar sus valores al resultado.
         final YearMonth thisEnd = this.getTo();
 
         other.forEach((int year, int month, MoneyAmount amount) -> {
