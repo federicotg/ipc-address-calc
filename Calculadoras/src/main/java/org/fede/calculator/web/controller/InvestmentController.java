@@ -45,15 +45,12 @@ public class InvestmentController {
 
     private static final Logger LOG = Logger.getLogger(InvestmentController.class.getName());
 
-    private static final Comparator<CurrencyLimitsDTO> COMPARATOR = new Comparator<CurrencyLimitsDTO>() {
-            @Override
-            public int compare(CurrencyLimitsDTO o1, CurrencyLimitsDTO o2) {
-                if (o1.getReferenceYear() != o2.getReferenceYear()) {
-                    return Integer.compare(o1.getReferenceYear(), o2.getReferenceYear());
-                }
-                return Integer.compare(o1.getReferenceMonth(), o2.getReferenceMonth());
-            }
-        };
+    private static final Comparator<CurrencyLimitsDTO> COMPARATOR = (CurrencyLimitsDTO o1, CurrencyLimitsDTO o2) -> {
+        if (o1.getReferenceYear() != o2.getReferenceYear()) {
+            return Integer.compare(o1.getReferenceYear(), o2.getReferenceYear());
+        }
+        return Integer.compare(o1.getReferenceMonth(), o2.getReferenceMonth());
+    };
 
     @Autowired
     @Lazy

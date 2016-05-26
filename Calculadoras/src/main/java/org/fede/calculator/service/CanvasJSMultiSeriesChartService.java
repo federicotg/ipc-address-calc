@@ -25,7 +25,6 @@ import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import static org.fede.util.Util.readSeries;
-import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.web.dto.CanvasJSAxisDTO;
@@ -166,7 +165,8 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
     }
 
     @Override
-    public CanvasJSChartDTO renderIncomeRelativeChart(String chartTitle, int months, List<String> seriesNames, String currencyCode) throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO renderIncomeRelativeChart(String chartTitle, int months, List<String> seriesNames, String currencyCode) 
+            throws NoSeriesDataFoundException {
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
         if (seriesNames != null && !seriesNames.isEmpty()) {
 
@@ -185,19 +185,15 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
             final MoneyAmountSeries totalIncome = Util.sumSeries("ARS", this.incomeSeries);
             final MoneyAmountSeries percentSeries = new SortedMapMoneyAmountSeries(sumSeries.getCurrency());
-            sumSeries.forEach(new MoneyAmountProcessor() {
-
-                @Override
-                public void process(int year, int month, MoneyAmount expensesSum) throws NoSeriesDataFoundException {
-                    MoneyAmount incomeValue = totalIncome.getAmount(year, month);
-                    if (incomeValue != null) {
-                        percentSeries.putAmount(
-                                year,
-                                month,
-                                new MoneyAmount(
-                                        expensesSum.getAmount().divide(incomeValue.getAmount(), CONTEXT),
-                                        totalIncome.getCurrency()));
-                    }
+            sumSeries.forEach((int year, int month, MoneyAmount expensesSum) -> {
+                MoneyAmount incomeValue = totalIncome.getAmount(year, month);
+                if (incomeValue != null) {
+                    percentSeries.putAmount(
+                            year,
+                            month,
+                            new MoneyAmount(
+                                    expensesSum.getAmount().divide(incomeValue.getAmount(), CONTEXT),
+                                    totalIncome.getCurrency()));
                 }
             });
 

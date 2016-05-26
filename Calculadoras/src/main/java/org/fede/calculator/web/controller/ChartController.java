@@ -16,11 +16,11 @@
  */
 package org.fede.calculator.web.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static java.util.stream.Collectors.toList;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -39,7 +39,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
@@ -99,7 +99,7 @@ public class ChartController {
         return dto;
     }
 
-    @RequestMapping(value = "", method = RequestMethod.GET)
+    @RequestMapping(value = "", method = GET)
     public String chartList() {
         return "charts";
     }
@@ -108,7 +108,7 @@ public class ChartController {
         return new CombinedChartDTO(referenceMoneyService.getLimits());
     }
 
-    @RequestMapping(value = "unlp", method = RequestMethod.GET)
+    @RequestMapping(value = "unlp", method = GET)
     public ModelAndView unlp() {
         return new ModelAndView("combinedChart")
                 .addObject("uri", "unlpCombined")
@@ -117,7 +117,7 @@ public class ChartController {
                 .addObject("dto", this.createCombinedChartDTO());
     }
 
-    @RequestMapping(value = "lifia", method = RequestMethod.GET)
+    @RequestMapping(value = "lifia", method = GET)
     public ModelAndView lifia() {
         return new ModelAndView("combinedChart")
                 .addObject("uri", "lifiaCombined")
@@ -126,7 +126,7 @@ public class ChartController {
                 .addObject("dto", this.createCombinedChartDTO());
     }
 
-    @RequestMapping(value = "interest", method = RequestMethod.GET)
+    @RequestMapping(value = "interest", method = GET)
     public ModelAndView interest() {
         return new ModelAndView("combinedChart")
                 .addObject("uri", "interestCombined")
@@ -135,7 +135,7 @@ public class ChartController {
                 .addObject("dto", this.createCombinedChartDTO());
     }
 
-    @RequestMapping(value = "lifiaAndUnlp", method = RequestMethod.GET)
+    @RequestMapping(value = "lifiaAndUnlp", method = GET)
     public ModelAndView lifiaAndUnlp() {
         return new ModelAndView("combinedChart")
                 .addObject("uri", "lifiaAndUnlpCombined")
@@ -144,16 +144,13 @@ public class ChartController {
                 .addObject("dto", this.createCombinedChartDTO());
     }
 
-    @RequestMapping(value = "lifiaUnlpAndInterest", method = RequestMethod.GET)
+    @RequestMapping(value = "lifiaUnlpAndInterest", method = GET)
     public ModelAndView lifiaUnlpAndInterest() {
-
-        final List<String> allSeriesNames = new ArrayList<>();
-        for (ExpenseChartSeriesDTO dto : incomeSeries) {
-            if (dto.getSeriesName() != null && dto.getSeriesName().length() > 0) {
-                allSeriesNames.add(dto.getName());
-            }
-        }
-
+        List<String> allSeriesNames = incomeSeries.stream()
+                .filter(dto -> dto.getSeriesName() != null && dto.getSeriesName().length() > 0)
+                .map(dto -> dto.getName())
+                .collect(toList());
+        
         final CombinedChartDTO dto = this.createCombinedChartDTO();
         dto.setSeries(allSeriesNames);
 
@@ -165,7 +162,7 @@ public class ChartController {
                 .addObject("dto", dto);
     }
 
-    @RequestMapping(value = "savings", method = RequestMethod.GET)
+    @RequestMapping(value = "savings", method = GET)
     public ModelAndView savings() {
         return new ModelAndView("combinedChart")
                 .addObject("uri", "savingsCombined")
@@ -173,45 +170,45 @@ public class ChartController {
                 .addObject("dto", this.createCombinedChartDTO());
     }
 
-    @RequestMapping(value = "goldSavings", method = RequestMethod.GET)
+    @RequestMapping(value = "goldSavings", method = GET)
     public ModelAndView goldSavings() {
         return new ModelAndView("simpleChart")
                 .addObject("uri", "goldSavingsChart")
                 .addObject("title", "Oro");
     }
 
-    @RequestMapping(value = "savingsAndIncomeChange", method = RequestMethod.GET)
+    @RequestMapping(value = "savingsAndIncomeChange", method = GET)
     public ModelAndView savingsAndIncomeChange() {
         return new ModelAndView("simpleChart")
                 .addObject("uri", "savingsAndIncomeChangeChart")
                 .addObject("title", "Cambio Promedio Anual");
     }
 
-    @RequestMapping(value = "absa", method = RequestMethod.GET)
+    @RequestMapping(value = "absa", method = GET)
     public ModelAndView absa() {
         return new ModelAndView("simpleChart")
                 .addObject("uri", "absaChart")
                 .addObject("title", "ABSA");
     }
 
-    @RequestMapping(value = "savedSalaries", method = RequestMethod.GET)
+    @RequestMapping(value = "savedSalaries", method = GET)
     public ModelAndView savedSalaries() {
         return new ModelAndView("simpleChart")
                 .addObject("uri", "savedSalariesChart")
                 .addObject("title", "Salarios Promedio Anual Ahorrados");
     }
 
-    @RequestMapping(value = "savingsDetailed", method = RequestMethod.GET)
+    @RequestMapping(value = "savingsDetailed", method = GET)
     public ModelAndView savingsDetail() {
         return this.buildExpenseModelAndView("Ahorros", this.savingsService.getSeries(), "savingsDetailChart", 1);
     }
 
-    @RequestMapping(value = "expenses", method = RequestMethod.GET)
+    @RequestMapping(value = "expenses", method = GET)
     public ModelAndView expenses() {
         return this.buildExpenseModelAndView("Gastos", this.expenseService.getSeries(), "expensesChart");
     }
 
-    @RequestMapping(value = "consultatio", method = RequestMethod.GET)
+    @RequestMapping(value = "consultatio", method = GET)
     public ModelAndView consultatio() {
         return this.buildExpenseModelAndView("Consultatio Plus F.C.I.", this.fciService.getSeries(), "fciChart");
     }
@@ -223,11 +220,7 @@ public class ChartController {
     private ModelAndView buildExpenseModelAndView(String title, List<ExpenseChartSeriesDTO> dtoSeries, String uri, int months) {
         final ExpenseChartDTO chartDto = new ExpenseChartDTO(this.referenceMoneyService.getLimits());
         chartDto.setMonths(months);
-        final List<String> series = new ArrayList<>(dtoSeries.size());
-        for (ExpenseChartSeriesDTO e : dtoSeries) {
-            series.add(e.getName());
-        }
-        chartDto.setSeries(series);
+        chartDto.setSeries(dtoSeries.stream().map(dto -> dto.getName()).collect(toList()));
         return new ModelAndView("expenseChart")
                 .addObject("uri", uri)
                 .addObject("title", title)
@@ -236,25 +229,20 @@ public class ChartController {
                 .addObject("dto", chartDto);
     }
 
-    @RequestMapping(value = "consortiumExpenses", method = RequestMethod.GET)
+    @RequestMapping(value = "consortiumExpenses", method = GET)
     public ModelAndView consortiumExpenses() {
         return this.buildExpenseModelAndView("Gastos Consorcio", this.consortiumExpenseService.getSeries(), "consortiumExpensesChart");
     }
 
-    @RequestMapping(value = "incomes", method = RequestMethod.GET)
+    @RequestMapping(value = "incomes", method = GET)
     public ModelAndView incomes() {
         return this.buildExpenseModelAndView("Ingresos", this.incomesService.getSeries(), "incomesChart");
     }
 
-    @RequestMapping(value = "expensesPercent", method = RequestMethod.GET)
+    @RequestMapping(value = "expensesPercent", method = GET)
     public ModelAndView expensesPercent() {
-
         ExpenseChartDTO chartDto = new ExpenseChartDTO(this.referenceMoneyService.getLimits());
-        List<String> series = new ArrayList<>();
-        for (ExpenseChartSeriesDTO e : this.expenseService.getSeries()) {
-            series.add(e.getName());
-        }
-        chartDto.setSeries(series);
+        chartDto.setSeries(this.expenseService.getSeries().stream().map(dto -> dto.getName()).collect(toList()));
         return new ModelAndView("expenseChart")
                 .addObject("uri", "expensesPercentChart")
                 .addObject("title", "Gastos / Ingresos")
@@ -270,7 +258,7 @@ public class ChartController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "lifiaUnlpAndInterestCombined", method = RequestMethod.GET)
+    @RequestMapping(value = "lifiaUnlpAndInterestCombined", method = GET)
     public CanvasJSChartDTO lifiaUnlpAndInterestCombined(
             @ModelAttribute("dto") @Valid CombinedChartDTO dto,
             BindingResult errors)
@@ -282,7 +270,7 @@ public class ChartController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "savingsCombined", method = RequestMethod.GET)
+    @RequestMapping(value = "savingsCombined", method = GET)
     public CanvasJSChartDTO savingsCombined(@ModelAttribute("dto") @Valid CombinedChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
@@ -292,7 +280,7 @@ public class ChartController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "incomesChart", method = RequestMethod.GET)
+    @RequestMapping(value = "incomesChart", method = GET)
     public CanvasJSChartDTO incomesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
@@ -302,7 +290,7 @@ public class ChartController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "expensesChart", method = RequestMethod.GET)
+    @RequestMapping(value = "expensesChart", method = GET)
     public CanvasJSChartDTO expensesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
@@ -312,7 +300,7 @@ public class ChartController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "fciChart", method = RequestMethod.GET)
+    @RequestMapping(value = "fciChart", method = GET)
     public CanvasJSChartDTO fciChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
@@ -322,7 +310,7 @@ public class ChartController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "savingsDetailChart", method = RequestMethod.GET)
+    @RequestMapping(value = "savingsDetailChart", method = GET)
     public CanvasJSChartDTO savingsChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
@@ -332,7 +320,7 @@ public class ChartController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "consortiumExpensesChart", method = RequestMethod.GET)
+    @RequestMapping(value = "consortiumExpensesChart", method = GET)
     public CanvasJSChartDTO consortiumExpensesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
@@ -342,7 +330,7 @@ public class ChartController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "expensesPercentChart", method = RequestMethod.GET)
+    @RequestMapping(value = "expensesPercentChart", method = GET)
     public CanvasJSChartDTO expensesPercentChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
             throws NoSeriesDataFoundException {
         if (errors.hasErrors()) {
@@ -352,21 +340,21 @@ public class ChartController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "goldSavingsChart", method = RequestMethod.GET)
+    @RequestMapping(value = "goldSavingsChart", method = GET)
     public CanvasJSChartDTO goldSavingsChart()
             throws NoSeriesDataFoundException {
         return this.chartService.goldIncomeAndSavings();
     }
 
     @ResponseBody
-    @RequestMapping(value = "savingsAndIncomeChangeChart", method = RequestMethod.GET)
+    @RequestMapping(value = "savingsAndIncomeChangeChart", method = GET)
     public CanvasJSChartDTO savingsAndIncomeChangeChart()
             throws NoSeriesDataFoundException {
         return this.chartService.savingsAndIncomeEvolution();
     }
 
     @ResponseBody
-    @RequestMapping(value = "savedSalariesChart", method = RequestMethod.GET)
+    @RequestMapping(value = "savedSalariesChart", method = GET)
     public CanvasJSChartDTO savedSalariesChart()
             throws NoSeriesDataFoundException {
         return this.chartService.savedSalaries();

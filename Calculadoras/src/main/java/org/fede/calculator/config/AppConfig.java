@@ -20,6 +20,7 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.fede.calculator.service.ARGMoneyService;
@@ -53,7 +54,7 @@ public class AppConfig {
 
     @Bean
     public Map<String, Integer> monthlyPeriod() {
-        Map<String, Integer> map = new HashMap<>();
+        Map<String, Integer> map = new LinkedHashMap<>();
         map.put("mensual", 1);
         map.put("bimestral", 2);
         map.put("trimestral", 3);

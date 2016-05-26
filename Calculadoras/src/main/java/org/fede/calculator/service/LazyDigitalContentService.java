@@ -64,15 +64,11 @@ import org.fede.digitalcontent.model.Venue;
  */
 public class LazyDigitalContentService implements DigitalContentService {
 
-    protected static final Comparator<OpusDTO> OPUS_COMPARATOR = new Comparator<OpusDTO>() {
-
-        @Override
-        public int compare(OpusDTO o1, OpusDTO o2) {
-            if (!o1.getType().equals(o2.getType())) {
-                return o1.getType().compareTo(o2.getType());
-            }
-            return o1.getName().compareTo(o2.getName());
+    protected static final Comparator<OpusDTO> OPUS_COMPARATOR = (OpusDTO o1, OpusDTO o2) -> {
+        if (!o1.getType().equals(o2.getType())) {
+            return o1.getType().compareTo(o2.getType());
         }
+        return o1.getName().compareTo(o2.getName());
     };
 
     public LazyDigitalContentService() throws ParseException {
@@ -1777,31 +1773,25 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .map(dc -> toDto(dc))
                 .sorted()
                 .collect(Collectors.toList());
-        
-
     }
 
     @Override
-    public List<DigitalContentDTO> getVenueReport(final String venueName) {
-        
+    public List<DigitalContentDTO> getVenueReport(final String venueName) {       
         return DigitalContentRepository.DIGITALCONTENT.stream()
                 .filter(dc -> dc.includesVenue(venueName))
                 .map(dc -> toDto(dc))
                 .sorted()
-                .collect(Collectors.toList());
-        
+                .collect(Collectors.toList());       
     }
 
     @Override
     public List<DigitalContentDTO> getOpusTypeReport(String name) {
         final OpusType type = OpusType.valueOf(name);
-        
         return DigitalContentRepository.DIGITALCONTENT.stream()
                 .filter(dc -> dc.getOpusTypes().contains(type))
                 .map(dc -> toDto(dc))
                 .sorted()
                 .collect(Collectors.toList());
-        
     }
 
     @Override
@@ -1830,13 +1820,9 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @Override
     public List<BoxLabelDTO> getEveryBoxLabel() {
-        Set<StorageBox> boxes = Repository.STORAGEBOX.findAll();
-        List<BoxLabelDTO> list = new ArrayList<>(boxes.size());
-        for (StorageBox box : boxes) {
-            list.add(this.getBoxLabel(box));
-        }
-        Collections.sort(list);
-        return list;
+        return Repository.STORAGEBOX.stream()
+                .map(box -> this.getBoxLabel(box)).sorted()
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -32,7 +32,6 @@ import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.web.dto.CanvasJSAxisDTO;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
@@ -304,18 +303,14 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         dto.setData(seriesList);
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        income.forEachNonZero(new MoneyAmountProcessor() {
-
-            @Override
-            public void process(int year, int month, MoneyAmount sueldo) throws NoSeriesDataFoundException {
-                YearMonth ym = new YearMonth(year, month);
-                if (ym.compareTo(savings.getFrom()) >= 0 && ym.compareTo(savings.getTo()) <= 0) {
-                    CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
-                            "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-15"),
-                            savings.getAmount(year, month).getAmount().divide(sueldo.getAmount(), CONTEXT)
-                    );
-                    datapoints.add(dataPoint);
-                }
+        income.forEachNonZero((int year, int month, MoneyAmount sueldo) -> {
+            YearMonth ym = new YearMonth(year, month);
+            if (ym.compareTo(savings.getFrom()) >= 0 && ym.compareTo(savings.getTo()) <= 0) {
+                CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
+                        "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-15"),
+                        savings.getAmount(year, month).getAmount().divide(sueldo.getAmount(), CONTEXT)
+                );
+                datapoints.add(dataPoint);
             }
         });
         seriesList.add(this.getDatum("line", this.colors.get(0), "Sueldos", datapoints));
@@ -388,11 +383,6 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         historicGold.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
         seriesList.add(this.getDatum("area", this.colors.get(0), "Oro", datapoints));
         return dto;
-    }
-
-    @Override
-    public CanvasJSChartDTO investmentReturns() throws NoSeriesDataFoundException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     
