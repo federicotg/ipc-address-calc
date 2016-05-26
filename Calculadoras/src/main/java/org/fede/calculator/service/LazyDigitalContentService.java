@@ -21,14 +21,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
 import org.fede.digitalcontent.dto.BoxLabelDTO;
 import org.fede.digitalcontent.dto.DigitalContentDTO;
 import org.fede.digitalcontent.dto.MediumContentDTO;
@@ -1699,10 +1697,10 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     }
 
-    @Override
+    /*@Override
     public Iterable<StorageBox> getAllBoxes() {
         return Repository.STORAGEBOX.findAll();
-    }
+    }*/
 
     @Override
     public List<DigitalContentDTO> getFullReport() {
@@ -1710,7 +1708,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         return DigitalContentRepository.DIGITALCONTENT.stream()
                 .map(dc -> toDto(dc))
                 .sorted()
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
 
@@ -1719,7 +1717,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         dto.setBoxes(Repository.STORAGEBOX.stream()
                 .filter(box -> box.contains(dc))
                 .map(box -> box.getName())
-                .collect(Collectors.toList()));
+                .collect(toList()));
         dto.setDate(dc.getDate());
         dto.setFormat(dc.getFormat().name());
         dto.setImdb(dc.getImdb());
@@ -1750,7 +1748,7 @@ public class LazyDigitalContentService implements DigitalContentService {
             Repository.STORAGEBOX.stream().filter(box -> box.contains(dc)).anyMatch(box -> box.getName().equals(boxName)))
                 .map(dc -> toDto(dc))
                 .sorted()
-                .collect(Collectors.toList());
+                .collect(toList());
         
 
     }
@@ -1762,7 +1760,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .filter(dc -> dc.includesComposer(composerName))
                 .map(dc -> toDto(dc))
                 .sorted()
-                .collect(Collectors.toList());
+                .collect(toList());
 
     }
 
@@ -1772,7 +1770,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .filter(dc -> dc.includesOpus(opusName))
                 .map(dc -> toDto(dc))
                 .sorted()
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
@@ -1781,7 +1779,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .filter(dc -> dc.includesVenue(venueName))
                 .map(dc -> toDto(dc))
                 .sorted()
-                .collect(Collectors.toList());       
+                .collect(toList());       
     }
 
     @Override
@@ -1791,7 +1789,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .filter(dc -> dc.getOpusTypes().contains(type))
                 .map(dc -> toDto(dc))
                 .sorted()
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
@@ -1822,7 +1820,7 @@ public class LazyDigitalContentService implements DigitalContentService {
     public List<BoxLabelDTO> getEveryBoxLabel() {
         return Repository.STORAGEBOX.stream()
                 .map(box -> this.getBoxLabel(box)).sorted()
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
@@ -1835,7 +1833,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                     v.getCountryName(),
                     v.getWikipedia(),
                     v.getLatLon()))
-                .collect(Collectors.toList());
+                .collect(toList());
         
     }
 
@@ -1855,54 +1853,79 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @Override
     public List<OpusDTO> unseenBy(String personName) {
-        Set<DigitalContent> allContent = Repository.DIGITALCONTENT.findAll();
+        //Set<DigitalContent> allContent = Repository.DIGITALCONTENT.findAll();
         Person p = Repository.PERSON.findById(personName);
-        Set<Opus> allOpuses = Repository.OPUS.findAll();
-
-        for (Iterator<Opus> it = allOpuses.iterator(); it.hasNext();) {
-            Opus opus = it.next();
-            if (opus.getType() == OpusType.GAME || opus.getType() == OpusType.SPORT) {
-                it.remove();
-            }
-        }
-
-        for (DigitalContent dc : allContent) {
-            if (dc.isSeenBy(p)) {
-                allOpuses.removeAll(dc.getOpuses());
-            }
-        }
-        List<OpusDTO> answer = new ArrayList<>(allOpuses.size());
-        for (Opus o : allOpuses) {
-            answer.add(new OpusDTO(o.getTitle(), o.getType().name()));
-        }
-        Collections.sort(answer, OPUS_COMPARATOR);
-
-        return answer;
+        //Set<Opus> allOpuses = Repository.OPUS.findAll();
+        
+        return Repository.DIGITALCONTENT.stream()
+                .filter(dc -> !dc.isSeenBy(p))
+                .flatMap(dc -> dc.getOpuses().stream())
+                .distinct()
+                .filter(opus -> opus.getType() != OpusType.GAME && opus.getType() != OpusType.SPORT)
+                .map(op -> new OpusDTO(op.getTitle(), op.getType().name()))
+                .sorted(OPUS_COMPARATOR)
+                .collect(toList());
+        
+//        // for each opus remove any game and sport
+//        for (Iterator<Opus> it = allOpuses.iterator(); it.hasNext();) {
+//            Opus opus = it.next();
+//            if (opus.getType() == OpusType.GAME || opus.getType() == OpusType.SPORT) {
+//                it.remove();
+//            }
+//        }
+//
+//        // for each content seen by the specified person, remove it from opuses.
+//        for (DigitalContent dc : allContent) {
+//            if (dc.isSeenBy(p)) {
+//                allOpuses.removeAll(dc.getOpuses());
+//            }
+//        }
+//        
+//        // create dtos
+//        List<OpusDTO> answer = new ArrayList<>(allOpuses.size());
+//        for (Opus o : allOpuses) {
+//            answer.add(new OpusDTO(o.getTitle(), o.getType().name()));
+//        }
+//        
+//        // sort
+//        Collections.sort(answer, OPUS_COMPARATOR);
+//
+//        return answer;
     }
 
     @Override
     public List<OpusDTO> unavailableInHD() {
 
-        Set<Opus> notInHD = Repository.OPUS.findAll();
-        for (Iterator<Opus> it = notInHD.iterator(); it.hasNext();) {
-            Opus opus = it.next();
-            if (opus.getType() == OpusType.GAME || opus.getType() == OpusType.SPORT) {
-                it.remove();
-            }
-        }
-
-        for (DigitalContent dc : Repository.DIGITALCONTENT.findAll()) {
-            if (dc.getQuality() == Quality.HD720 || dc.getQuality() == Quality.HD1080) {
-                notInHD.removeAll(dc.getOpuses());
-            }
-        }
-
-        List<OpusDTO> answer = new ArrayList<>(notInHD.size());
-        for (Opus o : notInHD) {
-            answer.add(new OpusDTO(o.getTitle(), o.getType().name()));
-        }
-        Collections.sort(answer, OPUS_COMPARATOR);
-        return answer;
+        return Repository.DIGITALCONTENT.stream()
+                .filter(dc -> dc.getQuality() != Quality.HD720 && dc.getQuality() != Quality.HD1080)
+                .flatMap(dc -> dc.getOpuses().stream())
+                .distinct()
+                .filter(opus -> opus.getType() != OpusType.GAME && opus.getType() != OpusType.SPORT)
+                .map(o -> new OpusDTO(o.getTitle(), o.getType().name()))
+                .sorted(OPUS_COMPARATOR)
+                .collect(toList());
+        
+//        
+//        Set<Opus> notInHD = Repository.OPUS.findAll();
+//        for (Iterator<Opus> it = notInHD.iterator(); it.hasNext();) {
+//            Opus opus = it.next();
+//            if (opus.getType() == OpusType.GAME || opus.getType() == OpusType.SPORT) {
+//                it.remove();
+//            }
+//        }
+//
+//        for (DigitalContent dc : Repository.DIGITALCONTENT.findAll()) {
+//            if (dc.getQuality() == Quality.HD720 || dc.getQuality() == Quality.HD1080) {
+//                notInHD.removeAll(dc.getOpuses());
+//            }
+//        }
+//
+//        List<OpusDTO> answer = new ArrayList<>(notInHD.size());
+//        for (Opus o : notInHD) {
+//            answer.add(new OpusDTO(o.getTitle(), o.getType().name()));
+//        }
+//        Collections.sort(answer, OPUS_COMPARATOR);
+//        return answer;
     }
 
 }

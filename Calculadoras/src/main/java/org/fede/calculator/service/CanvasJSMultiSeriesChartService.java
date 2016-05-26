@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -79,13 +80,18 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
     @Override
     public List<ExpenseChartSeriesDTO> getSeriesWithoutTotal() {
-        List<ExpenseChartSeriesDTO> list = new ArrayList<>(this.getSeries());
-        for (Iterator<ExpenseChartSeriesDTO> it = list.iterator(); it.hasNext();) {
-            if (TOTAL_SERIES_NAME.equals(it.next().getName())) {
-                it.remove();
-            }
-        }
-        return list;
+        
+        return this.getSeries().stream()
+                .filter(dto -> !TOTAL_SERIES_NAME.equals(dto.getName()))
+                .collect(Collectors.toList());
+        
+//        List<ExpenseChartSeriesDTO> list = new ArrayList<>(this.getSeries());
+//        for (Iterator<ExpenseChartSeriesDTO> it = list.iterator(); it.hasNext();) {
+//            if (TOTAL_SERIES_NAME.equals(it.next().getName())) {
+//                it.remove();
+//            }
+//        }
+//        return list;
     }
 
     @Override

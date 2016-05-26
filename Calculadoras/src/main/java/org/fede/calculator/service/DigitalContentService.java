@@ -30,7 +30,7 @@ import org.fede.digitalcontent.model.StorageBox;
  */
 public interface DigitalContentService {
     
-    Iterable<StorageBox> getAllBoxes();
+    //Iterable<StorageBox> getAllBoxes();
     
     List<DigitalContentDTO> getFullReport();
     List<DigitalContentDTO> getBoxReport(String box);

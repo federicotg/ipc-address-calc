@@ -28,7 +28,6 @@ import org.fede.calculator.money.MathConstants;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
@@ -41,7 +40,6 @@ import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.JSONIndexSeries;
-import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.web.dto.DetailedInvestmentReportDTO;
@@ -283,7 +281,6 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                         finalAmount(item, currency, itemUntil).getAmount(),
                         inflation(currency, item.getInitialDate(), itemUntil),
                         item.getInvestment().getCurrency()));
-
             }
         }
         

@@ -16,6 +16,7 @@
  */
 package org.fede.calculator;
 
+import java.text.MessageFormat;
 import java.util.List;
 import org.fede.calculator.config.AppConfig;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -60,12 +61,12 @@ public class SingleMediaTest {
 
         assertNotNull(this.service);
 
-        /*for (StorageMedium disc : Repository.STORAGE.findAll()) {
-            DigitalContent dc = disc.getContents().iterator().next();
-            if (disc.getContents().size() == 1 && this.isInOneMedium(dc)) {
-                System.out.println(MessageFormat.format("{0}\t{1}", disc.getName(), dc.toString()));
-            }
-        }*/
+//        for (StorageMedium disc : Repository.STORAGE.findAll()) {
+//            DigitalContent dc = disc.getContents().iterator().next();
+//            if (disc.getContents().size() == 1 && this.isInOneMedium(dc)) {
+//                System.out.println(MessageFormat.format("{0}\t{1}", disc.getName(), dc.toString()));
+//            }
+//        }
 
     }
 
@@ -79,12 +80,15 @@ public class SingleMediaTest {
     }
 
     private boolean isInOneMedium(DigitalContent dc) {
-        int count = 0;
-        for (StorageMedium disc : Repository.STORAGE.findAll()) {
-            if (disc.contains(dc)) {
-                count++;
-            }
-        }
-        return count == 1;
+        return Repository.STORAGE.stream()
+                .filter(disc -> disc.contains(dc))
+                .count() == 1l;
+//        int count = 0;
+//        for (StorageMedium disc : Repository.STORAGE.findAll()) {
+//            if (disc.contains(dc)) {
+//                count++;
+//            }
+//        }
+//        return count == 1;
     }
 }
