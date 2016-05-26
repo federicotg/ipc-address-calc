@@ -56,7 +56,8 @@ public enum InterpolationStrategy {
 
     public abstract MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) throws NoSeriesDataFoundException;
 
-    protected MoneyAmount inflationInterpolation(Inflation inflation, MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) throws NoSeriesDataFoundException {
+    protected MoneyAmount inflationInterpolation(Inflation inflation, MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) 
+            throws NoSeriesDataFoundException {
         YearMonth nextYm = lastValueYearMonth.next();
         return inflation.adjust(
                 lastValue, lastValueYearMonth.getYear(),

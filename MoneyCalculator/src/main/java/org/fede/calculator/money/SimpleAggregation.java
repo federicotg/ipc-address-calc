@@ -19,6 +19,7 @@ package org.fede.calculator.money;
 import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 
 /**
@@ -28,11 +29,6 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
 public class SimpleAggregation implements Aggregation, MathConstants {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(SCALE, ROUNDING_MODE);
-
-    private static interface AggregationFunction {
-
-        MoneyAmount apply(List<MoneyAmount> lastValues);
-    }
 
     private final int months;
 
@@ -71,7 +67,8 @@ public class SimpleAggregation implements Aggregation, MathConstants {
         return new MoneyAmount(lastValues.get(0).getAmount().subtract(lastValues.get(lastValues.size() - 1).getAmount()), lastValues.get(0).getCurrency());
     }
 
-    private MoneyAmountSeries aggregate(MoneyAmountSeries series, final AggregationFunction aggregationFunction) throws NoSeriesDataFoundException {
+    private MoneyAmountSeries aggregate(MoneyAmountSeries series, final Function<List<MoneyAmount>, MoneyAmount> aggregationFunction) 
+            throws NoSeriesDataFoundException {
         final LinkedList<MoneyAmount> lastValues = new LinkedList<>();
 
         final String seriesCurrency = series.getCurrency();

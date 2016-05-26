@@ -16,7 +16,9 @@
  */
 package org.fede.calculator.money.series;
 
-import java.util.Calendar;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 
 /**
@@ -29,11 +31,16 @@ public class YearMonth implements Comparable<YearMonth> {
     private final int month;
 
     
-    public YearMonth(Date date) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        this.year = cal.get(Calendar.YEAR);
-        this.month = cal.get(Calendar.MONTH) + 1;
+    public YearMonth(Date day) {
+        
+        LocalDate date = day.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+        this.year = date.getYear();
+        this.month = date.getMonthValue();
+
+//        Calendar cal = Calendar.getInstance();
+//        cal.setTime(date);
+//        this.year = cal.get(Calendar.YEAR);
+//        this.month = cal.get(Calendar.MONTH) + 1;
     }
     
     public YearMonth(int year, int month) {
@@ -90,20 +97,31 @@ public class YearMonth implements Comparable<YearMonth> {
     }
 
     public Date asToDate() {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, this.year);
-        cal.set(Calendar.MONTH, this.month - 1);
-        cal.set(Calendar.DAY_OF_MONTH, 1);
-        cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
-        return cal.getTime();
+        
+        return Date.from(
+                LocalDate.of(this.getYear(), this.getMonth(), 1)
+                        .with(TemporalAdjusters.lastDayOfMonth())
+                        .atStartOfDay()
+                        .toInstant(ZoneOffset.UTC));
+        
+//        Calendar cal = Calendar.getInstance();
+//        cal.set(Calendar.YEAR, this.year);
+//        cal.set(Calendar.MONTH, this.month - 1);
+//        cal.set(Calendar.DAY_OF_MONTH, 1);
+//        cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+//        return cal.getTime();
     }
     
     public Date asDate() {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, this.year);
-        cal.set(Calendar.MONTH, this.month - 1);
-        cal.set(Calendar.DAY_OF_MONTH, 1);
-        return cal.getTime();
+        return Date.from(
+                LocalDate.of(this.getYear(), this.getMonth(), 1)
+                        .atStartOfDay()
+                        .toInstant(ZoneOffset.UTC));
+//        Calendar cal = Calendar.getInstance();
+//        cal.set(Calendar.YEAR, this.year);
+//        cal.set(Calendar.MONTH, this.month - 1);
+//        cal.set(Calendar.DAY_OF_MONTH, 1);
+//        return cal.getTime();
     }
 
     public YearMonth min(YearMonth other){
