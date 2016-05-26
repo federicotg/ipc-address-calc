@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.List;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.MoneyAmountTransform;
 
 /**
  *
@@ -48,20 +47,24 @@ public class SimpleAggregation implements Aggregation, MathConstants {
     }
 
     private MoneyAmount avg(List<MoneyAmount> lastValues) {
-        BigDecimal sum = ZERO;
+        /*BigDecimal sum = ZERO;
         for (MoneyAmount lastValue : lastValues) {
             sum = sum.add(lastValue.getAmount());
-        }
-        return new MoneyAmount(sum.divide(new BigDecimal(lastValues.size()), CONTEXT), lastValues.get(0).getCurrency());
+        }*/
+        return new MoneyAmount(
+                lastValues.stream().map(ma -> ma.getAmount()).reduce(ZERO, (left, right) -> left.add(right))
+                .divide(new BigDecimal(lastValues.size()), CONTEXT), lastValues.get(0).getCurrency());
     }
 
     private MoneyAmount sum(List<MoneyAmount> lastValues) {
 
-        BigDecimal sum = ZERO;
+        /*BigDecimal sum = ZERO;
         for (MoneyAmount lastValue : lastValues) {
             sum = sum.add(lastValue.getAmount());
-        }
-        return new MoneyAmount(sum, lastValues.get(0).getCurrency());
+        }*/
+        return new MoneyAmount(
+                lastValues.stream().map(ma -> ma.getAmount()).reduce(ZERO, (left, right) -> left.add(right)),
+                lastValues.get(0).getCurrency());
     }
 
     private MoneyAmount change(List<MoneyAmount> lastValues) {
@@ -70,55 +73,33 @@ public class SimpleAggregation implements Aggregation, MathConstants {
 
     private MoneyAmountSeries aggregate(MoneyAmountSeries series, final AggregationFunction aggregationFunction) throws NoSeriesDataFoundException {
         final LinkedList<MoneyAmount> lastValues = new LinkedList<>();
-        
+
         final String seriesCurrency = series.getCurrency();
-        
-        return series.map(new MoneyAmountTransform() {
-            @Override
-            public MoneyAmount transform(int year, int month, MoneyAmount amount) {
-                
-                checkCurrency(seriesCurrency, amount);
-                
-                lastValues.addFirst(amount);
-                if (lastValues.size() > months) {
-                    lastValues.removeLast();
-                }
-                return aggregationFunction.apply((lastValues));
+
+        return series.map((int year, int month, MoneyAmount amount) -> {
+            checkCurrency(seriesCurrency, amount);
+            
+            lastValues.addFirst(amount);
+            if (lastValues.size() > months) {
+                lastValues.removeLast();
             }
+            return aggregationFunction.apply((lastValues));
         });
     }
 
     @Override
     public MoneyAmountSeries average(MoneyAmountSeries series) throws NoSeriesDataFoundException {
-        return this.aggregate(series, new AggregationFunction() {
-
-            @Override
-            public MoneyAmount apply(List<MoneyAmount> lastValues) {
-                return avg(lastValues);
-            }
-        });
+        return this.aggregate(series, this::avg);
     }
 
     @Override
     public MoneyAmountSeries sum(MoneyAmountSeries series) throws NoSeriesDataFoundException {
-        return this.aggregate(series, new AggregationFunction() {
-
-            @Override
-            public MoneyAmount apply(List<MoneyAmount> lastValues) {
-                return sum(lastValues);
-            }
-        });
+        return this.aggregate(series, this::sum);
     }
 
     @Override
     public MoneyAmountSeries change(MoneyAmountSeries series) throws NoSeriesDataFoundException {
-        return this.aggregate(series, new AggregationFunction() {
-
-            @Override
-            public MoneyAmount apply(List<MoneyAmount> lastValues) {
-                return change(lastValues);
-            }
-        });
+        return this.aggregate(series, this::change);
     }
 
 }

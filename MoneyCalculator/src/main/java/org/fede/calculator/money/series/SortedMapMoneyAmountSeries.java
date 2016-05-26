@@ -36,7 +36,7 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
     }
 
     public SortedMapMoneyAmountSeries(final String currency) {
-        this(currency, new TreeMap<YearMonth, MoneyAmount>());
+        this(currency, new TreeMap<>());
     }
 
     @Override
