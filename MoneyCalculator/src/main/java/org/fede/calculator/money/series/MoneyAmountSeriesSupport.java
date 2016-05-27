@@ -18,8 +18,6 @@ package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
 import java.text.MessageFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.Objects;
 import org.fede.calculator.money.ForeignExchanges;
@@ -40,15 +38,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
     @Override
     public final MoneyAmount getAmount(Date day) throws NoSeriesDataFoundException {
-
         return this.getAmount(new YearMonth(day));
-
-
-//        Calendar cal = Calendar.getInstance();
-//        cal.setTime(day);
-//        int year = cal.get(Calendar.YEAR);
-//        int month = cal.get(Calendar.MONTH);
-//        return this.getAmount(year, month + 1);
     }
 
     @Override

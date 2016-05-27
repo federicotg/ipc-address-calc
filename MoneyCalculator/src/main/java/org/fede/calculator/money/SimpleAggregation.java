@@ -43,21 +43,12 @@ public class SimpleAggregation implements Aggregation, MathConstants {
     }
 
     private MoneyAmount avg(List<MoneyAmount> lastValues) {
-        /*BigDecimal sum = ZERO;
-        for (MoneyAmount lastValue : lastValues) {
-            sum = sum.add(lastValue.getAmount());
-        }*/
         return new MoneyAmount(
                 lastValues.stream().map(ma -> ma.getAmount()).reduce(ZERO, (left, right) -> left.add(right))
                 .divide(new BigDecimal(lastValues.size()), CONTEXT), lastValues.get(0).getCurrency());
     }
 
     private MoneyAmount sum(List<MoneyAmount> lastValues) {
-
-        /*BigDecimal sum = ZERO;
-        for (MoneyAmount lastValue : lastValues) {
-            sum = sum.add(lastValue.getAmount());
-        }*/
         return new MoneyAmount(
                 lastValues.stream().map(ma -> ma.getAmount()).reduce(ZERO, (left, right) -> left.add(right)),
                 lastValues.get(0).getCurrency());

@@ -43,9 +43,10 @@ public class LinearFutureValue implements FutureValue, MathConstants {
         if(month > end.getMonth()){
             lastYear--;
         }
-        BigDecimal lastKnownValueForRequestedMonth = series.getIndex(lastYear, month);
+         
         
-        return lastKnownValueForRequestedMonth.multiply(avgAnnualChange);
+        return series.getIndex(lastYear, month) // <-- lastKnownValueForRequestedMonth
+                .multiply(avgAnnualChange);
     }
 
 }
