@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.IndexSeriesSupport;
-import org.fede.calculator.money.series.JSONIndexSeries;
+import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 
@@ -39,27 +39,27 @@ public class ForeignExchanges {
     private static final String USD = "USD";
 
     public static final ForeignExchange USD_ARS = new SimpleForeignExchange(
-            JSONIndexSeries.readSeries("index/peso-dolar-libre.json"),
+            SeriesReader.readIndexSeries("index/peso-dolar-libre.json"),
             USD,
             "ARS");
 
     public static final ForeignExchange USD_XAU = new SimpleForeignExchange(
-            JSONIndexSeries.readSeries("index/gold.json"),
+            SeriesReader.readIndexSeries("index/gold.json"),
             "XAU",
             USD);
 
     public static final ForeignExchange USD_EUR = new SimpleForeignExchange(
-            JSONIndexSeries.readSeries("index/euro-dolar.json"),
+            SeriesReader.readIndexSeries("index/euro-dolar.json"),
             USD,
             "EUR");
 
     public static final ForeignExchange ARS_CONAAFA = new SimpleForeignExchange(
-            JSONIndexSeries.readSeries("index/CONAAFA_AR-peso.json"),
+            SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json"),
             "CONAAFA",
             "ARS");
     
     public static final ForeignExchange ARS_CONBALA = new SimpleForeignExchange(
-            JSONIndexSeries.readSeries("index/CONBALA_AR-peso.json"),
+            SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json"),
             "CONBALA",
             "ARS");
 

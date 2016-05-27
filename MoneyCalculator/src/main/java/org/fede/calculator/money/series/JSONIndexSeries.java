@@ -16,10 +16,6 @@
  */
 package org.fede.calculator.money.series;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
@@ -30,19 +26,6 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  * @author fede
  */
 public class JSONIndexSeries extends IndexSeriesSupport {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    public static IndexSeries readSeries(String name) {
-        try (InputStream is = JSONIndexSeries.class.getResourceAsStream("/" + name)) {
-
-            List<JSONDataPoint> data = MAPPER.readValue(is, new TypeReference<List<JSONDataPoint>>() {
-            });
-            return new JSONIndexSeries(data);
-        } catch (IOException ioEx) {
-            throw new IllegalArgumentException("Could not read series named " + name, ioEx);
-        }
-    }
 
     private final List<JSONDataPoint> data;
 

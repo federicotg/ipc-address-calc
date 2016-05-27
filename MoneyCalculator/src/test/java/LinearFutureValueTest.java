@@ -18,8 +18,8 @@
 import java.math.BigDecimal;
 import java.math.MathContext;
 import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.LinearFutureValue;
+import org.fede.calculator.money.series.SeriesReader;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -59,7 +59,7 @@ public class LinearFutureValueTest {
     public void linear() throws NoSeriesDataFoundException {
 
         assertEquals(new BigDecimal("45.663038248389").round(MathContext.DECIMAL32), new LinearFutureValue().predictValue(
-                JSONIndexSeries.readSeries("linearFutureTestSeries.json"), 
+                SeriesReader.readIndexSeries("linearFutureTestSeries.json"), 
                 1996, 
                 6).round(MathContext.DECIMAL32));
 
