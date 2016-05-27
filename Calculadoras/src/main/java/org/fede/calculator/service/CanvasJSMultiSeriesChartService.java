@@ -42,28 +42,27 @@ import org.fede.util.Util;
  */
 public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService {
 
-    private CanvasJSDatapointAssembler realPesosDatapointAssembler;
-
-    private CanvasJSDatapointAssembler realUSDDatapointAssembler;
-
-    private CanvasJSDatapointAssembler nominalPesosDatapointAssembler;
-
     private static final String TOTAL_SERIES_NAME = "Total";
 
-    private List<ExpenseChartSeriesDTO> series;
-    
-    private List<ExpenseChartSeriesDTO> incomeSeries;
+    private final CanvasJSDatapointAssembler realPesosDatapointAssembler;
 
-    private List<String> colors;
-    
-    
+    private final CanvasJSDatapointAssembler realUSDDatapointAssembler;
+
+    private final CanvasJSDatapointAssembler nominalPesosDatapointAssembler;
+
+    private final List<ExpenseChartSeriesDTO> series;
+
+    private final List<ExpenseChartSeriesDTO> incomeSeries;
+
+    private final List<String> colors;
+
     public CanvasJSMultiSeriesChartService(
             CanvasJSDatapointAssembler realPesosAssembler,
             CanvasJSDatapointAssembler realUSDAssembler,
             CanvasJSDatapointAssembler nominalPesosAssembler,
             List<ExpenseChartSeriesDTO> incomeSeries,
             List<ExpenseChartSeriesDTO> series,
-            List<String> colors){
+            List<String> colors) {
         this.nominalPesosDatapointAssembler = nominalPesosAssembler;
         this.colors = colors;
         this.incomeSeries = incomeSeries;
@@ -71,8 +70,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
         this.realPesosDatapointAssembler = realPesosAssembler;
         this.realUSDDatapointAssembler = realUSDAssembler;
     }
-    
-    
+
     @Override
     public List<ExpenseChartSeriesDTO> getSeries() {
         return series;
@@ -80,23 +78,10 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
     @Override
     public List<ExpenseChartSeriesDTO> getSeriesWithoutTotal() {
-        
+
         return this.getSeries().stream()
                 .filter(dto -> !TOTAL_SERIES_NAME.equals(dto.getName()))
                 .collect(Collectors.toList());
-        
-//        List<ExpenseChartSeriesDTO> list = new ArrayList<>(this.getSeries());
-//        for (Iterator<ExpenseChartSeriesDTO> it = list.iterator(); it.hasNext();) {
-//            if (TOTAL_SERIES_NAME.equals(it.next().getName())) {
-//                it.remove();
-//            }
-//        }
-//        return list;
-    }
-
-    @Override
-    public void setSeries(List<ExpenseChartSeriesDTO> expenseSeries) {
-        this.series = expenseSeries;
     }
 
     private CanvasJSDatapointAssembler getAssemblerFor(String currency) {
@@ -125,13 +110,13 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
             final boolean collectTotal = seriesNames.contains(TOTAL_SERIES_NAME);
 
             Iterator<String> colorIterator = this.colors.iterator();
-            
+
             for (ExpenseChartSeriesDTO s : this.series) {
 
                 if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
 
                     MoneyAmountSeries eachSeries = readSeries(s.getSeriesName()).exchangeInto(currencyCode);
-                    
+
                     if (collectTotal) {
                         if (totalSeries == null) {
                             totalSeries = eachSeries;
@@ -171,7 +156,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
     }
 
     @Override
-    public CanvasJSChartDTO renderIncomeRelativeChart(String chartTitle, int months, List<String> seriesNames, String currencyCode) 
+    public CanvasJSChartDTO renderIncomeRelativeChart(String chartTitle, int months, List<String> seriesNames, String currencyCode)
             throws NoSeriesDataFoundException {
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
         if (seriesNames != null && !seriesNames.isEmpty()) {
@@ -180,7 +165,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
             for (ExpenseChartSeriesDTO s : this.series) {
                 if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
                     MoneyAmountSeries eachSeries = readSeries(s.getSeriesName()).exchangeInto(currencyCode);
-                    
+
                     if (sumSeries == null) {
                         sumSeries = eachSeries;
                     } else {

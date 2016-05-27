@@ -65,11 +65,11 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         MAP.put("ARS", ARS_INFLATION);
     }
 
-    private List<ExpenseChartSeriesDTO> incomeSeries;
+    private final List<ExpenseChartSeriesDTO> incomeSeries;
 
-    private List<String> investmentSeries;
+    private final List<String> investmentSeries;
 
-    private Map<String, List<String>> savingsReportSeries;
+    private final Map<String, List<String>> savingsReportSeries;
 
     public InvestmentServiceImpl(
             List<ExpenseChartSeriesDTO> incomeSeries,

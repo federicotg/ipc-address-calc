@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.web.dto;
 
+import java.util.Objects;
+
 /**
  *
  * @author fede
@@ -49,4 +51,17 @@ public class ExpenseChartSeriesDTO {
     public boolean isTotal(){
         return this.seriesName == null || this.seriesName.length() == 0;
     }
+
+    @Override
+    public int hashCode() {
+        return  79 * 3 + Objects.hashCode(this.seriesName);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof ExpenseChartSeriesDTO
+                && Objects.equals(((ExpenseChartSeriesDTO) obj).getSeriesName() ,this.getSeriesName());
+    }
+    
+    
 }

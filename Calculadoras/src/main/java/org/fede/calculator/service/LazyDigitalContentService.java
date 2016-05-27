@@ -151,24 +151,17 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("La fille mal gardée").ballet().build();
         new Opus.Builder("Legend of Love").by("Arif Malikov").ballet().build();
         new Opus.Builder("Manon").by("Massenet").ballet().build();
-
         new Opus.Builder("La Valse").by("Ravel").ballet().build();
-
         new Opus.Builder("Meditation from Thaïs").by("Jules Massenet").ballet().build();
-
         new Opus.Builder("Voices of Spring").by("Johann Strauss").ballet().build();
-
         new Opus.Builder("Monotones").by("Erik Satie").ballet().build();
         new Opus.Builder("Marguerite and Armand").by("Franz Liszt").ballet().build();
         new Opus.Builder("Sylvia").by("Léo Delibes").ballet().build();
         new Opus.Builder("La Dame Aux Camelias").by("Chopin").ballet().build();
         new Opus.Builder("A Midsummer Night's Dream").by("Felix Mendelssohn").ballet().build();
-
         new Opus.Builder("La Creación").by("Joseph Haydn").ballet().build();
         new Opus.Builder("Ondine").by("Hans Werner Henze").ballet().build();
-
         new Opus.Builder("Anna Karenina", "The Little Humpbacked Horse").by("Rodion Shchedrin").ballet().build();
-
     }
 
     private void initVenues() {
@@ -187,11 +180,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Teatro Comunale di Modena").city("Módena").italy()
                 .latLong(44.646842d, 10.930176d)
                 .build();
-
         new Venue.Builder("Teatro Comunale di Bologna").city("Bologna").italy()
                 .latLong(44.49649d, 11.350486d)
                 .build();
-
         new Venue.Builder("Teatro Rossini").city("Pesaro").italy()
                 .latLong(43.907854d, 12.908755d)
                 .build();
@@ -583,7 +574,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Home Again",
                 "Babylon",
                 "My Struggle II").by("The X-Files Season 10").episode().english().build();
-
     }
 
     private void initBalletVideos() throws ParseException {
@@ -845,7 +835,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(10, 17) // Part I
                 .discBox(11, 17) // Part II
                 .build();
-
     }
 
     private void initOperaVideos() throws ParseException {
@@ -1697,11 +1686,6 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     }
 
-    /*@Override
-    public Iterable<StorageBox> getAllBoxes() {
-        return Repository.STORAGEBOX.findAll();
-    }*/
-
     @Override
     public List<DigitalContentDTO> getFullReport() {
         
@@ -1749,8 +1733,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .map(dc -> toDto(dc))
                 .sorted()
                 .collect(toList());
-        
-
     }
 
     @Override
@@ -1761,7 +1743,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .map(dc -> toDto(dc))
                 .sorted()
                 .collect(toList());
-
     }
 
     @Override
@@ -1853,9 +1834,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @Override
     public List<OpusDTO> unseenBy(String personName) {
-        //Set<DigitalContent> allContent = Repository.DIGITALCONTENT.findAll();
         Person p = Repository.PERSON.findById(personName);
-        //Set<Opus> allOpuses = Repository.OPUS.findAll();
         
         return Repository.DIGITALCONTENT.stream()
                 .filter(dc -> !dc.isSeenBy(p))
@@ -1865,32 +1844,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .map(op -> new OpusDTO(op.getTitle(), op.getType().name()))
                 .sorted(OPUS_COMPARATOR)
                 .collect(toList());
-        
-//        // for each opus remove any game and sport
-//        for (Iterator<Opus> it = allOpuses.iterator(); it.hasNext();) {
-//            Opus opus = it.next();
-//            if (opus.getType() == OpusType.GAME || opus.getType() == OpusType.SPORT) {
-//                it.remove();
-//            }
-//        }
-//
-//        // for each content seen by the specified person, remove it from opuses.
-//        for (DigitalContent dc : allContent) {
-//            if (dc.isSeenBy(p)) {
-//                allOpuses.removeAll(dc.getOpuses());
-//            }
-//        }
-//        
-//        // create dtos
-//        List<OpusDTO> answer = new ArrayList<>(allOpuses.size());
-//        for (Opus o : allOpuses) {
-//            answer.add(new OpusDTO(o.getTitle(), o.getType().name()));
-//        }
-//        
-//        // sort
-//        Collections.sort(answer, OPUS_COMPARATOR);
-//
-//        return answer;
     }
 
     @Override
@@ -1905,27 +1858,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .sorted(OPUS_COMPARATOR)
                 .collect(toList());
         
-//        
-//        Set<Opus> notInHD = Repository.OPUS.findAll();
-//        for (Iterator<Opus> it = notInHD.iterator(); it.hasNext();) {
-//            Opus opus = it.next();
-//            if (opus.getType() == OpusType.GAME || opus.getType() == OpusType.SPORT) {
-//                it.remove();
-//            }
-//        }
-//
-//        for (DigitalContent dc : Repository.DIGITALCONTENT.findAll()) {
-//            if (dc.getQuality() == Quality.HD720 || dc.getQuality() == Quality.HD1080) {
-//                notInHD.removeAll(dc.getOpuses());
-//            }
-//        }
-//
-//        List<OpusDTO> answer = new ArrayList<>(notInHD.size());
-//        for (Opus o : notInHD) {
-//            answer.add(new OpusDTO(o.getTitle(), o.getType().name()));
-//        }
-//        Collections.sort(answer, OPUS_COMPARATOR);
-//        return answer;
     }
 
 }
