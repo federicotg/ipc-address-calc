@@ -52,10 +52,7 @@ public class Pair<A, B> {
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 37 * hash + Objects.hashCode(this.first);
-        hash = 37 * hash + Objects.hashCode(this.second);
-        return hash;
+        return Objects.hash(this.first, this.second);
     }
 
     @Override
