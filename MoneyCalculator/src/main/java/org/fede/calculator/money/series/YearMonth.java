@@ -101,7 +101,7 @@ public class YearMonth implements Comparable<YearMonth> {
         return Date.from(
                 LocalDate.of(this.getYear(), this.getMonth(), 1)
                         .with(TemporalAdjusters.lastDayOfMonth())
-                        .atStartOfDay()
+                        .atTime(12, 00)
                         .toInstant(ZoneOffset.UTC));
         
 //        Calendar cal = Calendar.getInstance();
@@ -115,7 +115,7 @@ public class YearMonth implements Comparable<YearMonth> {
     public Date asDate() {
         return Date.from(
                 LocalDate.of(this.getYear(), this.getMonth(), 1)
-                        .atStartOfDay()
+                        .atTime(12, 00)
                         .toInstant(ZoneOffset.UTC));
 //        Calendar cal = Calendar.getInstance();
 //        cal.set(Calendar.YEAR, this.year);
