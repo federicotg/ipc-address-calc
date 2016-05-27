@@ -39,15 +39,14 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.Investment;
-import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.web.dto.DetailedInvestmentReportDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 import org.fede.calculator.web.dto.InvestmentDTO;
 import org.fede.calculator.web.dto.InvestmentReportDTO;
 import org.fede.calculator.web.dto.SavingsReportDTO;
-import static org.fede.util.Util.read;
 import static org.fede.util.Util.sumSeries;
 
 /**
@@ -88,8 +87,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final MoneyAmountSeries dollarsAndGold = sumSeries("USD", this.savingsReportSeries.get("usd")
                 .toArray(new String[this.savingsReportSeries.get("usd").size()]));
-
-        final IndexSeries dollarPrice = JSONIndexSeries.readSeries(this.savingsReportSeries.get("fx").iterator().next());
+        final IndexSeries dollarPrice = SeriesReader.readIndexSeries(this.savingsReportSeries.get("fx").iterator().next());
 
         final MoneyAmountSeries nominalIncomePesos = sumSeries("ARS", this.incomeSeries);
 
@@ -245,7 +243,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final List<Investment> investments = new ArrayList<>();
         for (String fileName : this.investmentSeries) {
-            investments.addAll(read(fileName, TYPE_REFERENCE));
+            investments.addAll(SeriesReader.read(fileName, TYPE_REFERENCE));
         }
 
         final Inflation inflation = MAP.get(currency);

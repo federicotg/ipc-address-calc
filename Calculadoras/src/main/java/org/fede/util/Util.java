@@ -51,9 +51,8 @@ import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
  */
 public class Util {
 
-    
     private static final Map<String, MoneyAmountSeries> CACHE = new HashMap<>();
-    
+
     private static final Set<String> CONSULTATIO_SERIES;
 
     static {
@@ -90,11 +89,11 @@ public class Util {
         }
         return sumSeries(currency, seriesNames.toArray(new String[seriesNames.size()]));
     }
-    
+
     public static MoneyAmountSeries sumSeries(List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException {
         return sumSeries("USD", dtos);
     }
-   
+
     public static MoneyAmountSeries sumSeries(String currency, String... names) throws NoSeriesDataFoundException {
         if (names.length == 0) {
             throw new IllegalArgumentException("You must at least read one series");
@@ -109,22 +108,14 @@ public class Util {
         return answer;
     }
 
-    public static <T> T read(String name, TypeReference<T> typeReference) {
-        try (InputStream in = Util.class.getResourceAsStream("/" + name);) {
-            return new ObjectMapper().readValue(in, typeReference);
-        } catch (IOException ioEx) {
-            throw new IllegalArgumentException("Could not read investments from resource " + name, ioEx);
-        }
+    public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
+
+        return CACHE.computeIfAbsent(name, (seriesName) -> read(seriesName));
+
     }
 
-   
-    public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
-        
-        MoneyAmountSeries answer = CACHE.get(name);
-        if(answer != null){
-            return answer;
-        }
-        
+    private static MoneyAmountSeries read(String name) {
+
         try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
 
             final ObjectMapper om = new ObjectMapper();
@@ -151,16 +142,14 @@ public class Util {
                 }
                 ym = ym.next();
             }
-            answer = new SortedMapMoneyAmountSeries(currency, interpolatedData);
-            CACHE.put(name, answer);
-            
-            return answer;
-        } catch (IOException ioEx) {
+            return new SortedMapMoneyAmountSeries(currency, interpolatedData);
+
+        } catch (IOException | NoSeriesDataFoundException ioEx) {
             throw new IllegalArgumentException("Could not read series named " + name, ioEx);
         }
+
     }
-    
-    
+
     private static JSONSeries readConsultatioSeries(InputStream is, ObjectMapper om) throws IOException {
 
         List<ConsultatioDataPoint> data = om.readValue(is, new TypeReference<List<ConsultatioDataPoint>>() {
