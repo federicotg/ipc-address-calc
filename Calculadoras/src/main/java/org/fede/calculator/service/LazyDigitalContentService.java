@@ -117,13 +117,17 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("4-01").setSize(22610819214l);
 
         repo.findById("6-01").setSize(23786572018l);
+        repo.findById("6-02").setSize(21757590009l);
+        
+
+        repo.findById("6-04").setSize(21835764224l);
 
         repo.findById("7-03").setSize(24081187584l);
 
         repo.findById("9-01").setSize(23266263358l);
 
         repo.findById("2-02").setSize(22531026141l);
-        
+
         repo.findById("9-08").setSize(21943779127l);
 
     }
@@ -1684,17 +1688,36 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .discBox(8, 9).build();
         }
 
+        for (String title : new String[]{
+            "Paper Hearts",
+            "El Mundo Gira",
+            "Leonard Betts",
+            "Never Again"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(4, 6).build();
+        }
+
+        for (String title : new String[]{
+            "Memento Mori",
+            "Kaddish",
+            "Unrequited",
+            "Tempus Fugit"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(2, 6).build();
+        }
+
     }
 
     @Override
     public List<DigitalContentDTO> getFullReport() {
-        
+
         return DigitalContentRepository.DIGITALCONTENT.stream()
                 .map(dc -> toDto(dc))
                 .sorted()
                 .collect(toList());
     }
-
 
     private static DigitalContentDTO toDto(DigitalContent dc) {
         DigitalContentDTO dto = new DigitalContentDTO();
@@ -1728,8 +1751,8 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @Override
     public List<DigitalContentDTO> getBoxReport(final String boxName) {
-        return DigitalContentRepository.DIGITALCONTENT.stream().filter(dc -> 
-            Repository.STORAGEBOX.stream().filter(box -> box.contains(dc)).anyMatch(box -> box.getName().equals(boxName)))
+        return DigitalContentRepository.DIGITALCONTENT.stream().filter(dc
+                -> Repository.STORAGEBOX.stream().filter(box -> box.contains(dc)).anyMatch(box -> box.getName().equals(boxName)))
                 .map(dc -> toDto(dc))
                 .sorted()
                 .collect(toList());
@@ -1737,7 +1760,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @Override
     public List<DigitalContentDTO> getComposerReport(final String composerName) {
-        
+
         return DigitalContentRepository.DIGITALCONTENT.stream()
                 .filter(dc -> dc.includesComposer(composerName))
                 .map(dc -> toDto(dc))
@@ -1755,12 +1778,12 @@ public class LazyDigitalContentService implements DigitalContentService {
     }
 
     @Override
-    public List<DigitalContentDTO> getVenueReport(final String venueName) {       
+    public List<DigitalContentDTO> getVenueReport(final String venueName) {
         return DigitalContentRepository.DIGITALCONTENT.stream()
                 .filter(dc -> dc.includesVenue(venueName))
                 .map(dc -> toDto(dc))
                 .sorted()
-                .collect(toList());       
+                .collect(toList());
     }
 
     @Override
@@ -1806,16 +1829,16 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @Override
     public List<VenueDTO> getVenues() {
-        
+
         return Repository.VENUE.stream()
                 .map(v -> new VenueDTO(
-                    v.getName(), 
-                    v.getCityName(),
-                    v.getCountryName(),
-                    v.getWikipedia(),
-                    v.getLatLon()))
+                        v.getName(),
+                        v.getCityName(),
+                        v.getCountryName(),
+                        v.getWikipedia(),
+                        v.getLatLon()))
                 .collect(toList());
-        
+
     }
 
     @Override
@@ -1835,7 +1858,7 @@ public class LazyDigitalContentService implements DigitalContentService {
     @Override
     public List<OpusDTO> unseenBy(String personName) {
         Person p = Repository.PERSON.findById(personName);
-        
+
         return Repository.DIGITALCONTENT.stream()
                 .filter(dc -> !dc.isSeenBy(p))
                 .flatMap(dc -> dc.getOpuses().stream())
@@ -1857,7 +1880,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .map(o -> new OpusDTO(o.getTitle(), o.getType().name()))
                 .sorted(OPUS_COMPARATOR)
                 .collect(toList());
-        
+
     }
 
 }
