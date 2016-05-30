@@ -79,7 +79,9 @@ public class StorageMedium {
     }
 
     public BigDecimal getUsedCapacity(){
-        return new BigDecimal(this.getSize()).setScale(4).divide(MAX_CAPACITY, MathContext.DECIMAL128);
+        return new BigDecimal(this.getSize())
+                .setScale(4)
+                .divide(MAX_CAPACITY, MathContext.DECIMAL128);
     }
     
 }
