@@ -37,12 +37,12 @@ import org.springframework.test.context.web.WebAppConfiguration;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {AppConfig.class}, loader=AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = {AppConfig.class}, loader = AnnotationConfigContextLoader.class)
 public class SingleMediaTest {
 
     @Autowired
     private DigitalContentService service;
-    
+
     @Autowired
     private InvestmentService investments;
 
@@ -57,12 +57,11 @@ public class SingleMediaTest {
         assertNotNull(this.service);
         Repository.STORAGE.stream()
                 .filter(disc -> disc.getContents().size() == 1)
-                .forEach(disc -> System.out.println(MessageFormat.format("Disc: {0}", disc.toString())));
-
+                .map(disc -> MessageFormat.format("Disc: {0}", disc.toString()))
+                .forEach(System.out::println);
 
     }
 
-    
 //    @Test
 //    public void report() throws NoSeriesDataFoundException {
 //        List<InvestmentReportDTO> report = this.investments.pastInvestmentsReport("USD").getDetail();
@@ -70,7 +69,6 @@ public class SingleMediaTest {
 //            System.out.println(dto.getInflationPct());
 //        }
 //    }
-
     private boolean isInOneMedium(DigitalContent dc) {
         return Repository.STORAGE.stream()
                 .filter(disc -> disc.contains(dc))
