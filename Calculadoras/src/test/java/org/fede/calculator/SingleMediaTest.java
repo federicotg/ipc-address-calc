@@ -17,16 +17,11 @@
 package org.fede.calculator;
 
 import java.text.MessageFormat;
-import java.util.List;
 import org.fede.calculator.config.AppConfig;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.DigitalContentService;
 import org.fede.calculator.service.InvestmentService;
-import org.fede.calculator.web.dto.InvestmentReportDTO;
 import org.fede.digitalcontent.model.DigitalContent;
 import org.fede.digitalcontent.model.Repository;
-import org.fede.digitalcontent.model.StorageMedium;
-import org.fede.digitalcontent.model.StorageMediumRepository;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
