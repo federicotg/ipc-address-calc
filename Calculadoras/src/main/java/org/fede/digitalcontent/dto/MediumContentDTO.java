@@ -32,6 +32,7 @@ public class MediumContentDTO implements Comparable<MediumContentDTO> {
     private String mediumName;
     private long size;
     private Collection<OpusDTO> opus = new TreeSet<>();
+    private BigDecimal usedCapacity;
 
     public String getMediumName() {
         return mediumName;
@@ -68,6 +69,14 @@ public class MediumContentDTO implements Comparable<MediumContentDTO> {
     
     public BigDecimal getSizeInGB(){
         return new BigDecimal(this.size).setScale(6).divide(BYTES_IN_A_GB, MathContext.DECIMAL32);
+    }
+
+    public BigDecimal getUsedCapacity() {
+        return usedCapacity;
+    }
+
+    public void setUsedCapacity(BigDecimal usedCapacity) {
+        this.usedCapacity = usedCapacity;
     }
 
 }

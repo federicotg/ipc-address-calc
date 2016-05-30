@@ -16,6 +16,8 @@
  */
 package org.fede.digitalcontent.model;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,6 +27,8 @@ import java.util.Set;
  * @author fede
  */
 public class StorageMedium {
+    
+    private static final BigDecimal MAX_CAPACITY = new BigDecimal("24220008448");
 
     private String name;
     
@@ -75,6 +79,9 @@ public class StorageMedium {
     public long getSize() {
         return size;
     }
-    
+
+    public BigDecimal getUsedCapacity(){
+        return new BigDecimal(this.getSize()).setScale(4).divide(MAX_CAPACITY, MathContext.DECIMAL128);
+    }
     
 }

@@ -118,9 +118,9 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         repo.findById("6-01").setSize(23786572018l);
         repo.findById("6-02").setSize(21757590009l);
-        
 
         repo.findById("6-04").setSize(21835764224l);
+        repo.findById("6-06").setSize(22990817875l);
 
         repo.findById("7-03").setSize(24081187584l);
 
@@ -1708,6 +1708,17 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .discBox(2, 6).build();
         }
 
+        for (String title : new String[]{
+            "Max",
+            "Synchrony",
+            "Small Potatoes",
+            "Zero Sum",
+            "Elegy"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(6, 6).build();
+        }
+
     }
 
     @Override
@@ -1809,6 +1820,7 @@ public class LazyDigitalContentService implements DigitalContentService {
             final MediumContentDTO mDto = new MediumContentDTO();
             mDto.setMediumName(medium.getName());
             mDto.setSize(medium.getSize());
+            mDto.setUsedCapacity(medium.getUsedCapacity());
             for (DigitalContent dc : medium.getContents()) {
                 for (Performance p : dc.getPerformances()) {
                     mDto.addOpus(p.getDetailedTitle(), p.getOpusType().name());

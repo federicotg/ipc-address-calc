@@ -67,7 +67,7 @@
             <h2><a id="${boxLabel.boxName}">Caja ${boxLabel.boxName}</a> <span class="gotop"><fmt:formatNumber minFractionDigits="2" maxFractionDigits="2" groupingUsed="true">${boxLabel.sizeInGB}</fmt:formatNumber>  <abbr title="Gibibyte">GiB</abbr> <a href="#top">Volver al principio</a></span></h2>
             <ul>
                 <c:forEach items="${boxLabel.contents}" var="medium">
-                    <li>${medium.mediumName} <span class="gotop"><fmt:formatNumber minFractionDigits="2" maxFractionDigits="2" groupingUsed="true">${medium.sizeInGB}</fmt:formatNumber> GiB</span> 
+                    <li>${medium.mediumName} <span class="gotop"><fmt:formatNumber minFractionDigits="2" maxFractionDigits="2" groupingUsed="true">${medium.sizeInGB}</fmt:formatNumber> GiB (<fmt:formatNumber type="percent" minFractionDigits="2" maxFractionDigits="2">${medium.usedCapacity}</fmt:formatNumber>)</span>
                         <c:forEach items="${medium.opus}" var="op" varStatus="status">
                             <span class="opusSpan ${op.type}">${op.name}</span><c:if test="${not status.last}"> </c:if>
                         </c:forEach>
