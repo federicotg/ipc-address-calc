@@ -30,15 +30,15 @@ import java.util.stream.Stream;
  */
 public class Performance {
 
-    private Opus opus;
+    private final Opus opus;
 
-    private Venue venue;
+    private final Venue venue;
 
-    private Date date;
+    private final Date date;
 
-    private Set<Role> roles;
+    private final Set<Role> roles;
 
-    private Set<WebResource> resources;
+    private final Set<WebResource> resources;
 
     public Performance(Opus opus, Venue venue, Date date) {
         this.opus = opus;
@@ -52,41 +52,41 @@ public class Performance {
         return venue;
     }
 
-    public void setVenue(Venue venue) {
+    /*public void setVenue(Venue venue) {
         this.venue = venue;
-    }
+    }*/
 
     public Date getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    /*public void setDate(Date date) {
         this.date = date;
-    }
+    }*/
 
     public Set<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<Role> roles) {
+    /*public void setRoles(Set<Role> roles) {
         this.roles = roles;
-    }
+    }*/
 
     public Opus getOpus() {
         return opus;
     }
 
-    public void setOpus(Opus opus) {
+    /*public void setOpus(Opus opus) {
         this.opus = opus;
-    }
+    }*/
 
     private Set<WebResource> getResources() {
         return resources;
     }
 
-    public void setResources(Set<WebResource> resources) {
+    /*public void setResources(Set<WebResource> resources) {
         this.resources = resources;
-    }
+    }*/
 
     public void addSinger(Person singer) {
         this.roles.add(new Role(singer, RoleType.SINGER));
@@ -101,12 +101,18 @@ public class Performance {
     }
 
     public String getImdb() {
-        for (WebResource r : this.getResources()) {
+        return this.getResources().stream()
+                .filter(r -> r.getType().equals(WebResourceType.IMDB))
+                .map(r -> r.getUri())
+                .findFirst()
+                .orElse(null);
+        
+        /*for (WebResource r : this.getResources()) {
             if (r.getType().equals(WebResourceType.IMDB)) {
                 return r.getUri();
             }
         }
-        return null;
+        return null;*/
     }
 
     public Language getLanguage() {
@@ -122,12 +128,15 @@ public class Performance {
     }
 
     public boolean isSeenBy(Person p) {
-        for (Role r : this.roles) {
-            if (r.getType().equals(RoleType.VIEWER) && r.getPerson().equals(p)) {
-                return true;
-            }
-        }
-        return false;
+        return this.roles.stream()
+                .anyMatch(r -> r.getType().equals(RoleType.VIEWER) && r.getPerson().equals(p));
+        
+//        for (Role r : this.roles) {
+//            if (r.getType().equals(RoleType.VIEWER) && r.getPerson().equals(p)) {
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     public String getTitle() {
@@ -136,60 +145,46 @@ public class Performance {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 67 * hash + Objects.hashCode(this.opus);
-        hash = 67 * hash + Objects.hashCode(this.venue);
-        hash = 67 * hash + Objects.hashCode(this.date);
-        return hash;
+        return Objects.hash(this.opus, this.venue, this.date);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
+        if (obj instanceof Performance) {
+            final Performance other = (Performance) obj;
+            return Objects.equals(this.opus, other.opus) 
+                    && Objects.equals(this.venue, other.venue) 
+                    && Objects.equals(this.date, other.date);
         }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Performance other = (Performance) obj;
-        if (!Objects.equals(this.opus, other.opus)) {
-            return false;
-        }
-        if (!Objects.equals(this.venue, other.venue)) {
-            return false;
-        }
-        return Objects.equals(this.date, other.date);
+        return false;
     }
 
     @Override
     public String toString() {
-        return this.opus.toString() 
-                + (this.venue == null ? "": " @ " + this.venue.toString()) 
-                + (this.date == null ? "" : " on " + this.date.toString());
+        return new StringBuilder(100)
+                .append(this.opus.toString())
+                .append(this.venue == null ? "" : " @ " + this.venue.toString())
+                .append(this.date == null ? "" : " on " + DateFormat.getDateInstance(DateFormat.SHORT).format(this.date))
+                .toString();
+        
+        
     }
 
     public boolean includesComposer(String name) {
         return this.getMusicComposers().anyMatch(composer -> composer.getName().equals(name));
-//        for (Person composer : this.getMusicComposers()) {
-//            if (composer.getName().equals(name)) {
-//                return true;
-//            }
-//        }
-//        return false;
     }
 
     public String getDetailedTitle() {
         DateFormat yearFormat = new SimpleDateFormat("yyyy");
-
         Venue v = this.getVenue();
         Date d = this.getDate();
-        StringBuilder sb = new StringBuilder(30);
-        sb.append(this.getTitle())
+        return new StringBuilder(30)
+                .append(this.getTitle())
                 .append(v != null ? " @ ":"")
                 .append(v != null ? v.getName() : "")
                 .append(d != null ? " (":"")
                 .append(d != null ? yearFormat.format(d) : "")
-                .append(d != null ? ")":"");
-        return sb.toString();
+                .append(d != null ? ")":"")
+                .toString();
     }
 }

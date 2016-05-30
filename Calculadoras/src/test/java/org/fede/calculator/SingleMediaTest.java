@@ -26,6 +26,7 @@ import org.fede.calculator.web.dto.InvestmentReportDTO;
 import org.fede.digitalcontent.model.DigitalContent;
 import org.fede.digitalcontent.model.Repository;
 import org.fede.digitalcontent.model.StorageMedium;
+import org.fede.digitalcontent.model.StorageMediumRepository;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
@@ -58,26 +59,22 @@ public class SingleMediaTest {
     //
     @Test
     public void singles() {
-
         assertNotNull(this.service);
+        Repository.STORAGE.stream()
+                .filter(disc -> disc.getContents().size() == 1)
+                .forEach(disc -> System.out.println(MessageFormat.format("Disc: {0}", disc.toString())));
 
-//        for (StorageMedium disc : Repository.STORAGE.findAll()) {
-//            DigitalContent dc = disc.getContents().iterator().next();
-//            if (disc.getContents().size() == 1 && this.isInOneMedium(dc)) {
-//                System.out.println(MessageFormat.format("{0}\t{1}", disc.getName(), dc.toString()));
-//            }
-//        }
 
     }
 
     
-    //@Test
-    public void report() throws NoSeriesDataFoundException {
-        List<InvestmentReportDTO> report = this.investments.pastInvestmentsReport("USD").getDetail();
-        for(InvestmentReportDTO dto : report){
-            System.out.println(dto.getInflationPct());
-        }
-    }
+//    @Test
+//    public void report() throws NoSeriesDataFoundException {
+//        List<InvestmentReportDTO> report = this.investments.pastInvestmentsReport("USD").getDetail();
+//        for(InvestmentReportDTO dto : report){
+//            System.out.println(dto.getInflationPct());
+//        }
+//    }
 
     private boolean isInOneMedium(DigitalContent dc) {
         return Repository.STORAGE.stream()

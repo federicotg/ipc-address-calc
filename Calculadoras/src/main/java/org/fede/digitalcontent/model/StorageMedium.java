@@ -69,7 +69,7 @@ public class StorageMedium {
 
     @Override
     public String toString() {
-        return contents.toString();
+        return this.getName() + " " + contents.toString();
     }
 
     public void setSize(long bytes){
