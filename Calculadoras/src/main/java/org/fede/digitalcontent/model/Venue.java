@@ -119,7 +119,7 @@ public class Venue {
 
     }
 
-    private String name;
+    private final String name;
 
     private City city;
 
@@ -143,9 +143,9 @@ public class Venue {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+//    public void setName(String name) {
+//        this.name = name;
+//    }
 
     public Set<WebResource> getResources() {
         return resources;

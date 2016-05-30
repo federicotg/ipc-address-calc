@@ -30,36 +30,34 @@ public class StorageMedium {
     
     private static final BigDecimal MAX_CAPACITY = new BigDecimal("24220008448");
 
-    private String name;
+    private final String name;
     
     private long size;
 
-    private Set<DigitalContent> contents;
+    private final Set<DigitalContent> contents;
 
     StorageMedium(String name) {
         this.name = name;
+        this.contents = new HashSet<>();
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+//    public void setName(String name) {
+//        this.name = name;
+//    }
 
     public Set<DigitalContent> getContents() {
         return contents;
     }
 
-    public void setContents(Set<DigitalContent> contents) {
-        this.contents = contents;
-    }
+//    public void setContents(Set<DigitalContent> contents) {
+//        this.contents = contents;
+//    }
 
     public void addContent(DigitalContent content) {
-        if (this.contents == null) {
-            this.contents = new HashSet<>();
-        }
         this.contents.add(content);
     }
 

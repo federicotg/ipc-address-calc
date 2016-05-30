@@ -23,9 +23,9 @@ package org.fede.digitalcontent.model;
 
 public class City {
 
-    private String name;
+    private final String name;
 
-    private Country country;
+    private final Country country;
     
     public City(String name, Country country) {
         this.name = name;
@@ -36,17 +36,17 @@ public class City {
         return country;
     }
 
-    public void setCountry(Country country) {
-        this.country = country;
-    }
+//    public void setCountry(Country country) {
+//        this.country = country;
+//    }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+//    public void setName(String name) {
+//        this.name = name;
+//    }
     public String getCountryName(){
         return this.country.name();
     }

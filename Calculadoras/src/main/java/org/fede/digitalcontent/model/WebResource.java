@@ -18,17 +18,15 @@ package org.fede.digitalcontent.model;
 
 import java.util.Objects;
 
-
 /**
  *
  * @author fede
  */
+public class WebResource {
 
-public class WebResource  {
+    private final String uri;
 
-    private String uri;
-
-    private WebResourceType type;
+    private final WebResourceType type;
 
     WebResource(String uri, WebResourceType type) {
         this.uri = uri;
@@ -39,37 +37,25 @@ public class WebResource  {
         return uri;
     }
 
-    public void setUri(String uri) {
-        this.uri = uri;
-    }
-
+//    public void setUri(String uri) {
+//        this.uri = uri;
+//    }
     public WebResourceType getType() {
         return type;
     }
 
-    public void setType(WebResourceType type) {
-        this.type = type;
-    }
-
+//    public void setType(WebResourceType type) {
+//        this.type = type;
+//    }
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 23 * hash + Objects.hashCode(this.uri);
-        return hash;
+        return 23 * 3 + Objects.hashCode(this.uri);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final WebResource other = (WebResource) obj;
-        return Objects.equals(this.uri, other.uri);
+        return obj instanceof WebResource
+                && Objects.equals(this.uri, ((WebResource) obj).uri);
     }
 
-    
-    
 }

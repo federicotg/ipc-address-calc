@@ -376,9 +376,8 @@ public class DigitalContent {
     public String getImdb() {
         return this.performances.iterator().next().getImdb();
     }
-    
-    
-    private <E> Set<E> collect(Function<Performance, E> transform){
+
+    private <E> Set<E> collect(Function<Performance, E> transform) {
         return this.performances.stream()
                 .map(transform)
                 .filter(Objects::nonNull)
@@ -387,92 +386,37 @@ public class DigitalContent {
 
     public Set<Language> getLanguages() {
         return this.collect(p -> p.getLanguage());
-        
-//        Set<Language> langs = new HashSet<>();
-//        for (Performance p : this.performances) {
-//            Language l = p.getLanguage();
-//            if (l != null) {
-//                langs.add(l);
-//            }
-//        }
-//        return langs;
     }
 
     public Set<Person> getMusicComposers() {
-        
+
         return this.performances.stream()
                 .flatMap(p -> p.getMusicComposers())
                 .collect(Collectors.toSet());
-        
-//        Set<Person> composers = new HashSet<>();
-//        for (Performance p : this.performances) {
-//            composers.addAll(p.getMusicComposers());
-//        }
-//        return composers;
     }
 
     public Set<OpusType> getOpusTypes() {
-        
-        return this.collect(p-> p.getOpusType());
-        
-//        Set<OpusType> types = new HashSet<>();
-//        for (Performance p : this.performances) {
-//            types.add(p.getOpusType());
-//        }
-//        return types;
+        return this.collect(p -> p.getOpusType());
     }
 
     public boolean isSeenBy(Person person) {
-        
         return this.performances.stream().allMatch(p -> p.isSeenBy(person));
-        
-//        boolean seen = true;
-//        for (Performance p : this.performances) {
-//            seen &= p.isSeenBy(person);
-//        }
-//        return seen;
     }
 
     public Set<String> getTitles() {
-        
         return this.collect(p -> p.getTitle());
-        
-//        Set<String> titles = new HashSet<>();
-//        for (Performance p : this.performances) {
-//            titles.add(p.getTitle());
-//        }
-//        return titles;
     }
 
     public Set<Opus> getOpuses() {
-        
         return this.collect(p -> p.getOpus());
-        
-//        Set<Opus> answer = new HashSet<>();
-//        for (Performance p : this.performances) {
-//            answer.add(p.getOpus());
-//        }
-//        return answer;
     }
 
     public Set<String> getDetailedTitles() {
         return this.collect(p -> p.getDetailedTitle());
-//        Set<String> titles = new HashSet<>();
-//        for (Performance p : this.performances) {
-//            titles.add(p.getDetailedTitle());
-//        }
-//        return titles;
     }
 
     public Set<Venue> getVenues() {
-        
         return this.collect(p -> p.getVenue());
-//        
-//        Set<Venue> venues = new HashSet<>();
-//        for (Performance p : this.performances) {
-//            venues.add(p.getVenue());
-//        }
-//        return venues;
     }
 
     @Override
@@ -482,23 +426,14 @@ public class DigitalContent {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
+        if (obj instanceof DigitalContent) {
+            final DigitalContent other = (DigitalContent) obj;
+            return Objects.equals(this.performances, other.performances)
+                    && Objects.equals(this.quality, other.quality)
+                    && Objects.equals(this.format, other.format)
+                    && Objects.equals(this.subtitle, other.subtitle);
         }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final DigitalContent other = (DigitalContent) obj;
-        if (!Objects.equals(this.performances, other.performances)) {
-            return false;
-        }
-        if (this.quality != other.quality) {
-            return false;
-        }
-        if (this.format != other.format) {
-            return false;
-        }
-        return this.subtitle == other.subtitle;
+        return false;
     }
 
     @Override
@@ -507,9 +442,9 @@ public class DigitalContent {
     }
 
     public boolean includesOpus(String opusName) {
-        
+
         return this.performances.stream().anyMatch(p -> p.getOpus().getTitle().equals(opusName));
-        
+
 //        for (Performance p : this.performances) {
 //            if (p.getOpus().getTitle().equals(opusName)) {
 //                return true;
@@ -519,10 +454,10 @@ public class DigitalContent {
     }
 
     public boolean includesVenue(String venueName) {
-        
+
         return this.performances.stream()
                 .anyMatch(p -> Optional.ofNullable(p.getVenue()).map(venue -> venue.getName().equals(venueName)).orElse(false));
-        
+
 //        for (Performance p : this.performances) {
 //            if (Optional.ofNullable(p.getVenue()).map(venue -> venue.getName().equals(venueName)).orElse(false)) {
 //                return true;
@@ -532,9 +467,9 @@ public class DigitalContent {
     }
 
     public boolean includesComposer(String name) {
-        
+
         return this.performances.stream().anyMatch(p -> p.includesComposer(name));
-        
+
 //        for (Performance p : this.performances) {
 //            if (p.includesComposer(name)) {
 //                return true;

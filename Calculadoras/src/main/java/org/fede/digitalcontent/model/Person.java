@@ -25,7 +25,7 @@ import java.util.Set;
  */
 public class Person {
 
-    private String name;
+    private final String name;
 
     private Set<WebResource> resources;
 
@@ -37,10 +37,9 @@ public class Person {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
+//    public void setName(String name) {
+//        this.name = name;
+//    }
     public Set<WebResource> getResources() {
         return resources;
     }
@@ -56,23 +55,13 @@ public class Person {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 79 * hash + Objects.hashCode(this.name);
-        return hash;
+        return 79 * 7 + Objects.hashCode(this.name);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Person other = (Person) obj;
-        return Objects.equals(this.name, other.name);
+        return obj instanceof Person
+                && Objects.equals(this.name, ((Person) obj).name);
     }
-    
-    
 
 }

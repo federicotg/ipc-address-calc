@@ -179,15 +179,15 @@ public class Opus {
 
     }
 
-    private String title;
+    private final String title;
 
     private OpusType type;
 
     private Language language;
 
-    private Set<Role> authors;
+    private final Set<Role> authors;
 
-    private Set<WebResource> resources;
+    private final Set<WebResource> resources;
 
     private Opus(String title) {
         this.title = title;
@@ -199,9 +199,9 @@ public class Opus {
         return title;
     }
 
-    public void setTitle(String title) {
+    /*public void setTitle(String title) {
         this.title = title;
-    }
+    }*/
 
     public OpusType getType() {
         return type;
@@ -223,17 +223,17 @@ public class Opus {
         return authors;
     }
 
-    public void setAuthors(Set<Role> authors) {
+    /*public void setAuthors(Set<Role> authors) {
         this.authors = authors;
-    }
+    }*/
 
     public Set<WebResource> getResources() {
         return resources;
     }
 
-    public void setResources(Set<WebResource> resources) {
+    /*public void setResources(Set<WebResource> resources) {
         this.resources = resources;
-    }
+    }*/
 
     public void addPerson(RoleType roleType, Person person) {
         this.authors.add(new Role(person, roleType));
@@ -259,25 +259,14 @@ public class Opus {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + Objects.hashCode(this.title);
-        hash = 97 * hash + Objects.hashCode(this.type);
-        return hash;
+        return Objects.hash(this.title, this.type);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Opus other = (Opus) obj;
-        if (!Objects.equals(this.title, other.title)) {
-            return false;
-        }
-        return this.type == other.type;
+        return obj instanceof Opus
+                && Objects.equals(this.title, ((Opus) obj).title)
+                && Objects.equals(this.type, ((Opus) obj).type);
     }
 
     @Override

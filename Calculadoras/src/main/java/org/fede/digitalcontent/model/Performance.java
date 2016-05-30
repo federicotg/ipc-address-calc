@@ -166,8 +166,6 @@ public class Performance {
                 .append(this.venue == null ? "" : " @ " + this.venue.toString())
                 .append(this.date == null ? "" : " on " + DateFormat.getDateInstance(DateFormat.SHORT).format(this.date))
                 .toString();
-        
-        
     }
 
     public boolean includesComposer(String name) {

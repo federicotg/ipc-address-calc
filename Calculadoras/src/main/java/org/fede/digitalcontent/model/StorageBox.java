@@ -18,7 +18,9 @@ package org.fede.digitalcontent.model;
 
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * A box holding a particular set of CD, DVD or BD-R.
@@ -27,43 +29,41 @@ import java.util.Set;
  */
 public class StorageBox {
 
-    private String name;
+    private final String name;
 
-    private Set<StorageMedium> media;
+    private final Set<StorageMedium> media;
 
     StorageBox(String name) {
         this.name = name;
+        this.media = new HashSet<>();
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
+//    public void setName(String name) {
+//        this.name = name;
+//    }
     public Set<StorageMedium> getMedia() {
         return media;
     }
 
-    public void setMedia(Set<StorageMedium> media) {
-        this.media = media;
-    }
+//    public void setMedia(Set<StorageMedium> media) {
+//        this.media = media;
+//    }
 
     public void addStorageMedium(StorageMedium medium) {
-        if (this.media == null) {
-            this.media = new HashSet<>();
-        }
         this.media.add(medium);
     }
 
     public boolean contains(DigitalContent dc) {
-        boolean answer = false;
-        for (StorageMedium m : this.media) {
-            answer |= m.contains(dc);
-        }
-        return answer;
+        return this.media.stream().anyMatch(m -> m.contains(dc));
+//        boolean answer = false;
+//        for (StorageMedium m : this.media) {
+//            answer |= m.contains(dc);
+//        }
+//        return answer;
     }
 
     @Override
@@ -73,34 +73,21 @@ public class StorageBox {
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 37 * hash + Objects.hashCode(this.name);
-        return hash;
+        return 37 * 5 + Objects.hashCode(this.name);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final StorageBox other = (StorageBox) obj;
-        return Objects.equals(this.name, other.name);
+        return obj instanceof StorageBox
+                && Objects.equals(this.name, ((StorageBox) obj).name);
     }
-    
-    public long size(){
-        if(this.media == null){
-            return 0l;
-        }
-        
-        long size = 0l;
-        for(StorageMedium m : this.media){
-            size += m.getSize();
-        }
-        
-        return size;
+
+    public long size() {
+        return Optional.ofNullable(this.media)
+                .map(set -> set.stream())
+                .orElse(Stream.empty())
+                .mapToLong(m -> m.getSize())
+                .sum();
     }
 
 }
