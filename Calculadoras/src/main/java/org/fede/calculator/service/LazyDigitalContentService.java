@@ -101,7 +101,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("11-10").setSize(8425758288l);
         repo.findById("11-11").setSize(8104299674l);
         repo.findById("11-12").setSize(8262949279l);
-
         repo.findById("18-01").setSize(23809270814l);
         repo.findById("18-06").setSize(23873717071l);
         repo.findById("18-07").setSize(22683178310l);
@@ -110,24 +109,17 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("18-10").setSize(22915434845l);
         repo.findById("18-11").setSize(22959785253l);
         repo.findById("18-12").setSize(22906853814l);
-
         repo.findById("3-09").setSize(23744018119l);
         repo.findById("3-10").setSize(24090135203l);
-
         repo.findById("4-01").setSize(22610819214l);
-
         repo.findById("6-01").setSize(23786572018l);
         repo.findById("6-02").setSize(21757590009l);
-
         repo.findById("6-04").setSize(21835764224l);
+        repo.findById("6-05").setSize(24274800905l);        
         repo.findById("6-06").setSize(22990817875l);
-
         repo.findById("7-03").setSize(24081187584l);
-
         repo.findById("9-01").setSize(23266263358l);
-
         repo.findById("2-02").setSize(22531026141l);
-
         repo.findById("9-08").setSize(21943779127l);
 
     }
@@ -454,6 +446,15 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .english()
                 .imdb("http://www.imdb.com/title/tt0443701/")
                 .build();
+        
+        
+        new Opus.Builder("The X-Files: Fight the Future")
+                .by("The X-Files")
+                .movie()
+                .english()
+                .imdb("http://www.imdb.com/title/tt0120902/")
+                .build();
+        
 
         new Opus.Builder(
                 "Extras Season 1",
@@ -570,6 +571,15 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Folie à Deux",
                 "The End"
         ).by("The X-Files Season 5").episode().english().build();
+        
+        
+         new Opus.Builder(
+                "The Beginning",
+                 "Drive", 
+                 "Triangle"
+                
+        ).by("The X-Files Season 6").episode().english().build();
+        
 
         new Opus.Builder(
                 "My Struggle",
@@ -1718,6 +1728,22 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .seenByFede()
                     .discBox(6, 6).build();
         }
+
+        for (String title : new String[]{"Demons", "Gethsemane", "The End", "The Beginning"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(5, 6)
+                    .build();
+        }
+
+        new DigitalContent.Builder("The X-Files: Fight the Future")
+                .type(OpusType.MOVIE)
+                .fullHD()
+                .spaSubs()
+                .mkv()
+                .seenByFede()
+                .discBox(5, 6)
+                .build();
 
     }
 
