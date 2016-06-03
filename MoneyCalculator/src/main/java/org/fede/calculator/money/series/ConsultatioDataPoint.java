@@ -27,7 +27,10 @@ import java.util.Date;
  */
 public class ConsultatioDataPoint {
     
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING, 
+            pattern = "yyyy-MM-dd", 
+            timezone = "America/Argentina/Buenos_Aires")
     @JsonProperty(value = "fecha")
     private Date date;
     
@@ -35,11 +38,11 @@ public class ConsultatioDataPoint {
     private BigDecimal value;
 
     public Date getDate() {
-        return new Date(date.getTime());
+        return this.date;
     }
 
     public void setDate(Date date) {
-        this.date = new Date(date.getTime());
+        this.date = date;
     }
 
     public BigDecimal getValue() {
