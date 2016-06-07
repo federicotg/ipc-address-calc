@@ -180,6 +180,7 @@
                         </resource>
                     </webResources>
                     <warSourceExcludes>**/accounting.js,**/canvasjs.js,**/charts.js,**/style.css</warSourceExcludes>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
             
