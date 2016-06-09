@@ -24,6 +24,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.security.authentication.encoding.ShaPasswordEncoder;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
@@ -49,7 +50,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests().antMatchers("/secure/**").access("isFullyAuthenticated()")
                 .and().formLogin().loginPage("/loginPage").loginProcessingUrl("/login")
                 .and().headers().contentTypeOptions().disable()
-                .and().logout().logoutUrl("/logout").logoutSuccessUrl("/").invalidateHttpSession(true);
+                .and().logout().logoutUrl("/logout").logoutSuccessUrl("/").invalidateHttpSession(true)
+                .and().rememberMe().useSecureCookie(true);
     }
 
     @Override

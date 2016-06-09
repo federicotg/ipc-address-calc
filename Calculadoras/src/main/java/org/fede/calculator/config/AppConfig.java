@@ -70,7 +70,7 @@ public class AppConfig {
             new ExpenseChartSeriesDTO("Cablevisión", "expense/cablevision.json"),
             new ExpenseChartSeriesDTO("Celular A.", "expense/celular-a.json"),
             new ExpenseChartSeriesDTO("Celular F.", "expense/celular-f.json"),
-            new ExpenseChartSeriesDTO("Cablevisión", "expense/contadora.json"),
+            new ExpenseChartSeriesDTO("Contadora", "expense/contadora.json"),
             new ExpenseChartSeriesDTO("Gas", "expense/gas.json"),
             new ExpenseChartSeriesDTO("Inmobiliario", "expense/inmobiliario-43.json"),
             new ExpenseChartSeriesDTO("IOMA", "expense/ioma.json"),
