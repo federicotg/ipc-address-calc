@@ -28,6 +28,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 import static org.fede.util.Util.readSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
+import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.web.dto.CanvasJSAxisDTO;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
@@ -177,8 +178,11 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
             final MoneyAmountSeries totalIncome = Util.sumSeries("ARS", this.incomeSeries);
             final MoneyAmountSeries percentSeries = new SortedMapMoneyAmountSeries(sumSeries.getCurrency());
             sumSeries.forEach((int year, int month, MoneyAmount expensesSum) -> {
-                MoneyAmount incomeValue = totalIncome.getAmount(year, month);
-                if (incomeValue != null) {
+
+                if (totalIncome.getTo().compareTo(new YearMonth(year, month)) >= 0) {
+
+                    MoneyAmount incomeValue = totalIncome.getAmount(year, month);
+                    //if (incomeValue != null) {
                     percentSeries.putAmount(
                             year,
                             month,

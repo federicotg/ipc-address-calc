@@ -155,5 +155,18 @@ public class IndexTest {
         }
     }
 
+    
+        
+    @Test
+    
+    public void realUSD() throws NoSeriesDataFoundException{
+        MoneyAmountSeries usd = Util.readSeries("saving/ahorros-dolar.json");
+        
+        MoneyAmount x = usd.getAmount(2016, 5);
+        assertEquals("USD", x.getCurrency());
+        assertEquals(0, x.getAmount().compareTo(new BigDecimal("76203.5")));
+        
+        assertEquals(x, Inflation.USD_INFLATION.adjust(x, 2015, 5, 2015, 5));
+    }
         
 }
