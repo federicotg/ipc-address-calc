@@ -117,12 +117,14 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("6-01").setSize(23786572018l);
         repo.findById("6-02").setSize(21757590009l);
         repo.findById("6-04").setSize(21835764224l);
-        repo.findById("6-05").setSize(24274800905l);        
+        repo.findById("6-05").setSize(24274800905l);
         repo.findById("6-06").setSize(22990817875l);
         repo.findById("7-03").setSize(24081187584l);
         repo.findById("9-01").setSize(23266263358l);
         repo.findById("2-02").setSize(22531026141l);
         repo.findById("9-08").setSize(21943779127l);
+        repo.findById("9-03").setSize(24070972740l);
+        repo.findById("9-02").setSize(23815613711l);
 
     }
 
@@ -448,15 +450,13 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .english()
                 .imdb("http://www.imdb.com/title/tt0443701/")
                 .build();
-        
-        
+
         new Opus.Builder("The X-Files: Fight the Future")
                 .by("The X-Files")
                 .movie()
                 .english()
                 .imdb("http://www.imdb.com/title/tt0120902/")
                 .build();
-        
 
         new Opus.Builder(
                 "Extras Season 1",
@@ -573,15 +573,31 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Folie à Deux",
                 "The End"
         ).by("The X-Files Season 5").episode().english().build();
-        
-        
-         new Opus.Builder(
+
+        new Opus.Builder(
                 "The Beginning",
-                 "Drive", 
-                 "Triangle"
-                
+                "Drive",
+                "Triangle",
+                "Dreamland",
+                "Dreamland II",
+                "How the Ghosts Stole Christmas",
+                "Terms of Endearment",
+                "The Rain King",
+                "S.R. 819",
+                "Tithonus",
+                "Two Fathers",
+                "One Son",
+                "Agua Mala",
+                "Monday",
+                "Arcadia",
+                "Alpha",
+                "Trevor",
+                "Milagro",
+                "The Unnatural",
+                "Three of a Kind",
+                "Field Trip",
+                "Biogenesis"
         ).by("The X-Files Season 6").episode().english().build();
-        
 
         new Opus.Builder(
                 "My Struggle",
@@ -1757,7 +1773,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .seenByFede()
                     .discBox(3, 9)
                     .build();
-    }
+        }
 
         for (String title : new String[]{
             "Terms of Endearment",
@@ -1768,6 +1784,17 @@ public class LazyDigitalContentService implements DigitalContentService {
             new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
                     .seenByFede()
                     .discBox(2, 9)
+                    .build();
+        }
+        for (String title : new String[]{
+            "One Son",
+            "Agua Mala",
+            "Monday",
+            "Arcadia",
+            "Alpha"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(6, 7)
                     .build();
         }
 
