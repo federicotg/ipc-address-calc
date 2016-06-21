@@ -28,7 +28,8 @@ import java.util.Set;
  */
 public class StorageMedium {
     
-    private static final BigDecimal MAX_CAPACITY = new BigDecimal("24274800905");
+    //private static final BigDecimal MAX_CAPACITY = new BigDecimal("24274800905");
+    private static final BigDecimal MAX_CAPACITY = new BigDecimal("24694593073");
 
     private final String name;
     

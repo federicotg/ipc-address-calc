@@ -93,6 +93,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         //            box-disc
         repo.findById("2-02").setSize(22531026141l);
 
+        repo.findById("3-01").setSize(24368806526l);
+        repo.findById("3-03").setSize(24694593073l);
+        repo.findById("3-04").setSize(24458124937l);
+
         repo.findById("3-06").setSize(23970086889l);
         repo.findById("3-09").setSize(23744018119l);
         repo.findById("3-10").setSize(24090135203l);
@@ -107,6 +111,8 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         repo.findById("7-03").setSize(24081187584l);
         repo.findById("7-06").setSize(24021160209l);
+        repo.findById("7-07").setSize(24607263188l);
+        
 
         repo.findById("9-01").setSize(23266263358l);
         repo.findById("9-02").setSize(23815613711l);
@@ -605,8 +611,31 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "The Unnatural",
                 "Three of a Kind",
                 "Field Trip",
-                "Biogenesis"
-        ).by("The X-Files Season 6").episode().english().build();
+                "Biogenesis").by("The X-Files Season 6").episode().english().build();
+
+        new Opus.Builder(
+                "The Sixth Extinction",
+                "The Sixth Extinction II: Amor Fati",
+                "Hungry",
+                "Millennium",
+                "Rush",
+                "The Goldberg Variation",
+                "Orison",
+                "The Amazing Maleeni",
+                "Signs and Wonders",
+                "Sein und Zeit",
+                "Closure",
+                "X-Cops",
+                "First Person Shooter",
+                "Theef",
+                "En Ami",
+                "Chimera",
+                "all things",
+                "Brand X",
+                "Hollywood A.D.",
+                "Fight Club",
+                "Je Souhaite",
+                "Requiem").by("The X-Files Season 7").episode().english().build();
 
         new Opus.Builder(
                 "My Struggle",
@@ -1812,11 +1841,22 @@ public class LazyDigitalContentService implements DigitalContentService {
             "Milagro",
             "The Unnatural",
             "Three of a Kind",
-            "Field Trip"
-        }) {
+            "Field Trip"}) {
             new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
                     .seenByFede()
                     .discBox(6, 3)
+                    .build();
+        }
+
+        for (String title : new String[]{
+            "Biogenesis",
+            "The Sixth Extinction",
+            "The Sixth Extinction II: Amor Fati",
+            "Hungry",
+            "Millennium"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(7, 7)
                     .build();
         }
 
