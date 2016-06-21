@@ -25,7 +25,9 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import org.fede.digitalcontent.dto.BoxLabelDTO;
 import org.fede.digitalcontent.dto.DigitalContentDTO;
@@ -1745,6 +1747,30 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(5, 6)
                 .build();
 
+        for (String title : new String[]{
+            "Drive",
+            "Triangle",
+            "Dreamland",
+            "Dreamland II",
+            "How the Ghosts Stole Christmas"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(3, 9)
+                    .build();
+    }
+
+        for (String title : new String[]{
+            "Terms of Endearment",
+            "The Rain King",
+            "S.R. 819",
+            "Tithonus",
+            "Two Fathers"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(2, 9)
+                    .build();
+        }
+
     }
 
     @Override
@@ -1779,11 +1805,15 @@ public class LazyDigitalContentService implements DigitalContentService {
     }
 
     private static List<String> toString(Collection<?> col) {
-        List<String> answer = new ArrayList<>(col.size());
-        for (Object o : col) {
-            answer.add(o != null ? o.toString() : "");
-        }
-        return answer;
+        return col.stream()
+                .map(element -> Optional.ofNullable(element).map(e -> e.toString()).orElse(""))
+                .collect(Collectors.toList());
+
+//        List<String> answer = new ArrayList<>(col.size());
+//        for (Object o : col) {
+//            answer.add(o != null ? o.toString() : "");
+//        }
+//        return answer;
     }
 
     @Override

@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.series.ConsultatioDataPoint;
@@ -72,14 +73,16 @@ public class Util {
     }
 
     public static <T> String list(Collection<T> elements, String separator) {
-        StringBuilder sb = new StringBuilder(elements.size() * 10);
-        for (Iterator<T> it = elements.iterator(); it.hasNext();) {
-            sb.append(it.next().toString());
-            if (it.hasNext()) {
-                sb.append(separator);
-            }
-        }
-        return sb.toString();
+        return elements.stream().map(e -> e.toString()).collect(Collectors.joining(separator));
+//        
+//        StringBuilder sb = new StringBuilder(elements.size() * 10);
+//        for (Iterator<T> it = elements.iterator(); it.hasNext();) {
+//            sb.append(it.next().toString());
+//            if (it.hasNext()) {
+//                sb.append(separator);
+//            }
+//        }
+//        return sb.toString();
     }
 
     public static MoneyAmountSeries sumSeries(String currency, List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException {
