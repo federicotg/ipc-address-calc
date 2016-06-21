@@ -19,7 +19,6 @@ package org.fede.calculator.service;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
@@ -91,6 +90,27 @@ public class LazyDigitalContentService implements DigitalContentService {
     private void initSizes() {
         final StorageMediumRepository repo = Repository.STORAGE;
 
+        repo.findById("2-02").setSize(22531026141l);
+
+        repo.findById("3-09").setSize(23744018119l);
+        repo.findById("3-10").setSize(24090135203l);
+        
+        repo.findById("4-01").setSize(22610819214l);
+        
+        repo.findById("6-01").setSize(23786572018l);
+        repo.findById("6-02").setSize(21757590009l);
+        repo.findById("6-04").setSize(21835764224l);
+        repo.findById("6-05").setSize(24274800905l);
+        repo.findById("6-06").setSize(22990817875l);
+
+        repo.findById("7-03").setSize(24081187584l);
+        repo.findById("7-06").setSize(24021160209l);
+
+        repo.findById("9-01").setSize(23266263358l);
+        repo.findById("9-02").setSize(23815613711l);
+        repo.findById("9-03").setSize(24070972740l);
+        repo.findById("9-08").setSize(21943779127l);
+
         repo.findById("11-01").setSize(8335715119l);
         repo.findById("11-02").setSize(8474569322l);
         repo.findById("11-03").setSize(7672195406l);
@@ -103,6 +123,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("11-10").setSize(8425758288l);
         repo.findById("11-11").setSize(8104299674l);
         repo.findById("11-12").setSize(8262949279l);
+        
         repo.findById("18-01").setSize(23809270814l);
         repo.findById("18-06").setSize(23873717071l);
         repo.findById("18-07").setSize(22683178310l);
@@ -111,20 +132,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("18-10").setSize(22915434845l);
         repo.findById("18-11").setSize(22959785253l);
         repo.findById("18-12").setSize(22906853814l);
-        repo.findById("3-09").setSize(23744018119l);
-        repo.findById("3-10").setSize(24090135203l);
-        repo.findById("4-01").setSize(22610819214l);
-        repo.findById("6-01").setSize(23786572018l);
-        repo.findById("6-02").setSize(21757590009l);
-        repo.findById("6-04").setSize(21835764224l);
-        repo.findById("6-05").setSize(24274800905l);
-        repo.findById("6-06").setSize(22990817875l);
-        repo.findById("7-03").setSize(24081187584l);
-        repo.findById("9-01").setSize(23266263358l);
-        repo.findById("2-02").setSize(22531026141l);
-        repo.findById("9-08").setSize(21943779127l);
-        repo.findById("9-03").setSize(24070972740l);
-        repo.findById("9-02").setSize(23815613711l);
 
     }
 
@@ -1835,12 +1842,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         return col.stream()
                 .map(element -> Optional.ofNullable(element).map(e -> e.toString()).orElse(""))
                 .collect(Collectors.toList());
-
-//        List<String> answer = new ArrayList<>(col.size());
-//        for (Object o : col) {
-//            answer.add(o != null ? o.toString() : "");
-//        }
-//        return answer;
     }
 
     @Override
@@ -1924,7 +1925,6 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     @Override
     public List<VenueDTO> getVenues() {
-
         return Repository.VENUE.stream()
                 .map(v -> new VenueDTO(
                         v.getName(),
@@ -1933,7 +1933,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                         v.getWikipedia(),
                         v.getLatLon()))
                 .collect(toList());
-
     }
 
     @Override
