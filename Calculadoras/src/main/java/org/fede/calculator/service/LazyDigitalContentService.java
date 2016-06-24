@@ -120,6 +120,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("9-03").setSize(24070972740l);
         repo.findById("9-08").setSize(21943779127l);
 
+        repo.findById("10-01").setSize(24627470247l);
+        repo.findById("10-02").setSize(24623812889l);
+        repo.findById("10-03").setSize(24623708301l);
+        repo.findById("10-04").setSize(24621311237l);
+
         repo.findById("11-01").setSize(8335715119l);
         repo.findById("11-02").setSize(8474569322l);
         repo.findById("11-03").setSize(7672195406l);
@@ -133,7 +138,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("11-11").setSize(8104299674l);
         repo.findById("11-12").setSize(8262949279l);
 
-        
         repo.findById("12-11").setSize(22782269393l);
         repo.findById("12-12").setSize(24624375044l);
 
@@ -665,6 +669,28 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Essence",
                 "Existence"
         ).by("The X-Files Season 8").episode().english().build();
+
+        new Opus.Builder(
+                "Nothing Important Happened Today",
+                "Nothing Important Happened Today II",
+                "Dæmonicus",
+                "4-D",
+                "Lord of the Flies",
+                "Trust No 1",
+                "John Doe",
+                "Hellbound",
+                "Provenance",
+                "Providence",
+                "Audrey Pauley",
+                "Underneath",
+                "Improbable",
+                "Scary Monsters",
+                "Jump the Shark",
+                "William",
+                "Release",
+                "Sunshine Days",
+                "The Truth"
+        ).by("The X-Files Season 9").episode().english().build();
 
         new Opus.Builder(
                 "My Struggle",
@@ -1948,6 +1974,61 @@ public class LazyDigitalContentService implements DigitalContentService {
             new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
                     .seenByFede()
                     .discBox(11, 12)
+                    .build();
+        }
+
+        for (String title : new String[]{
+            "Badlaa",
+            "The Gift",
+            "Medusa",
+            "Per Manum",
+            "This is not Happening",
+            "Deadalive",
+            "Three Words"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(1, 10)
+                    .build();
+        }
+
+        for (String title : new String[]{
+            "Empedocles",
+            "Vienen",
+            "Alone",
+            "Essence",
+            "Existence",
+            "Nothing Important Happened Today",
+            "Nothing Important Happened Today II"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(2, 10)
+                    .build();
+        }
+
+        for (String title : new String[]{
+            "Dæmonicus",
+            "4-D",
+            "Lord of the Flies",
+            "Trust No 1",
+            "John Doe",
+            "Hellbound",
+            "Provenance"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(3, 10)
+                    .build();
+        }
+        for (String title : new String[]{
+            "Providence",
+            "Audrey Pauley",
+            "Underneath",
+            "Improbable",
+            "Scary Monsters",
+            "Jump the Shark",
+            "William"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(4, 10)
                     .build();
         }
 
