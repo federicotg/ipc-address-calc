@@ -28,7 +28,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
-    private SortedMap<YearMonth, MoneyAmount> values;
+    private final SortedMap<YearMonth, MoneyAmount> values;
 
     public SortedMapMoneyAmountSeries(final String currency, final SortedMap<YearMonth, MoneyAmount> values) {
         super(currency);

@@ -157,12 +157,8 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
     @Override
     public final int hashCode() {
-        int hash = 3;
-        hash = 37 * hash + Objects.hashCode(this.getCurrency());
-        hash = 37 * hash + Objects.hashCode(this.getFrom());
-        hash = 37 * hash + Objects.hashCode(this.getTo());
-
-        final int[] holder = new int[]{3};
+        
+        final int[] holder = new int[]{1};
 
         try {
             this.forEach((int year, int month, MoneyAmount amount) -> {
@@ -172,7 +168,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
         }
 
-        return 37 * hash + holder[0];
+        return 37 * Objects.hash(this.getCurrency(), this.getFrom(), this.getTo()) + holder[0];
     }
 
     @Override
