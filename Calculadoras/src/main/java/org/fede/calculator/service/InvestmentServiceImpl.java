@@ -29,8 +29,10 @@ import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
@@ -175,7 +177,9 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     }
 
     private static MoneyAmount changeCurrency(MoneyAmount ma, String targetCurrency, Date date) throws NoSeriesDataFoundException {
-        return ForeignExchanges.getForeignExchange(ma.getCurrency(), targetCurrency).exchange(ma, targetCurrency, date);
+        ForeignExchange fx = ForeignExchanges.getForeignExchange(ma.getCurrency(), targetCurrency);
+        YearMonth min = new YearMonth(date).min(fx.getTo());
+        return fx.exchange(ma, targetCurrency, min.getYear(), min.getMonth());
     }
 
     private static MoneyAmount initialAmount(Investment investment, String targetCurrency) throws NoSeriesDataFoundException {
@@ -192,17 +196,26 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     }
 
     private static Date untilDate(Investment item, String targetCurrency) {
-        return max(
+        
+        return Optional.ofNullable(item.getOut())
+                .map(out -> out.getDate())
+                .orElse(new Date());
+        
+        /*return max(
                 item.getInitialDate(),
                 item.getOut() != null
                         ? item.getOut().getDate()
-                        : MAP.get(targetCurrency).getTo().asToDate());
+                        : MAP.get(targetCurrency).getTo().asToDate());*/
     }
 
-    private static Date max(Date d1, Date d2) {
+    /*private static Date max(Date d1, Date d2) {
         return d1.compareTo(d2) > 0 ? d1 : d2;
     }
 
+    private static Date min(Date d1, Date d2) {
+        return d1.compareTo(d2) > 0 ? d2 : d1;
+    }*/
+    
     private static MoneyAmount finalAmount(Investment investment, String targetCurrency, Date date) throws NoSeriesDataFoundException {
         if (investment.getOut() != null) {
             return changeCurrency(investment.getOut().getMoneyAmount(), targetCurrency, investment.getOut().getDate());
@@ -212,15 +225,25 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
     private static BigDecimal inflation(String targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
 
-        if (from.equals(to)) {
+        YearMonth ymFrom = new YearMonth(from);
+        YearMonth ymTo = new YearMonth(to);
+        
+        if (ymFrom.equals(ymTo)) {
             return ZERO;
         }
 
         Inflation inflation = MAP.get(targetCurrency);
+        
         if (inflation == null) {
             throw new IllegalArgumentException("Inflation for currency " + targetCurrency + " is unknown.");
         }
-        return inflation.adjust(new MoneyAmount(ONE, targetCurrency), from, to).getAmount().subtract(ONE);
+        YearMonth min = ymTo.min(inflation.getTo());
+        return inflation.adjust(
+                new MoneyAmount(ONE, targetCurrency), 
+                ymFrom.getYear(),
+                ymFrom.getMonth(), 
+                min.getYear(),
+                min.getMonth()).getAmount().subtract(ONE);
     }
 
     @Override
@@ -241,7 +264,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
             throw new IllegalArgumentException("Currency " + currency + " does not have a known inflation index.");
         }
 
-        final List<Investment> investments = new ArrayList<>();
+        final List<Investment> investments = new ArrayList<>(this.investmentSeries.size());
         for (String fileName : this.investmentSeries) {
             investments.addAll(SeriesReader.read(fileName, TYPE_REFERENCE));
         }

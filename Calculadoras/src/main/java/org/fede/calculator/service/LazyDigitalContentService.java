@@ -92,6 +92,8 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         //            box-disc
         repo.findById("2-02").setSize(22531026141l);
+        repo.findById("2-03").setSize(23700267311l);
+        repo.findById("2-04").setSize(23432910665l);
 
         repo.findById("3-01").setSize(24368806526l);
         repo.findById("3-03").setSize(24694593073l);
@@ -112,7 +114,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("7-03").setSize(24081187584l);
         repo.findById("7-06").setSize(24021160209l);
         repo.findById("7-07").setSize(24607263188l);
-        
 
         repo.findById("9-01").setSize(23266263358l);
         repo.findById("9-02").setSize(23815613711l);
@@ -131,6 +132,10 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("11-10").setSize(8425758288l);
         repo.findById("11-11").setSize(8104299674l);
         repo.findById("11-12").setSize(8262949279l);
+
+        
+        repo.findById("12-11").setSize(22782269393l);
+        repo.findById("12-12").setSize(24624375044l);
 
         repo.findById("18-01").setSize(23809270814l);
         repo.findById("18-06").setSize(23873717071l);
@@ -636,6 +641,30 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Fight Club",
                 "Je Souhaite",
                 "Requiem").by("The X-Files Season 7").episode().english().build();
+
+        new Opus.Builder(
+                "Within",
+                "Without",
+                "Patience",
+                "Roadrunners",
+                "Invocation",
+                "Redrum",
+                "Via Negativa",
+                "Surekill",
+                "Salvage",
+                "Badlaa",
+                "The Gift",
+                "Medusa",
+                "Per Manum",
+                "This is not Happening",
+                "Deadalive",
+                "Three Words",
+                "Empedocles",
+                "Vienen",
+                "Alone",
+                "Essence",
+                "Existence"
+        ).by("The X-Files Season 8").episode().english().build();
 
         new Opus.Builder(
                 "My Struggle",
@@ -1860,6 +1889,68 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .build();
         }
 
+        for (String title : new String[]{
+            "Rush",
+            "The Goldberg Variation",
+            "Orison",
+            "The Amazing Maleeni",
+            "Signs and Wonders"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(3, 2)
+                    .build();
+        }
+
+        for (String title : new String[]{
+            "Sein und Zeit",
+            "Closure",
+            "X-Cops",
+            "First Person Shooter",
+            "Theef"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(4, 2)
+                    .build();
+        }
+
+        for (String title : new String[]{
+            "En Ami",
+            "Chimera",
+            "all things",
+            "Brand X",
+            "Hollywood A.D."}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(9, 13)
+                    .build();
+        }
+
+        for (String title : new String[]{
+            "Fight Club",
+            "Je Souhaite",
+            "Requiem",
+            "Within",
+            "Without",
+            "Patience",
+            "Roadrunners"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(12, 12)
+                    .build();
+        }
+
+        for (String title : new String[]{
+            "Invocation",
+            "Redrum",
+            "Via Negativa",
+            "Surekill",
+            "Salvage"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(11, 12)
+                    .build();
+        }
+
     }
 
     @Override
@@ -2012,7 +2103,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .filter(dc -> !dc.isSeenBy(p))
                 .flatMap(dc -> dc.getOpuses().stream())
                 .distinct()
-                .filter(opus -> opus.getType() != OpusType.GAME && opus.getType() != OpusType.SPORT)
+                .filter(opus -> !opus.getType().equals(OpusType.GAME) && !opus.getType().equals(OpusType.SPORT))
                 .map(op -> new OpusDTO(op.getTitle(), op.getType().name()))
                 .sorted(OPUS_COMPARATOR)
                 .collect(toList());
@@ -2022,10 +2113,10 @@ public class LazyDigitalContentService implements DigitalContentService {
     public List<OpusDTO> unavailableInHD() {
 
         return Repository.DIGITALCONTENT.stream()
-                .filter(dc -> dc.getQuality() != Quality.HD720 && dc.getQuality() != Quality.HD1080)
+                .filter(dc -> !dc.getQuality().equals(Quality.HD720) && !dc.getQuality().equals(Quality.HD1080))
                 .flatMap(dc -> dc.getOpuses().stream())
                 .distinct()
-                .filter(opus -> opus.getType() != OpusType.GAME && opus.getType() != OpusType.SPORT)
+                .filter(opus -> !opus.getType().equals(OpusType.GAME) && !opus.getType().equals(OpusType.SPORT))
                 .map(o -> new OpusDTO(o.getTitle(), o.getType().name()))
                 .sorted(OPUS_COMPARATOR)
                 .collect(toList());
