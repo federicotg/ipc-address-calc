@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.fede.calculator;
 
 import java.text.DateFormat;
@@ -23,8 +18,21 @@ import org.junit.Before;
  */
 public class AccountTest {
 
-    private static final DateFormat DF = new SimpleDateFormat("dd/MM/yyyy");
+    private static final DateFormat DF = new SimpleDateFormat("dd/MM/yyyy'T'HH:mm:ss.SSSZ");
+
+    private static final String LAST_MILLISECOND = "T23:59:59.999-0000";
+
+    private static final String FIRST_MILLISECOND = "T00:00:00.000-0000";
+
     private Account account;
+
+    private static Date parseFromDate(String from) throws ParseException {
+        return DF.parse(from + FIRST_MILLISECOND);
+    }
+
+    private static Date parseToDate(String to) throws ParseException {
+        return DF.parse(to + LAST_MILLISECOND);
+    }
 
     private static class Movement implements Comparable<Movement> {
 
@@ -33,11 +41,11 @@ public class AccountTest {
         private final Date to;
 
         public Movement(String from, String to, int points) throws ParseException {
-            this(from, DF.parse(to), points);
+            this(from, parseToDate(to), points);
         }
 
         public Movement(String from, Date to, int points) throws ParseException {
-            this.from = DF.parse(from);
+            this.from = parseFromDate(from);
             this.to = to;
             if (!this.from.before(this.to)) {
                 throw new IllegalArgumentException("from > to");
@@ -89,7 +97,7 @@ public class AccountTest {
         }
 
         public int getBalance(String moment) throws ParseException {
-            return this.getBalance(DF.parse(moment));
+            return this.getBalance(parseFromDate(moment));
         }
 
         public int addPoints(String from, String to, int points) throws ParseException {
@@ -98,11 +106,9 @@ public class AccountTest {
         }
 
         private void checkMovementsInvariant(List<Integer> credits, List<Integer> debits) {
-
             if (credits.stream().mapToInt(x -> x).sum() < debits.stream().mapToInt(x -> x).sum()) {
                 throw new IllegalStateException("Debits sum more than credits.");
             }
-
         }
 
         /**
@@ -115,7 +121,7 @@ public class AccountTest {
 
         public int usePoints(String when, int points) throws ParseException {
 
-            final Date moment = DF.parse(when);
+            final Date moment = parseFromDate(when);
 
             if (this.getBalance(moment) < points) {
                 throw new IllegalArgumentException("Can't use more points than current balance.");
@@ -194,7 +200,7 @@ public class AccountTest {
             }
 
             this.movements.addAll(newDebits);
-            return this.getBalance(DF.parse(when));
+            return this.getBalance(parseFromDate(when));
         }
     }
 
