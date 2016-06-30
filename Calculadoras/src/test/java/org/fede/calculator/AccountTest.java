@@ -63,7 +63,7 @@ public class AccountTest {
         }
 
         public boolean isCurrent(Date moment) {
-            return from.compareTo(moment) <= 0 && moment.compareTo(to) < 0;
+            return from.compareTo(moment) <= 0 && moment.compareTo(to) <= 0;
         }
 
         public int getAmount() {
