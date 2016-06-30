@@ -196,6 +196,25 @@ public class AppConfig {
     }
 
     @Bean
+    public Map<Integer, String> monthNames() {
+
+        Map<Integer, String> map = new HashMap<>(12, 1.0f);
+        map.put(1, "enero");
+        map.put(2, "febrero");
+        map.put(3, "marzo");
+        map.put(4, "abril");
+        map.put(5, "mayo");
+        map.put(6, "junio");
+        map.put(7, "julio");
+        map.put(8, "agosto");
+        map.put(9, "septiembre");
+        map.put(10, "octubre");
+        map.put(11, "noviembre");
+        map.put(12, "diciembre");
+        return map;
+    }
+
+    @Bean
     public List<String> investments() {
         return Collections.singletonList("investments.json");
     }
@@ -301,7 +320,8 @@ public class AppConfig {
                 this.nominalEURDatapointAssembler(),
                 this.incomesSeries(),
                 this.savingsSeries(),
-                this.colors());
+                this.colors(),
+                this.monthNames());
     }
 
     @Bean

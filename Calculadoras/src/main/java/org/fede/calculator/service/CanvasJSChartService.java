@@ -41,40 +41,23 @@ import org.fede.calculator.web.dto.CanvasJSTitleDTO;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 import org.fede.util.Util;
 
-
 /**
  *
  * @author fede
  */
 public class CanvasJSChartService implements ChartService, MathConstants {
 
-    private static final Map<Integer, String> MONTH_NAMES = new HashMap<>(12, 1.0f);
-
-    static {
-        MONTH_NAMES.put(1, "enero");
-        MONTH_NAMES.put(2, "febrero");
-        MONTH_NAMES.put(3, "marzo");
-        MONTH_NAMES.put(4, "abril");
-        MONTH_NAMES.put(5, "mayo");
-        MONTH_NAMES.put(6, "junio");
-        MONTH_NAMES.put(7, "julio");
-        MONTH_NAMES.put(8, "agosto");
-        MONTH_NAMES.put(9, "septiembre");
-        MONTH_NAMES.put(10, "octubre");
-        MONTH_NAMES.put(11, "noviembre");
-        MONTH_NAMES.put(12, "diciembre");
-    }
-
     public CanvasJSChartService(
-            CanvasJSDatapointAssembler realPesosDatapointAssembler, 
-            CanvasJSDatapointAssembler nominalPesosDatapointAssembler, 
-            CanvasJSDatapointAssembler realUSDDatapointAssembler, 
-            CanvasJSDatapointAssembler nominalUSDDatapointAssembler, 
-            CanvasJSDatapointAssembler realEURDatapointAssembler, 
-            CanvasJSDatapointAssembler nominalEURDatapointAssembler, 
-            List<ExpenseChartSeriesDTO> incomeSeries, 
-            List<ExpenseChartSeriesDTO> savingsSeries, 
-            List<String> colors) {
+            CanvasJSDatapointAssembler realPesosDatapointAssembler,
+            CanvasJSDatapointAssembler nominalPesosDatapointAssembler,
+            CanvasJSDatapointAssembler realUSDDatapointAssembler,
+            CanvasJSDatapointAssembler nominalUSDDatapointAssembler,
+            CanvasJSDatapointAssembler realEURDatapointAssembler,
+            CanvasJSDatapointAssembler nominalEURDatapointAssembler,
+            List<ExpenseChartSeriesDTO> incomeSeries,
+            List<ExpenseChartSeriesDTO> savingsSeries,
+            List<String> colors,
+            Map<Integer, String> monthNames) {
         this.realPesosDatapointAssembler = realPesosDatapointAssembler;
         this.nominalPesosDatapointAssembler = nominalPesosDatapointAssembler;
         this.realUSDDatapointAssembler = realUSDDatapointAssembler;
@@ -84,29 +67,41 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         this.incomeSeries = incomeSeries;
         this.savingsSeries = savingsSeries;
         this.colors = colors;
+        this.monthNames = monthNames;
     }
+
+    private final CanvasJSDatapointAssembler realPesosDatapointAssembler;
+
+    private final CanvasJSDatapointAssembler nominalPesosDatapointAssembler;
+
+    private final CanvasJSDatapointAssembler realUSDDatapointAssembler;
+
+    private final CanvasJSDatapointAssembler nominalUSDDatapointAssembler;
+
+    private final CanvasJSDatapointAssembler realEURDatapointAssembler;
+
+    private final CanvasJSDatapointAssembler nominalEURDatapointAssembler;
+
+    private final List<ExpenseChartSeriesDTO> incomeSeries;
+
+    private final List<ExpenseChartSeriesDTO> savingsSeries;
+
+    private final List<String> colors;
+
+    private final Map<Integer, String> monthNames;
     
-    private CanvasJSDatapointAssembler realPesosDatapointAssembler;
-
-    private CanvasJSDatapointAssembler nominalPesosDatapointAssembler;
-
-    private CanvasJSDatapointAssembler realUSDDatapointAssembler;
-
-    private CanvasJSDatapointAssembler nominalUSDDatapointAssembler;
-
-    private CanvasJSDatapointAssembler realEURDatapointAssembler;
-
-    private CanvasJSDatapointAssembler nominalEURDatapointAssembler;
-
-    private List<ExpenseChartSeriesDTO> incomeSeries;
-
-    private List<ExpenseChartSeriesDTO> savingsSeries;
-    
-    private List<String> colors;
-
     @Override
-    public CanvasJSChartDTO combinedIncomes(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en, boolean er,
-            int year, int month, List<String> seriesNames) throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO combinedIncomes(
+            int months,
+            boolean pn,
+            boolean pr,
+            boolean dn,
+            boolean dr,
+            boolean en,
+            boolean er,
+            int year,
+            int month,
+            List<String> seriesNames) throws NoSeriesDataFoundException {
 
         final StringBuilder sb = new StringBuilder(50);
         MoneyAmountSeries combinedSeries = null;
@@ -126,27 +121,30 @@ public class CanvasJSChartService implements ChartService, MathConstants {
     }
 
     @Override
-    public CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr, boolean en, boolean er, int year, int month) throws NoSeriesDataFoundException {
-        
+    public CanvasJSChartDTO savings(
+            boolean pn,
+            boolean pr,
+            boolean dn,
+            boolean dr,
+            boolean en,
+            boolean er,
+            int year,
+            int month) throws NoSeriesDataFoundException {
+
         MoneyAmountSeries savingsSum = null;
-        for(ExpenseChartSeriesDTO dto : this.savingsSeries){
-            if(!dto.isTotal()){
+        for (ExpenseChartSeriesDTO dto : this.savingsSeries) {
+            if (!dto.isTotal()) {
                 MoneyAmountSeries s = readSeries(dto.getSeriesName()).exchangeInto("ARS");
-                if(savingsSum == null){
+                if (savingsSum == null) {
                     savingsSum = s;
-                }else{
+                } else {
                     savingsSum = savingsSum.add(s);
                 }
             }
         }
-        
-        /*MoneyAmountSeries ars = readSeries("saving/ahorros-peso.json");
-        MoneyAmountSeries usd = readSeries("saving/ahorros-dolar.json").exchangeInto("ARS");
-        MoneyAmountSeries gold = readSeries("saving/ahorros-oro.json").exchangeInto("ARS");
-        MoneyAmountSeries conaafa = readSeries("saving/ahorros-conaafa.json").exchangeInto("ARS");*/
 
-        return this.createCombinedChart("Ahorros",
-                //usd.add(ars).add(gold).add(conaafa),
+        return this.createCombinedChart(
+                "Ahorros",
                 savingsSum,
                 1, pn, pr, dn, dr, en, er,
                 year, month);
@@ -254,11 +252,11 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         MoneyAmountSeries lastYearIncome = new SimpleAggregation(12)
                 .change(
                         new SimpleAggregation(12).sum(
-                        Inflation.USD_INFLATION.adjust(
-                                Util.sumSeries(this.incomeSeries).exchangeInto("USD"),
-                                lastInflationData.getYear(),
-                                lastInflationData.getMonth()
-                        )));
+                                Inflation.USD_INFLATION.adjust(
+                                        Util.sumSeries(this.incomeSeries).exchangeInto("USD"),
+                                        lastInflationData.getYear(),
+                                        lastInflationData.getMonth()
+                                )));
 
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO("Cambio Anual");
@@ -327,18 +325,17 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
 
         /**
-         * - tomo USD 1.00, 
-         * - lo ajusto por la inflación de USA y obtengo una serie,
-         * - cada valor de la serie lo paso a pesos según valor dolar de cada momento,
-         * - cada valor lo paso a pesos de hoy.
-         * 
+         * - tomo USD 1.00, - lo ajusto por la inflación de USA y obtengo una
+         * serie, - cada valor de la serie lo paso a pesos según valor dolar de
+         * cada momento, - cada valor lo paso a pesos de hoy.
+         *
          */
         final MoneyAmountSeries historicDollar = ARS_INFLATION.adjust(
                 ForeignExchanges.USD_ARS.exchange(
                         USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), "ARS"), todayYear, todayMonth);
 
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Dólar en Pesos de " + MONTH_NAMES.get(todayMonth) + "/" + todayYear);
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Dólar en Pesos de " + this.monthNames.get(todayMonth) + "/" + todayYear);
         dto.setTitle(title);
         dto.setXAxisTitle("Año");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
@@ -368,7 +365,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         final MoneyAmountSeries historicGold = USD_INFLATION.adjust(ForeignExchanges.USD_XAU.exchange(oneTroyOunce, "USD"), todayYear, todayMonth);
 
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Onza Troy en USD de " + MONTH_NAMES.get(todayMonth) + " / " + todayYear);
+        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Onza Troy en USD de " + this.monthNames.get(todayMonth) + " / " + todayYear);
         dto.setTitle(title);
         dto.setXAxisTitle("Año");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
@@ -385,6 +382,4 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         return dto;
     }
 
-    
-    
 }

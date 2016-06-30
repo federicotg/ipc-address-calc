@@ -51,6 +51,6 @@
     <body>
         <%@include file="../jspf/menu.jspf" %>
         <h1>${title}</h1>
-        <div id="chartContainer" style="height:600px;"></div>
+        <div id="chartContainer" style="height:900px;"></div>
     </body>
 </html>

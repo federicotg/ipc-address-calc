@@ -96,6 +96,6 @@
 
 
         </form:form>
-        <div id="chartContainer" style="height:750px;"></div>
+        <div id="chartContainer" style="height:900px;"></div>
     </body>
 </html>

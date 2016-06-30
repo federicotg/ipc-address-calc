@@ -79,7 +79,8 @@
                         + '&er=' + er
                         + '&year=' + year
                         + '&month=' + month
-                        + '&series=' + selectedSeries,
+                        + '&series=' + selectedSeries
+                        + '&chartType=line',
                         'chartContainer');
             }
 
@@ -102,17 +103,17 @@
             <c:if test="${not empty stackedSeries}">
                 <fieldset>
                     <c:forEach items="${stackedSeries}" var="s" varStatus="status">
-                        <label for="label${status.index}">${s}</label><form:checkbox id="label${status.index}" value="${s}" class="seriesCbox" path="series" onchange="reloadChart()"/><br/>
+                        <form:checkbox id="label${status.index}" value="${s}" class="seriesCbox" path="series" onchange="reloadChart()"/><label for="label${status.index}">${s}</label>
                     </c:forEach>
                 </fieldset>
             </c:if>
             <fieldset>
-                <label for="pn">Pesos Nominales</label><form:checkbox id="pn" path="pn" onchange="reloadChart()"/><br/>
-                <label for="pr">Pesos Reales</label><form:checkbox id="pr" path="pr" onchange="reloadChart()"/><br/>
-                <label for="dn">Dólares Nominales</label><form:checkbox id="dn" path="dn" onchange="reloadChart()"/><br/>
-                <label for="dr">Dólares Reales</label><form:checkbox id="dr" path="dr" onchange="reloadChart()"/><br/>
-                <label for="en">Euros Nominales</label><form:checkbox id="en" path="en" onchange="reloadChart()"/><br/>
-                <label for="er">Euros Reales</label><form:checkbox id="er" path="er" onchange="reloadChart()"/>
+                <form:checkbox id="pn" path="pn" onchange="reloadChart()"/><label for="pn">Pesos Nominales</label>
+                <form:checkbox id="pr" path="pr" onchange="reloadChart()"/><label for="pr">Pesos Reales</label>
+                <form:checkbox id="dn" path="dn" onchange="reloadChart()"/><label for="dn">Dólares Nominales</label>
+                <form:checkbox id="dr" path="dr" onchange="reloadChart()"/><label for="dr">Dólares Reales</label>
+                <form:checkbox id="en" path="en" onchange="reloadChart()"/><label for="en">Euros Nominales</label>
+                <form:checkbox id="er" path="er" onchange="reloadChart()"/><label for="er">Euros Reales</label>
             </fieldset>
             <p>En valores de 
                 <form:select path="month" onchange="reloadChart()" id="month">
@@ -124,6 +125,6 @@
                 </form:select></p>
 
         </form:form>
-        <div id="chartContainer" style="height:600px;"></div>
+        <div id="chartContainer" style="height:900px;"></div>
     </body>
 </html>
