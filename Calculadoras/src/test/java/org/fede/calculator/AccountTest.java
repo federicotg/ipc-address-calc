@@ -331,4 +331,19 @@ public class AccountTest {
 
     }
 
+    
+    @Test
+    public void addAndConsume() throws ParseException {
+
+        assertEquals(50, account.addPoints("01/01/2001", "30/06/2001", 50));
+        
+        assertEquals(10, account.usePoints("06/02/2001", 40));
+        
+        assertEquals(60, account.addPoints("07/02/2001", "06/08/2001", 50));
+                
+        assertEquals(50, account.getBalance("01/07/2001"));
+
+    }
+    
+    
 }
