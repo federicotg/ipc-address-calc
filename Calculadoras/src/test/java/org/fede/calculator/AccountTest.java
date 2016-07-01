@@ -110,14 +110,11 @@ public class AccountTest {
                 throw new IllegalStateException("Debits sum more than credits.");
             }
         }
-
-        /**
-         *
-         * @return the remaining debit that could not be cancelled.
-         */
-        private boolean allZero(List<Integer> list) {
-            return list.stream().allMatch(x -> x == 0);
+      
+        private boolean anyNonZero(List<Integer> list) {
+            return list.stream().anyMatch(x -> x != 0);
         }
+        
 
         /**
          * 
@@ -155,7 +152,7 @@ public class AccountTest {
 
             // cancelo en orden todos los débitos con los créditos para saber qué créditos 
             // quedan todavía a favor.
-            while (!allZero(debits)) { // (1)
+            while (this.anyNonZero(debits)) { // (1)
                 int c = 0;
                 int d = 0;
 
