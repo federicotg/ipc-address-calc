@@ -119,6 +119,13 @@ public class AccountTest {
             return list.stream().allMatch(x -> x == 0);
         }
 
+        /**
+         * 
+         * @param when
+         * @param points
+         * @return
+         * @throws ParseException 
+         */
         public int usePoints(String when, int points) throws ParseException {
 
             final Date moment = parseFromDate(when);
@@ -143,25 +150,34 @@ public class AccountTest {
                     .map(m -> m.getAmount() * -1)
                     .collect(Collectors.toList());
 
+            // verifico que haya más créditos que deébitos. Siempre tiene que se así.
             this.checkMovementsInvariant(credits, debits);
 
-            while (!allZero(debits)) {
+            // cancelo en orden todos los débitos con los créditos para saber qué créditos 
+            // quedan todavía a favor.
+            while (!allZero(debits)) { // (1)
                 int c = 0;
                 int d = 0;
 
+                // busco en primer debito que no sea 0
                 while (d < debits.size() && debits.get(d) == 0) {
                     d++;
                 }
                 if (d < debits.size()) {
 
+                    // busco en primer crédito que no sea 0
                     while (c < credits.size() && credits.get(c) == 0) {
                         c++;
                     }
 
                     if (c < credits.size()) {
+                        
+                        // Cancelo el primer crédito >0  con el primer débito > 0.
+                        // El débito se reduce o queda en cero. Eso actualiza la condición del while (1)
                         int amountToDiscount = Math.min(credits.get(c), debits.get(d));
                         credits.set(c, credits.get(c) - amountToDiscount);
                         debits.set(d, debits.get(d) - amountToDiscount);
+
                     }
                 }
 
@@ -331,41 +347,32 @@ public class AccountTest {
 
     }
 
-    
     @Test
     public void addAndConsume() throws ParseException {
 
         assertEquals(50, account.addPoints("01/01/2001", "30/06/2001", 50));
-        
+
         assertEquals(10, account.usePoints("06/02/2001", 40));
-        
+
         assertEquals(60, account.addPoints("07/02/2001", "06/08/2001", 50));
-                
+
         assertEquals(50, account.getBalance("01/07/2001"));
 
     }
-    
-    
+
     @Test
-    public void currentLimit() throws ParseException{
+    public void currentLimit() throws ParseException {
         Movement m = new Movement("01/01/2001", "01/01/2001", 1);
-        
-        
-        
+
         assertTrue(m.isCurrent(DF.parse("01/01/2001T10:00:00.000-0000")));
-        
+
         assertTrue(m.isCurrent(DF.parse("01/01/2001T00:00:00.000-0000")));
         assertTrue(m.isCurrent(DF.parse("01/01/2001T23:59:59.999-0000")));
         assertFalse(m.isCurrent(DF.parse("02/01/2001T00:00:00.000-0000")));
-        
-        
+
         // 3 AM GMT del 02/01 ya no está vigente.
         assertFalse(m.isCurrent(DF.parse("01/01/2001T23:59:59.999-0300")));
-        
-        
-        
-        
-        
+
     }
-    
+
 }
