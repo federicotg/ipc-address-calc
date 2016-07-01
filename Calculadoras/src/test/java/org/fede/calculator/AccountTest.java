@@ -346,4 +346,26 @@ public class AccountTest {
     }
     
     
+    @Test
+    public void currentLimit() throws ParseException{
+        Movement m = new Movement("01/01/2001", "01/01/2001", 1);
+        
+        
+        
+        assertTrue(m.isCurrent(DF.parse("01/01/2001T10:00:00.000-0000")));
+        
+        assertTrue(m.isCurrent(DF.parse("01/01/2001T00:00:00.000-0000")));
+        assertTrue(m.isCurrent(DF.parse("01/01/2001T23:59:59.999-0000")));
+        assertFalse(m.isCurrent(DF.parse("02/01/2001T00:00:00.000-0000")));
+        
+        
+        // 3 AM GMT del 02/01 ya no está vigente.
+        assertFalse(m.isCurrent(DF.parse("01/01/2001T23:59:59.999-0300")));
+        
+        
+        
+        
+        
+    }
+    
 }
