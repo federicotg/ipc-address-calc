@@ -169,4 +169,14 @@ public class IndexTest {
         assertEquals(x, Inflation.USD_INFLATION.adjust(x, 2015, 5, 2015, 5));
     }
         
+    
+        @Test 
+    public void wft() throws NoSeriesDataFoundException{
+        MoneyAmountSeries s = Util.readSeries("saving/ahorros-conbala.json");
+        MoneyAmountSeries usd = s.exchangeInto("USD");
+        System.out.println("");
+        
+    }
+    
+    
 }

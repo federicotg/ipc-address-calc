@@ -172,7 +172,7 @@ public class Util {
                 values = new ArrayList<>(32);
                 groups.put(key, values);
             }
-            values.add(c.getValue());
+            values.add(c.getValue().movePointLeft(2));
         }
 
         for (Map.Entry<Pair<Integer, Integer>, List<BigDecimal>> entry : groups.entrySet()) {

@@ -18,7 +18,6 @@ package org.fede.calculator.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
@@ -330,9 +329,12 @@ public class CanvasJSChartService implements ChartService, MathConstants {
          * cada momento, - cada valor lo paso a pesos de hoy.
          *
          */
+        
+        MoneyAmountSeries usdSeries = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth);
+        
         final MoneyAmountSeries historicDollar = ARS_INFLATION.adjust(
                 ForeignExchanges.USD_ARS.exchange(
-                        USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), "ARS"), todayYear, todayMonth);
+                        usdSeries, "ARS"), todayYear, todayMonth);
 
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO("Dólar en Pesos de " + this.monthNames.get(todayMonth) + "/" + todayYear);

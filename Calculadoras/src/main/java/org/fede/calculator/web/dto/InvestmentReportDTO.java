@@ -31,12 +31,12 @@ public class InvestmentReportDTO extends InvestmentDTO {
     private BigDecimal differencePct;
     private String investmentCurrency;
 
-    public InvestmentReportDTO(String type, Date from, Date to, String currency, BigDecimal initialAmount, BigDecimal finalAmount, BigDecimal inflationPct, String investmentCurrency) {
+    public InvestmentReportDTO(String type, Date from, Date to, String currency, BigDecimal initialAmount, BigDecimal finalAmount, BigDecimal inflationPct, String investmentCurrency, BigDecimal realProfitPercent) {
         super(currency, initialAmount, finalAmount, to);
         this.type = type;
         this.from = new Date(from.getTime());
         this.inflationPct = inflationPct;
-        this.differencePct = this.getPct().subtract(this.inflationPct);
+        this.differencePct = realProfitPercent;//this.getPct().subtract(this.inflationPct);
         this.investmentCurrency = investmentCurrency;
     }
 
