@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
@@ -30,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
+import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -86,35 +88,21 @@ public class InvestmentTest {
         }
     }
 
-    //@Test
+    @Test
     public void usd() throws NoSeriesDataFoundException, ParseException {
 
-        System.out.println("-----------------------------------");
-
-        assertFalse(inv.isEmpty());
-
-        final ForeignExchange usdToDollar = ForeignExchanges.getForeignExchange("USD", "ARS");
-
-        final String message = "{0}\t{1}\t{2}";
-        final Date feb2016 = new SimpleDateFormat("dd/MM/yyyy").parse("28/02/2016");
-        for (Investment investment : inv) {
-            if (investment.getType().equals(InvestmentType.USD)) {
-
-                MoneyAmount nominalIn = investment.getInvestment().getMoneyAmount();
-                MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getIn().getDate(), feb2016);
-
-                MoneyAmount feb2016ARSValue = usdToDollar.exchange(
-                        investment.getInvestment().getMoneyAmount(),
-                        "ARS", feb2016);
-
-                System.out.println(
-                        MessageFormat.format(
-                                message,
-                                investment.getIn().getDate(),
-                                this.nf.format(realIn.getAmount()),
-                                this.nf.format(feb2016ARSValue.getAmount().subtract(realIn.getAmount()))));
-            }
-        }
+        MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
+      
+        MoneyAmount oneUSDIn1951PurchasingPower = Inflation.USD_INFLATION.adjust(oneDollar, 2016, 5, 1951, 9);
+        
+        MoneyAmount oneUSDIn1951PurchasingPowerInPesos = ForeignExchanges.getForeignExchange("USD", "ARS").exchange(
+                oneUSDIn1951PurchasingPower, 
+                "ARS", 
+                2016, 
+                5);
+        
+        MoneyAmount pesosBackThen = Inflation.ARS_INFLATION.adjust(oneUSDIn1951PurchasingPowerInPesos, 2016, 5, 1951, 9);
+        
     }
     
 
@@ -126,5 +114,7 @@ public class InvestmentTest {
             });
         }
     }
+    
+
 
 }
