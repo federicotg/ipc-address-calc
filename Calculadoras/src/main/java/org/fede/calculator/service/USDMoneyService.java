@@ -35,19 +35,20 @@ public class USDMoneyService implements MoneyService {
     @Override
     public MoneyDTO getMoney(MoneyDTO dto) throws NoSeriesDataFoundException {
 
-        MoneyAmount amount = new MoneyAmount(dto.getAmount(), "USD");
-        MoneyAmount result = USD_INFLATION.adjust(amount, dto.getFromYear(), dto.getFromMonth(), dto.getToYear(), dto.getToMonth());
         MoneyDTO answer = new MoneyDTO();
-        answer.setAmount(result.getAmount());
+        answer.setAmount(USD_INFLATION.adjust(
+                new MoneyAmount(dto.getAmount(), "USD"), 
+                dto.getFromYear(), 
+                dto.getFromMonth(), 
+                dto.getToYear(), 
+                dto.getToMonth()).getAmount());
         answer.setFromMonth(dto.getFromMonth());
         answer.setFromYear(dto.getFromYear());
         answer.setToMonth(dto.getToMonth());
         answer.setToYear(dto.getToYear());
         answer.setValid(true);
         answer.setCurrency(CURRENCY_DTO);
-
         answer.setToCurrencySymbol(Currency.getInstance("USD").getSymbol(ES_AR));
-
         return answer;
 
     }

@@ -22,12 +22,12 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
+import java.util.stream.Stream;
 import org.fede.digitalcontent.dto.BoxLabelDTO;
 import org.fede.digitalcontent.dto.DigitalContentDTO;
 import org.fede.digitalcontent.dto.MediumContentDTO;
@@ -170,8 +170,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("Notre Dame de Paris").ballet().by("Maurice Jarre").build();
         new Opus.Builder("Daphnis et Chloé").ballet().by("Ravel").build();
         new Opus.Builder("Romeo and Juliet", "Cinderella", "Ivan the Terrible").ballet().by("Sergey Prokofiev").build();
-        new Opus.Builder("Swan Lake", "The Nutcracker", "The Sleeping Beauty").ballet()
-                .by("Tchaikovsky").build();
+        new Opus.Builder("Swan Lake", "The Nutcracker", "The Sleeping Beauty").ballet().by("Tchaikovsky").build();
         new Opus.Builder("La fille mal gardée").ballet().build();
         new Opus.Builder("Legend of Love").by("Arif Malikov").ballet().build();
         new Opus.Builder("Manon").by("Massenet").ballet().build();
@@ -898,15 +897,12 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         Date date = new SimpleDateFormat("dd/MM/yyyy").parse("01/02/2013");
 
-        Set<Performance> ashtonCelebration = new HashSet<>();
-
-        ashtonCelebration.add(new Performance(laValse, roh, date));
-        ashtonCelebration.add(new Performance(monotones, roh, date));
-        ashtonCelebration.add(new Performance(meditations, roh, date));
-        ashtonCelebration.add(new Performance(voices, roh, date));
-        ashtonCelebration.add(new Performance(mAndA, roh, date));
-
-        new DigitalContent.Builder(ashtonCelebration).fullHD().discBox(2, 16).mkv().build();
+        new DigitalContent.Builder(Stream.of(new Performance(laValse, roh, date),
+                new Performance(monotones, roh, date),
+                new Performance(meditations, roh, date),
+                new Performance(voices, roh, date),
+                new Performance(mAndA, roh, date))
+                .collect(Collectors.toSet())).fullHD().discBox(2, 16).mkv().build();
 
         new DigitalContent.Builder("Sylvia").ballet().atRoh().on("01/01/2005").mkv().fullHD()
                 .discBox(6, 5)
@@ -2018,6 +2014,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .discBox(3, 10)
                     .build();
         }
+        
         for (String title : new String[]{
             "Providence",
             "Audrey Pauley",
@@ -2068,13 +2065,13 @@ public class LazyDigitalContentService implements DigitalContentService {
     private static List<String> toString(Collection<?> col) {
         return col.stream()
                 .map(element -> Optional.ofNullable(element).map(e -> e.toString()).orElse(""))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
     public List<DigitalContentDTO> getBoxReport(final String boxName) {
-        return DigitalContentRepository.DIGITALCONTENT.stream().filter(dc
-                -> Repository.STORAGEBOX.stream().filter(box -> box.contains(dc)).anyMatch(box -> box.getName().equals(boxName)))
+        return DigitalContentRepository.DIGITALCONTENT.stream()
+                .filter(dc -> Repository.STORAGEBOX.stream().filter(box -> box.contains(dc)).anyMatch(box -> box.getName().equals(boxName)))
                 .map(dc -> toDto(dc))
                 .sorted()
                 .collect(toList());
