@@ -29,6 +29,7 @@ import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -212,7 +213,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         if (ymFrom.equals(ymTo)) {
             return nominalAmount.getAmount();
         }
-
+       
         Inflation inflation = MAP.get(targetCurrency);
 
         if (inflation == null) {
