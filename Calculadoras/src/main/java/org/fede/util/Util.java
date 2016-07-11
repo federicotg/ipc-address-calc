@@ -28,7 +28,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,23 +73,10 @@ public class Util {
 
     public static <T> String list(Collection<T> elements, String separator) {
         return elements.stream().map(e -> e.toString()).collect(Collectors.joining(separator));
-//        
-//        StringBuilder sb = new StringBuilder(elements.size() * 10);
-//        for (Iterator<T> it = elements.iterator(); it.hasNext();) {
-//            sb.append(it.next().toString());
-//            if (it.hasNext()) {
-//                sb.append(separator);
-//            }
-//        }
-//        return sb.toString();
     }
 
     public static MoneyAmountSeries sumSeries(String currency, List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException {
-        List<String> seriesNames = new ArrayList<>(dtos.size());
-        for (ExpenseChartSeriesDTO dto : dtos) {
-            seriesNames.add(dto.getSeriesName());
-        }
-        return sumSeries(currency, seriesNames.toArray(new String[seriesNames.size()]));
+        return sumSeries(currency, dtos.stream().map(dto -> dto.getSeriesName()).toArray(String[]::new));
     }
 
     public static MoneyAmountSeries sumSeries(List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException {
@@ -182,18 +168,11 @@ public class Util {
         return new JSONSeries("ARS", points, "LAST_VALUE_INTERPOLATION");
     }
 
-    private static BigDecimal sum(List<BigDecimal> list) {
-        BigDecimal total = BigDecimal.ZERO;
-        for (BigDecimal v : list) {
-            total = total.add(v);
-        }
-        return total;
-    }
-
     private static BigDecimal avg(List<BigDecimal> list) {
         if (list.isEmpty()) {
             return BigDecimal.ZERO;
         }
-        return sum(list).setScale(7, RoundingMode.HALF_UP).divide(new BigDecimal(list.size()), MathContext.DECIMAL32);
+        return list.stream().reduce(BigDecimal.ZERO, (left, right) -> left.add(right))
+                .setScale(7, RoundingMode.HALF_UP).divide(new BigDecimal(list.size()), MathContext.DECIMAL32);
     }
 }
