@@ -36,11 +36,6 @@ public class YearMonth implements Comparable<YearMonth> {
         LocalDate date = day.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
         this.year = date.getYear();
         this.month = date.getMonthValue();
-
-//        Calendar cal = Calendar.getInstance();
-//        cal.setTime(date);
-//        this.year = cal.get(Calendar.YEAR);
-//        this.month = cal.get(Calendar.MONTH) + 1;
     }
     
     public YearMonth(int year, int month) {
@@ -103,13 +98,6 @@ public class YearMonth implements Comparable<YearMonth> {
                         .with(TemporalAdjusters.lastDayOfMonth())
                         .atTime(12, 00)
                         .toInstant(ZoneOffset.UTC));
-        
-//        Calendar cal = Calendar.getInstance();
-//        cal.set(Calendar.YEAR, this.year);
-//        cal.set(Calendar.MONTH, this.month - 1);
-//        cal.set(Calendar.DAY_OF_MONTH, 1);
-//        cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
-//        return cal.getTime();
     }
     
     public Date asDate() {
@@ -117,11 +105,6 @@ public class YearMonth implements Comparable<YearMonth> {
                 LocalDate.of(this.getYear(), this.getMonth(), 1)
                         .atTime(12, 00)
                         .toInstant(ZoneOffset.UTC));
-//        Calendar cal = Calendar.getInstance();
-//        cal.set(Calendar.YEAR, this.year);
-//        cal.set(Calendar.MONTH, this.month - 1);
-//        cal.set(Calendar.DAY_OF_MONTH, 1);
-//        return cal.getTime();
     }
 
     public YearMonth min(YearMonth other){
