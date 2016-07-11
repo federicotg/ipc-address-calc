@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
 import java.util.List;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 
@@ -46,14 +45,11 @@ public class JSONBlsCPISource implements BlsCPISource {
             }
         }
 
-        Iterator<BlsResponse> it = this.list.iterator();
-        while (it.hasNext()) {
-            BlsResponse response = it.next();
-            if (response.getDataPoint(CPI_SERIES_ID, year, 1) != null) {
-                return response;
-            }
-        }
-        return null;
+        return this.list.stream()
+                .filter(response -> response.getDataPoint(CPI_SERIES_ID, year, 1) != null)
+                .findFirst()
+                .orElse(null);
+
     }
 
 }
