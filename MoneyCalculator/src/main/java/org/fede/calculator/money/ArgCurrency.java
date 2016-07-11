@@ -85,7 +85,7 @@ public enum ArgCurrency {
         return whichCurrency(fromYear, fromMonth).convertTo(value, whichCurrency(toYear, toMonth));
     }
 
-    public BigDecimal convertTo(BigDecimal value, ArgCurrency to) {
+    private BigDecimal convertTo(BigDecimal value, ArgCurrency to) {
         final int n = this.zeroes[this.id][to.id];
         if (n != 0) {
             return value.movePointRight(n);
