@@ -101,7 +101,7 @@
                         <th>+/-</th>
                         <th>+/- %</th>
                         <th>Inflación</th>
-                        <th>+/- % Real</th>
+                        <th>+/- Real</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -135,14 +135,11 @@
                         <th>+/-</th>
                         <th>+/- %</th>
                         <th>Inflación</th>
-                        <th>+/- % Real</th>
+                        <th>+/- Real</th>
                     </tr>
                 </tfoot>
             </table>
         </article>
-
-
-
         <article id="reportUSD">
             <c:if test="${not empty reportUSD.total}">
                 <table>
@@ -181,7 +178,7 @@
                         <th>+/-</th>
                         <th>+/- %</th>
                         <th>Inflación</th>
-                        <th>+/- % Real</th>
+                        <th>+/- Real</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -215,13 +212,10 @@
                         <th>+/-</th>
                         <th>+/- %</th>
                         <th>Inflación</th>
-                        <th>+/- % Real</th>
+                        <th>+/- Real</th>
                     </tr>
                 </tfoot>
             </table>
         </article>
-
-
-
     </body>
 </html>

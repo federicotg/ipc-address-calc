@@ -12,12 +12,11 @@
     <artifactId>Calculadoras</artifactId>
 
     <properties>
-        <appengine.app.version>1</appengine.app.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <org.springframework.version>4.2.6.RELEASE</org.springframework.version>
-        <spring-security.version>4.1.0.RELEASE</spring-security.version>
+        <org.springframework.version>4.3.1.RELEASE</org.springframework.version>
+        <spring-security.version>4.1.1.RELEASE</spring-security.version>
         <hibernate-validator-version>5.2.4.Final</hibernate-validator-version>
-        <jackson2-version>2.7.4</jackson2-version>
+        <jackson2-version>2.8.0</jackson2-version>
     </properties>
 
     <prerequisites>
