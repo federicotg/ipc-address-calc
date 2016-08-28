@@ -30,6 +30,8 @@ import java.util.Map;
  */
 public class SeriesReader {
     
+    private static final ObjectMapper OM =  new ObjectMapper();
+    
     private static final Map<String, JSONIndexSeries> CACHE = new HashMap<>();
 
     private static final TypeReference<List<JSONDataPoint>> INDEX_SERIES_TYPE_REFERENCE = new TypeReference<List<JSONDataPoint>>() {
@@ -41,7 +43,7 @@ public class SeriesReader {
 
     public static <T> T read(String name, TypeReference<T> typeReference) {
         try (InputStream in = SeriesReader.class.getResourceAsStream("/" + name);) {
-            return new ObjectMapper().readValue(in, typeReference);
+            return OM.readValue(in, typeReference);
         } catch (IOException ioEx) {
             throw new IllegalArgumentException("Could not read series from resource " + name, ioEx);
         }
