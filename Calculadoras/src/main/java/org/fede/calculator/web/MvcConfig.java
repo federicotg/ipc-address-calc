@@ -17,8 +17,7 @@
 package org.fede.calculator.web;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -72,10 +71,10 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
     public ContentNegotiatingViewResolver cnResolver() {
         ContentNegotiatingViewResolver bean = new ContentNegotiatingViewResolver();
         bean.setOrder(0);
-        Map<String, MediaType> map = new HashMap<>();
-        map.put("json", MediaType.APPLICATION_JSON);
-
-        bean.setContentNegotiationManager(new ContentNegotiationManager(new PathExtensionContentNegotiationStrategy(map)));
+        bean.setContentNegotiationManager(
+                new ContentNegotiationManager(
+                        new PathExtensionContentNegotiationStrategy(
+                                Collections.singletonMap("json", MediaType.APPLICATION_JSON))));
 
         MappingJackson2JsonView jacksonView = new MappingJackson2JsonView();
         jacksonView.setExtractValueFromSingleKeyModel(true);

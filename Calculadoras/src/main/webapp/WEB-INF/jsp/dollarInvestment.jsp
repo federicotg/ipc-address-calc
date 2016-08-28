@@ -120,7 +120,11 @@
                                 <td class="valueTd">
                                 <fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.inflationPct}</fmt:formatNumber></td>
                             <c:choose><c:when test="${item.differencePct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
-                                <fmt:formatNumber type="CURRENCY" minFractionDigits="2">${item.differencePct}</fmt:formatNumber></td>
+                                <span title="<fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.differencePct / item.initialAmount}</fmt:formatNumber>">
+                                    <fmt:formatNumber type="CURRENCY" minFractionDigits="2">${item.differencePct}</fmt:formatNumber>
+                                </span>
+                                </td>
+                                
                             </tr>
                     </c:forEach>
                 </tbody>
@@ -197,7 +201,11 @@
                                 <td class="valueTd">
                                 <fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.inflationPct}</fmt:formatNumber></td>
                                 <c:choose><c:when test="${item.differencePct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
-                                <fmt:formatNumber type="CURRENCY" minFractionDigits="2">${item.differencePct}</fmt:formatNumber></td>
+                                    
+                                    <span title="<fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.differencePct / item.initialAmount}</fmt:formatNumber>">
+                                        <fmt:formatNumber type="CURRENCY" minFractionDigits="2">${item.differencePct}</fmt:formatNumber>
+                                    </span>
+                                </td>
                             </tr>
                     </c:forEach>
                 </tbody>

@@ -51,6 +51,8 @@ import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
  */
 public class Util {
 
+    private static final ObjectMapper OM = new ObjectMapper();
+    
     private static final Map<String, MoneyAmountSeries> CACHE = new HashMap<>();
 
     private static final Set<String> CONSULTATIO_SERIES;
@@ -107,10 +109,10 @@ public class Util {
 
         try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
 
-            final ObjectMapper om = new ObjectMapper();
+            
             final JSONSeries series = CONSULTATIO_SERIES.contains(name)
-                    ? readConsultatioSeries(is, om)
-                    : om.readValue(is, JSONSeries.class);
+                    ? readConsultatioSeries(is, OM)
+                    : OM.readValue(is, JSONSeries.class);
 
             final SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
             final String currency = series.getCurrency();
