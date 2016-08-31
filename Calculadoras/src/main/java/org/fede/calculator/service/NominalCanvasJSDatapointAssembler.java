@@ -36,12 +36,12 @@ public class NominalCanvasJSDatapointAssembler implements CanvasJSDatapointAssem
     }
 
     @Override
-    public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries, int year, int month) throws NoSeriesDataFoundException {
+    public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries, int year, int month) {
         return this.getDatapoints(months, sourceSeries);
     }
 
     @Override
-    public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException {
+    public List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries) {
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
         new SimpleAggregation(months).average(sourceSeries.exchangeInto(this.currency))
                 .forEach(new CanvasJSMoneyAmountProcessor(datapoints));

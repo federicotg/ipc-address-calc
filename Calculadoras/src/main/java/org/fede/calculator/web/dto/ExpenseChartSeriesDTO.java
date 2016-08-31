@@ -31,7 +31,7 @@ public class ExpenseChartSeriesDTO {
         this.name = name;
         this.seriesName = seriesName;
     }
-    
+
     public String getName() {
         return name;
     }
@@ -48,20 +48,19 @@ public class ExpenseChartSeriesDTO {
         this.seriesName = seriesName;
     }
 
-    public boolean isTotal(){
+    public boolean isTotal() {
         return this.seriesName == null || this.seriesName.length() == 0;
     }
 
     @Override
     public int hashCode() {
-        return  79 * 3 + Objects.hashCode(this.seriesName);
+        return 79 * 3 + Objects.hashCode(this.seriesName);
     }
 
     @Override
     public boolean equals(Object obj) {
         return obj instanceof ExpenseChartSeriesDTO
-                && Objects.equals(((ExpenseChartSeriesDTO) obj).getSeriesName() ,this.getSeriesName());
+                && Objects.equals(((ExpenseChartSeriesDTO) obj).getSeriesName(), this.getSeriesName());
     }
-    
-    
+
 }

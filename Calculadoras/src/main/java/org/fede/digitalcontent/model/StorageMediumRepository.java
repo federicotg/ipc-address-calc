@@ -22,9 +22,8 @@ package org.fede.digitalcontent.model;
  */
 public class StorageMediumRepository extends BaseRepository<String, StorageMedium> {
 
-   
     @Override
-    public void add(StorageMedium medium){
+    public void add(StorageMedium medium) {
         this.add(medium.getName(), medium);
     }
 }

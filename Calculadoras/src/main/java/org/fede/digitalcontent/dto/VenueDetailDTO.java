@@ -67,7 +67,7 @@ public class VenueDetailDTO {
         this.wikipedia = wikipedia;
     }
 
-    public void doneAddingPerformances(){
+    public void doneAddingPerformances() {
         Collections.sort(this.performances);
     }
 }

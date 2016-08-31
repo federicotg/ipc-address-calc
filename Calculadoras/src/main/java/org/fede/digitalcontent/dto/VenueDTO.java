@@ -23,6 +23,7 @@ import org.fede.digitalcontent.model.LatLon;
  * @author fede
  */
 public class VenueDTO {
+
     private String name;
     private String city;
     private String country;
@@ -76,7 +77,5 @@ public class VenueDTO {
     public void setLatLon(LatLon latLon) {
         this.latLon = latLon;
     }
-    
-    
-    
+
 }

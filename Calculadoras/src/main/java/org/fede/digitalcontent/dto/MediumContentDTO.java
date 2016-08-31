@@ -28,7 +28,7 @@ import java.util.TreeSet;
 public class MediumContentDTO implements Comparable<MediumContentDTO> {
 
     private static final BigDecimal BYTES_IN_A_GB = new BigDecimal(1024 * 1024 * 1024);
-    
+
     private String mediumName;
     private long size;
     private Collection<OpusDTO> opus = new TreeSet<>();
@@ -66,8 +66,8 @@ public class MediumContentDTO implements Comparable<MediumContentDTO> {
     public void setSize(long size) {
         this.size = size;
     }
-    
-    public BigDecimal getSizeInGB(){
+
+    public BigDecimal getSizeInGB() {
         return new BigDecimal(this.size).setScale(6).divide(BYTES_IN_A_GB, MathContext.DECIMAL32);
     }
 

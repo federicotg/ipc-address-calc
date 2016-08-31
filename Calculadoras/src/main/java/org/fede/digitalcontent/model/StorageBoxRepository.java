@@ -16,7 +16,6 @@
  */
 package org.fede.digitalcontent.model;
 
-
 /**
  *
  * @author fede
@@ -27,6 +26,5 @@ public class StorageBoxRepository extends BaseRepository<String, StorageBox> {
     public void add(StorageBox entity) {
         this.add(entity.getName(), entity);
     }
-
 
 }

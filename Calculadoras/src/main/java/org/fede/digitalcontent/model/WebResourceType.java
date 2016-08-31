@@ -16,13 +16,11 @@
  */
 package org.fede.digitalcontent.model;
 
-
-
 /**
  * Possible web resources are wikipedia, imdb, etc.
+ *
  * @author fede
  */
-
 public enum WebResourceType {
 
     IMDB, WIKIPEDIA;
