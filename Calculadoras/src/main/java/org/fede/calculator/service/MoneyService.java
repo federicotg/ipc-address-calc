@@ -25,10 +25,11 @@ import org.fede.calculator.web.dto.MoneyDTO;
  *
  * @author fede
  */
-
 public interface MoneyService {
-    
+
     public static final Locale ES_AR = Locale.forLanguageTag("es-AR");
-    MoneyDTO getMoney(MoneyDTO dto) throws NoSeriesDataFoundException;
+
+    MoneyDTO getMoney(MoneyDTO dto);
+
     CurrencyLimitsDTO getLimits();
 }

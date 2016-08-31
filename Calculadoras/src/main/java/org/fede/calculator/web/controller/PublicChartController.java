@@ -43,7 +43,8 @@ public class PublicChartController {
 
     private static final Logger LOG = Logger.getLogger(PublicChartController.class.getName());
 
-    @Autowired @Lazy
+    @Autowired
+    @Lazy
     private ChartService chartService;
 
     @ExceptionHandler(Exception.class)
@@ -76,15 +77,13 @@ public class PublicChartController {
 
     @ResponseBody
     @RequestMapping(value = "realPesosForDollarChart", method = GET)
-    public CanvasJSChartDTO realPesosForDollarChart()
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO realPesosForDollarChart() {
         return this.chartService.hisotricDollar();
     }
 
     @ResponseBody
     @RequestMapping(value = "realDollarsForTroyOunceChart", method = GET)
-    public CanvasJSChartDTO realDollarsForTroyOunce()
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO realDollarsForTroyOunce() {
         return this.chartService.historicGold();
     }
 

@@ -29,7 +29,7 @@ import java.util.List;
 public class BoxLabelDTO implements Comparable<BoxLabelDTO> {
 
     private static final BigDecimal BYTES_IN_A_GB = new BigDecimal(1024 * 1024 * 1024);
-    
+
     private String boxName;
     private long size;
     private List<MediumContentDTO> contents = new ArrayList<>();
@@ -49,12 +49,12 @@ public class BoxLabelDTO implements Comparable<BoxLabelDTO> {
     public void setContents(List<MediumContentDTO> contents) {
         this.contents = contents;
     }
-    
-    public void addContent(MediumContentDTO content){
+
+    public void addContent(MediumContentDTO content) {
         this.contents.add(content);
     }
-    
-    public void doneContent(){
+
+    public void doneContent() {
         Collections.sort(this.contents);
     }
 
@@ -67,7 +67,7 @@ public class BoxLabelDTO implements Comparable<BoxLabelDTO> {
         this.size = size;
     }
 
-    public BigDecimal getSizeInGB(){
+    public BigDecimal getSizeInGB() {
         return new BigDecimal(this.size).setScale(6).divide(BYTES_IN_A_GB, MathContext.DECIMAL32);
     }
 }

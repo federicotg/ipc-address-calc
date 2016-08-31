@@ -52,7 +52,6 @@ public class StorageBox {
 //    public void setMedia(Set<StorageMedium> media) {
 //        this.media = media;
 //    }
-
     public void addStorageMedium(StorageMedium medium) {
         this.media.add(medium);
     }

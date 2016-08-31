@@ -23,5 +23,6 @@ import org.fede.calculator.web.dto.LaPlataAddressDTO;
  * @author fede
  */
 public interface LaPlataAddressService {
+
     LaPlataAddressDTO getAddress(LaPlataAddressDTO dto);
 }

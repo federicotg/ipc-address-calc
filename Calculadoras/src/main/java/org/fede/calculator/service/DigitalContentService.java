@@ -22,26 +22,35 @@ import org.fede.digitalcontent.dto.DigitalContentDTO;
 import org.fede.digitalcontent.dto.OpusDTO;
 import org.fede.digitalcontent.dto.VenueDTO;
 import org.fede.digitalcontent.dto.VenueDetailDTO;
-import org.fede.digitalcontent.model.StorageBox;
 
 /**
  *
  * @author fede
  */
 public interface DigitalContentService {
-    
+
     //Iterable<StorageBox> getAllBoxes();
-    
     List<DigitalContentDTO> getFullReport();
+
     List<DigitalContentDTO> getBoxReport(String box);
+
     List<DigitalContentDTO> getComposerReport(String composerName);
+
     List<DigitalContentDTO> getOpusReport(String opusName);
+
     List<DigitalContentDTO> getVenueReport(String venueName);
+
     List<DigitalContentDTO> getOpusTypeReport(String name);
+
     BoxLabelDTO getBoxLabel(String boxName);
+
     List<BoxLabelDTO> getEveryBoxLabel();
+
     List<VenueDTO> getVenues();
+
     VenueDetailDTO getVenueDetail(String venueName);
+
     List<OpusDTO> unseenBy(String personName);
+
     List<OpusDTO> unavailableInHD();
 }

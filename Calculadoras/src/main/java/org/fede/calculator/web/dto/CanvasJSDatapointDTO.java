@@ -30,16 +30,15 @@ public class CanvasJSDatapointDTO {
     private String label;
 
     public CanvasJSDatapointDTO(String x, BigDecimal y, String label) {
-        this(x,y);
+        this(x, y);
         this.label = label;
     }
-    
+
     public CanvasJSDatapointDTO(String x, BigDecimal y) {
         this.x = x;
         this.y = y.setScale(4, RoundingMode.HALF_UP);
     }
 
-   
     public String getX() {
         return x;
     }

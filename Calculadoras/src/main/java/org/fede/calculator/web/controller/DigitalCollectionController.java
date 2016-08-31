@@ -38,7 +38,8 @@ import org.springframework.web.servlet.ModelAndView;
 @RequestMapping("/dc")
 public class DigitalCollectionController {
 
-    @Autowired @Lazy
+    @Autowired
+    @Lazy
     private DigitalContentService dcService;
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
@@ -58,9 +59,9 @@ public class DigitalCollectionController {
     }
 
     /**
-     * 
+     *
      * @param name name of the composer, any character (that's the regexp for).
-     * @return 
+     * @return
      */
     @RequestMapping(value = "/report/composer/{name:.+}", method = RequestMethod.GET)
     public ModelAndView composerReport(@PathVariable String name) {

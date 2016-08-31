@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * @param <T>
  */
 public interface Repository<K, T> {
-    
+
     public static final StorageBoxRepository STORAGEBOX = new StorageBoxRepository();
     public static final CityRepository CITY = new CityRepository();
     public static final PersonRepository PERSON = new PersonRepository();
@@ -35,8 +35,10 @@ public interface Repository<K, T> {
     public static final PerformanceRepository PERFORMANCE = new PerformanceRepository();
     public static final DigitalContentRepository DIGITALCONTENT = new DigitalContentRepository();
     public static final StorageMediumRepository STORAGE = new StorageMediumRepository();
-    
+
     void add(T entity);
+
     T findById(K id);
+
     Stream<T> stream();
 }
