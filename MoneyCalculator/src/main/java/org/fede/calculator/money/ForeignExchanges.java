@@ -57,7 +57,7 @@ public class ForeignExchanges {
             SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json"),
             "CONAAFA",
             "ARS");
-    
+
     public static final ForeignExchange ARS_CONBALA = new SimpleForeignExchange(
             SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json"),
             "CONBALA",
@@ -75,12 +75,12 @@ public class ForeignExchanges {
         }
 
         @Override
-        public BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException {
+        public BigDecimal getIndex(int year, int month) {
             return BigDecimal.ONE;
         }
 
         @Override
-        public BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException {
+        public BigDecimal predictValue(int year, int month) {
             return BigDecimal.ONE;
         }
 
@@ -93,10 +93,8 @@ public class ForeignExchanges {
         public boolean equals(Object obj) {
             return this == obj;
         }
-        
+
     };
-    
-    
 
     private static void map(String from, String to, ForeignExchange fx) {
         DIRECT_FOREIGN_EXCHANGES.put(new Pair<>(from, to), fx);
@@ -104,7 +102,7 @@ public class ForeignExchanges {
     }
 
     static {
-       
+
         // direct conversions
         map("ARS", "USD", USD_ARS);
         map("EUR", "USD", USD_EUR);
@@ -146,8 +144,8 @@ public class ForeignExchanges {
         );
     }
 
-    public static ForeignExchange getIdentityForeignExchange(String currency){
+    public static ForeignExchange getIdentityForeignExchange(String currency) {
         return new SimpleForeignExchange(CONSTANT_INDEX, currency, currency);
     }
-    
+
 }

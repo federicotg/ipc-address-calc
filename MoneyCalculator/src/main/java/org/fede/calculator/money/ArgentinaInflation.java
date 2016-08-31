@@ -16,7 +16,7 @@
  */
 package org.fede.calculator.money;
 
-import org.fede.calculator.money.series.ArgentinaCompoundCPISeries;
+import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 
 /**
@@ -25,10 +25,18 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class ArgentinaInflation extends BaseInflation {
 
-    private final Inflation basicInflation = new CPIInflation(new ArgentinaCompoundCPISeries(), "ARS");
+    private final Inflation basicInflation;
+
+    public ArgentinaInflation() {
+        this(new CPIInflation(SeriesReader.readIndexSeries("index/cpi_arg.json"), "ARS"));
+    }
+
+    public ArgentinaInflation(Inflation basicInflation) {
+        this.basicInflation = basicInflation;
+    }
 
     @Override
-    public MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoSeriesDataFoundException {
+    public MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) {
         amount.assertCurrency("ARS");
         MoneyAmount uncorrectedValue = this.basicInflation.adjust(amount, fromYear, fromMonth, toYear, toMonth);
         return new MoneyAmount(ArgCurrency.convertTo(uncorrectedValue.getAmount(), fromYear, fromMonth, toYear, toMonth), "ARS");

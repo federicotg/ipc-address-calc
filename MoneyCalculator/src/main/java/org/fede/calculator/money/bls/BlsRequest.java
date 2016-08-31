@@ -59,6 +59,5 @@ public class BlsRequest {
     public void setEndyear(int endyear) {
         this.endyear = endyear;
     }
-    
-    
+
 }

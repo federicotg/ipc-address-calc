@@ -53,15 +53,13 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, int referenceYear, int referenceMonth) 
-            throws NoSeriesDataFoundException {
+    public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, int referenceYear, int referenceMonth) {
         return this.second.exchange(
                 this.first.exchange(amount, this.getFirstTargetCurrency(amount.getCurrency()), referenceYear, referenceMonth), targetCurrency, referenceYear, referenceMonth);
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, Date moment) 
-            throws NoSeriesDataFoundException {
+    public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, Date moment) {
         return this.second.exchange(this.first.exchange(amount, this.getFirstTargetCurrency(amount.getCurrency()), moment), targetCurrency, moment);
     }
 
@@ -72,14 +70,12 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
     }
 
     @Override
-    public MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency) 
-            throws NoSeriesDataFoundException {
+    public MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency) {
         return this.second.exchange(this.first.exchange(series, this.getFirstTargetCurrency(series.getCurrency())), targetCurrency);
     }
 
     @Override
-    public MoneyAmountSeries exchange(MoneyAmount amount, String targetCurrency) 
-            throws NoSeriesDataFoundException {
+    public MoneyAmountSeries exchange(MoneyAmount amount, String targetCurrency) {
         return this.second.exchange(this.first.exchange(amount, this.getFirstTargetCurrency(amount.getCurrency())), targetCurrency);
     }
 

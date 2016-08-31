@@ -24,5 +24,6 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  * @author fede
  */
 public interface FutureValue {
-    BigDecimal predictValue(IndexSeries series, int year, int month) throws NoSeriesDataFoundException;
+
+    BigDecimal predictValue(IndexSeries series, int year, int month);
 }

@@ -23,6 +23,7 @@ import org.fede.calculator.money.MoneyAmount;
  * @author fede
  */
 public interface MoneyAmountTransform {
+
     MoneyAmount transform(int year, int month, MoneyAmount amount);
-    
+
 }

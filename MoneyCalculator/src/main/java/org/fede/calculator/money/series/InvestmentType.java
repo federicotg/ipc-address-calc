@@ -1,7 +1,5 @@
 package org.fede.calculator.money.series;
 
-
-
 /*
  * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
  *
@@ -18,7 +16,6 @@ package org.fede.calculator.money.series;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 /**
  *
  * @author Federico Tello Gentile <federicotg@gmail.com>
@@ -27,7 +24,7 @@ public enum InvestmentType {
     PF {
         @Override
         public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {
-            return  out != null
+            return out != null
                     && in.getDate().before(out.getDate())
                     && in.getCurrency().equals(asset.getCurrency())
                     && in.getCurrency().equals(out.getCurrency())

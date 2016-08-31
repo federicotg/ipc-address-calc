@@ -29,41 +29,34 @@ public enum InterpolationStrategy {
 
     NO_INTERPOLATION {
         @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) 
-                throws NoSeriesDataFoundException {
+        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
             throw new NoSeriesDataFoundException("No value for specified year and month.");
         }
     }, LAST_VALUE_INTERPOLATION {
         @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) 
-                throws NoSeriesDataFoundException {
+        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
             return lastValue;
         }
     }, ZERO_VALUE_INTERPOLATION {
         @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) 
-                throws NoSeriesDataFoundException {
+        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
             return new MoneyAmount(BigDecimal.ZERO, currency);
         }
     }, ARS_INFLATION_INTERPOLATION {
         @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) 
-                throws NoSeriesDataFoundException {
+        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
             return inflationInterpolation(Inflation.ARS_INFLATION, lastValue, lastValueYearMonth, currency);
         }
     }, USD_INFLATION_INTERPOLATION {
         @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) 
-                throws NoSeriesDataFoundException {
+        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
             return inflationInterpolation(Inflation.USD_INFLATION, lastValue, lastValueYearMonth, currency);
         }
     };
 
-    public abstract MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) 
-            throws NoSeriesDataFoundException;
+    public abstract MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency);
 
-    protected MoneyAmount inflationInterpolation(Inflation inflation, MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) 
-            throws NoSeriesDataFoundException {
+    protected MoneyAmount inflationInterpolation(Inflation inflation, MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
         YearMonth nextYm = lastValueYearMonth.next();
         return inflation.adjust(
                 lastValue, lastValueYearMonth.getYear(),

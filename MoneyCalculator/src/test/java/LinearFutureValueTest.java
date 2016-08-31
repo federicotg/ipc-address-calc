@@ -36,16 +36,15 @@ public class LinearFutureValueTest {
     public LinearFutureValueTest() {
     }
 
-
     // TODO add test methods here.
     // The methods must be annotated with annotation @Test. For example:
     //
     @Test
-    public void linear() throws NoSeriesDataFoundException {
+    public void linear() {
 
         assertEquals(new BigDecimal("45.663038248389").round(MathContext.DECIMAL32), new LinearFutureValue().predictValue(
-                SeriesReader.readIndexSeries("linearFutureTestSeries.json"), 
-                1996, 
+                SeriesReader.readIndexSeries("linearFutureTestSeries.json"),
+                1996,
                 6).round(MathContext.DECIMAL32));
 
     }

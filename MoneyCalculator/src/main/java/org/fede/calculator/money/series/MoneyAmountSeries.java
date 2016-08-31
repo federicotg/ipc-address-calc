@@ -26,25 +26,25 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public interface MoneyAmountSeries extends Series {
 
-    MoneyAmount getAmount(Date day) throws NoSeriesDataFoundException;
+    MoneyAmount getAmount(Date day);
 
-    MoneyAmount getAmount(int year, int month) throws NoSeriesDataFoundException;
-    
-    MoneyAmount getAmount(YearMonth moment) throws NoSeriesDataFoundException;
-    
-    MoneyAmount getAmountOrElseZero(YearMonth moment) throws NoSeriesDataFoundException;
+    MoneyAmount getAmount(int year, int month);
+
+    MoneyAmount getAmount(YearMonth moment);
+
+    MoneyAmount getAmountOrElseZero(YearMonth moment);
 
     void putAmount(int year, int month, MoneyAmount amount);
 
     String getCurrency();
 
-    void forEach(MoneyAmountProcessor processor) throws NoSeriesDataFoundException;
-    
-    void forEachNonZero(MoneyAmountProcessor processor) throws NoSeriesDataFoundException;
+    void forEach(MoneyAmountProcessor processor);
 
-    MoneyAmountSeries map(MoneyAmountTransform processor) throws NoSeriesDataFoundException;
+    void forEachNonZero(MoneyAmountProcessor processor);
 
-    MoneyAmountSeries add(MoneyAmountSeries other) throws NoSeriesDataFoundException;
-    
-    MoneyAmountSeries exchangeInto(String currency) throws NoSeriesDataFoundException;
+    MoneyAmountSeries map(MoneyAmountTransform processor);
+
+    MoneyAmountSeries add(MoneyAmountSeries other);
+
+    MoneyAmountSeries exchangeInto(String currency);
 }
