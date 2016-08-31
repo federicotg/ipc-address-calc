@@ -28,8 +28,7 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
     public SavingsReportDTO(int year, int month) {
         this.moment = new YearMonth(year, month);
     }
-   
-    
+
     private YearMonth moment;
 
     private BigDecimal pesosForDollar;
@@ -39,7 +38,6 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
 
     private BigDecimal nominalPesos;
 
-    
     private BigDecimal nominalIncomePesos;
     private BigDecimal nominalIncomeDollars;
 
@@ -52,21 +50,19 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
 
     private BigDecimal nov99Pesos;
 
-
     private BigDecimal nov99IncomePesos;
     private BigDecimal nov99IncomeDollars;
-    
+
     private BigDecimal totalNov99Dollars;
     private BigDecimal totalNov99DollarsPctVar;
     private BigDecimal totalNov99Pesos;
     private BigDecimal totalNov99PesosPctVar;
-    
+
     private BigDecimal nov99PesosPctSaved;
     private BigDecimal nov99DollarPctSaved;
-    
+
     private BigDecimal nominalPesosPctSaved;
     private BigDecimal nominalDollarPctSaved;
-    
 
     @Override
     public int compareTo(SavingsReportDTO o) {
@@ -161,8 +157,6 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
         this.pesosForDollarPctVar = pesosForDollarPctVar;
     }
 
-
-
     public BigDecimal getTotalNominalPesosPctVar() {
         return totalNominalPesosPctVar;
     }
@@ -178,8 +172,6 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
     public void setTotalNominalDollarsPctVar(BigDecimal totalNominalDollarsPctVar) {
         this.totalNominalDollarsPctVar = totalNominalDollarsPctVar;
     }
-
-
 
     public BigDecimal getTotalNov99DollarsPctVar() {
         return totalNov99DollarsPctVar;
@@ -261,5 +253,4 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
         this.nominalDollarPctSaved = nominalDollarPctSaved;
     }
 
-    
 }

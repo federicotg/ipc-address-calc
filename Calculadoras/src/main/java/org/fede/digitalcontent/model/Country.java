@@ -20,7 +20,7 @@ package org.fede.digitalcontent.model;
  *
  * @author fede
  */
-public enum Country  {
+public enum Country {
 
     USA, FRANCE, UK, GERMANY, DENMARK, RUSSIA, ITALY, AUSTRIA,
     AUSTRALIA, SWITZERLAND, SPAIN, CHINA, NETHERLANDS, ARGENTINA, BRAZIL;

@@ -40,7 +40,7 @@ public class MvcWebApplicationInitializer extends AbstractAnnotationConfigDispat
     @Override
     protected String[] getServletMappings() {
         return new String[]{"/"};
-    } 
+    }
 
     @Override
     protected Filter[] getServletFilters() {
@@ -48,7 +48,5 @@ public class MvcWebApplicationInitializer extends AbstractAnnotationConfigDispat
             new CharacterEncodingFilter("UTF-8", true)
         };
     }
-    
-    
-    
+
 }

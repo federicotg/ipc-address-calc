@@ -25,7 +25,7 @@ import org.fede.calculator.web.dto.CurrencyLimitsDTO;
 import org.fede.calculator.web.dto.MoneyDTO;
 
 /**
- * 
+ *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class USDMoneyService implements MoneyService {
@@ -33,14 +33,14 @@ public class USDMoneyService implements MoneyService {
     private static final CurrencyDTO CURRENCY_DTO = new CurrencyDTO(Currency.getInstance(USD_INFLATION.getCurrency()));
 
     @Override
-    public MoneyDTO getMoney(MoneyDTO dto) throws NoSeriesDataFoundException {
+    public MoneyDTO getMoney(MoneyDTO dto) {
 
         MoneyDTO answer = new MoneyDTO();
         answer.setAmount(USD_INFLATION.adjust(
-                new MoneyAmount(dto.getAmount(), "USD"), 
-                dto.getFromYear(), 
-                dto.getFromMonth(), 
-                dto.getToYear(), 
+                new MoneyAmount(dto.getAmount(), "USD"),
+                dto.getFromYear(),
+                dto.getFromMonth(),
+                dto.getToYear(),
                 dto.getToMonth()).getAmount());
         answer.setFromMonth(dto.getFromMonth());
         answer.setFromYear(dto.getFromYear());

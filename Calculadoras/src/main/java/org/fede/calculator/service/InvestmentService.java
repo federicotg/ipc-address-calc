@@ -27,7 +27,9 @@ import org.fede.calculator.web.dto.SavingsReportDTO;
  */
 public interface InvestmentService {
 
-    List<SavingsReportDTO> savings(int year, int month) throws NoSeriesDataFoundException;
-    DetailedInvestmentReportDTO currentInvestmentsReport(String currency) throws NoSeriesDataFoundException;
-    DetailedInvestmentReportDTO pastInvestmentsReport(String currency) throws NoSeriesDataFoundException;
+    List<SavingsReportDTO> savings(int year, int month);
+
+    DetailedInvestmentReportDTO currentInvestmentsReport(String currency);
+
+    DetailedInvestmentReportDTO pastInvestmentsReport(String currency);
 }

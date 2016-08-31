@@ -27,12 +27,12 @@ import java.util.Set;
  * @author fede
  */
 public class StorageMedium {
-    
+
     //private static final BigDecimal MAX_CAPACITY = new BigDecimal("24274800905");
     private static final BigDecimal MAX_CAPACITY = new BigDecimal("24694593073");
 
     private final String name;
-    
+
     private long size;
 
     private final Set<DigitalContent> contents;
@@ -49,7 +49,6 @@ public class StorageMedium {
 //    public void setName(String name) {
 //        this.name = name;
 //    }
-
     public Set<DigitalContent> getContents() {
         return contents;
     }
@@ -57,7 +56,6 @@ public class StorageMedium {
 //    public void setContents(Set<DigitalContent> contents) {
 //        this.contents = contents;
 //    }
-
     public void addContent(DigitalContent content) {
         this.contents.add(content);
     }
@@ -71,7 +69,7 @@ public class StorageMedium {
         return this.getName() + " " + contents.toString();
     }
 
-    public void setSize(long bytes){
+    public void setSize(long bytes) {
         this.size = bytes;
     }
 
@@ -79,10 +77,10 @@ public class StorageMedium {
         return size;
     }
 
-    public BigDecimal getUsedCapacity(){
+    public BigDecimal getUsedCapacity() {
         return new BigDecimal(this.getSize())
                 .setScale(4)
                 .divide(MAX_CAPACITY, MathContext.DECIMAL128);
     }
-    
+
 }

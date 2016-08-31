@@ -19,7 +19,7 @@ package org.fede.calculator.web.dto;
 import java.util.List;
 
 /**
- * 
+ *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class CombinedChartDTO extends MonthGroupingChartDTO {
@@ -31,14 +31,14 @@ public class CombinedChartDTO extends MonthGroupingChartDTO {
     private boolean en = true;
     private boolean er = true;
     private List<String> series;
-    
+
     public CombinedChartDTO() {
     }
-    
+
     public CombinedChartDTO(CurrencyLimitsDTO arsLimits) {
         super(arsLimits);
     }
-    
+
     public boolean isPn() {
         return pn;
     }
@@ -94,5 +94,5 @@ public class CombinedChartDTO extends MonthGroupingChartDTO {
     public void setSeries(List<String> series) {
         this.series = series;
     }
-   
+
 }

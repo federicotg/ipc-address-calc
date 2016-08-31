@@ -21,12 +21,12 @@ package org.fede.digitalcontent.model;
  * @author fede
  */
 public enum Language {
-   
+
     ENGLISH("en"), FRENCH("fr"), ITALIAN("it"), GERMAN("de"), SPANISH("es"), CZECH("cz"), RUSSIAN("ru"), HUNGARIAN("hu");
-    
+
     private final String code;
-    
-    private Language(String code){
+
+    private Language(String code) {
         this.code = code;
     }
 
@@ -34,8 +34,5 @@ public enum Language {
     public String toString() {
         return this.code;
     }
-    
-    
-    
-    
+
 }

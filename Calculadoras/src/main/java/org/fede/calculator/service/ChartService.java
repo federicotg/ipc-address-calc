@@ -25,19 +25,19 @@ import org.fede.calculator.web.dto.CanvasJSChartDTO;
  * @author fede
  */
 public interface ChartService {
-  
-    CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr, boolean en,boolean er, int year, int month) throws NoSeriesDataFoundException;
-    
-    CanvasJSChartDTO goldIncomeAndSavings() throws NoSeriesDataFoundException;
-    
-    CanvasJSChartDTO savedSalaries() throws NoSeriesDataFoundException;
-    
-    CanvasJSChartDTO hisotricDollar() throws NoSeriesDataFoundException;
-    
-    CanvasJSChartDTO historicGold() throws NoSeriesDataFoundException;
-    
+
+    CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr, boolean en, boolean er, int year, int month);
+
+    CanvasJSChartDTO goldIncomeAndSavings();
+
+    CanvasJSChartDTO savedSalaries();
+
+    CanvasJSChartDTO hisotricDollar();
+
+    CanvasJSChartDTO historicGold();
+
     CanvasJSChartDTO combinedIncomes(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en, boolean er,
-            int year, int month, List<String> seriesNames) throws NoSeriesDataFoundException;
-       
-    CanvasJSChartDTO savingsAndIncomeEvolution() throws NoSeriesDataFoundException;
+            int year, int month, List<String> seriesNames);
+
+    CanvasJSChartDTO savingsAndIncomeEvolution();
 }

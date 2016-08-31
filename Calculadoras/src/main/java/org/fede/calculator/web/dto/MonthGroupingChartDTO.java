@@ -34,7 +34,6 @@ public class MonthGroupingChartDTO {
     protected MonthGroupingChartDTO() {
     }
 
-    
     protected MonthGroupingChartDTO(CurrencyLimitsDTO arsLimits) {
         this.limit = arsLimits;
         this.year = arsLimits.getReferenceYear();

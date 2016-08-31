@@ -22,9 +22,8 @@ import org.fede.util.Pair;
  *
  * @author fede
  */
-public class LatLon extends Pair<Double, Double>{
+public class LatLon extends Pair<Double, Double> {
 
-    
     public LatLon(Double lat, Double lon) {
         super(lat, lon);
     }

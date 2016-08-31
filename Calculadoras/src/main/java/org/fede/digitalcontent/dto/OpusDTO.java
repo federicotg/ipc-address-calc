@@ -23,9 +23,9 @@ import java.util.Objects;
  * @author fede
  */
 public class OpusDTO implements Comparable<OpusDTO> {
-    
+
     private String name;
-    
+
     private String type;
 
     public OpusDTO(String name, String type) {
@@ -33,7 +33,6 @@ public class OpusDTO implements Comparable<OpusDTO> {
         this.type = type;
     }
 
-   
     public String getName() {
         return name;
     }
@@ -52,7 +51,7 @@ public class OpusDTO implements Comparable<OpusDTO> {
 
     @Override
     public int compareTo(OpusDTO o) {
-        if(!this.type.equals(o.getType())){
+        if (!this.type.equals(o.getType())) {
             return this.type.compareTo(o.getType());
         }
         return this.name.compareTo(o.getName());
@@ -80,7 +79,5 @@ public class OpusDTO implements Comparable<OpusDTO> {
         }
         return Objects.equals(this.type, other.type);
     }
-    
-    
-    
+
 }

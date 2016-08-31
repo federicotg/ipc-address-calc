@@ -82,7 +82,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     }
 
     @Override
-    public List<SavingsReportDTO> savings(final int toYear, final int toMonth) throws NoSeriesDataFoundException {
+    public List<SavingsReportDTO> savings(final int toYear, final int toMonth) {
 
         final MoneyAmountSeries pesos = sumSeries("ARS", this.savingsReportSeries.get("ars")
                 .toArray(new String[this.savingsReportSeries.get("ars").size()]));
@@ -176,13 +176,13 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return inv.getOut() == null || !new Date().after(inv.getOut().getDate());
     }
 
-    private static MoneyAmount changeCurrency(MoneyAmount ma, String targetCurrency, Date date) throws NoSeriesDataFoundException {
+    private static MoneyAmount changeCurrency(MoneyAmount ma, String targetCurrency, Date date) {
         ForeignExchange fx = ForeignExchanges.getForeignExchange(ma.getCurrency(), targetCurrency);
         YearMonth min = new YearMonth(date).min(fx.getTo());
         return fx.exchange(ma, targetCurrency, min.getYear(), min.getMonth());
     }
 
-    private static MoneyAmount initialAmount(Investment investment, String targetCurrency) throws NoSeriesDataFoundException {
+    private static MoneyAmount initialAmount(Investment investment, String targetCurrency) {
 
         MoneyAmount amount;
         if (targetCurrency.equals(investment.getInitialCurrency())) {
@@ -195,7 +195,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return amount;
     }
 
-    private static MoneyAmount finalAmount(Investment investment, String targetCurrency, Date date) throws NoSeriesDataFoundException {
+    private static MoneyAmount finalAmount(Investment investment, String targetCurrency, Date date) {
 
         if (investment.getOut() != null) {
             return changeCurrency(investment.getOut().getMoneyAmount(), targetCurrency, date);
@@ -204,7 +204,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return changeCurrency(investment.getMoneyAmount(), targetCurrency, date);
     }
 
-    private static BigDecimal realAmount(MoneyAmount nominalAmount, String targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
+    private static BigDecimal realAmount(MoneyAmount nominalAmount, String targetCurrency, Date from, Date to) {
 
         YearMonth ymFrom = new YearMonth(from);
         YearMonth ymTo = new YearMonth(to);
@@ -212,7 +212,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         if (ymFrom.equals(ymTo)) {
             return nominalAmount.getAmount();
         }
-       
+
         Inflation inflation = MAP.get(targetCurrency);
 
         if (inflation == null) {
@@ -227,12 +227,12 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                 ymTo.getMonth()).getAmount();
     }
 
-    private static BigDecimal inflation(String targetCurrency, Date from, Date to) throws NoSeriesDataFoundException {
+    private static BigDecimal inflation(String targetCurrency, Date from, Date to) {
         return realAmount(new MoneyAmount(ONE, targetCurrency), targetCurrency, from, to).subtract(ONE);
     }
 
     @Override
-    public DetailedInvestmentReportDTO currentInvestmentsReport(String currency) throws NoSeriesDataFoundException {
+    public DetailedInvestmentReportDTO currentInvestmentsReport(String currency) {
         final Inflation inflation = MAP.get(currency);
         final YearMonth until = inflation.getTo();
         final Date untilDate = until.asToDate();
@@ -240,7 +240,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     }
 
     @Override
-    public DetailedInvestmentReportDTO pastInvestmentsReport(String currency) throws NoSeriesDataFoundException {
+    public DetailedInvestmentReportDTO pastInvestmentsReport(String currency) {
 
         final Inflation inflation = MAP.get(currency);
         final YearMonth until = inflation.getTo();
@@ -249,8 +249,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         return this.investmentReport(currency, (item) -> !isCurrent(item) && item.getOut().getDate().before(untilDate), false);
     }
 
-    private DetailedInvestmentReportDTO investmentReport(String currency, Predicate<Investment> filter, boolean includeTotal)
-            throws NoSeriesDataFoundException {
+    private DetailedInvestmentReportDTO investmentReport(String currency, Predicate<Investment> filter, boolean includeTotal) {
 
         if (!MAP.containsKey(currency)) {
             throw new IllegalArgumentException("Currency " + currency + " does not have a known inflation index.");
