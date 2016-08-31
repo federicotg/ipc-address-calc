@@ -41,18 +41,19 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class LaPlataAddressCalculator {
 
-    @Autowired @Lazy
+    @Autowired
+    @Lazy
     private LaPlataAddressService addressService;
-    
+
     private static final Logger LOG = Logger.getLogger(LaPlataAddressCalculator.class.getName());
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public LaPlataAddressDTO errorHandler(Exception ex){
+    public LaPlataAddressDTO errorHandler(Exception ex) {
         LOG.log(Level.SEVERE, "errorHandler", ex);
         return new LaPlataAddressDTO("La dirección ingresada no es válida.", "");
     }
-    
+
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ModelAndView computeAddressForm() {
         return new ModelAndView("address", "address", new LaPlataAddressDTO());

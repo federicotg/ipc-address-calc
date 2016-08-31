@@ -55,7 +55,7 @@ public class CurrencyLimitsDTO {
         this.yearTo = yearTo;
         this.months = MONTHS;
         this.referenceMonth = referenceMonth;
-        this.referenceYear= referenceYear;
+        this.referenceYear = referenceYear;
     }
 
     public CurrencyDTO getCurrency() {
@@ -106,7 +106,7 @@ public class CurrencyLimitsDTO {
         this.referenceMonth = referenceMonth;
     }
 
-    public String getReferenceDateString(){
+    public String getReferenceDateString() {
         DateFormat df = new SimpleDateFormat("MMM yyyy");
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, this.referenceYear);

@@ -35,7 +35,7 @@ public abstract class BaseRepository<K, T> implements Repository<K, T> {
         return this.instances.get(id);
     }
 
-    protected void add(K key, T entity){
+    protected void add(K key, T entity) {
         this.instances.put(key, entity);
     }
 
@@ -43,6 +43,5 @@ public abstract class BaseRepository<K, T> implements Repository<K, T> {
     public final Stream<T> stream() {
         return this.instances.values().stream();
     }
-    
-    
+
 }
