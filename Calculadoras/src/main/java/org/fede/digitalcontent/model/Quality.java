@@ -34,6 +34,5 @@ public enum Quality {
     public String toString() {
         return this.description;
     }
-    
-    
+
 }

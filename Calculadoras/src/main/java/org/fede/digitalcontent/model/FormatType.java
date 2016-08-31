@@ -16,12 +16,12 @@
  */
 package org.fede.digitalcontent.model;
 
-
 /**
  * Format types include MKV, ISO Image, AVI, MP3, FLAC, ts, etc.
+ *
  * @author fede
  */
-public enum FormatType  {
+public enum FormatType {
 
     MKV, ISO, AVI, MP3, FLAC, BLURAY, DVD;
 

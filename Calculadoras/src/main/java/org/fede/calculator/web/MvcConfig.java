@@ -83,7 +83,6 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
         return bean;
     }
 
-    
     @Bean
     public AcceptHeaderLocaleResolver localeResolver() {
         return new AcceptHeaderLocaleResolver();
@@ -98,6 +97,5 @@ public class MvcConfig extends WebMvcConfigurerAdapter {
     public Validator getValidator() {
         return new LocalValidatorFactoryBean();
     }
-    
-    
+
 }

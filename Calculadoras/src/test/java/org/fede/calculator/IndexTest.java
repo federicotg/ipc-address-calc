@@ -49,7 +49,7 @@ public class IndexTest {
     }
 
     // @Test
-    public void youIndexARS() throws NoSeriesDataFoundException {
+    public void youIndexARS() {
 
         MoneyAmountSeries dollar = Util.readSeries("ahorros-dolar.json");
         MoneyAmountSeries gold = Util.readSeries("ahorros-oro.json");
@@ -121,7 +121,7 @@ public class IndexTest {
     }
     
     // @Test
-    public void historicDollar() throws NoSeriesDataFoundException {
+    public void historicDollar()  {
 
         YearMonth latestData = Inflation.USD_INFLATION.getTo();
         final int todayMonth = latestData.getMonth();
@@ -159,7 +159,7 @@ public class IndexTest {
         
     @Test
     
-    public void realUSD() throws NoSeriesDataFoundException{
+    public void realUSD() {
         MoneyAmountSeries usd = Util.readSeries("saving/ahorros-dolar.json");
         
         MoneyAmount x = usd.getAmount(2016, 5);
@@ -171,7 +171,7 @@ public class IndexTest {
         
     
         @Test 
-    public void wft() throws NoSeriesDataFoundException{
+    public void wft() {
         MoneyAmountSeries s = Util.readSeries("saving/ahorros-conbala.json");
         MoneyAmountSeries usd = s.exchangeInto("USD");
         System.out.println("");

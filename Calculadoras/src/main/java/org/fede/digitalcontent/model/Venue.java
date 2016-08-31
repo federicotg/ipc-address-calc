@@ -146,7 +146,6 @@ public class Venue {
 //    public void setName(String name) {
 //        this.name = name;
 //    }
-
     public Set<WebResource> getResources() {
         return resources;
     }
@@ -191,15 +190,15 @@ public class Venue {
         this.resources.add(new WebResource(uri, WebResourceType.WIKIPEDIA));
     }
 
-    public String getWikipedia(){
-        for(WebResource r : this.resources){
-            if(r.getType() == WebResourceType.WIKIPEDIA){
+    public String getWikipedia() {
+        for (WebResource r : this.resources) {
+            if (r.getType() == WebResourceType.WIKIPEDIA) {
                 return r.getUri();
             }
         }
         return null;
     }
-    
+
     public String getCountryName() {
         return this.getCity().getCountryName();
     }

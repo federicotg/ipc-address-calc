@@ -50,14 +50,14 @@ public class Opus {
             }
             return this;
         }
-        
+
         public Builder episode() {
             for (Opus opus : this.opuses) {
                 opus.setType(OpusType.EPISODE);
             }
             return this;
         }
-        
+
         public Builder sport() {
             for (Opus opus : this.opuses) {
                 opus.setType(OpusType.SPORT);
@@ -70,7 +70,7 @@ public class Opus {
                 opus.setType(OpusType.GAME);
             }
             return this;
-        }        
+        }
 
         public Builder ballet() {
             for (Opus opus : this.opuses) {
@@ -78,7 +78,7 @@ public class Opus {
             }
             return this;
         }
-        
+
         public Builder movie() {
             for (Opus opus : this.opuses) {
                 opus.setType(OpusType.MOVIE);
@@ -202,7 +202,6 @@ public class Opus {
     /*public void setTitle(String title) {
         this.title = title;
     }*/
-
     public OpusType getType() {
         return type;
     }
@@ -226,7 +225,6 @@ public class Opus {
     /*public void setAuthors(Set<Role> authors) {
         this.authors = authors;
     }*/
-
     public Set<WebResource> getResources() {
         return resources;
     }
@@ -234,7 +232,6 @@ public class Opus {
     /*public void setResources(Set<WebResource> resources) {
         this.resources = resources;
     }*/
-
     public void addPerson(RoleType roleType, Person person) {
         this.authors.add(new Role(person, roleType));
     }
@@ -247,7 +244,7 @@ public class Opus {
         return this.authors.stream()
                 .filter(r -> r.getType().equals(RoleType.COMPOSER))
                 .map(r -> r.getPerson());
-        
+
 //        Set<Person> answer = new HashSet<>();
 //        for (Role r : this.authors) {
 //            if (r.getType().equals(RoleType.COMPOSER)) {
@@ -273,6 +270,5 @@ public class Opus {
     public String toString() {
         return this.title;
     }
-    
-    
+
 }
