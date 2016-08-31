@@ -26,16 +26,16 @@ import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
  * @author fede
  */
 public class CanvasJSMoneyAmountProcessor implements MoneyAmountProcessor {
-    
-        private final List<CanvasJSDatapointDTO> datapoints;
 
-        public CanvasJSMoneyAmountProcessor(List<CanvasJSDatapointDTO> datapoints) {
-            this.datapoints = datapoints;
-        }
+    private final List<CanvasJSDatapointDTO> datapoints;
 
-        @Override
-        public void process(int year, int month, MoneyAmount amount) {
-            datapoints.add(new CanvasJSDatapointDTO(
-                    "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-15"), amount.getAmount()));
-        }
+    public CanvasJSMoneyAmountProcessor(List<CanvasJSDatapointDTO> datapoints) {
+        this.datapoints = datapoints;
+    }
+
+    @Override
+    public void process(int year, int month, MoneyAmount amount) {
+        datapoints.add(new CanvasJSDatapointDTO(
+                "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-15"), amount.getAmount()));
+    }
 }

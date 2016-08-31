@@ -30,6 +30,7 @@ import org.springframework.web.servlet.ModelAndView;
 @Lazy
 @Controller
 public class AuthenticationController {
+
     @RequestMapping(value = "/loginPage", method = RequestMethod.GET)
     public ModelAndView login() {
         return new ModelAndView("login", "form", new LoginDTO());

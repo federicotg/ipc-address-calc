@@ -101,7 +101,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
             List<String> seriesNames,
             int year,
             int month,
-            String currencyCode) throws NoSeriesDataFoundException {
+            String currencyCode) {
 
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>();
 
@@ -157,8 +157,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
     }
 
     @Override
-    public CanvasJSChartDTO renderIncomeRelativeChart(String chartTitle, int months, List<String> seriesNames, String currencyCode)
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO renderIncomeRelativeChart(String chartTitle, int months, List<String> seriesNames, String currencyCode) {
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
         if (seriesNames != null && !seriesNames.isEmpty()) {
 

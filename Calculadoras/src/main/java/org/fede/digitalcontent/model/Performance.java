@@ -55,7 +55,6 @@ public class Performance {
     /*public void setVenue(Venue venue) {
         this.venue = venue;
     }*/
-
     public Date getDate() {
         return date;
     }
@@ -63,7 +62,6 @@ public class Performance {
     /*public void setDate(Date date) {
         this.date = date;
     }*/
-
     public Set<Role> getRoles() {
         return roles;
     }
@@ -71,7 +69,6 @@ public class Performance {
     /*public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }*/
-
     public Opus getOpus() {
         return opus;
     }
@@ -79,7 +76,6 @@ public class Performance {
     /*public void setOpus(Opus opus) {
         this.opus = opus;
     }*/
-
     private Set<WebResource> getResources() {
         return resources;
     }
@@ -87,7 +83,6 @@ public class Performance {
     /*public void setResources(Set<WebResource> resources) {
         this.resources = resources;
     }*/
-
     public void addSinger(Person singer) {
         this.roles.add(new Role(singer, RoleType.SINGER));
     }
@@ -106,7 +101,7 @@ public class Performance {
                 .map(r -> r.getUri())
                 .findFirst()
                 .orElse(null);
-        
+
         /*for (WebResource r : this.getResources()) {
             if (r.getType().equals(WebResourceType.IMDB)) {
                 return r.getUri();
@@ -130,7 +125,7 @@ public class Performance {
     public boolean isSeenBy(Person p) {
         return this.roles.stream()
                 .anyMatch(r -> r.getType().equals(RoleType.VIEWER) && r.getPerson().equals(p));
-        
+
 //        for (Role r : this.roles) {
 //            if (r.getType().equals(RoleType.VIEWER) && r.getPerson().equals(p)) {
 //                return true;
@@ -152,8 +147,8 @@ public class Performance {
     public boolean equals(Object obj) {
         if (obj instanceof Performance) {
             final Performance other = (Performance) obj;
-            return Objects.equals(this.opus, other.opus) 
-                    && Objects.equals(this.venue, other.venue) 
+            return Objects.equals(this.opus, other.opus)
+                    && Objects.equals(this.venue, other.venue)
                     && Objects.equals(this.date, other.date);
         }
         return false;
@@ -178,11 +173,11 @@ public class Performance {
         Date d = this.getDate();
         return new StringBuilder(30)
                 .append(this.getTitle())
-                .append(v != null ? " @ ":"")
+                .append(v != null ? " @ " : "")
                 .append(v != null ? v.getName() : "")
-                .append(d != null ? " (":"")
+                .append(d != null ? " (" : "")
                 .append(d != null ? yearFormat.format(d) : "")
-                .append(d != null ? ")":"")
+                .append(d != null ? ")" : "")
                 .toString();
     }
 }

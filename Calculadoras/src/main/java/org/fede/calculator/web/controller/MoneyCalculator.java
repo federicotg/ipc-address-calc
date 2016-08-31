@@ -80,7 +80,7 @@ public class MoneyCalculator {
     @RequestMapping(value = "/money", method = RequestMethod.POST)
     public MoneyDTO computeMoney(
             @RequestBody @Valid MoneyDTO money,
-            BindingResult result) throws NoSeriesDataFoundException {
+            BindingResult result) {
 
         if (result.hasErrors()) {
             MoneyDTO dto = new MoneyDTO();

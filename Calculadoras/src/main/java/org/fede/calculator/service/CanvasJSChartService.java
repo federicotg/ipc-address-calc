@@ -88,7 +88,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
     private final List<String> colors;
 
     private final Map<Integer, String> monthNames;
-    
+
     @Override
     public CanvasJSChartDTO combinedIncomes(
             int months,
@@ -100,7 +100,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
             boolean er,
             int year,
             int month,
-            List<String> seriesNames) throws NoSeriesDataFoundException {
+            List<String> seriesNames) {
 
         final StringBuilder sb = new StringBuilder(50);
         MoneyAmountSeries combinedSeries = null;
@@ -128,7 +128,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
             boolean en,
             boolean er,
             int year,
-            int month) throws NoSeriesDataFoundException {
+            int month) {
 
         MoneyAmountSeries savingsSum = null;
         for (ExpenseChartSeriesDTO dto : this.savingsSeries) {
@@ -160,7 +160,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
             boolean en,
             boolean er,
             int year,
-            int month) throws NoSeriesDataFoundException {
+            int month) {
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO(titleText);
         dto.setTitle(title);
@@ -207,7 +207,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
     }
 
     @Override
-    public CanvasJSChartDTO goldIncomeAndSavings() throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO goldIncomeAndSavings() {
 
         MoneyAmountSeries savings = Util.sumSeries(this.savingsSeries).exchangeInto("XAU");
         MoneyAmountSeries income = Util.sumSeries(this.incomeSeries).exchangeInto("XAU");
@@ -237,7 +237,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
     }
 
     @Override
-    public CanvasJSChartDTO savingsAndIncomeEvolution() throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO savingsAndIncomeEvolution() {
 
         YearMonth lastInflationData = Inflation.USD_INFLATION.getTo();
 
@@ -282,7 +282,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
     }
 
     @Override
-    public CanvasJSChartDTO savedSalaries() throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO savedSalaries() {
 
         MoneyAmountSeries income = new SimpleAggregation(12).average(Util.sumSeries(this.incomeSeries).exchangeInto("USD"));
 
@@ -317,7 +317,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
     }
 
     @Override
-    public CanvasJSChartDTO hisotricDollar() throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO hisotricDollar() {
         YearMonth latestData = Inflation.USD_INFLATION.getTo();
         final int todayMonth = latestData.getMonth();
         final int todayYear = latestData.getYear();
@@ -329,9 +329,8 @@ public class CanvasJSChartService implements ChartService, MathConstants {
          * cada momento, - cada valor lo paso a pesos de hoy.
          *
          */
-        
         MoneyAmountSeries usdSeries = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth);
-        
+
         final MoneyAmountSeries historicDollar = ARS_INFLATION.adjust(
                 ForeignExchanges.USD_ARS.exchange(
                         usdSeries, "ARS"), todayYear, todayMonth);
@@ -355,7 +354,7 @@ public class CanvasJSChartService implements ChartService, MathConstants {
     }
 
     @Override
-    public CanvasJSChartDTO historicGold() throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO historicGold() {
 
         final YearMonth latestUSDCPIData = USD_INFLATION.getTo();
 

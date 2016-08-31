@@ -164,20 +164,20 @@ public class DigitalContentDTO implements Comparable<DigitalContentDTO> {
     @Override
     public int compareTo(DigitalContentDTO o) {
         int comparison = this.compareCollection(this.opusTypes, o.opusTypes);
-        if(comparison != 0){
+        if (comparison != 0) {
             return comparison;
         }
-        
+
         comparison = this.compareCollection(this.musicBy, o.musicBy);
-        if(comparison != 0){
+        if (comparison != 0) {
             return comparison;
         }
 
         comparison = this.compareCollection(this.titles, o.titles);
-        if(comparison != 0){
+        if (comparison != 0) {
             return comparison;
         }
-        
+
         return this.date.compareTo(o.getDate());
     }
 

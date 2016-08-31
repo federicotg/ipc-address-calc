@@ -32,8 +32,8 @@ public class PerformanceRepository extends BaseRepository<Terna<Opus, Venue, Dat
     }
 
     public Set<Performance> findByVenue(Venue venue) {
-        
+
         return this.stream().filter(p -> p.getVenue().equals(venue)).collect(Collectors.toSet());
-        
+
     }
 }

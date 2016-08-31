@@ -18,15 +18,15 @@ package org.fede.digitalcontent.model;
 
 /**
  * City where the actual concert, play or performance took place.
+ *
  * @author fede
  */
-
 public class City {
 
     private final String name;
 
     private final Country country;
-    
+
     public City(String name, Country country) {
         this.name = name;
         this.country = country;
@@ -39,7 +39,6 @@ public class City {
 //    public void setCountry(Country country) {
 //        this.country = country;
 //    }
-
     public String getName() {
         return name;
     }
@@ -47,7 +46,7 @@ public class City {
 //    public void setName(String name) {
 //        this.name = name;
 //    }
-    public String getCountryName(){
+    public String getCountryName() {
         return this.country.name();
     }
 }

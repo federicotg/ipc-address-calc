@@ -150,7 +150,7 @@ public class ChartController {
                 .filter(dto -> dto.getSeriesName() != null && dto.getSeriesName().length() > 0)
                 .map(dto -> dto.getName())
                 .collect(toList());
-        
+
         final CombinedChartDTO dto = this.createCombinedChartDTO();
         dto.setSeries(allSeriesNames);
 
@@ -261,8 +261,7 @@ public class ChartController {
     @RequestMapping(value = "lifiaUnlpAndInterestCombined", method = GET)
     public CanvasJSChartDTO lifiaUnlpAndInterestCombined(
             @ModelAttribute("dto") @Valid CombinedChartDTO dto,
-            BindingResult errors)
-            throws NoSeriesDataFoundException {
+            BindingResult errors) {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
@@ -271,8 +270,7 @@ public class ChartController {
 
     @ResponseBody
     @RequestMapping(value = "savingsCombined", method = GET)
-    public CanvasJSChartDTO savingsCombined(@ModelAttribute("dto") @Valid CombinedChartDTO dto, BindingResult errors)
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO savingsCombined(@ModelAttribute("dto") @Valid CombinedChartDTO dto, BindingResult errors) {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
@@ -281,8 +279,7 @@ public class ChartController {
 
     @ResponseBody
     @RequestMapping(value = "incomesChart", method = GET)
-    public CanvasJSChartDTO incomesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO incomesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors) {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
@@ -291,8 +288,7 @@ public class ChartController {
 
     @ResponseBody
     @RequestMapping(value = "expensesChart", method = GET)
-    public CanvasJSChartDTO expensesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO expensesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors) {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
@@ -301,8 +297,7 @@ public class ChartController {
 
     @ResponseBody
     @RequestMapping(value = "fciChart", method = GET)
-    public CanvasJSChartDTO fciChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO fciChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors) {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
@@ -311,8 +306,7 @@ public class ChartController {
 
     @ResponseBody
     @RequestMapping(value = "savingsDetailChart", method = GET)
-    public CanvasJSChartDTO savingsChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO savingsChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors) {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
@@ -321,8 +315,7 @@ public class ChartController {
 
     @ResponseBody
     @RequestMapping(value = "consortiumExpensesChart", method = GET)
-    public CanvasJSChartDTO consortiumExpensesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO consortiumExpensesChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors) {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
@@ -331,8 +324,7 @@ public class ChartController {
 
     @ResponseBody
     @RequestMapping(value = "expensesPercentChart", method = GET)
-    public CanvasJSChartDTO expensesPercentChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors)
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO expensesPercentChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors) {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
@@ -341,22 +333,19 @@ public class ChartController {
 
     @ResponseBody
     @RequestMapping(value = "goldSavingsChart", method = GET)
-    public CanvasJSChartDTO goldSavingsChart()
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO goldSavingsChart() {
         return this.chartService.goldIncomeAndSavings();
     }
 
     @ResponseBody
     @RequestMapping(value = "savingsAndIncomeChangeChart", method = GET)
-    public CanvasJSChartDTO savingsAndIncomeChangeChart()
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO savingsAndIncomeChangeChart() {
         return this.chartService.savingsAndIncomeEvolution();
     }
 
     @ResponseBody
     @RequestMapping(value = "savedSalariesChart", method = GET)
-    public CanvasJSChartDTO savedSalariesChart()
-            throws NoSeriesDataFoundException {
+    public CanvasJSChartDTO savedSalariesChart() {
         return this.chartService.savedSalaries();
     }
 
