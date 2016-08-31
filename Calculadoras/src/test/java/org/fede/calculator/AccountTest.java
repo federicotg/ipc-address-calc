@@ -110,18 +110,17 @@ public class AccountTest {
                 throw new IllegalStateException("Debits sum more than credits.");
             }
         }
-      
+
         private boolean anyNonZero(List<Integer> list) {
             return list.stream().anyMatch(x -> x != 0);
         }
-        
 
         /**
-         * 
+         *
          * @param when
          * @param points
          * @return
-         * @throws ParseException 
+         * @throws ParseException
          */
         public int usePoints(String when, int points) throws ParseException {
 
@@ -168,7 +167,7 @@ public class AccountTest {
                     }
 
                     if (c < credits.size()) {
-                        
+
                         // Cancelo el primer crédito >0  con el primer débito > 0.
                         // El débito se reduce o queda en cero. Eso actualiza la condición del while (1)
                         int amountToDiscount = Math.min(credits.get(c), debits.get(d));

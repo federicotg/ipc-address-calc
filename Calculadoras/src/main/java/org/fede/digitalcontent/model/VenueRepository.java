@@ -22,7 +22,6 @@ package org.fede.digitalcontent.model;
  */
 public class VenueRepository extends BaseRepository<String, Venue> {
 
-
     @Override
     public void add(Venue entity) {
         this.add(entity.getName(), entity);

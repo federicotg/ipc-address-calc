@@ -2014,7 +2014,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .discBox(3, 10)
                     .build();
         }
-        
+
         for (String title : new String[]{
             "Providence",
             "Audrey Pauley",

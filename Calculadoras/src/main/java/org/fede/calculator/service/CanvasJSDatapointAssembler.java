@@ -26,9 +26,9 @@ import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
  * @author fede
  */
 public interface CanvasJSDatapointAssembler {
-    
-     List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries, int year, int month) throws NoSeriesDataFoundException;
-     
-     List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries) throws NoSeriesDataFoundException;
-    
+
+    List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries, int year, int month);
+
+    List<CanvasJSDatapointDTO> getDatapoints(int months, MoneyAmountSeries sourceSeries);
+
 }

@@ -52,7 +52,7 @@ import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 public class Util {
 
     private static final ObjectMapper OM = new ObjectMapper();
-    
+
     private static final Map<String, MoneyAmountSeries> CACHE = new HashMap<>();
 
     private static final Set<String> CONSULTATIO_SERIES;
@@ -77,15 +77,15 @@ public class Util {
         return elements.stream().map(e -> e.toString()).collect(Collectors.joining(separator));
     }
 
-    public static MoneyAmountSeries sumSeries(String currency, List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException {
+    public static MoneyAmountSeries sumSeries(String currency, List<ExpenseChartSeriesDTO> dtos) {
         return sumSeries(currency, dtos.stream().map(dto -> dto.getSeriesName()).toArray(String[]::new));
     }
 
-    public static MoneyAmountSeries sumSeries(List<ExpenseChartSeriesDTO> dtos) throws NoSeriesDataFoundException {
+    public static MoneyAmountSeries sumSeries(List<ExpenseChartSeriesDTO> dtos) {
         return sumSeries("USD", dtos);
     }
 
-    public static MoneyAmountSeries sumSeries(String currency, String... names) throws NoSeriesDataFoundException {
+    public static MoneyAmountSeries sumSeries(String currency, String... names) {
         if (names.length == 0) {
             throw new IllegalArgumentException("You must at least read one series");
         }
@@ -99,7 +99,7 @@ public class Util {
         return answer;
     }
 
-    public static MoneyAmountSeries readSeries(String name) throws NoSeriesDataFoundException {
+    public static MoneyAmountSeries readSeries(String name) {
 
         return CACHE.computeIfAbsent(name, (seriesName) -> read(seriesName));
 
@@ -109,7 +109,6 @@ public class Util {
 
         try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
 
-            
             final JSONSeries series = CONSULTATIO_SERIES.contains(name)
                     ? readConsultatioSeries(is, OM)
                     : OM.readValue(is, JSONSeries.class);
@@ -135,7 +134,7 @@ public class Util {
             }
             return new SortedMapMoneyAmountSeries(currency, interpolatedData);
 
-        } catch (IOException | NoSeriesDataFoundException ioEx) {
+        } catch (IOException ioEx) {
             throw new IllegalArgumentException("Could not read series named " + name, ioEx);
         }
 

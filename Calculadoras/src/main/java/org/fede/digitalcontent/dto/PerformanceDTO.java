@@ -21,6 +21,7 @@ package org.fede.digitalcontent.dto;
  * @author fede
  */
 public class PerformanceDTO implements Comparable<PerformanceDTO> {
+
     private String opusTitle;
     private String year;
     private String imdb;
@@ -30,7 +31,7 @@ public class PerformanceDTO implements Comparable<PerformanceDTO> {
         this.year = year;
         this.imdb = imdb;
     }
-   
+
     public String getOpusTitle() {
         return opusTitle;
     }
@@ -57,11 +58,10 @@ public class PerformanceDTO implements Comparable<PerformanceDTO> {
 
     @Override
     public int compareTo(PerformanceDTO o) {
-        if(!this.year.equals(o.getYear())){
+        if (!this.year.equals(o.getYear())) {
             return this.year.compareTo(o.getYear());
         }
         return this.opusTitle.compareTo(o.getOpusTitle());
     }
-    
-    
+
 }

@@ -16,17 +16,16 @@
  */
 package org.fede.digitalcontent.model;
 
-
 /**
  *
  * @author fede
  */
-public class Role  {
+public class Role {
 
     private final Person person;
 
     private final RoleType type;
-    
+
     Role(Person person, RoleType type) {
         this.person = person;
         this.type = type;
@@ -39,7 +38,6 @@ public class Role  {
 //    public void setPerson(Person person) {
 //        this.person = person;
 //    }
-
     public RoleType getType() {
         return type;
     }
@@ -47,5 +45,4 @@ public class Role  {
 //    public void setType(RoleType type) {
 //        this.type = type;
 //    }
-
 }

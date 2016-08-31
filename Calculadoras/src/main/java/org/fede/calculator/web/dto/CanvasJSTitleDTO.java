@@ -21,7 +21,7 @@ package org.fede.calculator.web.dto;
  * @author fede
  */
 public class CanvasJSTitleDTO {
-   
+
     private String text;
     private int fontSize = 24;
 
@@ -44,6 +44,5 @@ public class CanvasJSTitleDTO {
     public void setFontSize(int fontSize) {
         this.fontSize = fontSize;
     }
-    
-    
+
 }

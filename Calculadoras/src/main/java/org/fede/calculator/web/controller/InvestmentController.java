@@ -71,30 +71,30 @@ public class InvestmentController {
 
         return "redirect:/secure/";
     }
-    
-    private static <T> T min(T left, T right, Comparator<T> comparator){
-        return comparator.compare(left, right) < 0 ? left: right;
+
+    private static <T> T min(T left, T right, Comparator<T> comparator) {
+        return comparator.compare(left, right) < 0 ? left : right;
     }
 
     @RequestMapping(value = "/past", method = RequestMethod.GET)
-    public ModelAndView pastInvestment() throws NoSeriesDataFoundException {
+    public ModelAndView pastInvestment() {
         return new ModelAndView("dollarInvestment")
                 .addObject("reportARS", this.investmentService.pastInvestmentsReport("ARS"))
                 .addObject("reportUSD", this.investmentService.pastInvestmentsReport("USD"));
     }
 
     @RequestMapping(value = "/current", method = RequestMethod.GET)
-    public ModelAndView currentInvestment() throws NoSeriesDataFoundException {
+    public ModelAndView currentInvestment() {
         return new ModelAndView("dollarInvestment")
                 .addObject("reportARS", this.investmentService.currentInvestmentsReport("ARS"))
                 .addObject("reportUSD", this.investmentService.currentInvestmentsReport("USD"));
     }
 
     @RequestMapping(value = "/savings", method = RequestMethod.GET)
-    public ModelAndView savings() throws NoSeriesDataFoundException {
+    public ModelAndView savings() {
 
         final CurrencyLimitsDTO limits = min(this.argService.getLimits(), this.usdService.getLimits(), COMPARATOR);
-       
+
         return new ModelAndView("savingsReport")
                 .addObject("report", this.investmentService.savings(limits.getReferenceYear(), limits.getReferenceMonth()))
                 .addObject("limits", limits);

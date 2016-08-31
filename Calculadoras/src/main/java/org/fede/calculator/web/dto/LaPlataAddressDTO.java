@@ -22,7 +22,7 @@ import javax.validation.constraints.Pattern;
  *
  * @author fede
  */
-public class LaPlataAddressDTO  {
+public class LaPlataAddressDTO {
 
     private String street;
     private int lowerBoundary;
@@ -38,7 +38,7 @@ public class LaPlataAddressDTO  {
         this.valid = false;
         this.message = message;
     }
-    
+
     public LaPlataAddressDTO() {
         this.valid = true;
     }
