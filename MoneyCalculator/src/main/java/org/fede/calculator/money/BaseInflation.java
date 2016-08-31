@@ -30,7 +30,7 @@ import org.fede.calculator.money.series.YearMonth;
 abstract class BaseInflation extends SeriesSupport implements Inflation {
 
     @Override
-    public final MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
+    public final MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth) {
         final YearMonth maxFrom = this.maximumFrom(series);
         final YearMonth minTo = series.getTo();
 
@@ -64,7 +64,7 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
     }
 
     @Override
-    public final MoneyAmountSeries adjust(MoneyAmount amount, int referenceYear, int referenceMonth) throws NoSeriesDataFoundException {
+    public final MoneyAmountSeries adjust(MoneyAmount amount, int referenceYear, int referenceMonth) {
 
         final int fromYear = this.getFrom().getYear();
         final int fromMonth = this.getFrom().getMonth();
@@ -73,7 +73,7 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
         final int toMonth = this.getTo().getMonth();
 
         final int maxMonthForFirstYear = fromYear == toYear ? toMonth : 12;
-        
+
         MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(this.getCurrency());
 
         for (int m = fromMonth; m <= maxMonthForFirstYear; m++) {
@@ -97,7 +97,7 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
     }
 
     @Override
-    public final MoneyAmountSeries adjust(MoneyAmountSeries series, Date moment) throws NoSeriesDataFoundException {
+    public final MoneyAmountSeries adjust(MoneyAmountSeries series, Date moment) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(moment);
         int year = cal.get(Calendar.YEAR);
@@ -106,7 +106,7 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
     }
 
     @Override
-    public final MoneyAmount adjust(MoneyAmount amount, Date from, Date to) throws NoSeriesDataFoundException {
+    public final MoneyAmount adjust(MoneyAmount amount, Date from, Date to) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(from);
         int yearFrom = cal.get(Calendar.YEAR);

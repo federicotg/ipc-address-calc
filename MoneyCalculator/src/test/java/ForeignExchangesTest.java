@@ -55,10 +55,10 @@ public class ForeignExchangesTest {
     public void tearDown() {
     }
 
-    private void identity(String currency){
+    private void identity(String currency) {
         assertEquals(ForeignExchanges.getIdentityForeignExchange(currency), getForeignExchange(currency, currency));
     }
-    
+
     // TODO add test methods here.
     // The methods must be annotated with annotation @Test. For example:
     //
@@ -71,8 +71,7 @@ public class ForeignExchangesTest {
         this.identity("XAU");
         this.identity("CONBALA");
         this.identity("CONAAFA");
-        
-        
+
         assertEquals(USD_ARS, getForeignExchange("USD", "ARS"));
         assertEquals(USD_XAU, getForeignExchange("USD", "XAU"));
         assertEquals(USD_EUR, getForeignExchange("USD", "EUR"));
@@ -91,7 +90,7 @@ public class ForeignExchangesTest {
         assertEquals(new CompoundForeignExchange(ARS_CONAAFA, USD_ARS), getForeignExchange("CONAAFA", "USD"));
 
         ForeignExchange result = getForeignExchange("CONAAFA", "XAU");
-        
+
         assertEquals(new CompoundForeignExchange(
                 ARS_CONAAFA,
                 new CompoundForeignExchange(USD_ARS, USD_XAU)),

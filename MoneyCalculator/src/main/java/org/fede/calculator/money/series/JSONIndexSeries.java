@@ -34,7 +34,7 @@ public class JSONIndexSeries extends IndexSeriesSupport {
     }
 
     @Override
-    public BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException {
+    public BigDecimal getIndex(int year, int month) {
         int index = Collections.binarySearch(data, new JSONDataPoint(year, month));
         if (index < 0 || index >= this.data.size()) {
             return this.predictValue(year, month);
@@ -55,7 +55,7 @@ public class JSONIndexSeries extends IndexSeriesSupport {
     }
 
     @Override
-    public BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException {
+    public BigDecimal predictValue(int year, int month) {
         if (new YearMonth(year, month).compareTo(this.getTo()) > 0) {
             //return this.data.get(this.data.size() - 1).getValue();
             return new LinearFutureValue().predictValue(this, year, month);

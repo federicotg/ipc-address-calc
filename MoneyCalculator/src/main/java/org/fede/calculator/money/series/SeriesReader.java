@@ -29,9 +29,9 @@ import java.util.Map;
  * @author Federico Tello Gentile <federico.gentile@despegar.com>
  */
 public class SeriesReader {
-    
-    private static final ObjectMapper OM =  new ObjectMapper();
-    
+
+    private static final ObjectMapper OM = new ObjectMapper();
+
     private static final Map<String, JSONIndexSeries> CACHE = new HashMap<>();
 
     private static final TypeReference<List<JSONDataPoint>> INDEX_SERIES_TYPE_REFERENCE = new TypeReference<List<JSONDataPoint>>() {

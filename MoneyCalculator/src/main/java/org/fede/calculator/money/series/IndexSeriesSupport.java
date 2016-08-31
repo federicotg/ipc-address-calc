@@ -31,7 +31,7 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
     private int hashValue = 0;
 
     @Override
-    public final BigDecimal getIndex(Date day) throws NoSeriesDataFoundException {
+    public final BigDecimal getIndex(Date day) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(day);
         int year = cal.get(Calendar.YEAR);
@@ -43,23 +43,20 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
     public boolean equals(Object obj) {
 
         if (obj instanceof IndexSeries) {
-            try {
-                IndexSeries other = (IndexSeries) obj;
 
-                final int months = this.getFrom().monthsUntil(this.getTo());
-                YearMonth ym = this.getFrom();
-                int i = 0;
+            IndexSeries other = (IndexSeries) obj;
 
-                boolean equal = this.getFrom().equals(other.getFrom()) && this.getTo().equals(other.getTo());
-                while (equal && i < months) {
-                    equal &= this.getIndex(ym.getYear(), ym.getMonth()).compareTo(
-                            other.getIndex(ym.getYear(), ym.getMonth())) == 0;
-                    ym = ym.next();
-                }
-                return equal;
-            } catch (NoSeriesDataFoundException ex) {
-                throw new IllegalStateException("Can't compute IndexSeries hashCode", ex);
+            final int months = this.getFrom().monthsUntil(this.getTo());
+            YearMonth ym = this.getFrom();
+            int i = 0;
+
+            boolean equal = this.getFrom().equals(other.getFrom()) && this.getTo().equals(other.getTo());
+            while (equal && i < months) {
+                equal &= this.getIndex(ym.getYear(), ym.getMonth()).compareTo(
+                        other.getIndex(ym.getYear(), ym.getMonth())) == 0;
+                ym = ym.next();
             }
+            return equal;
         }
         return false;
 
@@ -73,15 +70,11 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
             this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getFrom());
             this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getTo());
 
-            try {
-                final int months = this.getFrom().monthsUntil(this.getTo());
-                YearMonth ym = this.getFrom();
-                for (int i = 0; i < months; i++) {
-                    this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getIndex(ym.getYear(), ym.getMonth()));
-                    ym = ym.next();
-                }
-            } catch (NoSeriesDataFoundException ex) {
-                throw new IllegalStateException("Can't compute IndexSeries hashCode", ex);
+            final int months = this.getFrom().monthsUntil(this.getTo());
+            YearMonth ym = this.getFrom();
+            for (int i = 0; i < months; i++) {
+                this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getIndex(ym.getYear(), ym.getMonth()));
+                ym = ym.next();
             }
         }
         return this.hashValue;

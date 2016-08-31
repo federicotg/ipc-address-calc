@@ -26,10 +26,10 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public interface IndexSeries extends Series {
 
-    BigDecimal getIndex(Date day) throws NoSeriesDataFoundException;
+    BigDecimal getIndex(Date day);
 
-    BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException;
+    BigDecimal getIndex(int year, int month);
 
-    BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException;
+    BigDecimal predictValue(int year, int month);
 
 }

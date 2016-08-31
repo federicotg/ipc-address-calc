@@ -37,7 +37,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     }
 
     @Override
-    public final MoneyAmount getAmount(Date day) throws NoSeriesDataFoundException {
+    public final MoneyAmount getAmount(Date day) {
         return this.getAmount(new YearMonth(day));
     }
 
@@ -47,7 +47,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     }
 
     @Override
-    public final void forEachNonZero(final MoneyAmountProcessor processor) throws NoSeriesDataFoundException {
+    public final void forEachNonZero(final MoneyAmountProcessor processor) {
         this.forEach((int year, int month, MoneyAmount amount) -> {
             if (!amount.isZero()) {
                 processor.process(year, month, amount);
@@ -56,14 +56,14 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     }
 
     @Override
-    public final MoneyAmountSeries exchangeInto(String currency) throws NoSeriesDataFoundException {
+    public final MoneyAmountSeries exchangeInto(String currency) {
         return ForeignExchanges.getForeignExchange(this.getCurrency(), currency).exchange(this, currency);
     }
 
     protected abstract MoneyAmountSeries createNew();
 
     @Override
-    public final MoneyAmountSeries map(final MoneyAmountTransform transform) throws NoSeriesDataFoundException {
+    public final MoneyAmountSeries map(final MoneyAmountTransform transform) {
         final MoneyAmountSeries answer = this.createNew();
 
         this.forEach((int year, int month, MoneyAmount amount) -> {
@@ -77,7 +77,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     }
 
     @Override
-    public final MoneyAmountSeries add(final MoneyAmountSeries other) throws NoSeriesDataFoundException {
+    public final MoneyAmountSeries add(final MoneyAmountSeries other) {
 
         if (!other.getCurrency().equals(this.getCurrency())) {
             String usd = "USD";
@@ -118,7 +118,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     protected abstract MoneyAmount getAmountOrNull(int year, int month);
 
     @Override
-    public final MoneyAmount getAmount(int year, int month) throws NoSeriesDataFoundException {
+    public final MoneyAmount getAmount(int year, int month) {
         MoneyAmount answer = this.getAmountOrNull(year, month);
         if (answer == null) {
             throw new NoSeriesDataFoundException(MessageFormat.format("No data specified for year {0} and month {1}.", year, month));
@@ -157,7 +157,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
     @Override
     public final int hashCode() {
-        
+
         final int[] holder = new int[]{1};
 
         try {
@@ -172,12 +172,12 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     }
 
     @Override
-    public final MoneyAmount getAmount(YearMonth moment) throws NoSeriesDataFoundException {
+    public final MoneyAmount getAmount(YearMonth moment) {
         return this.getAmount(moment.getYear(), moment.getMonth());
     }
 
     @Override
-    public final MoneyAmount getAmountOrElseZero(YearMonth moment) throws NoSeriesDataFoundException {
+    public final MoneyAmount getAmountOrElseZero(YearMonth moment) {
         if (this.hasValue(moment)) {
             return this.getAmount(moment);
         }

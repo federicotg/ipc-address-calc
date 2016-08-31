@@ -30,7 +30,7 @@ public class ArgentinaCompoundCPISeries extends IndexSeriesSupport {
     private static final BigDecimal CORRECTION_FACTOR = new BigDecimal("1.84856478083063");
 
     @Override
-    public BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException {
+    public BigDecimal getIndex(int year, int month) {
 
         if (year < 2006 || (year == 2006 && month < 12)) {
             return indecSeries.getIndex(year, month);
@@ -40,13 +40,13 @@ public class ArgentinaCompoundCPISeries extends IndexSeriesSupport {
     }
 
     @Override
-    public BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException {
+    public BigDecimal predictValue(int year, int month) {
         if (year < 2006 || (year == 2006 && month < 12)) {
             throw new NoSeriesDataFoundException("Can't predict INDEC");
         }
         return this.cqpSeries.predictValue(year, month);
     }
-    
+
     @Override
     public YearMonth getFrom() {
         return this.indecSeries.getFrom();
@@ -56,7 +56,5 @@ public class ArgentinaCompoundCPISeries extends IndexSeriesSupport {
     public YearMonth getTo() {
         return this.cqpSeries.getTo();
     }
-
-
 
 }

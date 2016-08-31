@@ -35,7 +35,7 @@ public final class CPIInflation extends BaseInflation {
     }
 
     @Override
-    public final MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) throws NoSeriesDataFoundException {
+    public final MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) {
         amount.assertCurrency(this.currency);
         BigDecimal divisor = this.series.getIndex(fromYear, fromMonth);
         BigDecimal factor = this.series.getIndex(toYear, toMonth);

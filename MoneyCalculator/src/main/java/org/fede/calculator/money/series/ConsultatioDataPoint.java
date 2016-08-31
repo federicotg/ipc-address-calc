@@ -26,14 +26,14 @@ import java.util.Date;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class ConsultatioDataPoint {
-    
+
     @JsonFormat(
-            shape = JsonFormat.Shape.STRING, 
-            pattern = "yyyy-MM-dd", 
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd",
             timezone = "America/Argentina/Buenos_Aires")
     @JsonProperty(value = "fecha")
     private Date date;
-    
+
     @JsonProperty(value = "valor")
     private BigDecimal value;
 
@@ -53,7 +53,4 @@ public class ConsultatioDataPoint {
         this.value = value;
     }
 
-     
-     
-     
 }

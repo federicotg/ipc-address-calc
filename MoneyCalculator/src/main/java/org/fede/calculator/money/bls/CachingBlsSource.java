@@ -37,11 +37,11 @@ public class CachingBlsSource implements BlsCPISource {
     }
 
     @Override
-    public BlsResponse getResponse(int year) throws NoSeriesDataFoundException, IOException {
+    public BlsResponse getResponse(int year) throws IOException {
         BlsResponse response = this.cache.get(year);
         if (response == null) {
             response = this.source.getResponse(year);
-            if(response != null){
+            if (response != null) {
                 this.cache.put(year, response);
             }
         }

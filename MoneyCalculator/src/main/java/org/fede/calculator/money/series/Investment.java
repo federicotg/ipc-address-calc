@@ -14,13 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.fede.calculator.money.series;
 
 import java.util.Date;
 import org.fede.calculator.money.MoneyAmount;
-
-
 
 /**
  *
@@ -79,24 +76,24 @@ public class Investment {
         return this.getType().isValid(this.getIn(), this.getOut(), this.getInvestment());
     }
 
-    public Date getInitialDate(){
+    public Date getInitialDate() {
         return this.getIn().getDate();
     }
-    
-    public String getInitialCurrency(){
+
+    public String getInitialCurrency() {
         return this.getIn().getCurrency();
     }
-    
-    public MoneyAmount getInitialMoneyAmount(){
+
+    public MoneyAmount getInitialMoneyAmount() {
         return this.getIn().getMoneyAmount();
     }
-    
-    public MoneyAmount getMoneyAmount(){
+
+    public MoneyAmount getMoneyAmount() {
         return this.getInvestment().getMoneyAmount();
     }
-    
-    public String getCurrency(){
+
+    public String getCurrency() {
         return this.getInvestment().getCurrency();
     }
-    
+
 }

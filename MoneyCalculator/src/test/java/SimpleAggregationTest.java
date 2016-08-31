@@ -71,7 +71,7 @@ public class SimpleAggregationTest {
     }
 
     @Test
-    public void sum() throws NoSeriesDataFoundException {
+    public void sum() {
         this.aggr.sum(this.asc)
                 .forEach(new TestMoneyAmountProcessor(
                         new String[]{"1", "3", "6", "10", "15", "21", "28", "36", "45", "55", "66", "78", "90", "102", "114", "126", "138", "150", "162", "174", "186"},
@@ -79,7 +79,7 @@ public class SimpleAggregationTest {
     }
 
     @Test
-    public void avg() throws NoSeriesDataFoundException {
+    public void avg() {
         this.aggr.average(this.asc).forEach(
                 new TestMoneyAmountProcessor(
                         new String[]{"1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7.5", "8.5", "9.5", "10.5", "11.5", "12.5", "13.5", "14.5", "15.5"},
@@ -87,7 +87,7 @@ public class SimpleAggregationTest {
     }
 
     @Test
-    public void change() throws NoSeriesDataFoundException {
+    public void change() {
         this.aggr.change(this.asc).forEach(
                 new TestMoneyAmountProcessor(
                         new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "11", "11", "11", "11", "11", "11", "11", "11", "11"},

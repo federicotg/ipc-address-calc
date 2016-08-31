@@ -30,14 +30,13 @@ public class YearMonth implements Comparable<YearMonth> {
     private final int year;
     private final int month;
 
-    
     public YearMonth(Date day) {
-        
+
         LocalDate date = day.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
         this.year = date.getYear();
         this.month = date.getMonthValue();
     }
-    
+
     public YearMonth(int year, int month) {
         this.year = year;
         this.month = month;
@@ -92,27 +91,27 @@ public class YearMonth implements Comparable<YearMonth> {
     }
 
     public Date asToDate() {
-        
+
         return Date.from(
                 LocalDate.of(this.getYear(), this.getMonth(), 1)
-                        .with(TemporalAdjusters.lastDayOfMonth())
-                        .atTime(12, 00)
-                        .toInstant(ZoneOffset.UTC));
+                .with(TemporalAdjusters.lastDayOfMonth())
+                .atTime(12, 00)
+                .toInstant(ZoneOffset.UTC));
     }
-    
+
     public Date asDate() {
         return Date.from(
                 LocalDate.of(this.getYear(), this.getMonth(), 1)
-                        .atTime(12, 00)
-                        .toInstant(ZoneOffset.UTC));
+                .atTime(12, 00)
+                .toInstant(ZoneOffset.UTC));
     }
 
-    public YearMonth min(YearMonth other){
+    public YearMonth min(YearMonth other) {
         return this.compareTo(other) < 0 ? this : other;
     }
-    
-    public YearMonth max(YearMonth other){
+
+    public YearMonth max(YearMonth other) {
         return this.compareTo(other) < 0 ? other : this;
     }
-    
+
 }

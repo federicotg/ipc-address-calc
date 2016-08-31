@@ -46,14 +46,14 @@ public final class DollarCPISeries extends IndexSeriesSupport {
     }
 
     @Override
-    public BigDecimal getIndex(int year, int month) throws NoSeriesDataFoundException {
+    public BigDecimal getIndex(int year, int month) {
         try {
             BlsResponse blsResponse = this.source.getResponse(year);
             if (blsResponse == null || !blsResponse.isValid()) {
                 return this.predictValue(year, month);
             }
             BlsCpiDataPoint dp = blsResponse.getDataPoint(CPI_SERIES_ID, year, month);
-            if(dp == null){
+            if (dp == null) {
                 return this.predictValue(year, month);
             }
             return dp.getValue();
@@ -87,7 +87,7 @@ public final class DollarCPISeries extends IndexSeriesSupport {
     }
 
     @Override
-    public BigDecimal predictValue(int year, int month) throws NoSeriesDataFoundException {
+    public BigDecimal predictValue(int year, int month) {
         if (year < 1913) {
             throw new NoSeriesDataFoundException("No data for specified year and month.");
         }

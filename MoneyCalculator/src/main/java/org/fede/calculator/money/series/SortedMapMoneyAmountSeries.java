@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
@@ -65,7 +64,7 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
     }
 
     @Override
-    public void forEach(final MoneyAmountProcessor processor) throws NoSeriesDataFoundException {
+    public void forEach(final MoneyAmountProcessor processor) {
         for (Map.Entry<YearMonth, MoneyAmount> entry : this.values.entrySet()) {
             processor.process(entry.getKey().getYear(), entry.getKey().getMonth(), entry.getValue());
         }

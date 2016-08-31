@@ -26,7 +26,7 @@ import java.util.Objects;
  * @author fede
  */
 public class MoneyAmount implements MathConstants {
-    
+
     private final String currency;
     private final BigDecimal amount;
 
@@ -36,7 +36,7 @@ public class MoneyAmount implements MathConstants {
     }
 
     public MoneyAmount adjust(BigDecimal divisor, BigDecimal factor) {
-        if(this.isZero()){
+        if (this.isZero()) {
             return this;
         }
         return new MoneyAmount(
@@ -45,7 +45,7 @@ public class MoneyAmount implements MathConstants {
     }
 
     public MoneyAmount exchange(String newCurrency, BigDecimal exchangeRate) {
-        if(this.isZero()){
+        if (this.isZero()) {
             return new MoneyAmount(BigDecimal.ZERO, newCurrency);
         }
         return new MoneyAmount(this.amount.multiply(exchangeRate), newCurrency);
@@ -92,7 +92,7 @@ public class MoneyAmount implements MathConstants {
 
     public MoneyAmount add(MoneyAmount other) {
         if (!other.getCurrency().equals(this.getCurrency())) {
-             throw new IllegalArgumentException("Money amounts must be in the same currency.");
+            throw new IllegalArgumentException("Money amounts must be in the same currency.");
         }
         return new MoneyAmount(this.getAmount().add(other.getAmount()), this.getCurrency());
     }

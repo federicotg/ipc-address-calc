@@ -15,8 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.fede.calculator.money.series.InvestmentType;
-import org.fede.calculator.money.series.Investment;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -26,17 +24,15 @@ import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
-import org.junit.Test;
+import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.InvestmentType;
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *
@@ -61,9 +57,8 @@ public class InvestmentTest {
         }
     }
 
-
     //@Test
-    public void pf() throws NoSeriesDataFoundException {
+    public void pf() {
 
         assertFalse(inv.isEmpty());
         //final String message = "Invertí {0} el {1}. El {2} cobré {3}. En {4} del {5} puse {6} y recuperé {7}. Gané {8}";
@@ -71,8 +66,7 @@ public class InvestmentTest {
 
         for (Investment investment : inv) {
             if (investment.getType().equals(InvestmentType.PF)) {
-                
-                
+
                 if (investment.getIn().getCurrency().equals(investment.getOut().getCurrency())
                         && investment.getIn().getCurrency().equals("ARS")) {
                     MoneyAmount nominalIn = new MoneyAmount(investment.getIn().getAmount(), investment.getIn().getCurrency());
@@ -89,22 +83,21 @@ public class InvestmentTest {
     }
 
     @Test
-    public void usd() throws NoSeriesDataFoundException, ParseException {
+    public void usd() throws ParseException {
 
         MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
-      
+
         MoneyAmount oneUSDIn1951PurchasingPower = Inflation.USD_INFLATION.adjust(oneDollar, 2016, 5, 1951, 9);
-        
+
         MoneyAmount oneUSDIn1951PurchasingPowerInPesos = ForeignExchanges.getForeignExchange("USD", "ARS").exchange(
-                oneUSDIn1951PurchasingPower, 
-                "ARS", 
-                2016, 
+                oneUSDIn1951PurchasingPower,
+                "ARS",
+                2016,
                 5);
-        
+
         MoneyAmount pesosBackThen = Inflation.ARS_INFLATION.adjust(oneUSDIn1951PurchasingPowerInPesos, 2016, 5, 1951, 9);
-        
+
     }
-    
 
     private List<Investment> read(String name) throws IOException {
         try (InputStream in = InvestmentTest.class.getResourceAsStream("/" + name);) {
@@ -114,7 +107,5 @@ public class InvestmentTest {
             });
         }
     }
-    
-
 
 }

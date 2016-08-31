@@ -1,6 +1,5 @@
 package org.fede.calculator.money.series;
 
-
 import java.math.BigDecimal;
 import org.fede.calculator.money.MoneyAmount;
 
@@ -44,8 +43,8 @@ public class InvestmentAsset {
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
-    
-    public MoneyAmount getMoneyAmount(){
+
+    public MoneyAmount getMoneyAmount() {
         return new MoneyAmount(this.getAmount(), this.getCurrency());
     }
 
