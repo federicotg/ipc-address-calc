@@ -17,6 +17,8 @@
 package org.fede.calculator.web.dto;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.Date;
 
 /**
@@ -78,6 +80,10 @@ public class InvestmentReportDTO extends InvestmentDTO {
 
     public void setInvestmentCurrency(String investmentCurrency) {
         this.investmentCurrency = investmentCurrency;
+    }
+    
+    public BigDecimal getDiffPct(){
+        return this.getDifferencePct().divide(this.getInitialAmount(), MathContext.DECIMAL64).setScale(4, RoundingMode.HALF_UP);
     }
 
 }
