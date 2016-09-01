@@ -20,16 +20,16 @@ package org.fede.calculator.money;
  *
  * @author fede
  */
-public class NoSeriesDataFoundException extends Exception {
+public class NoSeriesDataFoundException extends RuntimeException {
 
     public NoSeriesDataFoundException(String message) {
         super(message);
     }
-    
+
     public NoSeriesDataFoundException(Throwable cause) {
         super(cause);
     }
-    
+
     public NoSeriesDataFoundException(String message, Throwable cause) {
         super(message, cause);
     }
