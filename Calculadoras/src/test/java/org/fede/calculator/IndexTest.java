@@ -103,7 +103,7 @@ public class IndexTest {
 
                // System.out.println(MessageFormat.format("{0}\t{1}", youIndex, adjustedYouIndex));
 
-                proportionInUSD.putAmount(start.getYear(), start.getMonth(), new MoneyAmount(youIndex, target));
+                proportionInUSD.putAmount(start, new MoneyAmount(youIndex, target));
             }
             start = start.next();
         }

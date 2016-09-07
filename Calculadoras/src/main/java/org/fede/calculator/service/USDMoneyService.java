@@ -19,7 +19,6 @@ package org.fede.calculator.service;
 import java.util.Currency;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.web.dto.CurrencyDTO;
 import org.fede.calculator.web.dto.CurrencyLimitsDTO;
 import org.fede.calculator.web.dto.MoneyDTO;
