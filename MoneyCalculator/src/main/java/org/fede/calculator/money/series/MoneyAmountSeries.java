@@ -17,8 +17,9 @@
 package org.fede.calculator.money.series;
 
 import java.util.Date;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
@@ -35,15 +36,17 @@ public interface MoneyAmountSeries extends Series {
     MoneyAmount getAmountOrElseZero(YearMonth moment);
 
     void putAmount(int year, int month, MoneyAmount amount);
+    
+    void putAmount(YearMonth ym, MoneyAmount amount);
 
     String getCurrency();
 
-    void forEach(MoneyAmountProcessor processor);
+    void forEach(BiConsumer<YearMonth, MoneyAmount> consumer);
+    
+    void forEachNonZero(BiConsumer<YearMonth, MoneyAmount> consumer);
 
-    void forEachNonZero(MoneyAmountProcessor processor);
-
-    MoneyAmountSeries map(MoneyAmountTransform processor);
-
+    MoneyAmountSeries map(BiFunction<YearMonth, MoneyAmount, MoneyAmount> f);
+    
     MoneyAmountSeries add(MoneyAmountSeries other);
 
     MoneyAmountSeries exchangeInto(String currency);

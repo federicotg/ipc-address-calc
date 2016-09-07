@@ -21,7 +21,6 @@ import org.fede.calculator.money.ArgentinaInflation;
 import org.fede.calculator.money.CPIInflation;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.series.ArgentinaCompoundCPISeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
@@ -46,8 +45,8 @@ public class InflationComparisonTest {
         final MoneyAmountSeries cqpSeries = cqp.adjust(onePeso, 1999, 1);
         final MoneyAmountSeries priceStatsSeries = priceStats.adjust(onePeso, 1999, 1);
 
-        cqpSeries.forEach((int year, int month, MoneyAmount amount) -> {
-            System.out.println(MessageFormat.format("{0}\t{1}\t{2}\t{3}", year, month, amount.toString(), priceStatsSeries.getAmount(year, month)));
+        cqpSeries.forEach((yearMonth, amount) -> {
+            System.out.println(MessageFormat.format("{0}\t{1}\t{2}\t{3}", yearMonth.getYear(), yearMonth.getMonth(), amount.toString(), priceStatsSeries.getAmount(yearMonth)));
         });
 
     }

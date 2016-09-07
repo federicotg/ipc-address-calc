@@ -16,9 +16,9 @@
  */
 package org.fede.calculator.money.series;
 
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.BiConsumer;
 import org.fede.calculator.money.MoneyAmount;
 
 /**
@@ -54,22 +54,21 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
     }
 
     @Override
-    protected MoneyAmount getAmountOrNull(int year, int month) {
-        return this.values.get(new YearMonth(year, month));
+    protected MoneyAmount getAmountOrNull(YearMonth ym) {
+        return this.values.get(ym);
     }
+
 
     @Override
-    public void putAmount(int year, int month, MoneyAmount amount) {
-        this.values.put(new YearMonth(year, month), amount);
+    public void putAmount(YearMonth ym, MoneyAmount amount) {
+        this.values.put(ym, amount);
     }
-
+    
     @Override
-    public void forEach(final MoneyAmountProcessor processor) {
-        for (Map.Entry<YearMonth, MoneyAmount> entry : this.values.entrySet()) {
-            processor.process(entry.getKey().getYear(), entry.getKey().getMonth(), entry.getValue());
-        }
+    public void forEach(BiConsumer<YearMonth, MoneyAmount> consumer) {
+        this.values.forEach(consumer);
     }
-
+    
     @Override
     protected boolean hasValue(YearMonth moment) {
         return this.values.containsKey(moment);

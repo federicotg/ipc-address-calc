@@ -20,6 +20,8 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -47,10 +49,10 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     }
 
     @Override
-    public final void forEachNonZero(final MoneyAmountProcessor processor) {
-        this.forEach((int year, int month, MoneyAmount amount) -> {
+    public final void forEachNonZero(BiConsumer<YearMonth, MoneyAmount> consumer) {
+        this.forEach((ym, amount) -> {
             if (!amount.isZero()) {
-                processor.process(year, month, amount);
+                consumer.accept(ym, amount);
             }
         });
     }
@@ -63,17 +65,13 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     protected abstract MoneyAmountSeries createNew();
 
     @Override
-    public final MoneyAmountSeries map(final MoneyAmountTransform transform) {
-        final MoneyAmountSeries answer = this.createNew();
+    public final MoneyAmountSeries map(BiFunction<YearMonth, MoneyAmount, MoneyAmount> f) {
+        MoneyAmountSeries newSeries = this.createNew();
 
-        this.forEach((int year, int month, MoneyAmount amount) -> {
-            answer.putAmount(
-                    year,
-                    month,
-                    transform.transform(year, month, amount));
+        this.forEach((ym, amount) -> {
+            newSeries.putAmount(ym, f.apply(ym, amount));
         });
-
-        return answer;
+        return newSeries;
     }
 
     @Override
@@ -93,37 +91,31 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
         final MoneyAmountSeries answer = this.createNew();
         //this empieza antes o son iguales
-        this.forEach((int thisYear, int thisMonth, MoneyAmount amount) -> {
-            YearMonth now = new YearMonth(thisYear, thisMonth);
+        this.forEach((now, amount) -> {
             if (now.compareTo(otherStart) < 0 || now.compareTo(otherEnd) > 0) {
-                answer.putAmount(thisYear, thisMonth, amount);
+                answer.putAmount(now, amount);
             } else {
-                answer.putAmount(thisYear, thisMonth, amount.add(other.getAmount(thisYear, thisMonth)));
+                answer.putAmount(now, amount.add(other.getAmount(now)));
             }
         });
 
         // si el otro termina después tengo que copiar sus valores al resultado.
         final YearMonth thisEnd = this.getTo();
 
-        other.forEach((int year, int month, MoneyAmount amount) -> {
-            final YearMonth otherNow = new YearMonth(year, month);
+        other.forEach((otherNow, amount) -> {
             if (otherNow.compareTo(thisEnd) > 0) {
-                answer.putAmount(year, month, amount);
+                answer.putAmount(otherNow, amount);
             }
         });
 
         return answer;
     }
 
-    protected abstract MoneyAmount getAmountOrNull(int year, int month);
+    protected abstract MoneyAmount getAmountOrNull(YearMonth ym);
 
     @Override
-    public final MoneyAmount getAmount(int year, int month) {
-        MoneyAmount answer = this.getAmountOrNull(year, month);
-        if (answer == null) {
-            throw new NoSeriesDataFoundException(MessageFormat.format("No data specified for year {0} and month {1}.", year, month));
-        }
-        return answer;
+    public final void putAmount(int year, int month, MoneyAmount amount) {
+        this.putAmount(new YearMonth(year, month), amount);
     }
 
     @Override
@@ -141,8 +133,8 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
         final boolean[] holder = new boolean[]{true};
         try {
 
-            this.forEach((int year, int month, MoneyAmount amount) -> {
-                holder[0] &= amount.equals(other.getAmount(year, month));
+            this.forEach((yearMonth, amount) -> {
+                holder[0] &= amount.equals(other.getAmount(yearMonth));
             });
 
             return holder[0];
@@ -161,7 +153,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
         final int[] holder = new int[]{1};
 
         try {
-            this.forEach((int year, int month, MoneyAmount amount) -> {
+            this.forEach((yearMonth, amount) -> {
                 holder[0] += 37 * Objects.hashCode(amount);
             });
         } catch (NoSeriesDataFoundException ex) {
@@ -173,7 +165,16 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
     @Override
     public final MoneyAmount getAmount(YearMonth moment) {
-        return this.getAmount(moment.getYear(), moment.getMonth());
+        MoneyAmount answer = this.getAmountOrNull(moment);
+        if (answer == null) {
+            throw new NoSeriesDataFoundException(MessageFormat.format("No data specified for year {0} and month {1}.", moment.getYear(), moment.getMonth()));
+        }
+        return answer;
+    }
+
+    @Override
+    public final MoneyAmount getAmount(int year, int month) {
+        return this.getAmount(new YearMonth(year, month));
     }
 
     @Override

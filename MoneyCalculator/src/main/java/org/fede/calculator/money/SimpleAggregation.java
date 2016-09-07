@@ -63,7 +63,7 @@ public class SimpleAggregation implements Aggregation, MathConstants {
 
         final String seriesCurrency = series.getCurrency();
 
-        return series.map((int year, int month, MoneyAmount amount) -> {
+        return series.map((yearMonth, amount) -> {
             checkCurrency(seriesCurrency, amount);
 
             lastValues.addFirst(amount);

@@ -16,14 +16,13 @@
  */
 
 import java.math.BigDecimal;
-import java.util.Currency;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.BiConsumer;
 import org.fede.calculator.money.Aggregation;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
-import org.fede.calculator.money.series.MoneyAmountProcessor;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
@@ -36,11 +35,11 @@ import static org.junit.Assert.*;
  */
 public class SimpleAggregationTest {
 
-    private static class TestMoneyAmountProcessor implements MoneyAmountProcessor {
+    private static class TestMoneyAmountProcessor implements BiConsumer<YearMonth, MoneyAmount> {
 
         private final String[] expected;
         private int i = 0;
-        private String currencySymbol;
+        private final String currencySymbol;
 
         public TestMoneyAmountProcessor(String[] expected, String currencySymbol) {
             this.expected = expected;
@@ -49,7 +48,7 @@ public class SimpleAggregationTest {
         }
 
         @Override
-        public void process(int year, int month, MoneyAmount amount) throws NoSeriesDataFoundException {
+        public void accept(YearMonth yearMonth, MoneyAmount amount) throws NoSeriesDataFoundException {
             assertEquals(new MoneyAmount(new BigDecimal(this.expected[i]), this.currencySymbol), amount);
             this.i++;
         }
