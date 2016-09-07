@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 import static java.util.stream.Collectors.toList;
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.ChartService;
 import org.fede.calculator.service.MultiSeriesChartService;
 import org.fede.calculator.service.MoneyService;

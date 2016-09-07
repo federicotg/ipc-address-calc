@@ -18,26 +18,25 @@ package org.fede.calculator.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import org.fede.calculator.money.Aggregation;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import static org.fede.calculator.money.Inflation.ARS_INFLATION;
-import org.fede.calculator.money.MathConstants;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.fede.calculator.money.Aggregation;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
+import static org.fede.calculator.money.Inflation.ARS_INFLATION;
+import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import org.fede.calculator.money.MathConstants;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.Investment;
@@ -104,12 +103,15 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final List<SavingsReportDTO> report = new ArrayList<>();
 
-        pesos.forEach((int year, int month, MoneyAmount amount) -> {
+        pesos.forEach((yearMonth, amount) -> {
+            int year = yearMonth.getYear();
+            int month = yearMonth.getMonth();
+            
             SavingsReportDTO dto = new SavingsReportDTO(year, month);
             report.add(dto);
 
-            MoneyAmount usd = dollarsAndGold.getAmount(year, month);
-            MoneyAmount ars = pesos.getAmount(year, month);
+            MoneyAmount usd = dollarsAndGold.getAmount(yearMonth);
+            MoneyAmount ars = amount;
 
             dto.setNominalDollars(usd.getAmount());
             dto.setNominalPesos(ars.getAmount());
@@ -132,10 +134,10 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
             dto.setPesosForDollar(dollarPrice.getIndex(year, month));
 
-            dto.setNominalIncomePesos(nominalIncomePesos12.getAmount(year, month).getAmount());
-            dto.setNominalIncomeDollars(nominalIncomeDollars12.getAmount(year, month).getAmount());
-            dto.setNov99IncomePesos(nov99IncomePesos12.getAmount(year, month).getAmount());
-            dto.setNov99IncomeDollars(nov99IncomeDollars12.getAmount(year, month).getAmount());
+            dto.setNominalIncomePesos(nominalIncomePesos12.getAmount(yearMonth).getAmount());
+            dto.setNominalIncomeDollars(nominalIncomeDollars12.getAmount(yearMonth).getAmount());
+            dto.setNov99IncomePesos(nov99IncomePesos12.getAmount(yearMonth).getAmount());
+            dto.setNov99IncomeDollars(nov99IncomeDollars12.getAmount(yearMonth).getAmount());
 
             if (report.size() > 12) {
                 SavingsReportDTO otherDto = report.get(report.size() - 13);
