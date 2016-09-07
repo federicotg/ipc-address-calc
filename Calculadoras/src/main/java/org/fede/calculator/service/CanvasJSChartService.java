@@ -28,7 +28,6 @@ import org.fede.calculator.money.MathConstants;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import static org.fede.util.Util.readSeries;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
@@ -300,12 +299,11 @@ public class CanvasJSChartService implements ChartService, MathConstants {
         dto.setData(seriesList);
 
         final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        income.forEachNonZero((int year, int month, MoneyAmount sueldo) -> {
-            YearMonth ym = new YearMonth(year, month);
-            if (ym.compareTo(savings.getFrom()) >= 0 && ym.compareTo(savings.getTo()) <= 0) {
+        income.forEachNonZero((yearMonth, sueldo) -> {
+            if (yearMonth.compareTo(savings.getFrom()) >= 0 && yearMonth.compareTo(savings.getTo()) <= 0) {
                 CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
-                        "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-15"),
-                        savings.getAmount(year, month).getAmount().divide(sueldo.getAmount(), CONTEXT)
+                        "date-".concat(String.valueOf(yearMonth.getYear())).concat("-").concat(String.valueOf(yearMonth.getMonth() - 1)).concat("-15"),
+                        savings.getAmount(yearMonth).getAmount().divide(sueldo.getAmount(), CONTEXT)
                 );
                 datapoints.add(dataPoint);
             }

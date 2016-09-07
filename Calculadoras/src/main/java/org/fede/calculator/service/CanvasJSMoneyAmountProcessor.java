@@ -17,15 +17,16 @@
 package org.fede.calculator.service;
 
 import java.util.List;
+import java.util.function.BiConsumer;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.series.MoneyAmountProcessor;
+import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.web.dto.CanvasJSDatapointDTO;
 
 /**
  *
  * @author fede
  */
-public class CanvasJSMoneyAmountProcessor implements MoneyAmountProcessor {
+public class CanvasJSMoneyAmountProcessor implements BiConsumer<YearMonth, MoneyAmount> {
 
     private final List<CanvasJSDatapointDTO> datapoints;
 
@@ -34,8 +35,8 @@ public class CanvasJSMoneyAmountProcessor implements MoneyAmountProcessor {
     }
 
     @Override
-    public void process(int year, int month, MoneyAmount amount) {
+    public void accept(YearMonth yearMonth, MoneyAmount amount) {
         datapoints.add(new CanvasJSDatapointDTO(
-                "date-".concat(String.valueOf(year)).concat("-").concat(String.valueOf(month - 1)).concat("-15"), amount.getAmount()));
+                "date-".concat(String.valueOf(yearMonth.getYear())).concat("-").concat(String.valueOf(yearMonth.getMonth() - 1)).concat("-15"), amount.getAmount()));
     }
 }

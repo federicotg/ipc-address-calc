@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 import org.fede.calculator.service.ARGMoneyService;
 import org.fede.calculator.service.CanvasJSChartService;
@@ -95,8 +96,9 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("UDEC", "expense/udec.json"),
                 new ExpenseChartSeriesDTO("Expensas", "expense/expensas.json"),
                 new ExpenseChartSeriesDTO("XBOX", "expense/xbox.json"),
+                new ExpenseChartSeriesDTO("Limpieza", "expense/limpieza.json"),
                 new ExpenseChartSeriesDTO("Total", "")
-        ).collect(Collectors.toList());
+        ).collect(toList());
     }
 
     @Bean
@@ -113,7 +115,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Agua", "expense/absa.json"),
                 new ExpenseChartSeriesDTO("Gasto Adm.", "expense/consorcio-gasto-administrativo.json"),
                 new ExpenseChartSeriesDTO("Total", "")
-        ).collect(Collectors.toList());
+        ).collect(toList());
 
     }
 
@@ -124,7 +126,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("LIFIA", "income/lifia.json"),
                 new ExpenseChartSeriesDTO("Despegar", "income/despegar.json"),
                 new ExpenseChartSeriesDTO("Total", "")
-        ).collect(Collectors.toList());
+        ).collect(toList());
     }
 
     @Bean
@@ -136,7 +138,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Acciones Argentina FCI", "saving/ahorros-conaafa.json"),
                 new ExpenseChartSeriesDTO("Balance Fund FCI", "saving/ahorros-conbala.json"),
                 new ExpenseChartSeriesDTO("Total", "")
-        ).collect(Collectors.toList());
+        ).collect(toList());
 
     }
 
@@ -151,7 +153,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Deuda Argentina FCI", "fci/CDeudaA.json"),
                 new ExpenseChartSeriesDTO("Acciones Argentina FCI", "fci/CGRO01.json"),
                 new ExpenseChartSeriesDTO("Renta Variable FCI", "fci/CRVariable.json")
-        ).collect(Collectors.toList());
+        ).collect(toList());
 
     }
 
@@ -206,7 +208,7 @@ public class AppConfig {
                 "#993300",
                 "#006600",
                 "#ff9999"
-        ).collect(Collectors.toList());
+        ).collect(toList());
     }
 
     @Bean
