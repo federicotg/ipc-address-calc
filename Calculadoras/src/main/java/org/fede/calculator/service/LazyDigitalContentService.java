@@ -91,6 +91,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         final StorageMediumRepository repo = Repository.STORAGE;
 
         //            box-disc
+        repo.findById("1-07").setSize(23708549444l);
+        
         repo.findById("2-02").setSize(22531026141l);
         repo.findById("2-03").setSize(23700267311l);
         repo.findById("2-04").setSize(23432910665l);
@@ -104,9 +106,12 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("3-10").setSize(24090135203l);
 
         repo.findById("4-01").setSize(22610819214l);
+        repo.findById("4-04").setSize(23436437860l);
 
         repo.findById("6-01").setSize(23786572018l);
         repo.findById("6-02").setSize(21757590009l);
+        repo.findById("6-03").setSize(8164684127l);
+        
         repo.findById("6-04").setSize(21835764224l);
         repo.findById("6-05").setSize(24274800905l);
         repo.findById("6-06").setSize(22990817875l);
@@ -140,6 +145,10 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         repo.findById("12-11").setSize(22782269393l);
         repo.findById("12-12").setSize(24624375044l);
+        
+        repo.findById("17-05").setSize(23967957405l);
+        repo.findById("17-09").setSize(24717095124l);
+        repo.findById("17-11").setSize(23792469478l);
 
         repo.findById("18-01").setSize(23809270814l);
         repo.findById("18-06").setSize(23873717071l);
