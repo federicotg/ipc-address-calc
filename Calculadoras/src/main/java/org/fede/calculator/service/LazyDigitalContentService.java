@@ -1239,6 +1239,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Rondine").opera().atTheMet().on("01/01/2009").dvd().spaSubs().iso().seenByFede().discBox(8, 8)
                 .imdb("http://www.imdb.com/title/tt1347918/").build();
         new DigitalContent.Builder("Madama Butterfly").opera().at("Arena di Verona").on("01/01/2004").dvd().spaSubs().iso().discBox(1, 1).build();
+        
+        new DigitalContent.Builder("Madama Butterfly").opera().atTheMet().on("02/04/2016").fullHD().spaSubs().mkv().discBox(0, 0)
+                .seenByFede()
+                .build();
+        
         new DigitalContent.Builder("Manon Lescaut").opera().atRoh().on("01/01/1983").dvd().spaSubs().iso().discBox(2, 15)
                 .imdb("http://www.imdb.com/title/tt0254549/").build();
 

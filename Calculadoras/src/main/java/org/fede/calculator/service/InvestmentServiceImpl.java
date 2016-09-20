@@ -106,7 +106,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
         pesos.forEach((yearMonth, amount) -> {
             int year = yearMonth.getYear();
             int month = yearMonth.getMonth();
-            
+
             SavingsReportDTO dto = new SavingsReportDTO(year, month);
             report.add(dto);
 
@@ -270,6 +270,16 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final List<InvestmentReportDTO> report = new ArrayList<>();
 
+//        final String header = "item.getType().name()\t"
+//                + "item.getInitialDate()\t"
+//                + "itemUntilDate\t"
+//                + "currency\t"
+//                + "initialAmount(item, currency).getAmount()\t"
+//                + "finalAmount\t"
+//                + "realAmountInvested";
+//
+//        System.out.println(header);
+
         for (Investment item : investments) {
             if (filter.test(item)) {
 
@@ -302,7 +312,16 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                         finalAmount,
                         inflation(currency, item.getInitialDate(), itemUntilDate),
                         item.getInvestment().getCurrency(),
-                        finalAmount.subtract(realAmount).setScale(2, ROUNDING_MODE)));
+                        finalAmount.subtract(realAmount).setScale(2, ROUNDING_MODE), 
+                        realAmount));
+
+                //String msg = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}";
+                //System.out.println(MessageFormat.format(msg, item.getType().name(),
+//                        item.getInitialDate(),
+//                        itemUntilDate,
+//                        currency,
+//                        initialAmount(item, currency).getAmount(),
+//                        finalAmount, realAmount));
             }
         }
 
