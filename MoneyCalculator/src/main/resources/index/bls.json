@@ -9194,7 +9194,8 @@
     {"year": "2016","period": "M05","periodName": "May", "value": "240.236","footnotes": [{}]},
     {"year": "2016","period": "M06","periodName": "June", "value": "241.038","footnotes": [{}]},
     {"year": "2016","period": "M07","periodName": "July", "value": "240.647","footnotes": [{}]},
-    {"year": "2016","period": "M08","periodName": "August", "value": "240.853","footnotes": [{}]}
+    {"year": "2016","period": "M08","periodName": "August", "value": "240.849","footnotes": [{}]},
+    {"year": "2016","period": "M09","periodName": "September", "value": "241.428","footnotes": [{}]}
                                 
     ]
 }]
