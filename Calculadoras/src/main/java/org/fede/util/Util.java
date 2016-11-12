@@ -21,10 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Calendar;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,8 +32,10 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.averagingDouble;
+import static java.util.stream.Collectors.groupingBy;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.series.ConsultatioDataPoint;
 import org.fede.calculator.money.series.InterpolationStrategy;
 import org.fede.calculator.money.series.JSONDataPoint;
@@ -74,7 +74,7 @@ public class Util {
     }
 
     public static <T> String list(Collection<T> elements, String separator) {
-        return elements.stream().map(e -> e.toString()).collect(Collectors.joining(separator));
+        return elements.stream().map(e -> e.toString()).collect(joining(separator));
     }
 
     public static MoneyAmountSeries sumSeries(String currency, List<ExpenseChartSeriesDTO> dtos) {
@@ -140,40 +140,26 @@ public class Util {
 
     }
 
+    
+    private static Pair<Integer, Integer> key(ConsultatioDataPoint dataPoint){
+        LocalDate d = dataPoint.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        return new Pair<>(d.getYear(), d.getMonthValue());
+    }
+    
     private static JSONSeries readConsultatioSeries(InputStream is, ObjectMapper om) throws IOException {
 
         List<ConsultatioDataPoint> data = om.readValue(is, new TypeReference<List<ConsultatioDataPoint>>() {
         });
-
-        Map<Pair<Integer, Integer>, List<BigDecimal>> groups = new HashMap<>();
-
-        List<JSONDataPoint> points = new ArrayList<>(data.size());
-        Calendar cal = Calendar.getInstance();
-        for (ConsultatioDataPoint c : data) {
-            cal.setTime(c.getDate());
-
-            final Pair<Integer, Integer> key = new Pair<>(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1);
-            List<BigDecimal> values = groups.get(key);
-
-            if (values == null) {
-                values = new ArrayList<>(32);
-                groups.put(key, values);
-            }
-            values.add(c.getValue().movePointLeft(2));
-        }
-
-        for (Map.Entry<Pair<Integer, Integer>, List<BigDecimal>> entry : groups.entrySet()) {
-            points.add(new JSONDataPoint(entry.getKey().getFirst(), entry.getKey().getSecond(), avg(entry.getValue())));
-        }
+        
+        Map<Pair<Integer, Integer>, Double> groups = data.stream()
+                .collect(groupingBy(dp -> key(dp), averagingDouble(dp -> dp.getValue().doubleValue())));
+        
+        List<JSONDataPoint> points = groups.entrySet().stream()
+                .map(e -> new JSONDataPoint(e.getKey().getFirst(), e.getKey().getSecond(), new BigDecimal(e.getValue())))
+                .collect(Collectors.toList());
+        
 
         return new JSONSeries("ARS", points, "LAST_VALUE_INTERPOLATION");
     }
 
-    private static BigDecimal avg(List<BigDecimal> list) {
-        if (list.isEmpty()) {
-            return BigDecimal.ZERO;
-        }
-        return list.stream().reduce(BigDecimal.ZERO, (left, right) -> left.add(right))
-                .setScale(7, RoundingMode.HALF_UP).divide(new BigDecimal(list.size()), MathContext.DECIMAL32);
-    }
 }

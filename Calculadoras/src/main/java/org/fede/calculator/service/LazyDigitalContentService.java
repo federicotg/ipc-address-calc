@@ -92,7 +92,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         //            box-disc
         repo.findById("1-07").setSize(23708549444l);
-        
+
         repo.findById("2-02").setSize(22531026141l);
         repo.findById("2-03").setSize(23700267311l);
         repo.findById("2-04").setSize(23432910665l);
@@ -111,7 +111,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("6-01").setSize(23786572018l);
         repo.findById("6-02").setSize(21757590009l);
         repo.findById("6-03").setSize(8164684127l);
-        
+
         repo.findById("6-04").setSize(21835764224l);
         repo.findById("6-05").setSize(24274800905l);
         repo.findById("6-06").setSize(22990817875l);
@@ -145,7 +145,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         repo.findById("12-11").setSize(22782269393l);
         repo.findById("12-12").setSize(24624375044l);
-        
+
         repo.findById("17-05").setSize(23967957405l);
         repo.findById("17-09").setSize(24717095124l);
         repo.findById("17-11").setSize(23792469478l);
@@ -158,6 +158,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("18-10").setSize(22915434845l);
         repo.findById("18-11").setSize(22959785253l);
         repo.findById("18-12").setSize(22906853814l);
+        
+        repo.findById("19-01").setSize(24702010710l);
 
     }
 
@@ -284,6 +286,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Venue.Builder("Großes Festspielhaus").city("Salzburgo").country(AUSTRIA)
                 .latLong(47.798534d, 13.041774d)
                 .build();
+        new Venue.Builder("Salzburg State Theatre").city("Salzburgo").country(AUSTRIA)
+                .latLong(47.802778d, 13.042778d)
+                .build();
         new Venue.Builder("Opéra Bastille").city("Paris").country(FRANCE)
                 .latLong(48.852438d, 2.370203d)
                 .wiki("https://es.wikipedia.org/wiki/%C3%93pera_de_la_Bastilla")
@@ -406,12 +411,24 @@ public class LazyDigitalContentService implements DigitalContentService {
                 "Don Giovanni",
                 "Il Sogno di Scipione",
                 "La Clemenza di Tito",
-                "Le nozze di Figaro")
+                "Le nozze di Figaro",
+                "La Finta Giardiniera",
+                "La finta semplice",
+                "Il re pastore",
+                "La oca del Cairo",
+                "Lo sposo deluso")
                 .italian().opera().by("W. A. Mozart").build();
 
         new Opus.Builder("La Flauta Mágica",
-                "El rapto en el serrallo")
+                "El rapto en el serrallo",
+                "Die Schuldigkeit des ersten Gebotes",
+                "Bastien und Bastienne",
+                "Der Schauspieldirektor")
                 .german().opera().by("W. A. Mozart").build();
+
+        new Opus.Builder("Apollo et Hyacinthus").language(Language.LATIN).opera().by("W. A. Mozart").build();
+
+        new Opus.Builder("Betulia Liberata").italian().oratorio().by("W. A. Mozart").build();
 
         new Opus.Builder("Gianni Schicchi",
                 "Il Trittico",
@@ -1096,7 +1113,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("Otello").opera().atTheMet().on("17/10/2015").fullHD().spaSubs().mkv()
                 .discBox(1, 18) // parte 2
-                .discBox(0, 0) // parte 1
+                .discBox(1, 19) // parte 1
                 .build();
 
         new DigitalContent.Builder("Otello").opera().at("Teatro di San Carlo").on("22/04/2014").fullHD().engSubs().mkv()
@@ -1239,11 +1256,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("La Rondine").opera().atTheMet().on("01/01/2009").dvd().spaSubs().iso().seenByFede().discBox(8, 8)
                 .imdb("http://www.imdb.com/title/tt1347918/").build();
         new DigitalContent.Builder("Madama Butterfly").opera().at("Arena di Verona").on("01/01/2004").dvd().spaSubs().iso().discBox(1, 1).build();
-        
+
         new DigitalContent.Builder("Madama Butterfly").opera().atTheMet().on("02/04/2016").fullHD().spaSubs().mkv().discBox(0, 0)
                 .seenByFede()
                 .build();
-        
+
         new DigitalContent.Builder("Manon Lescaut").opera().atRoh().on("01/01/1983").dvd().spaSubs().iso().discBox(2, 15)
                 .imdb("http://www.imdb.com/title/tt0254549/").build();
 
@@ -1286,6 +1303,12 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(1, 14)
                 .discBox(2, 14)
                 .imdb("http://www.imdb.com/title/tt1214968/").build();
+
+        new DigitalContent.Builder("L'Italiana in Algeri").opera().at("Teatro Rossini").on("01/08/2013").dvd().engSubs()
+                .iso()
+                .discBox(0, 0)
+                .build();
+
         new DigitalContent.Builder("La Cenerentola").opera().atTheMet().on("01/01/2009").dvd().spaSubs().iso().seenByFede()
                 .discBox(4, 8)
                 .discBox(5, 8)
@@ -2042,6 +2065,48 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .discBox(4, 10)
                     .build();
         }
+        
+        
+        for (String title : new String[]{
+            "Release",
+            "Sunshine Days"}) {
+            new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
+                    .seenByFede()
+                    .discBox(1, 19)
+                    .build();
+        }
+
+        
+        
+        new DigitalContent.Builder("La Finta Giardiniera").opera()
+                .at("Salzburg State Theatre")
+                .on("18/01/2006")
+                .dvd()
+                .spaSubs()
+                .iso()
+                .discBox(0, 0)
+                .build();
+
+        new DigitalContent.Builder("La finta semplice").opera().at("Salzburg State Theatre")
+                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
+        new DigitalContent.Builder("Il re pastore").opera().at("Salzburg State Theatre")
+                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
+        new DigitalContent.Builder("La oca del Cairo").opera().at("Salzburg State Theatre")
+                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
+        new DigitalContent.Builder("Lo sposo deluso").opera().at("Salzburg State Theatre")
+                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
+        new DigitalContent.Builder("Die Schuldigkeit des ersten Gebotes").opera().at("Salzburg State Theatre")
+                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
+        new DigitalContent.Builder("Bastien und Bastienne").opera().at("Salzburg State Theatre")
+                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
+        
+        new DigitalContent.Builder("Der Schauspieldirektor").opera().at("Salzburg State Theatre")
+                .on("18/01/2006").dvd().spaSubs().iso().discBox(1, 19).build();
+        
+        new DigitalContent.Builder("Apollo et Hyacinthus").opera().at("Salzburg State Theatre")
+                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
+        new DigitalContent.Builder("Betulia Liberata").oratorio().at("Salzburg State Theatre")
+                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
 
     }
 
