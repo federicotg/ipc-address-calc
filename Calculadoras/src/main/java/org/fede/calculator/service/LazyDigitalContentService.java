@@ -59,14 +59,6 @@ import org.fede.digitalcontent.model.Venue;
 
 /**
  *
- * ---------------------------------------------------------------------. Caja
- * 12, disco 5: sobra Maria Stuarda; se puede regrabar porque es DVD
- *
- *
- *
- */
-/**
- *
  * @author fede
  */
 public class LazyDigitalContentService implements DigitalContentService {
@@ -156,7 +148,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("11-11").setSize(8104299674l);
         repo.findById("11-12").setSize(8262949279l);
 
-        repo.findById("12-05").setSize(8439321486l);
+        //repo.findById("12-05").setSize(8439321486l);
         repo.findById("12-06").setSize(8496977204l);
 
         repo.findById("12-11").setSize(22782269393l);
