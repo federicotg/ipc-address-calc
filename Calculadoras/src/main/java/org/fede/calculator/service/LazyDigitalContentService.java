@@ -1214,7 +1214,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(8, 2)
                 .discBox(2, 3)
                 .imdb("http://www.imdb.com/title/tt2374452/").build();
-        new DigitalContent.Builder("El rapto en el serrallo").opera().at("Bayerische Staatsoper").on("01/01/1980").fullHD().spaSubs().mkv()
+        new DigitalContent.Builder("El rapto en el serrallo").opera().at("Bayerische Staatsoper").on("01/01/1980").dvd().spaSubs().mkv()
                 .discBox(4, 11)
                 .imdb("http://www.imdb.com/title/tt0254303/").build();
 
@@ -1224,7 +1224,8 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(6, 18) // parte 3
                 .build();
 
-        new DigitalContent.Builder("Il Sogno di Scipione").opera().at("Großes Festspielhaus").on("01/01/2006").dvd().spaSubs().iso().seenByFede().discBox(10, 3)
+        new DigitalContent.Builder("Il Sogno di Scipione").opera().at("Großes Festspielhaus").on("01/01/2006").dvd().spaSubs().iso()
+                .seenByFede().discBox(10, 3)
                 .imdb("http://www.imdb.com/title/tt1039909/").build();
         new DigitalContent.Builder("La Clemenza di Tito").opera().atTheMet().on("01/12/2012").fullHD().engSubs().mkv().seenByFede()
                 .discBox(8, 11)
