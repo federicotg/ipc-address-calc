@@ -1454,6 +1454,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .build();
         new DigitalContent.Builder("Lucia di Lammermoor").opera().atTheMet().on("07/02/2009").spaSubs().br()
                 .starringNetrebko()
+                .seenByFede()
                 .box("Lucia di Lammermoor").build();
 
         new DigitalContent.Builder("Le nozze di Figaro").opera().at("Sydney Opera House").on("18/08/2010")
