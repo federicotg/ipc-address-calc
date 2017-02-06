@@ -79,6 +79,14 @@ public class Opus {
             return this;
         }
 
+        public Builder concert() {
+            for (Opus opus : this.opuses) {
+                opus.setType(OpusType.CONCERT);
+            }
+            return this;
+        }
+        
+        
         public Builder movie() {
             for (Opus opus : this.opuses) {
                 opus.setType(OpusType.MOVIE);

@@ -59,6 +59,14 @@ import org.fede.digitalcontent.model.Venue;
 
 /**
  *
+ * ---------------------------------------------------------------------. Caja
+ * 12, disco 5: sobra Maria Stuarda; se puede regrabar porque es DVD
+ *
+ *
+ *
+ */
+/**
+ *
  * @author fede
  */
 public class LazyDigitalContentService implements DigitalContentService {
@@ -96,6 +104,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("2-02").setSize(22531026141l);
         repo.findById("2-03").setSize(23700267311l);
         repo.findById("2-04").setSize(23432910665l);
+        repo.findById("2-07").setSize(24702010710l);
 
         repo.findById("3-01").setSize(24368806526l);
         repo.findById("3-03").setSize(24694593073l);
@@ -120,9 +129,13 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("7-06").setSize(24021160209l);
         repo.findById("7-07").setSize(24607263188l);
 
+        repo.findById("8-06").setSize(24822165814l);
+        repo.findById("8-07").setSize(24217195336l);
+
         repo.findById("9-01").setSize(23266263358l);
         repo.findById("9-02").setSize(23815613711l);
         repo.findById("9-03").setSize(24070972740l);
+        repo.findById("9-07").setSize(7574962219l);
         repo.findById("9-08").setSize(21943779127l);
 
         repo.findById("10-01").setSize(24627470247l);
@@ -143,6 +156,9 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("11-11").setSize(8104299674l);
         repo.findById("11-12").setSize(8262949279l);
 
+        repo.findById("12-05").setSize(8439321486l);
+        repo.findById("12-06").setSize(8496977204l);
+
         repo.findById("12-11").setSize(22782269393l);
         repo.findById("12-12").setSize(24624375044l);
 
@@ -158,8 +174,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("18-10").setSize(22915434845l);
         repo.findById("18-11").setSize(22959785253l);
         repo.findById("18-12").setSize(22906853814l);
-        
-        repo.findById("19-01").setSize(24702010710l);
 
     }
 
@@ -421,7 +435,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new Opus.Builder("La Flauta Mágica",
                 "El rapto en el serrallo",
-                "Die Schuldigkeit des ersten Gebotes",
+                "Die Schuldigkeit des ersten Gebots",
                 "Bastien und Bastienne",
                 "Der Schauspieldirektor")
                 .german().opera().by("W. A. Mozart").build();
@@ -1014,7 +1028,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Carmen").opera().atTheMet().on("16/01/2010").dvd().spaSubs().iso().seenByFede()
                 .discBox(2, 1)
                 .imdb("http://www.imdb.com/title/tt1669004/").build();
-        new DigitalContent.Builder("Prince Igor").opera().atTheMet().on("01/03/2014").fullHD().spaSubs().mkv().discBox(3, 15)
+        new DigitalContent.Builder("Prince Igor").opera().atTheMet().on("01/03/2014").fullHD().spaSubs().mkv()
+                .discBox(3, 15) // I, II y III
                 .imdb("http://www.imdb.com/title/tt3565332/").build();
         new DigitalContent.Builder("The Nose").opera().atTheMet().on("26/10/2013").fullHD().engSubs().mkv().discBox(6, 15)
                 .imdb("http://www.imdb.com/title/tt3114272/").build();
@@ -1113,7 +1128,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new DigitalContent.Builder("Otello").opera().atTheMet().on("17/10/2015").fullHD().spaSubs().mkv()
                 .discBox(1, 18) // parte 2
-                .discBox(1, 19) // parte 1
+                .discBox(7, 2) // parte 1
                 .build();
 
         new DigitalContent.Builder("Otello").opera().at("Teatro di San Carlo").on("22/04/2014").fullHD().engSubs().mkv()
@@ -1133,6 +1148,7 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(2, 13)
                 .imdb("http://www.imdb.com/title/tt1691418/").build();
         new DigitalContent.Builder("Un Ballo in Maschera").opera().atTheMet().on("08/12/2012").fullHD().engSubs().mkv()
+                .discBox(4, 12)
                 .discBox(8, 12)
                 .discBox(9, 12)
                 .imdb("http://www.imdb.com/title/tt2560540/").build();
@@ -1236,9 +1252,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Le nozze di Figaro").opera().at("Großes Festspielhaus").on("01/01/2006").dvd().spaSubs().mkv()
                 .discBox(11, 14)
                 .imdb("http://www.imdb.com/title/tt0838187/").build();
-        //new DigitalContent.Builder("Le nozze di Figaro").opera().atGlyndebourne().on("17/08/2012").fullHD().engSubs().mkv()
-        //        .discBox(8, 14)
-        //        .build();
 
         new DigitalContent.Builder("La Flauta Mágica").opera().atRoh().on("01/01/2003").dvd().spaSubs().iso().seenByFede()
                 .discBox(10, 1)
@@ -1257,7 +1270,9 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .imdb("http://www.imdb.com/title/tt1347918/").build();
         new DigitalContent.Builder("Madama Butterfly").opera().at("Arena di Verona").on("01/01/2004").dvd().spaSubs().iso().discBox(1, 1).build();
 
-        new DigitalContent.Builder("Madama Butterfly").opera().atTheMet().on("02/04/2016").fullHD().spaSubs().mkv().discBox(0, 0)
+        new DigitalContent.Builder("Madama Butterfly").opera().atTheMet().on("02/04/2016").fullHD().spaSubs().mkv()
+                .discBox(7, 4) // interviews y 3 part II
+                .discBox(5, 12)
                 .seenByFede()
                 .build();
 
@@ -1286,7 +1301,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         new DigitalContent.Builder("Capriccio").opera().atParis().on("01/01/2004").dvd().spaSubs().iso()
                 .discBox(8, 5)
                 .imdb("http://www.imdb.com/title/tt2353871/").build();
-        new DigitalContent.Builder("Intermezzo").opera().atGlyndebourne().on("01/01/1983").fullHD().engSubs().iso()
+        new DigitalContent.Builder("Intermezzo").opera().atGlyndebourne().on("01/01/1983").dvd().engSubs().iso()
                 .discBox(7, 9)
                 .imdb("http://www.imdb.com/title/tt0240617/").build();
         new DigitalContent.Builder("Salome").opera().atRoh().on("01/01/2008").dvd().spaSubs().iso().seenByFede().discBox(4, 6)
@@ -1303,11 +1318,6 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .discBox(1, 14)
                 .discBox(2, 14)
                 .imdb("http://www.imdb.com/title/tt1214968/").build();
-
-        new DigitalContent.Builder("L'Italiana in Algeri").opera().at("Teatro Rossini").on("01/08/2013").dvd().engSubs()
-                .iso()
-                .discBox(0, 0)
-                .build();
 
         new DigitalContent.Builder("La Cenerentola").opera().atTheMet().on("01/01/2009").dvd().spaSubs().iso().seenByFede()
                 .discBox(4, 8)
@@ -2065,48 +2075,26 @@ public class LazyDigitalContentService implements DigitalContentService {
                     .discBox(4, 10)
                     .build();
         }
-        
-        
+
         for (String title : new String[]{
             "Release",
             "Sunshine Days"}) {
             new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
                     .seenByFede()
-                    .discBox(1, 19)
+                    .discBox(7, 2)
                     .build();
         }
 
-        
-        
-        new DigitalContent.Builder("La Finta Giardiniera").opera()
-                .at("Salzburg State Theatre")
-                .on("18/01/2006")
-                .dvd()
-                .spaSubs()
-                .iso()
-                .discBox(0, 0)
+        new DigitalContent.Builder("The Truth").episode().fullHD().spaSubs().mkv()
+                .seenByFede()
+                .discBox(5, 12)
                 .build();
 
-        new DigitalContent.Builder("La finta semplice").opera().at("Salzburg State Theatre")
-                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
-        new DigitalContent.Builder("Il re pastore").opera().at("Salzburg State Theatre")
-                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
-        new DigitalContent.Builder("La oca del Cairo").opera().at("Salzburg State Theatre")
-                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
-        new DigitalContent.Builder("Lo sposo deluso").opera().at("Salzburg State Theatre")
-                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
-        new DigitalContent.Builder("Die Schuldigkeit des ersten Gebotes").opera().at("Salzburg State Theatre")
-                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
-        new DigitalContent.Builder("Bastien und Bastienne").opera().at("Salzburg State Theatre")
-                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
-        
-        new DigitalContent.Builder("Der Schauspieldirektor").opera().at("Salzburg State Theatre")
-                .on("18/01/2006").dvd().spaSubs().iso().discBox(1, 19).build();
-        
-        new DigitalContent.Builder("Apollo et Hyacinthus").opera().at("Salzburg State Theatre")
-                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
-        new DigitalContent.Builder("Betulia Liberata").oratorio().at("Salzburg State Theatre")
-                .on("18/01/2006").dvd().spaSubs().iso().discBox(0, 0).build();
+        new DigitalContent.Builder("Die Schuldigkeit des ersten Gebots").opera().at("Salzburg State Theatre")
+                .on("18/01/2006").dvd().spaSubs()
+                .iso()
+                .discBox(7, 2)
+                .build();
 
     }
 

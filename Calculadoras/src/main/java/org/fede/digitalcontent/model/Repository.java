@@ -16,7 +16,6 @@
  */
 package org.fede.digitalcontent.model;
 
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**

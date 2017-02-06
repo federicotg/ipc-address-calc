@@ -19,6 +19,7 @@ package org.fede.digitalcontent.model;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -28,8 +29,7 @@ import java.util.Set;
  */
 public class StorageMedium {
 
-    //private static final BigDecimal MAX_CAPACITY = new BigDecimal("24274800905");
-    private static final BigDecimal MAX_CAPACITY = new BigDecimal("24694593073");
+    private static final BigDecimal MAX_CAPACITY = new BigDecimal("24822165814");
 
     private final String name;
 
@@ -81,6 +81,20 @@ public class StorageMedium {
         return new BigDecimal(this.getSize())
                 .setScale(4)
                 .divide(MAX_CAPACITY, MathContext.DECIMAL128);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 73 * hash + Objects.hashCode(this.name);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof StorageMedium
+                && Objects.equals(((StorageMedium) obj).getName(), this.getName());
     }
 
 }
