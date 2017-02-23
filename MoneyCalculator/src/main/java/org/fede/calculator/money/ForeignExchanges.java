@@ -63,6 +63,11 @@ public class ForeignExchanges {
             "CONBALA",
             "ARS");
 
+        public static final ForeignExchange ARS_CAPLUSA = new SimpleForeignExchange(
+            SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json"),
+            "CAPLUSA",
+            "ARS");
+    
     private static final IndexSeries CONSTANT_INDEX = new IndexSeriesSupport() {
         @Override
         public YearMonth getFrom() {
@@ -110,8 +115,10 @@ public class ForeignExchanges {
         map("ARS", "USD", USD_ARS);
         map("ARS", "CONAAFA", ARS_CONAAFA);
         map("ARS", "CONBALA", ARS_CONBALA);
+        map("ARS", "CAPLUSA", ARS_CAPLUSA);
 
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CONAAFA", "ARS");
+        INTERMEDIATE_FOREIGN_EXCHANGES.put("CAPLUSA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CONBALA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("EUR", "USD");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("XAU", "USD");
