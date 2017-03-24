@@ -25,9 +25,18 @@ import org.fede.calculator.money.MathConstants;
  */
 public class LinearFutureValue implements FutureValue, MathConstants {
 
+    private final int yearsBack;
+
+    private LinearFutureValue(int yearsBack) {
+        this.yearsBack = yearsBack;
+    }
+
+    public LinearFutureValue() {
+        this(2);
+    }
+    
     @Override
     public BigDecimal predictValue(IndexSeries series, int year, int month) {
-        final int yearsBack = 1;
         YearMonth end = series.getTo();
         BigDecimal sum = BigDecimal.ZERO;
         for (YearMonth ym = new YearMonth(end.getYear() - yearsBack, end.getMonth()).next(); ym.compareTo(end) <= 0; ym = ym.next()) {
@@ -36,13 +45,15 @@ public class LinearFutureValue implements FutureValue, MathConstants {
                     series.getIndex(ym.getYear() - 1, ym.getMonth()), CONTEXT)
             );
         }
+      
         BigDecimal avgAnnualChange = sum.divide(new BigDecimal(yearsBack * 12), CONTEXT);
 
         int lastYear = end.getYear();
+        
         if (month > end.getMonth()) {
             lastYear--;
         }
-
+       
         return series.getIndex(lastYear, month) // <-- lastKnownValueForRequestedMonth
                 .multiply(avgAnnualChange);
     }

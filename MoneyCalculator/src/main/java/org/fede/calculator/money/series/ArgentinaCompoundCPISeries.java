@@ -44,6 +44,7 @@ public class ArgentinaCompoundCPISeries extends IndexSeriesSupport {
         if (year < 2006 || (year == 2006 && month < 12)) {
             throw new NoSeriesDataFoundException("Can't predict INDEC");
         }
+       // System.out.println("Arg Prediction "+year+" / "+month);
         return this.cqpSeries.predictValue(year, month);
     }
 

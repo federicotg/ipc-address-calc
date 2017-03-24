@@ -17,7 +17,6 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
