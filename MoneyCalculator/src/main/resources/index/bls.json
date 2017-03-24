@@ -9289,6 +9289,13 @@
                                     "periodName": "January",
                                     "value": "242.839",
                                     "footnotes": [{}]
+                                },
+                                {
+                                    "year": "2017",
+                                    "period": "M02",
+                                    "periodName": "February",
+                                    "value": "243.603",
+                                    "footnotes": [{}]
                                 }
 
 
