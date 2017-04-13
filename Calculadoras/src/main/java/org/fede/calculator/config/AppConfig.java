@@ -93,7 +93,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Municipal", "expense/municipal-43.json"),
                 new ExpenseChartSeriesDTO("Seguro", "expense/seguro.json"),
                 new ExpenseChartSeriesDTO("Teléfono", "expense/telefono-43.json"),
-                new ExpenseChartSeriesDTO("UDEC", "expense/udec.json"),
+                new ExpenseChartSeriesDTO("Emergencia", "expense/emergencia.json"),
                 new ExpenseChartSeriesDTO("Expensas", "expense/expensas.json"),
                 new ExpenseChartSeriesDTO("XBOX", "expense/xbox.json"),
                 new ExpenseChartSeriesDTO("Limpieza", "expense/limpieza.json"),
@@ -137,6 +137,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Oro", "saving/ahorros-oro.json"),
                 new ExpenseChartSeriesDTO("Acciones Argentina FCI", "saving/ahorros-conaafa.json"),
                 new ExpenseChartSeriesDTO("Balance Fund FCI", "saving/ahorros-conbala.json"),
+                new ExpenseChartSeriesDTO("Ahorro Plus FCI", "saving/ahorros-caplusa.json"),
                 new ExpenseChartSeriesDTO("Total", "")
         ).collect(toList());
 
@@ -150,6 +151,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Abierto Pymes FCI", "fci/CPYMESA.json"),
                 new ExpenseChartSeriesDTO("Renta Fija Argentina FCI", "fci/CAHORROA.json"),
                 new ExpenseChartSeriesDTO("Balance Fund FCI", "fci/CBAL01.json"),
+                new ExpenseChartSeriesDTO("Estrategia FCI", "fci/EstrategiaA.json"),
                 new ExpenseChartSeriesDTO("Deuda Argentina FCI", "fci/CDeudaA.json"),
                 new ExpenseChartSeriesDTO("Acciones Argentina FCI", "fci/CGRO01.json"),
                 new ExpenseChartSeriesDTO("Renta Variable FCI", "fci/CRVariable.json")
@@ -293,7 +295,11 @@ public class AppConfig {
     @Bean
     public Map<String, List<String>> savingsReportSeries() {
         Map<String, List<String>> map = new HashMap<>();
-        map.put("ars", Arrays.asList(new String[]{"saving/ahorros-conaafa.json", "saving/ahorros-conbala.json", "saving/ahorros-peso.json"}));
+        map.put("ars", Arrays.asList(new String[]{
+            "saving/ahorros-conaafa.json", 
+            "saving/ahorros-conbala.json", 
+            "saving/ahorros-peso.json", 
+            "saving/ahorros-caplusa.json"}));
         map.put("usd", Arrays.asList(new String[]{"saving/ahorros-dolar.json", "saving/ahorros-oro.json"}));
         map.put("fx", Arrays.asList(new String[]{"index/peso-dolar-libre.json"}));
         return map;

@@ -22,9 +22,12 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
@@ -93,9 +96,14 @@ public class LazyDigitalContentService implements DigitalContentService {
         //            box-disc
         repo.findById("1-07").setSize(23708549444l);
 
+        repo.findById("2-01").setSize(0l);
         repo.findById("2-02").setSize(22531026141l);
         repo.findById("2-03").setSize(23700267311l);
         repo.findById("2-04").setSize(23432910665l);
+        
+        repo.findById("2-05").setSize(0l);
+        repo.findById("2-06").setSize(0l);
+        
         repo.findById("2-07").setSize(24702010710l);
 
         repo.findById("3-01").setSize(24368806526l);
@@ -112,7 +120,6 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("6-01").setSize(23786572018l);
         repo.findById("6-02").setSize(21757590009l);
         repo.findById("6-03").setSize(8164684127l);
-
         repo.findById("6-04").setSize(21835764224l);
         repo.findById("6-05").setSize(24274800905l);
         repo.findById("6-06").setSize(22990817875l);
@@ -148,17 +155,55 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("11-11").setSize(8104299674l);
         repo.findById("11-12").setSize(8262949279l);
 
-        //repo.findById("12-05").setSize(8439321486l);
+        
+        repo.findById("12-01").setSize(0l);
+        repo.findById("12-02").setSize(0l);
+        repo.findById("12-03").setSize(0l);
+        repo.findById("12-04").setSize(0l);
+        repo.findById("12-05").setSize(0l);
         repo.findById("12-06").setSize(8496977204l);
-
+        repo.findById("12-07").setSize(0l);
+        repo.findById("12-08").setSize(0l);
+        repo.findById("12-09").setSize(0l);
+        repo.findById("12-10").setSize(0l);
         repo.findById("12-11").setSize(22782269393l);
         repo.findById("12-12").setSize(24624375044l);
 
+        
+        repo.findById("16-01").setSize(24638893989l);
+        repo.findById("16-02").setSize(24251081636l);
+        repo.findById("16-03").setSize(24683485750l);
+        repo.findById("16-04").setSize(24397879904l);
+        repo.findById("16-05").setSize(24291137357l);
+        repo.findById("16-06").setSize(23572486810l);
+        repo.findById("16-07").setSize(24651494592l);
+        repo.findById("16-08").setSize(23983749902l);
+        repo.findById("16-09").setSize(24665191465l);
+        repo.findById("16-10").setSize(0l);
+        repo.findById("16-11").setSize(0l);
+        repo.findById("16-12").setSize(24697120004l);
+        
+        repo.findById("17-01").setSize(0l);
+        repo.findById("17-02").setSize(0l);
+        repo.findById("17-03").setSize(23819898772l);
+        repo.findById("17-04").setSize(22734829191l);      
         repo.findById("17-05").setSize(23967957405l);
+        repo.findById("17-06").setSize(23774143570l);
+        repo.findById("17-07").setSize(23637074912l);
+        repo.findById("17-08").setSize(24599481553l);
         repo.findById("17-09").setSize(24717095124l);
+        repo.findById("17-10").setSize(23903697596l);
         repo.findById("17-11").setSize(23792469478l);
+        repo.findById("17-12").setSize(23699495719l);
 
         repo.findById("18-01").setSize(23809270814l);
+        
+        repo.findById("18-02").setSize(23790014924l);
+        repo.findById("18-03").setSize(0l);
+        repo.findById("18-04").setSize(0l);
+        repo.findById("18-05").setSize(0l);
+        
+        
         repo.findById("18-06").setSize(23873717071l);
         repo.findById("18-07").setSize(22683178310l);
         repo.findById("18-08").setSize(21108708017l);
@@ -378,7 +423,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         new Opus.Builder("Fidelio").german().opera().by("Beethoven").build();
 
-        new Opus.Builder("Carmen").french().opera().by("Bizet").build();
+        new Opus.Builder("Carmen", "The Pearl Fishers").french().opera().by("Bizet").build();
         new Opus.Builder("Les Troyens").french().opera().by("Hector Berlioz").build();
         new Opus.Builder("I Puritani", "Norma").italian().opera().by("Vincenzo Bellini").build();
         new Opus.Builder("The Nose").russian().opera().by("Dmitri Shostakovich").build();
@@ -474,7 +519,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         new Opus.Builder("El castillo de Barbazul").language(Language.HUNGARIAN).opera().by("Bartók").build();
 
         new Opus.Builder("Rise and Fall of the City of Mahagonny").english().opera().by("Kurt Weill").build();
-
+        
+        new Opus.Builder("L'amour de loin").french().opera().by("Kaija Saariaho").build();
+        
+        
+        
     }
 
     private void initSports() {
@@ -2089,7 +2138,17 @@ public class LazyDigitalContentService implements DigitalContentService {
                 .iso()
                 .discBox(7, 2)
                 .build();
+        
+        new DigitalContent.Builder("Nabucco").opera().atTheMet().on("07/01/2017")
+                .fullHD().spaSubs().mkv().discBox(0, 0).build();
+        
+        new DigitalContent.Builder("The Pearl Fishers").opera().atTheMet().on("16/01/2016")
+                .fullHD().spaSubs().mkv().discBox(0, 0).build();
 
+        new DigitalContent.Builder("L'amour de loin").opera().atTheMet().on("10/12/2016")
+                .fullHD().spaSubs().mkv().discBox(0, 0).build();
+        
+        
     }
 
     @Override
@@ -2251,15 +2310,32 @@ public class LazyDigitalContentService implements DigitalContentService {
     @Override
     public List<OpusDTO> unavailableInHD() {
 
-        return Repository.DIGITALCONTENT.stream()
-                .filter(dc -> !dc.getQuality().equals(Quality.HD720) && !dc.getQuality().equals(Quality.HD1080))
+        final Predicate<DigitalContent> isHD = dc -> dc.getQuality().equals(Quality.HD720) || dc.getQuality().equals(Quality.HD1080);
+        
+        final Set<Opus> inSD = Repository.DIGITALCONTENT.stream()
+                .filter(dc -> Objects.nonNull(dc.getQuality()))
+                .filter(isHD.negate())
                 .flatMap(dc -> dc.getOpuses().stream())
-                .distinct()
+                .collect(Collectors.toSet());
+        
+        final Set<Opus> inHD = Repository.DIGITALCONTENT.stream()
+                .filter(dc -> Objects.nonNull(dc.getQuality()))
+                .filter(isHD)
+                .flatMap(dc -> dc.getOpuses().stream())
+                .collect(Collectors.toSet());
+        
+        
+        final Set<Opus> onlyInSD = new HashSet<>(inSD);
+        onlyInSD.removeAll(inHD);
+        
+        
+        return Repository.OPUS.stream()
                 .filter(opus -> !opus.getType().equals(OpusType.GAME) && !opus.getType().equals(OpusType.SPORT))
-                .map(o -> new OpusDTO(o.getTitle(), o.getType().name()))
+                .filter(opus -> onlyInSD.contains(opus))
+                .map(op -> new OpusDTO(op.getTitle(), op.getType().name()))
                 .sorted(OPUS_COMPARATOR)
                 .collect(toList());
-
+        
     }
 
 }

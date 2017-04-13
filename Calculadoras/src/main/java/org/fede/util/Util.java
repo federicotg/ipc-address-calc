@@ -25,7 +25,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +34,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.averagingDouble;
 import static java.util.stream.Collectors.groupingBy;
+import java.util.stream.Stream;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.ConsultatioDataPoint;
 import org.fede.calculator.money.series.InterpolationStrategy;
@@ -55,19 +55,16 @@ public class Util {
 
     private static final Map<String, MoneyAmountSeries> CACHE = new HashMap<>();
 
-    private static final Set<String> CONSULTATIO_SERIES;
-
-    static {
-        CONSULTATIO_SERIES = new HashSet<>();
-        CONSULTATIO_SERIES.add("fci/CAHORROA.json");
-        CONSULTATIO_SERIES.add("fci/CAPLUSA.json");
-        CONSULTATIO_SERIES.add("fci/CBAL01.json");
-        CONSULTATIO_SERIES.add("fci/CDeudaA.json");
-        CONSULTATIO_SERIES.add("fci/CGRO01.json");
-        CONSULTATIO_SERIES.add("fci/CPYMESA.json");
-        CONSULTATIO_SERIES.add("fci/CRVariable.json");
-        CONSULTATIO_SERIES.add("fci/CRentaNacionalA.json");
-    }
+    private static final Set<String> CONSULTATIO_SERIES = Stream.of(
+            "fci/CAHORROA.json",
+            "fci/CAPLUSA.json",
+            "fci/CBAL01.json",
+            "fci/CDeudaA.json",
+            "fci/CGRO01.json",
+            "fci/CPYMESA.json",
+            "fci/EstrategiaA.json",
+            "fci/CRVariable.json",
+            "fci/CRentaNacionalA.json").collect(Collectors.toSet());
 
     public static <T> String list(Collection<T> elements) {
         return list(elements, ", ");
@@ -140,24 +137,22 @@ public class Util {
 
     }
 
-    
-    private static Pair<Integer, Integer> key(ConsultatioDataPoint dataPoint){
+    private static Pair<Integer, Integer> key(ConsultatioDataPoint dataPoint) {
         LocalDate d = dataPoint.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         return new Pair<>(d.getYear(), d.getMonthValue());
     }
-    
+
     private static JSONSeries readConsultatioSeries(InputStream is, ObjectMapper om) throws IOException {
 
         List<ConsultatioDataPoint> data = om.readValue(is, new TypeReference<List<ConsultatioDataPoint>>() {
         });
-        
+
         Map<Pair<Integer, Integer>, Double> groups = data.stream()
                 .collect(groupingBy(dp -> key(dp), averagingDouble(dp -> dp.getValue().doubleValue())));
-        
+
         List<JSONDataPoint> points = groups.entrySet().stream()
                 .map(e -> new JSONDataPoint(e.getKey().getFirst(), e.getKey().getSecond(), new BigDecimal(e.getValue())))
                 .collect(Collectors.toList());
-        
 
         return new JSONSeries("ARS", points, "LAST_VALUE_INTERPOLATION");
     }
