@@ -16,6 +16,7 @@
  */
 package org.fede.calculator;
 
+import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -91,7 +92,7 @@ public class SingleMediaTest {
     /**
      * De cada disco cuáles videos no vi, ordenados por caja y disco.
      */
-    @Test
+   // @Test
     public void toSee() {
 
         final Person me = Repository.PERSON.findById("Federico");
@@ -159,5 +160,10 @@ public class SingleMediaTest {
 //            }
 //        }
 //        return count == 1;
+    }
+    
+    @Test
+    public void bytes(){
+        System.out.println(MessageFormat.format("{0} GiB",Repository.STORAGE.stream().mapToLong(disc -> disc.getSize()).sum() / (1024*1024*1024)) );
     }
 }
