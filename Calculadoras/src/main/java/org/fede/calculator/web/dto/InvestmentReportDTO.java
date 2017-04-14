@@ -27,12 +27,12 @@ import java.util.Date;
  */
 public class InvestmentReportDTO extends InvestmentDTO {
 
-    private String type;
-    private Date from;
-    private BigDecimal inflationPct;
-    private BigDecimal differencePct;
-    private String investmentCurrency;
-    private BigDecimal realInvestedAmount;
+    private final String type;
+    private final Date from;
+    private final BigDecimal inflationPct;
+    private final BigDecimal differencePct;
+    private final String investmentCurrency;
+    private final BigDecimal realInvestedAmount;
 
     public InvestmentReportDTO(String type,
             Date from, 
@@ -57,44 +57,33 @@ public class InvestmentReportDTO extends InvestmentDTO {
         return from;
     }
 
-    public void setFrom(Date from) {
-        this.from = new Date(from.getTime());
-    }
-
+   
     public BigDecimal getInflationPct() {
         return inflationPct;
     }
 
-    public void setInflationPct(BigDecimal inflationPct) {
-        this.inflationPct = inflationPct;
-    }
-
+   
     public BigDecimal getDifferencePct() {
         return differencePct;
     }
 
-    public void setDifferencePct(BigDecimal differencePct) {
-        this.differencePct = differencePct;
-    }
-
+   
     public String getType() {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public String getInvestmentCurrency() {
         return investmentCurrency;
     }
 
-    public void setInvestmentCurrency(String investmentCurrency) {
-        this.investmentCurrency = investmentCurrency;
-    }
-    
+   
     public BigDecimal getDiffPct(){
         return this.getDifferencePct().divide(this.realInvestedAmount, MathContext.DECIMAL64).setScale(4, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal getRealInvestedAmount() {
+        return realInvestedAmount;
     }
 
 }

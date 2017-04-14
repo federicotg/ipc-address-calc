@@ -17,6 +17,7 @@
 package org.fede.calculator.web.dto;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -24,28 +25,27 @@ import java.util.List;
  */
 public class DetailedInvestmentReportDTO {
 
-    private InvestmentDTO total;
-    private List<InvestmentReportDTO> detail;
+    private final InvestmentDTO total;
+    private final List<InvestmentReportDTO> detail;
+    private final Map<String, InvestmentDTO> subtotals;
 
-    public DetailedInvestmentReportDTO(InvestmentDTO total, List<InvestmentReportDTO> detail) {
+    public DetailedInvestmentReportDTO(InvestmentDTO total, List<InvestmentReportDTO> detail, Map<String, InvestmentDTO> subtotals) {
         this.total = total;
         this.detail = detail;
+        this.subtotals = subtotals;
     }
 
     public InvestmentDTO getTotal() {
         return total;
     }
 
-    public void setTotal(InvestmentDTO total) {
-        this.total = total;
-    }
-
     public List<InvestmentReportDTO> getDetail() {
         return detail;
     }
 
-    public void setDetail(List<InvestmentReportDTO> detail) {
-        this.detail = detail;
+    public Map<String, InvestmentDTO> getSubtotals() {
+        return subtotals;
     }
+
 
 }

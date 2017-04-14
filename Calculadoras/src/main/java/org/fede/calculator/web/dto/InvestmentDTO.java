@@ -34,6 +34,8 @@ public class InvestmentDTO {
     private Date to;
     private BigDecimal pct;
 
+    public InvestmentDTO(){}
+    
     public InvestmentDTO(String currency, BigDecimal initialAmount, BigDecimal finalAmount, Date to) {
         this.currency = currency;
         this.initialAmount = initialAmount;

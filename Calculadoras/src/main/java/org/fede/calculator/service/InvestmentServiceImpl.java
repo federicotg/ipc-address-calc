@@ -279,7 +279,6 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 //                + "realAmountInvested";
 //
 //        System.out.println(header);
-
         for (Investment item : investments) {
             if (filter.test(item)) {
 
@@ -312,7 +311,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                         finalAmount,
                         inflation(currency, item.getInitialDate(), itemUntilDate),
                         item.getInvestment().getCurrency(),
-                        finalAmount.subtract(realAmount).setScale(2, ROUNDING_MODE), 
+                        finalAmount.subtract(realAmount).setScale(2, ROUNDING_MODE),
                         realAmount));
 
                 //String msg = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}";
@@ -327,11 +326,39 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         Collections.sort(report, (InvestmentReportDTO o1, InvestmentReportDTO o2) -> o1.getFrom().compareTo(o2.getFrom()));
 
+        final Map<String, InvestmentDTO> subtotals = report.stream()
+                .collect(Collectors.groupingBy(InvestmentReportDTO::getInvestmentCurrency,
+                        Collectors.reducing(new InvestmentDTO(), this::mapper, this::reducer)));
+
         return new DetailedInvestmentReportDTO(
                 includeTotal
                         ? new InvestmentDTO(currency, initialAmount.getAmount(), currentAmount.getAmount(), untilDate)
                         : null,
-                report);
+                report,
+                subtotals);
+    }
+
+    private InvestmentDTO reducer(InvestmentDTO left, InvestmentDTO right) {
+        if (left.getCurrency() == null) {
+            return right;
+        }
+
+        return new InvestmentDTO(
+                left.getCurrency(),
+                left.getInitialAmount().add(right.getInitialAmount()),
+                left.getFinalAmount().add(right.getFinalAmount()),
+                left.getTo());
+
+    }
+
+    private InvestmentDTO mapper(InvestmentReportDTO in) {
+        
+        return new InvestmentDTO(
+                in.getCurrency(), 
+                in.getRealInvestedAmount(),
+                //inflation.adjust(new MoneyAmount(in.getInitialAmount(), in.getCurrency()), in.getFrom(), in.getTo()).getAmount(), 
+                in.getFinalAmount(), 
+                in.getTo());
     }
 
 }

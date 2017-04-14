@@ -56,7 +56,10 @@
             td {
                 font-size: 90%;
             }
-            
+
+            h2{
+                font-size: 110%;
+            }
         </style>
     </head>
     <body>
@@ -64,6 +67,7 @@
         <h1>Inversión</h1>
         <article id="reportARS">
             <c:if test="${not empty reportARS.total}">
+                <h2>Total</h2>
                 <table>
                     <thead>
                         <tr>
@@ -86,8 +90,36 @@
                             </tr>
                         </tbody>
                     </table>
+                    <h2>Subtotal</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Hasta</th>
+                                <th>Inversión</th>
+                                <th>Retorno</th>
+                                <th>+/-</th>
+                                <th>+/- %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
 
-                    <h2>Detalles</h2>
+                        <c:forEach items="${reportARS.subtotals}" var="entry">
+                            <tr>
+                                <td>${entry.key}</td>
+                                <td><fmt:formatDate value="${entry.value.to}" type="date" /></td>
+                                <td class="valueTd">${entry.value.currency} <fmt:formatNumber type="CURRENCY">${entry.value.initialAmount}</fmt:formatNumber></td>
+                                <td class="valueTd">${entry.value.currency} <fmt:formatNumber type="CURRENCY">${entry.value.finalAmount}</fmt:formatNumber></td>
+                                <c:choose><c:when test="${entry.value.differenceAmount ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
+                                    ${entry.value.currency} <fmt:formatNumber type="CURRENCY">${entry.value.differenceAmount}</fmt:formatNumber></td>
+                                <c:choose><c:when test="${entry.value.pct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
+                                    <fmt:formatNumber type="PERCENT" minFractionDigits="2">${entry.value.pct}</fmt:formatNumber></td>
+                                </tr>
+                        </c:forEach>
+                    </tbody>
+                </table>                            
+
+                <h2>Detalles</h2>
             </c:if> 
             <table>
                 <thead>
@@ -122,9 +154,9 @@
                             <c:choose><c:when test="${item.differencePct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
                                 <span title="<fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.diffPct}</fmt:formatNumber>">
                                     <fmt:formatNumber type="CURRENCY" minFractionDigits="2">${item.differencePct}</fmt:formatNumber>
-                                </span>
+                                    </span>
                                 </td>
-                                
+
                             </tr>
                     </c:forEach>
                 </tbody>
@@ -146,6 +178,7 @@
         </article>
         <article id="reportUSD">
             <c:if test="${not empty reportUSD.total}">
+                <h2>Total</h2>
                 <table>
                     <thead>
                         <tr>
@@ -168,7 +201,41 @@
                             </tr>
                         </tbody>
                     </table>
-                    <h2>Detalles</h2>
+
+
+                    <h2>Subtotal</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Hasta</th>
+                                <th>Inversión</th>
+                                <th>Retorno</th>
+                                <th>+/-</th>
+                                <th>+/- %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        <c:forEach items="${reportUSD.subtotals}" var="entry">
+                            <tr>
+                                <td>${entry.key}</td>
+                                <td><fmt:formatDate value="${entry.value.to}" type="date" /></td>
+                                <td class="valueTd">${entry.value.currency} <fmt:formatNumber type="CURRENCY">${entry.value.initialAmount}</fmt:formatNumber></td>
+                                <td class="valueTd">${entry.value.currency} <fmt:formatNumber type="CURRENCY">${entry.value.finalAmount}</fmt:formatNumber></td>
+                                <c:choose><c:when test="${entry.value.differenceAmount ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
+                                    ${entry.value.currency} <fmt:formatNumber type="CURRENCY">${entry.value.differenceAmount}</fmt:formatNumber></td>
+                                <c:choose><c:when test="${entry.value.pct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
+                                    <fmt:formatNumber type="PERCENT" minFractionDigits="2">${entry.value.pct}</fmt:formatNumber></td>
+                                </tr>
+                        </c:forEach>
+                    </tbody>
+                </table>                            
+
+
+
+
+                <h2>Detalles</h2>
             </c:if>
             <table>
                 <thead>
@@ -200,10 +267,10 @@
                                 <fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.pct}</fmt:formatNumber></td>
                                 <td class="valueTd">
                                 <fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.inflationPct}</fmt:formatNumber></td>
-                                <c:choose><c:when test="${item.differencePct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
-                                    
-                                    <span title="<fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.diffPct}</fmt:formatNumber>">
-                                        <fmt:formatNumber type="CURRENCY" minFractionDigits="2">${item.differencePct}</fmt:formatNumber>
+                            <c:choose><c:when test="${item.differencePct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
+
+                                            <span title="<fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.diffPct}</fmt:formatNumber>">
+                                    <fmt:formatNumber type="CURRENCY" minFractionDigits="2">${item.differencePct}</fmt:formatNumber>
                                     </span>
                                 </td>
                             </tr>
