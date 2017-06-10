@@ -2084,7 +2084,7 @@ public class LazyDigitalContentService implements DigitalContentService {
             "Essence",
             "Existence",
             "Nothing Important Happened Today",
-            "Nothing Important Happened Today II"}) {
+            "4-D"}) {
             new DigitalContent.Builder(title).episode().fullHD().spaSubs().mkv()
                     .seenByFede()
                     .discBox(2, 10)
@@ -2092,8 +2092,8 @@ public class LazyDigitalContentService implements DigitalContentService {
         }
 
         for (String title : new String[]{
+            "Nothing Important Happened Today II",
             "Dæmonicus",
-            "4-D",
             "Lord of the Flies",
             "Trust No 1",
             "John Doe",
