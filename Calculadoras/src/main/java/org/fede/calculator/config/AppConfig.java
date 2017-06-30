@@ -154,7 +154,8 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Estrategia FCI", "fci/EstrategiaA.json"),
                 new ExpenseChartSeriesDTO("Deuda Argentina FCI", "fci/CDeudaA.json"),
                 new ExpenseChartSeriesDTO("Acciones Argentina FCI", "fci/CGRO01.json"),
-                new ExpenseChartSeriesDTO("Renta Variable FCI", "fci/CRVariable.json")
+                new ExpenseChartSeriesDTO("Renta Variable FCI", "fci/CRVariable.json"),
+                new ExpenseChartSeriesDTO("Liquidez Ley 27.260 FCI", "fci/LiquidezA.json")
         ).collect(toList());
 
     }

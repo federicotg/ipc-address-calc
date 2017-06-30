@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -55,17 +56,18 @@ public class Util {
 
     private static final Map<String, MoneyAmountSeries> CACHE = new HashMap<>();
 
-    private static final Set<String> CONSULTATIO_SERIES = Stream.of(
-            "fci/CAHORROA.json",
-            "fci/CAPLUSA.json",
-            "fci/CBAL01.json",
-            "fci/CDeudaA.json",
-            "fci/CGRO01.json",
-            "fci/CPYMESA.json",
-            "fci/EstrategiaA.json",
-            "fci/CRVariable.json",
-            "fci/CRentaNacionalA.json").collect(Collectors.toSet());
-
+//    private static final Set<String> CONSULTATIO_SERIES = Stream.of(
+//            "fci/CAHORROA.json",
+//            "fci/CAPLUSA.json",
+//            "fci/CBAL01.json",
+//            "fci/CDeudaA.json",
+//            "fci/CGRO01.json",
+//            "fci/CPYMESA.json",
+//            "fci/EstrategiaA.json",
+//            "fci/CRVariable.json",
+//            "fci/CRentaNacionalA.json",
+//            "fci/LiquidezA.json"
+//            ).collect(Collectors.toSet());
     public static <T> String list(Collection<T> elements) {
         return list(elements, ", ");
     }
@@ -106,9 +108,14 @@ public class Util {
 
         try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
 
-            final JSONSeries series = CONSULTATIO_SERIES.contains(name)
-                    ? readConsultatioSeries(is, OM)
-                    : OM.readValue(is, JSONSeries.class);
+            JSONSeries series;
+            if (name.startsWith("fci/")) {
+                String currency = "fci/LiquidezA.json".equals(name) ? "USD" : "ARS";
+                series = readConsultatioSeries(is, OM, currency);
+
+            } else {
+                series = OM.readValue(is, JSONSeries.class);
+            }
 
             final SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
             final String currency = series.getCurrency();
@@ -142,19 +149,23 @@ public class Util {
         return new Pair<>(d.getYear(), d.getMonthValue());
     }
 
-    private static JSONSeries readConsultatioSeries(InputStream is, ObjectMapper om) throws IOException {
+    private static JSONSeries readConsultatioSeries(InputStream is, ObjectMapper om, String currency) throws IOException {
 
         List<ConsultatioDataPoint> data = om.readValue(is, new TypeReference<List<ConsultatioDataPoint>>() {
         });
 
-        Map<Pair<Integer, Integer>, Double> groups = data.stream()
-                .collect(groupingBy(dp -> key(dp), averagingDouble(dp -> dp.getValue().doubleValue())));
+        Map<Pair<Integer, Integer>, BigDecimal> groups = data.stream().collect(
+                groupingBy(
+                        dp -> key(dp),
+                        Collectors.mapping(ConsultatioDataPoint::getValue, new BigDecimalAverageCollector())
+                )
+        );
 
         List<JSONDataPoint> points = groups.entrySet().stream()
-                .map(e -> new JSONDataPoint(e.getKey().getFirst(), e.getKey().getSecond(), new BigDecimal(e.getValue())))
+                .map(e -> new JSONDataPoint(e.getKey().getFirst(), e.getKey().getSecond(), e.getValue()))
                 .collect(Collectors.toList());
 
-        return new JSONSeries("ARS", points, "LAST_VALUE_INTERPOLATION");
+        return new JSONSeries(currency, points, "LAST_VALUE_INTERPOLATION");
     }
 
 }
