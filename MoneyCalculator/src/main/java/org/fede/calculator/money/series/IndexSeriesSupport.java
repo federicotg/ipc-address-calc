@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *
