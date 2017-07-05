@@ -251,7 +251,7 @@ public class Opus {
     public Stream<Person> getMusicComposers() {
         return this.authors.stream()
                 .filter(r -> r.getType().equals(RoleType.COMPOSER))
-                .map(r -> r.getPerson());
+                .map(Role::getPerson);
 
 //        Set<Person> answer = new HashSet<>();
 //        for (Role r : this.authors) {

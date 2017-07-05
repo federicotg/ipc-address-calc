@@ -98,7 +98,7 @@ public class Performance {
     public String getImdb() {
         return this.getResources().stream()
                 .filter(r -> r.getType().equals(WebResourceType.IMDB))
-                .map(r -> r.getUri())
+                .map(WebResource::getUri)
                 .findFirst()
                 .orElse(null);
 

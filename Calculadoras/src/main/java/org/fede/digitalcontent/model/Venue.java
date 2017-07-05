@@ -161,9 +161,7 @@ public class Venue {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 43 * hash + Objects.hashCode(this.name);
-        return hash;
+        return  43 * 7 + Objects.hashCode(this.name);
     }
 
     @Override

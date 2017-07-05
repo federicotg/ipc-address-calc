@@ -147,7 +147,7 @@ public class ChartController {
     public ModelAndView lifiaUnlpAndInterest() {
         List<String> allSeriesNames = incomeSeries.stream()
                 .filter(dto -> dto.getSeriesName() != null && dto.getSeriesName().length() > 0)
-                .map(dto -> dto.getName())
+                .map(ExpenseChartSeriesDTO::getName)
                 .collect(toList());
 
         final CombinedChartDTO dto = this.createCombinedChartDTO();

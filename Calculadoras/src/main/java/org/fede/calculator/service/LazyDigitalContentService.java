@@ -2184,7 +2184,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
     private static List<String> toString(Collection<?> col) {
         return col.stream()
-                .map(element -> Optional.ofNullable(element).map(e -> e.toString()).orElse(""))
+                .map(element -> Optional.ofNullable(element).map(Object::toString).orElse(""))
                 .collect(toList());
     }
 
@@ -2192,7 +2192,7 @@ public class LazyDigitalContentService implements DigitalContentService {
     public List<DigitalContentDTO> getBoxReport(final String boxName) {
         return DigitalContentRepository.DIGITALCONTENT.stream()
                 .filter(dc -> Repository.STORAGEBOX.stream().filter(box -> box.contains(dc)).anyMatch(box -> box.getName().equals(boxName)))
-                .map(dc -> toDto(dc))
+                .map(LazyDigitalContentService::toDto)
                 .sorted()
                 .collect(toList());
     }
@@ -2202,7 +2202,7 @@ public class LazyDigitalContentService implements DigitalContentService {
 
         return DigitalContentRepository.DIGITALCONTENT.stream()
                 .filter(dc -> dc.includesComposer(composerName))
-                .map(dc -> toDto(dc))
+                .map(LazyDigitalContentService::toDto)
                 .sorted()
                 .collect(toList());
     }
@@ -2211,7 +2211,7 @@ public class LazyDigitalContentService implements DigitalContentService {
     public List<DigitalContentDTO> getOpusReport(final String opusName) {
         return DigitalContentRepository.DIGITALCONTENT.stream()
                 .filter(dc -> dc.includesOpus(opusName))
-                .map(dc -> toDto(dc))
+                .map(LazyDigitalContentService::toDto)
                 .sorted()
                 .collect(toList());
     }
@@ -2220,7 +2220,7 @@ public class LazyDigitalContentService implements DigitalContentService {
     public List<DigitalContentDTO> getVenueReport(final String venueName) {
         return DigitalContentRepository.DIGITALCONTENT.stream()
                 .filter(dc -> dc.includesVenue(venueName))
-                .map(dc -> toDto(dc))
+                .map(LazyDigitalContentService::toDto)
                 .sorted()
                 .collect(toList());
     }
@@ -2230,7 +2230,7 @@ public class LazyDigitalContentService implements DigitalContentService {
         final OpusType type = OpusType.valueOf(name);
         return DigitalContentRepository.DIGITALCONTENT.stream()
                 .filter(dc -> dc.getOpusTypes().contains(type))
-                .map(dc -> toDto(dc))
+                .map(LazyDigitalContentService::toDto)
                 .sorted()
                 .collect(toList());
     }
@@ -2263,7 +2263,8 @@ public class LazyDigitalContentService implements DigitalContentService {
     @Override
     public List<BoxLabelDTO> getEveryBoxLabel() {
         return Repository.STORAGEBOX.stream()
-                .map(box -> this.getBoxLabel(box)).sorted()
+                .map(this::getBoxLabel)
+                .sorted()
                 .collect(toList());
     }
 

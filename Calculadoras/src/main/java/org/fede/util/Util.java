@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.averagingDouble;
 import static java.util.stream.Collectors.groupingBy;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.ConsultatioDataPoint;
@@ -73,11 +74,11 @@ public class Util {
     }
 
     public static <T> String list(Collection<T> elements, String separator) {
-        return elements.stream().map(e -> e.toString()).collect(joining(separator));
+        return elements.stream().map(T::toString).collect(joining(separator));
     }
 
     public static MoneyAmountSeries sumSeries(String currency, List<ExpenseChartSeriesDTO> dtos) {
-        return sumSeries(currency, dtos.stream().map(dto -> dto.getSeriesName()).toArray(String[]::new));
+        return sumSeries(currency, dtos.stream().map(ExpenseChartSeriesDTO::getSeriesName).toArray(String[]::new));
     }
 
     public static MoneyAmountSeries sumSeries(List<ExpenseChartSeriesDTO> dtos) {
@@ -144,24 +145,39 @@ public class Util {
 
     }
 
+    private static <T> Stream<List<T>> sliding(List<T> list, int size) {
+        if (size > list.size()) {
+            return Stream.empty();
+        }
+        return IntStream.range(0, list.size() - size + 1)
+                .mapToObj(start -> list.subList(start, start + size));
+    }
+
     private static Pair<Integer, Integer> key(ConsultatioDataPoint dataPoint) {
         LocalDate d = dataPoint.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         return new Pair<>(d.getYear(), d.getMonthValue());
     }
 
+    private static ConsultatioDataPoint average(List<ConsultatioDataPoint> list) {
+        ConsultatioDataPoint answer = new ConsultatioDataPoint();
+        ConsultatioDataPoint last = list.get(list.size() - 1);
+        answer.setDate(last.getDate());
+        answer.setValue(list.stream().collect(Collectors.mapping(ConsultatioDataPoint::getValue, new BigDecimalAverageCollector())));
+        return answer;
+    }
+
     private static JSONSeries readConsultatioSeries(InputStream is, ObjectMapper om, String currency) throws IOException {
 
-        List<ConsultatioDataPoint> data = om.readValue(is, new TypeReference<List<ConsultatioDataPoint>>() {
+        final List<ConsultatioDataPoint> data = om.readValue(is, new TypeReference<List<ConsultatioDataPoint>>() {
         });
 
-        Map<Pair<Integer, Integer>, BigDecimal> groups = data.stream().collect(
-                groupingBy(
-                        dp -> key(dp),
-                        Collectors.mapping(ConsultatioDataPoint::getValue, new BigDecimalAverageCollector())
-                )
-        );
+        final Stream<ConsultatioDataPoint> slidingData = sliding(data, 30).map(Util::average);
 
-        List<JSONDataPoint> points = groups.entrySet().stream()
+        final Map<Pair<Integer, Integer>, BigDecimal> groups = slidingData.collect(
+                groupingBy(Util::key,
+                        Collectors.mapping(ConsultatioDataPoint::getValue, new BigDecimalAverageCollector())));
+
+        final List<JSONDataPoint> points = groups.entrySet().stream()
                 .map(e -> new JSONDataPoint(e.getKey().getFirst(), e.getKey().getSecond(), e.getValue()))
                 .collect(Collectors.toList());
 

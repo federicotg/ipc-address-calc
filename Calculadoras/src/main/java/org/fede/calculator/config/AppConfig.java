@@ -63,7 +63,7 @@ public class AppConfig {
     }
 
     public static <K, U> Collector<Map.Entry<K, U>, ?, Map<K, U>> entriesToLinkedHashMap() {
-        return Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue(), (v1, v2) -> v1, LinkedHashMap::new);
+        return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, LinkedHashMap::new);
     }
 
     @Bean

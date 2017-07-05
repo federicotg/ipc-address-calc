@@ -37,6 +37,11 @@ public class CanvasJSMoneyAmountProcessor implements BiConsumer<YearMonth, Money
     @Override
     public void accept(YearMonth yearMonth, MoneyAmount amount) {
         datapoints.add(new CanvasJSDatapointDTO(
-                "date-".concat(String.valueOf(yearMonth.getYear())).concat("-").concat(String.valueOf(yearMonth.getMonth() - 1)).concat("-15"), amount.getAmount()));
+                "date-"
+                        .concat(String.valueOf(yearMonth.getYear()))
+                        .concat("-")
+                        .concat(String.valueOf(yearMonth.getMonth() - 1))
+                        .concat("-15"), 
+                amount.getAmount()));
     }
 }

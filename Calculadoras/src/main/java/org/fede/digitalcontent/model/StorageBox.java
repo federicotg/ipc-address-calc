@@ -85,7 +85,7 @@ public class StorageBox {
         return Optional.ofNullable(this.media)
                 .map(set -> set.stream())
                 .orElse(Stream.empty())
-                .mapToLong(m -> m.getSize())
+                .mapToLong(StorageMedium::getSize)
                 .sum();
     }
 

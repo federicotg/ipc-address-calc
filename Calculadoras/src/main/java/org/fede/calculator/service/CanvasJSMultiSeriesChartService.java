@@ -27,7 +27,6 @@ import org.fede.calculator.money.MoneyAmount;
 import static org.fede.util.Util.readSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
-import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.web.dto.CanvasJSAxisDTO;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.fede.calculator.web.dto.CanvasJSDatapointDTO;

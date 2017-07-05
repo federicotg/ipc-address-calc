@@ -385,18 +385,18 @@ public class DigitalContent {
     }
 
     public Set<Language> getLanguages() {
-        return this.collect(p -> p.getLanguage());
+        return this.collect(Performance::getLanguage);
     }
 
     public Set<Person> getMusicComposers() {
 
         return this.performances.stream()
-                .flatMap(p -> p.getMusicComposers())
+                .flatMap(Performance::getMusicComposers)
                 .collect(Collectors.toSet());
     }
 
     public Set<OpusType> getOpusTypes() {
-        return this.collect(p -> p.getOpusType());
+        return this.collect(Performance::getOpusType);
     }
 
     public boolean isSeenBy(Person person) {
@@ -404,19 +404,19 @@ public class DigitalContent {
     }
 
     public Set<String> getTitles() {
-        return this.collect(p -> p.getTitle());
+        return this.collect(Performance::getTitle);
     }
 
     public Set<Opus> getOpuses() {
-        return this.collect(p -> p.getOpus());
+        return this.collect(Performance::getOpus);
     }
 
     public Set<String> getDetailedTitles() {
-        return this.collect(p -> p.getDetailedTitle());
+        return this.collect(Performance::getDetailedTitle);
     }
 
     public Set<Venue> getVenues() {
-        return this.collect(p -> p.getVenue());
+        return this.collect(Performance::getVenue);
     }
 
     @Override
