@@ -25,7 +25,7 @@ import java.util.Objects;
  *
  * @author fede
  */
-public class MoneyAmount implements MathConstants {
+public class MoneyAmount {
 
     private final String currency;
     private final BigDecimal amount;
@@ -40,7 +40,7 @@ public class MoneyAmount implements MathConstants {
             return this;
         }
         return new MoneyAmount(
-                this.amount.setScale(SCALE, ROUNDING_MODE).divide(divisor, CONTEXT)
+                this.amount.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).divide(divisor, MathConstants.CONTEXT)
                 .multiply(factor), this.currency);
     }
 

@@ -26,6 +26,10 @@ import java.util.Objects;
  */
 public class Pair<A, B> {
 
+    public static <A, B> Pair<A, B> of(A first, B second){
+        return new Pair<>(first, second);
+    }
+    
     private A first;
     private B second;
 
