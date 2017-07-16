@@ -26,9 +26,9 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
  *
  * @author fede
  */
-public class SimpleAggregation implements Aggregation, MathConstants {
+public class SimpleAggregation implements Aggregation {
 
-    private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(SCALE, ROUNDING_MODE);
+    private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE);
 
     private final int months;
 
@@ -45,7 +45,7 @@ public class SimpleAggregation implements Aggregation, MathConstants {
     private MoneyAmount avg(List<MoneyAmount> lastValues) {
         return new MoneyAmount(
                 lastValues.stream().map(MoneyAmount::getAmount).reduce(ZERO, (left, right) -> left.add(right))
-                .divide(new BigDecimal(lastValues.size()), CONTEXT), lastValues.get(0).getCurrency());
+                .divide(new BigDecimal(lastValues.size()), MathConstants.CONTEXT), lastValues.get(0).getCurrency());
     }
 
     private MoneyAmount sum(List<MoneyAmount> lastValues) {
