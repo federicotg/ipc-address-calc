@@ -24,7 +24,6 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
-import org.fede.calculator.money.MathConstants;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import static org.fede.util.Util.readSeries;
 import org.fede.calculator.money.MoneyAmount;
@@ -43,7 +42,7 @@ import org.fede.util.Util;
  *
  * @author fede
  */
-public class CanvasJSChartService implements ChartService, MathConstants {
+public class CanvasJSChartService implements ChartService {
 
     public CanvasJSChartService(
             CanvasJSDatapointAssembler realPesosDatapointAssembler,

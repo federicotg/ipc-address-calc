@@ -54,7 +54,7 @@ import static org.fede.util.Util.sumSeries;
  *
  * @author fede
  */
-public class InvestmentServiceImpl implements InvestmentService, MathConstants {
+public class InvestmentServiceImpl implements InvestmentService {
 
     private static final TypeReference<List<Investment>> TYPE_REFERENCE = new TypeReference<List<Investment>>() {
     };
@@ -175,7 +175,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
     }
 
     private boolean isCurrent(Investment inv) {
-        return inv.getOut() == null || !new Date().after(inv.getOut().getDate());
+        return inv.getOut() == null;
     }
 
     private static MoneyAmount changeCurrency(MoneyAmount ma, String targetCurrency, Date date) {
@@ -246,9 +246,9 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
 
         final Inflation inflation = MAP.get(currency);
         final YearMonth until = inflation.getTo();
-        final Date untilDate = until.asToDate();
+        //final Date untilDate = until.asToDate();
 
-        return this.investmentReport(currency, (item) -> !isCurrent(item) && item.getOut().getDate().before(untilDate), false);
+        return this.investmentReport(currency, (item) -> !isCurrent(item) && item.getOut().getDate().before(new Date()), false);
     }
 
     private DetailedInvestmentReportDTO investmentReport(String currency, Predicate<Investment> filter, boolean includeTotal) {
@@ -311,7 +311,7 @@ public class InvestmentServiceImpl implements InvestmentService, MathConstants {
                         finalAmount,
                         inflation(currency, item.getInitialDate(), itemUntilDate),
                         item.getInvestment().getCurrency(),
-                        finalAmount.subtract(realAmount).setScale(2, ROUNDING_MODE),
+                        finalAmount.subtract(realAmount).setScale(2, MathConstants.ROUNDING_MODE),
                         realAmount));
 
                 //String msg = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}";
