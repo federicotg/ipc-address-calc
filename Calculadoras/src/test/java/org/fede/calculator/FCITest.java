@@ -43,10 +43,19 @@ import static org.junit.Assert.*;
  */
 public class FCITest {
 
+    private final Map<String, String> fciNames = new HashMap<>(3);
+    private final Map<String, String> fciTypes = new HashMap<>(3);
+
     private static final TypeReference<List<Investment>> TYPE_REFERENCE = new TypeReference<List<Investment>>() {
     };
 
     public FCITest() {
+        fciNames.put("CONAAFA", "Consultatio Acciones Argentina F.C.I. Clase A (número de inscripción 271 en la Comisión Nacional de Valores)");
+        fciNames.put("CONBALA", "Consultatio Balance Fund F.C.I. Clase A (número de inscripción 120 en la Comisión Nacional de Valores)");
+
+        fciTypes.put("CONAAFA", "Renta variable en $");
+        fciTypes.put("CONBALA", "Renta fija en $");
+
     }
 
     // TODO add test methods here.
@@ -56,14 +65,6 @@ public class FCITest {
     public void fci() {
 
         final int year = 2016;
-        
-        final Map<String, String> fciNames = new HashMap<>(3);
-        fciNames.put("CONAAFA", "Consultatio Acciones Argentina F.C.I. Clase A (número de inscripción 271 en la Comisión Nacional de Valores)");
-        fciNames.put("CONBALA", "Consultatio Balance Fund F.C.I. Clase A (número de inscripción 120 en la Comisión Nacional de Valores)");
-
-        final Map<String, String> fciTypes = new HashMap<>(3);
-        fciTypes.put("CONAAFA", "Renta variable en $");
-        fciTypes.put("CONBALA", "Renta fija en $");
 
         final DateFormat df = DateFormat.getDateInstance();
         final NumberFormat nf = NumberFormat.getInstance();
@@ -73,22 +74,22 @@ public class FCITest {
         IndexSeries conaafa = SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json");
 
         final Map<String, BigDecimal> dicPreviousYearValues = new HashMap<>(3);
-        dicPreviousYearValues.put("CONAAFA", conaafa.getIndex(year-1, 12));
-        dicPreviousYearValues.put("CONBALA", conbala.getIndex(year-1, 12));
+        dicPreviousYearValues.put("CONAAFA", conaafa.getIndex(year - 1, 12));
+        dicPreviousYearValues.put("CONBALA", conbala.getIndex(year - 1, 12));
 
         final Map<String, BigDecimal> dicValues = new HashMap<>(3);
         dicValues.put("CONAAFA", conaafa.getIndex(year, 12));
         dicValues.put("CONBALA", conbala.getIndex(year, 12));
-        
-        System.out.println(Stream.of("Fecha de adquisición", 
-                "Tipo de fondo", 
-                "Denominación", 
-                "CUIT Soc. Gerente", 
-                "CUIT Soc. Depositaria", 
-                "Cantidad", 
-                "Valor cotización al 31/12/"+(year-1), 
-                "Valor cotización al 31/12/"+year).collect(Collectors.joining("\";\"", "\"", "\"")));
-        
+
+        System.out.println(Stream.of("Fecha de adquisición",
+                "Tipo de fondo",
+                "Denominación",
+                "CUIT Soc. Gerente",
+                "CUIT Soc. Depositaria",
+                "Cantidad",
+                "Valor cotización al 31/12/" + (year - 1),
+                "Valor cotización al 31/12/" + year).collect(Collectors.joining("\";\"", "\"", "\"")));
+
         Collections.singletonList("investments.json").stream()
                 .flatMap(fileName -> SeriesReader.read(fileName, TYPE_REFERENCE).stream())
                 .filter(inv -> InvestmentType.FCI.equals(inv.getType()))
@@ -106,4 +107,34 @@ public class FCITest {
         )).forEach(System.out::println);
 
     }
+
+    @Test
+    public void posessions() {
+
+        BigDecimal currentlyInvested = Collections.singletonList("investments.json").stream()
+                .flatMap(fileName -> SeriesReader.read(fileName, TYPE_REFERENCE).stream())
+                .filter(inv -> InvestmentType.FCI.equals(inv.getType()))
+                .filter(inv -> inv.getOut() == null)
+                .map(inv -> inv.getInitialMoneyAmount().getAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Map<String, BigDecimal> map = Collections.singletonList("investments.json").stream()
+                .flatMap(fileName -> SeriesReader.read(fileName, TYPE_REFERENCE).stream())
+                .filter(inv -> InvestmentType.FCI.equals(inv.getType()))
+                .filter(inv -> inv.getOut() == null)
+                .collect(
+                        Collectors.groupingBy(
+                                inv -> inv.getInvestment().getCurrency(),
+                                Collectors.mapping(inv -> inv.getInitialMoneyAmount().getAmount(), Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
+                        )
+                );
+
+        NumberFormat nf = NumberFormat.getCurrencyInstance();
+
+        System.out.println("Total Invertido: " + nf.format(currentlyInvested));
+
+        map.entrySet().stream().forEach(e -> System.out.println(e.getKey() + ": " + nf.format(e.getValue())));
+
+    }
+
 }
