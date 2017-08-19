@@ -97,6 +97,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Expensas", "expense/expensas.json"),
                 new ExpenseChartSeriesDTO("XBOX", "expense/xbox.json"),
                 new ExpenseChartSeriesDTO("Limpieza", "expense/limpieza.json"),
+                new ExpenseChartSeriesDTO("Monotributo-A", "expense/monotributo-angeles.json"),
                 new ExpenseChartSeriesDTO("Total", "")
         ).collect(toList());
     }
