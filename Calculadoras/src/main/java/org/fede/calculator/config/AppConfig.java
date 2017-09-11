@@ -98,6 +98,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("XBOX", "expense/xbox.json"),
                 new ExpenseChartSeriesDTO("Limpieza", "expense/limpieza.json"),
                 new ExpenseChartSeriesDTO("Monotributo-A", "expense/monotributo-angeles.json"),
+                new ExpenseChartSeriesDTO("Comida", "expense/food.json"),
                 new ExpenseChartSeriesDTO("Total", "")
         ).collect(toList());
     }
@@ -156,7 +157,8 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Deuda Argentina FCI", "fci/CDeudaA.json"),
                 new ExpenseChartSeriesDTO("Acciones Argentina FCI", "fci/CGRO01.json"),
                 new ExpenseChartSeriesDTO("Renta Variable FCI", "fci/CRVariable.json"),
-                new ExpenseChartSeriesDTO("Liquidez Ley 27.260 FCI", "fci/LiquidezA.json")
+                new ExpenseChartSeriesDTO("Liquidez Ley 27.260 FCI", "fci/LiquidezA.json"),
+                new ExpenseChartSeriesDTO("Income Fund FCI", "fci/IncomeFund.json")
         ).collect(toList());
 
     }
