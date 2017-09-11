@@ -32,7 +32,7 @@ public class LinearFutureValue implements FutureValue {
     }
 
     public LinearFutureValue() {
-        this(2);
+        this(1);
     }
     
     @Override
