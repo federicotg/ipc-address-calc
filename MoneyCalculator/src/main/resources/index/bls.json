@@ -9345,7 +9345,24 @@
                                     "periodName": "September",
                                     "value": "246.819",
                                     "footnotes": [{}]
+                                },
+                                {
+                                    "year": "2017",
+                                    "period": "M10",
+                                    "periodName": "October",
+                                    "value": "246.663",
+                                    "footnotes": [{}]
                                 }
+,
+                                {
+                                    "year": "2017",
+                                    "period": "M11",
+                                    "periodName": "November",
+                                    "value": "246.669",
+                                    "footnotes": [{}]
+                                }
+
+
 
                             ]
                         }]
