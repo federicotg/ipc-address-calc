@@ -18,7 +18,6 @@ package org.fede.calculator.web.controller;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.service.ChartService;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +32,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.averagingDouble;
 import static java.util.stream.Collectors.groupingBy;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -57,18 +55,6 @@ public class Util {
 
     private static final Map<String, MoneyAmountSeries> CACHE = new HashMap<>();
 
-//    private static final Set<String> CONSULTATIO_SERIES = Stream.of(
-//            "fci/CAHORROA.json",
-//            "fci/CAPLUSA.json",
-//            "fci/CBAL01.json",
-//            "fci/CDeudaA.json",
-//            "fci/CGRO01.json",
-//            "fci/CPYMESA.json",
-//            "fci/EstrategiaA.json",
-//            "fci/CRVariable.json",
-//            "fci/CRentaNacionalA.json",
-//            "fci/LiquidezA.json"
-//            ).collect(Collectors.toSet());
     public static <T> String list(Collection<T> elements) {
         return list(elements, ", ");
     }

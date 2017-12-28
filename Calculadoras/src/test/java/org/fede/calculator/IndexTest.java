@@ -170,13 +170,6 @@ public class IndexTest {
     }
         
     
-        @Test 
-    public void wft() {
-        MoneyAmountSeries s = Util.readSeries("saving/ahorros-conbala.json");
-        MoneyAmountSeries usd = s.exchangeInto("USD");
-        System.out.println("");
-        
-    }
-    
+  
     
 }

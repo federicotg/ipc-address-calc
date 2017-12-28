@@ -62,7 +62,7 @@ public class InvestmentController {
     @Resource(name = "argMoneyService")
     @Lazy
     private MoneyService argService;
-
+   
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String errorHandler(Exception ex) {
