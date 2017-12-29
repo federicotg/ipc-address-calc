@@ -42,27 +42,16 @@ public class StorageBox {
         return name;
     }
 
-//    public void setName(String name) {
-//        this.name = name;
-//    }
     public Set<StorageMedium> getMedia() {
         return media;
     }
 
-//    public void setMedia(Set<StorageMedium> media) {
-//        this.media = media;
-//    }
     public void addStorageMedium(StorageMedium medium) {
         this.media.add(medium);
     }
 
     public boolean contains(DigitalContent dc) {
         return this.media.stream().anyMatch(m -> m.contains(dc));
-//        boolean answer = false;
-//        for (StorageMedium m : this.media) {
-//            answer |= m.contains(dc);
-//        }
-//        return answer;
     }
 
     @Override

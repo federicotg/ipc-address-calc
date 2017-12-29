@@ -207,9 +207,6 @@ public class Opus {
         return title;
     }
 
-    /*public void setTitle(String title) {
-        this.title = title;
-    }*/
     public OpusType getType() {
         return type;
     }
@@ -252,14 +249,6 @@ public class Opus {
         return this.authors.stream()
                 .filter(r -> r.getType().equals(RoleType.COMPOSER))
                 .map(Role::getPerson);
-
-//        Set<Person> answer = new HashSet<>();
-//        for (Role r : this.authors) {
-//            if (r.getType().equals(RoleType.COMPOSER)) {
-//                answer.add(r.getPerson());
-//            }
-//        }
-//        return answer;
     }
 
     @Override

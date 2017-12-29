@@ -46,16 +46,10 @@ public class StorageMedium {
         return name;
     }
 
-//    public void setName(String name) {
-//        this.name = name;
-//    }
     public Set<DigitalContent> getContents() {
         return contents;
     }
 
-//    public void setContents(Set<DigitalContent> contents) {
-//        this.contents = contents;
-//    }
     public void addContent(DigitalContent content) {
         this.contents.add(content);
     }

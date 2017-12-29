@@ -445,37 +445,18 @@ public class DigitalContent {
 
         return this.performances.stream().anyMatch(p -> p.getOpus().getTitle().equals(opusName));
 
-//        for (Performance p : this.performances) {
-//            if (p.getOpus().getTitle().equals(opusName)) {
-//                return true;
-//            }
-//        }
-//        return false;
     }
 
     public boolean includesVenue(String venueName) {
 
         return this.performances.stream()
                 .anyMatch(p -> Optional.ofNullable(p.getVenue()).map(venue -> venue.getName().equals(venueName)).orElse(false));
-
-//        for (Performance p : this.performances) {
-//            if (Optional.ofNullable(p.getVenue()).map(venue -> venue.getName().equals(venueName)).orElse(false)) {
-//                return true;
-//            }
-//        }
-//        return false;
     }
 
     public boolean includesComposer(String name) {
 
         return this.performances.stream().anyMatch(p -> p.includesComposer(name));
 
-//        for (Performance p : this.performances) {
-//            if (p.includesComposer(name)) {
-//                return true;
-//            }
-//        }
-//        return false;
     }
 
 }

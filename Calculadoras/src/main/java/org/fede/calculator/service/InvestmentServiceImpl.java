@@ -244,10 +244,6 @@ public class InvestmentServiceImpl implements InvestmentService {
     @Override
     public DetailedInvestmentReportDTO pastInvestmentsReport(String currency) {
 
-        final Inflation inflation = MAP.get(currency);
-        final YearMonth until = inflation.getTo();
-        //final Date untilDate = until.asToDate();
-
         return this.investmentReport(currency, (item) -> !isCurrent(item) && item.getOut().getDate().before(new Date()), false);
     }
 
@@ -270,15 +266,6 @@ public class InvestmentServiceImpl implements InvestmentService {
 
         final List<InvestmentReportDTO> report = new ArrayList<>();
 
-//        final String header = "item.getType().name()\t"
-//                + "item.getInitialDate()\t"
-//                + "itemUntilDate\t"
-//                + "currency\t"
-//                + "initialAmount(item, currency).getAmount()\t"
-//                + "finalAmount\t"
-//                + "realAmountInvested";
-//
-//        System.out.println(header);
         for (Investment item : investments) {
             if (filter.test(item)) {
 
@@ -314,13 +301,6 @@ public class InvestmentServiceImpl implements InvestmentService {
                         finalAmount.subtract(realAmount).setScale(2, MathConstants.ROUNDING_MODE),
                         realAmount));
 
-                //String msg = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}";
-                //System.out.println(MessageFormat.format(msg, item.getType().name(),
-//                        item.getInitialDate(),
-//                        itemUntilDate,
-//                        currency,
-//                        initialAmount(item, currency).getAmount(),
-//                        finalAmount, realAmount));
             }
         }
 
@@ -356,7 +336,6 @@ public class InvestmentServiceImpl implements InvestmentService {
         return new InvestmentDTO(
                 in.getCurrency(), 
                 in.getRealInvestedAmount(),
-                //inflation.adjust(new MoneyAmount(in.getInitialAmount(), in.getCurrency()), in.getFrom(), in.getTo()).getAmount(), 
                 in.getFinalAmount(), 
                 in.getTo());
     }
