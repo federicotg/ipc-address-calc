@@ -46,8 +46,8 @@ public class Terna<A, B, C> extends Pair<A, B> {
     @Override
     public boolean equals(Object obj) {
         return obj instanceof Terna
-                && Objects.equals(this.getFirst(), ((Terna) obj).getFirst())
-                && Objects.equals(this.getSecond(), ((Terna) obj).getSecond())
+                && Objects.equals(this.getFirst(), ((Pair) obj).getFirst())
+                && Objects.equals(this.getSecond(), ((Pair) obj).getSecond())
                 && Objects.equals(this.third, ((Terna) obj).third);
     }
 
