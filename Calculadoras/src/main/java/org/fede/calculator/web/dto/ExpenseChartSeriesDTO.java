@@ -27,6 +27,7 @@ public class ExpenseChartSeriesDTO {
     private String name;
     private String seriesName;
 
+    
     public ExpenseChartSeriesDTO(String name, String seriesName) {
         this.name = name;
         this.seriesName = seriesName;

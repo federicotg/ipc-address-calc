@@ -147,17 +147,18 @@ public class AppConfig {
     @Bean
     public List<ExpenseChartSeriesDTO> fciSeries() {
         return Stream.of(
-                new ExpenseChartSeriesDTO("Ahorro Plus Argentina FCI", "fci/CAPLUSA.json"),
-                new ExpenseChartSeriesDTO("Renta Nacional FCI", "fci/CRentaNacionalA.json"),
-                new ExpenseChartSeriesDTO("Abierto Pymes FCI", "fci/CPYMESA.json"),
-                new ExpenseChartSeriesDTO("Renta Fija Argentina FCI", "fci/CAHORROA.json"),
-                new ExpenseChartSeriesDTO("Balance Fund FCI", "fci/CBAL01.json"),
-                new ExpenseChartSeriesDTO("Estrategia FCI", "fci/EstrategiaA.json"),
-                new ExpenseChartSeriesDTO("Deuda Argentina FCI", "fci/CDeudaA.json"),
-                new ExpenseChartSeriesDTO("Acciones Argentina FCI", "fci/CGRO01.json"),
-                new ExpenseChartSeriesDTO("Renta Variable FCI", "fci/CRVariable.json"),
-                new ExpenseChartSeriesDTO("Liquidez Ley 27.260 FCI", "fci/LiquidezA.json"),
-                new ExpenseChartSeriesDTO("Income Fund FCI", "fci/IncomeFund.json")
+                new ExpenseChartSeriesDTO("Ahorro Plus Argentina", "fci/CONAPAA-AR.json"),
+                new ExpenseChartSeriesDTO("Renta Nacional", "fci/CRTANAA-AR.json"),
+                new ExpenseChartSeriesDTO("Multiestrategia", "fci/COMUESA-AR.json"),
+                new ExpenseChartSeriesDTO("Deuda Argentina", "fci/CDEUARA-AR.json"),
+                new ExpenseChartSeriesDTO("Balance Fund", "fci/CONBALA.json"),
+                new ExpenseChartSeriesDTO("Liquidez Ley 27.260 USD", "fci/CONLLBU-AR.json"),
+                new ExpenseChartSeriesDTO("Renta Fija Argentina", "fci/CONAARA-AR.json"),
+                new ExpenseChartSeriesDTO("Income Fund USD", "fci/COINLAT-AR.json"),
+                new ExpenseChartSeriesDTO("Estrategia", "fci/CONESTA-AR.json"),
+                new ExpenseChartSeriesDTO("Arbitraje", "fci/CONARBA-AR.json"),
+                new ExpenseChartSeriesDTO("Renta Variable", "fci/RTAVARA-AR.json"),
+                new ExpenseChartSeriesDTO("Acciones Argentina", "fci/CONAAFA.json")
         ).collect(toList());
 
     }

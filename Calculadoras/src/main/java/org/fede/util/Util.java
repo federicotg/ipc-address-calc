@@ -95,7 +95,7 @@ public class Util {
 
         try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
 
-            final Set<String> usdSeries = Stream.of("fci/LiquidezA.json", "fci/IncomeFund.json").collect(Collectors.toSet());
+            final Set<String> usdSeries = Stream.of("fci/CONLLBU-AR.json", "fci/COINLAT-AR.json").collect(Collectors.toSet());
             
             JSONSeries series;
             if (name.startsWith("fci/")) {
