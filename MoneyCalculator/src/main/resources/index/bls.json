@@ -9393,7 +9393,17 @@
                                     "periodName": "January",
                                     "value": "247.867",
                                     "footnotes": [{}]
+                                },
+                                
+                                {
+                                    "year": "2018",
+                                    "period": "M02",
+                                    "periodName": "February",
+                                    "value": "248.991",
+                                    "footnotes": [{}]
                                 }
+
+
 
 
                             ]
