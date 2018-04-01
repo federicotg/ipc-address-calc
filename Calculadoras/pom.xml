@@ -14,8 +14,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.springframework.version>5.0.2.RELEASE</org.springframework.version>
-        <spring-security.version>5.0.0.RELEASE</spring-security.version>
-        <hibernate-validator-version>5.4.1.Final</hibernate-validator-version>
+        <spring-security.version>5.0.3.RELEASE</spring-security.version>
+        <hibernate-validator-version>6.0.9.Final</hibernate-validator-version>
         <jackson2-version>2.9.3</jackson2-version>
     </properties>
 
@@ -35,6 +35,7 @@
         <dependency>
             <groupId>jstl</groupId>
             <artifactId>jstl</artifactId>
+            <scope>runtime</scope>
             <version>1.2</version>
         </dependency>
         
@@ -107,16 +108,16 @@
         </dependency>
              
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>${hibernate-validator-version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator-annotation-processor</artifactId>
             <version>${hibernate-validator-version}</version>
-            <scope>compile</scope>
+            <scope>runtime</scope>
         </dependency>
         
         <!-- Test Dependencies -->
@@ -198,7 +199,7 @@
                                 <artifactItem>
                                     <groupId>com.github.jsimone</groupId>
                                     <artifactId>webapp-runner-main</artifactId>
-                                    <version>8.5.23.0</version>
+                                    <version>8.5.29.0</version>
                                     <destFileName>webapp-runner.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
