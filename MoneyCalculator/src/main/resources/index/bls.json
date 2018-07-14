@@ -9394,18 +9394,41 @@
                                     "value": "247.867",
                                     "footnotes": [{}]
                                 },
-                                
                                 {
                                     "year": "2018",
                                     "period": "M02",
                                     "periodName": "February",
                                     "value": "248.991",
                                     "footnotes": [{}]
+                                },
+                                {
+                                    "year": "2018",
+                                    "period": "M03",
+                                    "periodName": "March",
+                                    "value": "249.554",
+                                    "footnotes": [{}]
+                                },
+                                {
+                                    "year": "2018",
+                                    "period": "M04",
+                                    "periodName": "April",
+                                    "value": "250.546",
+                                    "footnotes": [{}]
+                                },
+                                 {
+                                    "year": "2018",
+                                    "period": "M05",
+                                    "periodName": "May",
+                                    "value": "251.588",
+                                    "footnotes": [{}]
+                                },
+                                 {
+                                    "year": "2018",
+                                    "period": "M06",
+                                    "periodName": "June",
+                                    "value": "251.989",
+                                    "footnotes": [{}]
                                 }
-
-
-
-
                             ]
                         }]
         }
