@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -174,6 +175,8 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
             final MoneyAmountSeries totalIncome = Util.sumSeries("ARS", this.incomeSeries);
             final MoneyAmountSeries percentSeries = new SortedMapMoneyAmountSeries(sumSeries.getCurrency());
+            BigDecimal oneCent = new BigDecimal("0.01");
+            
             sumSeries.forEach((yearMonth, expensesSum) -> {
                 if (totalIncome.getTo().compareTo(yearMonth) >= 0) {
 
@@ -182,7 +185,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                     percentSeries.putAmount(
                             yearMonth,
                             new MoneyAmount(
-                                    expensesSum.getAmount().divide(incomeValue.getAmount(), CONTEXT),
+                                    expensesSum.getAmount().divide(oneCent.max(incomeValue.getAmount()), CONTEXT),
                                     totalIncome.getCurrency()));
                 }
             });

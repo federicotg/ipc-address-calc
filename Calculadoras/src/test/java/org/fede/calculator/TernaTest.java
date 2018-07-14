@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
  *
@@ -60,5 +61,10 @@ public class TernaTest {
         assertFalse(new Pair<>(1, 2).equals(new Terna<>(1, 2, 3)));
         assertFalse(new Terna<>(1, 2, 3).equals(new Pair<>(1, 2)));
 
+    }
+    
+    @Test
+    public void uu(){
+        System.out.println("sasas=> "+new BCryptPasswordEncoder().encode("qAsdFetMOGH"));
     }
 }

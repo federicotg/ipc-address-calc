@@ -175,6 +175,7 @@ public class InvestmentServiceImpl implements InvestmentService {
     }
 
     private boolean isCurrent(Investment inv) {
+        
         return inv.getOut() == null;
     }
 
