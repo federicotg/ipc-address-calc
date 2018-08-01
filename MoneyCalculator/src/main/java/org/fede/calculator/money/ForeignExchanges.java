@@ -63,9 +63,14 @@ public class ForeignExchanges {
             "CONBALA",
             "ARS");
 
-        public static final ForeignExchange ARS_CAPLUSA = new SimpleForeignExchange(
+    public static final ForeignExchange ARS_CAPLUSA = new SimpleForeignExchange(
             SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json"),
             "CAPLUSA",
+            "ARS");
+
+    public static final ForeignExchange ARS_UVA = new SimpleForeignExchange(
+            SeriesReader.readIndexSeries("index/UVA-peso.json"),
+            "UVA",
             "ARS");
     
     private static final IndexSeries CONSTANT_INDEX = new IndexSeriesSupport() {
@@ -116,7 +121,9 @@ public class ForeignExchanges {
         map("ARS", "CONAAFA", ARS_CONAAFA);
         map("ARS", "CONBALA", ARS_CONBALA);
         map("ARS", "CAPLUSA", ARS_CAPLUSA);
+        map("ARS", "UVA", ARS_UVA);
 
+        INTERMEDIATE_FOREIGN_EXCHANGES.put("UVA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CONAAFA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CAPLUSA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CONBALA", "ARS");
