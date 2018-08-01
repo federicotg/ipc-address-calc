@@ -33,6 +33,8 @@ public class InvestmentDTO {
     private BigDecimal differenceAmount;
     private Date to;
     private BigDecimal pct;
+    
+    private BigDecimal relativePct;
 
     public InvestmentDTO(){}
     
@@ -91,6 +93,14 @@ public class InvestmentDTO {
 
     public void setPct(BigDecimal pct) {
         this.pct = pct;
+    }
+
+    public BigDecimal getRelativePct() {
+        return relativePct;
+    }
+
+    public void setRelativePct(BigDecimal relativePct) {
+        this.relativePct = relativePct;
     }
 
 }

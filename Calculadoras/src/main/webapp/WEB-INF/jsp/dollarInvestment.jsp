@@ -87,6 +87,7 @@
                                 ${reportARS.total.currency} <fmt:formatNumber type="CURRENCY">${reportARS.total.differenceAmount}</fmt:formatNumber></td>
                             <c:choose><c:when test="${reportARS.total.pct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
                                 <fmt:formatNumber type="PERCENT" minFractionDigits="2">${reportARS.total.pct}</fmt:formatNumber></td>
+                            
                             </tr>
                         </tbody>
                     </table>
@@ -100,6 +101,7 @@
                                 <th>Retorno</th>
                                 <th>+/-</th>
                                 <th>+/- %</th>
+                                <th>Peso %</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -114,7 +116,10 @@
                                     ${entry.value.currency} <fmt:formatNumber type="CURRENCY">${entry.value.differenceAmount}</fmt:formatNumber></td>
                                 <c:choose><c:when test="${entry.value.pct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
                                     <fmt:formatNumber type="PERCENT" minFractionDigits="2">${entry.value.pct}</fmt:formatNumber></td>
-                                </tr>
+                            
+                                   <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${entry.value.relativePct}</fmt:formatNumber></td>    
+                            
+                            </tr>
                         </c:forEach>
                     </tbody>
                 </table>                            

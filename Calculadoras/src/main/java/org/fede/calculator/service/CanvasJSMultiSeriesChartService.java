@@ -181,7 +181,6 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                 if (totalIncome.getTo().compareTo(yearMonth) >= 0) {
 
                     MoneyAmount incomeValue = totalIncome.getAmount(yearMonth);
-                    //if (incomeValue != null) {
                     percentSeries.putAmount(
                             yearMonth,
                             new MoneyAmount(

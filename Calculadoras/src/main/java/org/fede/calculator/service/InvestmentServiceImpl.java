@@ -311,6 +311,9 @@ public class InvestmentServiceImpl implements InvestmentService {
                 .collect(Collectors.groupingBy(InvestmentReportDTO::getInvestmentCurrency,
                         Collectors.reducing(new InvestmentDTO(), this::mapper, this::reducer)));
 
+        final BigDecimal total = subtotals.values().stream().map(InvestmentDTO::getFinalAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        subtotals.values().stream().forEach(dto -> dto.setRelativePct(dto.getFinalAmount().divide(total, CONTEXT)));
+        
         return new DetailedInvestmentReportDTO(
                 includeTotal
                         ? new InvestmentDTO(currency, initialAmount.getAmount(), currentAmount.getAmount(), untilDate)
