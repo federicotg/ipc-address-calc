@@ -213,8 +213,8 @@ public class InvestmentServiceImpl implements InvestmentService {
 
     private static BigDecimal realAmount(MoneyAmount nominalAmount, String targetCurrency, Date from, Date to) {
 
-        YearMonth ymFrom = new YearMonth(from);
-        YearMonth ymTo = new YearMonth(to);
+        YearMonth ymFrom = adjustDate(from);//new YearMonth(from);
+        YearMonth ymTo = adjustDate(to);//new YearMonth(to);
 
         if (ymFrom.equals(ymTo)) {
             return nominalAmount.getAmount();
@@ -252,7 +252,7 @@ public class InvestmentServiceImpl implements InvestmentService {
         return this.investmentReport(currency, (item) -> !isCurrent(item) && item.getOut().getDate().before(new Date()), false);
     }
 
-    private YearMonth adjustDate(Date exactDate){
+    private static YearMonth adjustDate(Date exactDate){
         LocalDate exactLocalDate = exactDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
         
         if(exactLocalDate.getDayOfMonth() < 16){
@@ -286,10 +286,10 @@ public class InvestmentServiceImpl implements InvestmentService {
             if (filter.test(item)) {
 
                 final Date itemUntilDate = item.getOut() == null ? untilDate : item.getOut().getDate();
-                final YearMonth itemUntilYearMonth = this.adjustDate(itemUntilDate); //new YearMonth(itemUntilDate);
+                final YearMonth itemUntilYearMonth = adjustDate(itemUntilDate); //new YearMonth(itemUntilDate);
 
                 if (includeTotal) {
-                    YearMonth start = this.adjustDate(item.getInitialDate()); //new YearMonth(item.getInitialDate());
+                    YearMonth start = adjustDate(item.getInitialDate()); //new YearMonth(item.getInitialDate());
                     initialAmount = initialAmount.add(
                             inflation.adjust(initialAmount(item, currency),
                                     start.getYear(),
