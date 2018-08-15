@@ -20,7 +20,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -248,6 +252,17 @@ public class InvestmentServiceImpl implements InvestmentService {
         return this.investmentReport(currency, (item) -> !isCurrent(item) && item.getOut().getDate().before(new Date()), false);
     }
 
+    private YearMonth adjustDate(Date exactDate){
+        LocalDate exactLocalDate = exactDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+        
+        if(exactLocalDate.getDayOfMonth() < 16){
+            LocalDate adjusted = exactLocalDate.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
+            return new YearMonth(adjusted.getYear(), adjusted.getMonthValue());
+        }
+        return new YearMonth(exactLocalDate.getYear(), exactLocalDate.getMonthValue());
+    }
+    
+    
     private DetailedInvestmentReportDTO investmentReport(String currency, Predicate<Investment> filter, boolean includeTotal) {
 
         if (!MAP.containsKey(currency)) {
@@ -271,10 +286,10 @@ public class InvestmentServiceImpl implements InvestmentService {
             if (filter.test(item)) {
 
                 final Date itemUntilDate = item.getOut() == null ? untilDate : item.getOut().getDate();
-                final YearMonth itemUntilYearMonth = new YearMonth(itemUntilDate);
+                final YearMonth itemUntilYearMonth = this.adjustDate(itemUntilDate); //new YearMonth(itemUntilDate);
 
                 if (includeTotal) {
-                    YearMonth start = new YearMonth(item.getInitialDate());
+                    YearMonth start = this.adjustDate(item.getInitialDate()); //new YearMonth(item.getInitialDate());
                     initialAmount = initialAmount.add(
                             inflation.adjust(initialAmount(item, currency),
                                     start.getYear(),
