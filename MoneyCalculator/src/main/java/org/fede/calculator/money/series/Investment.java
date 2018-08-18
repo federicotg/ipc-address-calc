@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.money.series;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import org.fede.calculator.money.MoneyAmount;
 
@@ -39,6 +40,8 @@ public class Investment {
     private InvestmentEvent in;
     private InvestmentAsset investment;
     private InvestmentEvent out;
+    
+    private BigDecimal interest;
 
     public InvestmentType getType() {
         return type;
@@ -94,6 +97,14 @@ public class Investment {
 
     public String getCurrency() {
         return this.getInvestment().getCurrency();
+    }
+
+    public BigDecimal getInterest() {
+        return interest;
+    }
+
+    public void setInterest(BigDecimal interest) {
+        this.interest = interest;
     }
 
 }
