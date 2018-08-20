@@ -20,23 +20,20 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.reducing;
 import org.fede.calculator.money.Aggregation;
-import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
@@ -62,8 +59,6 @@ import static org.fede.util.Util.sumSeries;
  * @author fede
  */
 public class InvestmentServiceImpl implements InvestmentService {
-
-    private static final BigDecimal DAYS_IN_ONE_YEAR = new BigDecimal(365);
 
     private static final TypeReference<List<Investment>> TYPE_REFERENCE = new TypeReference<List<Investment>>() {
     };
@@ -183,70 +178,6 @@ public class InvestmentServiceImpl implements InvestmentService {
         return savingsNow.subtract(savingsThen).divide(avgIncome, CONTEXT);
     }
 
-    private boolean isCurrent(Investment inv) {
-
-        return inv.getOut() == null;
-    }
-
-    private static MoneyAmount changeCurrency(MoneyAmount ma, String targetCurrency, Date date) {
-        ForeignExchange fx = ForeignExchanges.getForeignExchange(ma.getCurrency(), targetCurrency);
-        YearMonth min = new YearMonth(date).min(fx.getTo());
-        return fx.exchange(ma, targetCurrency, min.getYear(), min.getMonth());
-    }
-
-    private static MoneyAmount initialAmount(Investment investment, String targetCurrency) {
-
-        MoneyAmount amount;
-        if (targetCurrency.equals(investment.getInitialCurrency())) {
-            amount = investment.getInitialMoneyAmount();
-        } else if (targetCurrency.equals(investment.getCurrency())) {
-            amount = investment.getMoneyAmount();
-        } else {
-            amount = changeCurrency(investment.getMoneyAmount(), targetCurrency, investment.getInitialDate());
-        }
-        return amount;
-    }
-
-    private static MoneyAmount finalAmount(Investment investment, String targetCurrency, Date date) {
-
-        if (investment.getOut() != null) {
-            return changeCurrency(investment.getOut().getMoneyAmount(), targetCurrency, date);
-        }
-
-        // while still invested, add interest rate if any
-        //return changeCurrency(investment.getMoneyAmount(), targetCurrency, date);
-        return changeCurrency(investment.getMoneyAmount(), targetCurrency, date)
-                .add(
-                        changeCurrency(
-                                interest(investment.getInitialMoneyAmount(), investment.getInterest(), investment.getInitialDate(), date),
-                                targetCurrency,
-                                date)
-                );
-    }
-
-    private static MoneyAmount interest(MoneyAmount investedAmount, BigDecimal interestRate, Date investmentDate, Date currentDate) {
-
-        if (interestRate == null) {
-            return new MoneyAmount(BigDecimal.ZERO, investedAmount.getCurrency());
-        }
-
-        LocalDate since = investmentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
-        LocalDate until = currentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
-
-        long days = ChronoUnit.DAYS.between(since, until);
-
-        if (days <= 0l) {
-            return new MoneyAmount(BigDecimal.ZERO, investedAmount.getCurrency());
-        }
-
-        BigDecimal investment = investedAmount.getAmount();
-
-        BigDecimal i = (investment.multiply(interestRate, CONTEXT).divide(DAYS_IN_ONE_YEAR, CONTEXT))
-                        .multiply(new BigDecimal(days), CONTEXT);
-
-        return new MoneyAmount(i, investedAmount.getCurrency());
-    }
-
     private static BigDecimal realAmount(MoneyAmount nominalAmount, String targetCurrency, Date from, Date to) {
 
         YearMonth ymFrom = adjustDate(from);//new YearMonth(from);
@@ -279,17 +210,17 @@ public class InvestmentServiceImpl implements InvestmentService {
         final Inflation inflation = MAP.get(currency);
         final YearMonth until = inflation.getTo();
         final Date untilDate = until.asToDate();
-        return this.investmentReport(currency, (item) -> isCurrent(item) && item.getInitialDate().before(untilDate), true);
+        return this.investmentReport(currency, (item) -> item.isCurrent() && item.getInitialDate().before(untilDate), true);
     }
 
     @Override
     public DetailedInvestmentReportDTO pastInvestmentsReport(String currency) {
 
-        return this.investmentReport(currency, (item) -> !isCurrent(item) && item.getOut().getDate().before(new Date()), false);
+        return this.investmentReport(currency, (item) -> !item.isCurrent() && item.getOut().getDate().before(new Date()), false);
     }
 
     private static YearMonth adjustDate(Date exactDate) {
-        LocalDate exactLocalDate = exactDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+        final LocalDate exactLocalDate = exactDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
 
         if (exactLocalDate.getDayOfMonth() < 16) {
             LocalDate adjusted = exactLocalDate.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
@@ -304,10 +235,6 @@ public class InvestmentServiceImpl implements InvestmentService {
             throw new IllegalArgumentException("Currency " + currency + " does not have a known inflation index.");
         }
 
-        final List<Investment> investments = this.investmentSeries.stream()
-                .flatMap(fileName -> SeriesReader.read(fileName, TYPE_REFERENCE).stream())
-                .collect(Collectors.toList());
-
         final Inflation inflation = MAP.get(currency);
         final YearMonth until = inflation.getTo();
         final Date untilDate = until.asToDate();
@@ -317,52 +244,54 @@ public class InvestmentServiceImpl implements InvestmentService {
 
         final List<InvestmentReportDTO> report = new ArrayList<>();
 
-        for (Investment item : investments) {
-            if (filter.test(item)) {
+        for (Investment item : this.investmentSeries.stream()
+                .flatMap(fileName -> SeriesReader.read(fileName, TYPE_REFERENCE).stream())
+                .filter(filter)
+                .collect(Collectors.toList())) {
 
-                final Date itemUntilDate = item.getOut() == null ? untilDate : item.getOut().getDate();
-                final YearMonth itemUntilYearMonth = adjustDate(itemUntilDate); //new YearMonth(itemUntilDate);
+            final Date itemUntilDate = item.getOut() == null ? untilDate : item.getOut().getDate();
+            final YearMonth itemUntilYearMonth = adjustDate(itemUntilDate);
 
-                if (includeTotal) {
-                    YearMonth start = adjustDate(item.getInitialDate()); //new YearMonth(item.getInitialDate());
-                    initialAmount = initialAmount.add(
-                            inflation.adjust(initialAmount(item, currency),
-                                    start.getYear(),
-                                    start.getMonth(),
-                                    itemUntilYearMonth.getYear(),
-                                    itemUntilYearMonth.getMonth()));
-                    currentAmount = currentAmount.add(finalAmount(item, currency, itemUntilDate));
-                }
-
-                BigDecimal finalAmount = finalAmount(item, currency, itemUntilDate).getAmount();
-
-                MoneyAmount investedAmount = initialAmount(item, currency);
-
-                BigDecimal realAmount = realAmount(investedAmount, currency, item.getInitialDate(), itemUntilDate);
-
-                report.add(new InvestmentReportDTO(
-                        item.getType().name(),
-                        item.getInitialDate(),
-                        itemUntilDate,
-                        currency,
-                        initialAmount(item, currency).getAmount(),
-                        finalAmount,
-                        inflation(currency, item.getInitialDate(), itemUntilDate),
-                        item.getInvestment().getCurrency(),
-                        finalAmount.subtract(realAmount).setScale(2, MathConstants.ROUNDING_MODE),
-                        realAmount));
-
+            if (includeTotal) {
+                final YearMonth start = adjustDate(item.getInitialDate());
+                initialAmount = initialAmount.add(
+                        inflation.adjust(item.initialAmount(currency),
+                                start.getYear(),
+                                start.getMonth(),
+                                itemUntilYearMonth.getYear(),
+                                itemUntilYearMonth.getMonth()));
+                currentAmount = currentAmount.add(item.finalAmount(currency, itemUntilDate));
             }
+
+            final BigDecimal finalAmount = item.finalAmount(currency, itemUntilDate).getAmount();
+            final BigDecimal realAmount = realAmount(item.initialAmount(currency), currency, item.getInitialDate(), itemUntilDate);
+
+            report.add(new InvestmentReportDTO(
+                    item.getType().name(),
+                    item.getInitialDate(),
+                    itemUntilDate,
+                    currency,
+                    item.initialAmount(currency).getAmount(),
+                    finalAmount,
+                    inflation(currency, item.getInitialDate(), itemUntilDate),
+                    item.getInvestment().getCurrency(),
+                    finalAmount.subtract(realAmount).setScale(2, MathConstants.ROUNDING_MODE),
+                    realAmount));
+
         }
 
         Collections.sort(report, (InvestmentReportDTO o1, InvestmentReportDTO o2) -> o1.getFrom().compareTo(o2.getFrom()));
 
         final Map<String, InvestmentDTO> subtotals = report.stream()
-                .collect(Collectors.groupingBy(InvestmentReportDTO::getInvestmentCurrency,
-                        Collectors.reducing(new InvestmentDTO(), this::mapper, this::reducer)));
+                .collect(groupingBy(InvestmentReportDTO::getInvestmentCurrency, reducing(new InvestmentDTO(), this::mapper, this::reducer)));
 
-        final BigDecimal total = subtotals.values().stream().map(InvestmentDTO::getFinalAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        subtotals.values().stream().forEach(dto -> dto.setRelativePct(dto.getFinalAmount().divide(total, CONTEXT)));
+        final BigDecimal total = subtotals.values()
+                .stream()
+                .map(InvestmentDTO::getFinalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        subtotals.values()
+                .stream()
+                .forEach(dto -> dto.setRelativePct(dto.getFinalAmount().divide(total, CONTEXT)));
 
         return new DetailedInvestmentReportDTO(
                 includeTotal

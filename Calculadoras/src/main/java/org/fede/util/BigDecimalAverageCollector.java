@@ -17,6 +17,7 @@
 package org.fede.util;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -83,7 +84,7 @@ public class BigDecimalAverageCollector implements Collector<BigDecimal, BigDeci
         BigDecimal getAverage() {
             return BigDecimal.ZERO.compareTo(count) == 0
                     ? BigDecimal.ZERO
-                    : sum.divide(count, 6, BigDecimal.ROUND_HALF_UP);
+                    : sum.divide(count, 6, RoundingMode.HALF_UP);
         }
 
         BigDecimalAccumulator combine(BigDecimalAccumulator another) {
