@@ -17,7 +17,13 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import org.fede.calculator.money.ForeignExchange;
+import org.fede.calculator.money.ForeignExchanges;
+import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
 
 /**
@@ -36,11 +42,13 @@ import org.fede.calculator.money.MoneyAmount;
 })*/
 public class Investment {
 
+    private static final BigDecimal DAYS_IN_ONE_YEAR = new BigDecimal(365);
+
     private InvestmentType type;
     private InvestmentEvent in;
     private InvestmentAsset investment;
     private InvestmentEvent out;
-    
+
     private BigDecimal interest;
 
     public InvestmentType getType() {
@@ -105,6 +113,66 @@ public class Investment {
 
     public void setInterest(BigDecimal interest) {
         this.interest = interest;
+    }
+
+    public MoneyAmount finalAmount(String targetCurrency, Date date) {
+
+        if (this.getOut() != null) {
+            return changeCurrency(this.getOut().getMoneyAmount(), targetCurrency, date);
+        }
+
+        // while still invested, add interest rate if any
+        //return changeCurrency(investment.getMoneyAmount(), targetCurrency, date);
+        return changeCurrency(this.getMoneyAmount(), targetCurrency, date)
+                .add(
+                        changeCurrency(
+                                interest(this.getInitialMoneyAmount(), this.getInterest(), this.getInitialDate(), date),
+                                targetCurrency,
+                                date)
+                );
+    }
+
+    public MoneyAmount initialAmount(String targetCurrency) {
+
+        MoneyAmount amount;
+        if (targetCurrency.equals(this.getInitialCurrency())) {
+            amount = this.getInitialMoneyAmount();
+        } else if (targetCurrency.equals(this.getCurrency())) {
+            amount = this.getMoneyAmount();
+        } else {
+            amount = changeCurrency(this.getMoneyAmount(), targetCurrency, this.getInitialDate());
+        }
+        return amount;
+    }
+
+    private static MoneyAmount changeCurrency(MoneyAmount ma, String targetCurrency, Date date) {
+        ForeignExchange fx = ForeignExchanges.getForeignExchange(ma.getCurrency(), targetCurrency);
+        YearMonth min = new YearMonth(date).min(fx.getTo());
+        return fx.exchange(ma, targetCurrency, min.getYear(), min.getMonth());
+    }
+
+    private static MoneyAmount interest(MoneyAmount investedAmount, BigDecimal interestRate, Date investmentDate, Date currentDate) {
+
+        if (interestRate == null) {
+            return new MoneyAmount(BigDecimal.ZERO, investedAmount.getCurrency());
+        }
+
+        final long days = ChronoUnit.DAYS.between(
+                investmentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate(), 
+                currentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate());
+
+        if (days <= 0l) {
+            return new MoneyAmount(BigDecimal.ZERO, investedAmount.getCurrency());
+        }
+
+        final BigDecimal interest = (investedAmount.getAmount().multiply(interestRate, CONTEXT).divide(DAYS_IN_ONE_YEAR, CONTEXT))
+                .multiply(BigDecimal.valueOf(days), CONTEXT);
+
+        return new MoneyAmount(interest, investedAmount.getCurrency());
+    }
+    
+    public boolean isCurrent() {
+        return this.getOut() == null;
     }
 
 }
