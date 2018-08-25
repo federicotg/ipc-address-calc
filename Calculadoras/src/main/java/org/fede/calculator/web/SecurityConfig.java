@@ -36,8 +36,8 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 @PropertySource("classpath:security.properties")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Value("${username}")
-    private String username;
+    @Value("${myuserid}")
+    private String myUserName;
     @Value("${password}")
     private String password;
     @Value("${roles}")
@@ -57,7 +57,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder authManagerBuilder) throws Exception {
         authManagerBuilder.inMemoryAuthentication()
                 .passwordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder())
-                .withUser(this.username)
+                .withUser(this.myUserName)
                 .password(this.password)
                 .roles(this.roles);
     }

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Collection;
@@ -110,7 +111,7 @@ public class Util {
             final String currency = series.getCurrency();
             for (JSONDataPoint dp : series.getData()) {
                 if (interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), currency)) != null) {
-                    throw new IllegalArgumentException("Series " + name + " has two values for year " + dp.getYear() + " and month " + dp.getMonth());
+                    throw new IllegalArgumentException(MessageFormat.format("Series {0} has two values for year {1} and month {2}", name, dp.getYear(), dp.getMonth()));
                 }
             }
 
@@ -128,7 +129,7 @@ public class Util {
             return new SortedMapMoneyAmountSeries(currency, interpolatedData);
 
         } catch (IOException ioEx) {
-            throw new IllegalArgumentException("Could not read series named " + name, ioEx);
+            throw new IllegalArgumentException(MessageFormat.format("Could not read series named {0}", name), ioEx);
         }
 
     }

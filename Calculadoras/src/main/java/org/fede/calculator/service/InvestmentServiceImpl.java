@@ -180,8 +180,8 @@ public class InvestmentServiceImpl implements InvestmentService {
 
     private static BigDecimal realAmount(MoneyAmount nominalAmount, String targetCurrency, Date from, Date to) {
 
-        YearMonth ymFrom = adjustDate(from);//new YearMonth(from);
-        YearMonth ymTo = adjustDate(to);//new YearMonth(to);
+        YearMonth ymFrom = adjustDate(from);
+        YearMonth ymTo = adjustDate(to);
 
         if (ymFrom.equals(ymTo)) {
             return nominalAmount.getAmount();
@@ -207,10 +207,11 @@ public class InvestmentServiceImpl implements InvestmentService {
 
     @Override
     public DetailedInvestmentReportDTO currentInvestmentsReport(String currency) {
-        final Inflation inflation = MAP.get(currency);
-        final YearMonth until = inflation.getTo();
-        final Date untilDate = until.asToDate();
-        return this.investmentReport(currency, (item) -> item.isCurrent() && item.getInitialDate().before(untilDate), true);
+        return this.investmentReport(
+                currency, 
+                (item) -> item.isCurrent() 
+                        && item.getInitialDate().before(MAP.get(currency).getTo().asToDate()), 
+                true);
     }
 
     @Override
@@ -220,7 +221,7 @@ public class InvestmentServiceImpl implements InvestmentService {
     }
 
     private static YearMonth adjustDate(Date exactDate) {
-        final LocalDate exactLocalDate = exactDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+        var exactLocalDate = exactDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
 
         if (exactLocalDate.getDayOfMonth() < 16) {
             LocalDate adjusted = exactLocalDate.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
@@ -235,12 +236,11 @@ public class InvestmentServiceImpl implements InvestmentService {
             throw new IllegalArgumentException("Currency " + currency + " does not have a known inflation index.");
         }
 
-        final Inflation inflation = MAP.get(currency);
-        final YearMonth until = inflation.getTo();
-        final Date untilDate = until.asToDate();
+        final var inflation = MAP.get(currency);
+        final var untilDate = inflation.getTo().asToDate();
 
-        MoneyAmount initialAmount = new MoneyAmount(ZERO, currency);
-        MoneyAmount currentAmount = new MoneyAmount(ZERO, currency);
+        var initialAmount = new MoneyAmount(ZERO, currency);
+        var currentAmount = new MoneyAmount(ZERO, currency);
 
         final List<InvestmentReportDTO> report = new ArrayList<>();
 
@@ -249,8 +249,8 @@ public class InvestmentServiceImpl implements InvestmentService {
                 .filter(filter)
                 .collect(Collectors.toList())) {
 
-            final Date itemUntilDate = item.getOut() == null ? untilDate : item.getOut().getDate();
-            final YearMonth itemUntilYearMonth = adjustDate(itemUntilDate);
+            final var itemUntilDate = item.getOut() == null ? untilDate : item.getOut().getDate();
+            final var itemUntilYearMonth = adjustDate(itemUntilDate);
 
             if (includeTotal) {
                 final YearMonth start = adjustDate(item.getInitialDate());
@@ -263,8 +263,8 @@ public class InvestmentServiceImpl implements InvestmentService {
                 currentAmount = currentAmount.add(item.finalAmount(currency, itemUntilDate));
             }
 
-            final BigDecimal finalAmount = item.finalAmount(currency, itemUntilDate).getAmount();
-            final BigDecimal realAmount = realAmount(item.initialAmount(currency), currency, item.getInitialDate(), itemUntilDate);
+            final var finalAmount = item.finalAmount(currency, itemUntilDate).getAmount();
+            final var realAmount = realAmount(item.initialAmount(currency), currency, item.getInitialDate(), itemUntilDate);
 
             report.add(new InvestmentReportDTO(
                     item.getType().name(),

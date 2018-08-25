@@ -16,6 +16,7 @@
  */
 package org.fede.digitalcontent.model;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -28,7 +29,7 @@ import java.util.stream.Stream;
  */
 public abstract class BaseRepository<K, T> implements Repository<K, T> {
 
-    private final Map<K, T> instances = new HashMap<>();
+    private final Map<K, T> instances = Collections.synchronizedMap(new HashMap<>());
 
     @Override
     public final T findById(K id) {

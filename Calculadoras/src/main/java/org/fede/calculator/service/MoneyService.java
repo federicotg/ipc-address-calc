@@ -17,7 +17,6 @@
 package org.fede.calculator.service;
 
 import java.util.Locale;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.web.dto.CurrencyLimitsDTO;
 import org.fede.calculator.web.dto.MoneyDTO;
 
