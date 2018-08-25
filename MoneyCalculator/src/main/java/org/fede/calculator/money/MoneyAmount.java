@@ -36,11 +36,10 @@ public class MoneyAmount {
     }
 
     public MoneyAmount adjust(BigDecimal divisor, BigDecimal factor) {
-        if (this.isZero()) {
+        if (this.isZero() || divisor.compareTo(factor) == 0) {
             return this;
         }
-        return new MoneyAmount(
-                this.amount.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).divide(divisor, MathConstants.CONTEXT)
+        return new MoneyAmount(this.amount.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).divide(divisor, MathConstants.CONTEXT)
                 .multiply(factor), this.currency);
     }
 

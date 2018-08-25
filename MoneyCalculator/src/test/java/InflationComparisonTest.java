@@ -45,9 +45,9 @@ public class InflationComparisonTest {
         final MoneyAmountSeries cqpSeries = cqp.adjust(onePeso, 1999, 1);
         final MoneyAmountSeries priceStatsSeries = priceStats.adjust(onePeso, 1999, 1);
 
-        cqpSeries.forEach((yearMonth, amount) -> {
-            System.out.println(MessageFormat.format("{0}\t{1}\t{2}\t{3}", yearMonth.getYear(), yearMonth.getMonth(), amount.toString(), priceStatsSeries.getAmount(yearMonth)));
-        });
+        //cqpSeries.forEach((yearMonth, amount) -> {
+        //    System.out.println(MessageFormat.format("{0}\t{1}\t{2}\t{3}", yearMonth.getYear(), yearMonth.getMonth(), amount.toString(), priceStatsSeries.getAmount(yearMonth)));
+        //});
 
     }
 }

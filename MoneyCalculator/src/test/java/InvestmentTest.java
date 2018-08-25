@@ -20,11 +20,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
@@ -108,4 +114,41 @@ public class InvestmentTest {
         }
     }
 
+    @Test
+    public void listStock() throws IOException {
+        List<Investment> investmets = this.read("investments.json");
+
+        final Collector<BigDecimal, ?, BigDecimal> reducer = Collectors.reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
+
+        final Collector<Investment, ?, BigDecimal> mapper = Collectors.mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer);
+
+        NumberFormat nf = NumberFormat.getNumberInstance();
+        nf.setMinimumFractionDigits(6);
+        
+        investmets.stream()
+                .filter(Investment::isCurrent)
+                .collect(Collectors.groupingBy(Investment::getCurrency, mapper))
+                .entrySet()
+                .stream()
+                .forEach(e -> System.out.println(MessageFormat.format("{0}: {1}", e.getKey(), nf.format(e.getValue()))));
+
+        
+        investmets.stream()
+                .filter(Investment::isCurrent)
+                .filter(inv -> "CAPLUSA".equals(inv.getCurrency()))
+                .map(this::format)
+                .forEach(System.out::println);
+        
+    }
+
+    private String format(Investment i){
+        NumberFormat nf = NumberFormat.getNumberInstance();
+        nf.setMinimumFractionDigits(6);
+
+        return MessageFormat.format("{0} {1}", 
+                i.getInitialDate(), nf.format(i.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP)));
+    
+        
+    }
+    
 }
