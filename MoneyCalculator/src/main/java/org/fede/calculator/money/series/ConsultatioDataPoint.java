@@ -37,6 +37,14 @@ public class ConsultatioDataPoint {
     @JsonProperty(value = "valor")
     private BigDecimal value;
 
+    public ConsultatioDataPoint() {
+    }
+
+    public ConsultatioDataPoint(Date date, BigDecimal value) {
+        this.date = date;
+        this.value = value;
+    }
+    
     public Date getDate() {
         return this.date;
     }

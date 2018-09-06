@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
@@ -124,7 +125,7 @@ public class InvestmentTest {
 
         NumberFormat nf = NumberFormat.getNumberInstance();
         nf.setMinimumFractionDigits(6);
-        
+
         investmets.stream()
                 .filter(Investment::isCurrent)
                 .collect(Collectors.groupingBy(Investment::getCurrency, mapper))
@@ -132,23 +133,22 @@ public class InvestmentTest {
                 .stream()
                 .forEach(e -> System.out.println(MessageFormat.format("{0}: {1}", e.getKey(), nf.format(e.getValue()))));
 
-        
-        investmets.stream()
-                .filter(Investment::isCurrent)
-                .filter(inv -> "CAPLUSA".equals(inv.getCurrency()))
-                .map(this::format)
+        Stream.concat(Stream.of(""),
+                investmets.stream()
+                        .filter(Investment::isCurrent)
+                        .filter(inv -> "CAPLUSA".equals(inv.getCurrency()))
+                        .map(this::format))
                 .forEach(System.out::println);
-        
+
     }
 
-    private String format(Investment i){
+    private String format(Investment i) {
         NumberFormat nf = NumberFormat.getNumberInstance();
         nf.setMinimumFractionDigits(6);
 
-        return MessageFormat.format("{0} {1}", 
+        return MessageFormat.format("{0} {1}",
                 i.getInitialDate(), nf.format(i.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP)));
-    
-        
+
     }
-    
+
 }

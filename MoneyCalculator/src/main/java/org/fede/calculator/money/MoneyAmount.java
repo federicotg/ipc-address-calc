@@ -52,10 +52,7 @@ public class MoneyAmount {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 37 * hash + Objects.hashCode(this.currency);
-        hash = 37 * hash + Objects.hashCode(this.amount);
-        return hash;
+        return Objects.hash(this.currency, this.amount);
     }
 
     @Override
