@@ -60,6 +60,8 @@ import static org.fede.util.Util.sumSeries;
  */
 public class InvestmentServiceImpl implements InvestmentService {
 
+    
+    
     private static final TypeReference<List<Investment>> TYPE_REFERENCE = new TypeReference<List<Investment>>() {
     };
     private static final Map<String, Inflation> MAP = new ConcurrentHashMap<>(2, 1.0f);

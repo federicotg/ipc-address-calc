@@ -16,8 +16,12 @@
  */
 package org.fede.calculator.web.dto;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -27,7 +31,7 @@ public class DetailedInvestmentReportDTO {
 
     private final InvestmentDTO total;
     private final List<InvestmentReportDTO> detail;
-    private final Map<String, InvestmentDTO> subtotals;
+    private Map<String, InvestmentDTO> subtotals;
 
     public DetailedInvestmentReportDTO(InvestmentDTO total, List<InvestmentReportDTO> detail, Map<String, InvestmentDTO> subtotals) {
         this.total = total;
@@ -47,5 +51,14 @@ public class DetailedInvestmentReportDTO {
         return subtotals;
     }
 
+    public void sorted(Comparator<InvestmentReportDTO> detailComparator, Comparator<Map.Entry<String, InvestmentDTO>> subtotalComparator) {
+
+        Collections.sort(this.getDetail(), detailComparator);
+
+        this.subtotals = this.getSubtotals().entrySet().stream()
+                .sorted(subtotalComparator.reversed())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (left, right) -> left, LinkedHashMap::new));
+
+    }
 
 }

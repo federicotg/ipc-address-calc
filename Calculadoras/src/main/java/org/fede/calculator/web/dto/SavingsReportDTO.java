@@ -30,39 +30,9 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
     }
 
     private YearMonth moment;
-
-    private BigDecimal pesosForDollar;
-    private BigDecimal pesosForDollarPctVar;
-
-    private BigDecimal nominalDollars;
-
-    private BigDecimal nominalPesos;
-
-    private BigDecimal nominalIncomePesos;
-    private BigDecimal nominalIncomeDollars;
-
-    private BigDecimal totalNominalPesos;
-    private BigDecimal totalNominalPesosPctVar;
-    private BigDecimal totalNominalDollars;
-    private BigDecimal totalNominalDollarsPctVar;
-
-    private BigDecimal nov99Dollars;
-
-    private BigDecimal nov99Pesos;
-
-    private BigDecimal nov99IncomePesos;
-    private BigDecimal nov99IncomeDollars;
-
-    private BigDecimal totalNov99Dollars;
-    private BigDecimal totalNov99DollarsPctVar;
-    private BigDecimal totalNov99Pesos;
-    private BigDecimal totalNov99PesosPctVar;
-
-    private BigDecimal nov99PesosPctSaved;
-    private BigDecimal nov99DollarPctSaved;
-
-    private BigDecimal nominalPesosPctSaved;
-    private BigDecimal nominalDollarPctSaved;
+    private final AmountAndVariationDTO pesosForDollar = new AmountAndVariationDTO();
+    private final SavingsReportElementDTO nominal = new SavingsReportElementDTO();
+    private final SavingsReportElementDTO real = new SavingsReportElementDTO();
 
     @Override
     public int compareTo(SavingsReportDTO o) {
@@ -78,179 +48,179 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
     }
 
     public BigDecimal getPesosForDollar() {
-        return pesosForDollar;
+        return pesosForDollar.getAmount();
     }
 
     public void setPesosForDollar(BigDecimal pesosForDollar) {
-        this.pesosForDollar = pesosForDollar;
+        this.pesosForDollar.setAmount(pesosForDollar);
     }
 
     public BigDecimal getNominalDollars() {
-        return nominalDollars;
+        return this.nominal.getDollars().getAmount();
     }
 
     public void setNominalDollars(BigDecimal nominalDollars) {
-        this.nominalDollars = nominalDollars;
+        this.nominal.getDollars().setAmount(nominalDollars);
     }
 
     public BigDecimal getNominalPesos() {
-        return nominalPesos;
+        return this.nominal.getPesos().getAmount();
     }
 
     public void setNominalPesos(BigDecimal nominalPesos) {
-        this.nominalPesos = nominalPesos;
+        this.nominal.getPesos().setAmount(nominalPesos);
     }
 
     public BigDecimal getTotalNominalPesos() {
-        return totalNominalPesos;
+        return this.nominal.getTotalPesos().getAmount();
     }
 
     public void setTotalNominalPesos(BigDecimal totalNominalPesos) {
-        this.totalNominalPesos = totalNominalPesos;
+        this.nominal.getTotalPesos().setAmount(totalNominalPesos);
     }
 
     public BigDecimal getTotalNominalDollars() {
-        return totalNominalDollars;
+        return this.nominal.getTotalDollars().getAmount();
     }
 
     public void setTotalNominalDollars(BigDecimal totalNominalDollars) {
-        this.totalNominalDollars = totalNominalDollars;
+        this.nominal.getTotalDollars().setAmount(totalNominalDollars);
     }
 
     public BigDecimal getNov99Dollars() {
-        return nov99Dollars;
+        return this.real.getDollars().getAmount();
     }
 
     public void setNov99Dollars(BigDecimal nov99Dollars) {
-        this.nov99Dollars = nov99Dollars;
+        this.real.getDollars().setAmount(nov99Dollars);
     }
 
     public BigDecimal getNov99Pesos() {
-        return nov99Pesos;
+        return this.real.getPesos().getAmount();
     }
 
     public void setNov99Pesos(BigDecimal nov99Pesos) {
-        this.nov99Pesos = nov99Pesos;
+        this.real.getPesos().setAmount(nov99Pesos);
     }
 
     public BigDecimal getTotalNov99Dollars() {
-        return totalNov99Dollars;
+        return this.real.getTotalDollars().getAmount();
     }
 
     public void setTotalNov99Dollars(BigDecimal totalNov99Dollars) {
-        this.totalNov99Dollars = totalNov99Dollars;
+        this.real.getTotalDollars().setAmount(totalNov99Dollars);
     }
 
     public BigDecimal getTotalNov99Pesos() {
-        return totalNov99Pesos;
+        return this.real.getTotalPesos().getAmount();
     }
 
     public void setTotalNov99Pesos(BigDecimal totalNov99Pesos) {
-        this.totalNov99Pesos = totalNov99Pesos;
+        this.real.getTotalPesos().setAmount(totalNov99Pesos);
     }
 
     public BigDecimal getPesosForDollarPctVar() {
-        return pesosForDollarPctVar;
+        return this.pesosForDollar.getVariation();
     }
 
     public void setPesosForDollarPctVar(BigDecimal pesosForDollarPctVar) {
-        this.pesosForDollarPctVar = pesosForDollarPctVar;
+        this.pesosForDollar.setVariation(pesosForDollarPctVar);
     }
 
     public BigDecimal getTotalNominalPesosPctVar() {
-        return totalNominalPesosPctVar;
+        return this.nominal.getTotalPesos().getVariation();
     }
 
     public void setTotalNominalPesosPctVar(BigDecimal totalNominalPesosPctVar) {
-        this.totalNominalPesosPctVar = totalNominalPesosPctVar;
+        this.nominal.getTotalPesos().setVariation(totalNominalPesosPctVar);
     }
 
     public BigDecimal getTotalNominalDollarsPctVar() {
-        return totalNominalDollarsPctVar;
+        return this.nominal.getTotalDollars().getVariation();
     }
 
     public void setTotalNominalDollarsPctVar(BigDecimal totalNominalDollarsPctVar) {
-        this.totalNominalDollarsPctVar = totalNominalDollarsPctVar;
+        this.nominal.getTotalDollars().setVariation(totalNominalDollarsPctVar);
     }
 
     public BigDecimal getTotalNov99DollarsPctVar() {
-        return totalNov99DollarsPctVar;
+        return this.real.getTotalDollars().getVariation();
     }
 
     public void setTotalNov99DollarsPctVar(BigDecimal totalNov99DollarsPctVar) {
-        this.totalNov99DollarsPctVar = totalNov99DollarsPctVar;
+        this.real.getTotalDollars().setVariation(totalNov99DollarsPctVar);
     }
 
     public BigDecimal getTotalNov99PesosPctVar() {
-        return totalNov99PesosPctVar;
+        return this.real.getTotalPesos().getVariation();
     }
 
     public void setTotalNov99PesosPctVar(BigDecimal totalNov99PesosPctVar) {
-        this.totalNov99PesosPctVar = totalNov99PesosPctVar;
+        this.real.getTotalPesos().setVariation(totalNov99PesosPctVar);
     }
 
     public BigDecimal getNominalIncomePesos() {
-        return nominalIncomePesos;
+        return this.nominal.getIncomePesos().getAmount();
     }
 
     public void setNominalIncomePesos(BigDecimal nominalIncomePesos) {
-        this.nominalIncomePesos = nominalIncomePesos;
+        this.nominal.getIncomePesos().setAmount(nominalIncomePesos);
     }
 
     public BigDecimal getNominalIncomeDollars() {
-        return nominalIncomeDollars;
+        return this.nominal.getIncomeDollars().getAmount();
     }
 
     public void setNominalIncomeDollars(BigDecimal nominalIncomeDollars) {
-        this.nominalIncomeDollars = nominalIncomeDollars;
+        this.nominal.getIncomeDollars().setAmount(nominalIncomeDollars);
     }
 
     public BigDecimal getNov99IncomePesos() {
-        return nov99IncomePesos;
+        return this.real.getIncomePesos().getAmount();
     }
 
     public void setNov99IncomePesos(BigDecimal nov99IncomePesos) {
-        this.nov99IncomePesos = nov99IncomePesos;
+        this.real.getIncomePesos().setAmount(nov99IncomePesos);
     }
 
     public BigDecimal getNov99IncomeDollars() {
-        return nov99IncomeDollars;
+        return this.real.getIncomeDollars().getAmount();
     }
 
     public void setNov99IncomeDollars(BigDecimal nov99IncomeDollars) {
-        this.nov99IncomeDollars = nov99IncomeDollars;
+        this.real.getIncomeDollars().setAmount(nov99IncomeDollars);
     }
 
     public BigDecimal getNov99PesosPctSaved() {
-        return nov99PesosPctSaved;
+        return this.real.getPesosSaved();
     }
 
     public void setNov99PesosPctSaved(BigDecimal nov99PesosPctSaved) {
-        this.nov99PesosPctSaved = nov99PesosPctSaved;
+        this.real.setPesosSaved(nov99PesosPctSaved);
     }
 
     public BigDecimal getNov99DollarPctSaved() {
-        return nov99DollarPctSaved;
+        return this.real.getDollarsSaved();
     }
 
     public void setNov99DollarPctSaved(BigDecimal nov99DollarPctSaved) {
-        this.nov99DollarPctSaved = nov99DollarPctSaved;
+        this.real.setDollarsSaved(nov99DollarPctSaved);
     }
 
     public BigDecimal getNominalPesosPctSaved() {
-        return nominalPesosPctSaved;
+        return this.nominal.getPesosSaved();
     }
 
     public void setNominalPesosPctSaved(BigDecimal nominalPesosPctSaved) {
-        this.nominalPesosPctSaved = nominalPesosPctSaved;
+        this.nominal.setPesosSaved(nominalPesosPctSaved);
     }
 
     public BigDecimal getNominalDollarPctSaved() {
-        return nominalDollarPctSaved;
+        return this.nominal.getDollarsSaved();
     }
 
     public void setNominalDollarPctSaved(BigDecimal nominalDollarPctSaved) {
-        this.nominalDollarPctSaved = nominalDollarPctSaved;
+        this.nominal.setDollarsSaved(nominalDollarPctSaved);
     }
 
 }

@@ -153,13 +153,13 @@
                 <thead>
                     <tr>
                         <th>Moneda</th>
-                        <th>Desde</th>
+                        <th>Desde <a href="?sort=from"> &#x21F5;</a></th>
                         <th>Hasta</th>
-                        <th>Inversión</th>
-                        <th>Retorno</th>
-                        <th>+/-</th>
+                        <th>Inversión <a href="?sort=investment"> &#x21F5;</a></th>
+                        <th>Retorno <a href="?sort=return"> &#x21F5;</a></th>
+                        <th>+/- <a href="?sort=pctDif"> &#x21F5;</a></th>
                         <th>Inf.</th>
-                        <th>+/- Real</th>
+                        <th>+/- Real <a href="?sort=realPctDif"> &#x21F5;</a></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -303,13 +303,13 @@
                 <thead>
                     <tr>
                         <th>Moneda</th>
-                        <th>Desde</th>
+                        <th>Desde <a href="?sort=from"> &#x21F5;</a></th>
                         <th>Hasta</th>
-                        <th>Inversión</th>
-                        <th>Retorno</th>
-                        <th>+/-</th>
+                        <th>Inversión <a href="?sort=investment"> &#x21F5;</a></th>
+                        <th>Retorno <a href="?sort=return"> &#x21F5;</a></th>
+                        <th>+/- <a href="?sort=pctDif"> &#x21F5;</a></th>
                         <th>Inf.</th>
-                        <th>+/- Real</th>
+                        <th>+/- Real <a href="?sort=realPctDif"> &#x21F5;</a></th>
                     </tr>
                 </thead>
                 <tbody>
