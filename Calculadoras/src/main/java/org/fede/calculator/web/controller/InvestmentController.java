@@ -18,11 +18,9 @@ package org.fede.calculator.web.controller;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import org.fede.calculator.service.InvestmentService;
 import org.fede.calculator.service.MoneyService;
