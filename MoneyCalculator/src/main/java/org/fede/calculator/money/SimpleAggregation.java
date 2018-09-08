@@ -44,13 +44,13 @@ public class SimpleAggregation implements Aggregation {
 
     private MoneyAmount avg(List<MoneyAmount> lastValues) {
         return new MoneyAmount(
-                lastValues.stream().map(MoneyAmount::getAmount).reduce(ZERO, (left, right) -> left.add(right))
+                lastValues.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add)
                 .divide(new BigDecimal(lastValues.size()), MathConstants.CONTEXT), lastValues.get(0).getCurrency());
     }
 
     private MoneyAmount sum(List<MoneyAmount> lastValues) {
         return new MoneyAmount(
-                lastValues.stream().map(MoneyAmount::getAmount).reduce(ZERO, (left, right) -> left.add(right)),
+                lastValues.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add),
                 lastValues.get(0).getCurrency());
     }
 
