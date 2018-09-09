@@ -24,7 +24,6 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -219,7 +218,7 @@ public class InvestmentServiceImpl implements InvestmentService {
     @Override
     public DetailedInvestmentReportDTO pastInvestmentsReport(String currency) {
 
-        return this.investmentReport(currency, (item) -> !item.isCurrent() && item.getOut().getDate().before(new Date()), false);
+        return this.investmentReport(currency, (item) -> !item.isCurrent() && item.getOut().getDate().before(new Date()), true);
     }
 
     private static YearMonth adjustDate(Date exactDate) {
@@ -281,8 +280,6 @@ public class InvestmentServiceImpl implements InvestmentService {
                     realAmount));
 
         }
-
-        Collections.sort(report, (InvestmentReportDTO o1, InvestmentReportDTO o2) -> o1.getFrom().compareTo(o2.getFrom()));
 
         final Map<String, InvestmentDTO> subtotals = report.stream()
                 .collect(groupingBy(InvestmentReportDTO::getInvestmentCurrency, reducing(new InvestmentDTO(), this::mapper, this::reducer)));

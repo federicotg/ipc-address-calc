@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class DetailedInvestmentReportDTO {
 
     private final InvestmentDTO total;
-    private final List<InvestmentReportDTO> detail;
+    private List<InvestmentReportDTO> detail;
     private Map<String, InvestmentDTO> subtotals;
 
     public DetailedInvestmentReportDTO(InvestmentDTO total, List<InvestmentReportDTO> detail, Map<String, InvestmentDTO> subtotals) {
@@ -51,14 +51,22 @@ public class DetailedInvestmentReportDTO {
         return subtotals;
     }
 
-    public void sorted(Comparator<InvestmentReportDTO> detailComparator, Comparator<Map.Entry<String, InvestmentDTO>> subtotalComparator) {
+    public DetailedInvestmentReportDTO filtered(String filter){
+        if(!"all".equals(filter)){
+            this.detail = this.detail.stream().filter(dto -> dto.getInvestmentCurrency().equals(filter)).collect(Collectors.toList());
+            this.subtotals = Map.of(filter, this.subtotals.get(filter));
+        }
+        return this;
+    }
+    
+    public DetailedInvestmentReportDTO sorted(Comparator<InvestmentReportDTO> detailComparator, Comparator<Map.Entry<String, InvestmentDTO>> subtotalComparator) {
 
         Collections.sort(this.getDetail(), detailComparator);
 
         this.subtotals = this.getSubtotals().entrySet().stream()
                 .sorted(subtotalComparator.reversed())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (left, right) -> left, LinkedHashMap::new));
-
+        return this;
     }
 
 }

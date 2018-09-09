@@ -13,7 +13,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <org.springframework.version>5.0.2.RELEASE</org.springframework.version>
+        <org.springframework.version>5.0.8.RELEASE</org.springframework.version>
         <spring-security.version>5.0.3.RELEASE</spring-security.version>
         <hibernate-validator-version>6.0.9.Final</hibernate-validator-version>
         <jackson2-version>2.9.3</jackson2-version>

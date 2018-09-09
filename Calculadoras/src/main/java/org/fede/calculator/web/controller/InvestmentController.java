@@ -16,11 +16,14 @@
  */
 package org.fede.calculator.web.controller;
 
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static java.util.stream.Collectors.toMap;
+import java.util.stream.Stream;
 import javax.annotation.Resource;
 import org.fede.calculator.service.InvestmentService;
 import org.fede.calculator.service.MoneyService;
@@ -28,6 +31,7 @@ import org.fede.calculator.web.dto.CurrencyLimitsDTO;
 import org.fede.calculator.web.dto.DetailedInvestmentReportDTO;
 import org.fede.calculator.web.dto.InvestmentDTO;
 import org.fede.calculator.web.dto.InvestmentReportDTO;
+import org.fede.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -48,6 +52,8 @@ import org.springframework.web.servlet.ModelAndView;
 @RequestMapping("/secure/investment")
 public class InvestmentController {
 
+    private static final String URI_TEMPLATE = "./{2}?sort={0}&filter={1}";
+
     private static final Comparator<Map.Entry<String, InvestmentDTO>> SUBTOTAL_COMPARATOR = Comparator.comparing(entry -> entry.getValue().getRelativePct());
 
     private static final Map<String, Comparator<InvestmentReportDTO>> COMPARATORS = Collections.unmodifiableMap(
@@ -55,13 +61,24 @@ public class InvestmentController {
                     "from", Comparator.comparing(InvestmentReportDTO::getFrom),
                     "investment", Comparator.comparing(InvestmentReportDTO::getInitialAmount).reversed(),
                     "return", Comparator.comparing(InvestmentReportDTO::getFinalAmount).reversed(),
-                    //"absDif", Comparator.comparing(InvestmentReportDTO::getDifferenceAmount).reversed(),
                     "pctDif", Comparator.comparing(InvestmentReportDTO::getPct).reversed(),
-                    //"realAbsDif", Comparator.comparing(InvestmentReportDTO::getDifferencePct).reversed(),
                     "realPctDif", Comparator.comparing(InvestmentReportDTO::getDiffPct).reversed()
             ));
 
     private static final Logger LOG = Logger.getLogger(InvestmentController.class.getName());
+
+    private static Map<String, String> filteringUris(DetailedInvestmentReportDTO arsReport, String sort, String path) {
+        return Stream.concat(arsReport.getSubtotals().keySet().stream(), Stream.of("all"))
+                .map(key -> Pair.of(key, MessageFormat.format(URI_TEMPLATE, sort, key, path)))
+                .collect(toMap(Pair::getFirst, Pair::getSecond));
+    }
+
+    private static Map<String, String> sortingUris(String filter, String path) {
+        return COMPARATORS.entrySet()
+                .stream()
+                .map(entry -> Pair.of(entry.getKey(), MessageFormat.format(URI_TEMPLATE, entry.getKey(), filter, path)))
+                .collect(toMap(Pair::getFirst, Pair::getSecond));
+    }
 
     @Autowired
     @Lazy
@@ -88,28 +105,38 @@ public class InvestmentController {
     }
 
     @RequestMapping(value = "/past", method = RequestMethod.GET)
-    public ModelAndView pastInvestment(@RequestParam(name = "sort", required = false, defaultValue = "from") String sort) {
+    public ModelAndView pastInvestment(@RequestParam(name = "sort", required = false, defaultValue = "from") String sort,
+            @RequestParam(name = "filter", required = false, defaultValue = "all") String filter) {
+        final DetailedInvestmentReportDTO arsReport = this.investmentService.pastInvestmentsReport("ARS")
+                .filtered(filter)
+                .sorted(COMPARATORS.get(sort), SUBTOTAL_COMPARATOR);
         return new ModelAndView("dollarInvestment")
-                .addObject("reportARS", this.sorted(this.investmentService.pastInvestmentsReport("ARS"), sort))
-                .addObject("reportUSD", this.sorted(this.investmentService.pastInvestmentsReport("USD"), sort));
-    }
-
-    private DetailedInvestmentReportDTO sorted(DetailedInvestmentReportDTO report, String sort) {
-        report.sorted(COMPARATORS.get(sort), SUBTOTAL_COMPARATOR);
-        return report;
+                .addObject("reportARS", arsReport)
+                .addObject("reportUSD", this.investmentService.pastInvestmentsReport("USD")
+                        .filtered(filter)
+                        .sorted(COMPARATORS.get(sort), SUBTOTAL_COMPARATOR))
+                .addObject("sortingUris", sortingUris(filter, "past"))
+                .addObject("filteringUris", filteringUris(arsReport, sort, "past"));
     }
 
     @RequestMapping(value = "/current", method = RequestMethod.GET)
-    public ModelAndView currentInvestment(@RequestParam(name = "sort", required = false, defaultValue = "from") String sort) {
-
+    public ModelAndView currentInvestment(
+            @RequestParam(name = "sort", required = false, defaultValue = "from") String sort,
+            @RequestParam(name = "filter", required = false, defaultValue = "all") String filter) {
+        final DetailedInvestmentReportDTO arsReport = this.investmentService.currentInvestmentsReport("ARS")
+                .filtered(filter)
+                .sorted(COMPARATORS.get(sort), SUBTOTAL_COMPARATOR);
         return new ModelAndView("dollarInvestment")
-                .addObject("reportARS", this.sorted(this.investmentService.currentInvestmentsReport("ARS"), sort))
-                .addObject("reportUSD", this.sorted(this.investmentService.currentInvestmentsReport("USD"), sort));
+                .addObject("reportARS", arsReport)
+                .addObject("reportUSD", this.investmentService.currentInvestmentsReport("USD")
+                        .filtered(filter)
+                        .sorted(COMPARATORS.get(sort), SUBTOTAL_COMPARATOR))
+                .addObject("sortingUris", sortingUris(filter, "current"))
+                .addObject("filteringUris", filteringUris(arsReport, sort, "current"));
     }
 
     @RequestMapping(value = "/savings", method = RequestMethod.GET)
     public ModelAndView savings() {
-
         final CurrencyLimitsDTO limits = min(
                 this.argService.getLimits(),
                 this.usdService.getLimits(),

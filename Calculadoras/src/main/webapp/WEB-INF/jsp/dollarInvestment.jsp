@@ -19,6 +19,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
+
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="es">
@@ -101,6 +103,7 @@
                     </tbody>
                 </table>
                 <h2>Subtotal</h2>
+                <p><a href="${filteringUris['all']}">Todos</a></p>
                 <table>
                     <thead>
                         <tr>
@@ -116,7 +119,7 @@
 
                         <c:forEach items="${reportARS.subtotals}" var="entry">
                             <tr>
-                                <td>${entry.key}</td>
+                                <td><a href="${filteringUris[entry.key]}">${entry.key}</a></td>
                                 <td><fmt:formatDate value="${entry.value.to}" type="date" /></td>
                                 <td class="valueTd"><fmt:formatNumber type="CURRENCY">${entry.value.initialAmount}</fmt:formatNumber></td>
                                 <td class="valueTd"><fmt:formatNumber type="CURRENCY">${entry.value.finalAmount}</fmt:formatNumber></td>
@@ -124,8 +127,6 @@
                                     <fmt:formatNumber type="CURRENCY">${entry.value.differenceAmount}</fmt:formatNumber>
                                         &nbsp;
                                     <fmt:formatNumber type="PERCENT" minFractionDigits="2">${entry.value.pct}</fmt:formatNumber>
-
-
 
                                     <c:choose>
                                         <c:when test="${entry.value.pct gt 0.05}"><strong>&#x21C8;</strong></c:when>
@@ -153,13 +154,13 @@
                 <thead>
                     <tr>
                         <th>Moneda</th>
-                        <th>Desde <a href="?sort=from"> &#x21F5;</a></th>
+                        <th>Desde <a href="${sortingUris['from']}"><strong>&#x21F5;</strong></a></th>
                         <th>Hasta</th>
-                        <th>Inversión <a href="?sort=investment"> &#x21F5;</a></th>
-                        <th>Retorno <a href="?sort=return"> &#x21F5;</a></th>
-                        <th>+/- <a href="?sort=pctDif"> &#x21F5;</a></th>
+                        <th>Inversión <a href="${sortingUris['investment']}"><strong>&#x21F5;</strong></a></th>
+                        <th>Retorno <a href="${sortingUris['return']}"><strong>&#x21F5;</strong></a></th>
+                        <th>+/- <a href="${sortingUris['pctDif']}"><strong>&#x21F5;</strong></a></th>
                         <th>Inf.</th>
-                        <th>+/- Real <a href="?sort=realPctDif"> &#x21F5;</a></th>
+                        <th>+/- Real <a href="${sortingUris['realPctDif']}"><strong>&#x21F5;</strong></a></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -233,7 +234,6 @@
                             <c:choose><c:when test="${reportUSD.total.pct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
                                 <fmt:formatNumber type="PERCENT" minFractionDigits="2">${reportUSD.total.pct}</fmt:formatNumber>
 
-
                                 <c:choose>
                                     <c:when test="${reportUSD.total.pct gt 0.05}"><strong>&#x21C8;</strong></c:when>
                                     <c:when test="${reportUSD.total.pct gt 0}"><strong>&#x2197;</strong></c:when>
@@ -242,7 +242,6 @@
                                     <c:otherwise><strong>&#x2198;</strong></c:otherwise>
                                 </c:choose>
 
-
                             </td>
                         </tr>
                     </tbody>
@@ -250,6 +249,7 @@
 
 
                 <h2>Subtotal</h2>
+                <p><a href="${filteringUris['all']}">Todos</a></p>
                 <table>
                     <thead>
                         <tr>
@@ -264,7 +264,7 @@
 
                         <c:forEach items="${reportUSD.subtotals}" var="entry">
                             <tr>
-                                <td>${entry.key}</td>
+                                <td><a href="${filteringUris[entry.key]}">${entry.key}</a></td>
                                 <td><fmt:formatDate value="${entry.value.to}" type="date" /></td>
                                 <td class="valueTd"><fmt:formatNumber type="CURRENCY" currencySymbol="USD">${entry.value.initialAmount}</fmt:formatNumber></td>
                                 <td class="valueTd"><fmt:formatNumber type="CURRENCY" currencySymbol="USD">${entry.value.finalAmount}</fmt:formatNumber></td>
@@ -301,15 +301,15 @@
             </c:if>
             <table>
                 <thead>
-                    <tr>
+ <tr>
                         <th>Moneda</th>
-                        <th>Desde <a href="?sort=from"> &#x21F5;</a></th>
+                        <th>Desde <a href="${sortingUris['from']}"><strong>&#x21F5;</strong></a></th>
                         <th>Hasta</th>
-                        <th>Inversión <a href="?sort=investment"> &#x21F5;</a></th>
-                        <th>Retorno <a href="?sort=return"> &#x21F5;</a></th>
-                        <th>+/- <a href="?sort=pctDif"> &#x21F5;</a></th>
+                        <th>Inversión <a href="${sortingUris['investment']}"><strong>&#x21F5;</strong></a></th>
+                        <th>Retorno <a href="${sortingUris['return']}"><strong>&#x21F5;</strong></a></th>
+                        <th>+/- <a href="${sortingUris['pctDif']}"><strong>&#x21F5;</strong></a></th>
                         <th>Inf.</th>
-                        <th>+/- Real <a href="?sort=realPctDif"> &#x21F5;</a></th>
+                        <th>+/- Real <a href="${sortingUris['realPctDif']}"><strong>&#x21F5;</strong></a></th>
                     </tr>
                 </thead>
                 <tbody>

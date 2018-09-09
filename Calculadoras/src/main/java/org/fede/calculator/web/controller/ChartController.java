@@ -201,6 +201,11 @@ public class ChartController {
     public ModelAndView savingsDetail() {
         return this.buildExpenseModelAndView("Ahorros", this.savingsService.getSeries(), "savingsDetailChart", 1);
     }
+    
+    @RequestMapping(value = "savingsDetailedArs", method = GET)
+    public ModelAndView savingsDetailArs() {
+        return this.buildExpenseModelAndView("Ahorros", this.savingsService.getSeries(), "savingsDetailChartARS", 1);
+    }
 
     @RequestMapping(value = "expenses", method = GET)
     public ModelAndView expenses() {
@@ -311,6 +316,16 @@ public class ChartController {
         }
         return this.savingsService.renderAbsoluteChart("Ahorros", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "USD");
     }
+    
+    @ResponseBody
+    @RequestMapping(value = "savingsDetailChartARS", method = GET)
+    public CanvasJSChartDTO savingsChartArs(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors) {
+        if (errors.hasErrors()) {
+            return this.notOkResponse();
+        }
+        return this.savingsService.renderAbsoluteChart("Ahorros", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "ARS");
+    }
+    
 
     @ResponseBody
     @RequestMapping(value = "consortiumExpensesChart", method = GET)
