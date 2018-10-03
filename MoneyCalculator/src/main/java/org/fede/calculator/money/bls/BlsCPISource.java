@@ -17,7 +17,6 @@
 package org.fede.calculator.money.bls;
 
 import java.io.IOException;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *

@@ -17,14 +17,13 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
+import static org.fede.calculator.money.MathConstants.CONTEXT;
 
 /**
  *
@@ -126,7 +125,7 @@ public class Investment {
         return changeCurrency(this.getMoneyAmount(), targetCurrency, date)
                 .add(
                         changeCurrency(
-                                interest(this.getInitialMoneyAmount(), this.getInterest(), this.getInitialDate(), date),
+                                interest(this.getMoneyAmount(), this.getInterest(), this.getInitialDate(), date),
                                 targetCurrency,
                                 date)
                 );

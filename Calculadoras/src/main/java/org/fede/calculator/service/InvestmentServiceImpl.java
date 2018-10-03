@@ -218,7 +218,7 @@ public class InvestmentServiceImpl implements InvestmentService {
     @Override
     public DetailedInvestmentReportDTO pastInvestmentsReport(String currency) {
 
-        return this.investmentReport(currency, (item) -> !item.isCurrent() && item.getOut().getDate().before(new Date()), true);
+        return this.investmentReport(currency, (item) -> !item.isCurrent() && item.getOut().getDate().before(new Date()), false);
     }
 
     private static YearMonth adjustDate(Date exactDate) {
@@ -309,7 +309,7 @@ public class InvestmentServiceImpl implements InvestmentService {
                 left.getCurrency(),
                 left.getInitialAmount().add(right.getInitialAmount()),
                 left.getFinalAmount().add(right.getFinalAmount()),
-                left.getTo());
+                max(left.getTo(), right.getTo()));
 
     }
 
@@ -320,6 +320,10 @@ public class InvestmentServiceImpl implements InvestmentService {
                 in.getRealInvestedAmount(),
                 in.getFinalAmount(),
                 in.getTo());
+    }
+    
+    private static Date max(Date left, Date right){
+        return left.compareTo(right) < 0 ? right : left;
     }
 
 }

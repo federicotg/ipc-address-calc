@@ -19,7 +19,6 @@ package org.fede.calculator.money.bls;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 
 /**
  *

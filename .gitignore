@@ -1,0 +1,12 @@
+/MoneyCalculator/target/
+/Calculadoras/target/
+/Calculadoras/src/main/resources/security.properties
+/MoneyCalculator/src/main/resources/investments.json
+/MoneyCalculator/src/main/resources/income/
+/MoneyCalculator/src/main/resources/dolares.json
+/MoneyCalculator/src/main/resources/saving/
+/MoneyCalculator/src/main/resources/plazofijo.json
+/MoneyCalculator/src/main/resources/expense/
+/Calculadoras/nbproject/
+MoneyCalculator/.classpath
+MoneyCalculator/.project
