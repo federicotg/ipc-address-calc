@@ -9332,12 +9332,18 @@
                         "value": "252.146",
                         "footnotes": [{}]
                     },
-
                     {
                         "year": "2018",
                         "period": "M09",
                         "periodName": "September",
                         "value": "252.439",
+                        "footnotes": [{}]
+                    },
+                    {
+                        "year": "2018",
+                        "period": "M10",
+                        "periodName": "October",
+                        "value": "252.885",
                         "footnotes": [{}]
                     }
 
