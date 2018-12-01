@@ -1255,5 +1255,6 @@
     { "year": "2018", "month": "7", "value": 28.25 },
     { "year": "2018", "month": "8", "value": 37.50 },
     { "year": "2018", "month": "9", "value": 41.88 },
-    { "year": "2018", "month": 10, "value": 36.80 }
+    { "year": "2018", "month": 10, "value": 36.80 },
+    { "year": "2018", "month": 11, "value": 38.60 }
 ]
