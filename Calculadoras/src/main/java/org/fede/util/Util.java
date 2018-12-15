@@ -18,6 +18,7 @@ package org.fede.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -94,7 +95,7 @@ public class Util {
 
     private static MoneyAmountSeries read(String name) {
 
-        try (InputStream is = Util.class.getResourceAsStream("/" + name)) {
+        try (InputStream is = new FileInputStream("/home/fede/Sync/app-resources/" + name)) {
 
             final Set<String> usdSeries = Stream.of("fci/CONLLBU-AR.json", "fci/COINLAT-AR.json").collect(Collectors.toSet());
 

@@ -33,7 +33,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
  */
 @Configuration
 @EnableWebSecurity
-@PropertySource("classpath:security.properties")
+@PropertySource("file:///home/fede/Sync/app-resources/security.properties")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${myuserid}")

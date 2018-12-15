@@ -17,6 +17,7 @@
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -114,10 +115,19 @@ public class InvestmentTest {
             });
         }
     }
+    
+    private List<Investment> readExt(String name) throws IOException {
+        try (InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
+            ObjectMapper om = new ObjectMapper();
+
+            return om.readValue(in, new TypeReference<List<Investment>>() {
+            });
+        }
+    }
 
     @Test
     public void listStock() throws IOException {
-        List<Investment> investmets = this.read("investments.json");
+        List<Investment> investmets = this.readExt("investments.json");
 
         final Collector<BigDecimal, ?, BigDecimal> reducer = Collectors.reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
 

@@ -18,6 +18,7 @@ package org.fede.calculator.money.bls;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -38,7 +39,7 @@ public class JSONBlsCPISource implements BlsCPISource {
     @Override
     public BlsResponse getResponse(int year) throws IOException {
         if (this.list == null) {
-            try (InputStream in = JSONBlsCPISource.class.getResourceAsStream("/" + name)) {
+            try (InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name)) {
                 this.list = new ObjectMapper().readValue(in, new TypeReference<List<BlsResponse>>() {
                 });
             }

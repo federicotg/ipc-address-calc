@@ -18,6 +18,8 @@ package org.fede.calculator.money.series;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -42,7 +44,7 @@ public class SeriesReader {
     }
 
     public static <T> T read(String name, TypeReference<T> typeReference) {
-        try (InputStream in = SeriesReader.class.getResourceAsStream("/" + name);) {
+        try (InputStream in = new FileInputStream(new File("/home/fede/Sync/app-resources/"+name));) {
             return OM.readValue(in, typeReference);
         } catch (IOException ioEx) {
             throw new IllegalArgumentException("Could not read series from resource " + name, ioEx);
