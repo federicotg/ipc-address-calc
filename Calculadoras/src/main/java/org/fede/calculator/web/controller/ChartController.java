@@ -287,7 +287,7 @@ public class ChartController {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
-        return this.incomesService.renderAbsoluteChart("Ingresos", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "ARS");
+        return this.incomesService.renderAbsoluteChart("Ingresos", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "USD");
     }
 
     @ResponseBody
@@ -296,7 +296,7 @@ public class ChartController {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
-        return this.expenseService.renderAbsoluteChart("Gastos", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "ARS");
+        return this.expenseService.renderAbsoluteChart("Gastos", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "USD");
     }
 
     @ResponseBody
@@ -305,7 +305,7 @@ public class ChartController {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
-        return this.fciService.renderAbsoluteChart("Consultatio Plus F.C.I.", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "ARS");
+        return this.fciService.renderAbsoluteChart("Consultatio Plus F.C.I.", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "USD");
     }
 
     @ResponseBody
@@ -333,7 +333,7 @@ public class ChartController {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
-        return this.consortiumExpenseService.renderAbsoluteChart("Gastos del Consorcio", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "ARS");
+        return this.consortiumExpenseService.renderAbsoluteChart("Gastos del Consorcio", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "USD");
     }
 
     @ResponseBody
@@ -342,7 +342,7 @@ public class ChartController {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
-        return this.expenseService.renderIncomeRelativeChart("Gastos / Ingresos", dto.getMonths(), dto.getSeries(), "ARS");
+        return this.expenseService.renderIncomeRelativeChart("Gastos / Ingresos", dto.getMonths(), dto.getSeries(), "USD");
     }
 
     @ResponseBody

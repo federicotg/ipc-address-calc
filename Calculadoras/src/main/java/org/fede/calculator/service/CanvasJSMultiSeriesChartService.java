@@ -166,14 +166,14 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                     MoneyAmountSeries eachSeries = readSeries(s.getSeriesName()).exchangeInto(currencyCode);
 
                     if (sumSeries == null) {
-                        sumSeries = eachSeries;
+                        sumSeries = eachSeries.exchangeInto("USD");
                     } else {
                         sumSeries = sumSeries.add(eachSeries);
                     }
                 }
             }
 
-            final MoneyAmountSeries totalIncome = Util.sumSeries("ARS", this.incomeSeries);
+            final MoneyAmountSeries totalIncome = Util.sumSeries("USD", this.incomeSeries);
             final MoneyAmountSeries percentSeries = new SortedMapMoneyAmountSeries(sumSeries.getCurrency());
             BigDecimal oneCent = new BigDecimal("0.01");
             
@@ -193,7 +193,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                     "line",
                     this.colors.get(0),
                     "Gastos / Ingresos",
-                    this.nominalPesosDatapointAssembler.getDatapoints(months, percentSeries)));
+                    this.realUSDDatapointAssembler.getDatapoints(months, percentSeries)));
         }
 
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
@@ -201,7 +201,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
         dto.setTitle(title);
         dto.setXAxisTitle("Fecha");
         CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
-        yAxis.setTitle("Pesos Reales");
+        yAxis.setTitle("USD Reales");
         yAxis.setValueFormatString("#%");
         dto.setAxisY(yAxis);
         dto.setData(seriesList);

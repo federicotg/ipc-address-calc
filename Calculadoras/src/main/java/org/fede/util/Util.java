@@ -55,6 +55,8 @@ public class Util {
 
     private static final ObjectMapper OM = new ObjectMapper();
 
+    private static final Set<String> USD_SERIES = Stream.of("fci/CONLLBU-AR.json", "fci/COINLAT-AR.json").collect(Collectors.toSet());
+
     private static final Map<String, MoneyAmountSeries> CACHE = new HashMap<>();
 
     public static <T> String list(Collection<T> elements) {
@@ -97,13 +99,9 @@ public class Util {
 
         try (InputStream is = new FileInputStream("/home/fede/Sync/app-resources/" + name)) {
 
-            final Set<String> usdSeries = Stream.of("fci/CONLLBU-AR.json", "fci/COINLAT-AR.json").collect(Collectors.toSet());
-
             JSONSeries series;
             if (name.startsWith("fci/")) {
-                String currency = usdSeries.contains(name) ? "USD" : "ARS";
-                series = readConsultatioSeries(is, OM, currency);
-
+                series = readConsultatioSeries(is, OM, USD_SERIES.contains(name) ? "USD" : "ARS");
             } else {
                 series = OM.readValue(is, JSONSeries.class);
             }
