@@ -171,7 +171,7 @@ public class Investment {
     }
     
     public boolean isCurrent() {
-        return this.getOut() == null;
+        return this.getOut() == null || this.getOut().getDate().after(new Date());
     }
 
 }

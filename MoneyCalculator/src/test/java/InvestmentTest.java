@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
  *
@@ -26,6 +27,7 @@ import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,11 +67,12 @@ public class InvestmentTest {
         }
     }
 
-    //@Test
+    // @Test
     public void pf() {
 
         assertFalse(inv.isEmpty());
-        //final String message = "Invertí {0} el {1}. El {2} cobré {3}. En {4} del {5} puse {6} y recuperé {7}. Gané {8}";
+        // final String message = "Invertí {0} el {1}. El {2} cobré {3}. En {4} del {5}
+        // puse {6} y recuperé {7}. Gané {8}";
         final String message = "{0}\t{1}\t{2}";
 
         for (Investment investment : inv) {
@@ -77,13 +80,17 @@ public class InvestmentTest {
 
                 if (investment.getIn().getCurrency().equals(investment.getOut().getCurrency())
                         && investment.getIn().getCurrency().equals("ARS")) {
-                    MoneyAmount nominalIn = new MoneyAmount(investment.getIn().getAmount(), investment.getIn().getCurrency());
-                    MoneyAmount nominalOut = new MoneyAmount(investment.getOut().getAmount(), investment.getIn().getCurrency());
+                    MoneyAmount nominalIn = new MoneyAmount(investment.getIn().getAmount(),
+                            investment.getIn().getCurrency());
+                    MoneyAmount nominalOut = new MoneyAmount(investment.getOut().getAmount(),
+                            investment.getIn().getCurrency());
 
-                    MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getIn().getDate(), investment.getOut().getDate());
+                    MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getIn().getDate(),
+                            investment.getOut().getDate());
                     String outDate = df.format(investment.getOut().getDate());
 
-                    System.out.println(MessageFormat.format(message, outDate, this.nf.format(realIn.getAmount()), this.nf.format(nominalOut.getAmount().subtract(realIn.getAmount()))));
+                    System.out.println(MessageFormat.format(message, outDate, this.nf.format(realIn.getAmount()),
+                            this.nf.format(nominalOut.getAmount().subtract(realIn.getAmount()))));
 
                 }
             }
@@ -97,13 +104,11 @@ public class InvestmentTest {
 
         MoneyAmount oneUSDIn1951PurchasingPower = Inflation.USD_INFLATION.adjust(oneDollar, 2016, 5, 1951, 9);
 
-        MoneyAmount oneUSDIn1951PurchasingPowerInPesos = ForeignExchanges.getForeignExchange("USD", "ARS").exchange(
-                oneUSDIn1951PurchasingPower,
-                "ARS",
-                2016,
-                5);
+        MoneyAmount oneUSDIn1951PurchasingPowerInPesos = ForeignExchanges.getForeignExchange("USD", "ARS")
+                .exchange(oneUSDIn1951PurchasingPower, "ARS", 2016, 5);
 
-        MoneyAmount pesosBackThen = Inflation.ARS_INFLATION.adjust(oneUSDIn1951PurchasingPowerInPesos, 2016, 5, 1951, 9);
+        MoneyAmount pesosBackThen = Inflation.ARS_INFLATION.adjust(oneUSDIn1951PurchasingPowerInPesos, 2016, 5, 1951,
+                9);
 
     }
 
@@ -115,7 +120,7 @@ public class InvestmentTest {
             });
         }
     }
-    
+
     private List<Investment> readExt(String name) throws IOException {
         try (InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
             ObjectMapper om = new ObjectMapper();
@@ -129,26 +134,21 @@ public class InvestmentTest {
     public void listStock() throws IOException {
         List<Investment> investmets = this.readExt("investments.json");
 
-        final Collector<BigDecimal, ?, BigDecimal> reducer = Collectors.reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
+        final Collector<BigDecimal, ?, BigDecimal> reducer = Collectors
+                .reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
 
-        final Collector<Investment, ?, BigDecimal> mapper = Collectors.mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer);
+        final Collector<Investment, ?, BigDecimal> mapper = Collectors
+                .mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer);
 
         NumberFormat nf = NumberFormat.getNumberInstance();
         nf.setMinimumFractionDigits(6);
 
-        investmets.stream()
-                .filter(Investment::isCurrent)
-                .collect(Collectors.groupingBy(Investment::getCurrency, mapper))
-                .entrySet()
-                .stream()
-                .forEach(e -> System.out.println(MessageFormat.format("{0}: {1}", e.getKey(), nf.format(e.getValue()))));
+        investmets.stream().filter(Investment::isCurrent)
+                .collect(Collectors.groupingBy(Investment::getCurrency, mapper)).entrySet().stream().forEach(
+                        e -> System.out.println(MessageFormat.format("{0}: {1}", e.getKey(), nf.format(e.getValue()))));
 
-        Stream.concat(Stream.of(""),
-                investmets.stream()
-                        .filter(Investment::isCurrent)
-                        .filter(inv -> "CAPLUSA".equals(inv.getCurrency()))
-                        .map(this::format))
-                .forEach(System.out::println);
+        Stream.concat(Stream.of(""), investmets.stream().filter(Investment::isCurrent)
+                .filter(inv -> "CAPLUSA".equals(inv.getCurrency())).map(this::format)).forEach(System.out::println);
 
     }
 
@@ -156,8 +156,25 @@ public class InvestmentTest {
         NumberFormat nf = NumberFormat.getNumberInstance();
         nf.setMinimumFractionDigits(6);
 
-        return MessageFormat.format("{0} {1}",
-                i.getInitialDate(), nf.format(i.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP)));
+        return MessageFormat.format("{0} {1}", i.getInitialDate(),
+                nf.format(i.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP)));
+
+    }
+
+    @Test
+    public void profit() throws IOException {
+        List<Investment> investmets = this.readExt("investments.json");
+
+        System.out.println("\n\nRenta de PF 2018: " + this.profit(investmets, InvestmentType.PF, 2018));
+        System.out.println("Renta de FCI 2018: " + this.profit(investmets, InvestmentType.FCI, 2018));
+    }
+
+    private BigDecimal profit(List<Investment> investmets, InvestmentType it, int year) {
+        return investmets.stream().filter(inv -> inv.getOut() != null
+                && inv.getOut().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() == year)
+                .filter(inv -> inv.getType().equals(it))
+                .map(inv -> inv.getOut().getAmount().subtract(inv.getIn().getAmount()))
+                .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
 
     }
 
