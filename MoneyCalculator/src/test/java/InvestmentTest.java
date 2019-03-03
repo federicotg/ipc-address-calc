@@ -143,12 +143,24 @@ public class InvestmentTest {
         NumberFormat nf = NumberFormat.getNumberInstance();
         nf.setMinimumFractionDigits(6);
 
-        investmets.stream().filter(Investment::isCurrent)
-                .collect(Collectors.groupingBy(Investment::getCurrency, mapper)).entrySet().stream().forEach(
-                        e -> System.out.println(MessageFormat.format("{0}: {1}", e.getKey(), nf.format(e.getValue()))));
+        Stream.concat(
+                Stream.of(""),
+                investmets
+                        .stream()
+                        .filter(Investment::isCurrent)
+                        .collect(Collectors.groupingBy(Investment::getCurrency, mapper))
+                        .entrySet()
+                        .stream()
+                        .map(e -> MessageFormat.format("{0}: {1}", e.getKey(), nf.format(e.getValue())))
+        ).forEach(System.out::println);
 
-        Stream.concat(Stream.of(""), investmets.stream().filter(Investment::isCurrent)
-                .filter(inv -> "CAPLUSA".equals(inv.getCurrency())).map(this::format)).forEach(System.out::println);
+        Stream.concat(
+                Stream.of(""), 
+                investmets
+                        .stream()
+                        .filter(Investment::isCurrent)
+                        .filter(i -> "CAPLUSA".equals(i.getCurrency())).map(this::format)
+        ).forEach(System.out::println);
 
     }
 
