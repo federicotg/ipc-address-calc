@@ -67,7 +67,7 @@
     <body>
         <%@include file="../jspf/menu.jspf" %>
         <h1>Inversión</h1>
-        <article id="reportARS">
+        <!--article id="reportARS">
             <c:if test="${not empty reportARS.total}">
                 <h2>Total</h2>
                 <table>
@@ -210,7 +210,7 @@
                     </tr>
                 </tfoot>
             </table>
-        </article>
+        </article-->
         <article id="reportUSD">
             <c:if test="${not empty reportUSD.total}">
                 <h2>Total</h2>
