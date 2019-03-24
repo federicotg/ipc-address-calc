@@ -67,150 +67,7 @@
     <body>
         <%@include file="../jspf/menu.jspf" %>
         <h1>Inversión</h1>
-        <!--article id="reportARS">
-            <c:if test="${not empty reportARS.total}">
-                <h2>Total</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Hasta</th>
-                            <th>Inversión</th>
-                            <th>Retorno</th>
-                            <th>+/-</th>
-                            <th>+/- %</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><fmt:formatDate value="${reportARS.total.to}" type="date" /></td>
-                            <td class="valueTd"><fmt:formatNumber type="CURRENCY">${reportARS.total.initialAmount}</fmt:formatNumber></td>
-                            <td class="valueTd"><fmt:formatNumber type="CURRENCY">${reportARS.total.finalAmount}</fmt:formatNumber></td>
-                            <c:choose><c:when test="${reportARS.total.differenceAmount ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
-                                <fmt:formatNumber type="CURRENCY">${reportARS.total.differenceAmount}</fmt:formatNumber></td>
-                            <c:choose><c:when test="${reportARS.total.pct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
-                                <fmt:formatNumber type="PERCENT" minFractionDigits="2">${reportARS.total.pct}</fmt:formatNumber>
-
-                                <c:choose>
-                                    <c:when test="${reportARS.total.pct gt 0.05}"><strong>&#x21C8;</strong></c:when>
-                                    <c:when test="${reportARS.total.pct gt 0}"><strong>&#x2197;</strong></c:when>
-                                    <c:when test="${reportARS.total.pct.unscaledValue() == 0}"><strong>&#x3d;</strong></c:when>
-                                    <c:when test="${reportARS.total.pct lt -0.05}"><strong>&#x21CA;</strong></c:when>
-                                    <c:otherwise><strong>&#x2198;</strong></c:otherwise>
-                                </c:choose>
-                            </td>
-
-                        </tr>
-                    </tbody>
-                </table>
-                <h2>Subtotal</h2>
-                <p><a href="${filteringUris['all']}">Todos</a></p>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Moneda</th>
-                            <th>Hasta</th>
-                            <th>Inversión</th>
-                            <th>Retorno</th>
-                            <th>+/-</th>
-                            <th>Peso %</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                        <c:forEach items="${reportARS.subtotals}" var="entry">
-                            <tr>
-                                <td><a href="${filteringUris[entry.key]}">${entry.key}</a></td>
-                                <td><fmt:formatDate value="${entry.value.to}" type="date" /></td>
-                                <td class="valueTd"><fmt:formatNumber type="CURRENCY">${entry.value.initialAmount}</fmt:formatNumber></td>
-                                <td class="valueTd"><fmt:formatNumber type="CURRENCY">${entry.value.finalAmount}</fmt:formatNumber></td>
-                                <c:choose><c:when test="${entry.value.differenceAmount ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
-                                    <fmt:formatNumber type="CURRENCY">${entry.value.differenceAmount}</fmt:formatNumber>
-                                        &nbsp;
-                                    <fmt:formatNumber type="PERCENT" minFractionDigits="2">${entry.value.pct}</fmt:formatNumber>
-
-                                    <c:choose>
-                                        <c:when test="${entry.value.pct gt 0.05}"><strong>&#x21C8;</strong></c:when>
-                                        <c:when test="${entry.value.pct gt 0}"><strong>&#x2197;</strong></c:when>
-                                        <c:when test="${entry.value.pct.unscaledValue() == 0}"><strong>&#x3d;</strong></c:when>
-                                        <c:when test="${entry.value.pct lt -0.05}"><strong>&#x21CA;</strong></c:when>
-                                        <c:otherwise><strong>&#x2198;</strong></c:otherwise>
-                                    </c:choose>
-
-
-                                </td>
-                                <td class="valueTd"><fmt:formatNumber type="PERCENT" minFractionDigits="2">${entry.value.relativePct}</fmt:formatNumber></td>
-
-
-
-
-                                </tr>
-                        </c:forEach>
-                    </tbody>
-                </table>                            
-
-                <h2>Detalles</h2>
-            </c:if> 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Moneda</th>
-                        <th>Desde <a href="${sortingUris['from']}"><strong>&#x21F5;</strong></a></th>
-                        <th>Hasta</th>
-                        <th>Inversión <a href="${sortingUris['investment']}"><strong>&#x21F5;</strong></a></th>
-                        <th>Retorno <a href="${sortingUris['return']}"><strong>&#x21F5;</strong></a></th>
-                        <th>+/- <a href="${sortingUris['pctDif']}"><strong>&#x21F5;</strong></a></th>
-                        <th>Inf.</th>
-                        <th>+/- Real <a href="${sortingUris['realPctDif']}"><strong>&#x21F5;</strong></a></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:forEach items="${reportARS.detail}" var="item">
-                        <tr>
-                            <td>${item.investmentCurrency}</td>
-                            <td><fmt:formatDate value="${item.from}" type="date" /></td>
-                            <td><fmt:formatDate value="${item.to}" type="date" /></td>
-                            <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.initialAmount}</fmt:formatNumber></td>
-                            <td class="valueTd"><fmt:formatNumber type="CURRENCY">${item.finalAmount}</fmt:formatNumber></td>
-                            <c:choose><c:when test="${item.differenceAmount ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
-                                <fmt:formatNumber type="CURRENCY">${item.differenceAmount}</fmt:formatNumber>
-                                    &nbsp;
-                                <fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.pct}</fmt:formatNumber></td>
-                                <td class="valueTd">
-                                <fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.inflationPct}</fmt:formatNumber></td>
-                            <c:choose><c:when test="${item.differencePct ge 0}"><td class="valueTd win"></c:when><c:otherwise><td class="valueTd loss"></c:otherwise></c:choose>
-                                <fmt:formatNumber type="CURRENCY" minFractionDigits="2">${item.differencePct}</fmt:formatNumber>
-
-                                    &nbsp;
-
-                                <fmt:formatNumber type="PERCENT" minFractionDigits="2">${item.diffPct}</fmt:formatNumber>
-                                <c:choose>
-                                    <c:when test="${item.diffPct gt 0.05}"><strong>&#x21C8;</strong></c:when>
-                                    <c:when test="${item.diffPct gt 0}"><strong>&#x2197;</strong></c:when>
-                                    <c:when test="${item.diffPct.unscaledValue() == 0}"><strong>&#x3d;</strong></c:when>
-                                    <c:when test="${item.diffPct lt -0.05}"><strong>&#x21CA;</strong></c:when>
-                                    <c:otherwise><strong>&#x2198;</strong></c:otherwise>
-                                </c:choose>
-
-
-
-                            </td>
-                        </tr>
-                    </c:forEach>
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th>Moneda</th>
-                        <th>Desde</th>
-                        <th>Hasta</th>
-                        <th>Inversión</th>
-                        <th>Retorno</th>
-                        <th>+/-</th>
-                        <th>Inf.</th>
-                        <th>+/- Real</th>
-                    </tr>
-                </tfoot>
-            </table>
-        </article-->
+        
         <article id="reportUSD">
             <c:if test="${not empty reportUSD.total}">
                 <h2>Total</h2>
@@ -302,9 +159,9 @@
             <table>
                 <thead>
  <tr>
-                        <th>Moneda</th>
+                        <th>Moneda <a href="${sortingUris['currency']}"><strong>&#x21F5;</strong></a></th>
                         <th>Desde <a href="${sortingUris['from']}"><strong>&#x21F5;</strong></a></th>
-                        <th>Hasta</th>
+                        <th>Hasta <a href="${sortingUris['to']}"><strong>&#x21F5;</strong></a></th>
                         <th>Inversión <a href="${sortingUris['investment']}"><strong>&#x21F5;</strong></a></th>
                         <th>Retorno <a href="${sortingUris['return']}"><strong>&#x21F5;</strong></a></th>
                         <th>+/- <a href="${sortingUris['pctDif']}"><strong>&#x21F5;</strong></a></th>

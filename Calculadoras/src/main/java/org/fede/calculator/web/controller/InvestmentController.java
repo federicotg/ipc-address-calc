@@ -58,7 +58,9 @@ public class InvestmentController {
 
     private static final Map<String, Comparator<InvestmentReportDTO>> COMPARATORS = Collections.unmodifiableMap(
             Map.of(
+                "currency", Comparator.comparing(InvestmentReportDTO::getCurrency),
                     "from", Comparator.comparing(InvestmentReportDTO::getFrom),
+                    "to", Comparator.comparing(InvestmentReportDTO::getTo, Comparator.nullsFirst(Comparator.naturalOrder())),
                     "investment", Comparator.comparing(InvestmentReportDTO::getInitialAmount).reversed(),
                     "return", Comparator.comparing(InvestmentReportDTO::getFinalAmount).reversed(),
                     "pctDif", Comparator.comparing(InvestmentReportDTO::getPct).reversed(),
@@ -107,32 +109,27 @@ public class InvestmentController {
     @RequestMapping(value = "/past", method = RequestMethod.GET)
     public ModelAndView pastInvestment(@RequestParam(name = "sort", required = false, defaultValue = "from") String sort,
             @RequestParam(name = "filter", required = false, defaultValue = "all") String filter) {
-        final DetailedInvestmentReportDTO arsReport = this.investmentService.pastInvestmentsReport("ARS")
+        final DetailedInvestmentReportDTO usdReport = this.investmentService.pastInvestmentsReport("USD")
                 .filtered(filter)
                 .sorted(COMPARATORS.get(sort), SUBTOTAL_COMPARATOR);
         return new ModelAndView("dollarInvestment")
-                .addObject("reportARS", arsReport)
-                .addObject("reportUSD", this.investmentService.pastInvestmentsReport("USD")
-                        .filtered(filter)
-                        .sorted(COMPARATORS.get(sort), SUBTOTAL_COMPARATOR))
+                //.addObject("reportARS", arsReport)
+                .addObject("reportUSD", usdReport)
                 .addObject("sortingUris", sortingUris(filter, "past"))
-                .addObject("filteringUris", filteringUris(arsReport, sort, "past"));
+                .addObject("filteringUris", filteringUris(usdReport, sort, "past"));
     }
 
     @RequestMapping(value = "/current", method = RequestMethod.GET)
     public ModelAndView currentInvestment(
             @RequestParam(name = "sort", required = false, defaultValue = "from") String sort,
             @RequestParam(name = "filter", required = false, defaultValue = "all") String filter) {
-        final DetailedInvestmentReportDTO arsReport = this.investmentService.currentInvestmentsReport("ARS")
+        final DetailedInvestmentReportDTO usdReport = this.investmentService.currentInvestmentsReport("USD")
                 .filtered(filter)
                 .sorted(COMPARATORS.get(sort), SUBTOTAL_COMPARATOR);
         return new ModelAndView("dollarInvestment")
-                .addObject("reportARS", arsReport)
-                .addObject("reportUSD", this.investmentService.currentInvestmentsReport("USD")
-                        .filtered(filter)
-                        .sorted(COMPARATORS.get(sort), SUBTOTAL_COMPARATOR))
+                .addObject("reportUSD", usdReport)
                 .addObject("sortingUris", sortingUris(filter, "current"))
-                .addObject("filteringUris", filteringUris(arsReport, sort, "current"));
+                .addObject("filteringUris", filteringUris(usdReport, sort, "current"));
     }
 
     @RequestMapping(value = "/savings", method = RequestMethod.GET)
