@@ -106,6 +106,10 @@ public class InvestmentController {
         return comparator.compare(left, right) < 0 ? left : right;
     }
 
+
+    private static <T> T max(T left, T right, Comparator<T> comparator) {
+        return comparator.compare(left, right) < 0 ? right : left;
+    }
     @RequestMapping(value = "/past", method = RequestMethod.GET)
     public ModelAndView pastInvestment(@RequestParam(name = "sort", required = false, defaultValue = "from") String sort,
             @RequestParam(name = "filter", required = false, defaultValue = "all") String filter) {
@@ -134,7 +138,7 @@ public class InvestmentController {
 
     @RequestMapping(value = "/savings", method = RequestMethod.GET)
     public ModelAndView savings() {
-        final CurrencyLimitsDTO limits = min(
+        final CurrencyLimitsDTO limits = max(
                 this.argService.getLimits(),
                 this.usdService.getLimits(),
                 Comparator.comparing(CurrencyLimitsDTO::getReferenceYear)
