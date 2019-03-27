@@ -28,6 +28,7 @@ import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,8 @@ import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentType;
+import org.fede.util.Pair;
+
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -130,6 +133,13 @@ public class InvestmentTest {
         }
     }
 
+    private static int compareGroups(Pair<Pair<String,String>,BigDecimal> left, Pair<Pair<String,String>,BigDecimal> right){
+        int comparison = left.getFirst().getFirst().compareTo(right.getFirst().getFirst());
+        return comparison != 0 ? comparison : left.getFirst().getSecond().compareTo(right.getFirst().getSecond());
+    }
+
+
+
     @Test
     public void listStock() throws IOException {
         List<Investment> investmets = this.readExt("investments.json");
@@ -148,19 +158,21 @@ public class InvestmentTest {
                 investmets
                         .stream()
                         .filter(Investment::isCurrent)
-                        .collect(Collectors.groupingBy(Investment::getCurrency, mapper))
+                        .collect(Collectors.groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
                         .entrySet()
                         .stream()
-                        .map(e -> MessageFormat.format("{0}: {1}", e.getKey(), nf.format(e.getValue())))
+                        .map(e -> Pair.of(e.getKey(), e.getValue()))
+                        .sorted(InvestmentTest::compareGroups)
+                        .map(e -> MessageFormat.format("{0} {2}: {1}", e.getFirst().getFirst(), nf.format(e.getSecond()),e.getFirst().getSecond()))
         ).forEach(System.out::println);
 
-        Stream.concat(
+        /*Stream.concat(
                 Stream.of(""), 
                 investmets
                         .stream()
                         .filter(Investment::isCurrent)
                         .filter(i -> "CAPLUSA".equals(i.getCurrency())).map(this::format)
-        ).forEach(System.out::println);
+        ).forEach(System.out::println);*/
 
     }
 
