@@ -56,6 +56,12 @@ public class InvestmentTest {
     private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
+    private final Collector<BigDecimal, ?, BigDecimal> reducer = Collectors
+            .reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
+
+    private final Collector<Investment, ?, BigDecimal> mapper = Collectors
+            .mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer);
+
     private final List<Investment> inv;
 
     public InvestmentTest() throws IOException {
@@ -143,12 +149,6 @@ public class InvestmentTest {
     public void listStock() throws IOException {
         List<Investment> investmets = this.readExt("investments.json");
 
-        final Collector<BigDecimal, ?, BigDecimal> reducer = Collectors
-                .reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
-
-        final Collector<Investment, ?, BigDecimal> mapper = Collectors
-                .mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer);
-
         NumberFormat nf = NumberFormat.getNumberInstance();
         nf.setMinimumFractionDigits(6);
 
@@ -211,10 +211,10 @@ public class InvestmentTest {
 //
 //    }
     private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type, String currency) {
-        return MessageFormat.format("{0} {2}: {1}. {3}",
+        return MessageFormat.format("{0} {1}: {2}. {3}",
                 type,
-                moneyFormat.format(subtotal.getAmount()),
                 currency,
+                moneyFormat.format(subtotal.getAmount()),
                 percentFormat.format(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), MathContext.DECIMAL64)).orElse(BigDecimal.ZERO)));
     }
 
