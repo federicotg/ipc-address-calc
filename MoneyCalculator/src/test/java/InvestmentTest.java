@@ -15,24 +15,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.time.ZoneId;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,12 +53,15 @@ public class InvestmentTest {
 
     private final DateFormat df = DateFormat.getDateInstance();
     private final NumberFormat nf = NumberFormat.getNumberInstance();
+    private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
+    private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
     private final List<Investment> inv;
 
     public InvestmentTest() throws IOException {
         this.inv = this.read("investments-test.json");
         this.nf.setMaximumFractionDigits(2);
+        this.percentFormat.setMinimumFractionDigits(2);
     }
 
     @Test
@@ -133,12 +134,10 @@ public class InvestmentTest {
         }
     }
 
-    private static int compareGroups(Pair<Pair<String,String>,BigDecimal> left, Pair<Pair<String,String>,BigDecimal> right){
+    private static int compareGroups(Pair<Pair<String, String>, ?> left, Pair<Pair<String, String>, ?> right) {
         int comparison = left.getFirst().getFirst().compareTo(right.getFirst().getFirst());
         return comparison != 0 ? comparison : left.getFirst().getSecond().compareTo(right.getFirst().getSecond());
     }
-
-
 
     @Test
     public void listStock() throws IOException {
@@ -163,8 +162,36 @@ public class InvestmentTest {
                         .stream()
                         .map(e -> Pair.of(e.getKey(), e.getValue()))
                         .sorted(InvestmentTest::compareGroups)
-                        .map(e -> MessageFormat.format("{0} {2}: {1}", e.getFirst().getFirst(), nf.format(e.getSecond()),e.getFirst().getSecond()))
+                        .map(e -> MessageFormat.format("{0} {2}: {1}", e.getFirst().getFirst(), nf.format(e.getSecond()), e.getFirst().getSecond()))
         ).forEach(System.out::println);
+
+        final String reportCurrency = "USD";
+
+        final Optional<MoneyAmount> total = investmets.stream()
+                .filter(Investment::isCurrent)
+                .collect(Collectors.groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
+                .entrySet()
+                .stream()
+                .map(e -> Pair.of(e.getKey().getFirst(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
+                .map(p -> ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, new Date()))
+                .reduce(MoneyAmount::add);
+
+        Stream.concat(
+                Stream.of("\nIn " + reportCurrency),
+                investmets
+                        .stream()
+                        .filter(Investment::isCurrent)
+                        .collect(Collectors.groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
+                        .entrySet()
+                        .stream()
+                        .map(e -> Pair.of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
+                        .map(p -> Pair.of(p.getFirst(), ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, new Date())))
+                        .sorted(InvestmentTest::compareGroups)
+                        .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
+        ).forEach(System.out::println);
+
+        total.map(m -> MessageFormat.format("\nTotal:\n{0} -> {1}", m.getCurrency(), moneyFormat.format(m.getAmount())))
+                .ifPresent(System.out::println);
 
         /*Stream.concat(
                 Stream.of(""), 
@@ -173,16 +200,22 @@ public class InvestmentTest {
                         .filter(Investment::isCurrent)
                         .filter(i -> "CAPLUSA".equals(i.getCurrency())).map(this::format)
         ).forEach(System.out::println);*/
-
     }
 
-    private String format(Investment i) {
-        NumberFormat nf = NumberFormat.getNumberInstance();
-        nf.setMinimumFractionDigits(6);
-
-        return MessageFormat.format("{0} {1}", i.getInitialDate(),
-                nf.format(i.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP)));
-
+//    private String format(Investment i) {
+//        NumberFormat nf = NumberFormat.getNumberInstance();
+//        nf.setMinimumFractionDigits(6);
+//
+//        return MessageFormat.format("{0} {1}", i.getInitialDate(),
+//                nf.format(i.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP)));
+//
+//    }
+    private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type, String currency) {
+        return MessageFormat.format("{0} {2}: {1}. {3}",
+                type,
+                moneyFormat.format(subtotal.getAmount()),
+                currency,
+                percentFormat.format(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), MathContext.DECIMAL64)).orElse(BigDecimal.ZERO)));
     }
 
     @Test
