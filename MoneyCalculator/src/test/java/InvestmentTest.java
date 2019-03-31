@@ -36,6 +36,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.mapping;
 import static java.text.MessageFormat.format;
+import java.util.function.Predicate;
 
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
@@ -43,6 +44,7 @@ import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.util.Pair;
@@ -57,6 +59,9 @@ import org.junit.Test;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class InvestmentTest {
+
+    private static final Predicate<Investment> IS_CURRENT = Investment::isCurrent;
+    private static final Predicate<Investment> IS_PAST = IS_CURRENT.negate();
 
     private final DateFormat df = DateFormat.getDateInstance();
     private final NumberFormat nf = NumberFormat.getNumberInstance();
@@ -80,7 +85,7 @@ public class InvestmentTest {
 
     @Before
     public void separateTests() {
-        System.out.println("");
+        System.out.println("-----");
     }
 
     // @Test
@@ -160,7 +165,7 @@ public class InvestmentTest {
         nf.setMinimumFractionDigits(6);
 
         investments.stream()
-                .filter(Investment::isCurrent)
+                .filter(IS_CURRENT)
                 .collect(groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
                 .entrySet()
                 .stream()
@@ -179,8 +184,8 @@ public class InvestmentTest {
         System.out.println("Inversiones Actuales en " + reportCurrency + " agrupadas.");
 
         final Optional<MoneyAmount> total = investments.stream()
-                .filter(Investment::isCurrent)
-                .collect(groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
+                .filter(IS_CURRENT)
+                .collect(groupingBy(in -> Pair.of(in.getType().toString(), in.getCurrency()), mapper))
                 .entrySet()
                 .stream()
                 .map(e -> Pair.of(e.getKey().getFirst(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
@@ -189,8 +194,8 @@ public class InvestmentTest {
                 .reduce(MoneyAmount::add);
 
         investments.stream()
-                .filter(Investment::isCurrent)
-                .collect(groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
+                .filter(IS_CURRENT)
+                .collect(groupingBy(in -> Pair.of(in.getType().toString(), in.getCurrency()), mapper))
                 .entrySet()
                 .stream()
                 .map(e -> Pair.of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
@@ -200,7 +205,7 @@ public class InvestmentTest {
                 .forEach(System.out::println);
 
         total
-                .map(m -> format("Total:\n{0} -> {1}", m.getCurrency(), moneyFormat.format(m.getAmount())))
+                .map(m -> format("Total: {0} -> {1}", m.getCurrency(), moneyFormat.format(m.getAmount())))
                 .ifPresent(System.out::println);
 
         /*
@@ -210,8 +215,8 @@ public class InvestmentTest {
          * ).forEach(System.out::println);
          */
     }
-    
-    private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency){
+
+    private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency) {
         return ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, new Date());
     }
 
@@ -241,24 +246,26 @@ public class InvestmentTest {
     private BigDecimal profit(List<Investment> investmets, InvestmentType it, int year) {
         return investmets
                 .stream()
-                .filter(inv -> inv.getOut() != null && inv.getOut().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() == year)
-                .filter(inv -> inv.getType().equals(it))
-                .map(inv -> inv.getOut().getAmount().subtract(inv.getIn().getAmount()))
+                .filter(in -> in.getOut() != null && in.getOut().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() == year)
+                .filter(in -> in.getType().equals(it))
+                .map(in -> in.getOut().getAmount().subtract(in.getIn().getAmount()))
                 .collect(reducing(BigDecimal.ZERO, BigDecimal::add));
 
+    }
+
+    private BigDecimal asRealUSDProfit(Investment inv) {
+        return this.profit(this.realUSD(this.exchangeInto(inv, "USD"))).getAmount();
     }
 
     @Test
     public void pastInvestments() throws IOException {
 
-        final Collector<Investment, ?, BigDecimal> profitMapper = mapping(inv -> this.profit(inv).getAmount(), reducer);
+        final Collector<Investment, ?, BigDecimal> profitMapper = mapping(this::asRealUSDProfit, reducer);
 
-        System.out.println("Inversiones Finalizadas USD reales");
+        System.out.println("Inversiones Finalizadas en USD reales");
 
         this.investments.stream()
-                .filter(inv -> !inv.isCurrent())
-                .map(inv -> this.exchangeInto(inv, "USD"))
-                .map(this::realUSD)
+                .filter(IS_PAST)
                 .collect(groupingBy(this::typeAndCurrency, profitMapper))
                 .entrySet()
                 .stream()
@@ -266,11 +273,8 @@ public class InvestmentTest {
                 .forEach(System.out::println);
 
         investments.stream()
-                .filter(inv -> !inv.isCurrent())
-                .map(inv -> this.exchangeInto(inv, "USD"))
-                .map(this::realUSD)
-                .map(this::profit)
-                .map(MoneyAmount::getAmount)
+                .filter(IS_PAST)
+                .map(this::asRealUSDProfit)
                 .reduce(BigDecimal::add)
                 .map(moneyFormat::format)
                 .map(amount -> format("Total: {0}", amount))
@@ -278,30 +282,56 @@ public class InvestmentTest {
 
     }
 
-    private Pair<String, String> typeAndCurrency(Investment inv) {
-        return Pair.of(inv.getType().toString(), inv.getCurrency());
+    @Test
+    public void currentInvestments() throws IOException {
+
+        System.out.println("Inversiones Actuales en USD reales");
+
+        this.investments.stream()
+                .filter(IS_CURRENT)
+                .collect(groupingBy(this::typeAndCurrency, mapping(this::asRealUSDProfit, reducer)))
+                .entrySet()
+                .stream()
+                .map(entry -> format("{0} {1} {2}", entry.getKey().getFirst(), entry.getKey().getSecond(), moneyFormat.format(entry.getValue())))
+                .forEach(System.out::println);
     }
 
-    private MoneyAmount profit(Investment inv) {
+    private Pair<String, String> typeAndCurrency(Investment in) {
+        return Pair.of(in.getType().toString(), in.getCurrency());
+    }
+
+    private MoneyAmount profit(Investment in) {
+
+        if (in.getOut() == null) {
+
+            return new MoneyAmount(
+                    in.getInvestment().getMoneyAmount().getAmount().subtract(in.getIn().getMoneyAmount().getAmount()),
+                    in.getInvestment().getMoneyAmount().getCurrency());
+
+        }
+
         return new MoneyAmount(
-                inv.getOut().getMoneyAmount().getAmount().subtract(inv.getIn().getMoneyAmount().getAmount()),
-                inv.getOut().getCurrency());
+                in.getOut().getMoneyAmount().getAmount().subtract(in.getIn().getMoneyAmount().getAmount()),
+                in.getOut().getCurrency());
     }
 
-    private Investment realUSD(Investment inv) {
+    private Investment realUSD(Investment in) {
 
         Investment answer = new Investment();
-        answer.setIn(this.realUSD(inv.getIn()));
-        answer.setOut(this.realUSD(inv.getOut()));
-        answer.setType(inv.getType());
-        answer.setInvestment(inv.getInvestment());
-        answer.setInterest(inv.getInterest());
+        answer.setIn(this.realUSD(in.getIn()));
+        answer.setOut(this.realUSD(in.getOut()));
+        answer.setType(in.getType());
+        answer.setInvestment(in.getInvestment());
+        answer.setInterest(in.getInterest());
 
         return answer;
 
     }
 
     private InvestmentEvent realUSD(InvestmentEvent in) {
+        if (in == null) {
+            return null;
+        }
         InvestmentEvent answer = new InvestmentEvent();
         MoneyAmount adjusted = Inflation.USD_INFLATION.adjust(in.getMoneyAmount(), in.getDate(), new Date());
         answer.setCurrency(adjusted.getCurrency());
@@ -310,20 +340,31 @@ public class InvestmentTest {
         return answer;
     }
 
-    private Investment exchangeInto(Investment inv, String currency) {
+    private Investment exchangeInto(Investment in, String currency) {
+
         Investment answer = new Investment();
-        answer.setIn(this.exchangeInto(inv.getIn(), currency));
-        answer.setOut(this.exchangeInto(inv.getOut(), currency));
-        answer.setType(inv.getType());
-        answer.setInvestment(inv.getInvestment());
-        answer.setInterest(inv.getInterest());
+        answer.setIn(this.exchangeInto(in.getIn(), currency));
+        answer.setOut(this.exchangeInto(in.getOut(), currency));
+        answer.setType(in.getType());
+        answer.setInvestment(in.getInvestment());
+        answer.setInterest(in.getInterest());
+        InvestmentAsset asset = new InvestmentAsset();
+        asset.setCurrency(currency);
+        asset.setAmount(
+                ForeignExchanges.getForeignExchange(in.getInvestment().getCurrency(), currency)
+                        .exchange(in.getInvestment().getMoneyAmount(), currency, new Date()).getAmount()
+        );
+
+        answer.setInvestment(asset);
 
         return answer;
 
     }
 
     private InvestmentEvent exchangeInto(InvestmentEvent in, String currency) {
-
+        if (in == null) {
+            return null;
+        }
         ForeignExchange fx = ForeignExchanges.getForeignExchange(in.getCurrency(), currency);
 
         InvestmentEvent answer = new InvestmentEvent();
