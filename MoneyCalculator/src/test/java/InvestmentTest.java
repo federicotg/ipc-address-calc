@@ -32,8 +32,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.mapping;
+import static java.text.MessageFormat.format;
 
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
@@ -61,25 +63,25 @@ public class InvestmentTest {
     private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
-    private final Collector<BigDecimal, ?, BigDecimal> reducer = Collectors
-            .reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
+    private final Collector<BigDecimal, ?, BigDecimal> reducer = reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
 
-    private final Collector<Investment, ?, BigDecimal> mapper = Collectors
-            .mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer);
+    private final Collector<Investment, ?, BigDecimal> mapper = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer);
 
     private final List<Investment> inv;
+
+    private final List<Investment> investments;
 
     public InvestmentTest() throws IOException {
         this.inv = this.read("investments-test.json");
         this.nf.setMaximumFractionDigits(2);
         this.percentFormat.setMinimumFractionDigits(2);
+        this.investments = this.readExt("investments.json");
     }
 
     @Before
     public void separateTests() {
         System.out.println("");
     }
-
 
     // @Test
     public void pf() {
@@ -151,19 +153,20 @@ public class InvestmentTest {
 
     @Test
     public void listStock() throws IOException {
-        List<Investment> investmets = this.readExt("investments.json");
 
         System.out.println("Ahorros actuales agrupados por moneda.");
-
 
         NumberFormat nf = NumberFormat.getNumberInstance();
         nf.setMinimumFractionDigits(6);
 
-        investmets.stream().filter(Investment::isCurrent)
-                .collect(Collectors.groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
-                .entrySet().stream().map(e -> Pair.of(e.getKey(), e.getValue())).sorted(InvestmentTest::compareGroups)
-                .map(e -> MessageFormat.format("{0} {2}: {1}", e.getFirst().getFirst(), nf.format(e.getSecond()),
-                        e.getFirst().getSecond()))
+        investments.stream()
+                .filter(Investment::isCurrent)
+                .collect(groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
+                .entrySet()
+                .stream()
+                .map(e -> Pair.of(e.getKey(), e.getValue()))
+                .sorted(InvestmentTest::compareGroups)
+                .map(e -> format("{0} {2}: {1}", e.getFirst().getFirst(), nf.format(e.getSecond()), e.getFirst().getSecond()))
                 .forEach(System.out::println);
 
     }
@@ -171,32 +174,33 @@ public class InvestmentTest {
     @Test
     public void listStock2() throws IOException {
 
-        List<Investment> investmets = this.readExt("investments.json");
-
         final String reportCurrency = "USD";
 
         System.out.println("Inversiones Actuales en " + reportCurrency + " agrupadas.");
 
-        final Optional<MoneyAmount> total = investmets.stream().filter(Investment::isCurrent)
-                .collect(Collectors.groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
-                .entrySet().stream()
+        final Optional<MoneyAmount> total = investments.stream()
+                .filter(Investment::isCurrent)
+                .collect(groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
+                .entrySet()
+                .stream()
                 .map(e -> Pair.of(e.getKey().getFirst(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
                 .map(p -> ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency)
-                        .exchange(p.getSecond(), reportCurrency, new Date()))
+                .exchange(p.getSecond(), reportCurrency, new Date()))
                 .reduce(MoneyAmount::add);
 
-        investmets.stream().filter(Investment::isCurrent)
-                .collect(Collectors.groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
-                .entrySet().stream()
+        investments.stream()
+                .filter(Investment::isCurrent)
+                .collect(groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
+                .entrySet()
+                .stream()
                 .map(e -> Pair.of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
-                .map(p -> Pair.of(p.getFirst(),
-                        ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency)
-                                .exchange(p.getSecond(), reportCurrency, new Date())))
-                .sorted(InvestmentTest::compareGroups).map(pair -> this.formatReport(total, pair.getSecond(),
-                        pair.getFirst().getFirst(), pair.getFirst().getSecond()))
+                .map(p -> Pair.of(p.getFirst(), this.fx(p, reportCurrency)))
+                .sorted(InvestmentTest::compareGroups)
+                .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
                 .forEach(System.out::println);
 
-        total.map(m -> MessageFormat.format("Total:\n{0} -> {1}", m.getCurrency(), moneyFormat.format(m.getAmount())))
+        total
+                .map(m -> format("Total:\n{0} -> {1}", m.getCurrency(), moneyFormat.format(m.getAmount())))
                 .ifPresent(System.out::println);
 
         /*
@@ -205,6 +209,10 @@ public class InvestmentTest {
          * "CAPLUSA".equals(i.getCurrency())).map(this::format)
          * ).forEach(System.out::println);
          */
+    }
+    
+    private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency){
+        return ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, new Date());
     }
 
     // private String format(Investment i) {
@@ -216,7 +224,7 @@ public class InvestmentTest {
     //
     // }
     private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type, String currency) {
-        return MessageFormat.format("{0} {1}: {2}. {3}", type, currency, moneyFormat.format(subtotal.getAmount()),
+        return format("{0} {1}: {2}. {3}", type, currency, moneyFormat.format(subtotal.getAmount()),
                 percentFormat
                         .format(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), MathContext.DECIMAL64))
                                 .orElse(BigDecimal.ZERO)));
@@ -231,32 +239,41 @@ public class InvestmentTest {
     }
 
     private BigDecimal profit(List<Investment> investmets, InvestmentType it, int year) {
-        return investmets.stream().filter(inv -> inv.getOut() != null
-                && inv.getOut().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() == year)
+        return investmets
+                .stream()
+                .filter(inv -> inv.getOut() != null && inv.getOut().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() == year)
                 .filter(inv -> inv.getType().equals(it))
                 .map(inv -> inv.getOut().getAmount().subtract(inv.getIn().getAmount()))
-                .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
+                .collect(reducing(BigDecimal.ZERO, BigDecimal::add));
 
     }
 
     @Test
     public void pastInvestments() throws IOException {
-        List<Investment> investments = this.readExt("investments.json");
 
-        final Collector<Investment, ?, BigDecimal> profitMapper = Collectors
-                .mapping(inv -> this.profit(inv).getAmount(), reducer);
+        final Collector<Investment, ?, BigDecimal> profitMapper = mapping(inv -> this.profit(inv).getAmount(), reducer);
 
         System.out.println("Inversiones Finalizadas USD reales");
 
-        investments.stream().filter(inv -> !inv.isCurrent()).map(inv -> this.exchangeInto(inv, "USD"))
-                .map(this::realUSD).collect(Collectors.groupingBy(this::typeAndCurrency, profitMapper)).entrySet()
-                .stream().map(entry -> MessageFormat.format("{0} {1} {2}", entry.getKey().getFirst(),
-                        entry.getKey().getSecond(), moneyFormat.format(entry.getValue())))
+        this.investments.stream()
+                .filter(inv -> !inv.isCurrent())
+                .map(inv -> this.exchangeInto(inv, "USD"))
+                .map(this::realUSD)
+                .collect(groupingBy(this::typeAndCurrency, profitMapper))
+                .entrySet()
+                .stream()
+                .map(entry -> format("{0} {1} {2}", entry.getKey().getFirst(), entry.getKey().getSecond(), moneyFormat.format(entry.getValue())))
                 .forEach(System.out::println);
 
-        investments.stream().filter(inv -> !inv.isCurrent()).map(inv -> this.exchangeInto(inv, "USD"))
-                .map(this::realUSD).map(this::profit).map(MoneyAmount::getAmount).reduce(BigDecimal::add)
-                .map(moneyFormat::format).map(amount -> MessageFormat.format("Total: {0}", amount))
+        investments.stream()
+                .filter(inv -> !inv.isCurrent())
+                .map(inv -> this.exchangeInto(inv, "USD"))
+                .map(this::realUSD)
+                .map(this::profit)
+                .map(MoneyAmount::getAmount)
+                .reduce(BigDecimal::add)
+                .map(moneyFormat::format)
+                .map(amount -> format("Total: {0}", amount))
                 .ifPresent(System.out::println);
 
     }
