@@ -47,6 +47,7 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
+import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 
 import static org.junit.Assert.*;
@@ -183,6 +184,9 @@ public class InvestmentTest {
 
         System.out.println("Inversiones Actuales en " + reportCurrency + " agrupadas.");
 
+
+        YearMonth limit = Inflation.USD_INFLATION.getTo();
+
         final Optional<MoneyAmount> total = investments.stream()
                 .filter(IS_CURRENT)
                 .collect(groupingBy(in -> Pair.of(in.getType().toString(), in.getCurrency()), mapper))
@@ -190,7 +194,7 @@ public class InvestmentTest {
                 .stream()
                 .map(e -> Pair.of(e.getKey().getFirst(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
                 .map(p -> ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency)
-                .exchange(p.getSecond(), reportCurrency, new Date()))
+                    .exchange(p.getSecond(), reportCurrency, limit.getYear(), limit.getMonth()))
                 .reduce(MoneyAmount::add);
 
         investments.stream()
@@ -217,7 +221,10 @@ public class InvestmentTest {
     }
 
     private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency) {
-        return ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, new Date());
+
+        YearMonth limit = Inflation.USD_INFLATION.getTo();
+
+        return ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, limit.getYear(), limit.getMonth());
     }
 
     // private String format(Investment i) {
@@ -285,7 +292,7 @@ public class InvestmentTest {
     @Test
     public void currentInvestments() throws IOException {
 
-        System.out.println("Inversiones Actuales en USD reales");
+        System.out.println("Ganancia Inversiones Actuales en USD reales");
 
         this.investments.stream()
                 .filter(IS_CURRENT)
@@ -332,8 +339,12 @@ public class InvestmentTest {
         if (in == null) {
             return null;
         }
+        YearMonth limit = Inflation.USD_INFLATION.getTo();
         InvestmentEvent answer = new InvestmentEvent();
-        MoneyAmount adjusted = Inflation.USD_INFLATION.adjust(in.getMoneyAmount(), in.getDate(), new Date());
+        
+        YearMonth start = new YearMonth(in.getDate());
+        
+        MoneyAmount adjusted = Inflation.USD_INFLATION.adjust(in.getMoneyAmount(), start.getYear(), start.getMonth(), limit.getYear(), limit.getMonth());
         answer.setCurrency(adjusted.getCurrency());
         answer.setAmount(adjusted.getAmount());
         answer.setDate(in.getDate());
@@ -341,6 +352,9 @@ public class InvestmentTest {
     }
 
     private Investment exchangeInto(Investment in, String currency) {
+
+
+        YearMonth limit = Inflation.USD_INFLATION.getTo();
 
         Investment answer = new Investment();
         answer.setIn(this.exchangeInto(in.getIn(), currency));
@@ -352,7 +366,7 @@ public class InvestmentTest {
         asset.setCurrency(currency);
         asset.setAmount(
                 ForeignExchanges.getForeignExchange(in.getInvestment().getCurrency(), currency)
-                        .exchange(in.getInvestment().getMoneyAmount(), currency, new Date()).getAmount()
+                        .exchange(in.getInvestment().getMoneyAmount(), currency, limit.getYear(), limit.getMonth()).getAmount()
         );
 
         answer.setInvestment(asset);
