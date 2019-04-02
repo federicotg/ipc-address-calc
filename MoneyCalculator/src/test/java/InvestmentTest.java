@@ -37,14 +37,11 @@ import static java.util.stream.Collectors.mapping;
 import static java.text.MessageFormat.format;
 import java.util.function.Predicate;
 
-import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.Investment;
-import org.fede.calculator.money.series.InvestmentAsset;
-import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
@@ -161,8 +158,8 @@ public class InvestmentTest {
 
         System.out.println("Ahorros actuales agrupados por moneda.");
 
-        NumberFormat nf = NumberFormat.getNumberInstance();
-        nf.setMinimumFractionDigits(6);
+        NumberFormat sixDigits = NumberFormat.getNumberInstance();
+        sixDigits.setMinimumFractionDigits(6);
 
         investments.stream()
                 .filter(IS_CURRENT)
@@ -171,7 +168,7 @@ public class InvestmentTest {
                 .stream()
                 .map(e -> Pair.of(e.getKey(), e.getValue()))
                 .sorted(InvestmentTest::compareGroups)
-                .map(e -> format("{0} {2}: {1}", e.getFirst().getFirst(), nf.format(e.getSecond()), e.getFirst().getSecond()))
+                .map(e -> format("{0} {2}: {1}", e.getFirst().getFirst(), sixDigits.format(e.getSecond()), e.getFirst().getSecond()))
                 .forEach(System.out::println);
 
     }
@@ -225,14 +222,6 @@ public class InvestmentTest {
         return ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, limit.getYear(), limit.getMonth());
     }
 
-    // private String format(Investment i) {
-    // NumberFormat nf = NumberFormat.getNumberInstance();
-    // nf.setMinimumFractionDigits(6);
-    //
-    // return MessageFormat.format("{0} {1}", i.getInitialDate(),
-    // nf.format(i.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP)));
-    //
-    // }
     private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type, String currency) {
         return format("{0} {1}: {2}. {3}", type, currency, moneyFormat.format(subtotal.getAmount()),
                 percentFormat
@@ -260,21 +249,19 @@ public class InvestmentTest {
 
     private void print(Investment in, String context) {
         if ("1".equals(in.getId())) {
-           System.out.println(MessageFormat.format("{1} {0}", in, context));
+            System.out.println(MessageFormat.format("{1} {0}", in, context));
         }
     }
 
-    private BigDecimal asRealUSDProfit(Investment inv) {
+    private BigDecimal asRealUSDProfit(Investment in) {
 
-        final YearMonth limit = Inflation.USD_INFLATION.getTo();
+        this.print(in, "Inicial");
 
-        this.print(inv, "Inicial");
-
-        Investment i = this.exchangeInto(inv, "USD");
+        Investment i = ForeignExchanges.exchange(in, "USD");
 
         this.print(i, "In USD");
 
-        i = this.realUSD(i, limit);
+        i = Inflation.USD_INFLATION.real(i);
 
         this.print(i, "Real USD");
 
@@ -291,7 +278,7 @@ public class InvestmentTest {
 
         final Collector<Investment, ?, BigDecimal> profitMapper = mapping(this::asRealUSDProfit, reducer);
 
-        System.out.println("Inversiones Finalizadas en USD reales");
+        System.out.println("Ganancia Inversiones Finalizadas en USD reales");
 
         this.investments.stream()
                 .filter(IS_PAST)
@@ -343,92 +330,4 @@ public class InvestmentTest {
                 in.getOut().getCurrency());
     }
 
-    private Investment realUSD(Investment in, YearMonth moment) {
-
-        return Inflation.USD_INFLATION.real(in);
-        
-//        Investment answer = new Investment();
-//        answer.setId(in.getId());
-//        answer.setIn(this.realUSD(in.getIn(), moment));
-//        answer.setOut(this.realUSD(in.getOut(), moment));
-//        answer.setType(in.getType());
-//        answer.setInvestment(in.getInvestment());
-//        answer.setInterest(in.getInterest());
-
-        //return answer;
-
-    }
-
-    private InvestmentEvent realUSD(InvestmentEvent in, YearMonth moment) {
-        if (in == null) {
-            return null;
-        }
-        InvestmentEvent answer = new InvestmentEvent();
-
-        YearMonth start = new YearMonth(in.getDate());
-
-        MoneyAmount adjusted = Inflation.USD_INFLATION.adjust(in.getMoneyAmount(), start.getYear(), start.getMonth(), moment.getYear(), moment.getMonth());
-        answer.setCurrency(adjusted.getCurrency());
-        answer.setAmount(adjusted.getAmount());
-        answer.setDate(in.getDate());
-        return answer;
-    }
-
-    /**
-     * 
-     * @param in
-     * @param currency
-     * @param moment el momento de la inversión o de la salida. Si es una inversión actual, la fecha de hoy.
-     * @return 
-     */
-    private Investment exchangeInto(Investment in, String currency/*, YearMonth moment*/) {
-
-        return ForeignExchanges.exchange(in, currency);
-        
-//        Investment answer = new Investment();
-//
-//        answer.setId(in.getId());
-//        
-//        if (in.getType().equals(InvestmentType.USD)) {
-//            InvestmentEvent usdIn = new InvestmentEvent();
-//            usdIn.setCurrency(currency);
-//            usdIn.setDate(in.getInitialDate());
-//            usdIn.setAmount(in.getInvestment().getAmount());
-//            answer.setIn(usdIn);
-//        } else {
-//           answer.setIn(this.exchangeInto(in.getIn(), currency));
-//        }
-//
-//        YearMonth ym = Optional.ofNullable(in.getOut()).map(InvestmentEvent::getDate).map(YearMonth::new).orElse(moment);
-//        
-//        answer.setOut(this.exchangeInto(in.getOut(), currency));
-//        answer.setType(in.getType());
-//        answer.setInterest(in.getInterest());
-//        InvestmentAsset asset = new InvestmentAsset();
-//        asset.setCurrency(currency);
-//        asset.setAmount(
-//                ForeignExchanges.getForeignExchange(in.getInvestment().getCurrency(), currency)
-//                        .exchange(in.getInvestment().getMoneyAmount(), currency, ym.getYear(), ym.getMonth()).getAmount()
-//        );
-//
-//        answer.setInvestment(asset);
-//
-//        return answer;
-
-    }
-
-//    private InvestmentEvent exchangeInto(InvestmentEvent in, String currency) {
-//        if (in == null) {
-//            return null;
-//        }
-//        ForeignExchange fx = ForeignExchanges.getForeignExchange(in.getCurrency(), currency);
-//
-//        InvestmentEvent answer = new InvestmentEvent();
-//        MoneyAmount ma = fx.exchange(in.getMoneyAmount(), currency, in.getDate());
-//        answer.setAmount(ma.getAmount());
-//        answer.setCurrency(ma.getCurrency());
-//        answer.setDate(in.getDate());
-//        return answer;
-//    }
-   
 }
