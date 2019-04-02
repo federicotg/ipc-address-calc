@@ -58,7 +58,7 @@ public class InvestmentController {
 
     private static final Map<String, Comparator<InvestmentReportDTO>> COMPARATORS = Collections.unmodifiableMap(
             Map.of(
-                "currency", Comparator.comparing(InvestmentReportDTO::getCurrency),
+                "currency", Comparator.comparing(InvestmentReportDTO::getInvestmentCurrency),
                     "from", Comparator.comparing(InvestmentReportDTO::getFrom),
                     "to", Comparator.comparing(InvestmentReportDTO::getTo, Comparator.nullsFirst(Comparator.naturalOrder())),
                     "investment", Comparator.comparing(InvestmentReportDTO::getInitialAmount).reversed(),

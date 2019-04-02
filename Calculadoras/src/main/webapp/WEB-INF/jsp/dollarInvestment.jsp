@@ -51,8 +51,8 @@
             }
 
             article{
-                width: 50%;
-                float: left;
+                /*width: 50%;
+                float: left;*/
             }
 
             td {
@@ -69,7 +69,9 @@
         <h1>Inversión</h1>
         
         <article id="reportUSD">
+            
             <c:if test="${not empty reportUSD.total}">
+                <%--
                 <h2>Total</h2>
                 <table>
                     <thead>
@@ -102,7 +104,7 @@
                             </td>
                         </tr>
                     </tbody>
-                </table>
+                </table--%>
 
 
                 <h2>Subtotal</h2>
@@ -112,9 +114,9 @@
                         <tr>
                             <th>Moneda</th>
                             <th>Hasta</th>
-                            <th>Inversión</th>
-                            <th>Retorno</th>
-                            <th>+/-</th>
+                            <th>Inversión Nominal</th>
+                            <th>Retorno Nominal</th>
+                            <th>+/-  Nominal</th>
                         </tr>
                     </thead>
                     <tbody>

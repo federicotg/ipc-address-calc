@@ -224,10 +224,10 @@ public class InvestmentServiceImpl implements InvestmentService {
     private static YearMonth adjustDate(Date exactDate) {
         var exactLocalDate = exactDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
 
-        if (exactLocalDate.getDayOfMonth() < 16) {
-            LocalDate adjusted = exactLocalDate.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
-            return new YearMonth(adjusted.getYear(), adjusted.getMonthValue());
-        }
+        //if (exactLocalDate.getDayOfMonth() < 16) {
+        //    LocalDate adjusted = exactLocalDate.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
+        //    return new YearMonth(adjusted.getYear(), adjusted.getMonthValue());
+        //}
         return new YearMonth(exactLocalDate.getYear(), exactLocalDate.getMonthValue());
     }
 
@@ -317,7 +317,7 @@ public class InvestmentServiceImpl implements InvestmentService {
 
         return new InvestmentDTO(
                 in.getCurrency(),
-                in.getRealInvestedAmount(),
+                in.getInitialAmount(),
                 in.getFinalAmount(),
                 in.getTo());
     }
