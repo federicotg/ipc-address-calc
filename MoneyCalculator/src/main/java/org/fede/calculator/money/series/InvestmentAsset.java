@@ -1,6 +1,8 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
+import java.util.Objects;
+import java.util.StringJoiner;
 import org.fede.calculator.money.MoneyAmount;
 
 /*
@@ -46,6 +48,14 @@ public class InvestmentAsset {
 
     public MoneyAmount getMoneyAmount() {
         return new MoneyAmount(this.getAmount(), this.getCurrency());
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", this.getClass().getSimpleName() + " [", "]")
+                .add("currency: " + this.currency)
+                .add("amount: " + this.amount.toString())
+                .toString();
     }
 
 }

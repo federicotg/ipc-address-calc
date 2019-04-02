@@ -20,6 +20,8 @@ import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Objects;
+import java.util.StringJoiner;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.MoneyAmount;
@@ -43,6 +45,7 @@ public class Investment {
 
     private static final BigDecimal DAYS_IN_ONE_YEAR = new BigDecimal(365);
 
+    private String id;
     private InvestmentType type;
     private InvestmentEvent in;
     private InvestmentAsset investment;
@@ -120,15 +123,16 @@ public class Investment {
             return changeCurrency(this.getOut().getMoneyAmount(), targetCurrency, date);
         }
 
+        return changeCurrency(investment.getMoneyAmount(), targetCurrency, date);
+        
         // while still invested, add interest rate if any
-        //return changeCurrency(investment.getMoneyAmount(), targetCurrency, date);
-        return changeCurrency(this.getMoneyAmount(), targetCurrency, date)
+        /*return changeCurrency(this.getMoneyAmount(), targetCurrency, date)
                 .add(
                         changeCurrency(
                                 interest(this.getMoneyAmount(), this.getInterest(), this.getInitialDate(), date),
                                 targetCurrency,
                                 date)
-                );
+                );*/
     }
 
     public MoneyAmount initialAmount(String targetCurrency) {
@@ -139,7 +143,7 @@ public class Investment {
         } else if (targetCurrency.equals(this.getCurrency())) {
             amount = this.getMoneyAmount();
         } else {
-            amount = changeCurrency(this.getMoneyAmount(), targetCurrency, this.getInitialDate());
+            amount = changeCurrency(this.getInitialMoneyAmount(), targetCurrency, this.getInitialDate());
         }
         return amount;
     }
@@ -157,7 +161,7 @@ public class Investment {
         }
 
         final long days = ChronoUnit.DAYS.between(
-                investmentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate(), 
+                investmentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate(),
                 currentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate());
 
         if (days <= 0l) {
@@ -169,9 +173,27 @@ public class Investment {
 
         return new MoneyAmount(interest, investedAmount.getCurrency());
     }
-    
+
     public boolean isCurrent() {
         return this.getOut() == null || this.getOut().getDate().after(new Date());
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", this.getClass().getSimpleName() + " [", "]")
+                .add("InvestmentType: " + this.getType().toString())
+                .add("\n\tin: " + this.in.toString())
+                .add("\n\tinvestment: " + this.investment.toString())
+                .add("\n\tout: " + Objects.toString(this.out, "null"))
+                .toString();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
 }

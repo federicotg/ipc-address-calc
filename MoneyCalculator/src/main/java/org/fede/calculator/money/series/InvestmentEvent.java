@@ -3,6 +3,7 @@ package org.fede.calculator.money.series;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.StringJoiner;
 import org.fede.calculator.money.MoneyAmount;
 
 /*
@@ -58,6 +59,15 @@ public class InvestmentEvent {
 
     public MoneyAmount getMoneyAmount() {
         return new MoneyAmount(this.getAmount(), this.getCurrency());
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", this.getClass().getSimpleName() + " [", "]")
+                .add("currency: " + this.currency)
+                .add("amount: " + this.amount.toString())
+                .add("date: " + this.date.toString())
+                .toString();
     }
 
 }

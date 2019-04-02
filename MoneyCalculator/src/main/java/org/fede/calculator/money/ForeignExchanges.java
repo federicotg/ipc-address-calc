@@ -20,8 +20,13 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.IndexSeriesSupport;
+import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.InvestmentAsset;
+import org.fede.calculator.money.series.InvestmentEvent;
+import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
@@ -72,7 +77,7 @@ public class ForeignExchanges {
             SeriesReader.readIndexSeries("index/UVA-peso.json"),
             "UVA",
             "ARS");
-    
+
     private static final IndexSeries CONSTANT_INDEX = new IndexSeriesSupport() {
         @Override
         public YearMonth getFrom() {
@@ -160,6 +165,53 @@ public class ForeignExchanges {
 
     public static ForeignExchange getIdentityForeignExchange(String currency) {
         return new SimpleForeignExchange(CONSTANT_INDEX, currency, currency);
+    }
+
+    public static Investment exchange(Investment investment, String targetCurrency) {
+
+        Investment answer = new Investment();
+
+        answer.setId(investment.getId());
+
+        if (investment.getType().equals(InvestmentType.USD)) {
+            InvestmentEvent usdIn = new InvestmentEvent();
+            usdIn.setCurrency(targetCurrency);
+            usdIn.setDate(investment.getInitialDate());
+            usdIn.setAmount(investment.getInvestment().getAmount());
+            answer.setIn(usdIn);
+        } else {
+            answer.setIn(exchangeInto(investment.getIn(), targetCurrency));
+        }
+
+        final ForeignExchange fx = ForeignExchanges.getForeignExchange(investment.getInvestment().getCurrency(), targetCurrency);
+
+        YearMonth ym = Optional.ofNullable(investment.getOut()).map(InvestmentEvent::getDate).map(YearMonth::new).orElse(fx.getTo());
+
+        answer.setOut(exchangeInto(investment.getOut(), targetCurrency));
+        answer.setType(investment.getType());
+        answer.setInterest(investment.getInterest());
+        InvestmentAsset asset = new InvestmentAsset();
+        asset.setCurrency(targetCurrency);
+        asset.setAmount(fx.exchange(investment.getInvestment().getMoneyAmount(), targetCurrency, ym.getYear(), ym.getMonth()).getAmount());
+
+        answer.setInvestment(asset);
+
+        return answer;
+
+    }
+
+    private static InvestmentEvent exchangeInto(InvestmentEvent in, String currency) {
+        if (in == null) {
+            return null;
+        }
+        ForeignExchange fx = ForeignExchanges.getForeignExchange(in.getCurrency(), currency);
+
+        InvestmentEvent answer = new InvestmentEvent();
+        MoneyAmount ma = fx.exchange(in.getMoneyAmount(), currency, in.getDate());
+        answer.setAmount(ma.getAmount());
+        answer.setCurrency(ma.getCurrency());
+        answer.setDate(in.getDate());
+        return answer;
     }
 
 }
