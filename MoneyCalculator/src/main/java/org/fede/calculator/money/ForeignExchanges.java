@@ -78,7 +78,7 @@ public class ForeignExchanges {
             "UVA",
             "ARS");
 
-    private static final IndexSeries CONSTANT_INDEX = new IndexSeriesSupport() {
+    /*private static final IndexSeries CONSTANT_INDEX = new IndexSeriesSupport() {
         @Override
         public YearMonth getFrom() {
             return new YearMonth(1, 1);
@@ -109,7 +109,7 @@ public class ForeignExchanges {
             return this == obj;
         }
 
-    };
+    };*/
 
     private static void map(String from, String to, ForeignExchange fx) {
         DIRECT_FOREIGN_EXCHANGES.put(new Pair<>(from, to), fx);
@@ -164,7 +164,7 @@ public class ForeignExchanges {
     }
 
     public static ForeignExchange getIdentityForeignExchange(String currency) {
-        return new SimpleForeignExchange(CONSTANT_INDEX, currency, currency);
+        return new SimpleForeignExchange(IndexSeriesSupport.CONSTANT_SERIES, currency, currency);
     }
 
     public static Investment exchange(Investment investment, String targetCurrency) {

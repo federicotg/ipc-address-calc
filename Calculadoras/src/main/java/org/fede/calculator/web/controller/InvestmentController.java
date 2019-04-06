@@ -90,10 +90,6 @@ public class InvestmentController {
     @Lazy
     private MoneyService usdService;
 
-    @Resource(name = "argMoneyService")
-    @Lazy
-    private MoneyService argService;
-
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String errorHandler(Exception ex) {
@@ -102,14 +98,6 @@ public class InvestmentController {
         return "redirect:/secure/";
     }
 
-    private static <T> T min(T left, T right, Comparator<T> comparator) {
-        return comparator.compare(left, right) < 0 ? left : right;
-    }
-
-
-    private static <T> T max(T left, T right, Comparator<T> comparator) {
-        return comparator.compare(left, right) < 0 ? right : left;
-    }
     @RequestMapping(value = "/past", method = RequestMethod.GET)
     public ModelAndView pastInvestment(@RequestParam(name = "sort", required = false, defaultValue = "from") String sort,
             @RequestParam(name = "filter", required = false, defaultValue = "all") String filter) {
@@ -138,11 +126,7 @@ public class InvestmentController {
 
     @RequestMapping(value = "/savings", method = RequestMethod.GET)
     public ModelAndView savings() {
-        final CurrencyLimitsDTO limits = max(
-                this.argService.getLimits(),
-                this.usdService.getLimits(),
-                Comparator.comparing(CurrencyLimitsDTO::getReferenceYear)
-                        .thenComparing(Comparator.comparing(CurrencyLimitsDTO::getReferenceMonth)));
+        final CurrencyLimitsDTO limits = this.usdService.getLimits();
 
         return new ModelAndView("savingsReport")
                 .addObject("report", this.investmentService.savings(limits.getReferenceYear(), limits.getReferenceMonth()))

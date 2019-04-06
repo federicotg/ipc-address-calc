@@ -33,7 +33,7 @@
         <h1>Visualización de Datos</h1>
         <ul>
             <li>Ingresos: <a href="lifiaUnlpAndInterest">Combinados</a> | <a href="incomes">Segregados</a></li>
-            <li>Ahorros: <a href="savings">Combinados</a> | <a href="savingsDetailed">Detallados</a> | <a href="savingsDetailedArs">Detallados ARS</a> | <a href="investment/savings">Tabla</a> | <a href="savedSalaries">Sueldos Ahorrados</a> | <a href="goldSavings">Oro</a></li>
+            <li>Ahorros: <a href="savings">Combinados</a> | <a href="savingsDetailed">Detallados</a> | <a href="investment/savings">Tabla</a> | <a href="savedSalaries">Sueldos Ahorrados</a> | <a href="goldSavings">Oro</a></li>
             <li>Gastos: <a href="expenses">Propios</a> | <a href="consortiumExpenses">Del Consorcio</a> | <a href="expensesPercent">Gastos / Ingresos</a></li>
             <li><a href="savingsAndIncomeChange">Cambio Anual de Ingresos y Ahorros</a></li>
             <li>Inversiones <a href="investment/current">Actuales</a> | <a href="investment/past">Pasadas</a></li>

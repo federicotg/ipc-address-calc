@@ -26,6 +26,39 @@ import java.util.Objects;
  * @author fede
  */
 public abstract class IndexSeriesSupport extends SeriesSupport implements IndexSeries {
+    
+    public static IndexSeries CONSTANT_SERIES = new IndexSeriesSupport() {
+        @Override
+        public YearMonth getFrom() {
+            return new YearMonth(1, 1);
+        }
+
+        @Override
+        public YearMonth getTo() {
+            return new YearMonth(5000, 12);
+        }
+
+        @Override
+        public BigDecimal getIndex(int year, int month) {
+            return BigDecimal.ONE;
+        }
+
+        @Override
+        public BigDecimal predictValue(int year, int month) {
+            return BigDecimal.ONE;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(this);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return this == obj;
+        }
+
+    };
 
     private int hashValue = 0;
 
