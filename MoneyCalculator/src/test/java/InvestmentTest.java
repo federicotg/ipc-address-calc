@@ -115,7 +115,7 @@ public class InvestmentTest {
         }
     }
 
-    @Test
+    //@Test
     public void usd() throws ParseException {
 
         MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
@@ -173,16 +173,8 @@ public class InvestmentTest {
 
     }
 
-    @Test
-    public void listStock2() throws IOException {
-
-        final String reportCurrency = "USD";
-
-        System.out.println("Inversiones Actuales en " + reportCurrency + " agrupadas.");
-
-        YearMonth limit = Inflation.USD_INFLATION.getTo();
-
-        final Optional<MoneyAmount> total = investments.stream()
+    private Optional<MoneyAmount> total(Predicate<Investment> redicate, String reportCurrency, YearMonth limit) {
+        return investments.stream()
                 .filter(IS_CURRENT)
                 .collect(groupingBy(in -> Pair.of(in.getType().toString(), in.getCurrency()), mapper))
                 .entrySet()
@@ -191,7 +183,14 @@ public class InvestmentTest {
                 .map(p -> ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency)
                 .exchange(p.getSecond(), reportCurrency, limit.getYear(), limit.getMonth()))
                 .reduce(MoneyAmount::add);
+    }
 
+    @Test
+    public void listStock2() throws IOException {
+        final String reportCurrency = "USD";
+        System.out.println("Inversiones Actuales en " + reportCurrency + " agrupadas.");
+        YearMonth limit = Inflation.USD_INFLATION.getTo();
+        final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
         investments.stream()
                 .filter(IS_CURRENT)
                 .collect(groupingBy(in -> Pair.of(in.getType().toString(), in.getCurrency()), mapper))
@@ -202,17 +201,47 @@ public class InvestmentTest {
                 .sorted(InvestmentTest::compareGroups)
                 .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
                 .forEach(System.out::println);
-
         total
                 .map(m -> format("Total: {0} -> {1}", m.getCurrency(), moneyFormat.format(m.getAmount())))
                 .ifPresent(System.out::println);
 
-        /*
-         * Stream.concat( Stream.of(""), investmets .stream()
-         * .filter(Investment::isCurrent) .filter(i ->
-         * "CAPLUSA".equals(i.getCurrency())).map(this::format)
-         * ).forEach(System.out::println);
-         */
+    }
+
+    private String investmentType(Investment investment) {
+        if ("CONAAFA".equals(investment.getCurrency())) {
+            return "Renta Variable ARS";
+        }
+        if (investment.getType().equals(InvestmentType.USD) || investment.getType().equals(InvestmentType.XAU)) {
+            return "Líquido";
+        }
+        if (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD")) {
+            return "Renta Fija USD";
+        }
+        return "Renta Fija ARS";
+    }
+
+    @Test
+    public void listStockByTpe() throws IOException {
+
+        final String reportCurrency = "USD";
+        System.out.println("Inversiones Actuales en " + reportCurrency + " por tipo.");
+
+        final YearMonth limit = Inflation.USD_INFLATION.getTo();
+        final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
+
+        investments.stream()
+                .filter(IS_CURRENT)
+                .collect(groupingBy(
+                        this::investmentType,
+                        mapping(inv -> ForeignExchanges.exchange(inv, "USD").getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer)))
+                .entrySet()
+                .stream()
+                .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), "USD"), entry.getKey(), "USD"))
+                .forEach(System.out::println);
+        total
+                .map(m -> format("Total: {0} -> {1}", m.getCurrency(), moneyFormat.format(m.getAmount())))
+                .ifPresent(System.out::println);
+
     }
 
     private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency) {
@@ -229,24 +258,22 @@ public class InvestmentTest {
                                 .orElse(BigDecimal.ZERO)));
     }
 
-    @Test
-    public void profit() throws IOException {
-        List<Investment> investmets = this.readExt("investments.json");
-
-        System.out.println("Renta de PF 2018: " + this.profit(investmets, InvestmentType.PF, 2018));
-        System.out.println("Renta de FCI 2018: " + this.profit(investmets, InvestmentType.FCI, 2018));
-    }
-
-    private BigDecimal profit(List<Investment> investmets, InvestmentType it, int year) {
-        return investmets
-                .stream()
-                .filter(in -> in.getOut() != null && in.getOut().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() == year)
-                .filter(in -> in.getType().equals(it))
-                .map(in -> in.getOut().getAmount().subtract(in.getIn().getAmount()))
-                .collect(reducing(BigDecimal.ZERO, BigDecimal::add));
-
-    }
-
+//    @Test
+//    public void profit() throws IOException {
+//        List<Investment> investmets = this.readExt("investments.json");
+//
+//        System.out.println("Renta de PF 2018: " + this.profit(investmets, InvestmentType.PF, 2018));
+//        System.out.println("Renta de FCI 2018: " + this.profit(investmets, InvestmentType.FCI, 2018));
+//    }
+//    private BigDecimal profit(List<Investment> investmets, InvestmentType it, int year) {
+//        return investmets
+//                .stream()
+//                .filter(in -> in.getOut() != null && in.getOut().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() == year)
+//                .filter(in -> in.getType().equals(it))
+//                .map(in -> in.getOut().getAmount().subtract(in.getIn().getAmount()))
+//                .collect(reducing(BigDecimal.ZERO, BigDecimal::add));
+//
+//    }
     private void print(Investment in, String context) {
         if ("1".equals(in.getId())) {
             System.out.println(MessageFormat.format("{1} {0}", in, context));
@@ -274,7 +301,7 @@ public class InvestmentTest {
     }
 
     @Test
-    public void pastInvestments() throws IOException {
+    public void pastInvestmentsProfit() throws IOException {
 
         final Collector<Investment, ?, BigDecimal> profitMapper = mapping(this::asRealUSDProfit, reducer);
 
@@ -298,7 +325,7 @@ public class InvestmentTest {
     }
 
     @Test
-    public void currentInvestments() throws IOException {
+    public void currentInvestmentsProfit() throws IOException {
 
         System.out.println("Ganancia Inversiones Actuales en USD reales");
 
