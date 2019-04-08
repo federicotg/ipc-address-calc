@@ -213,9 +213,10 @@ public class InvestmentTest {
         if (investment.getType().equals(InvestmentType.USD) || investment.getType().equals(InvestmentType.XAU)) {
             return "Líquido";
         }
-        if (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD")) {
+        if (InvestmentType.LETE.equals(investment.getType()) || (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD"))) {
             return "Renta Fija USD";
         }
+
         return "Renta Fija ARS";
     }
 

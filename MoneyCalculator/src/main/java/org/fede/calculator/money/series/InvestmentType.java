@@ -43,7 +43,6 @@ public enum InvestmentType {
             return true;
         }
     },
-    
     XAU {
         @Override
         public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {
@@ -51,8 +50,15 @@ public enum InvestmentType {
         }
     
         
-    };
+    },
+    LETE {
+        @Override
+        public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {
+            return "LETE".equals(asset.getCurrency());
+        }
     
+        
+    };
 
     public abstract boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset);
 

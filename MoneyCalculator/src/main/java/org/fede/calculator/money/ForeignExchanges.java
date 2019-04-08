@@ -16,12 +16,9 @@
  */
 package org.fede.calculator.money;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.IndexSeriesSupport;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
@@ -48,6 +45,9 @@ public class ForeignExchanges {
             USD,
             "ARS");
 
+    public static final ForeignExchange USD_LETE = new SimpleForeignExchange(
+            IndexSeriesSupport.CONSTANT_SERIES, "USD", "LETE");
+    
     public static final ForeignExchange USD_XAU = new SimpleForeignExchange(
             SeriesReader.readIndexSeries("index/gold.json"),
             "XAU",
@@ -78,39 +78,6 @@ public class ForeignExchanges {
             "UVA",
             "ARS");
 
-    /*private static final IndexSeries CONSTANT_INDEX = new IndexSeriesSupport() {
-        @Override
-        public YearMonth getFrom() {
-            return new YearMonth(1, 1);
-        }
-
-        @Override
-        public YearMonth getTo() {
-            return new YearMonth(5000, 12);
-        }
-
-        @Override
-        public BigDecimal getIndex(int year, int month) {
-            return BigDecimal.ONE;
-        }
-
-        @Override
-        public BigDecimal predictValue(int year, int month) {
-            return BigDecimal.ONE;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(this);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return this == obj;
-        }
-
-    };*/
-
     private static void map(String from, String to, ForeignExchange fx) {
         DIRECT_FOREIGN_EXCHANGES.put(new Pair<>(from, to), fx);
         DIRECT_FOREIGN_EXCHANGES.put(new Pair<>(to, from), fx);
@@ -120,6 +87,7 @@ public class ForeignExchanges {
 
         // direct conversions
         map("ARS", "USD", USD_ARS);
+        map("LETE", "USD", USD_LETE);
         map("EUR", "USD", USD_EUR);
         map("XAU", "USD", USD_XAU);
         map("ARS", "USD", USD_ARS);
