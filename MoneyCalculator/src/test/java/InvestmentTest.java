@@ -210,9 +210,15 @@ public class InvestmentTest {
         if ("CONAAFA".equals(investment.getCurrency())) {
             return "Renta Variable ARS";
         }
-        if (investment.getType().equals(InvestmentType.USD) || investment.getType().equals(InvestmentType.XAU)) {
+        if (investment.getType().equals(InvestmentType.USD)) {
             return "Líquido";
         }
+
+        if (investment.getType().equals(InvestmentType.XAU)) {
+            return "Gold";
+        }
+        
+
         if (InvestmentType.LETE.equals(investment.getType()) || (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD"))) {
             return "Renta Fija USD";
         }
