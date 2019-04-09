@@ -1,6 +1,5 @@
-
 /*
- * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
+ * Copyright (C) 2019 Federico Tello Gentile <federicotg@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.fede.calculator.money;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.FileInputStream;
@@ -36,30 +37,20 @@ import static java.util.stream.Collectors.mapping;
 import static java.text.MessageFormat.format;
 import java.util.function.Predicate;
 
-import org.fede.calculator.money.ForeignExchanges;
-import org.fede.calculator.money.Inflation;
-import static org.fede.calculator.money.Inflation.ARS_INFLATION;
-import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 
-import static org.junit.Assert.*;
-
-import org.junit.Before;
-import org.junit.Test;
-
 /**
  *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
-public class InvestmentTest {
+public class ConsoleReports {
 
     private static final Predicate<Investment> IS_CURRENT = Investment::isCurrent;
     private static final Predicate<Investment> IS_PAST = IS_CURRENT.negate();
 
-    private final DateFormat df = DateFormat.getDateInstance();
     private final NumberFormat nf = NumberFormat.getNumberInstance();
     private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
@@ -68,74 +59,16 @@ public class InvestmentTest {
 
     private final Collector<Investment, ?, BigDecimal> mapper = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer);
 
-    private final List<Investment> inv;
-
     private final List<Investment> investments;
 
-    public InvestmentTest() throws IOException {
-        this.inv = this.read("investments-test.json");
+    public ConsoleReports() throws IOException {
         this.nf.setMaximumFractionDigits(2);
         this.percentFormat.setMinimumFractionDigits(2);
         this.investments = this.readExt("investments.json");
     }
 
-    @Before
     public void separateTests() {
         System.out.println("-----");
-    }
-
-    // @Test
-    public void pf() {
-
-        assertFalse(inv.isEmpty());
-        // final String message = "Invertí {0} el {1}. El {2} cobré {3}. En {4} del {5}
-        // puse {6} y recuperé {7}. Gané {8}";
-        final String message = "{0}\t{1}\t{2}";
-
-        for (Investment investment : inv) {
-            if (investment.getType().equals(InvestmentType.PF)) {
-
-                if (investment.getIn().getCurrency().equals(investment.getOut().getCurrency())
-                        && investment.getIn().getCurrency().equals("ARS")) {
-                    MoneyAmount nominalIn = new MoneyAmount(investment.getIn().getAmount(),
-                            investment.getIn().getCurrency());
-                    MoneyAmount nominalOut = new MoneyAmount(investment.getOut().getAmount(),
-                            investment.getIn().getCurrency());
-
-                    MoneyAmount realIn = ARS_INFLATION.adjust(nominalIn, investment.getIn().getDate(),
-                            investment.getOut().getDate());
-                    String outDate = df.format(investment.getOut().getDate());
-
-                    System.out.println(MessageFormat.format(message, outDate, this.nf.format(realIn.getAmount()),
-                            this.nf.format(nominalOut.getAmount().subtract(realIn.getAmount()))));
-
-                }
-            }
-        }
-    }
-
-    //@Test
-    public void usd() throws ParseException {
-
-        MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
-
-        MoneyAmount oneUSDIn1951PurchasingPower = Inflation.USD_INFLATION.adjust(oneDollar, 2016, 5, 1951, 9);
-
-        MoneyAmount oneUSDIn1951PurchasingPowerInPesos = ForeignExchanges.getForeignExchange("USD", "ARS")
-                .exchange(oneUSDIn1951PurchasingPower, "ARS", 2016, 5);
-
-        MoneyAmount pesosBackThen = Inflation.ARS_INFLATION.adjust(oneUSDIn1951PurchasingPowerInPesos, 2016, 5, 1951,
-                9);
-
-    }
-
-    private List<Investment> read(String name) throws IOException {
-        try (InputStream in = InvestmentTest.class.getResourceAsStream("/" + name);) {
-            ObjectMapper om = new ObjectMapper();
-
-            return om.readValue(in, new TypeReference<List<Investment>>() {
-            });
-        }
     }
 
     private List<Investment> readExt(String name) throws IOException {
@@ -152,7 +85,6 @@ public class InvestmentTest {
         return comparison != 0 ? comparison : left.getFirst().getSecond().compareTo(right.getFirst().getSecond());
     }
 
-   // @Test
     public void listStock() throws IOException {
 
         System.out.println("Ahorros actuales agrupados por moneda.");
@@ -166,15 +98,15 @@ public class InvestmentTest {
                 .entrySet()
                 .stream()
                 .map(e -> Pair.of(e.getKey(), e.getValue()))
-                .sorted(InvestmentTest::compareGroups)
+                .sorted(ConsoleReports::compareGroups)
                 .map(e -> format("{0} {2}: {1}", e.getFirst().getFirst(), sixDigits.format(e.getSecond()), e.getFirst().getSecond()))
                 .forEach(System.out::println);
 
     }
 
-    private Optional<MoneyAmount> total(Predicate<Investment> redicate, String reportCurrency, YearMonth limit) {
+    private Optional<MoneyAmount> total(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
         return investments.stream()
-                .filter(IS_CURRENT)
+                .filter(predicate)
                 .collect(groupingBy(in -> Pair.of(in.getType().toString(), in.getCurrency()), mapper))
                 .entrySet()
                 .stream()
@@ -184,7 +116,6 @@ public class InvestmentTest {
                 .reduce(MoneyAmount::add);
     }
 
-   // @Test
     public void listStock2() throws IOException {
         final String reportCurrency = "USD";
         System.out.println("Inversiones Actuales en " + reportCurrency + " agrupadas.");
@@ -197,7 +128,7 @@ public class InvestmentTest {
                 .stream()
                 .map(e -> Pair.of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
                 .map(p -> Pair.of(p.getFirst(), this.fx(p, reportCurrency)))
-                .sorted(InvestmentTest::compareGroups)
+                .sorted(ConsoleReports::compareGroups)
                 .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
                 .forEach(System.out::println);
         total
@@ -217,7 +148,6 @@ public class InvestmentTest {
         if (investment.getType().equals(InvestmentType.XAU)) {
             return "Gold";
         }
-        
 
         if (InvestmentType.LETE.equals(investment.getType()) || (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD"))) {
             return "Renta Fija USD";
@@ -226,7 +156,6 @@ public class InvestmentTest {
         return "Renta Fija ARS";
     }
 
-   // @Test
     public void listStockByTpe() throws IOException {
 
         final String reportCurrency = "USD";
@@ -264,22 +193,6 @@ public class InvestmentTest {
                                 .orElse(BigDecimal.ZERO)));
     }
 
-//    @Test
-//    public void profit() throws IOException {
-//        List<Investment> investmets = this.readExt("investments.json");
-//
-//        System.out.println("Renta de PF 2018: " + this.profit(investmets, InvestmentType.PF, 2018));
-//        System.out.println("Renta de FCI 2018: " + this.profit(investmets, InvestmentType.FCI, 2018));
-//    }
-//    private BigDecimal profit(List<Investment> investmets, InvestmentType it, int year) {
-//        return investmets
-//                .stream()
-//                .filter(in -> in.getOut() != null && in.getOut().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() == year)
-//                .filter(in -> in.getType().equals(it))
-//                .map(in -> in.getOut().getAmount().subtract(in.getIn().getAmount()))
-//                .collect(reducing(BigDecimal.ZERO, BigDecimal::add));
-//
-//    }
     private void print(Investment in, String context) {
         if ("1".equals(in.getId())) {
             System.out.println(MessageFormat.format("{1} {0}", in, context));
@@ -306,7 +219,6 @@ public class InvestmentTest {
         return profit.getAmount();
     }
 
-   // @Test
     public void pastInvestmentsProfit() throws IOException {
 
         final Collector<Investment, ?, BigDecimal> profitMapper = mapping(this::asRealUSDProfit, reducer);
@@ -330,7 +242,6 @@ public class InvestmentTest {
                 .ifPresent(System.out::println);
     }
 
-   // @Test
     public void currentInvestmentsProfit() throws IOException {
 
         System.out.println("Ganancia Inversiones Actuales en USD reales");
@@ -361,6 +272,30 @@ public class InvestmentTest {
         return new MoneyAmount(
                 in.getOut().getMoneyAmount().getAmount().subtract(in.getIn().getMoneyAmount().getAmount()),
                 in.getOut().getCurrency());
+    }
+
+    public static void main(String[] args) {
+        try {
+            ConsoleReports me = new ConsoleReports();
+            me.pastInvestmentsProfit();
+            me.separateTests();
+
+            me.currentInvestmentsProfit();
+            me.separateTests();
+
+            me.listStock();
+            me.separateTests();
+
+            me.listStock2();
+            me.separateTests();
+
+            me.listStockByTpe();
+            me.separateTests();
+
+        } catch (IOException ioEx) {
+            System.err.println(ioEx.getMessage());
+            ioEx.printStackTrace(System.err);
+        }
     }
 
 }
