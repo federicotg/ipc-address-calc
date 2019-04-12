@@ -35,6 +35,10 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.mapping;
 import static java.text.MessageFormat.format;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import org.fede.calculator.money.series.Investment;
@@ -72,7 +76,7 @@ public class ConsoleReports {
     }
 
     private List<Investment> readExt(String name) throws IOException {
-        try (InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
+        try ( InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
             ObjectMapper om = new ObjectMapper();
 
             return om.readValue(in, new TypeReference<List<Investment>>() {
@@ -259,12 +263,34 @@ public class ConsoleReports {
         return Pair.of(in.getType().toString(), in.getCurrency());
     }
 
+    private BigDecimal days(Investment in) {
+        return BigDecimal.valueOf(ChronoUnit.DAYS.between(
+                LocalDate.ofInstant(in.getInitialDate().toInstant(), ZoneId.systemDefault()),
+                LocalDate.now()));
+    }
+
+    private BigDecimal addInterest(Investment in) {
+        return in.getInvestment().getAmount()
+                .multiply(in.getInterest())
+                .multiply(this.days(in))
+                .setScale(12, RoundingMode.HALF_UP)
+                .divide(BigDecimal.valueOf(ChronoUnit.YEARS.getDuration().toDays()), MathContext.DECIMAL64)
+                .add(in.getInvestment().getMoneyAmount().getAmount());
+    }
+
     private MoneyAmount profit(Investment in) {
 
         if (in.getOut() == null) {
 
+            final BigDecimal currentAmount
+                    = //Optional.<Investment>empty()
+                    Optional.ofNullable(in)
+                            .filter(inv -> inv.getInterest() != null)
+                            .map(this::addInterest)
+                            .orElse(in.getInvestment().getMoneyAmount().getAmount());
+
             return new MoneyAmount(
-                    in.getInvestment().getMoneyAmount().getAmount().subtract(in.getIn().getMoneyAmount().getAmount()),
+                    currentAmount.subtract(in.getIn().getMoneyAmount().getAmount()),
                     in.getInvestment().getMoneyAmount().getCurrency());
 
         }
