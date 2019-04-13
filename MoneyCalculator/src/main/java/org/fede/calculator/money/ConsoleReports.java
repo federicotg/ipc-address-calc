@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
@@ -108,7 +109,7 @@ public class ConsoleReports {
 
     }
 
-    private Optional<MoneyAmount> total(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
+    private Optional<MoneyAmount> total2(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
         return investments.stream()
                 .filter(predicate)
                 .collect(groupingBy(in -> Pair.of(in.getType().toString(), in.getCurrency()), mapper))
@@ -117,6 +118,21 @@ public class ConsoleReports {
                 .map(e -> Pair.of(e.getKey().getFirst(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
                 .map(p -> ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency)
                 .exchange(p.getSecond(), reportCurrency, limit.getYear(), limit.getMonth()))
+                .reduce(MoneyAmount::add);
+    }
+    
+    
+    private MoneyAmount getAmount(Investment i){
+        return Optional.ofNullable(i.getOut()).map(InvestmentEvent::getMoneyAmount).orElse(i.getInvestment().getMoneyAmount());
+    }
+    
+    private Optional<MoneyAmount> total(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
+        return investments.stream()
+                .filter(predicate)
+                .map(this::getAmount)
+                //.peek(ma -> System.out.println(ma.toString()))
+                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), reportCurrency).exchange(ma, reportCurrency, limit.getYear(), limit.getMonth()))
+                //.peek(ma -> System.out.println(ma.toString()))
                 .reduce(MoneyAmount::add);
     }
 
@@ -317,6 +333,12 @@ public class ConsoleReports {
 
             me.listStockByTpe();
             me.separateTests();
+            
+           //ystem.err.println("*-------------*");
+           // me.aa();
+           
+            
+                
 
         } catch (IOException ioEx) {
             System.err.println(ioEx.getMessage());
@@ -324,4 +346,12 @@ public class ConsoleReports {
         }
     }
 
+    
+//    private void aa(){
+//         this.investments.stream()
+//                .filter(IS_CURRENT)
+//                .filter(i -> !i.getType().equals(InvestmentType.PF))
+//                .filter(i -> i.getInvestment().getCurrency().equals("USD"))
+//                .forEach(i -> System.out.println(i.getInvestment().getMoneyAmount().toString()));
+//    }
 }
