@@ -17,33 +17,19 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Objects;
 import java.util.StringJoiner;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.MoneyAmount;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
 
 /**
  *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 
-/*@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
-        visible = true,
-        property = "type")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = CertificateDepositInvestment.class, name = "PF"),
-    @JsonSubTypes.Type(value = CurrencyInvestment.class, name = "USD")
-})*/
 public class Investment {
-
-    private static final BigDecimal DAYS_IN_ONE_YEAR = new BigDecimal(365);
 
     private String id;
     private InvestmentType type;
@@ -154,28 +140,29 @@ public class Investment {
         return fx.exchange(ma, targetCurrency, min.getYear(), min.getMonth());
     }
 
-    private static MoneyAmount interest(MoneyAmount investedAmount, BigDecimal interestRate, Date investmentDate, Date currentDate) {
-
-        if (interestRate == null) {
-            return new MoneyAmount(BigDecimal.ZERO, investedAmount.getCurrency());
-        }
-
-        final long days = ChronoUnit.DAYS.between(
-                investmentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate(),
-                currentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate());
-
-        if (days <= 0l) {
-            return new MoneyAmount(BigDecimal.ZERO, investedAmount.getCurrency());
-        }
-
-        final BigDecimal interest = (investedAmount.getAmount().multiply(interestRate, CONTEXT).divide(DAYS_IN_ONE_YEAR, CONTEXT))
-                .multiply(BigDecimal.valueOf(days), CONTEXT);
-
-        return new MoneyAmount(interest, investedAmount.getCurrency());
-    }
+//    private static MoneyAmount interest(MoneyAmount investedAmount, BigDecimal interestRate, Date investmentDate, Date currentDate) {
+//
+//        if (interestRate == null) {
+//            return new MoneyAmount(BigDecimal.ZERO, investedAmount.getCurrency());
+//        }
+//
+//        final long days = ChronoUnit.DAYS.between(
+//                investmentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate(),
+//                currentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate());
+//
+//        if (days <= 0l) {
+//            return new MoneyAmount(BigDecimal.ZERO, investedAmount.getCurrency());
+//        }
+//
+//        final BigDecimal interest = (investedAmount.getAmount().multiply(interestRate, CONTEXT).divide(DAYS_IN_ONE_YEAR, CONTEXT))
+//                .multiply(BigDecimal.valueOf(days), CONTEXT);
+//
+//        return new MoneyAmount(interest, investedAmount.getCurrency());
+//    }
 
     public boolean isCurrent() {
-        return this.getOut() == null || this.getOut().getDate().after(new Date());
+        final Date now = new Date();
+        return this.getIn().getDate().before(now) && (this.getOut() == null || this.getOut().getDate().after(now));
     }
 
     @Override

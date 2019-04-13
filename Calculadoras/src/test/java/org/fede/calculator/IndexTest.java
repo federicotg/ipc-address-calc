@@ -30,7 +30,6 @@ import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.NoSeriesDataFoundException;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
@@ -115,11 +114,7 @@ public class IndexTest {
         //});
     }
 
-    @Test
-    public void ok() {
-        assertTrue(1==1);
-    }
-    
+       
     // @Test
     public void historicDollar()  {
 
@@ -160,7 +155,7 @@ public class IndexTest {
     @Test
     
     public void realUSD() {
-        MoneyAmountSeries usd = Util.readSeries("saving/ahorros-dolar.json");
+        MoneyAmountSeries usd = Util.readSeries("saving/ahorros-dolar-liq.json");
         
         MoneyAmount x = usd.getAmount(2016, 5);
         assertEquals("USD", x.getCurrency());
