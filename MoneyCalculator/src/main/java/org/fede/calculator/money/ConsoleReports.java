@@ -38,8 +38,12 @@ import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
@@ -120,12 +124,11 @@ public class ConsoleReports {
                 .exchange(p.getSecond(), reportCurrency, limit.getYear(), limit.getMonth()))
                 .reduce(MoneyAmount::add);
     }
-    
-    
-    private MoneyAmount getAmount(Investment i){
+
+    private MoneyAmount getAmount(Investment i) {
         return Optional.ofNullable(i.getOut()).map(InvestmentEvent::getMoneyAmount).orElse(i.getInvestment().getMoneyAmount());
     }
-    
+
     private Optional<MoneyAmount> total(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
         return investments.stream()
                 .filter(predicate)
@@ -334,24 +337,78 @@ public class ConsoleReports {
             me.listStockByTpe();
             me.separateTests();
             
-           //ystem.err.println("*-------------*");
-           // me.aa();
-           
+            me.netMonthlyInvestment();
+            me.separateTests();
             
-                
-
+            me.netYearlyInvestment();
+            //ystem.err.println("*-------------*");
+            // me.aa();
         } catch (IOException ioEx) {
             System.err.println(ioEx.getMessage());
             ioEx.printStackTrace(System.err);
         }
     }
 
+    private Stream<Movement> movements(Investment investment, String currency) {
+        final MoneyAmount zero = new MoneyAmount(BigDecimal.ZERO, currency);
+        return Stream.concat(
+                Stream.of(new Movement(investment.getIn().getDate(), investment.getIn().getMoneyAmount())),
+                Optional.ofNullable(investment.getOut())
+                        .map(out -> new Movement(out.getDate(), zero.subtract(out.getMoneyAmount())))
+                        .map(Stream::of)
+                        .orElseGet(Stream::empty));
+    }
+
+    private YearMonth yearMonth(Movement movement) {
+        return new YearMonth(movement.getDate());
+    }
     
-//    private void aa(){
-//         this.investments.stream()
-//                .filter(IS_CURRENT)
-//                .filter(i -> !i.getType().equals(InvestmentType.PF))
-//                .filter(i -> i.getInvestment().getCurrency().equals("USD"))
-//                .forEach(i -> System.out.println(i.getInvestment().getMoneyAmount().toString()));
-//    }
+    private Integer year(Movement movement) {
+        return new YearMonth(movement.getDate()).getYear();
+    }
+
+    public void netMonthlyInvestment() {
+
+        final String currency = "USD";
+        System.out.println("Inversión Mensual en " + currency);
+
+        Map<YearMonth, MoneyAmount> investmentsByMonth = this.investments
+                .stream()
+                .filter(investment -> !(investment.getType().equals(InvestmentType.PF) && investment.getInvestment().getCurrency().equals("USD")))
+                .filter(investment -> !investment.getType().equals(InvestmentType.LETE))
+                .map(investment -> ForeignExchanges.exchange(investment, currency))
+                .flatMap(investment -> this.movements(investment, currency))
+                .collect(Collectors.groupingBy(this::yearMonth, Collectors.reducing(new MoneyAmount(BigDecimal.ZERO, currency), Movement::getAmount, MoneyAmount::add)));
+
+        investmentsByMonth
+                .entrySet()
+                .stream()
+                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .map(e -> MessageFormat.format("{0}-{1} => {2} {3}", Integer.toString(e.getKey().getYear()), e.getKey().getMonth(), e.getValue().getCurrency(), moneyFormat.format(e.getValue().getAmount())))
+                .forEach(System.out::println);
+
+    }
+    
+        public void netYearlyInvestment() {
+
+        final String currency = "USD";
+        System.out.println("Inversión Anual en " + currency);
+
+        Map<Integer, MoneyAmount> investmentsByYear = this.investments
+                .stream()
+                .filter(investment -> !(investment.getType().equals(InvestmentType.PF) && investment.getInvestment().getCurrency().equals("USD")))
+                .filter(investment -> !investment.getType().equals(InvestmentType.LETE))
+                .map(investment -> ForeignExchanges.exchange(investment, currency))
+                .flatMap(investment -> this.movements(investment, currency))
+                .collect(Collectors.groupingBy(this::year, Collectors.reducing(new MoneyAmount(BigDecimal.ZERO, currency), Movement::getAmount, MoneyAmount::add)));
+
+        investmentsByYear
+                .entrySet()
+                .stream()
+                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .map(e -> MessageFormat.format("{0} => {1} {2}", Integer.toString(e.getKey()), e.getValue().getCurrency(), moneyFormat.format(e.getValue().getAmount())))
+                .forEach(System.out::println);
+
+    }
+
 }

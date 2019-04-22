@@ -60,7 +60,7 @@ public class MoneyAmount {
         return obj instanceof MoneyAmount
                 && ((MoneyAmount) obj).currency.equals(this.currency)
                 && ((MoneyAmount) obj).amount.setScale(5, HALF_UP)
-                .compareTo(this.amount.setScale(5, HALF_UP)) == 0;
+                        .compareTo(this.amount.setScale(5, HALF_UP)) == 0;
     }
 
     @Override
@@ -91,6 +91,10 @@ public class MoneyAmount {
             throw new IllegalArgumentException("Money amounts must be in the same currency.");
         }
         return new MoneyAmount(this.getAmount().add(other.getAmount()), this.getCurrency());
+    }
+
+    public MoneyAmount subtract(MoneyAmount other) {
+        return this.add(new MoneyAmount(other.getAmount().negate(), other.getCurrency()));
     }
 
     public boolean isZero() {
