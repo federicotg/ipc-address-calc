@@ -24,10 +24,8 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collector;
@@ -40,7 +38,6 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -81,7 +78,7 @@ public class ConsoleReports {
     }
 
     private List<Investment> readExt(String name) throws IOException {
-        try ( InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
+        try (InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
             ObjectMapper om = new ObjectMapper();
 
             return om.readValue(in, new TypeReference<List<Investment>>() {
@@ -110,19 +107,6 @@ public class ConsoleReports {
                 .sorted(ConsoleReports::compareGroups)
                 .map(e -> format("{0} {2}: {1}", e.getFirst().getFirst(), sixDigits.format(e.getSecond()), e.getFirst().getSecond()))
                 .forEach(System.out::println);
-
-    }
-
-    private Optional<MoneyAmount> total2(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
-        return investments.stream()
-                .filter(predicate)
-                .collect(groupingBy(in -> Pair.of(in.getType().toString(), in.getCurrency()), mapper))
-                .entrySet()
-                .stream()
-                .map(e -> Pair.of(e.getKey().getFirst(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
-                .map(p -> ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency)
-                .exchange(p.getSecond(), reportCurrency, limit.getYear(), limit.getMonth()))
-                .reduce(MoneyAmount::add);
     }
 
     private MoneyAmount getAmount(Investment i) {
@@ -336,10 +320,10 @@ public class ConsoleReports {
 
             me.listStockByTpe();
             me.separateTests();
-            
+
             me.netMonthlyInvestment();
             me.separateTests();
-            
+
             me.netYearlyInvestment();
             //ystem.err.println("*-------------*");
             // me.aa();
@@ -349,8 +333,8 @@ public class ConsoleReports {
         }
     }
 
-    private Stream<Movement> movements(Investment investment, String currency) {
-        final MoneyAmount zero = new MoneyAmount(BigDecimal.ZERO, currency);
+    private Stream<Movement> movements(Investment investment, MoneyAmount zero) {
+        
         return Stream.concat(
                 Stream.of(new Movement(investment.getIn().getDate(), investment.getIn().getMoneyAmount())),
                 Optional.ofNullable(investment.getOut())
@@ -362,7 +346,7 @@ public class ConsoleReports {
     private YearMonth yearMonth(Movement movement) {
         return new YearMonth(movement.getDate());
     }
-    
+
     private Integer year(Movement movement) {
         return new YearMonth(movement.getDate()).getYear();
     }
@@ -372,13 +356,16 @@ public class ConsoleReports {
         final String currency = "USD";
         System.out.println("Inversión Mensual en " + currency);
 
+        final MoneyAmount zero = new MoneyAmount(BigDecimal.ZERO, currency);
+        
+        
         Map<YearMonth, MoneyAmount> investmentsByMonth = this.investments
                 .stream()
                 .filter(investment -> !(investment.getType().equals(InvestmentType.PF) && investment.getInvestment().getCurrency().equals("USD")))
                 .filter(investment -> !investment.getType().equals(InvestmentType.LETE))
                 .map(investment -> ForeignExchanges.exchange(investment, currency))
-                .flatMap(investment -> this.movements(investment, currency))
-                .collect(Collectors.groupingBy(this::yearMonth, Collectors.reducing(new MoneyAmount(BigDecimal.ZERO, currency), Movement::getAmount, MoneyAmount::add)));
+                .flatMap(investment -> this.movements(investment, zero))
+                .collect(Collectors.groupingBy(this::yearMonth, Collectors.reducing(zero, Movement::getAmount, MoneyAmount::add)));
 
         investmentsByMonth
                 .entrySet()
@@ -388,19 +375,21 @@ public class ConsoleReports {
                 .forEach(System.out::println);
 
     }
-    
-        public void netYearlyInvestment() {
+
+    public void netYearlyInvestment() {
 
         final String currency = "USD";
         System.out.println("Inversión Anual en " + currency);
 
+        final MoneyAmount zero = new MoneyAmount(BigDecimal.ZERO, currency);
+        
         Map<Integer, MoneyAmount> investmentsByYear = this.investments
                 .stream()
                 .filter(investment -> !(investment.getType().equals(InvestmentType.PF) && investment.getInvestment().getCurrency().equals("USD")))
                 .filter(investment -> !investment.getType().equals(InvestmentType.LETE))
                 .map(investment -> ForeignExchanges.exchange(investment, currency))
-                .flatMap(investment -> this.movements(investment, currency))
-                .collect(Collectors.groupingBy(this::year, Collectors.reducing(new MoneyAmount(BigDecimal.ZERO, currency), Movement::getAmount, MoneyAmount::add)));
+                .flatMap(investment -> this.movements(investment, zero))
+                .collect(Collectors.groupingBy(this::year, Collectors.reducing(zero, Movement::getAmount, MoneyAmount::add)));
 
         investmentsByYear
                 .entrySet()
