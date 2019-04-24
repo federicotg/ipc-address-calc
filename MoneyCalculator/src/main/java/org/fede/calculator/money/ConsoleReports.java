@@ -55,7 +55,7 @@ import org.fede.util.Pair;
 public class ConsoleReports {
 
     private static final Predicate<Investment> IS_CURRENT = Investment::isCurrent;
-    private static final Predicate<Investment> IS_PAST = IS_CURRENT.negate();
+    private static final Predicate<Investment> IS_PAST = Investment::isPast;
 
     private final NumberFormat nf = NumberFormat.getNumberInstance();
     private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();

@@ -140,31 +140,16 @@ public class Investment {
         return fx.exchange(ma, targetCurrency, min.getYear(), min.getMonth());
     }
 
-//    private static MoneyAmount interest(MoneyAmount investedAmount, BigDecimal interestRate, Date investmentDate, Date currentDate) {
-//
-//        if (interestRate == null) {
-//            return new MoneyAmount(BigDecimal.ZERO, investedAmount.getCurrency());
-//        }
-//
-//        final long days = ChronoUnit.DAYS.between(
-//                investmentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate(),
-//                currentDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate());
-//
-//        if (days <= 0l) {
-//            return new MoneyAmount(BigDecimal.ZERO, investedAmount.getCurrency());
-//        }
-//
-//        final BigDecimal interest = (investedAmount.getAmount().multiply(interestRate, CONTEXT).divide(DAYS_IN_ONE_YEAR, CONTEXT))
-//                .multiply(BigDecimal.valueOf(days), CONTEXT);
-//
-//        return new MoneyAmount(interest, investedAmount.getCurrency());
-//    }
-
     public boolean isCurrent() {
         final Date now = new Date();
         return this.getIn().getDate().before(now) && (this.getOut() == null || this.getOut().getDate().after(now));
     }
 
+    public boolean isPast() {
+        final Date now = new Date();
+        return this.getIn().getDate().before(now) && this.getOut() != null && (!this.getOut().getDate().after(now));
+    }
+    
     @Override
     public String toString() {
         return new StringJoiner(", ", this.getClass().getSimpleName() + " [", "]")
