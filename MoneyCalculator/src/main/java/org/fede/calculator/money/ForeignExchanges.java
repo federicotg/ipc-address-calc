@@ -58,6 +58,11 @@ public class ForeignExchanges {
             USD,
             "EUR");
 
+    public static final ForeignExchange ARS_LECAP = new SimpleForeignExchange(
+            IndexSeriesSupport.CONSTANT_SERIES,
+            "LECAP",
+            "ARS");
+    
     public static final ForeignExchange ARS_CONAAFA = new SimpleForeignExchange(
             SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json"),
             "CONAAFA",
@@ -94,12 +99,14 @@ public class ForeignExchanges {
         map("ARS", "CONAAFA", ARS_CONAAFA);
         map("ARS", "CONBALA", ARS_CONBALA);
         map("ARS", "CAPLUSA", ARS_CAPLUSA);
+        map("ARS", "LECAP", ARS_LECAP);
         map("ARS", "UVA", ARS_UVA);
 
         INTERMEDIATE_FOREIGN_EXCHANGES.put("UVA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CONAAFA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CAPLUSA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CONBALA", "ARS");
+        INTERMEDIATE_FOREIGN_EXCHANGES.put("LECAP", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("EUR", "USD");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("XAU", "USD");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("ARS", "USD");
