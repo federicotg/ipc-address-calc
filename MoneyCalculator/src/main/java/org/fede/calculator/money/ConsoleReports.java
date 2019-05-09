@@ -206,7 +206,8 @@ public class ConsoleReports {
         }
     }
 
-    private BigDecimal asRealUSDProfit(Investment in) {
+    
+        private BigDecimal asRealUSDProfit(Investment in) {
 
         this.print(in, "Inicial");
 
@@ -224,6 +225,12 @@ public class ConsoleReports {
             System.out.println("Profit " + profit.getCurrency() + " " + this.moneyFormat.format(profit.getAmount()));
         }
         return profit.getAmount();
+    }
+
+    
+    private BigDecimal asUSDProfit(Investment in) {
+
+        return this.profit(ForeignExchanges.exchange(in, "USD")).getAmount();
     }
 
     public void pastInvestmentsProfit() throws IOException {
@@ -251,11 +258,11 @@ public class ConsoleReports {
 
     public void currentInvestmentsProfit() throws IOException {
 
-        System.out.println("Ganancia Inversiones Actuales en USD reales");
+        System.out.println("Ganancia Inversiones Actuales en USD nominales");
 
         this.investments.stream()
                 .filter(IS_CURRENT)
-                .collect(groupingBy(this::typeAndCurrency, mapping(this::asRealUSDProfit, reducer)))
+                .collect(groupingBy(this::typeAndCurrency, mapping(this::asUSDProfit, reducer)))
                 .entrySet()
                 .stream()
                 .map(entry -> format("{0} {1} {2}", entry.getKey().getFirst(), entry.getKey().getSecond(), moneyFormat.format(entry.getValue())))
