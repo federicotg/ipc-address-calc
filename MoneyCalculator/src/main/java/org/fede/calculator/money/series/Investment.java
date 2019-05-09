@@ -38,6 +38,7 @@ public class Investment {
     private InvestmentEvent out;
 
     private BigDecimal interest;
+    private String comment;
 
     public InvestmentType getType() {
         return type;
@@ -166,6 +167,20 @@ public class Investment {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    /**
+     * @return the comment
+     */
+    public String getComment() {
+        return comment;
+    }
+
+    /**
+     * @param comment the comment to set
+     */
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
 }

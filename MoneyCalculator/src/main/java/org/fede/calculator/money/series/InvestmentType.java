@@ -62,8 +62,12 @@ public enum InvestmentType {
         public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {
             return "LECAP".equals(asset.getCurrency());
         }
-    
-        
+    },
+    ON {
+        @Override
+        public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {
+            return "ON".equals(asset.getCurrency());
+        }
     };
 
     public abstract boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset);

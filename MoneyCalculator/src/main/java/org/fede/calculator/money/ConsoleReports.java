@@ -328,10 +328,10 @@ public class ConsoleReports {
             me.listStockByTpe();
             me.separateTests();
 
-            me.netMonthlyInvestment();
-            me.separateTests();
+           // me.netMonthlyInvestment();
+           // me.separateTests();
 
-            me.netYearlyInvestment();
+            //me.netYearlyInvestment();
             //ystem.err.println("*-------------*");
             // me.aa();
         } catch (IOException ioEx) {
