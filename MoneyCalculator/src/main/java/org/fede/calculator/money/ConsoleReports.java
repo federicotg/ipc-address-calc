@@ -262,12 +262,13 @@ public class ConsoleReports {
         return ma.getCurrency().concat(" ").concat(moneyFormat.format(ma.getAmount()));
     }
 
-    public void currentInvestmentsRealProfit(String currency) throws IOException {
+    public void currentInvestmentsRealProfit(String currency, InvestmentType type) throws IOException {
 
-        System.out.println("Ganancia en Inversiones Actuales en " + currency + " en USD reales.");
+        System.out.println("Ganancia en Inversiones Actuales en " + type +" " + currency + " en USD reales.");
 
         this.investments.stream()
                 .filter(IS_CURRENT)
+                .filter(i -> i.getType().equals(type))
                 .filter(i -> i.getCurrency().equals(currency))
                 .map(investment -> ForeignExchanges.exchange(investment, "USD"))
                 .map(invUSD -> Inflation.USD_INFLATION.real(invUSD))
@@ -353,13 +354,16 @@ public class ConsoleReports {
             me.listStockByTpe();
             me.separateTests();
 
-            me.currentInvestmentsRealProfit("UVA");
+            me.currentInvestmentsRealProfit("UVA", InvestmentType.PF);
             me.separateTests();
 
-            me.currentInvestmentsRealProfit("LETE");
+            me.currentInvestmentsRealProfit("LETE", InvestmentType.LETE);
             me.separateTests();
 
-            me.currentInvestmentsRealProfit("LECAP");
+            me.currentInvestmentsRealProfit("LECAP", InvestmentType.LECAP);
+            me.separateTests();
+            
+            me.currentInvestmentsRealProfit("USD", InvestmentType.ON);
             me.separateTests();
 
             // me.netMonthlyInvestment();

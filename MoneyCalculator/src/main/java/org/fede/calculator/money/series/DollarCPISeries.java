@@ -91,7 +91,9 @@ public final class DollarCPISeries extends IndexSeriesSupport {
         if (year < 1913) {
             throw new NoSeriesDataFoundException("No data for specified year and month.");
         }
-        return new LinearFutureValue().predictValue(this, year, month);
+        //return new LinearFutureValue().predictValue(this, year, month);
+        YearMonth to = this.getTo();
+        return this.getIndex(to.getYear(), to.getMonth());
     }
 
 }
