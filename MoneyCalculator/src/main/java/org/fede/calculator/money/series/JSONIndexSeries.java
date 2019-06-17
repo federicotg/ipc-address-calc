@@ -57,8 +57,8 @@ public class JSONIndexSeries extends IndexSeriesSupport {
     @Override
     public BigDecimal predictValue(int year, int month) {
         if (new YearMonth(year, month).compareTo(this.getTo()) > 0) {
-            //return this.data.get(this.data.size() - 1).getValue();
-            return new LinearFutureValue().predictValue(this, year, month);
+            return this.data.get(this.data.size() - 1).getValue();
+            //return new LinearFutureValue().predictValue(this, year, month);
         }
         throw new NoSeriesDataFoundException("No data for specified year and month.");
     }

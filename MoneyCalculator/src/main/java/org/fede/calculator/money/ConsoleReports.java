@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.List;
@@ -60,6 +61,7 @@ public class ConsoleReports {
     private final NumberFormat nf = NumberFormat.getNumberInstance();
     private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
+    private final DateFormat df = DateFormat.getDateInstance();
 
     private final Collector<BigDecimal, ?, BigDecimal> reducer = reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
 
@@ -78,7 +80,7 @@ public class ConsoleReports {
     }
 
     private List<Investment> readExt(String name) throws IOException {
-        try (InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
+        try ( InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
             ObjectMapper om = new ObjectMapper();
 
             return om.readValue(in, new TypeReference<List<Investment>>() {
@@ -156,7 +158,7 @@ public class ConsoleReports {
             return "Gold";
         }
 
-        if (InvestmentType.LETE.equals(investment.getType()) 
+        if (InvestmentType.LETE.equals(investment.getType())
                 || (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD"))
                 || (investment.getType().equals(InvestmentType.ON) && investment.getCurrency().equals("USD"))) {
             return "Renta Fija USD";
@@ -208,8 +210,7 @@ public class ConsoleReports {
         }
     }
 
-    
-        private BigDecimal asRealUSDProfit(Investment in) {
+    private BigDecimal asRealUSDProfit(Investment in) {
 
         this.print(in, "Inicial");
 
@@ -229,7 +230,6 @@ public class ConsoleReports {
         return profit.getAmount();
     }
 
-    
     private BigDecimal asUSDProfit(Investment in) {
 
         return this.profit(ForeignExchanges.exchange(in, "USD")).getAmount();
@@ -256,6 +256,29 @@ public class ConsoleReports {
                 .map(moneyFormat::format)
                 .map(amount -> format("Total: {0}", amount))
                 .ifPresent(System.out::println);
+    }
+
+    private String fmt(MoneyAmount ma) {
+        return ma.getCurrency().concat(" ").concat(moneyFormat.format(ma.getAmount()));
+    }
+
+    public void currentInvestmentsRealProfit(String currency) throws IOException {
+
+        System.out.println("Ganancia en Inversiones Actuales en " + currency + " en USD reales.");
+
+        this.investments.stream()
+                .filter(IS_CURRENT)
+                .filter(i -> i.getCurrency().equals(currency))
+                .map(investment -> ForeignExchanges.exchange(investment, "USD"))
+                .map(invUSD -> Inflation.USD_INFLATION.real(invUSD))
+                .map(realUSD
+                        -> MessageFormat.format("{3} {0} => {1}. {2} {4}",
+                        this.fmt(realUSD.getInitialMoneyAmount()),
+                        this.fmt(this.getAmount(realUSD)),
+                        this.fmt(this.profit(realUSD)),
+                        this.df.format(realUSD.getInitialDate()),
+                        this.percentFormat.format(this.profit(realUSD).getAmount().divide(realUSD.getInitialMoneyAmount().getAmount(), MathContext.DECIMAL64))))
+                .forEach(System.out::println);
     }
 
     public void currentInvestmentsProfit() throws IOException {
@@ -330,9 +353,17 @@ public class ConsoleReports {
             me.listStockByTpe();
             me.separateTests();
 
-           // me.netMonthlyInvestment();
-           // me.separateTests();
+            me.currentInvestmentsRealProfit("UVA");
+            me.separateTests();
 
+            me.currentInvestmentsRealProfit("LETE");
+            me.separateTests();
+
+            me.currentInvestmentsRealProfit("LECAP");
+            me.separateTests();
+
+            // me.netMonthlyInvestment();
+            // me.separateTests();
             //me.netYearlyInvestment();
             //ystem.err.println("*-------------*");
             // me.aa();
@@ -343,7 +374,7 @@ public class ConsoleReports {
     }
 
     private Stream<Movement> movements(Investment investment, MoneyAmount zero) {
-        
+
         return Stream.concat(
                 Stream.of(new Movement(investment.getIn().getDate(), investment.getIn().getMoneyAmount())),
                 Optional.ofNullable(investment.getOut())
@@ -366,8 +397,7 @@ public class ConsoleReports {
         System.out.println("Inversión Mensual en " + currency);
 
         final MoneyAmount zero = new MoneyAmount(BigDecimal.ZERO, currency);
-        
-        
+
         Map<YearMonth, MoneyAmount> investmentsByMonth = this.investments
                 .stream()
                 .filter(investment -> !(investment.getType().equals(InvestmentType.PF) && investment.getInvestment().getCurrency().equals("USD")))
@@ -391,7 +421,7 @@ public class ConsoleReports {
         System.out.println("Inversión Anual en " + currency);
 
         final MoneyAmount zero = new MoneyAmount(BigDecimal.ZERO, currency);
-        
+
         Map<Integer, MoneyAmount> investmentsByYear = this.investments
                 .stream()
                 .filter(investment -> !(investment.getType().equals(InvestmentType.PF) && investment.getInvestment().getCurrency().equals("USD")))
