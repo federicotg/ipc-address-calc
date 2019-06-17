@@ -156,7 +156,9 @@ public class ConsoleReports {
             return "Gold";
         }
 
-        if (InvestmentType.LETE.equals(investment.getType()) || (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD"))) {
+        if (InvestmentType.LETE.equals(investment.getType()) 
+                || (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD"))
+                || (investment.getType().equals(InvestmentType.ON) && investment.getCurrency().equals("USD"))) {
             return "Renta Fija USD";
         }
 
