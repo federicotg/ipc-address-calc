@@ -219,7 +219,7 @@ public class InvestmentTest {
         }
         
 
-        if (InvestmentType.LETE.equals(investment.getType()) || (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD"))) {
+        if (InvestmentType.BONO.equals(investment.getType()) || (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD"))) {
             return "Renta Fija USD";
         }
 

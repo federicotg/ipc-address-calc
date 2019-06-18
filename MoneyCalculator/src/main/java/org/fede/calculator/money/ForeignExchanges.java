@@ -82,6 +82,12 @@ public class ForeignExchanges {
             SeriesReader.readIndexSeries("index/UVA-peso.json"),
             "UVA",
             "ARS");
+    
+    public static final ForeignExchange USD_AY24 = new SimpleForeignExchange(
+            SeriesReader.readIndexSeries("index/AY24-USD.json"),
+            "AY24", USD);
+    
+    //
 
     private static void map(String from, String to, ForeignExchange fx) {
         DIRECT_FOREIGN_EXCHANGES.put(new Pair<>(from, to), fx);
@@ -91,16 +97,17 @@ public class ForeignExchanges {
     static {
 
         // direct conversions
-        map("ARS", "USD", USD_ARS);
-        map("LETE", "USD", USD_LETE);
-        map("EUR", "USD", USD_EUR);
-        map("XAU", "USD", USD_XAU);
-        map("ARS", "USD", USD_ARS);
+        map("ARS", USD, USD_ARS);
+        map("LETE", USD, USD_LETE);
+        map("EUR", USD, USD_EUR);
+        map("XAU", USD, USD_XAU);
+        map("ARS", USD, USD_ARS);
         map("ARS", "CONAAFA", ARS_CONAAFA);
         map("ARS", "CONBALA", ARS_CONBALA);
         map("ARS", "CAPLUSA", ARS_CAPLUSA);
         map("ARS", "LECAP", ARS_LECAP);
         map("ARS", "UVA", ARS_UVA);
+        map(USD, "AY24", USD_AY24);
 
         INTERMEDIATE_FOREIGN_EXCHANGES.put("UVA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CONAAFA", "ARS");

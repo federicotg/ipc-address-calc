@@ -158,9 +158,7 @@ public class ConsoleReports {
             return "Gold";
         }
 
-        if (InvestmentType.LETE.equals(investment.getType())
-                || (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD"))
-                || (investment.getType().equals(InvestmentType.ON) && investment.getCurrency().equals("USD"))) {
+        if (InvestmentType.BONO.equals(investment.getType())) {
             return "Renta Fija USD";
         }
 
@@ -357,13 +355,16 @@ public class ConsoleReports {
             me.currentInvestmentsRealProfit("UVA", InvestmentType.PF);
             me.separateTests();
 
-            me.currentInvestmentsRealProfit("LETE", InvestmentType.LETE);
+            me.currentInvestmentsRealProfit("LETE", InvestmentType.BONO);
             me.separateTests();
 
-            me.currentInvestmentsRealProfit("LECAP", InvestmentType.LECAP);
+            me.currentInvestmentsRealProfit("LECAP", InvestmentType.BONO);
             me.separateTests();
             
-            me.currentInvestmentsRealProfit("USD", InvestmentType.ON);
+            me.currentInvestmentsRealProfit("AY24", InvestmentType.BONO);
+            me.separateTests();
+            
+            me.currentInvestmentsRealProfit("USD", InvestmentType.BONO);
             me.separateTests();
 
             // me.netMonthlyInvestment();
@@ -393,54 +394,6 @@ public class ConsoleReports {
 
     private Integer year(Movement movement) {
         return new YearMonth(movement.getDate()).getYear();
-    }
-
-    public void netMonthlyInvestment() {
-
-        final String currency = "USD";
-        System.out.println("Inversión Mensual en " + currency);
-
-        final MoneyAmount zero = new MoneyAmount(BigDecimal.ZERO, currency);
-
-        Map<YearMonth, MoneyAmount> investmentsByMonth = this.investments
-                .stream()
-                .filter(investment -> !(investment.getType().equals(InvestmentType.PF) && investment.getInvestment().getCurrency().equals("USD")))
-                .filter(investment -> !investment.getType().equals(InvestmentType.LETE))
-                .map(investment -> ForeignExchanges.exchange(investment, currency))
-                .flatMap(investment -> this.movements(investment, zero))
-                .collect(Collectors.groupingBy(this::yearMonth, Collectors.reducing(zero, Movement::getAmount, MoneyAmount::add)));
-
-        investmentsByMonth
-                .entrySet()
-                .stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .map(e -> MessageFormat.format("{0}-{1} => {2} {3}", Integer.toString(e.getKey().getYear()), e.getKey().getMonth(), e.getValue().getCurrency(), moneyFormat.format(e.getValue().getAmount())))
-                .forEach(System.out::println);
-
-    }
-
-    public void netYearlyInvestment() {
-
-        final String currency = "USD";
-        System.out.println("Inversión Anual en " + currency);
-
-        final MoneyAmount zero = new MoneyAmount(BigDecimal.ZERO, currency);
-
-        Map<Integer, MoneyAmount> investmentsByYear = this.investments
-                .stream()
-                .filter(investment -> !(investment.getType().equals(InvestmentType.PF) && investment.getInvestment().getCurrency().equals("USD")))
-                .filter(investment -> !investment.getType().equals(InvestmentType.LETE))
-                .map(investment -> ForeignExchanges.exchange(investment, currency))
-                .flatMap(investment -> this.movements(investment, zero))
-                .collect(Collectors.groupingBy(this::year, Collectors.reducing(zero, Movement::getAmount, MoneyAmount::add)));
-
-        investmentsByYear
-                .entrySet()
-                .stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .map(e -> MessageFormat.format("{0} => {1} {2}", Integer.toString(e.getKey()), e.getValue().getCurrency(), moneyFormat.format(e.getValue().getAmount())))
-                .forEach(System.out::println);
-
     }
 
 }
