@@ -206,49 +206,49 @@ public class InvestmentTest {
 
     }
 
-    private String investmentType(Investment investment) {
-        if ("CONAAFA".equals(investment.getCurrency())) {
-            return "Renta Variable ARS";
-        }
-        if (investment.getType().equals(InvestmentType.USD)) {
-            return "Líquido";
-        }
-
-        if (investment.getType().equals(InvestmentType.XAU)) {
-            return "Gold";
-        }
-        
-
-        if (InvestmentType.BONO.equals(investment.getType()) || (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD"))) {
-            return "Renta Fija USD";
-        }
-
-        return "Renta Fija ARS";
-    }
+//    private String investmentType(Investment investment) {
+//        if ("CONAAFA".equals(investment.getCurrency())) {
+//            return "Renta Variable ARS";
+//        }
+//        if (investment.getType().equals(InvestmentType.USD)) {
+//            return "Líquido";
+//        }
+//
+//        if (investment.getType().equals(InvestmentType.XAU)) {
+//            return "Gold";
+//        }
+//        
+//
+//        if (InvestmentType.BONO.equals(investment.getType()) || (investment.getType().equals(InvestmentType.PF) && investment.getCurrency().equals("USD"))) {
+//            return "Renta Fija USD";
+//        }
+//
+//        return "Renta Fija ARS";
+//    }
 
    // @Test
-    public void listStockByTpe() throws IOException {
-
-        final String reportCurrency = "USD";
-        System.out.println("Inversiones Actuales en " + reportCurrency + " por tipo.");
-
-        final YearMonth limit = Inflation.USD_INFLATION.getTo();
-        final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
-
-        investments.stream()
-                .filter(IS_CURRENT)
-                .collect(groupingBy(
-                        this::investmentType,
-                        mapping(inv -> ForeignExchanges.exchange(inv, "USD").getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer)))
-                .entrySet()
-                .stream()
-                .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), "USD"), entry.getKey(), "USD"))
-                .forEach(System.out::println);
-        total
-                .map(m -> format("Total: {0} -> {1}", m.getCurrency(), moneyFormat.format(m.getAmount())))
-                .ifPresent(System.out::println);
-
-    }
+//    public void listStockByTpe() throws IOException {
+//
+//        final String reportCurrency = "USD";
+//        System.out.println("Inversiones Actuales en " + reportCurrency + " por tipo.");
+//
+//        final YearMonth limit = Inflation.USD_INFLATION.getTo();
+//        final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
+//
+//        investments.stream()
+//                .filter(IS_CURRENT)
+//                .collect(groupingBy(
+//                        this::investmentType,
+//                        mapping(inv -> ForeignExchanges.exchange(inv, "USD").getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer)))
+//                .entrySet()
+//                .stream()
+//                .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), "USD"), entry.getKey(), "USD"))
+//                .forEach(System.out::println);
+//        total
+//                .map(m -> format("Total: {0} -> {1}", m.getCurrency(), moneyFormat.format(m.getAmount())))
+//                .ifPresent(System.out::println);
+//
+//    }
 
     private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency) {
 
