@@ -158,7 +158,8 @@ public class ConsoleReports {
             return "Gold";
         }
 
-        if (InvestmentType.BONO.equals(investment.getType())) {
+        if (InvestmentType.BONO.equals(investment.getType()) 
+                || (InvestmentType.PF.equals(investment.getType()) && investment.getCurrency().equals("USD"))) {
             return "Renta Fija USD";
         }
 
