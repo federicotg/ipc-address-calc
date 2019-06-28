@@ -140,6 +140,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Acciones Argentina FCI", "saving/ahorros-conaafa.json"),
                 new ExpenseChartSeriesDTO("LETE", "saving/ahorros-lete.json"),
                 new ExpenseChartSeriesDTO("LECAP", "saving/ahorros-lecap.json"),
+                new ExpenseChartSeriesDTO("AY24", "saving/ahorros-ay24.json"),
                 new ExpenseChartSeriesDTO("Balance Fund FCI", "saving/ahorros-conbala.json"),
                 new ExpenseChartSeriesDTO("Ahorro Plus FCI", "saving/ahorros-caplusa.json"),
                 new ExpenseChartSeriesDTO("UVA", "saving/ahorros-uva.json"),
@@ -309,10 +310,11 @@ public class AppConfig {
             "saving/ahorros-peso.json",
             "saving/ahorros-caplusa.json",
             "saving/ahorros-uva.json",
-            "saving/ahorros-lecap.json"
+            "saving/ahorros-lecap.json"           
         }));
         map.put("usd", Arrays.asList(new String[]{
             "saving/ahorros-lete.json", 
+            "saving/ahorros-ay24.json",
             "saving/ahorros-dolar-banco.json", 
             "saving/ahorros-dolar-liq.json", 
             "saving/ahorros-oro.json"}));
