@@ -279,6 +279,21 @@ public class ConsoleReports {
                         this.df.format(realUSD.getInitialDate()),
                         this.percentFormat.format(this.profit(realUSD).getAmount().divide(realUSD.getInitialMoneyAmount().getAmount(), MathContext.DECIMAL64))))
                 .forEach(System.out::println);
+        
+        
+        System.out.println(MessageFormat.format("TOTAL: {0}", moneyFormat.format(
+                this.investments.stream()
+                        .filter(IS_CURRENT)
+                        .filter(i -> i.getType().equals(type))
+                        .filter(i -> i.getCurrency().equals(currency))
+                        .map(investment -> ForeignExchanges.exchange(investment, "USD"))
+                        .map(invUSD -> Inflation.USD_INFLATION.real(invUSD))
+                        .map(realUSD -> this.getAmount(realUSD).subtract(realUSD.getInitialMoneyAmount()))
+                        //.peek(d -> System.out.println(d))
+                        .map(dif -> dif.getAmount())
+                        .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)))));
+
+
     }
 
     public void currentInvestmentsProfit() throws IOException {
@@ -366,6 +381,9 @@ public class ConsoleReports {
             me.separateTests();
             
             me.currentInvestmentsRealProfit("USD", InvestmentType.BONO);
+            me.separateTests();
+            
+            me.currentInvestmentsRealProfit("CONAAFA", InvestmentType.FCI);
             me.separateTests();
 
             // me.netMonthlyInvestment();
