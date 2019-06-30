@@ -261,6 +261,35 @@ public class ConsoleReports {
         return ma.getCurrency().concat(" ").concat(moneyFormat.format(ma.getAmount()));
     }
 
+    private String plusMinus(BigDecimal pct){
+
+        BigDecimal bigLoss = new BigDecimal("-0.10");
+        BigDecimal bigWin = new BigDecimal("0.10");
+        BigDecimal loss = new BigDecimal("-0.05");
+        BigDecimal win = new BigDecimal("0.05");
+
+        if(pct.compareTo(bigLoss) <= 0){
+            return "----";
+        }
+        if(pct.compareTo(loss) <= 0){
+            return "--";
+        }
+        if(pct.compareTo(BigDecimal.ZERO) <= 0){
+            return "-";
+        }
+        if(pct.compareTo(bigWin) >= 0){
+            return "++++";
+        }
+        if(pct.compareTo(win) >= 0){
+            return "++";
+        }
+        if(pct.compareTo(BigDecimal.ZERO) >= 0){
+            return "+";
+        }
+        return "";
+
+    }
+
     public void currentInvestmentsRealProfit(String currency, InvestmentType type) throws IOException {
 
         System.out.println("Ganancia en Inversiones Actuales en " + type +" " + currency + " en USD reales.");
@@ -272,12 +301,13 @@ public class ConsoleReports {
                 .map(investment -> ForeignExchanges.exchange(investment, "USD"))
                 .map(invUSD -> Inflation.USD_INFLATION.real(invUSD))
                 .map(realUSD
-                        -> MessageFormat.format("{3} {0} => {1}. {2} {4}",
+                        -> MessageFormat.format("{3} {0} => {1}. {2} {4} {5}",
                         this.fmt(realUSD.getInitialMoneyAmount()),
                         this.fmt(this.getAmount(realUSD)),
                         this.fmt(this.profit(realUSD)),
                         this.df.format(realUSD.getInitialDate()),
-                        this.percentFormat.format(this.profit(realUSD).getAmount().divide(realUSD.getInitialMoneyAmount().getAmount(), MathContext.DECIMAL64))))
+                        this.percentFormat.format(this.profit(realUSD).getAmount().divide(realUSD.getInitialMoneyAmount().getAmount(), MathContext.DECIMAL64)),
+                        this.plusMinus(this.profit(realUSD).getAmount().divide(realUSD.getInitialMoneyAmount().getAmount(), MathContext.DECIMAL64))))
                 .forEach(System.out::println);
         
         
@@ -384,6 +414,9 @@ public class ConsoleReports {
             me.separateTests();
             
             me.currentInvestmentsRealProfit("CONAAFA", InvestmentType.FCI);
+            me.separateTests();
+
+            me.currentInvestmentsRealProfit("USD", InvestmentType.PF);
             me.separateTests();
 
             // me.netMonthlyInvestment();
