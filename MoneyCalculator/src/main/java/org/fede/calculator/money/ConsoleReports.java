@@ -39,6 +39,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -311,19 +312,40 @@ public class ConsoleReports {
                 .forEach(System.out::println);
         
         
-        System.out.println(MessageFormat.format("TOTAL: {0}", moneyFormat.format(
-                this.investments.stream()
+        System.out.println(MessageFormat.format("TOTAL: {0} => {1}", 
+                moneyFormat.format(this.totalSum(currency, type, realUSD -> realUSD.getInitialMoneyAmount())),
+                moneyFormat.format(this.totalSum(currency, type, realUSD -> this.getAmount(realUSD).subtract(realUSD.getInitialMoneyAmount())))
+        
+        ));
+        
+//                this.investments.stream()
+//                        .filter(IS_CURRENT)
+//                        .filter(i -> i.getType().equals(type))
+//                        .filter(i -> i.getCurrency().equals(currency))
+//                        .map(investment -> ForeignExchanges.exchange(investment, "USD"))
+//                        .map(invUSD -> Inflation.USD_INFLATION.real(invUSD))
+//                        .map(realUSD -> this.getAmount(realUSD).subtract(realUSD.getInitialMoneyAmount()))
+//                        //.peek(d -> System.out.println(d))
+//                        .map(dif -> dif.getAmount())
+//                        .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)))));
+
+
+
+    }
+    
+    private BigDecimal totalSum(String currency, InvestmentType type, Function<Investment, MoneyAmount> totalFunction){
+        
+        return this.investments.stream()
                         .filter(IS_CURRENT)
                         .filter(i -> i.getType().equals(type))
                         .filter(i -> i.getCurrency().equals(currency))
                         .map(investment -> ForeignExchanges.exchange(investment, "USD"))
                         .map(invUSD -> Inflation.USD_INFLATION.real(invUSD))
-                        .map(realUSD -> this.getAmount(realUSD).subtract(realUSD.getInitialMoneyAmount()))
+                        //.map(realUSD -> this.getAmount(realUSD).subtract(realUSD.getInitialMoneyAmount()))
+                        .map(totalFunction)
                         //.peek(d -> System.out.println(d))
                         .map(dif -> dif.getAmount())
-                        .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)))));
-
-
+                        .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
     }
 
     public void currentInvestmentsProfit() throws IOException {
