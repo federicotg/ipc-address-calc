@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.List;
@@ -37,12 +36,9 @@ import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
@@ -62,7 +58,6 @@ public class ConsoleReports {
     private final NumberFormat nf = NumberFormat.getNumberInstance();
     private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-    private final DateFormat df = DateFormat.getDateInstance();
 
     private final Collector<BigDecimal, ?, BigDecimal> reducer = reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
 
@@ -70,13 +65,13 @@ public class ConsoleReports {
 
     private final List<Investment> investments;
 
-    public ConsoleReports() throws IOException {
+    private ConsoleReports() throws IOException {
         this.nf.setMaximumFractionDigits(2);
         this.percentFormat.setMinimumFractionDigits(2);
         this.investments = this.readExt("investments.json");
     }
 
-    public void separateTests() {
+    private void separateTests() {
         System.out.println("-----");
     }
 
@@ -94,7 +89,7 @@ public class ConsoleReports {
         return comparison != 0 ? comparison : left.getFirst().getSecond().compareTo(right.getFirst().getSecond());
     }
 
-    public void listStock() throws IOException {
+    private void listStock() throws IOException {
 
         System.out.println("Ahorros actuales agrupados por moneda.");
 
@@ -120,13 +115,11 @@ public class ConsoleReports {
         return investments.stream()
                 .filter(predicate)
                 .map(this::getAmount)
-                //.peek(ma -> System.out.println(ma.toString()))
                 .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), reportCurrency).exchange(ma, reportCurrency, limit.getYear(), limit.getMonth()))
-                //.peek(ma -> System.out.println(ma.toString()))
                 .reduce(MoneyAmount::add);
     }
 
-    public void listStock2() throws IOException {
+    private void listStock2() throws IOException {
         final String reportCurrency = "USD";
         System.out.println("Inversiones Actuales en " + reportCurrency + " agrupadas.");
         YearMonth limit = Inflation.USD_INFLATION.getTo();
@@ -159,7 +152,7 @@ public class ConsoleReports {
             return "Gold";
         }
 
-        if (InvestmentType.BONO.equals(investment.getType()) 
+        if (InvestmentType.BONO.equals(investment.getType())
                 || (InvestmentType.PF.equals(investment.getType()) && investment.getCurrency().equals("USD"))) {
             return "Renta Fija USD";
         }
@@ -167,7 +160,7 @@ public class ConsoleReports {
         return "Renta Fija ARS";
     }
 
-    public void listStockByTpe() throws IOException {
+    private void listStockByTpe() throws IOException {
 
         final String reportCurrency = "USD";
         System.out.println("Inversiones Actuales en " + reportCurrency + " por tipo.");
@@ -204,38 +197,20 @@ public class ConsoleReports {
                                 .orElse(BigDecimal.ZERO)));
     }
 
-    private void print(Investment in, String context) {
-        if ("1".equals(in.getId())) {
-            System.out.println(MessageFormat.format("{1} {0}", in, context));
-        }
-    }
-
     private BigDecimal asRealUSDProfit(Investment in) {
 
-        this.print(in, "Inicial");
-
         Investment i = ForeignExchanges.exchange(in, "USD");
-
-        this.print(i, "In USD");
-
         i = Inflation.USD_INFLATION.real(i);
-
-        this.print(i, "Real USD");
-
         MoneyAmount profit = this.profit(i);
-
-        if ("1".equals(i.getId())) {
-            System.out.println("Profit " + profit.getCurrency() + " " + this.moneyFormat.format(profit.getAmount()));
-        }
         return profit.getAmount();
     }
 
-    private BigDecimal asUSDProfit(Investment in) {
+//    private BigDecimal asUSDProfit(Investment in) {
+//
+//        return this.profit(ForeignExchanges.exchange(in, "USD")).getAmount();
+//    }
 
-        return this.profit(ForeignExchanges.exchange(in, "USD")).getAmount();
-    }
-
-    public void pastInvestmentsProfit() throws IOException {
+    private void pastInvestmentsProfit() throws IOException {
 
         final Collector<Investment, ?, BigDecimal> profitMapper = mapping(this::asRealUSDProfit, reducer);
 
@@ -258,108 +233,49 @@ public class ConsoleReports {
                 .ifPresent(System.out::println);
     }
 
-    private String fmt(MoneyAmount ma) {
-        return ma.getCurrency().concat(" ").concat(moneyFormat.format(ma.getAmount()));
-    }
+    private void currentInvestmentsRealProfit(String currency, InvestmentType type) throws IOException {
 
-    private String plusMinus(BigDecimal pct){
-
-        BigDecimal bigLoss = new BigDecimal("-0.10");
-        BigDecimal bigWin = new BigDecimal("0.10");
-        BigDecimal loss = new BigDecimal("-0.05");
-        BigDecimal win = new BigDecimal("0.05");
-
-        if(pct.compareTo(bigLoss) <= 0){
-            return "----";
-        }
-        if(pct.compareTo(loss) <= 0){
-            return "--";
-        }
-        if(pct.compareTo(BigDecimal.ZERO) <= 0){
-            return "-";
-        }
-        if(pct.compareTo(bigWin) >= 0){
-            return "++++";
-        }
-        if(pct.compareTo(win) >= 0){
-            return "++";
-        }
-        if(pct.compareTo(BigDecimal.ZERO) >= 0){
-            return "+";
-        }
-        return "";
-
-    }
-
-    public void currentInvestmentsRealProfit(String currency, InvestmentType type) throws IOException {
-
-        System.out.println("Ganancia en Inversiones Actuales en " + type +" " + currency + " en USD reales.");
+        System.out.println("Ganancia en Inversiones Actuales en " + type + " " + currency + " en USD reales.");
 
         this.investments.stream()
                 .filter(IS_CURRENT)
                 .filter(i -> i.getType().equals(type))
                 .filter(i -> i.getCurrency().equals(currency))
-                .map(investment -> ForeignExchanges.exchange(investment, "USD"))
-                .map(invUSD -> Inflation.USD_INFLATION.real(invUSD))
-                .map(realUSD
-                        -> MessageFormat.format("{3} {0} => {1}. {2} {4} {5}",
-                        this.fmt(realUSD.getInitialMoneyAmount()),
-                        this.fmt(this.getAmount(realUSD)),
-                        this.fmt(this.profit(realUSD)),
-                        this.df.format(realUSD.getInitialDate()),
-                        this.percentFormat.format(this.profit(realUSD).getAmount().divide(realUSD.getInitialMoneyAmount().getAmount(), MathContext.DECIMAL64)),
-                        this.plusMinus(this.profit(realUSD).getAmount().divide(realUSD.getInitialMoneyAmount().getAmount(), MathContext.DECIMAL64))))
+                .map(RealProfit::new)
+                .map(RealProfit::toString)
                 .forEach(System.out::println);
-        
-        
-        System.out.println(MessageFormat.format("TOTAL: {0} => {1}", 
-                moneyFormat.format(this.totalSum(currency, type, realUSD -> realUSD.getInitialMoneyAmount())),
-                moneyFormat.format(this.totalSum(currency, type, realUSD -> this.getAmount(realUSD).subtract(realUSD.getInitialMoneyAmount())))
-        
+
+        System.out.println(MessageFormat.format("TOTAL: {0} => {1}",
+                moneyFormat.format(this.totalSum(currency, type, RealProfit::getInitialAmount)),
+                moneyFormat.format(this.totalSum(currency, type, RealProfit::getProfit))
         ));
-        
-//                this.investments.stream()
-//                        .filter(IS_CURRENT)
-//                        .filter(i -> i.getType().equals(type))
-//                        .filter(i -> i.getCurrency().equals(currency))
-//                        .map(investment -> ForeignExchanges.exchange(investment, "USD"))
-//                        .map(invUSD -> Inflation.USD_INFLATION.real(invUSD))
-//                        .map(realUSD -> this.getAmount(realUSD).subtract(realUSD.getInitialMoneyAmount()))
-//                        //.peek(d -> System.out.println(d))
-//                        .map(dif -> dif.getAmount())
-//                        .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)))));
-
-
 
     }
-    
-    private BigDecimal totalSum(String currency, InvestmentType type, Function<Investment, MoneyAmount> totalFunction){
-        
+
+    private BigDecimal totalSum(String currency, InvestmentType type, Function<RealProfit, MoneyAmount> totalFunction) {
+
         return this.investments.stream()
-                        .filter(IS_CURRENT)
-                        .filter(i -> i.getType().equals(type))
-                        .filter(i -> i.getCurrency().equals(currency))
-                        .map(investment -> ForeignExchanges.exchange(investment, "USD"))
-                        .map(invUSD -> Inflation.USD_INFLATION.real(invUSD))
-                        //.map(realUSD -> this.getAmount(realUSD).subtract(realUSD.getInitialMoneyAmount()))
-                        .map(totalFunction)
-                        //.peek(d -> System.out.println(d))
-                        .map(dif -> dif.getAmount())
-                        .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
-    }
-
-    public void currentInvestmentsProfit() throws IOException {
-
-        System.out.println("Ganancia Inversiones Actuales en USD nominales");
-
-        this.investments.stream()
                 .filter(IS_CURRENT)
-                .collect(groupingBy(this::typeAndCurrency, mapping(this::asUSDProfit, reducer)))
-                .entrySet()
-                .stream()
-                .map(entry -> format("{0} {1} {2}", entry.getKey().getFirst(), entry.getKey().getSecond(), moneyFormat.format(entry.getValue())))
-                .forEach(System.out::println);
+                .filter(i -> i.getType().equals(type))
+                .filter(i -> i.getCurrency().equals(currency))
+                .map(RealProfit::new)
+                .map(totalFunction)
+                .map(MoneyAmount::getAmount)
+                .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
     }
+
+//    public void currentInvestmentsProfit() throws IOException {
+//
+//        System.out.println("Ganancia Inversiones Actuales en USD nominales");
+//
+//        this.investments.stream()
+//                .filter(IS_CURRENT)
+//                .collect(groupingBy(this::typeAndCurrency, mapping(this::asUSDProfit, reducer)))
+//                .entrySet()
+//                .stream()
+//                .map(entry -> format("{0} {1} {2}", entry.getKey().getFirst(), entry.getKey().getSecond(), moneyFormat.format(entry.getValue())))
+//                .forEach(System.out::println);
+//    }
 
     private Pair<String, String> typeAndCurrency(Investment in) {
         return Pair.of(in.getType().toString(), in.getCurrency());
@@ -408,8 +324,8 @@ public class ConsoleReports {
             me.pastInvestmentsProfit();
             me.separateTests();
 
-            me.currentInvestmentsProfit();
-            me.separateTests();
+//            me.currentInvestmentsProfit();
+//            me.separateTests();
 
             me.listStock();
             me.separateTests();
@@ -428,46 +344,23 @@ public class ConsoleReports {
 
             me.currentInvestmentsRealProfit("LECAP", InvestmentType.BONO);
             me.separateTests();
-            
+
             me.currentInvestmentsRealProfit("AY24", InvestmentType.BONO);
             me.separateTests();
-            
+
             me.currentInvestmentsRealProfit("USD", InvestmentType.BONO);
             me.separateTests();
-            
+
             me.currentInvestmentsRealProfit("CONAAFA", InvestmentType.FCI);
             me.separateTests();
 
             me.currentInvestmentsRealProfit("USD", InvestmentType.PF);
             me.separateTests();
 
-            // me.netMonthlyInvestment();
-            // me.separateTests();
-            //me.netYearlyInvestment();
-            //ystem.err.println("*-------------*");
-            // me.aa();
         } catch (IOException ioEx) {
             System.err.println(ioEx.getMessage());
             ioEx.printStackTrace(System.err);
         }
-    }
-
-    private Stream<Movement> movements(Investment investment, MoneyAmount zero) {
-
-        return Stream.concat(
-                Stream.of(new Movement(investment.getIn().getDate(), investment.getIn().getMoneyAmount())),
-                Optional.ofNullable(investment.getOut())
-                        .map(out -> new Movement(out.getDate(), zero.subtract(out.getMoneyAmount())))
-                        .map(Stream::of)
-                        .orElseGet(Stream::empty));
-    }
-
-    private YearMonth yearMonth(Movement movement) {
-        return new YearMonth(movement.getDate());
-    }
-
-    private Integer year(Movement movement) {
-        return new YearMonth(movement.getDate()).getYear();
     }
 
 }
