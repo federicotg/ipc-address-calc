@@ -245,9 +245,13 @@ public class ConsoleReports {
                 .map(RealProfit::toString)
                 .forEach(System.out::println);
 
-        System.out.println(MessageFormat.format("TOTAL: {0} => {1}",
-                moneyFormat.format(this.totalSum(currency, type, RealProfit::getInitialAmount)),
-                moneyFormat.format(this.totalSum(currency, type, RealProfit::getProfit))
+        final BigDecimal total = this.totalSum(currency, type, RealProfit::getInitialAmount);
+        final BigDecimal profit = this.totalSum(currency, type, RealProfit::getProfit);
+
+        System.out.println(MessageFormat.format("TOTAL: {0} => {1} ({2})",
+                moneyFormat.format(total),
+                moneyFormat.format(profit),
+                percentFormat.format(profit.divide(total, MathContext.DECIMAL64))
         ));
 
     }
