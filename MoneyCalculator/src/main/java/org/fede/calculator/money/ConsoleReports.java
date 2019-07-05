@@ -245,16 +245,34 @@ public class ConsoleReports {
                 .map(RealProfit::toString)
                 .forEach(System.out::println);
 
-        final BigDecimal total = this.totalSum(currency, type, RealProfit::getInitialAmount);
-        final BigDecimal profit = this.totalSum(currency, type, RealProfit::getProfit);
+        final BigDecimal total = this.totalSum(currency, type, RealProfit::getRealInitialAmount);
+        final BigDecimal profit = this.totalSum(currency, type, RealProfit::getRealProfit);
 
         System.out.println(MessageFormat.format("TOTAL: {0} => {1} ({2})",
                 moneyFormat.format(total),
                 moneyFormat.format(profit),
                 percentFormat.format(profit.divide(total, MathContext.DECIMAL64))
         ));
-
+     //   System.out.println(percentFormat.format(
+     //   this.investments.stream()
+     //           .filter(IS_CURRENT)
+     //           .filter(i -> i.getType().equals(type))
+     //           .filter(i -> i.getCurrency().equals(currency))
+     //           .map(RealProfit::new)
+     //           .map(this::sumProduct)
+     //           .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)).divide(total, MathContext.DECIMAL64 )));
     }
+
+
+    private BigDecimal sumProduct(RealProfit l){
+
+        //sumproduct real amount x tasa
+
+        return l.getRealInitialAmount().getAmount()
+            .multiply(l.getRate(), MathContext.DECIMAL64)
+        ;
+    }
+
 
     private BigDecimal totalSum(String currency, InvestmentType type, Function<RealProfit, MoneyAmount> totalFunction) {
 

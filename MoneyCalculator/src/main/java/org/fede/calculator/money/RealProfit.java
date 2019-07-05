@@ -120,6 +120,14 @@ public class RealProfit {
         return ma.getCurrency().concat(" ").concat(moneyFormat.format(ma.getAmount()));
     }
 
+
+public BigDecimal getRate(){
+    return this.getRealProfit()
+                .getAmount()
+                .divide(this.realInvestment.getInitialMoneyAmount().getAmount(), MathContext.DECIMAL64);
+
+}
+
     /**
      * 12 abr. 2019 USD $ 976,01 => USD $ 1.009,86. USD $ 33,85 3,47 % +
      *
@@ -128,13 +136,7 @@ public class RealProfit {
     @Override
     public String toString() {
 
-        final BigDecimal pct = nominalInvestment.getInitialMoneyAmount()
-                .add(this.profit)
-                .subtract(this.realInvestment.getInitialMoneyAmount())
-                .getAmount()
-                .setScale(12, RoundingMode.HALF_UP)
-                .divide(this.realInvestment.getInitialMoneyAmount().getAmount(), MathContext.DECIMAL64);
-
+        final BigDecimal pct = this.getRate();
         return MessageFormat.format(REPORT_PATTERN,
                 this.df.format(this.nominalInvestment.getInitialDate()),
                 this.fmt(this.realInvestment.getInitialMoneyAmount()),
@@ -144,11 +146,11 @@ public class RealProfit {
                 this.plusMinus(pct));
     }
 
-    public MoneyAmount getProfit() {
+    public MoneyAmount getRealProfit() {
         return nominalInvestment.getInitialMoneyAmount().add(this.profit).subtract(this.realInvestment.getInitialMoneyAmount());
     }
 
-    public MoneyAmount getInitialAmount() {
+    public MoneyAmount getRealInitialAmount() {
         return this.realInvestment.getInitialMoneyAmount();
     }
 
