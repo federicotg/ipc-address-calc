@@ -26,6 +26,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collector;
@@ -135,7 +136,7 @@ public class ConsoleReports {
                 .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
                 .forEach(System.out::println);
         total
-                .map(m -> format("Total: {0} -> {1}", m.getCurrency(), moneyFormat.format(m.getAmount())))
+                .map(m -> format("Total: {0} -> {1,number,currency}", m.getCurrency(), m.getAmount()))
                 .ifPresent(System.out::println);
 
     }
@@ -178,7 +179,7 @@ public class ConsoleReports {
                 .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), "USD"), entry.getKey(), "USD"))
                 .forEach(System.out::println);
         total
-                .map(m -> format("Total: {0} -> {1}", m.getCurrency(), moneyFormat.format(m.getAmount())))
+                .map(m -> format("Total: {0} -> {1,number,currency}", m.getCurrency(), m.getAmount()))
                 .ifPresent(System.out::println);
 
     }
@@ -228,30 +229,39 @@ public class ConsoleReports {
                 .filter(IS_PAST)
                 .map(this::asRealUSDProfit)
                 .reduce(BigDecimal::add)
-                .map(moneyFormat::format)
-                .map(amount -> format("Total: {0}", amount))
+                .map(amount -> format("Total: {0,number,currency}", amount))
                 .ifPresent(System.out::println);
     }
 
     private void currentInvestmentsRealProfit(String currency, InvestmentType type) throws IOException {
 
-        System.out.println("Ganancia en Inversiones Actuales en " + type + " " + currency + " en USD reales.");
+        final String currencyText = Optional.ofNullable(currency).map(c -> MessageFormat.format(" en {0}", c)).orElse("");
+
+        if(type == null){
+            System.out.println("Ganancia en Inversiones Actuales" +  currencyText + " en USD reales.");
+
+        } else {
+            System.out.println("Ganancia en Inversiones Actuales en " + type + currencyText + " en USD reales.");
+        }
 
         this.investments.stream()
                 .filter(IS_CURRENT)
-                .filter(i -> i.getType().equals(type))
-                .filter(i -> i.getCurrency().equals(currency))
+                .filter(i -> type == null || i.getType().equals(type))
+                .filter(i -> currency == null || i.getCurrency().equals(currency))
+                .sorted(Comparator.comparing(Investment::getInitialDate))
                 .map(RealProfit::new)
                 .map(RealProfit::toString)
                 .forEach(System.out::println);
 
         final BigDecimal total = this.totalSum(currency, type, RealProfit::getRealInitialAmount);
         final BigDecimal profit = this.totalSum(currency, type, RealProfit::getRealProfit);
+        final BigDecimal pct = profit.divide(total, MathContext.DECIMAL64);
 
-        System.out.println(MessageFormat.format("TOTAL: {0} => {1} ({2})",
-                moneyFormat.format(total),
-                moneyFormat.format(profit),
-                percentFormat.format(profit.divide(total, MathContext.DECIMAL64))
+        System.out.println(MessageFormat.format("TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
+                total,
+                profit,
+                this.percentFormat.format(pct),
+                RealProfit.plusMinus(pct)
         ));
      //   System.out.println(percentFormat.format(
      //   this.investments.stream()
@@ -278,8 +288,8 @@ public class ConsoleReports {
 
         return this.investments.stream()
                 .filter(IS_CURRENT)
-                .filter(i -> i.getType().equals(type))
-                .filter(i -> i.getCurrency().equals(currency))
+                .filter(i -> type == null || i.getType().equals(type))
+                .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .map(RealProfit::new)
                 .map(totalFunction)
                 .map(MoneyAmount::getAmount)
@@ -377,6 +387,9 @@ public class ConsoleReports {
             me.separateTests();
 
             me.currentInvestmentsRealProfit("USD", InvestmentType.PF);
+            me.separateTests();
+
+            me.currentInvestmentsRealProfit(null, null);
             me.separateTests();
 
         } catch (IOException ioEx) {

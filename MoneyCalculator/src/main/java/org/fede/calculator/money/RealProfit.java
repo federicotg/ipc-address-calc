@@ -92,7 +92,7 @@ public class RealProfit {
                 .add(in.getIn().getMoneyAmount().getAmount());
     }
 
-    private String plusMinus(BigDecimal pct) {
+    public static String plusMinus(BigDecimal pct) {
 
         if (pct.compareTo(BIG_LOSS) <= 0) {
             return "----";
@@ -143,7 +143,7 @@ public BigDecimal getRate(){
                 this.fmt(nominalInvestment.getInitialMoneyAmount().add(this.profit)),
                 this.fmt(nominalInvestment.getInitialMoneyAmount().add(this.profit).subtract(this.realInvestment.getInitialMoneyAmount())),
                 this.percentFormat.format(pct),
-                this.plusMinus(pct));
+                plusMinus(pct));
     }
 
     public MoneyAmount getRealProfit() {
