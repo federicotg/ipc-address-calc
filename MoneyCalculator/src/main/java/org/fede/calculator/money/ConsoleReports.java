@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.List;
@@ -57,7 +56,7 @@ public class ConsoleReports {
     private static final Predicate<Investment> IS_PAST = Investment::isPast;
 
     private final NumberFormat nf = NumberFormat.getNumberInstance();
-    private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
+    //private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
     private final Collector<BigDecimal, ?, BigDecimal> reducer = reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
@@ -192,7 +191,7 @@ public class ConsoleReports {
     }
 
     private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type, String currency) {
-        return format("{0} {1}: {2}. {3}", type, currency, moneyFormat.format(subtotal.getAmount()),
+        return format("{0} {1}: {2,number,currency}. {3}", type, currency, subtotal.getAmount(),
                 percentFormat
                         .format(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), MathContext.DECIMAL64))
                                 .orElse(BigDecimal.ZERO)));
@@ -206,10 +205,6 @@ public class ConsoleReports {
         return profit.getAmount();
     }
 
-//    private BigDecimal asUSDProfit(Investment in) {
-//
-//        return this.profit(ForeignExchanges.exchange(in, "USD")).getAmount();
-//    }
 
     private void pastInvestmentsProfit() throws IOException {
 
@@ -222,7 +217,7 @@ public class ConsoleReports {
                 .collect(groupingBy(this::typeAndCurrency, profitMapper))
                 .entrySet()
                 .stream()
-                .map(entry -> format("{0} {1} {2}", entry.getKey().getFirst(), entry.getKey().getSecond(), moneyFormat.format(entry.getValue())))
+                .map(entry -> format("{0} {1} {2,number,currency}", entry.getKey().getFirst(), entry.getKey().getSecond(), entry.getValue()))
                 .forEach(System.out::println);
 
         investments.stream()
@@ -233,9 +228,13 @@ public class ConsoleReports {
                 .ifPresent(System.out::println);
     }
 
+    private void currentInvestmentsRealProfit() throws IOException {
+        this.currentInvestmentsRealProfit(null, null);
+    }
+    
     private void currentInvestmentsRealProfit(String currency, InvestmentType type) throws IOException {
 
-        final String currencyText = Optional.ofNullable(currency).map(c -> MessageFormat.format(" en {0}", c)).orElse("");
+        final String currencyText = Optional.ofNullable(currency).map(c -> format(" en {0}", c)).orElse("");
 
         if(type == null){
             System.out.println("Ganancia en Inversiones Actuales" +  currencyText + " en USD reales.");
@@ -257,32 +256,13 @@ public class ConsoleReports {
         final BigDecimal profit = this.totalSum(currency, type, RealProfit::getRealProfit);
         final BigDecimal pct = profit.divide(total, MathContext.DECIMAL64);
 
-        System.out.println(MessageFormat.format("TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
+        System.out.println(format("TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
                 total,
                 profit,
                 this.percentFormat.format(pct),
                 RealProfit.plusMinus(pct)
         ));
-     //   System.out.println(percentFormat.format(
-     //   this.investments.stream()
-     //           .filter(IS_CURRENT)
-     //           .filter(i -> i.getType().equals(type))
-     //           .filter(i -> i.getCurrency().equals(currency))
-     //           .map(RealProfit::new)
-     //           .map(this::sumProduct)
-     //           .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)).divide(total, MathContext.DECIMAL64 )));
     }
-
-
-    private BigDecimal sumProduct(RealProfit l){
-
-        //sumproduct real amount x tasa
-
-        return l.getRealInitialAmount().getAmount()
-            .multiply(l.getRate(), MathContext.DECIMAL64)
-        ;
-    }
-
 
     private BigDecimal totalSum(String currency, InvestmentType type, Function<RealProfit, MoneyAmount> totalFunction) {
 
@@ -295,19 +275,6 @@ public class ConsoleReports {
                 .map(MoneyAmount::getAmount)
                 .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
     }
-
-//    public void currentInvestmentsProfit() throws IOException {
-//
-//        System.out.println("Ganancia Inversiones Actuales en USD nominales");
-//
-//        this.investments.stream()
-//                .filter(IS_CURRENT)
-//                .collect(groupingBy(this::typeAndCurrency, mapping(this::asUSDProfit, reducer)))
-//                .entrySet()
-//                .stream()
-//                .map(entry -> format("{0} {1} {2}", entry.getKey().getFirst(), entry.getKey().getSecond(), moneyFormat.format(entry.getValue())))
-//                .forEach(System.out::println);
-//    }
 
     private Pair<String, String> typeAndCurrency(Investment in) {
         return Pair.of(in.getType().toString(), in.getCurrency());
@@ -356,9 +323,6 @@ public class ConsoleReports {
             me.pastInvestmentsProfit();
             me.separateTests();
 
-//            me.currentInvestmentsProfit();
-//            me.separateTests();
-
             me.listStock();
             me.separateTests();
 
@@ -389,7 +353,7 @@ public class ConsoleReports {
             me.currentInvestmentsRealProfit("USD", InvestmentType.PF);
             me.separateTests();
 
-            me.currentInvestmentsRealProfit(null, null);
+            me.currentInvestmentsRealProfit();
             me.separateTests();
 
         } catch (IOException ioEx) {
