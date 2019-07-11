@@ -40,7 +40,7 @@ public enum ArgCurrency {
     AUSTRAL(3, "Austral", "\u20B3", "ARA"),
     PESO(4, "Peso", "$", "ARS");
 
-    private final int[][] zeroes = {
+    private static final int[][] ZEROES = {
         {0, -2, -6, -9, -13},
         {2, 0, -4, -7, -11},
         {6, 4, 0, -3, -7},
@@ -86,7 +86,7 @@ public enum ArgCurrency {
     }
 
     private BigDecimal convertTo(BigDecimal value, ArgCurrency to) {
-        final int n = this.zeroes[this.id][to.id];
+        final int n = ZEROES[this.id][to.id];
         if (n != 0) {
             return value.movePointRight(n);
         }

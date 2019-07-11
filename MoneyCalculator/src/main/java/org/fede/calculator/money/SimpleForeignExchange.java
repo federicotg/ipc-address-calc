@@ -20,8 +20,6 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
-import static org.fede.calculator.money.MathConstants.ROUNDING_MODE;
-import static org.fede.calculator.money.MathConstants.SCALE;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesSupport;
@@ -34,7 +32,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class SimpleForeignExchange extends SeriesSupport implements ForeignExchange {
 
-    private static final BigDecimal ONE = BigDecimal.ONE.setScale(SCALE, ROUNDING_MODE);
+    private static final BigDecimal ONE = BigDecimal.ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE);
 
     private final IndexSeries exchangeRatesSeries;
 
@@ -70,7 +68,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         }
 
         if (this.fromCurrency.equals(targetCurrency)) {
-            return amount.exchange(targetCurrency, ONE.divide(exchangeRatesSeries.getIndex(year, month), ROUNDING_MODE));
+            return amount.exchange(targetCurrency, ONE.divide(exchangeRatesSeries.getIndex(year, month), MathConstants.CONTEXT));
         }
 
         throw new IllegalArgumentException("Unknown currency.");

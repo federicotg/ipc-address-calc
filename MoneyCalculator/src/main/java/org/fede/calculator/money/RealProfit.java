@@ -17,7 +17,6 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.MessageFormat;
@@ -39,6 +38,30 @@ public class RealProfit {
     private static final BigDecimal BIG_WIN = new BigDecimal("0.10");
     private static final BigDecimal LOSS = new BigDecimal("-0.05");
     private static final BigDecimal WIN = new BigDecimal("0.05");
+
+    public static String plusMinus(BigDecimal pct) {
+
+        if (pct.compareTo(BIG_LOSS) <= 0) {
+            return "----";
+        }
+        if (pct.compareTo(LOSS) <= 0) {
+            return "--";
+        }
+        if (pct.compareTo(BigDecimal.ZERO) <= 0) {
+            return "-";
+        }
+        if (pct.compareTo(BIG_WIN) >= 0) {
+            return "++++";
+        }
+        if (pct.compareTo(WIN) >= 0) {
+            return "++";
+        }
+        if (pct.compareTo(BigDecimal.ZERO) >= 0) {
+            return "+";
+        }
+        return "";
+
+    }
 
     private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
@@ -88,45 +111,19 @@ public class RealProfit {
                 .multiply(in.getInterest())
                 .multiply(this.days(in))
                 .setScale(12, RoundingMode.HALF_UP)
-                .divide(BigDecimal.valueOf(ChronoUnit.YEARS.getDuration().toDays()), MathContext.DECIMAL64)
+                .divide(BigDecimal.valueOf(ChronoUnit.YEARS.getDuration().toDays()), MathConstants.CONTEXT)
                 .add(in.getIn().getMoneyAmount().getAmount());
-    }
-
-    public static String plusMinus(BigDecimal pct) {
-
-        if (pct.compareTo(BIG_LOSS) <= 0) {
-            return "----";
-        }
-        if (pct.compareTo(LOSS) <= 0) {
-            return "--";
-        }
-        if (pct.compareTo(BigDecimal.ZERO) <= 0) {
-            return "-";
-        }
-        if (pct.compareTo(BIG_WIN) >= 0) {
-            return "++++";
-        }
-        if (pct.compareTo(WIN) >= 0) {
-            return "++";
-        }
-        if (pct.compareTo(BigDecimal.ZERO) >= 0) {
-            return "+";
-        }
-        return "";
-
     }
 
     private String fmt(MoneyAmount ma) {
         return ma.getCurrency().concat(" ").concat(moneyFormat.format(ma.getAmount()));
     }
 
-
-public BigDecimal getRate(){
-    return this.getRealProfit()
+    public BigDecimal getRate() {
+        return this.getRealProfit()
                 .getAmount()
-                .divide(this.realInvestment.getInitialMoneyAmount().getAmount(), MathContext.DECIMAL64);
-
-}
+                .divide(this.realInvestment.getInitialMoneyAmount().getAmount(), MathConstants.CONTEXT);
+    }
 
     /**
      * 12 abr. 2019 USD $ 976,01 => USD $ 1.009,86. USD $ 33,85 3,47 % +
