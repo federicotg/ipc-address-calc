@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
@@ -49,6 +50,7 @@ import org.fede.calculator.money.series.InvestmentType;
 import static org.fede.calculator.money.series.InvestmentType.*;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
+import static org.fede.util.Pair.of;
 
 /**
  *
@@ -97,17 +99,17 @@ public class ConsoleReports {
 
     private void investments() {
 
-        out.append("Inversiones actuales agrupados por moneda.");
+        out.append("===< Inversiones actuales agrupados por moneda >===");
 
         NumberFormat sixDigits = NumberFormat.getNumberInstance();
         sixDigits.setMinimumFractionDigits(6);
 
         investments.stream()
                 .filter(IS_CURRENT)
-                .collect(groupingBy(inv -> Pair.of(inv.getType().toString(), inv.getCurrency()), mapper))
+                .collect(groupingBy(inv -> of(inv.getType().toString(), inv.getCurrency()), mapper))
                 .entrySet()
                 .stream()
-                .map(e -> Pair.of(e.getKey(), e.getValue()))
+                .map(e -> of(e.getKey(), e.getValue()))
                 .sorted(ConsoleReports::compareGroups)
                 .map(e -> format("{0} {2}: {1}", e.getFirst().getFirst(), sixDigits.format(e.getSecond()), e.getFirst().getSecond()))
                 .forEach(out::append);
@@ -127,16 +129,16 @@ public class ConsoleReports {
 
     private void groupedInvestments() {
         final String reportCurrency = "USD";
-        out.append("Inversiones Actuales Agrupadas en ").append(reportCurrency);
+        out.append("===< Inversiones Actuales Agrupadas en ").append(reportCurrency).append(" >===");
         YearMonth limit = Inflation.USD_INFLATION.getTo();
         final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
         investments.stream()
                 .filter(IS_CURRENT)
-                .collect(groupingBy(in -> Pair.of(in.getType().toString(), in.getCurrency()), mapper))
+                .collect(groupingBy(in -> of(in.getType().toString(), in.getCurrency()), mapper))
                 .entrySet()
                 .stream()
-                .map(e -> Pair.of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
-                .map(p -> Pair.of(p.getFirst(), this.fx(p, reportCurrency)))
+                .map(e -> of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
+                .map(p -> of(p.getFirst(), this.fx(p, reportCurrency)))
                 .sorted(ConsoleReports::compareGroups)
                 .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
                 .forEach(out::append);
@@ -169,7 +171,7 @@ public class ConsoleReports {
     private void listStockByTpe() {
 
         final String reportCurrency = "USD";
-        out.append("Inversiones Actuales en ").append(reportCurrency).append(" por tipo.");
+        out.append("===< Inversiones Actuales en ").append(reportCurrency).append(" por tipo >===");
 
         final YearMonth limit = Inflation.USD_INFLATION.getTo();
         final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
@@ -178,10 +180,10 @@ public class ConsoleReports {
                 .filter(IS_CURRENT)
                 .collect(groupingBy(
                         this::investmentType,
-                        mapping(inv -> ForeignExchanges.exchange(inv, "USD").getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer)))
+                        mapping(inv -> ForeignExchanges.exchange(inv, reportCurrency).getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer)))
                 .entrySet()
                 .stream()
-                .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), "USD"), entry.getKey(), "USD"))
+                .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), reportCurrency), entry.getKey(), reportCurrency))
                 .forEach(out::append);
         total
                 .map(m -> format("Total: {0} -> {1,number,currency}", m.getCurrency(), m.getAmount()))
@@ -215,7 +217,7 @@ public class ConsoleReports {
 
         final Collector<Investment, ?, BigDecimal> profitMapper = mapping(this::asRealUSDProfit, reducer);
 
-        out.append("Ganancia Inversiones Finalizadas en USD reales");
+        out.append("===< Ganancia Inversiones Finalizadas en USD reales >===");
 
         this.investments.stream()
                 .filter(IS_PAST)
@@ -242,10 +244,10 @@ public class ConsoleReports {
         final String currencyText = Optional.ofNullable(currency).map(c -> format(" en {0}", c)).orElse("");
 
         if (type == null) {
-            out.append("Ganancia en Inversiones Actuales").append(currencyText).append(" en USD reales.");
+            out.append("===< Ganancia en Inversiones Actuales").append(currencyText).append(" en USD reales >===");
 
         } else {
-            out.append("Ganancia en Inversiones Actuales en ").append(type).append(currencyText).append(" en USD reales.");
+            out.append("===< Ganancia en Inversiones Actuales en ").append(type).append(currencyText).append(" en USD reales >===");
         }
 
         this.investments.stream()
@@ -282,7 +284,7 @@ public class ConsoleReports {
     }
 
     private Pair<String, String> typeAndCurrency(Investment in) {
-        return Pair.of(in.getType().toString(), in.getCurrency());
+        return of(in.getType().toString(), in.getCurrency());
     }
 
     private BigDecimal days(Investment in) {
@@ -320,34 +322,40 @@ public class ConsoleReports {
                 in.getOut().getCurrency());
     }
 
+    private void printReport(PrintStream out) {
+        out.println(this.out.toString());
+    }
+
     public static void main(String[] args) {
         try {
 
             final ConsoleReports me = new ConsoleReports(new StringBuilder(1024));
 
-            Map<String, Runnable> actions = Map.ofEntries(
-                    entry("past", me::pastInvestmentsProfit),
-                    entry("i", me::investments),
-                    entry("gi", me::groupedInvestments),
-                    entry("ti", me::listStockByTpe),
-                    entry("UVA", () -> me.currentInvestmentsRealProfit("UVA", PF)),
-                    entry("LETE", () -> me.currentInvestmentsRealProfit("LETE", BONO)),
-                    entry("LECAP", () -> me.currentInvestmentsRealProfit("LECAP", BONO)),
-                    entry("AY24", () -> me.currentInvestmentsRealProfit("AY24", BONO)),
-                    entry("USD", () -> me.currentInvestmentsRealProfit("USD", BONO)),
-                    entry("CONAAFA", () -> me.currentInvestmentsRealProfit("CONAAFA", FCI)),
-                    entry("USD", () -> me.currentInvestmentsRealProfit("USD", PF)),
-                    entry("all", me::currentInvestmentsRealProfit));
+            Map<Pair<String, Integer>, Runnable> actions = Map.ofEntries(
+                    entry(of("past", 0), me::pastInvestmentsProfit),
+                    entry(of("i", 1), me::investments),
+                    entry(of("gi", 2), me::groupedInvestments),
+                    entry(of("ti", 3), me::listStockByTpe),
+                    entry(of("UVA", 4), () -> me.currentInvestmentsRealProfit("UVA", PF)),
+                    entry(of("LETE", 5), () -> me.currentInvestmentsRealProfit("LETE", BONO)),
+                    entry(of("LECAP", 6), () -> me.currentInvestmentsRealProfit("LECAP", BONO)),
+                    entry(of("AY24", 7), () -> me.currentInvestmentsRealProfit("AY24", BONO)),
+                    entry(of("USD", 8), () -> me.currentInvestmentsRealProfit("USD", BONO)),
+                    entry(of("CONAAFA", 9), () -> me.currentInvestmentsRealProfit("CONAAFA", FCI)),
+                    entry(of("USD", 10), () -> me.currentInvestmentsRealProfit("USD", PF)),
+                    entry(of("all", 11), me::currentInvestmentsRealProfit));
 
             final Set<String> params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
 
             actions.entrySet().stream()
-                    .filter(e -> params.isEmpty() || params.contains(e.getKey().toLowerCase()))
+                    .filter(e -> params.isEmpty() || params.contains(e.getKey().getFirst().toLowerCase()))
+                    .sorted(Comparator.comparing(e -> e.getKey().getSecond()))
                     .map(Map.Entry::getValue)
                     .forEach(r -> {
                         r.run();
                         me.separateTests();
                     });
+            me.printReport(System.out);
 
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
