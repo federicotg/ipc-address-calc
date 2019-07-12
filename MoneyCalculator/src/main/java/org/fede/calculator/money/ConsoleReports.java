@@ -35,6 +35,10 @@ import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Map;
+import static java.util.Map.entry;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -42,6 +46,7 @@ import java.util.stream.Collectors;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
+import static org.fede.calculator.money.series.InvestmentType.*;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 
@@ -55,7 +60,6 @@ public class ConsoleReports {
     private static final Predicate<Investment> IS_PAST = Investment::isPast;
 
     private final NumberFormat nf = NumberFormat.getNumberInstance();
-    //private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
     private final Collector<BigDecimal, ?, BigDecimal> reducer = reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
@@ -64,14 +68,17 @@ public class ConsoleReports {
 
     private final List<Investment> investments;
 
-    private ConsoleReports() throws IOException {
+    private final StringBuilder out;
+
+    private ConsoleReports(StringBuilder out) throws IOException {
         this.nf.setMaximumFractionDigits(2);
         this.percentFormat.setMinimumFractionDigits(2);
         this.investments = this.readExt("investments.json");
+        this.out = out;
     }
 
     private void separateTests() {
-        System.out.println("-----");
+        out.append("-----");
     }
 
     private List<Investment> readExt(String name) throws IOException {
@@ -88,9 +95,9 @@ public class ConsoleReports {
         return comparison != 0 ? comparison : left.getFirst().getSecond().compareTo(right.getFirst().getSecond());
     }
 
-    private void listStock() throws IOException {
+    private void investments() {
 
-        System.out.println("Ahorros actuales agrupados por moneda.");
+        out.append("Inversiones actuales agrupados por moneda.");
 
         NumberFormat sixDigits = NumberFormat.getNumberInstance();
         sixDigits.setMinimumFractionDigits(6);
@@ -103,7 +110,7 @@ public class ConsoleReports {
                 .map(e -> Pair.of(e.getKey(), e.getValue()))
                 .sorted(ConsoleReports::compareGroups)
                 .map(e -> format("{0} {2}: {1}", e.getFirst().getFirst(), sixDigits.format(e.getSecond()), e.getFirst().getSecond()))
-                .forEach(System.out::println);
+                .forEach(out::append);
     }
 
     private MoneyAmount getAmount(Investment i) {
@@ -118,9 +125,9 @@ public class ConsoleReports {
                 .reduce(MoneyAmount::add);
     }
 
-    private void listStock2() throws IOException {
+    private void groupedInvestments() {
         final String reportCurrency = "USD";
-        System.out.println("Inversiones Actuales en " + reportCurrency + " agrupadas.");
+        out.append("Inversiones Actuales Agrupadas en ").append(reportCurrency);
         YearMonth limit = Inflation.USD_INFLATION.getTo();
         final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
         investments.stream()
@@ -132,10 +139,10 @@ public class ConsoleReports {
                 .map(p -> Pair.of(p.getFirst(), this.fx(p, reportCurrency)))
                 .sorted(ConsoleReports::compareGroups)
                 .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
-                .forEach(System.out::println);
+                .forEach(out::append);
         total
                 .map(m -> format("Total: {0} -> {1,number,currency}", m.getCurrency(), m.getAmount()))
-                .ifPresent(System.out::println);
+                .ifPresent(out::append);
 
     }
 
@@ -143,26 +150,26 @@ public class ConsoleReports {
         if ("CONAAFA".equals(investment.getCurrency())) {
             return "Renta Variable ARS";
         }
-        if (investment.getType().equals(InvestmentType.USD)) {
+        if (investment.getType().equals(USD)) {
             return "Líquido";
         }
 
-        if (investment.getType().equals(InvestmentType.XAU)) {
+        if (investment.getType().equals(XAU)) {
             return "Gold";
         }
 
-        if (InvestmentType.BONO.equals(investment.getType())
-                || (InvestmentType.PF.equals(investment.getType()) && investment.getCurrency().equals("USD"))) {
+        if (BONO.equals(investment.getType())
+                || (PF.equals(investment.getType()) && investment.getCurrency().equals("USD"))) {
             return "Renta Fija USD";
         }
 
         return "Renta Fija ARS";
     }
 
-    private void listStockByTpe() throws IOException {
+    private void listStockByTpe() {
 
         final String reportCurrency = "USD";
-        System.out.println("Inversiones Actuales en " + reportCurrency + " por tipo.");
+        out.append("Inversiones Actuales en " + reportCurrency + " por tipo.");
 
         final YearMonth limit = Inflation.USD_INFLATION.getTo();
         final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
@@ -175,10 +182,10 @@ public class ConsoleReports {
                 .entrySet()
                 .stream()
                 .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), "USD"), entry.getKey(), "USD"))
-                .forEach(System.out::println);
+                .forEach(out::append);
         total
                 .map(m -> format("Total: {0} -> {1,number,currency}", m.getCurrency(), m.getAmount()))
-                .ifPresent(System.out::println);
+                .ifPresent(out::append);
 
     }
 
@@ -204,11 +211,11 @@ public class ConsoleReports {
         return profit.getAmount();
     }
 
-    private void pastInvestmentsProfit() throws IOException {
+    private void pastInvestmentsProfit() {
 
         final Collector<Investment, ?, BigDecimal> profitMapper = mapping(this::asRealUSDProfit, reducer);
 
-        System.out.println("Ganancia Inversiones Finalizadas en USD reales");
+        out.append("Ganancia Inversiones Finalizadas en USD reales");
 
         this.investments.stream()
                 .filter(IS_PAST)
@@ -216,29 +223,29 @@ public class ConsoleReports {
                 .entrySet()
                 .stream()
                 .map(entry -> format("{0} {1} {2,number,currency}", entry.getKey().getFirst(), entry.getKey().getSecond(), entry.getValue()))
-                .forEach(System.out::println);
+                .forEach(out::append);
 
         investments.stream()
                 .filter(IS_PAST)
                 .map(this::asRealUSDProfit)
                 .reduce(BigDecimal::add)
                 .map(amount -> format("Total: {0,number,currency}", amount))
-                .ifPresent(System.out::println);
+                .ifPresent(out::append);
     }
 
-    private void currentInvestmentsRealProfit() throws IOException {
+    private void currentInvestmentsRealProfit() {
         this.currentInvestmentsRealProfit(null, null);
     }
 
-    private void currentInvestmentsRealProfit(String currency, InvestmentType type) throws IOException {
+    private void currentInvestmentsRealProfit(String currency, InvestmentType type) {
 
         final String currencyText = Optional.ofNullable(currency).map(c -> format(" en {0}", c)).orElse("");
 
         if (type == null) {
-            System.out.println("Ganancia en Inversiones Actuales" + currencyText + " en USD reales.");
+            out.append("Ganancia en Inversiones Actuales").append(currencyText).append(" en USD reales.");
 
         } else {
-            System.out.println("Ganancia en Inversiones Actuales en " + type + currencyText + " en USD reales.");
+            out.append("Ganancia en Inversiones Actuales en ").append(type).append(currencyText).append(" en USD reales.");
         }
 
         this.investments.stream()
@@ -248,13 +255,13 @@ public class ConsoleReports {
                 .sorted(Comparator.comparing(Investment::getInitialDate))
                 .map(RealProfit::new)
                 .map(RealProfit::toString)
-                .forEach(System.out::println);
+                .forEach(out::append);
 
         final BigDecimal total = this.totalSum(currency, type, RealProfit::getRealInitialAmount);
         final BigDecimal profit = this.totalSum(currency, type, RealProfit::getRealProfit);
         final BigDecimal pct = profit.divide(total, MathConstants.CONTEXT);
 
-        System.out.println(format("TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
+        out.append(format("TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
                 total,
                 profit,
                 this.percentFormat.format(pct),
@@ -297,12 +304,10 @@ public class ConsoleReports {
 
         if (in.getOut() == null) {
 
-            final BigDecimal currentAmount
-                    = //Optional.<Investment>empty()
-                    Optional.ofNullable(in)
-                            .filter(inv -> inv.getInterest() != null)
-                            .map(this::addInterest)
-                            .orElse(in.getInvestment().getMoneyAmount().getAmount());
+            final BigDecimal currentAmount = Optional.ofNullable(in)
+                    .filter(inv -> inv.getInterest() != null)
+                    .map(this::addInterest)
+                    .orElse(in.getInvestment().getMoneyAmount().getAmount());
 
             return new MoneyAmount(
                     currentAmount.subtract(in.getIn().getMoneyAmount().getAmount()),
@@ -317,46 +322,36 @@ public class ConsoleReports {
 
     public static void main(String[] args) {
         try {
-            ConsoleReports me = new ConsoleReports();
-            me.pastInvestmentsProfit();
-            me.separateTests();
 
-            me.listStock();
-            me.separateTests();
+            final ConsoleReports me = new ConsoleReports(new StringBuilder(1024));
 
-            me.listStock2();
-            me.separateTests();
+            Map<String, Runnable> actions = Map.ofEntries(
+                    entry("past", me::pastInvestmentsProfit),
+                    entry("i", me::investments),
+                    entry("gi", me::groupedInvestments),
+                    entry("ti", me::listStockByTpe),
+                    entry("UVA", () -> me.currentInvestmentsRealProfit("UVA", PF)),
+                    entry("LETE", () -> me.currentInvestmentsRealProfit("LETE", BONO)),
+                    entry("LECAP", () -> me.currentInvestmentsRealProfit("LECAP", BONO)),
+                    entry("AY24", () -> me.currentInvestmentsRealProfit("AY24", BONO)),
+                    entry("USD", () -> me.currentInvestmentsRealProfit("USD", BONO)),
+                    entry("CONAAFA", () -> me.currentInvestmentsRealProfit("CONAAFA", FCI)),
+                    entry("USD", () -> me.currentInvestmentsRealProfit("USD", PF)),
+                    entry("all", me::currentInvestmentsRealProfit));
 
-            me.listStockByTpe();
-            me.separateTests();
+            final Set<String> params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
 
-            me.currentInvestmentsRealProfit("UVA", InvestmentType.PF);
-            me.separateTests();
+            actions.entrySet().stream()
+                    .filter(e -> params.isEmpty() || params.contains(e.getKey().toLowerCase()))
+                    .map(Map.Entry::getValue)
+                    .forEach(r -> {
+                        r.run();
+                        me.separateTests();
+                    });
 
-            me.currentInvestmentsRealProfit("LETE", InvestmentType.BONO);
-            me.separateTests();
-
-            me.currentInvestmentsRealProfit("LECAP", InvestmentType.BONO);
-            me.separateTests();
-
-            me.currentInvestmentsRealProfit("AY24", InvestmentType.BONO);
-            me.separateTests();
-
-            me.currentInvestmentsRealProfit("USD", InvestmentType.BONO);
-            me.separateTests();
-
-            me.currentInvestmentsRealProfit("CONAAFA", InvestmentType.FCI);
-            me.separateTests();
-
-            me.currentInvestmentsRealProfit("USD", InvestmentType.PF);
-            me.separateTests();
-
-            me.currentInvestmentsRealProfit();
-            me.separateTests();
-
-        } catch (IOException ioEx) {
-            System.err.println(ioEx.getMessage());
-            ioEx.printStackTrace(System.err);
+        } catch (Exception ex) {
+            System.err.println(ex.getMessage());
+            ex.printStackTrace(System.err);
         }
     }
 
