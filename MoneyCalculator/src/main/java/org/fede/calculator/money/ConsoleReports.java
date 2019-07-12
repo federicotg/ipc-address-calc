@@ -169,7 +169,7 @@ public class ConsoleReports {
     private void listStockByTpe() {
 
         final String reportCurrency = "USD";
-        out.append("Inversiones Actuales en " + reportCurrency + " por tipo.");
+        out.append("Inversiones Actuales en ").append(reportCurrency).append(" por tipo.");
 
         final YearMonth limit = Inflation.USD_INFLATION.getTo();
         final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
