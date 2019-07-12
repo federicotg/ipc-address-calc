@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.math.BigDecimal;
+import static java.math.BigDecimal.ZERO;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Comparator;
@@ -63,7 +64,7 @@ public class ConsoleReports {
     };
     private static final Predicate<Investment> IS_CURRENT = Investment::isCurrent;
     private static final Predicate<Investment> IS_PAST = Investment::isPast;
-    private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
+    private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
     private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), REDUCER);
 
     private final NumberFormat nf = NumberFormat.getNumberInstance();
@@ -204,7 +205,7 @@ public class ConsoleReports {
         return format("{0} {1}: {2,number,currency}. {3}", type, currency, subtotal.getAmount(),
                 percentFormat
                         .format(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), MathConstants.CONTEXT))
-                                .orElse(BigDecimal.ZERO)));
+                                .orElse(ZERO)));
     }
 
     private BigDecimal asRealUSDProfit(Investment in) {
@@ -282,7 +283,7 @@ public class ConsoleReports {
                 .map(RealProfit::new)
                 .map(totalFunction)
                 .map(MoneyAmount::getAmount)
-                .collect(Collectors.reducing(BigDecimal.ZERO, BigDecimal::add));
+                .collect(Collectors.reducing(ZERO, BigDecimal::add));
     }
 
     private Pair<String, String> typeAndCurrency(Investment in) {
@@ -349,7 +350,8 @@ public class ConsoleReports {
 
             final Set<String> params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
 
-            actions.entrySet().stream()
+            actions.entrySet()
+                    .stream()
                     .filter(e -> params.isEmpty() || params.contains(e.getKey().getFirst().toLowerCase()))
                     .sorted(Comparator.comparing(e -> e.getKey().getSecond()))
                     .map(Map.Entry::getValue)
