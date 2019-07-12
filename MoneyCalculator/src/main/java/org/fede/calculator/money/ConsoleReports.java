@@ -60,16 +60,12 @@ public class ConsoleReports {
 
     private static final Predicate<Investment> IS_CURRENT = Investment::isCurrent;
     private static final Predicate<Investment> IS_PAST = Investment::isPast;
+    private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
+    private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), REDUCER);
 
     private final NumberFormat nf = NumberFormat.getNumberInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-
-    private final Collector<BigDecimal, ?, BigDecimal> reducer = reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
-
-    private final Collector<Investment, ?, BigDecimal> mapper = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer);
-
     private final List<Investment> investments;
-
     private final StringBuilder out;
 
     private ConsoleReports(StringBuilder out) throws IOException {
@@ -79,8 +75,14 @@ public class ConsoleReports {
         this.out = out;
     }
 
+    private void appendLine(String... texts){
+        Arrays.stream(texts)
+                .forEach(out::append);
+        out.append("\n");
+    }
+    
     private void separateTests() {
-        out.append("-----");
+        this.appendLine("-----");
     }
 
     private List<Investment> readExt(String name) throws IOException {
@@ -99,20 +101,20 @@ public class ConsoleReports {
 
     private void investments() {
 
-        out.append("===< Inversiones actuales agrupados por moneda >===");
+        appendLine("===< Inversiones actuales agrupados por moneda >===");
 
         NumberFormat sixDigits = NumberFormat.getNumberInstance();
         sixDigits.setMinimumFractionDigits(6);
 
         investments.stream()
                 .filter(IS_CURRENT)
-                .collect(groupingBy(inv -> of(inv.getType().toString(), inv.getCurrency()), mapper))
+                .collect(groupingBy(inv -> of(inv.getType().toString(), inv.getCurrency()), MAPPER))
                 .entrySet()
                 .stream()
                 .map(e -> of(e.getKey(), e.getValue()))
                 .sorted(ConsoleReports::compareGroups)
                 .map(e -> format("{0} {2}: {1}", e.getFirst().getFirst(), sixDigits.format(e.getSecond()), e.getFirst().getSecond()))
-                .forEach(out::append);
+                .forEach(this::appendLine);
     }
 
     private MoneyAmount getAmount(Investment i) {
@@ -129,12 +131,12 @@ public class ConsoleReports {
 
     private void groupedInvestments() {
         final String reportCurrency = "USD";
-        out.append("===< Inversiones Actuales Agrupadas en ").append(reportCurrency).append(" >===");
+        appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " >===");
         YearMonth limit = Inflation.USD_INFLATION.getTo();
         final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
         investments.stream()
                 .filter(IS_CURRENT)
-                .collect(groupingBy(in -> of(in.getType().toString(), in.getCurrency()), mapper))
+                .collect(groupingBy(in -> of(in.getType().toString(), in.getCurrency()), MAPPER))
                 .entrySet()
                 .stream()
                 .map(e -> of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
@@ -144,7 +146,7 @@ public class ConsoleReports {
                 .forEach(out::append);
         total
                 .map(m -> format("Total: {0} -> {1,number,currency}", m.getCurrency(), m.getAmount()))
-                .ifPresent(out::append);
+                .ifPresent(this::appendLine);
 
     }
 
@@ -171,7 +173,7 @@ public class ConsoleReports {
     private void listStockByTpe() {
 
         final String reportCurrency = "USD";
-        out.append("===< Inversiones Actuales en ").append(reportCurrency).append(" por tipo >===");
+        appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo >===");
 
         final YearMonth limit = Inflation.USD_INFLATION.getTo();
         final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
@@ -180,14 +182,14 @@ public class ConsoleReports {
                 .filter(IS_CURRENT)
                 .collect(groupingBy(
                         this::investmentType,
-                        mapping(inv -> ForeignExchanges.exchange(inv, reportCurrency).getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), reducer)))
+                        mapping(inv -> ForeignExchanges.exchange(inv, reportCurrency).getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), REDUCER)))
                 .entrySet()
                 .stream()
                 .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), reportCurrency), entry.getKey(), reportCurrency))
-                .forEach(out::append);
+                .forEach(this::appendLine);
         total
                 .map(m -> format("Total: {0} -> {1,number,currency}", m.getCurrency(), m.getAmount()))
-                .ifPresent(out::append);
+                .ifPresent(this::appendLine);
 
     }
 
@@ -215,9 +217,9 @@ public class ConsoleReports {
 
     private void pastInvestmentsProfit() {
 
-        final Collector<Investment, ?, BigDecimal> profitMapper = mapping(this::asRealUSDProfit, reducer);
+        final Collector<Investment, ?, BigDecimal> profitMapper = mapping(this::asRealUSDProfit, REDUCER);
 
-        out.append("===< Ganancia Inversiones Finalizadas en USD reales >===");
+        appendLine("===< Ganancia Inversiones Finalizadas en USD reales >===");
 
         this.investments.stream()
                 .filter(IS_PAST)
@@ -225,14 +227,14 @@ public class ConsoleReports {
                 .entrySet()
                 .stream()
                 .map(entry -> format("{0} {1} {2,number,currency}", entry.getKey().getFirst(), entry.getKey().getSecond(), entry.getValue()))
-                .forEach(out::append);
+                .forEach(this::appendLine);
 
         investments.stream()
                 .filter(IS_PAST)
                 .map(this::asRealUSDProfit)
                 .reduce(BigDecimal::add)
                 .map(amount -> format("Total: {0,number,currency}", amount))
-                .ifPresent(out::append);
+                .ifPresent(this::appendLine);
     }
 
     private void currentInvestmentsRealProfit() {
@@ -244,10 +246,10 @@ public class ConsoleReports {
         final String currencyText = Optional.ofNullable(currency).map(c -> format(" en {0}", c)).orElse("");
 
         if (type == null) {
-            out.append("===< Ganancia en Inversiones Actuales").append(currencyText).append(" en USD reales >===");
+            appendLine("===< Ganancia en Inversiones Actuales", currencyText, " en USD reales >===");
 
         } else {
-            out.append("===< Ganancia en Inversiones Actuales en ").append(type).append(currencyText).append(" en USD reales >===");
+            appendLine("===< Ganancia en Inversiones Actuales en ", type.toString(), currencyText, " en USD reales >===");
         }
 
         this.investments.stream()
@@ -257,13 +259,13 @@ public class ConsoleReports {
                 .sorted(Comparator.comparing(Investment::getInitialDate))
                 .map(RealProfit::new)
                 .map(RealProfit::toString)
-                .forEach(out::append);
+                .forEach(this::appendLine);
 
         final BigDecimal total = this.totalSum(currency, type, RealProfit::getRealInitialAmount);
         final BigDecimal profit = this.totalSum(currency, type, RealProfit::getRealProfit);
         final BigDecimal pct = profit.divide(total, MathConstants.CONTEXT);
 
-        out.append(format("TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
+        this.appendLine(format("TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
                 total,
                 profit,
                 this.percentFormat.format(pct),
