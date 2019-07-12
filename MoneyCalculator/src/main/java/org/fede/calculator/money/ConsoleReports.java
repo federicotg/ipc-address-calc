@@ -51,6 +51,7 @@ import static org.fede.calculator.money.series.InvestmentType.*;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
+import static org.fede.calculator.money.Inflation.USD_INFLATION;
 
 /**
  *
@@ -58,6 +59,8 @@ import static org.fede.util.Pair.of;
  */
 public class ConsoleReports {
 
+    private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
+    };
     private static final Predicate<Investment> IS_CURRENT = Investment::isCurrent;
     private static final Predicate<Investment> IS_PAST = Investment::isPast;
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(BigDecimal.ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
@@ -75,22 +78,19 @@ public class ConsoleReports {
         this.out = out;
     }
 
-    private void appendLine(String... texts){
+    private void appendLine(String... texts) {
         Arrays.stream(texts)
                 .forEach(out::append);
         out.append("\n");
     }
-    
+
     private void separateTests() {
         this.appendLine("-----");
     }
 
     private List<Investment> readExt(String name) throws IOException {
         try (InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
-            ObjectMapper om = new ObjectMapper();
-
-            return om.readValue(in, new TypeReference<List<Investment>>() {
-            });
+            return new ObjectMapper().readValue(in, TR);
         }
     }
 
@@ -132,7 +132,7 @@ public class ConsoleReports {
     private void groupedInvestments() {
         final String reportCurrency = "USD";
         appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " >===");
-        YearMonth limit = Inflation.USD_INFLATION.getTo();
+        final YearMonth limit = USD_INFLATION.getTo();
         final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
         investments.stream()
                 .filter(IS_CURRENT)
@@ -143,7 +143,7 @@ public class ConsoleReports {
                 .map(p -> of(p.getFirst(), this.fx(p, reportCurrency)))
                 .sorted(ConsoleReports::compareGroups)
                 .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
-                .forEach(out::append);
+                .forEach(this::appendLine);
         total
                 .map(m -> format("Total: {0} -> {1,number,currency}", m.getCurrency(), m.getAmount()))
                 .ifPresent(this::appendLine);
@@ -175,7 +175,7 @@ public class ConsoleReports {
         final String reportCurrency = "USD";
         appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo >===");
 
-        final YearMonth limit = Inflation.USD_INFLATION.getTo();
+        final YearMonth limit = USD_INFLATION.getTo();
         final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
 
         investments.stream()
@@ -195,7 +195,7 @@ public class ConsoleReports {
 
     private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency) {
 
-        YearMonth limit = Inflation.USD_INFLATION.getTo();
+        YearMonth limit = USD_INFLATION.getTo();
 
         return ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, limit.getYear(), limit.getMonth());
     }
@@ -210,7 +210,7 @@ public class ConsoleReports {
     private BigDecimal asRealUSDProfit(Investment in) {
 
         Investment i = ForeignExchanges.exchange(in, "USD");
-        i = Inflation.USD_INFLATION.real(i);
+        i = USD_INFLATION.real(i);
         MoneyAmount profit = this.profit(i);
         return profit.getAmount();
     }
