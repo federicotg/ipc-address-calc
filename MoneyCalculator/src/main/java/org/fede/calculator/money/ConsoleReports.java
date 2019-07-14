@@ -90,7 +90,7 @@ public class ConsoleReports {
     }
 
     private List<Investment> readExt(String name) throws IOException {
-        try (InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
+        try ( InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
             return new ObjectMapper().readValue(in, TR);
         }
     }
@@ -350,17 +350,21 @@ public class ConsoleReports {
 
             final Set<String> params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
 
-            actions.entrySet()
-                    .stream()
-                    .filter(e -> params.isEmpty() || params.contains(e.getKey().getFirst().toLowerCase()))
-                    .sorted(Comparator.comparing(e -> e.getKey().getSecond()))
-                    .map(Map.Entry::getValue)
-                    .forEach(r -> {
-                        r.run();
-                        me.separateTests();
-                    });
-            me.printReport(System.out);
+            if (params.contains("help")) {
+                System.out.println(actions.keySet().stream().map(Pair::getFirst).collect(Collectors.joining(", ")));
+            } else {
 
+                actions.entrySet()
+                        .stream()
+                        .filter(e -> params.isEmpty() || params.contains(e.getKey().getFirst().toLowerCase()))
+                        .sorted(Comparator.comparing(e -> e.getKey().getSecond()))
+                        .map(Map.Entry::getValue)
+                        .forEach(r -> {
+                            r.run();
+                            me.separateTests();
+                        });
+                me.printReport(System.out);
+            }
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
             ex.printStackTrace(System.err);
