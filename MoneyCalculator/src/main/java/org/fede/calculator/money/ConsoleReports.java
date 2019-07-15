@@ -334,7 +334,7 @@ public class ConsoleReports {
 
             final ConsoleReports me = new ConsoleReports(new StringBuilder(1024));
 
-            Map<Pair<String, Integer>, Runnable> actions = Map.ofEntries(
+            final Map<Pair<String, Integer>, Runnable> actions = Map.ofEntries(
                     entry(of("past", 0), me::pastInvestmentsProfit),
                     entry(of("i", 1), me::investments),
                     entry(of("gi", 2), me::groupedInvestments),
@@ -351,7 +351,11 @@ public class ConsoleReports {
             final Set<String> params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
 
             if (params.contains("help")) {
-                System.out.println(actions.keySet().stream().map(Pair::getFirst).collect(Collectors.joining(", ")));
+                System.out.println(actions.keySet()
+                        .stream()
+                        .sorted(Comparator.comparing(Pair::getSecond))
+                        .map(Pair::getFirst)
+                        .collect(Collectors.joining(", ")));
             } else {
 
                 actions.entrySet()
