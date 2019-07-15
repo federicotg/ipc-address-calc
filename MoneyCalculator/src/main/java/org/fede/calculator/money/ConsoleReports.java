@@ -62,8 +62,6 @@ public class ConsoleReports {
 
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
-    private static final Predicate<Investment> IS_CURRENT = Investment::isCurrent;
-    private static final Predicate<Investment> IS_PAST = Investment::isPast;
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
     private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), REDUCER);
 
@@ -108,7 +106,7 @@ public class ConsoleReports {
         sixDigits.setMinimumFractionDigits(6);
 
         investments.stream()
-                .filter(IS_CURRENT)
+                .filter(Investment::isCurrent)
                 .collect(groupingBy(inv -> of(inv.getType().toString(), inv.getCurrency()), MAPPER))
                 .entrySet()
                 .stream()
@@ -134,9 +132,9 @@ public class ConsoleReports {
         final String reportCurrency = "USD";
         appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " >===");
         final YearMonth limit = USD_INFLATION.getTo();
-        final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
+        final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit);
         investments.stream()
-                .filter(IS_CURRENT)
+                .filter(Investment::isCurrent)
                 .collect(groupingBy(in -> of(in.getType().toString(), in.getCurrency()), MAPPER))
                 .entrySet()
                 .stream()
@@ -177,10 +175,10 @@ public class ConsoleReports {
         appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo >===");
 
         final YearMonth limit = USD_INFLATION.getTo();
-        final Optional<MoneyAmount> total = this.total(IS_CURRENT, reportCurrency, limit);
+        final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit);
 
         investments.stream()
-                .filter(IS_CURRENT)
+                .filter(Investment::isCurrent)
                 .collect(groupingBy(
                         this::investmentType,
                         mapping(inv -> ForeignExchanges.exchange(inv, reportCurrency).getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), REDUCER)))
@@ -223,7 +221,7 @@ public class ConsoleReports {
         appendLine("===< Ganancia Inversiones Finalizadas en USD reales >===");
 
         this.investments.stream()
-                .filter(IS_PAST)
+                .filter(Investment::isPast)
                 .collect(groupingBy(this::typeAndCurrency, profitMapper))
                 .entrySet()
                 .stream()
@@ -231,7 +229,7 @@ public class ConsoleReports {
                 .forEach(this::appendLine);
 
         investments.stream()
-                .filter(IS_PAST)
+                .filter(Investment::isPast)
                 .map(this::asRealUSDProfit)
                 .reduce(BigDecimal::add)
                 .map(amount -> format("Total: {0,number,currency}", amount))
@@ -254,7 +252,7 @@ public class ConsoleReports {
         }
 
         this.investments.stream()
-                .filter(IS_CURRENT)
+                .filter(Investment::isCurrent)
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .sorted(Comparator.comparing(Investment::getInitialDate))
@@ -277,7 +275,7 @@ public class ConsoleReports {
     private BigDecimal totalSum(String currency, InvestmentType type, Function<RealProfit, MoneyAmount> totalFunction) {
 
         return this.investments.stream()
-                .filter(IS_CURRENT)
+                .filter(Investment::isCurrent)
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .map(RealProfit::new)
