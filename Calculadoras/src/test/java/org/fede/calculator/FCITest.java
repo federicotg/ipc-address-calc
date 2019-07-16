@@ -22,16 +22,19 @@ import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
 import org.junit.Test;
@@ -50,11 +53,13 @@ public class FCITest {
     };
 
     public FCITest() {
-        fciNames.put("CONAAFA", "Consultatio Acciones Argentina F.C.I. Clase A (número de inscripción 271 en la Comisión Nacional de Valores)");
-        fciNames.put("CONBALA", "Consultatio Balance Fund F.C.I. Clase A (número de inscripción 120 en la Comisión Nacional de Valores)");
+        fciNames.put("CONAAFA", "Consultatio Acciones Argentina Clase A");
+        fciNames.put("CONBALA", "Consultatio Balance Fund F.C.I. Clase A");
+        fciNames.put("CAPLUSA", "Consultatio Ahorro Plus Argentina (Ahorro Plus A)");
 
         fciTypes.put("CONAAFA", "Renta variable en $");
         fciTypes.put("CONBALA", "Renta fija en $");
+        fciTypes.put("CAPLUSA", "Renta fija en $");
 
     }
 
@@ -64,22 +69,31 @@ public class FCITest {
     @Test
     public void fci() {
 
-        final int year = 2016;
+        final int year = 2018;
+
+        //final LocalDate managerChange = LocalDate.of(2018, Month.AUGUST, 1);
+        final String consultatioAssetManagement = "30-67726994-0";
+        //final String consultatioPlus = "30-71430026-8";
+
+        final String bancoDeValores = "30-57612427-5";
 
         final DateFormat df = DateFormat.getDateInstance();
         final NumberFormat nf = NumberFormat.getInstance();
         nf.setMinimumFractionDigits(6);
 
-        IndexSeries conbala = SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json");
-        IndexSeries conaafa = SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json");
+        final IndexSeries conbala = SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json");
+        final IndexSeries conaafa = SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json");
+        final IndexSeries caplusa = SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json");
 
         final Map<String, BigDecimal> dicPreviousYearValues = new HashMap<>(3);
         dicPreviousYearValues.put("CONAAFA", conaafa.getIndex(year - 1, 12));
         dicPreviousYearValues.put("CONBALA", conbala.getIndex(year - 1, 12));
+        dicPreviousYearValues.put("CAPLUSA", caplusa.getIndex(year - 1, 12));
 
         final Map<String, BigDecimal> dicValues = new HashMap<>(3);
         dicValues.put("CONAAFA", conaafa.getIndex(year, 12));
         dicValues.put("CONBALA", conbala.getIndex(year, 12));
+        dicValues.put("CAPLUSA", caplusa.getIndex(year, 12));
 
         System.out.println(Stream.of("Fecha de adquisición",
                 "Tipo de fondo",
@@ -93,19 +107,34 @@ public class FCITest {
         Collections.singletonList("investments.json").stream()
                 .flatMap(fileName -> SeriesReader.read(fileName, TYPE_REFERENCE).stream())
                 .filter(inv -> InvestmentType.FCI.equals(inv.getType()))
-                .filter(inv -> inv.getInitialDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() == year)
+                //.filter(inv -> inv.getInitialDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() == year)
+                .filter(inv -> this.currentIn(inv, year))
                 .sorted(Comparator.comparing(Investment::getInitialDate, (left, right) -> left.compareTo(right)))
-                .map(inv -> MessageFormat.format("\"{0}\";\"{1}\";\"{2}\";\"{3}\";\"{4}\";\"{5}\";\"{6}\";\"{7}\"",
-                df.format(inv.getInitialDate()),
-                fciTypes.get(inv.getInvestment().getCurrency()),
-                fciNames.get(inv.getInvestment().getCurrency()),
-                "30-67726994-0",
-                "30-57612427-5",
-                nf.format(inv.getInvestment().getAmount()),
-                nf.format(dicPreviousYearValues.get(inv.getInvestment().getCurrency())),
-                nf.format(dicValues.get(inv.getInvestment().getCurrency()))
-        )).forEach(System.out::println);
+                .map(inv
+                        -> MessageFormat.format(
+                        "\"{0}\";\"{1}\";\"{2}\";\"{3}\";\"{4}\";\"{5}\";\"{6}\";\"{7}\"",
+                        df.format(inv.getInitialDate()),
+                        fciTypes.get(inv.getInvestment().getCurrency()),
+                        fciNames.get(inv.getInvestment().getCurrency()),
+                        consultatioAssetManagement,
+                        bancoDeValores,
+                        nf.format(inv.getInvestment().getAmount()),
+                        nf.format(dicPreviousYearValues.get(inv.getInvestment().getCurrency())),
+                        nf.format(dicValues.get(inv.getInvestment().getCurrency()))
+                )).forEach(System.out::println);
 
+    }
+
+    private boolean currentIn(Investment inv, int year) {
+
+        final LocalDate reference = LocalDate.of(year, Month.DECEMBER, 31);
+        final LocalDate buyDate = inv.getIn().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        final LocalDate sellDate = Optional.ofNullable(inv.getOut())
+                .map(e -> e.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+                .orElse(LocalDate.of(2099, Month.DECEMBER, 31));
+
+        return (buyDate.isBefore(reference) || buyDate.isEqual(reference))
+                && sellDate.isAfter(reference);
     }
 
     @Test
