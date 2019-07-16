@@ -25,6 +25,8 @@ import java.io.PrintStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import java.math.RoundingMode;
+import java.text.DateFormat;
+import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.List;
@@ -35,15 +37,19 @@ import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.mapping;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
@@ -53,6 +59,8 @@ import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import org.fede.calculator.money.series.IndexSeries;
+import org.fede.calculator.money.series.SeriesReader;
 
 /**
  *
@@ -326,6 +334,83 @@ public class ConsoleReports {
     private void printReport(PrintStream out) {
         out.println(this.out.toString());
     }
+    
+    private void fci(final int year) {
+
+        final Map<String, String> fciNames = new HashMap<>(3);
+        final Map<String, String> fciTypes = new HashMap<>(3);
+
+        fciNames.put("CONAAFA", "Consultatio Acciones Argentina Clase A");
+        fciNames.put("CONBALA", "Consultatio Balance Fund F.C.I. Clase A");
+        fciNames.put("CAPLUSA", "Consultatio Ahorro Plus Argentina (Ahorro Plus A)");
+
+        fciTypes.put("CONAAFA", "Renta variable en $");
+        fciTypes.put("CONBALA", "Renta fija en $");
+        fciTypes.put("CAPLUSA", "Renta fija en $");
+
+        final String consultatioAssetManagement = "30-67726994-0";
+        final String bancoDeValores = "30-57612427-5";
+
+        final DateFormat df = DateFormat.getDateInstance();
+        final NumberFormat nf = NumberFormat.getInstance();
+        nf.setMinimumFractionDigits(6);
+
+        final IndexSeries conbala = SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json");
+        final IndexSeries conaafa = SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json");
+        final IndexSeries caplusa = SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json");
+
+        final Map<String, BigDecimal> dicPreviousYearValues = new HashMap<>(3);
+        dicPreviousYearValues.put("CONAAFA", conaafa.getIndex(year - 1, 12));
+        dicPreviousYearValues.put("CONBALA", conbala.getIndex(year - 1, 12));
+        dicPreviousYearValues.put("CAPLUSA", caplusa.getIndex(year - 1, 12));
+
+        final Map<String, BigDecimal> dicValues = new HashMap<>(3);
+        dicValues.put("CONAAFA", conaafa.getIndex(year, 12));
+        dicValues.put("CONBALA", conbala.getIndex(year, 12));
+        dicValues.put("CAPLUSA", caplusa.getIndex(year, 12));
+
+        this.appendLine(
+                Stream.of("Fecha de adquisición",
+                        "Tipo de fondo",
+                        "Denominación",
+                        "CUIT Soc. Gerente",
+                        "CUIT Soc. Depositaria",
+                        "Cantidad",
+                        "Valor cotización al 31/12/" + (year - 1),
+                        "Valor cotización al 31/12/" + year).collect(Collectors.joining("\";\"", "\"", "\"")));
+
+        this.investments.stream()
+                .filter(inv -> InvestmentType.FCI.equals(inv.getType()))
+                //.filter(inv -> inv.getInitialDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() == year)
+                .filter(inv -> this.currentIn(inv, year))
+                .sorted(Comparator.comparing(Investment::getInitialDate, (left, right) -> left.compareTo(right)))
+                .map(inv
+                        -> MessageFormat.format(
+                        "\"{0}\";\"{1}\";\"{2}\";\"{3}\";\"{4}\";\"{5}\";\"{6}\";\"{7}\"",
+                        df.format(inv.getInitialDate()),
+                        fciTypes.get(inv.getInvestment().getCurrency()),
+                        fciNames.get(inv.getInvestment().getCurrency()),
+                        consultatioAssetManagement,
+                        bancoDeValores,
+                        nf.format(inv.getInvestment().getAmount()),
+                        nf.format(dicPreviousYearValues.get(inv.getInvestment().getCurrency())),
+                        nf.format(dicValues.get(inv.getInvestment().getCurrency()))
+                )).forEach(this::appendLine);
+
+    }
+
+    private boolean currentIn(Investment inv, int year) {
+
+        final LocalDate reference = LocalDate.of(year, Month.DECEMBER, 31);
+        final LocalDate buyDate = inv.getIn().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        final LocalDate sellDate = Optional.ofNullable(inv.getOut())
+                .map(e -> e.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+                .orElse(LocalDate.of(2099, Month.DECEMBER, 31));
+
+        return (buyDate.isBefore(reference) || buyDate.isEqual(reference))
+                && sellDate.isAfter(reference);
+    }
+    
 
     public static void main(String[] args) {
         try {
@@ -344,7 +429,9 @@ public class ConsoleReports {
                     entry(of("USD", 8), () -> me.currentInvestmentsRealProfit("USD", BONO)),
                     entry(of("CONAAFA", 9), () -> me.currentInvestmentsRealProfit("CONAAFA", FCI)),
                     entry(of("USD", 10), () -> me.currentInvestmentsRealProfit("USD", PF)),
-                    entry(of("all", 11), me::currentInvestmentsRealProfit));
+                    entry(of("all", 11), me::currentInvestmentsRealProfit),
+                    entry(of("bp", 12), () -> me.fci(2018))
+            );
 
             final Set<String> params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
 
