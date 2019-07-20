@@ -41,7 +41,6 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import static java.util.Map.entry;
@@ -438,7 +437,8 @@ public class ConsoleReports {
                     entry(of("CONAAFA", 9), () -> me.currentInvestmentsRealProfit("CONAAFA", FCI)),
                     entry(of("USD", 10), () -> me.currentInvestmentsRealProfit("USD", PF)),
                     entry(of("all", 11), me::currentInvestmentsRealProfit),
-                    entry(of("bp", 12), () -> me.fci(2018))
+                    entry(of("bp", 12), () -> me.fci(2018)),
+                    entry(of("gold", 13), () -> me.currentInvestmentsRealProfit("XAU", XAU))
             );
 
             final Set<String> params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
