@@ -87,7 +87,6 @@ public class RealProfit {
             this.profit = ForeignExchanges.getForeignExchange(this.nominalInvestment.getCurrency(), "USD")
                     .exchange(p, "USD", limit.getYear(), limit.getMonth());
         }
-        System.out.println("STOP");
     }
 
     private MoneyAmount profit(Investment in) {
