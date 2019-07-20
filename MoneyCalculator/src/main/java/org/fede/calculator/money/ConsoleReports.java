@@ -92,11 +92,11 @@ public class ConsoleReports {
     }
 
     private void separateTests() {
-        this.appendLine("-----");
+        this.appendLine("");
     }
 
     private List<Investment> readExt(String name) throws IOException {
-        try ( InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
+        try (InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
             return new ObjectMapper().readValue(in, TR);
         }
     }
@@ -129,10 +129,12 @@ public class ConsoleReports {
     }
 
     private Optional<MoneyAmount> total(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
+
         return investments.stream()
                 .filter(predicate)
                 .map(inv -> ForeignExchanges.exchange(inv, reportCurrency))
                 .map(this::getAmount)
+                .map(investedAmount -> ForeignExchanges.getForeignExchange(investedAmount.getCurrency(), reportCurrency).exchange(investedAmount, reportCurrency, limit.getYear(), limit.getMonth()))
                 .reduce(MoneyAmount::add);
     }
 
@@ -168,6 +170,9 @@ public class ConsoleReports {
         if (investment.getType().equals(XAU)) {
             return "Gold";
         }
+        if (investment.getInvestment().getCurrency().equals("LECAP")) {
+            return "Renta Fija ARS";
+        }
 
         if (BONO.equals(investment.getType())
                 || (PF.equals(investment.getType()) && investment.getCurrency().equals("USD"))) {
@@ -189,7 +194,11 @@ public class ConsoleReports {
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(
                         this::investmentType,
-                        mapping(inv -> this.getAmount(ForeignExchanges.exchange(inv, reportCurrency)).getAmount().setScale(6, RoundingMode.HALF_UP), REDUCER)))
+                        mapping(inv -> ForeignExchanges.getForeignExchange(inv.getInvestment().getCurrency(), reportCurrency)
+                        .exchange(this.getAmount(inv), reportCurrency, limit.getYear(), limit.getMonth())
+                        .getAmount()
+                        .setScale(6, RoundingMode.HALF_UP),
+                                REDUCER)))
                 .entrySet()
                 .stream()
                 .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), reportCurrency), entry.getKey(), reportCurrency))
@@ -334,7 +343,7 @@ public class ConsoleReports {
     private void printReport(PrintStream out) {
         out.println(this.out.toString());
     }
-    
+
     private void fci(final int year) {
 
         final Map<String, String> fciNames = new HashMap<>(3);
@@ -410,7 +419,6 @@ public class ConsoleReports {
         return (buyDate.isBefore(reference) || buyDate.isEqual(reference))
                 && sellDate.isAfter(reference);
     }
-    
 
     public static void main(String[] args) {
         try {

@@ -167,15 +167,16 @@ public class ForeignExchanges {
 
         final ForeignExchange fx = ForeignExchanges.getForeignExchange(investment.getInvestment().getCurrency(), targetCurrency);
 
-        YearMonth ym = Optional.ofNullable(investment.getOut()).map(InvestmentEvent::getDate).map(YearMonth::new).orElse(fx.getTo());
+        
 
         answer.setOut(exchangeInto(investment.getOut(), targetCurrency));
         answer.setType(investment.getType());
         answer.setInterest(investment.getInterest());
+        
+        // investment in original currency.
         InvestmentAsset asset = new InvestmentAsset();
-        asset.setCurrency(targetCurrency);
-        asset.setAmount(fx.exchange(investment.getInvestment().getMoneyAmount(), targetCurrency, ym.getYear(), ym.getMonth()).getAmount());
-
+        asset.setCurrency(investment.getInvestment().getCurrency());
+        asset.setAmount(investment.getInvestment().getAmount());
         answer.setInvestment(asset);
 
         return answer;

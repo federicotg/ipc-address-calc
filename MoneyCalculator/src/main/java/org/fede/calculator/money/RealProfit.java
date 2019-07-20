@@ -25,7 +25,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.YearMonth;
 
 /**
  *
@@ -75,26 +77,31 @@ public class RealProfit {
         this.percentFormat.setMinimumFractionDigits(2);
         this.nominalInvestment = ForeignExchanges.exchange(nominalInvestment, "USD");
         this.realInvestment = Inflation.USD_INFLATION.real(this.nominalInvestment);
-        this.profit = this.profit(this.nominalInvestment);
+
+        final YearMonth limit = USD_INFLATION.getTo();
+
+        MoneyAmount p = this.profit(this.nominalInvestment);
+        if (p.getCurrency().equals("USD")) {
+            this.profit = p;
+        } else {
+            this.profit = ForeignExchanges.getForeignExchange(this.nominalInvestment.getCurrency(), "USD")
+                    .exchange(p, "USD", limit.getYear(), limit.getMonth());
+        }
+        System.out.println("STOP");
     }
 
     private MoneyAmount profit(Investment in) {
 
         if (in.getInterest() != null || in.getOut() == null) {
 
-            final BigDecimal currentAmount = Optional.ofNullable(in)
+            return Optional.ofNullable(in)
                     .filter(inv -> inv.getInterest() != null)
-                    .map(this::addInterest)
-                    .orElse(in.getInvestment().getMoneyAmount().getAmount());
-
-            return new MoneyAmount(
-                    currentAmount.subtract(in.getIn().getMoneyAmount().getAmount()),
-                    in.getInvestment().getMoneyAmount().getCurrency());
-
+                    .map(inv -> inv.getInvestment().getMoneyAmount().add(this.interest(inv)))
+                    .orElse(in.getInvestment().getMoneyAmount());
         }
 
         return new MoneyAmount(
-                in.getOut().getMoneyAmount().getAmount().subtract(in.getIn().getMoneyAmount().getAmount()),
+                in.getOut().getMoneyAmount().getAmount(),
                 in.getOut().getCurrency());
     }
 
@@ -104,15 +111,17 @@ public class RealProfit {
                 LocalDate.now()));
     }
 
-    private BigDecimal addInterest(Investment in) {
-        return in.getInvestment()
-                .getAmount()
-                .setScale(12, RoundingMode.HALF_UP)
-                .multiply(in.getInterest())
-                .multiply(this.days(in))
-                .setScale(12, RoundingMode.HALF_UP)
-                .divide(BigDecimal.valueOf(ChronoUnit.YEARS.getDuration().toDays()), MathConstants.CONTEXT)
-                .add(in.getIn().getMoneyAmount().getAmount());
+    private MoneyAmount interest(Investment in) {
+        return new MoneyAmount(
+                in.getInvestment()
+                        .getAmount()
+                        .setScale(12, RoundingMode.HALF_UP)
+                        .multiply(in.getInterest())
+                        .multiply(this.days(in))
+                        .setScale(12, RoundingMode.HALF_UP)
+                        .divide(BigDecimal.valueOf(ChronoUnit.YEARS.getDuration().toDays()), MathConstants.CONTEXT),
+                in.getInvestment().getCurrency());
+
     }
 
     private String fmt(MoneyAmount ma) {
@@ -137,14 +146,14 @@ public class RealProfit {
         return MessageFormat.format(REPORT_PATTERN,
                 this.df.format(this.nominalInvestment.getInitialDate()),
                 this.fmt(this.realInvestment.getInitialMoneyAmount()),
-                this.fmt(nominalInvestment.getInitialMoneyAmount().add(this.profit)),
-                this.fmt(nominalInvestment.getInitialMoneyAmount().add(this.profit).subtract(this.realInvestment.getInitialMoneyAmount())),
+                this.fmt(this.profit),
+                this.fmt(this.profit.subtract(this.realInvestment.getInitialMoneyAmount())),
                 this.percentFormat.format(pct),
                 plusMinus(pct));
     }
 
     public MoneyAmount getRealProfit() {
-        return nominalInvestment.getInitialMoneyAmount().add(this.profit).subtract(this.realInvestment.getInitialMoneyAmount());
+        return this.profit.subtract(this.realInvestment.getInitialMoneyAmount());
     }
 
     public MoneyAmount getRealInitialAmount() {
