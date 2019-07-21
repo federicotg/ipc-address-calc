@@ -249,6 +249,10 @@ public class ConsoleReports {
         this.investmentsRealProfit(null, null, Investment::isPast, true);
     }
 
+    private void globalInvestmentsRealProfit() {
+        this.investmentsRealProfit(null, null, (inv) -> true, true);
+    }
+
     private void currentInvestmentsRealProfit(String currency, InvestmentType type) {
         this.investmentsRealProfit(currency, type, Investment::isCurrent, false);
     }
@@ -382,7 +386,8 @@ public class ConsoleReports {
                     entry(of("gold", 11), () -> me.currentInvestmentsRealProfit("XAU", XAU)),
                     entry(of("bp", 12), () -> me.fci(2018)),
                     entry(of("all", 13), me::currentInvestmentsRealProfit),
-                    entry(of("allpast", 14), me::pastInvestmentsRealProfit)
+                    entry(of("allpast", 14), me::pastInvestmentsRealProfit),
+                    entry(of("global", 15), me::globalInvestmentsRealProfit)
             );
 
             final Set<String> params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
