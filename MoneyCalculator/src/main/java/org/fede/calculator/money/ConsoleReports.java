@@ -63,6 +63,21 @@ import org.fede.calculator.money.series.SeriesReader;
  */
 public class ConsoleReports {
 
+    private static final String REPORT_FORMAT = "\"{0}\";\"{1}\";\"{2}\";\"{3}\";\"{4}\";\"{5}\";\"{6}\";\"{7}\"";
+
+    private static final Map<String, String> FCI_NAMES = Map.of(
+            "CONAAFA", "Consultatio Acciones Argentina Clase A",
+            "CONBALA", "Consultatio Balance Fund F.C.I. Clase A",
+            "CAPLUSA", "Consultatio Ahorro Plus Argentina (Ahorro Plus A)");
+
+    private static final Map<String, String> FCI_TYPES = Map.of(
+            "CONAAFA", "Renta variable en $",
+            "CONBALA", "Renta fija en $",
+            "CAPLUSA", "Renta fija en $");
+
+    private static final String CONSULTATIO_ASSET_MANAGEMENT_CUIT = "30-67726994-0";
+    private static final String BANCO_DE_VALORES_CUIT = "30-57612427-5";
+
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
@@ -230,6 +245,10 @@ public class ConsoleReports {
         this.currentInvestmentsRealProfit(null, null);
     }
 
+    private void pastInvestmentsRealProfit() {
+        this.investmentsRealProfit(null, null, Investment::isPast, true);
+    }
+
     private void currentInvestmentsRealProfit(String currency, InvestmentType type) {
         this.investmentsRealProfit(currency, type, Investment::isCurrent, false);
     }
@@ -295,19 +314,6 @@ public class ConsoleReports {
 
     private void fci(final int year) {
 
-        final Map<String, String> fciNames = Map.of(
-                "CONAAFA", "Consultatio Acciones Argentina Clase A",
-                "CONBALA", "Consultatio Balance Fund F.C.I. Clase A",
-                "CAPLUSA", "Consultatio Ahorro Plus Argentina (Ahorro Plus A)");
-
-        final Map<String, String> fciTypes = Map.of(
-                "CONAAFA", "Renta variable en $",
-                "CONBALA", "Renta fija en $",
-                "CAPLUSA", "Renta fija en $");
-
-        final String consultatioAssetManagement = "30-67726994-0";
-        final String bancoDeValores = "30-57612427-5";
-
         final DateFormat df = DateFormat.getDateInstance();
         final NumberFormat nf = NumberFormat.getInstance();
         nf.setMinimumFractionDigits(6);
@@ -327,27 +333,28 @@ public class ConsoleReports {
                 "CAPLUSA", caplusa.getIndex(year, 12));
 
         this.appendLine(
-                Stream.of("Fecha de adquisición",
-                        "Tipo de fondo",
-                        "Denominación",
-                        "CUIT Soc. Gerente",
-                        "CUIT Soc. Depositaria",
-                        "Cantidad",
-                        "Valor cotización al 31/12/" + (year - 1),
-                        "Valor cotización al 31/12/" + year).collect(Collectors.joining("\";\"", "\"", "\"")));
+                format(REPORT_FORMAT,
+                        Stream.of("Fecha de adquisición",
+                                "Tipo de fondo",
+                                "Denominación",
+                                "CUIT Soc. Gerente",
+                                "CUIT Soc. Depositaria",
+                                "Cantidad",
+                                "Valor cotización al 31/12/" + (year - 1),
+                                "Valor cotización al 31/12/" + year)
+                                .toArray(Object[]::new)));
 
         this.investments.stream()
-                .filter(inv -> InvestmentType.FCI.equals(inv.getType()))
+                .filter(inv -> FCI.equals(inv.getType()))
                 .filter(inv -> inv.currentInYear(year))
                 .sorted(Comparator.comparing(Investment::getInitialDate, (left, right) -> left.compareTo(right)))
                 .map(inv
-                        -> MessageFormat.format(
-                        "\"{0}\";\"{1}\";\"{2}\";\"{3}\";\"{4}\";\"{5}\";\"{6}\";\"{7}\"",
+                        -> format(REPORT_FORMAT,
                         df.format(inv.getInitialDate()),
-                        fciTypes.get(inv.getInvestment().getCurrency()),
-                        fciNames.get(inv.getInvestment().getCurrency()),
-                        consultatioAssetManagement,
-                        bancoDeValores,
+                        FCI_TYPES.get(inv.getInvestment().getCurrency()),
+                        FCI_NAMES.get(inv.getInvestment().getCurrency()),
+                        CONSULTATIO_ASSET_MANAGEMENT_CUIT,
+                        BANCO_DE_VALORES_CUIT,
                         nf.format(inv.getInvestment().getAmount()),
                         nf.format(dicPreviousYearValues.get(inv.getInvestment().getCurrency())),
                         nf.format(dicValues.get(inv.getInvestment().getCurrency()))
@@ -372,9 +379,10 @@ public class ConsoleReports {
                     entry(of("USD", 8), () -> me.currentInvestmentsRealProfit("USD", BONO)),
                     entry(of("CONAAFA", 9), () -> me.currentInvestmentsRealProfit("CONAAFA", FCI)),
                     entry(of("USD", 10), () -> me.currentInvestmentsRealProfit("USD", PF)),
-                    entry(of("all", 13), me::currentInvestmentsRealProfit),
+                    entry(of("gold", 11), () -> me.currentInvestmentsRealProfit("XAU", XAU)),
                     entry(of("bp", 12), () -> me.fci(2018)),
-                    entry(of("gold", 11), () -> me.currentInvestmentsRealProfit("XAU", XAU))
+                    entry(of("all", 13), me::currentInvestmentsRealProfit),
+                    entry(of("allpast", 14), me::pastInvestmentsRealProfit)
             );
 
             final Set<String> params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
