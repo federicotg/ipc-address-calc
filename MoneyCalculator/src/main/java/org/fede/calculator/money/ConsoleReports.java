@@ -295,16 +295,15 @@ public class ConsoleReports {
 
     private void fci(final int year) {
 
-        final Map<String, String> fciNames = new HashMap<>(3);
-        final Map<String, String> fciTypes = new HashMap<>(3);
+        final Map<String, String> fciNames = Map.of(
+                "CONAAFA", "Consultatio Acciones Argentina Clase A",
+                "CONBALA", "Consultatio Balance Fund F.C.I. Clase A",
+                "CAPLUSA", "Consultatio Ahorro Plus Argentina (Ahorro Plus A)");
 
-        fciNames.put("CONAAFA", "Consultatio Acciones Argentina Clase A");
-        fciNames.put("CONBALA", "Consultatio Balance Fund F.C.I. Clase A");
-        fciNames.put("CAPLUSA", "Consultatio Ahorro Plus Argentina (Ahorro Plus A)");
-
-        fciTypes.put("CONAAFA", "Renta variable en $");
-        fciTypes.put("CONBALA", "Renta fija en $");
-        fciTypes.put("CAPLUSA", "Renta fija en $");
+        final Map<String, String> fciTypes = Map.of(
+                "CONAAFA", "Renta variable en $",
+                "CONBALA", "Renta fija en $",
+                "CAPLUSA", "Renta fija en $");
 
         final String consultatioAssetManagement = "30-67726994-0";
         final String bancoDeValores = "30-57612427-5";
@@ -317,15 +316,15 @@ public class ConsoleReports {
         final IndexSeries conaafa = SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json");
         final IndexSeries caplusa = SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json");
 
-        final Map<String, BigDecimal> dicPreviousYearValues = new HashMap<>(3);
-        dicPreviousYearValues.put("CONAAFA", conaafa.getIndex(year - 1, 12));
-        dicPreviousYearValues.put("CONBALA", conbala.getIndex(year - 1, 12));
-        dicPreviousYearValues.put("CAPLUSA", caplusa.getIndex(year - 1, 12));
+        final Map<String, BigDecimal> dicPreviousYearValues = Map.of(
+                "CONAAFA", conaafa.getIndex(year - 1, 12),
+                "CONBALA", conbala.getIndex(year - 1, 12),
+                "CAPLUSA", caplusa.getIndex(year - 1, 12));
 
-        final Map<String, BigDecimal> dicValues = new HashMap<>(3);
-        dicValues.put("CONAAFA", conaafa.getIndex(year, 12));
-        dicValues.put("CONBALA", conbala.getIndex(year, 12));
-        dicValues.put("CAPLUSA", caplusa.getIndex(year, 12));
+        final Map<String, BigDecimal> dicValues = Map.of(
+                "CONAAFA", conaafa.getIndex(year, 12),
+                "CONBALA", conbala.getIndex(year, 12),
+                "CAPLUSA", caplusa.getIndex(year, 12));
 
         this.appendLine(
                 Stream.of("Fecha de adquisición",
@@ -339,8 +338,7 @@ public class ConsoleReports {
 
         this.investments.stream()
                 .filter(inv -> InvestmentType.FCI.equals(inv.getType()))
-                //.filter(inv -> inv.getInitialDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear() == year)
-                .filter(inv -> this.currentIn(inv, year))
+                .filter(inv -> inv.currentInYear(year))
                 .sorted(Comparator.comparing(Investment::getInitialDate, (left, right) -> left.compareTo(right)))
                 .map(inv
                         -> MessageFormat.format(
@@ -355,18 +353,6 @@ public class ConsoleReports {
                         nf.format(dicValues.get(inv.getInvestment().getCurrency()))
                 )).forEach(this::appendLine);
 
-    }
-
-    private boolean currentIn(Investment inv, int year) {
-
-        final LocalDate reference = LocalDate.of(year, Month.DECEMBER, 31);
-        final LocalDate buyDate = inv.getIn().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        final LocalDate sellDate = Optional.ofNullable(inv.getOut())
-                .map(e -> e.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
-                .orElse(LocalDate.of(2099, Month.DECEMBER, 31));
-
-        return (buyDate.isBefore(reference) || buyDate.isEqual(reference))
-                && sellDate.isAfter(reference);
     }
 
     public static void main(String[] args) {
@@ -386,9 +372,9 @@ public class ConsoleReports {
                     entry(of("USD", 8), () -> me.currentInvestmentsRealProfit("USD", BONO)),
                     entry(of("CONAAFA", 9), () -> me.currentInvestmentsRealProfit("CONAAFA", FCI)),
                     entry(of("USD", 10), () -> me.currentInvestmentsRealProfit("USD", PF)),
-                    entry(of("all", 11), me::currentInvestmentsRealProfit),
+                    entry(of("all", 13), me::currentInvestmentsRealProfit),
                     entry(of("bp", 12), () -> me.fci(2018)),
-                    entry(of("gold", 13), () -> me.currentInvestmentsRealProfit("XAU", XAU))
+                    entry(of("gold", 11), () -> me.currentInvestmentsRealProfit("XAU", XAU))
             );
 
             final Set<String> params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());

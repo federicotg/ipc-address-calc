@@ -17,8 +17,12 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.StringJoiner;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
@@ -28,7 +32,6 @@ import org.fede.calculator.money.MoneyAmount;
  *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
-
 public class Investment {
 
     private String id;
@@ -111,7 +114,7 @@ public class Investment {
         }
 
         return changeCurrency(investment.getMoneyAmount(), targetCurrency, date);
-        
+
         // while still invested, add interest rate if any
         /*return changeCurrency(this.getMoneyAmount(), targetCurrency, date)
                 .add(
@@ -150,7 +153,7 @@ public class Investment {
         final Date now = new Date();
         return this.getIn().getDate().before(now) && this.getOut() != null && (!this.getOut().getDate().after(now));
     }
-    
+
     @Override
     public String toString() {
         return new StringJoiner(", ", this.getClass().getSimpleName() + " [", "]")
@@ -181,6 +184,18 @@ public class Investment {
      */
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public boolean currentInYear(int year) {
+
+        final LocalDate reference = LocalDate.of(year, Month.DECEMBER, 31);
+        final LocalDate buyDate = this.getIn().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        final LocalDate sellDate = Optional.ofNullable(this.getOut())
+                .map(e -> e.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+                .orElse(LocalDate.of(2099, Month.DECEMBER, 31));
+
+        return (buyDate.isBefore(reference) || buyDate.isEqual(reference))
+                && sellDate.isAfter(reference);
     }
 
 }
