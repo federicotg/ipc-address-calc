@@ -18,14 +18,12 @@ package org.fede.calculator.money;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import org.fede.calculator.money.series.IndexSeriesSupport;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
-import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 
 /**

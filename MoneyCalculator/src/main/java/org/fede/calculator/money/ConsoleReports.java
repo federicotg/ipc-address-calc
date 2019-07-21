@@ -17,10 +17,6 @@
 package org.fede.calculator.money;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
@@ -77,10 +73,10 @@ public class ConsoleReports {
     private final List<Investment> investments;
     private final StringBuilder out;
 
-    private ConsoleReports(StringBuilder out) throws IOException {
+    private ConsoleReports(StringBuilder out) {
         this.nf.setMaximumFractionDigits(2);
         this.percentFormat.setMinimumFractionDigits(2);
-        this.investments = this.readExt("investments.json");
+        this.investments = SeriesReader.read("investments.json", TR);
         this.out = out;
     }
 
@@ -92,12 +88,6 @@ public class ConsoleReports {
 
     private void separateTests() {
         this.appendLine("");
-    }
-
-    private List<Investment> readExt(String name) throws IOException {
-        try (InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
-            return new ObjectMapper().readValue(in, TR);
-        }
     }
 
     private static int compareGroups(Pair<Pair<String, String>, ?> left, Pair<Pair<String, String>, ?> right) {
