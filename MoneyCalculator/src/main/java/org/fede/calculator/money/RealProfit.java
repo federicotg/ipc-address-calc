@@ -24,9 +24,11 @@ import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.Optional;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.YearMonth;
 
 /**
@@ -81,11 +83,21 @@ public class RealProfit {
         final YearMonth limit = USD_INFLATION.getTo();
 
         MoneyAmount p = this.profit(this.nominalInvestment);
+
+        MoneyAmount usdProfit = null;
+
         if (p.getCurrency().equals("USD")) {
-            this.profit = p;
+            usdProfit = p;
         } else {
-            this.profit = ForeignExchanges.getForeignExchange(this.nominalInvestment.getCurrency(), "USD")
+            usdProfit = ForeignExchanges.getForeignExchange(this.nominalInvestment.getCurrency(), "USD")
                     .exchange(p, "USD", limit.getYear(), limit.getMonth());
+        }
+
+        if (this.nominalInvestment.getOut() != null && this.nominalInvestment.getOut().getDate().before(new Date())) {
+            final YearMonth endYM = new YearMonth(this.nominalInvestment.getOut().getDate());
+            this.profit = USD_INFLATION.adjust(usdProfit, endYM.getYear(), endYM.getMonth(), limit.getYear(), limit.getMonth());
+        } else {
+            this.profit = usdProfit;
         }
     }
 
@@ -105,9 +117,19 @@ public class RealProfit {
     }
 
     private BigDecimal days(Investment in) {
-        return BigDecimal.valueOf(ChronoUnit.DAYS.between(
-                LocalDate.ofInstant(in.getInitialDate().toInstant(), ZoneId.systemDefault()),
-                LocalDate.now()));
+
+        LocalDate now = LocalDate.now();
+
+        final LocalDate startDate = LocalDate.ofInstant(in.getInitialDate().toInstant(), ZoneId.systemDefault());
+
+        final LocalDate endDate = Optional.ofNullable(in.getOut())
+                .map(InvestmentEvent::getDate)
+                .map(Date::toInstant)
+                .map(instant -> LocalDate.ofInstant(instant, ZoneId.systemDefault()))
+                .filter(date -> date.isBefore(now))
+                .orElse(now);
+
+        return BigDecimal.valueOf(ChronoUnit.DAYS.between(startDate, endDate));
     }
 
     private MoneyAmount interest(Investment in) {

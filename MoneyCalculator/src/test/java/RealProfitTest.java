@@ -62,6 +62,6 @@ public class RealProfitTest {
     private void testItem(Investment i){
         
         RealProfit rp = new RealProfit(i);
-        
+        System.out.println("STOP");
     }
 }

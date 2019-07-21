@@ -39,11 +39,11 @@ import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import static java.util.Map.entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -222,34 +222,18 @@ public class ConsoleReports {
                                 .orElse(ZERO)));
     }
 
-    private BigDecimal asRealUSDProfit(Investment in) {
-
-        Investment i = ForeignExchanges.exchange(in, "USD");
-        i = USD_INFLATION.real(i);
-        MoneyAmount profit = this.profit(i);
-        return profit.getAmount();
-    }
-
     private void pastInvestmentsProfit() {
-
-        final Collector<Investment, ?, BigDecimal> profitMapper = mapping(this::asRealUSDProfit, REDUCER);
 
         appendLine("===< Ganancia Inversiones Finalizadas en USD reales >===");
 
-        this.investments.stream()
-                .filter(Investment::isPast)
-                .collect(groupingBy(this::typeAndCurrency, profitMapper))
-                .entrySet()
-                .stream()
-                .map(entry -> format("{0} {1} {2,number,currency}", entry.getKey().getFirst(), entry.getKey().getSecond(), entry.getValue()))
-                .forEach(this::appendLine);
+        this.pastInvestmentsRealProfit("CONBALA", FCI);
+        this.pastInvestmentsRealProfit("CAPLUSA", FCI);
+        this.pastInvestmentsRealProfit("USD", PF);
+        this.pastInvestmentsRealProfit("UVA", PF);
+        this.pastInvestmentsRealProfit("ARS", PF);
+        this.pastInvestmentsRealProfit("LECAP", BONO);
+        this.pastInvestmentsRealProfit("LETE", BONO);
 
-        investments.stream()
-                .filter(Investment::isPast)
-                .map(this::asRealUSDProfit)
-                .reduce(BigDecimal::add)
-                .map(amount -> format("Total: {0,number,currency}", amount))
-                .ifPresent(this::appendLine);
     }
 
     private void currentInvestmentsRealProfit() {
@@ -257,18 +241,29 @@ public class ConsoleReports {
     }
 
     private void currentInvestmentsRealProfit(String currency, InvestmentType type) {
+        this.investmentsRealProfit(currency, type, Investment::isCurrent, false);
+    }
+
+    private void pastInvestmentsRealProfit(String currency, InvestmentType type) {
+        this.investmentsRealProfit(currency, type, Investment::isPast, true);
+    }
+
+    private void investmentsRealProfit(String currency, InvestmentType type, Predicate<Investment> predicate, boolean totalOnly) {
 
         final String currencyText = Optional.ofNullable(currency).map(c -> format(" en {0}", c)).orElse("");
 
-        if (type == null) {
-            appendLine("===< Ganancia en Inversiones Actuales", currencyText, " en USD reales >===");
+        if (!totalOnly) {
+            if (type == null) {
+                appendLine("===< Ganancia en Inversiones Actuales", currencyText, " en USD reales >===");
 
-        } else {
-            appendLine("===< Ganancia en Inversiones Actuales en ", type.toString(), currencyText, " en USD reales >===");
+            } else {
+                appendLine("===< Ganancia en Inversiones Actuales en ", type.toString(), currencyText, " en USD reales >===");
+            }
         }
 
         this.investments.stream()
-                .filter(Investment::isCurrent)
+                .filter(i -> !totalOnly)
+                .filter(predicate)
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .sorted(Comparator.comparing(Investment::getInitialDate))
@@ -276,67 +271,32 @@ public class ConsoleReports {
                 .map(RealProfit::toString)
                 .forEach(this::appendLine);
 
-        final BigDecimal total = this.totalSum(currency, type, RealProfit::getRealInitialAmount);
-        final BigDecimal profit = this.totalSum(currency, type, RealProfit::getRealProfit);
+        final BigDecimal total = this.totalSum(currency, type, RealProfit::getRealInitialAmount, predicate);
+        final BigDecimal profit = this.totalSum(currency, type, RealProfit::getRealProfit, predicate);
         final BigDecimal pct = profit.divide(total, MathConstants.CONTEXT);
 
-        this.appendLine(format("TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
+        this.appendLine(format("{4} TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
                 total,
                 profit,
                 this.percentFormat.format(pct),
-                RealProfit.plusMinus(pct)
-        ));
+                RealProfit.plusMinus(pct),
+                Stream.of(type, currencyText)
+                        .filter(t -> totalOnly)
+                        .filter(Objects::nonNull)
+                        .map(Object::toString)
+                        .collect(Collectors.joining(""))));
     }
 
-    private BigDecimal totalSum(String currency, InvestmentType type, Function<RealProfit, MoneyAmount> totalFunction) {
+    private BigDecimal totalSum(String currency, InvestmentType type, Function<RealProfit, MoneyAmount> totalFunction, Predicate<Investment> predicate) {
 
         return this.investments.stream()
-                .filter(Investment::isCurrent)
+                .filter(predicate)
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .map(RealProfit::new)
                 .map(totalFunction)
                 .map(MoneyAmount::getAmount)
                 .collect(Collectors.reducing(ZERO, BigDecimal::add));
-    }
-
-    private Pair<String, String> typeAndCurrency(Investment in) {
-        return of(in.getType().toString(), in.getCurrency());
-    }
-
-    private BigDecimal days(Investment in) {
-        return BigDecimal.valueOf(ChronoUnit.DAYS.between(
-                LocalDate.ofInstant(in.getInitialDate().toInstant(), ZoneId.systemDefault()),
-                LocalDate.now()));
-    }
-
-    private BigDecimal addInterest(Investment in) {
-        return in.getInvestment().getAmount()
-                .multiply(in.getInterest())
-                .multiply(this.days(in))
-                .setScale(12, RoundingMode.HALF_UP)
-                .divide(BigDecimal.valueOf(ChronoUnit.YEARS.getDuration().toDays()), MathConstants.CONTEXT)
-                .add(in.getInvestment().getMoneyAmount().getAmount());
-    }
-
-    private MoneyAmount profit(Investment in) {
-
-        if (in.getOut() == null) {
-
-            final BigDecimal currentAmount = Optional.ofNullable(in)
-                    .filter(inv -> inv.getInterest() != null)
-                    .map(this::addInterest)
-                    .orElse(in.getInvestment().getMoneyAmount().getAmount());
-
-            return new MoneyAmount(
-                    currentAmount.subtract(in.getIn().getMoneyAmount().getAmount()),
-                    in.getInvestment().getMoneyAmount().getCurrency());
-
-        }
-
-        return new MoneyAmount(
-                in.getOut().getMoneyAmount().getAmount().subtract(in.getIn().getMoneyAmount().getAmount()),
-                in.getOut().getCurrency());
     }
 
     private void printReport(PrintStream out) {
