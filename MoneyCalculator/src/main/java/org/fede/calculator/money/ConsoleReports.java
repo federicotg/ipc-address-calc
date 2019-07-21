@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import java.math.RoundingMode;
 import java.text.DateFormat;
-import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.List;
@@ -32,11 +31,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.mapping;
 import static java.text.MessageFormat.format;
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.ZoneId;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Objects;
@@ -114,7 +109,7 @@ public class ConsoleReports {
 
         appendLine("===< Inversiones actuales agrupados por moneda >===");
 
-        NumberFormat sixDigits = NumberFormat.getNumberInstance();
+        final NumberFormat sixDigits = NumberFormat.getNumberInstance();
         sixDigits.setMinimumFractionDigits(6);
 
         investments.stream()
@@ -143,9 +138,9 @@ public class ConsoleReports {
     }
 
     private void groupedInvestments() {
-        final String reportCurrency = "USD";
+        final var reportCurrency = "USD";
         appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " >===");
-        final YearMonth limit = USD_INFLATION.getTo();
+        final var limit = USD_INFLATION.getTo();
         final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit);
         investments.stream()
                 .filter(Investment::isCurrent)
@@ -177,21 +172,22 @@ public class ConsoleReports {
         if (investment.getInvestment().getCurrency().equals("LECAP")) {
             return "Renta Fija ARS";
         }
-
+        if (investment.getInvestment().getCurrency().equals("CSPX")) {
+            return "Renta Variable USD";
+        }
         if (BONO.equals(investment.getType())
                 || (PF.equals(investment.getType()) && investment.getCurrency().equals("USD"))) {
             return "Renta Fija USD";
         }
-
         return "Renta Fija ARS";
     }
 
     private void listStockByTpe() {
 
-        final String reportCurrency = "USD";
+        final var reportCurrency = "USD";
         appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo >===");
 
-        final YearMonth limit = USD_INFLATION.getTo();
+        final var limit = USD_INFLATION.getTo();
         final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit);
 
         investments.stream()
@@ -215,7 +211,7 @@ public class ConsoleReports {
 
     private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency) {
 
-        YearMonth limit = USD_INFLATION.getTo();
+        final var limit = USD_INFLATION.getTo();
 
         return ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, limit.getYear(), limit.getMonth());
     }
@@ -263,7 +259,7 @@ public class ConsoleReports {
 
     private void investmentsRealProfit(String currency, InvestmentType type, Predicate<Investment> predicate, boolean totalOnly) {
 
-        final String currencyText = Optional.ofNullable(currency).map(c -> format(" en {0}", c)).orElse("");
+        final var currencyText = Optional.ofNullable(currency).map(c -> format(" en {0}", c)).orElse("");
 
         if (!totalOnly) {
             if (type == null) {
@@ -288,7 +284,7 @@ public class ConsoleReports {
         final BigDecimal profit = this.totalSum(currency, type, RealProfit::getRealProfit, predicate);
         final BigDecimal pct = profit.divide(total, MathConstants.CONTEXT);
 
-        this.appendLine(format("{4} TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
+        this.appendLine(format("{4}TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
                 total,
                 profit,
                 this.percentFormat.format(pct),
@@ -297,7 +293,7 @@ public class ConsoleReports {
                         .filter(t -> totalOnly)
                         .filter(Objects::nonNull)
                         .map(Object::toString)
-                        .collect(Collectors.joining(""))));
+                        .collect(Collectors.joining("", "", " "))));
     }
 
     private BigDecimal totalSum(String currency, InvestmentType type, Function<RealProfit, MoneyAmount> totalFunction, Predicate<Investment> predicate) {
@@ -369,7 +365,7 @@ public class ConsoleReports {
     public static void main(String[] args) {
         try {
 
-            final ConsoleReports me = new ConsoleReports(new StringBuilder(1024));
+            final var me = new ConsoleReports(new StringBuilder(1024));
 
             final Map<Pair<String, Integer>, Runnable> actions = Map.ofEntries(
                     entry(of("past", 0), me::pastInvestmentsProfit),
@@ -387,10 +383,11 @@ public class ConsoleReports {
                     entry(of("bp", 12), () -> me.fci(2018)),
                     entry(of("all", 13), me::currentInvestmentsRealProfit),
                     entry(of("allpast", 14), me::pastInvestmentsRealProfit),
-                    entry(of("global", 15), me::globalInvestmentsRealProfit)
+                    entry(of("global", 15), me::globalInvestmentsRealProfit),
+                    entry(of("CSPX", 16), () -> me.currentInvestmentsRealProfit("CSPX", ETF))
             );
 
-            final Set<String> params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
+            final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
 
             if (params.contains("help")) {
                 System.out.println(actions.keySet()
