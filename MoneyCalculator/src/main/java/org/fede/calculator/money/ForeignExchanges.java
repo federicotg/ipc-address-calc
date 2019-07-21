@@ -85,7 +85,10 @@ public class ForeignExchanges {
             SeriesReader.readIndexSeries("index/AY24-USD.json"),
             "AY24", USD);
     
-    //
+    public static final ForeignExchange USD_CSPX = new SimpleForeignExchange(
+            SeriesReader.readIndexSeries("index/CSPX-USD.json"),
+            "AY24", USD);
+    
 
     private static void map(String from, String to, ForeignExchange fx) {
         DIRECT_FOREIGN_EXCHANGES.put(new Pair<>(from, to), fx);
@@ -106,6 +109,7 @@ public class ForeignExchanges {
         map("ARS", "LECAP", ARS_LECAP);
         map("ARS", "UVA", ARS_UVA);
         map(USD, "AY24", USD_AY24);
+        map(USD, "CSPX", USD_CSPX);
 
         INTERMEDIATE_FOREIGN_EXCHANGES.put("UVA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CONAAFA", "ARS");
@@ -162,10 +166,6 @@ public class ForeignExchanges {
         } else {
             answer.setIn(exchangeInto(investment.getIn(), targetCurrency));
         }
-
-        final ForeignExchange fx = ForeignExchanges.getForeignExchange(investment.getInvestment().getCurrency(), targetCurrency);
-
-        
 
         answer.setOut(exchangeInto(investment.getOut(), targetCurrency));
         answer.setType(investment.getType());
