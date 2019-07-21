@@ -259,7 +259,7 @@ public class ConsoleReports {
 
     private void investmentsRealProfit(String currency, InvestmentType type, Predicate<Investment> predicate, boolean totalOnly) {
 
-        final var currencyText = Optional.ofNullable(currency).map(c -> format(" en {0}", c)).orElse("");
+        final var currencyText = Optional.ofNullable(currency).map(c -> format(" {0}", c)).orElse("");
 
         if (!totalOnly) {
             if (type == null) {
@@ -282,7 +282,9 @@ public class ConsoleReports {
 
         final BigDecimal total = this.totalSum(currency, type, RealProfit::getRealInitialAmount, predicate);
         final BigDecimal profit = this.totalSum(currency, type, RealProfit::getRealProfit, predicate);
-        final BigDecimal pct = profit.divide(total, MathConstants.CONTEXT);
+        final BigDecimal pct = total.compareTo(BigDecimal.ZERO) > 0
+                ? profit.divide(total, MathConstants.CONTEXT)
+                : BigDecimal.ZERO;
 
         this.appendLine(format("{4}TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
                 total,
