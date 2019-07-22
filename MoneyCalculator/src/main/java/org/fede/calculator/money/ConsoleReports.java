@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -49,7 +48,6 @@ import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.SeriesReader;
 
 /**
@@ -96,10 +94,6 @@ public class ConsoleReports {
         out.append("\n");
     }
 
-    private void separateTests() {
-        this.appendLine("");
-    }
-
     private static int compareGroups(Pair<Pair<String, String>, ?> left, Pair<Pair<String, String>, ?> right) {
         int comparison = left.getFirst().getFirst().compareTo(right.getFirst().getFirst());
         return comparison != 0 ? comparison : left.getFirst().getSecond().compareTo(right.getFirst().getSecond());
@@ -128,7 +122,6 @@ public class ConsoleReports {
     }
 
     private Optional<MoneyAmount> total(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
-
         return investments.stream()
                 .filter(predicate)
                 .map(inv -> ForeignExchanges.exchange(inv, reportCurrency))
@@ -155,7 +148,6 @@ public class ConsoleReports {
         total
                 .map(m -> format("Total: {0} -> {1,number,currency}", m.getCurrency(), m.getAmount()))
                 .ifPresent(this::appendLine);
-
     }
 
     private String investmentType(Investment investment) {
@@ -206,7 +198,6 @@ public class ConsoleReports {
         total
                 .map(m -> format("Total: {0} -> {1,number,currency}", m.getCurrency(), m.getAmount()))
                 .ifPresent(this::appendLine);
-
     }
 
     private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency) {
@@ -226,7 +217,6 @@ public class ConsoleReports {
     private void pastInvestmentsProfit() {
 
         appendLine("===< Ganancia Inversiones Finalizadas en USD reales >===");
-
         this.pastInvestmentsRealProfit("CONBALA", FCI);
         this.pastInvestmentsRealProfit("CAPLUSA", FCI);
         this.pastInvestmentsRealProfit("USD", PF);
@@ -234,7 +224,6 @@ public class ConsoleReports {
         this.pastInvestmentsRealProfit("ARS", PF);
         this.pastInvestmentsRealProfit("LECAP", BONO);
         this.pastInvestmentsRealProfit("LETE", BONO);
-
     }
 
     private void currentInvestmentsRealProfit() {
@@ -316,20 +305,20 @@ public class ConsoleReports {
 
     private void fci(final int year) {
 
-        final DateFormat df = DateFormat.getDateInstance();
-        final NumberFormat nf = NumberFormat.getInstance();
+        final var df = DateFormat.getDateInstance();
+        final var nf = NumberFormat.getInstance();
         nf.setMinimumFractionDigits(6);
 
-        final IndexSeries conbala = SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json");
-        final IndexSeries conaafa = SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json");
-        final IndexSeries caplusa = SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json");
+        final var conbala = SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json");
+        final var conaafa = SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json");
+        final var caplusa = SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json");
 
-        final Map<String, BigDecimal> dicPreviousYearValues = Map.of(
+        final var dicPreviousYearValues = Map.of(
                 "CONAAFA", conaafa.getIndex(year - 1, 12),
                 "CONBALA", conbala.getIndex(year - 1, 12),
                 "CAPLUSA", caplusa.getIndex(year - 1, 12));
 
-        final Map<String, BigDecimal> dicValues = Map.of(
+        final var dicValues = Map.of(
                 "CONAAFA", conaafa.getIndex(year, 12),
                 "CONBALA", conbala.getIndex(year, 12),
                 "CAPLUSA", caplusa.getIndex(year, 12));
@@ -406,7 +395,7 @@ public class ConsoleReports {
                         .map(Map.Entry::getValue)
                         .forEach(r -> {
                             r.run();
-                            me.separateTests();
+                            me.appendLine("");
                         });
                 me.printReport(System.out);
             }
