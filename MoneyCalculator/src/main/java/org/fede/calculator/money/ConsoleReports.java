@@ -355,10 +355,18 @@ public class ConsoleReports {
 
     }
 
+    private void income() {
+        this.income(3);
+        this.income(6);
+        this.income(12);
+        this.income(18);
+        this.income(24);
+    }
+
     private void income(int months) {
 
         final var limit = USD_INFLATION.getTo();
-        
+
         final var averageRealUSDIncome = Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
                 .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
                 .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
@@ -367,23 +375,22 @@ public class ConsoleReports {
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(allRealUSDIncome.getTo()))
                 .orElse(new MoneyAmount(ZERO, "USD"));
 
-        this.appendLine("===< Average income in ", String.valueOf(limit.getMonth()), "/", String.valueOf(limit.getYear()), " real USD >===");
-        
-        this.appendLine("Income: ",
+        this.appendLine("===< Average ", String.valueOf(months), " month income in ", String.valueOf(limit.getMonth()), "/", String.valueOf(limit.getYear()), " real USD >===");
+
+        this.appendLine("\tIncome: ",
                 averageRealUSDIncome.getCurrency(),
                 " ",
                 format("{0,number,currency}", averageRealUSDIncome.getAmount()));
 
         final var twentyPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.2")), averageRealUSDIncome.getCurrency());
-        
-        this.appendLine("20% saving: ",
+
+        this.appendLine(" 20% saving: ",
                 averageRealUSDIncome.getCurrency(),
                 " ",
-                format("{0,number,currency}", twentyPct));
-        
-        this.appendLine("20% saving ARS: ",
-                format("{0,number,currency}", 
-                        ForeignExchanges.getForeignExchange(twentyPct.getCurrency(), "ARS").exchange(twentyPct, "ARS",  limit.getYear(), limit.getMonth())));
+                format("{0,number,currency}", twentyPct),
+                " / ",
+                format("{0,number,currency}",
+                        ForeignExchanges.getForeignExchange(twentyPct.getCurrency(), "ARS").exchange(twentyPct, "ARS", limit.getYear(), limit.getMonth())));
     }
 
     public static void main(String[] args) {
@@ -413,7 +420,8 @@ public class ConsoleReports {
                     entry(of("income6", 18), () -> me.income(6)),
                     entry(of("income3", 19), () -> me.income(3)),
                     entry(of("income18", 20), () -> me.income(18)),
-                    entry(of("income24", 21), () -> me.income(24))
+                    entry(of("income24", 21), () -> me.income(24)),
+                    entry(of("income", 22), me::income)
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
