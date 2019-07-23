@@ -355,10 +355,15 @@ public class ConsoleReports {
 
     private void income() {
         this.income(3);
+        this.appendLine("");
         this.income(6);
+        this.appendLine("");
         this.income(12);
+        this.appendLine("");
         this.income(18);
+        this.appendLine("");
         this.income(24);
+        this.appendLine("");
     }
 
     private void income(int months) {
@@ -382,7 +387,7 @@ public class ConsoleReports {
 
         final var twentyPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.2")), averageRealUSDIncome.getCurrency());
 
-        this.appendLine(" 20% saving: ",
+        this.appendLine("20% saving: ",
                 averageRealUSDIncome.getCurrency(),
                 " ",
                 format("{0,number,currency}", twentyPct.getAmount()),
