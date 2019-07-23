@@ -358,24 +358,33 @@ public class ConsoleReports {
 
     private void income() {
 
+        final var limit = USD_INFLATION.getTo();
+        
         final var averageRealUSDIncome = Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
                 .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
-                .map(usdSeries -> USD_INFLATION.adjust(usdSeries, USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonth()))
+                .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
                 .map(new SimpleAggregation(12)::average)
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(allRealUSDIncome.getTo()))
                 .orElse(new MoneyAmount(ZERO, "USD"));
 
-        this.appendLine("Average Real USD Income: ",
+        this.appendLine("===< Average income in ", String.valueOf(limit.getMonth()), "/", String.valueOf(limit.getYear()), " real USD >===");
+        
+        this.appendLine("Income: ",
                 averageRealUSDIncome.getCurrency(),
                 " ",
                 format("{0,number,currency}", averageRealUSDIncome.getAmount()));
 
+        final var twentyPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.2")), averageRealUSDIncome.getCurrency());
+        
         this.appendLine("20% saving: ",
                 averageRealUSDIncome.getCurrency(),
                 " ",
-                format("{0,number,currency}", averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.2"))));
-
+                format("{0,number,currency}", twentyPct));
+        
+        this.appendLine("20% saving ARS: ",
+                format("{0,number,currency}", 
+                        ForeignExchanges.getForeignExchange(twentyPct.getCurrency(), "ARS").exchange(twentyPct, "ARS",  limit.getYear(), limit.getMonth())));
     }
 
     public static void main(String[] args) {
