@@ -74,9 +74,9 @@ public class ChartController {
     @Lazy
     private MultiSeriesChartService savingsService;
 
-    @Resource(name = "fciService")
-    @Lazy
-    private MultiSeriesChartService fciService;
+//    @Resource(name = "fciService")
+//    @Lazy
+//    private MultiSeriesChartService fciService;
 
     @Resource(name = "usdMoneyService")
     @Lazy
@@ -207,10 +207,10 @@ public class ChartController {
         return this.buildExpenseModelAndView("Gastos", this.expenseService.getSeries(), "expensesChart");
     }
 
-    @RequestMapping(value = "consultatio", method = GET)
-    public ModelAndView consultatio() {
-        return this.buildExpenseModelAndView("Consultatio Plus F.C.I.", this.fciService.getSeries(), "fciChart");
-    }
+//    @RequestMapping(value = "consultatio", method = GET)
+//    public ModelAndView consultatio() {
+//        return this.buildExpenseModelAndView("Consultatio Plus F.C.I.", this.fciService.getSeries(), "fciChart");
+//    }
 
     private ModelAndView buildExpenseModelAndView(String title, List<ExpenseChartSeriesDTO> dtoSeries, String uri) {
         return this.buildExpenseModelAndView(title, dtoSeries, uri, 12);
@@ -294,14 +294,14 @@ public class ChartController {
         return this.expenseService.renderAbsoluteChart("Gastos", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "USD");
     }
 
-    @ResponseBody
-    @RequestMapping(value = "fciChart", method = GET)
-    public CanvasJSChartDTO fciChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors) {
-        if (errors.hasErrors()) {
-            return this.notOkResponse();
-        }
-        return this.fciService.renderAbsoluteChart("Consultatio Plus F.C.I.", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "USD");
-    }
+//    @ResponseBody
+//    @RequestMapping(value = "fciChart", method = GET)
+//    public CanvasJSChartDTO fciChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors) {
+//        if (errors.hasErrors()) {
+//            return this.notOkResponse();
+//        }
+//        return this.fciService.renderAbsoluteChart("Consultatio Plus F.C.I.", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "USD");
+//    }
 
     @ResponseBody
     @RequestMapping(value = "savingsDetailChart", method = GET)

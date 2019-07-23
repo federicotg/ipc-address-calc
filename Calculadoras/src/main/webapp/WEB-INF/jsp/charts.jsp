@@ -37,7 +37,6 @@
             <li>Gastos: <a href="expenses">Propios</a> | <a href="consortiumExpenses">Del Consorcio</a> | <a href="expensesPercent">Gastos / Ingresos</a></li>
             <li><a href="savingsAndIncomeChange">Cambio Anual de Ingresos y Ahorros</a></li>
             <li>Inversiones <a href="investment/current">Actuales</a> | <a href="investment/past">Pasadas</a></li>
-            <li><a href="consultatio">Consultatio Plus F.C.I.</a></li>
         </ul>
     </body>
 </html>

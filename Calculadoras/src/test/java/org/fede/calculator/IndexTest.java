@@ -32,6 +32,7 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Util;
@@ -50,9 +51,9 @@ public class IndexTest {
     // @Test
     public void youIndexARS() {
 
-        MoneyAmountSeries dollar = Util.readSeries("ahorros-dolar.json");
-        MoneyAmountSeries gold = Util.readSeries("ahorros-oro.json");
-        MoneyAmountSeries peso = Util.readSeries("ahorros-peso.json");
+        MoneyAmountSeries dollar = SeriesReader.readSeries("ahorros-dolar.json");
+        MoneyAmountSeries gold = SeriesReader.readSeries("ahorros-oro.json");
+        MoneyAmountSeries peso = SeriesReader.readSeries("ahorros-peso.json");
 
         final String target = "USD";
 
@@ -155,7 +156,7 @@ public class IndexTest {
     @Test
     
     public void realUSD() {
-        MoneyAmountSeries usd = Util.readSeries("saving/ahorros-dolar-liq.json");
+        MoneyAmountSeries usd = SeriesReader.readSeries("saving/ahorros-dolar-liq.json");
         
         MoneyAmount x = usd.getAmount(2016, 5);
         assertEquals("USD", x.getCurrency());
