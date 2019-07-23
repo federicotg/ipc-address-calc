@@ -78,6 +78,9 @@ public class ConsoleReports {
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
     private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), REDUCER);
 
+    private static final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = Comparator.comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
+            .thenComparing(Comparator.comparing(pair -> pair.getFirst().getSecond()));
+
     private final NumberFormat nf = NumberFormat.getNumberInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
     private final List<Investment> investments;
@@ -96,11 +99,6 @@ public class ConsoleReports {
         out.append("\n");
     }
 
-    private static int compareGroups(Pair<Pair<String, String>, ?> left, Pair<Pair<String, String>, ?> right) {
-        int comparison = left.getFirst().getFirst().compareTo(right.getFirst().getFirst());
-        return comparison != 0 ? comparison : left.getFirst().getSecond().compareTo(right.getFirst().getSecond());
-    }
-
     private void investments() {
 
         appendLine("===< Inversiones actuales agrupados por moneda >===");
@@ -114,7 +112,7 @@ public class ConsoleReports {
                 .entrySet()
                 .stream()
                 .map(e -> of(e.getKey(), e.getValue()))
-                .sorted(ConsoleReports::compareGroups)
+                .sorted(TYPE_CURRENCY_COMPARATOR)
                 .map(e -> format("{0} {2}: {1}", e.getFirst().getFirst(), sixDigits.format(e.getSecond()), e.getFirst().getSecond()))
                 .forEach(this::appendLine);
     }
@@ -136,7 +134,7 @@ public class ConsoleReports {
         final var reportCurrency = "USD";
         appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " >===");
         final var limit = USD_INFLATION.getTo();
-        final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit);
+        final var total = this.total(Investment::isCurrent, reportCurrency, limit);
         investments.stream()
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(in -> of(in.getType().toString(), in.getCurrency()), MAPPER))
@@ -144,7 +142,7 @@ public class ConsoleReports {
                 .stream()
                 .map(e -> of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
                 .map(p -> of(p.getFirst(), this.fx(p, reportCurrency)))
-                .sorted(ConsoleReports::compareGroups)
+                .sorted(TYPE_CURRENCY_COMPARATOR)
                 .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
                 .forEach(this::appendLine);
         total
