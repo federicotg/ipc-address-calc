@@ -385,10 +385,10 @@ public class ConsoleReports {
         this.appendLine(" 20% saving: ",
                 averageRealUSDIncome.getCurrency(),
                 " ",
-                format("{0,number,currency}", twentyPct),
+                format("{0,number,currency}", twentyPct.getAmount()),
                 " / ",
                 format("{0,number,currency}",
-                        ForeignExchanges.getForeignExchange(twentyPct.getCurrency(), "ARS").exchange(twentyPct, "ARS", limit.getYear(), limit.getMonth())));
+                        ForeignExchanges.getForeignExchange(twentyPct.getCurrency(), "ARS").exchange(twentyPct, "ARS", limit.getYear(), limit.getMonth()).getAmount()));
     }
 
     public static void main(String[] args) {
