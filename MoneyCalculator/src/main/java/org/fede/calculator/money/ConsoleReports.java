@@ -48,7 +48,10 @@ import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
+import static org.fede.calculator.money.series.SeriesReader.readSeries;
+import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 
 /**
  *
@@ -353,6 +356,29 @@ public class ConsoleReports {
 
     }
 
+    private void income() {
+
+        final MoneyAmountSeries allRealUSDIncome = Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
+                .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
+                .map(usdSeries -> USD_INFLATION.adjust(usdSeries, USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonth()))
+                .map(new SimpleAggregation(12)::average)
+                .collect(Collectors.reducing(MoneyAmountSeries::add))
+                .orElse(new SortedMapMoneyAmountSeries("ARS"));
+
+        final MoneyAmount averageRealUSDIncome = allRealUSDIncome.getAmount(allRealUSDIncome.getTo());
+
+        this.appendLine("Average Real USD Income: ",
+                averageRealUSDIncome.getCurrency(),
+                " ",
+                format("{0,number,currency}", averageRealUSDIncome.getAmount()));
+
+        this.appendLine("20% saving: ",
+                averageRealUSDIncome.getCurrency(),
+                " ",
+                format("{0,number,currency}", averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.2"))));
+
+    }
+
     public static void main(String[] args) {
         try {
 
@@ -375,7 +401,8 @@ public class ConsoleReports {
                     entry(of("all", 13), me::currentInvestmentsRealProfit),
                     entry(of("allpast", 14), me::pastInvestmentsRealProfit),
                     entry(of("global", 15), me::globalInvestmentsRealProfit),
-                    entry(of("CSPX", 16), () -> me.currentInvestmentsRealProfit("CSPX", ETF))
+                    entry(of("CSPX", 16), () -> me.currentInvestmentsRealProfit("CSPX", ETF)),
+                    entry(of("income", 17), me::income)
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
