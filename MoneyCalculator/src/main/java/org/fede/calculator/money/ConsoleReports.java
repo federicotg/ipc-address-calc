@@ -51,7 +51,6 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
-import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 
 /**
  *
@@ -356,14 +355,14 @@ public class ConsoleReports {
 
     }
 
-    private void income() {
+    private void income(int months) {
 
         final var limit = USD_INFLATION.getTo();
         
         final var averageRealUSDIncome = Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
                 .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
                 .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
-                .map(new SimpleAggregation(12)::average)
+                .map(new SimpleAggregation(months)::average)
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(allRealUSDIncome.getTo()))
                 .orElse(new MoneyAmount(ZERO, "USD"));
@@ -410,7 +409,11 @@ public class ConsoleReports {
                     entry(of("allpast", 14), me::pastInvestmentsRealProfit),
                     entry(of("global", 15), me::globalInvestmentsRealProfit),
                     entry(of("CSPX", 16), () -> me.currentInvestmentsRealProfit("CSPX", ETF)),
-                    entry(of("income", 17), me::income)
+                    entry(of("income12", 17), () -> me.income(12)),
+                    entry(of("income6", 18), () -> me.income(6)),
+                    entry(of("income3", 19), () -> me.income(3)),
+                    entry(of("income18", 20), () -> me.income(18)),
+                    entry(of("income24", 21), () -> me.income(24))
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
