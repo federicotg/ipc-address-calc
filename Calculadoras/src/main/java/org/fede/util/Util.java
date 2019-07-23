@@ -18,11 +18,9 @@ package org.fede.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Collection;
@@ -30,21 +28,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.groupingBy;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.ConsultatioDataPoint;
-import org.fede.calculator.money.series.InterpolationStrategy;
 import org.fede.calculator.money.series.JSONDataPoint;
 import org.fede.calculator.money.series.JSONSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
-import org.fede.calculator.money.series.YearMonth;
+import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
 
 /**
@@ -82,56 +75,56 @@ public class Util {
         MoneyAmountSeries answer = null;
         for (String seriesName : names) {
             if (seriesName != null && seriesName.length() > 0) {
-                MoneyAmountSeries s = readSeries(seriesName).exchangeInto(currency);
+                MoneyAmountSeries s = SeriesReader.readSeries(seriesName).exchangeInto(currency);
                 answer = answer == null ? s : answer.add(s);
             }
         }
         return answer;
     }
 
-    public static MoneyAmountSeries readSeries(String name) {
+//    public static MoneyAmountSeries readSeries(String name) {
+//
+//        return CACHE.computeIfAbsent(name, (seriesName) -> read(seriesName));
+//
+//    }
 
-        return CACHE.computeIfAbsent(name, (seriesName) -> read(seriesName));
-
-    }
-
-    private static MoneyAmountSeries read(String name) {
-
-        try (InputStream is = new FileInputStream("/home/fede/Sync/app-resources/" + name)) {
-
-            JSONSeries series;
-            if (name.startsWith("fci/")) {
-                series = readConsultatioSeries(is, OM, USD_SERIES.contains(name) ? "USD" : "ARS");
-            } else {
-                series = OM.readValue(is, JSONSeries.class);
-            }
-
-            final SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
-            final String currency = series.getCurrency();
-            for (JSONDataPoint dp : series.getData()) {
-                if (interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), currency)) != null) {
-                    throw new IllegalArgumentException(MessageFormat.format("Series {0} has two values for year {1} and month {2}", name, dp.getYear(), dp.getMonth()));
-                }
-            }
-
-            final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
-
-            YearMonth ym = interpolatedData.firstKey();
-            final YearMonth last = interpolatedData.lastKey();
-            while (ym.monthsUntil(last) > 0) {
-                YearMonth next = ym.next();
-                if (!interpolatedData.containsKey(next)) {
-                    interpolatedData.put(next, strategy.interpolate(interpolatedData.get(ym), ym, currency));
-                }
-                ym = ym.next();
-            }
-            return new SortedMapMoneyAmountSeries(currency, interpolatedData);
-
-        } catch (IOException ioEx) {
-            throw new IllegalArgumentException(MessageFormat.format("Could not read series named {0}", name), ioEx);
-        }
-
-    }
+//    private static MoneyAmountSeries read(String name) {
+//
+//        try (InputStream is = new FileInputStream("/home/fede/Sync/app-resources/" + name)) {
+//
+//            JSONSeries series;
+//            if (name.startsWith("fci/")) {
+//                series = readConsultatioSeries(is, OM, USD_SERIES.contains(name) ? "USD" : "ARS");
+//            } else {
+//                series = OM.readValue(is, JSONSeries.class);
+//            }
+//
+//            final SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
+//            final String currency = series.getCurrency();
+//            for (JSONDataPoint dp : series.getData()) {
+//                if (interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), currency)) != null) {
+//                    throw new IllegalArgumentException(MessageFormat.format("Series {0} has two values for year {1} and month {2}", name, dp.getYear(), dp.getMonth()));
+//                }
+//            }
+//
+//            final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
+//
+//            YearMonth ym = interpolatedData.firstKey();
+//            final YearMonth last = interpolatedData.lastKey();
+//            while (ym.monthsUntil(last) > 0) {
+//                YearMonth next = ym.next();
+//                if (!interpolatedData.containsKey(next)) {
+//                    interpolatedData.put(next, strategy.interpolate(interpolatedData.get(ym), ym, currency));
+//                }
+//                ym = ym.next();
+//            }
+//            return new SortedMapMoneyAmountSeries(currency, interpolatedData);
+//
+//        } catch (IOException ioEx) {
+//            throw new IllegalArgumentException(MessageFormat.format("Could not read series named {0}", name), ioEx);
+//        }
+//
+//    }
 
     private static <T> Stream<List<T>> sliding(List<T> list, int size) {
         if (size > list.size()) {

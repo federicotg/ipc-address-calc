@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
-import static org.fede.util.Util.readSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.web.dto.CanvasJSAxisDTO;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
@@ -115,7 +115,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
                 if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
 
-                    MoneyAmountSeries eachSeries = readSeries(s.getSeriesName()).exchangeInto(currencyCode);
+                    MoneyAmountSeries eachSeries = SeriesReader.readSeries(s.getSeriesName()).exchangeInto(currencyCode);
 
                     if (collectTotal) {
                         if (totalSeries == null) {
@@ -163,7 +163,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
             MoneyAmountSeries sumSeries = null;
             for (ExpenseChartSeriesDTO s : this.series) {
                 if (!TOTAL_SERIES_NAME.equals(s.getName()) && seriesNames.contains(s.getName())) {
-                    MoneyAmountSeries eachSeries = readSeries(s.getSeriesName()).exchangeInto(currencyCode);
+                    MoneyAmountSeries eachSeries = SeriesReader.readSeries(s.getSeriesName()).exchangeInto(currencyCode);
 
                     if (sumSeries == null) {
                         sumSeries = eachSeries.exchangeInto("USD");

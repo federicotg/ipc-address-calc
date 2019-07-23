@@ -25,10 +25,10 @@ import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
-import static org.fede.util.Util.readSeries;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.web.dto.CanvasJSAxisDTO;
 import org.fede.calculator.web.dto.CanvasJSChartDTO;
@@ -105,10 +105,10 @@ public class CanvasJSChartService implements ChartService {
         for (ExpenseChartSeriesDTO dto : this.incomeSeries) {
             if (seriesNames.contains(dto.getName())) {
                 if (combinedSeries == null) {
-                    combinedSeries = readSeries(dto.getSeriesName());
+                    combinedSeries = SeriesReader.readSeries(dto.getSeriesName());
                     sb.append(dto.getName());
                 } else {
-                    combinedSeries = combinedSeries.add(readSeries(dto.getSeriesName()));
+                    combinedSeries = combinedSeries.add(SeriesReader.readSeries(dto.getSeriesName()));
                     sb.append(" + ").append(dto.getName());
                 }
             }
@@ -131,7 +131,7 @@ public class CanvasJSChartService implements ChartService {
         MoneyAmountSeries savingsSum = null;
         for (ExpenseChartSeriesDTO dto : this.savingsSeries) {
             if (!dto.isTotal()) {
-                MoneyAmountSeries s = readSeries(dto.getSeriesName()).exchangeInto("ARS");
+                MoneyAmountSeries s = SeriesReader.readSeries(dto.getSeriesName()).exchangeInto("ARS");
                 if (savingsSum == null) {
                     savingsSum = s;
                 } else {
