@@ -358,14 +358,13 @@ public class ConsoleReports {
 
     private void income() {
 
-        final MoneyAmountSeries allRealUSDIncome = Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
+        final var averageRealUSDIncome = Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
                 .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
                 .map(usdSeries -> USD_INFLATION.adjust(usdSeries, USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonth()))
                 .map(new SimpleAggregation(12)::average)
-                .collect(Collectors.reducing(MoneyAmountSeries::add))
-                .orElse(new SortedMapMoneyAmountSeries("ARS"));
-
-        final MoneyAmount averageRealUSDIncome = allRealUSDIncome.getAmount(allRealUSDIncome.getTo());
+                .collect(reducing(MoneyAmountSeries::add))
+                .map(allRealUSDIncome -> allRealUSDIncome.getAmount(allRealUSDIncome.getTo()))
+                .orElse(new MoneyAmount(ZERO, "USD"));
 
         this.appendLine("Average Real USD Income: ",
                 averageRealUSDIncome.getCurrency(),
