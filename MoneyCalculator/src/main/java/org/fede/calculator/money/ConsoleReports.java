@@ -134,15 +134,21 @@ public class ConsoleReports {
         final var reportCurrency = "USD";
         appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " >===");
         final var limit = USD_INFLATION.getTo();
-        final var total = this.total(Investment::isCurrent, reportCurrency, limit);
-        investments.stream()
+
+        final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json");
+
+        final MoneyAmount cash = cashSeries.getAmount(cashSeries.getTo());
+
+        final var total = this.total(Investment::isCurrent, reportCurrency, limit).map(t -> t.add(cash));
+        Stream.concat(investments.stream()
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(in -> of(in.getType().toString(), in.getCurrency()), MAPPER))
                 .entrySet()
                 .stream()
                 .map(e -> of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
-                .map(p -> of(p.getFirst(), this.fx(p, reportCurrency)))
-                .sorted(TYPE_CURRENCY_COMPARATOR)
+                .map(p -> of(p.getFirst(), this.fx(p, reportCurrency))),
+                Stream.of(of(of("CASH", "USD"), cash)))
+                .sorted((p, q) -> q.getSecond().getAmount().compareTo(p.getSecond().getAmount()))
                 .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
                 .forEach(this::appendLine);
         total
