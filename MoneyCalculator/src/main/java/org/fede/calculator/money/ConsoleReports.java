@@ -415,7 +415,7 @@ public class ConsoleReports {
                     entry(of("USD", 10), () -> me.currentInvestmentsRealProfit("USD", PF)),
                     entry(of("gold", 11), () -> me.currentInvestmentsRealProfit("XAU", XAU)),
                     entry(of("bp", 12), () -> me.fci(2018)),
-                    entry(of("all", 13), me::currentInvestmentsRealProfit),
+                    entry(of("current", 13), me::currentInvestmentsRealProfit),
                     entry(of("allpast", 14), me::pastInvestmentsRealProfit),
                     entry(of("global", 15), me::globalInvestmentsRealProfit),
                     entry(of("CSPX", 16), () -> me.currentInvestmentsRealProfit("CSPX", ETF)),
