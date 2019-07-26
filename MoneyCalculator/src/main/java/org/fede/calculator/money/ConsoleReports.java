@@ -369,7 +369,6 @@ public class ConsoleReports {
         this.income(18);
         this.appendLine("");
         this.income(24);
-        this.appendLine("");
     }
 
     private void income(int months) {
