@@ -281,7 +281,7 @@ public class ConsoleReports {
                 ? profit.divide(total, MathConstants.CONTEXT)
                 : BigDecimal.ZERO;
 
-        this.appendLine(format("{4}TOTAL: {0,number,currency} => {1,number,currency} {2} {3}",
+        this.appendLine(format("{4}TOTAL: {0,number,currency} => {5,number,currency} {1,number,currency} {2} {3}",
                 total,
                 profit,
                 this.percentFormat.format(pct),
@@ -290,7 +290,8 @@ public class ConsoleReports {
                         .filter(t -> totalOnly)
                         .filter(Objects::nonNull)
                         .map(Object::toString)
-                        .collect(Collectors.joining("", "", " "))));
+                        .collect(Collectors.joining("", "", " ")), 
+                total.add(profit)));
     }
 
     private BigDecimal totalSum(String currency, InvestmentType type, Function<RealProfit, MoneyAmount> totalFunction, Predicate<Investment> predicate) {
