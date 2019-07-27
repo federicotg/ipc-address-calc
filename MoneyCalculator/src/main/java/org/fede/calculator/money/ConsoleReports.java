@@ -379,8 +379,8 @@ public class ConsoleReports {
         final var averageRealUSDIncome = Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
                 .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
                 .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
-                .map(new SimpleAggregation(months)::average)
                 .collect(reducing(MoneyAmountSeries::add))
+                .map(new SimpleAggregation(months)::average)
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(allRealUSDIncome.getTo()))
                 .orElse(new MoneyAmount(ZERO, "USD"));
 
