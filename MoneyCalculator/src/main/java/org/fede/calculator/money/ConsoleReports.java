@@ -81,6 +81,10 @@ public class ConsoleReports {
     private static final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = Comparator.comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
             .thenComparing(Comparator.comparing(pair -> pair.getFirst().getSecond()));
 
+    private static <T,U,V> Pair<Pair<T,U>, V> ter(T t, U u, V v){
+        return of(of(t, u), v);
+    }
+    
     private final NumberFormat nf = NumberFormat.getNumberInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
     private final List<Investment> investments;
@@ -117,7 +121,6 @@ public class ConsoleReports {
                 .forEach(this::appendLine);
     }
 
-
     private Optional<MoneyAmount> total(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
         return investments.stream()
                 .filter(predicate)
@@ -143,7 +146,7 @@ public class ConsoleReports {
                 .stream()
                 .map(e -> of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
                 .map(p -> of(p.getFirst(), this.fx(p, reportCurrency))),
-                Stream.of(of(of("CASH", "USD"), cash)))
+                Stream.of(ter("CASH", "USD", cash)))
                 .sorted((p, q) -> q.getSecond().getAmount().compareTo(p.getSecond().getAmount()))
                 .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
                 .forEach(this::appendLine);
