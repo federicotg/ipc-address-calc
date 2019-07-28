@@ -117,15 +117,11 @@ public class ConsoleReports {
                 .forEach(this::appendLine);
     }
 
-    private MoneyAmount getAmount(Investment i) {
-        return Optional.ofNullable(i.getOut()).map(InvestmentEvent::getMoneyAmount).orElse(i.getInvestment().getMoneyAmount());
-    }
 
     private Optional<MoneyAmount> total(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
         return investments.stream()
                 .filter(predicate)
-                .map(inv -> ForeignExchanges.exchange(inv, reportCurrency))
-                .map(this::getAmount)
+                .map(i -> i.getInvestment().getMoneyAmount())
                 .map(investedAmount -> ForeignExchanges.getForeignExchange(investedAmount.getCurrency(), reportCurrency).exchange(investedAmount, reportCurrency, limit.getYear(), limit.getMonth()))
                 .reduce(MoneyAmount::add);
     }
@@ -193,7 +189,7 @@ public class ConsoleReports {
                 .collect(groupingBy(
                         this::investmentType,
                         mapping(inv -> ForeignExchanges.getForeignExchange(inv.getInvestment().getCurrency(), reportCurrency)
-                        .exchange(this.getAmount(inv), reportCurrency, limit.getYear(), limit.getMonth())
+                        .exchange(inv.getInvestment().getMoneyAmount(), reportCurrency, limit.getYear(), limit.getMonth())
                         .getAmount()
                         .setScale(6, RoundingMode.HALF_UP),
                                 REDUCER)))
