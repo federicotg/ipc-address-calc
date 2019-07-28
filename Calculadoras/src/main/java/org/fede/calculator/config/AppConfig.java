@@ -151,25 +151,6 @@ public class AppConfig {
 
     }
 
-//    @Bean
-//    public List<ExpenseChartSeriesDTO> fciSeries() {
-//        return Stream.of(
-//                new ExpenseChartSeriesDTO("Ahorro Plus Argentina", "fci/CONAPAA-AR.json"),
-//                new ExpenseChartSeriesDTO("Renta Nacional", "fci/CRTANAA-AR.json"),
-//                new ExpenseChartSeriesDTO("Multiestrategia", "fci/COMUESA-AR.json"),
-//                new ExpenseChartSeriesDTO("Deuda Argentina", "fci/CDEUARA-AR.json"),
-//                new ExpenseChartSeriesDTO("Balance Fund", "fci/CONBALA.json"),
-//                new ExpenseChartSeriesDTO("Liquidez Ley 27.260 USD", "fci/CONLLBU-AR.json"),
-//                new ExpenseChartSeriesDTO("Renta Fija Argentina", "fci/CONAARA-AR.json"),
-//                new ExpenseChartSeriesDTO("Income Fund USD", "fci/COINLAT-AR.json"),
-//                new ExpenseChartSeriesDTO("Estrategia", "fci/CONESTA-AR.json"),
-//                new ExpenseChartSeriesDTO("Arbitraje", "fci/CONARBA-AR.json"),
-//                new ExpenseChartSeriesDTO("Renta Variable", "fci/RTAVARA-AR.json"),
-//                new ExpenseChartSeriesDTO("Acciones Argentina", "fci/CONAAFA.json")
-//        ).collect(toList());
-//
-//    }
-
     @Bean
     public CanvasJSDatapointAssembler nominalUSDDatapointAssembler() {
         return new NominalCanvasJSDatapointAssembler("USD");
@@ -292,16 +273,6 @@ public class AppConfig {
                 this.colors());
     }
 
-//    @Bean
-//    public MultiSeriesChartService fciService() {
-//        return new CanvasJSMultiSeriesChartService(
-//                this.realPesosDatapointAssembler(),
-//                this.realUSDDatapointAssembler(),
-//                this.nominalPesosDatapointAssembler(),
-//                this.incomesSeries(),
-//                this.fciSeries(),
-//                this.colors());
-//    }
 
     @Bean
     public Map<String, List<String>> savingsReportSeries() {
