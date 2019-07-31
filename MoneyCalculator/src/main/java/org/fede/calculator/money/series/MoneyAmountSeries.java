@@ -19,6 +19,7 @@ package org.fede.calculator.money.series;
 import java.util.Date;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.stream.Stream;
 import org.fede.calculator.money.MoneyAmount;
 
 /**
@@ -44,6 +45,8 @@ public interface MoneyAmountSeries extends Series {
     void forEach(BiConsumer<YearMonth, MoneyAmount> consumer);
     
     void forEachNonZero(BiConsumer<YearMonth, MoneyAmount> consumer);
+    
+    Stream<MoneyAmount> moneyAmountStream();
 
     MoneyAmountSeries map(BiFunction<YearMonth, MoneyAmount, MoneyAmount> f);
     

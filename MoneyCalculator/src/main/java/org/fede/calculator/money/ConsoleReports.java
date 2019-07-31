@@ -369,6 +369,18 @@ public class ConsoleReports {
         this.income(18);
         this.appendLine("");
         this.income(24);
+        
+        final var limit = USD_INFLATION.getTo();
+        
+        this.appendLine(format("Total income: {0,number,currency}",
+        Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
+                .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
+                .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
+                .flatMap(MoneyAmountSeries::moneyAmountStream)
+                .collect(reducing(MoneyAmount::add))
+                .orElse(new MoneyAmount(ZERO, "USD")).getAmount()));
+                
+        
     }
 
     private void income(int months) {

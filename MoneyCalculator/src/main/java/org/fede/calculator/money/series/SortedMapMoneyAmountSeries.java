@@ -19,6 +19,7 @@ package org.fede.calculator.money.series;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 import org.fede.calculator.money.MoneyAmount;
 
 /**
@@ -72,6 +73,11 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
     @Override
     protected boolean hasValue(YearMonth moment) {
         return this.values.containsKey(moment);
+    }
+
+    @Override
+    public Stream<MoneyAmount> moneyAmountStream() {
+        return this.values.values().stream();
     }
 
 }
