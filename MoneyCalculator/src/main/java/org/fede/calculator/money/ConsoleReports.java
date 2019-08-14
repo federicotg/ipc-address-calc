@@ -130,8 +130,10 @@ public class ConsoleReports {
 
     private void groupedInvestments() {
         final var reportCurrency = "USD";
-        appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " >===");
         final var limit = USD_INFLATION.getTo();
+        
+        appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency," ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()), ">===");
+        
 
         final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json");
 
