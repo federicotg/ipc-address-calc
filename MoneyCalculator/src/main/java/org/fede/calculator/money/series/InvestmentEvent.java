@@ -1,6 +1,7 @@
 package org.fede.calculator.money.series;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.StringJoiner;
@@ -57,6 +58,7 @@ public class InvestmentEvent {
         this.currency = currency;
     }
 
+    @JsonIgnore
     public MoneyAmount getMoneyAmount() {
         return new MoneyAmount(this.getAmount(), this.getCurrency());
     }

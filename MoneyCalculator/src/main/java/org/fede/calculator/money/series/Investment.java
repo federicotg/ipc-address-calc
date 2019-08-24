@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.money.series;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
@@ -75,26 +76,32 @@ public class Investment {
         this.out = out;
     }
 
+    @JsonIgnore
     public boolean isValid() {
         return this.getType().isValid(this.getIn(), this.getOut(), this.getInvestment());
     }
 
+    @JsonIgnore
     public Date getInitialDate() {
         return this.getIn().getDate();
     }
 
+    @JsonIgnore
     public String getInitialCurrency() {
         return this.getIn().getCurrency();
     }
 
+    @JsonIgnore
     public MoneyAmount getInitialMoneyAmount() {
         return this.getIn().getMoneyAmount();
     }
 
+    @JsonIgnore
     public MoneyAmount getMoneyAmount() {
         return this.getInvestment().getMoneyAmount();
     }
 
+    @JsonIgnore
     public String getCurrency() {
         return this.getInvestment().getCurrency();
     }
@@ -125,6 +132,7 @@ public class Investment {
                 );*/
     }
 
+    
     public MoneyAmount initialAmount(String targetCurrency) {
 
         MoneyAmount amount;
@@ -144,11 +152,13 @@ public class Investment {
         return fx.exchange(ma, targetCurrency, min.getYear(), min.getMonth());
     }
 
+    @JsonIgnore
     public boolean isCurrent() {
         final Date now = new Date();
         return this.getIn().getDate().before(now) && (this.getOut() == null || this.getOut().getDate().after(now));
     }
 
+    @JsonIgnore
     public boolean isPast() {
         final Date now = new Date();
         return this.getIn().getDate().before(now) && this.getOut() != null && (!this.getOut().getDate().after(now));
@@ -163,7 +173,7 @@ public class Investment {
                 .add("\n\tout: " + Objects.toString(this.out, "null"))
                 .toString();
     }
-
+    @JsonIgnore
     public String getId() {
         return id;
     }

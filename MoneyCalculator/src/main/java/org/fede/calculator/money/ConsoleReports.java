@@ -16,12 +16,18 @@
  */
 package org.fede.calculator.money;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationConfig;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DateFormat;
+import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.List;
@@ -31,12 +37,18 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.mapping;
 import static java.text.MessageFormat.format;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,6 +59,7 @@ import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
@@ -80,10 +93,10 @@ public class ConsoleReports {
     private static final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = Comparator.comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
             .thenComparing(Comparator.comparing(pair -> pair.getFirst().getSecond()));
 
-    private static <T,U,V> Pair<Pair<T,U>, V> ter(T t, U u, V v){
+    private static <T, U, V> Pair<Pair<T, U>, V> ter(T t, U u, V v) {
         return of(of(t, u), v);
     }
-    
+
     private final NumberFormat nf = NumberFormat.getNumberInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
     private final List<Investment> investments;
@@ -131,9 +144,8 @@ public class ConsoleReports {
     private void groupedInvestments() {
         final var reportCurrency = "USD";
         final var limit = USD_INFLATION.getTo();
-        
-        appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency," ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()), ">===");
-        
+
+        appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()), ">===");
 
         final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json");
 
@@ -291,7 +303,7 @@ public class ConsoleReports {
                         .filter(t -> totalOnly)
                         .filter(Objects::nonNull)
                         .map(Object::toString)
-                        .collect(Collectors.joining("", "", " ")), 
+                        .collect(Collectors.joining("", "", " ")),
                 total.add(profit)));
     }
 
@@ -371,18 +383,17 @@ public class ConsoleReports {
         this.income(18);
         this.appendLine("");
         this.income(24);
-        
+
         final var limit = USD_INFLATION.getTo();
-        
+
         this.appendLine(format("Total income: {0,number,currency}",
-        Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
-                .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
-                .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
-                .flatMap(MoneyAmountSeries::moneyAmountStream)
-                .collect(reducing(MoneyAmount::add))
-                .orElse(new MoneyAmount(ZERO, "USD")).getAmount()));
-                
-        
+                Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
+                        .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
+                        .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
+                        .flatMap(MoneyAmountSeries::moneyAmountStream)
+                        .collect(reducing(MoneyAmount::add))
+                        .orElse(new MoneyAmount(ZERO, "USD")).getAmount()));
+
     }
 
     private void income(int months) {
@@ -443,7 +454,8 @@ public class ConsoleReports {
                     entry(of("income3", 19), () -> me.income(3)),
                     entry(of("income18", 20), () -> me.income(18)),
                     entry(of("income24", 21), () -> me.income(24)),
-                    entry(of("income", 22), me::income)
+                    entry(of("income", 22), me::income),
+                    entry(of("close", 23), me::closeCONAAFA)
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
@@ -473,4 +485,35 @@ public class ConsoleReports {
         }
     }
 
+    public void closeCONAAFA() {
+        final BigDecimal sellPrice = new BigDecimal("174.2392938");
+
+        final Date sellDate = Date.from(LocalDate.of(2019, Month.AUGUST, 23).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        ObjectMapper om = new ObjectMapper();
+        om.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        this.investments
+                .stream()
+                .sorted(Comparator.comparing(Investment::getInitialDate))
+                .filter(inv -> inv.getCurrency().equals("CONAAFA"))
+                .filter(inv -> inv.getOut() == null)
+                .map(inv -> this.close(inv, sellPrice, sellDate))
+                .forEach(i -> this.print(om, i));
+    }
+
+    private Investment close(Investment inv, BigDecimal sellPrice, Date sellDate) {
+        InvestmentEvent out = new InvestmentEvent();
+        out.setAmount(inv.getInvestment().getAmount().multiply(sellPrice, MathContext.DECIMAL64));
+        out.setCurrency("ARS");
+        out.setDate(sellDate);
+        inv.setOut(out);
+        return inv;
+    }
+    
+    private void print(ObjectMapper om, Investment i){
+        try {
+            System.out.println(MessageFormat.format("{0},", om.writeValueAsString(i)));
+        } catch (JsonProcessingException ex) {
+            Logger.getLogger(ConsoleReports.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }

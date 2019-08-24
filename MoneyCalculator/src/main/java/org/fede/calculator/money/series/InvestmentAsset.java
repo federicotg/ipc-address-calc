@@ -1,5 +1,6 @@
 package org.fede.calculator.money.series;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -46,6 +47,7 @@ public class InvestmentAsset {
         this.amount = amount;
     }
 
+    @JsonIgnore
     public MoneyAmount getMoneyAmount() {
         return new MoneyAmount(this.getAmount(), this.getCurrency());
     }
