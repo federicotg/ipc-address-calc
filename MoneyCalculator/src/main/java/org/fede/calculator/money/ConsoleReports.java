@@ -237,6 +237,7 @@ public class ConsoleReports {
         appendLine("===< Ganancia Inversiones Finalizadas en USD reales >===");
         this.pastInvestmentsRealProfit("CONBALA", FCI);
         this.pastInvestmentsRealProfit("CAPLUSA", FCI);
+        this.pastInvestmentsRealProfit("CONAAFA", FCI);
         this.pastInvestmentsRealProfit("USD", PF);
         this.pastInvestmentsRealProfit("UVA", PF);
         this.pastInvestmentsRealProfit("ARS", PF);
