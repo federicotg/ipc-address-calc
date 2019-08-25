@@ -40,11 +40,13 @@ import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
+import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -59,6 +61,7 @@ import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
@@ -168,6 +171,24 @@ public class ConsoleReports {
                 .ifPresent(this::appendLine);
     }
 
+    
+    private String assetAllocation(Investment investment){
+        final Set<String> equities = Set.of("CSPX", "EIMI", "MEUD", "XRSU", "SPY4");
+        final Set<String> bonds = Set.of("LQDA", "JPEA", "LECAP", "LETE", "SPY4", "UVA","AY24","SRFDIIA");
+        
+        if(equities.contains(investment.getInvestment().getCurrency())){
+            return "EQ";
+        }
+        if(investment.getType().equals(InvestmentType.BONO) 
+                || investment.getType().equals(InvestmentType.PF) 
+                || bonds.contains(investment.getInvestment().getCurrency())){
+            return "BO";
+        }
+        
+        return "CASH";
+        
+    }
+    
     private String investmentType(Investment investment) {
         if ("CONAAFA".equals(investment.getCurrency())) {
             return "Renta Variable ARS";
@@ -197,13 +218,35 @@ public class ConsoleReports {
         final var reportCurrency = "USD";
         appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo >===");
 
+        
+        
+        
         final var limit = USD_INFLATION.getTo();
-        final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit);
+        
+        final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json");
 
-        investments.stream()
+        final MoneyAmount cash = cashSeries.getAmount(cashSeries.getTo());
+
+        
+        final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit).map(tot -> tot.add(cash));
+
+        final Investment i = new Investment();
+        final InvestmentEvent in = new InvestmentEvent();
+        final InvestmentAsset asset = new InvestmentAsset();
+        in.setAmount(cash.getAmount());
+        in.setCurrency(cash.getCurrency());
+        in.setDate(Date.from(LocalDate.now().minusYears(1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        i.setIn(in);
+        asset.setAmount(cash.getAmount());
+        asset.setCurrency(cash.getCurrency());
+        i.setInvestment(asset);
+        i.setType(InvestmentType.USD);
+        
+        Stream.concat(Stream.of(i), investments.stream())
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(
-                        this::investmentType,
+                        //this::investmentType,
+                        this::assetAllocation,
                         mapping(inv -> ForeignExchanges.getForeignExchange(inv.getInvestment().getCurrency(), reportCurrency)
                         .exchange(inv.getInvestment().getMoneyAmount(), reportCurrency, limit.getYear(), limit.getMonth())
                         .getAmount()
