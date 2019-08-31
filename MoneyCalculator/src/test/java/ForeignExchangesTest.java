@@ -15,6 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import org.fede.calculator.money.CompoundForeignExchange;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
@@ -23,6 +26,7 @@ import static org.fede.calculator.money.ForeignExchanges.USD_EUR;
 import static org.fede.calculator.money.ForeignExchanges.USD_XAU;
 import static org.fede.calculator.money.ForeignExchanges.ARS_CONAAFA;
 import static org.fede.calculator.money.ForeignExchanges.getForeignExchange;
+import org.fede.calculator.money.MoneyAmount;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -97,4 +101,24 @@ public class ForeignExchangesTest {
                 result);
 
     }
+    
+    @Test
+    public void euroTest() {
+        MoneyAmount oneEuro = new MoneyAmount(BigDecimal.ONE, "EUR");
+        MoneyAmount usd = ForeignExchanges.getForeignExchange("EUR", "USD").exchange(oneEuro, "USD", 2019,1);
+        System.out.println(usd.getAmount());
+        assertEquals(0, usd.getAmount().setScale(4, RoundingMode.HALF_UP)
+                .compareTo(new BigDecimal("1.1416").setScale(4, RoundingMode.HALF_UP)));
+    }
+    
+    @Test
+    public void euroTestInverse() {
+        MoneyAmount oneUSD = new MoneyAmount(BigDecimal.ONE, "USD");
+        MoneyAmount eur = ForeignExchanges.getForeignExchange("USD", "EUR").exchange(oneUSD, "EUR", 2019,1);
+        System.out.println(eur.getAmount());
+        assertEquals(0, eur.getAmount().setScale(4, RoundingMode.HALF_UP)
+                .compareTo(new BigDecimal("0.875963559915908").setScale(4, RoundingMode.HALF_UP)));
+    }
+    
+
 }

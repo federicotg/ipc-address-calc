@@ -52,9 +52,9 @@ public class ForeignExchanges {
             USD);
 
     public static final ForeignExchange USD_EUR = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/euro-dolar.json"),
-            USD,
-            "EUR");
+            SeriesReader.readIndexSeries("index/USD-EUR.json"),
+            "EUR", 
+            USD);
 
     public static final ForeignExchange ARS_LECAP = new SimpleForeignExchange(
             IndexSeriesSupport.CONSTANT_SERIES,
@@ -87,7 +87,23 @@ public class ForeignExchanges {
     
     public static final ForeignExchange USD_CSPX = new SimpleForeignExchange(
             SeriesReader.readIndexSeries("index/CSPX-USD.json"),
-            "AY24", USD);
+            "CSPX", USD);
+    
+    public static final ForeignExchange USD_EIMI = new SimpleForeignExchange(
+            SeriesReader.readIndexSeries("index/EIMI-USD.json"),
+            "EIMI", USD);
+    
+    public static final ForeignExchange USD_VAGU = new SimpleForeignExchange(
+            SeriesReader.readIndexSeries("index/VAGU-USD.json"),
+            "VAGU", USD);
+
+    public static final ForeignExchange USD_XRSU = new SimpleForeignExchange(
+            SeriesReader.readIndexSeries("index/XRSU-USD.json"),
+            "XRSU", USD);
+    
+    public static final ForeignExchange EUR_MEUD = new SimpleForeignExchange(
+            SeriesReader.readIndexSeries("index/MEUD-EUR.json"),
+            "MEUD", "EUR");
     
 
     private static void map(String from, String to, ForeignExchange fx) {
@@ -100,7 +116,7 @@ public class ForeignExchanges {
         // direct conversions
         map("ARS", USD, USD_ARS);
         map("LETE", USD, USD_LETE);
-        map("EUR", USD, USD_EUR);
+        map(USD, "EUR", USD_EUR);
         map("XAU", USD, USD_XAU);
         map("ARS", USD, USD_ARS);
         map("ARS", "CONAAFA", ARS_CONAAFA);
@@ -116,7 +132,7 @@ public class ForeignExchanges {
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CAPLUSA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CONBALA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("LECAP", "ARS");
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("EUR", "USD");
+        INTERMEDIATE_FOREIGN_EXCHANGES.put("USD", "EUR");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("XAU", "USD");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("ARS", "USD");
     }
