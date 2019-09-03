@@ -126,6 +126,10 @@ public class ForeignExchanges {
         map("ARS", "UVA", ARS_UVA);
         map(USD, "AY24", USD_AY24);
         map(USD, "CSPX", USD_CSPX);
+        map("EUR", "MEUD", EUR_MEUD);
+        map(USD, "XRSU", USD_XRSU);
+        map(USD, "EIMI", USD_EIMI);
+        map(USD, "VAGU", USD_VAGU);
 
         INTERMEDIATE_FOREIGN_EXCHANGES.put("UVA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CONAAFA", "ARS");
