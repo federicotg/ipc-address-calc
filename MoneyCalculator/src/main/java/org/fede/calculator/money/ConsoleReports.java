@@ -71,6 +71,8 @@ import static org.fede.calculator.money.series.SeriesReader.readSeries;
  */
 public class ConsoleReports {
 
+    private static final BigDecimal COEFFICIENT = new BigDecimal("0.1223");
+
     private static final String REPORT_FORMAT = "\"{0}\";\"{1}\";\"{2}\";\"{3}\";\"{4}\";\"{5}\";\"{6}\";\"{7}\"";
 
     private static final Map<String, String> FCI_NAMES = Map.of(
@@ -559,12 +561,23 @@ public class ConsoleReports {
         }
     }
 
+    private MoneyAmount applyCoefficientAndNegate(YearMonth ym, MoneyAmount amount) {
+        return new MoneyAmount(amount.getAmount().multiply(COEFFICIENT, MathContext.DECIMAL64).negate(MathContext.DECIMAL64), amount.getCurrency());
+    }
+
     private void houseIrrecoverableCosts() {
 
         final var limit = USD_INFLATION.getTo();
 
-        var realExpensesInUSD = Stream.of("expense/expensas.json", "expense/inmobiliario-43.json")
+        final MoneyAmountSeries discounts = Stream.of("expense/absa.json", "expense/consorcio-luz.json")
                 .map(SeriesReader::readSeries)
+                .map(s -> s.map(this::applyCoefficientAndNegate))
+                .reduce(MoneyAmountSeries::add)
+                .map(expenses -> expenses.exchangeInto("USD"))
+                .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
+                .get();
+
+        var realExpensesInUSD = Stream.concat(Stream.of("expense/expensas.json", "expense/inmobiliario-43.json").map(SeriesReader::readSeries), Stream.of(discounts))
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
                 .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
@@ -574,14 +587,13 @@ public class ConsoleReports {
                 .orElse(new MoneyAmount(ZERO, "USD"));
 
         var start = new YearMonth(2010, 8);
-        final var realInitialCost
-                = USD_INFLATION.adjust(new MoneyAmount(new BigDecimal("96000"), "USD"),
+        final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(new BigDecimal("96000"), "USD"),
                         start.getYear(), start.getMonth(),
                         limit.getYear(), limit.getMonth());
 
         final var months = BigDecimal.valueOf(start.monthsUntil(limit));
         final var years = months.divide(new BigDecimal(12), MathContext.DECIMAL64);
-        
+
         this.appendLine("Costo irrecuperable de 43 desde ", String.valueOf(start.getMonth()), "/", String.valueOf(start.getYear()), " en USD");
         this.appendLine("\tCosto inicial real: ", format("{0,number, currency}", realInitialCost.getAmount()));
         this.appendLine(
@@ -592,13 +604,10 @@ public class ConsoleReports {
         this.appendLine("\tMensuales ", format("{0,number,currency}", realExpensesInUSD.getAmount().divide(months, MathContext.DECIMAL64)),
                 " ",
                 format("{0}", percentFormat.format(realExpensesInUSD.getAmount().divide(months, MathContext.DECIMAL64).divide(realInitialCost.getAmount(), MathContext.DECIMAL64))));
-        
+
         this.appendLine("\tAnuales ", format("{0,number,currency}", realExpensesInUSD.getAmount().divide(years, MathContext.DECIMAL64)),
                 " ",
                 format("{0}", percentFormat.format(realExpensesInUSD.getAmount().divide(years, MathContext.DECIMAL64).divide(realInitialCost.getAmount(), MathContext.DECIMAL64))));
-        
-        
-        
 
     }
 }
