@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationConfig;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
@@ -40,7 +39,6 @@ import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
-import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
@@ -171,24 +169,23 @@ public class ConsoleReports {
                 .ifPresent(this::appendLine);
     }
 
-    
-    private String assetAllocation(Investment investment){
+    private String assetAllocation(Investment investment) {
         final Set<String> equities = Set.of("CSPX", "EIMI", "MEUD", "XRSU", "SPY4");
-        final Set<String> bonds = Set.of("LQDA", "JPEA", "LECAP", "LETE", "SPY4", "UVA","AY24","SRFDIIA");
-        
-        if(equities.contains(investment.getInvestment().getCurrency())){
+        final Set<String> bonds = Set.of("LQDA", "JPEA", "LECAP", "LETE", "SPY4", "UVA", "AY24", "SRFDIIA");
+
+        if (equities.contains(investment.getInvestment().getCurrency())) {
             return "EQ";
         }
-        if(investment.getType().equals(InvestmentType.BONO) 
-                || investment.getType().equals(InvestmentType.PF) 
-                || bonds.contains(investment.getInvestment().getCurrency())){
+        if (investment.getType().equals(InvestmentType.BONO)
+                || investment.getType().equals(InvestmentType.PF)
+                || bonds.contains(investment.getInvestment().getCurrency())) {
             return "BO";
         }
-        
+
         return "CASH";
-        
+
     }
-    
+
     private String investmentType(Investment investment) {
         if ("CONAAFA".equals(investment.getCurrency())) {
             return "Renta Variable ARS";
@@ -218,16 +215,12 @@ public class ConsoleReports {
         final var reportCurrency = "USD";
         appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo >===");
 
-        
-        
-        
         final var limit = USD_INFLATION.getTo();
-        
+
         final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json");
 
         final MoneyAmount cash = cashSeries.getAmount(cashSeries.getTo());
 
-        
         final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit).map(tot -> tot.add(cash));
 
         final Investment i = new Investment();
@@ -241,7 +234,7 @@ public class ConsoleReports {
         asset.setCurrency(cash.getCurrency());
         i.setInvestment(asset);
         i.setType(InvestmentType.USD);
-        
+
         Stream.concat(Stream.of(i), investments.stream())
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(
@@ -503,8 +496,8 @@ public class ConsoleReports {
                     entry(of("EIMI", 24), () -> me.currentInvestmentsRealProfit("EIMI", ETF)),
                     entry(of("MEUD", 25), () -> me.currentInvestmentsRealProfit("MEUD", ETF)),
                     entry(of("XRSU", 26), () -> me.currentInvestmentsRealProfit("XRSU", ETF)),
-                    entry(of("VAGU", 27), () -> me.currentInvestmentsRealProfit("VAGU", ETF))
-                    
+                    entry(of("VAGU", 27), () -> me.currentInvestmentsRealProfit("VAGU", ETF)),
+                    entry(of("house", 28), () -> me.houseIrrecoverableCosts())
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
@@ -557,12 +550,55 @@ public class ConsoleReports {
         inv.setOut(out);
         return inv;
     }
-    
-    private void print(ObjectMapper om, Investment i){
+
+    private void print(ObjectMapper om, Investment i) {
         try {
             System.out.println(MessageFormat.format("{0},", om.writeValueAsString(i)));
         } catch (JsonProcessingException ex) {
             Logger.getLogger(ConsoleReports.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private void houseIrrecoverableCosts() {
+
+        final var limit = USD_INFLATION.getTo();
+
+        var realExpensesInUSD = Stream.of("expense/expensas.json", "expense/inmobiliario-43.json")
+                .map(SeriesReader::readSeries)
+                .reduce(MoneyAmountSeries::add)
+                .map(expenses -> expenses.exchangeInto("USD"))
+                .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
+                .map(MoneyAmountSeries::moneyAmountStream)
+                .orElseGet(Stream::empty)
+                .reduce(MoneyAmount::add)
+                .orElse(new MoneyAmount(ZERO, "USD"));
+
+        var start = new YearMonth(2010, 8);
+        final var realInitialCost
+                = USD_INFLATION.adjust(new MoneyAmount(new BigDecimal("96000"), "USD"),
+                        start.getYear(), start.getMonth(),
+                        limit.getYear(), limit.getMonth());
+
+        final var months = BigDecimal.valueOf(start.monthsUntil(limit));
+        final var years = months.divide(new BigDecimal(12), MathContext.DECIMAL64);
+        
+        this.appendLine("Costo irrecuperable de 43 desde ", String.valueOf(start.getMonth()), "/", String.valueOf(start.getYear()), " en USD");
+        this.appendLine("\tCosto inicial real: ", format("{0,number, currency}", realInitialCost.getAmount()));
+        this.appendLine(
+                "\tTotales ",
+                format("{0,number,currency}", realExpensesInUSD.getAmount()),
+                " ",
+                format("{0}", percentFormat.format(realExpensesInUSD.getAmount().divide(realInitialCost.getAmount(), MathContext.DECIMAL64))));
+        this.appendLine("\tMensuales ", format("{0,number,currency}", realExpensesInUSD.getAmount().divide(months, MathContext.DECIMAL64)),
+                " ",
+                format("{0}", percentFormat.format(realExpensesInUSD.getAmount().divide(months, MathContext.DECIMAL64).divide(realInitialCost.getAmount(), MathContext.DECIMAL64))));
+        
+        this.appendLine("\tAnuales ", format("{0,number,currency}", realExpensesInUSD.getAmount().divide(years, MathContext.DECIMAL64)),
+                " ",
+                format("{0}", percentFormat.format(realExpensesInUSD.getAmount().divide(years, MathContext.DECIMAL64).divide(realInitialCost.getAmount(), MathContext.DECIMAL64))));
+        
+        
+        
+
     }
 }
