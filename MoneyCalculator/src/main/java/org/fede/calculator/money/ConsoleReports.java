@@ -561,23 +561,23 @@ public class ConsoleReports {
         }
     }
 
-    private MoneyAmount applyCoefficientAndNegate(YearMonth ym, MoneyAmount amount) {
-        return new MoneyAmount(amount.getAmount().multiply(COEFFICIENT, MathContext.DECIMAL64).negate(MathContext.DECIMAL64), amount.getCurrency());
+    private MoneyAmount applyCoefficient(YearMonth ym, MoneyAmount amount) {
+        return new MoneyAmount(amount.getAmount().multiply(COEFFICIENT, MathContext.DECIMAL64), amount.getCurrency());
     }
 
     private void houseIrrecoverableCosts() {
 
         final var limit = USD_INFLATION.getTo();
 
-        final MoneyAmountSeries discounts = Stream.of("expense/absa.json", "expense/consorcio-luz.json")
+        final MoneyAmountSeries proportionalExpenses = Stream.of("expense/consorcio-reparaciones.json")
                 .map(SeriesReader::readSeries)
-                .map(s -> s.map(this::applyCoefficientAndNegate))
+                .map(s -> s.map(this::applyCoefficient))
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
                 .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
                 .get();
 
-        var realExpensesInUSD = Stream.concat(Stream.of("expense/expensas.json", "expense/inmobiliario-43.json").map(SeriesReader::readSeries), Stream.of(discounts))
+        var realExpensesInUSD = Stream.concat(Stream.of("expense/inmobiliario-43.json").map(SeriesReader::readSeries), Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
                 .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
