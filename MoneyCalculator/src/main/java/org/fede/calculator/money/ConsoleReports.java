@@ -569,13 +569,8 @@ public class ConsoleReports {
 
         final var limit = USD_INFLATION.getTo();
 
-        final MoneyAmountSeries proportionalExpenses = Stream.of("expense/consorcio-reparaciones.json")
-                .map(SeriesReader::readSeries)
-                .map(s -> s.map(this::applyCoefficient))
-                .reduce(MoneyAmountSeries::add)
-                .map(expenses -> expenses.exchangeInto("USD"))
-                .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
-                .get();
+        final MoneyAmountSeries proportionalExpenses = SeriesReader.readSeries("expense/consorcio-reparaciones.json")
+                .map(this::applyCoefficient);
 
         var realExpensesInUSD = Stream.concat(Stream.of("expense/inmobiliario-43.json").map(SeriesReader::readSeries), Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
