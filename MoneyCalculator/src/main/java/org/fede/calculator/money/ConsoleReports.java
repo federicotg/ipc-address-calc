@@ -588,29 +588,42 @@ public class ConsoleReports {
 
     private void buyVsRent(MoneyAmount realExpensesInUSD, BigDecimal rate) {
         final var limit = USD_INFLATION.getTo();
-        final var nominalInitialCost = new BigDecimal("96000");
+        final var realtorFees = new BigDecimal("0.045");
+        final var stampTax = new BigDecimal("0.018");
+        final var registerTax = new BigDecimal("0.006");
+        final var notaryFee = new BigDecimal("0.02").multiply(new BigDecimal("1.21", MathContext.DECIMAL64));
 
-        
+        final var nominalInitialCost = new BigDecimal("96000");
+        final var nominalTransactionCost = nominalInitialCost.multiply(
+                realtorFees.add(stampTax, MathContext.DECIMAL64)
+                        .add(registerTax, MathContext.DECIMAL64)
+                        .add(notaryFee, MathContext.DECIMAL64), 
+                MathContext.DECIMAL64);
+
         final var start = new YearMonth(2010, 8);
         final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalInitialCost, "USD"),
                 start.getYear(), start.getMonth(),
                 limit.getYear(), limit.getMonth());
+        
+        final var realTransactionCost = USD_INFLATION.adjust(new MoneyAmount(nominalTransactionCost, "USD"),
+                start.getYear(), start.getMonth(),
+                limit.getYear(), limit.getMonth());
+
 
         final var months = BigDecimal.valueOf(start.monthsUntil(limit));
         final var years = months.divide(new BigDecimal(12), MathContext.DECIMAL64);
 
-        // interest rate
-        final var opportunityCost = new MoneyAmount(nominalInitialCost
-                .multiply(rate, MathContext.DECIMAL64)
-                .multiply(years, MathContext.DECIMAL64), "USD");
+        // interest rate cost
+        final var opportunityCost = new MoneyAmount(
+                nominalInitialCost
+                        .multiply(rate, MathContext.DECIMAL64)
+                        .multiply(years, MathContext.DECIMAL64), "USD");
 
-        // realtor fees
-        final var tansactionCosts = new MoneyAmount(nominalInitialCost.multiply(new BigDecimal("0.03"), MathContext.DECIMAL64), "USD");
-        
-        final var totalRealExpense = realExpensesInUSD.add(opportunityCost).add(tansactionCosts);
+        final var totalRealExpense = realExpensesInUSD.add(opportunityCost).add(realTransactionCost);
 
-        this.appendLine("Costo irrecuperable de 43 desde ", String.valueOf(start.getMonth()), "/", String.valueOf(start.getYear()), " suponiendo retorno anual de ", percentFormat.format(rate));
-        this.appendLine("\tCosto inicial real USD ", format("{0,number, currency}", realInitialCost.getAmount()));
+        this.appendLine("===< Costo irrecuperable de 43 desde ", String.valueOf(start.getMonth()), "/", String.valueOf(start.getYear()), " suponiendo retorno anual de ", percentFormat.format(rate), " >===");
+        this.appendLine("\tInversión inicial real USD ", format("{0,number, currency}", realInitialCost.getAmount()));
+        this.appendLine("Costo:");
         this.appendLine("\tTotal USD ",
                 format("{0,number,currency} ", totalRealExpense.getAmount()),
                 format("{0}", percentFormat.format(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), MathContext.DECIMAL64))));
@@ -626,7 +639,7 @@ public class ConsoleReports {
         final var yearlyCost = totalRealExpense.getAmount().divide(years, MathContext.DECIMAL64);
         this.appendLine("\tAnual USD ",
                 format("{0,number,currency} ", yearlyCost),
-                format("{0}", percentFormat.format(yearlyCost.divide(realInitialCost.getAmount(), MathContext.DECIMAL64))));
+                format("{0}\n", percentFormat.format(yearlyCost.divide(realInitialCost.getAmount(), MathContext.DECIMAL64))));
 
     }
 }
