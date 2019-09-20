@@ -503,10 +503,11 @@ public class ConsoleReports {
                     entry(of("EIMI", 24), () -> me.currentInvestmentsRealProfit("EIMI", ETF)),
                     entry(of("MEUD", 25), () -> me.currentInvestmentsRealProfit("MEUD", ETF)),
                     entry(of("XRSU", 26), () -> me.currentInvestmentsRealProfit("XRSU", ETF)),
-                    entry(of("VAGU", 27), () -> me.currentInvestmentsRealProfit("VAGU", ETF)),
+                    //entry(of("VAGU", 27), () -> me.currentInvestmentsRealProfit("VAGU", ETF)),
                     entry(of("house", 28), () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
                     entry(of("house1", 29), () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
-                    entry(of("house5", 30), () -> me.houseIrrecoverableCosts(new YearMonth(2015,8)))
+                    entry(of("house3", 30), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
+                    entry(of("house5", 31), () -> me.houseIrrecoverableCosts(new YearMonth(2015,8)))
                     
             );
 
