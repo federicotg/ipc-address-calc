@@ -581,6 +581,7 @@ public class ConsoleReports {
                 .reduce(MoneyAmount::add)
                 .orElse(new MoneyAmount(ZERO, "USD"));
 
+        this.buyVsRent(realExpensesInUSD, BigDecimal.ZERO);
         this.buyVsRent(realExpensesInUSD, new BigDecimal("0.02"));
         this.buyVsRent(realExpensesInUSD, new BigDecimal("0.03"));
 
@@ -621,7 +622,7 @@ public class ConsoleReports {
 
         final var totalRealExpense = realExpensesInUSD.add(opportunityCost).add(realTransactionCost);
 
-        this.appendLine("===< Costo irrecuperable de 43 desde ", String.valueOf(start.getMonth()), "/", String.valueOf(start.getYear()), " suponiendo retorno anual de ", percentFormat.format(rate), " >===");
+        this.appendLine("===< Irrecoverable cost since ", String.valueOf(start.getMonth()), "/", String.valueOf(start.getYear()), " with anual return of ", percentFormat.format(rate), " >===");
         this.appendLine("\tInversión inicial real USD ", format("{0,number, currency}", realInitialCost.getAmount()));
         this.appendLine("Costo:");
         this.appendLine("\tTotal USD ",
