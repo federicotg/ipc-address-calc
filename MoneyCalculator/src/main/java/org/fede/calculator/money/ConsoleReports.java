@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
-import java.math.MathContext;
+import static java.math.MathContext.DECIMAL64;
 import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.MessageFormat;
@@ -72,6 +72,11 @@ import static org.fede.calculator.money.series.SeriesReader.readSeries;
 public class ConsoleReports {
 
     private static final BigDecimal COEFFICIENT = new BigDecimal("0.1223");
+
+    private static final BigDecimal REALTOR_FEE = new BigDecimal("0.045");
+    private static final BigDecimal STAMP_TAX = new BigDecimal("0.018");
+    private static final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
+    private static final BigDecimal NOTARY_FEE = new BigDecimal("0.02").multiply(new BigDecimal("1.21", DECIMAL64));
 
     private static final String REPORT_FORMAT = "\"{0}\";\"{1}\";\"{2}\";\"{3}\";\"{4}\";\"{5}\";\"{6}\";\"{7}\"";
 
@@ -499,7 +504,10 @@ public class ConsoleReports {
                     entry(of("MEUD", 25), () -> me.currentInvestmentsRealProfit("MEUD", ETF)),
                     entry(of("XRSU", 26), () -> me.currentInvestmentsRealProfit("XRSU", ETF)),
                     entry(of("VAGU", 27), () -> me.currentInvestmentsRealProfit("VAGU", ETF)),
-                    entry(of("house", 28), () -> me.houseIrrecoverableCosts())
+                    entry(of("house", 28), () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
+                    entry(of("house1", 29), () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
+                    entry(of("house5", 30), () -> me.houseIrrecoverableCosts(new YearMonth(2015,8)))
+                    
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
@@ -546,7 +554,7 @@ public class ConsoleReports {
 
     private Investment close(Investment inv, BigDecimal sellPrice, Date sellDate) {
         InvestmentEvent out = new InvestmentEvent();
-        out.setAmount(inv.getInvestment().getAmount().multiply(sellPrice, MathContext.DECIMAL64));
+        out.setAmount(inv.getInvestment().getAmount().multiply(sellPrice, DECIMAL64));
         out.setCurrency("ARS");
         out.setDate(sellDate);
         inv.setOut(out);
@@ -562,13 +570,13 @@ public class ConsoleReports {
     }
 
     private MoneyAmount applyCoefficient(YearMonth ym, MoneyAmount amount) {
-        return new MoneyAmount(amount.getAmount().multiply(COEFFICIENT, MathContext.DECIMAL64), amount.getCurrency());
+        return new MoneyAmount(amount.getAmount().multiply(COEFFICIENT, DECIMAL64), amount.getCurrency());
     }
 
-    private void houseIrrecoverableCosts() {
+    private void houseIrrecoverableCosts(YearMonth timeLimit) {
 
         final var limit = USD_INFLATION.getTo();
-
+        
         final MoneyAmountSeries proportionalExpenses = SeriesReader.readSeries("expense/consorcio-reparaciones.json")
                 .map(this::applyCoefficient);
 
@@ -576,71 +584,72 @@ public class ConsoleReports {
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
                 .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
+                .map(s -> s.map((ym, amount) -> ym.compareTo(timeLimit) <= 0 ? amount : new MoneyAmount(ZERO, amount.getCurrency())))
                 .map(MoneyAmountSeries::moneyAmountStream)
                 .orElseGet(Stream::empty)
                 .reduce(MoneyAmount::add)
                 .orElse(new MoneyAmount(ZERO, "USD"));
 
-        this.buyVsRent(realExpensesInUSD, BigDecimal.ZERO);
-        this.buyVsRent(realExpensesInUSD, new BigDecimal("0.02"));
-        this.buyVsRent(realExpensesInUSD, new BigDecimal("0.03"));
+        this.buyVsRent(realExpensesInUSD, ZERO, timeLimit);
+        this.buyVsRent(realExpensesInUSD, new BigDecimal("0.02"), timeLimit);
+        this.buyVsRent(realExpensesInUSD, new BigDecimal("0.03"), timeLimit);
 
     }
 
-    private void buyVsRent(MoneyAmount realExpensesInUSD, BigDecimal rate) {
+    private void buyVsRent(MoneyAmount realExpensesInUSD, BigDecimal rate, YearMonth timeLimit) {
         final var limit = USD_INFLATION.getTo();
-        final var realtorFees = new BigDecimal("0.045");
-        final var stampTax = new BigDecimal("0.018");
-        final var registerTax = new BigDecimal("0.006");
-        final var notaryFee = new BigDecimal("0.02").multiply(new BigDecimal("1.21", MathContext.DECIMAL64));
 
         final var nominalInitialCost = new BigDecimal("96000");
         final var nominalTransactionCost = nominalInitialCost.multiply(
-                realtorFees.add(stampTax, MathContext.DECIMAL64)
-                        .add(registerTax, MathContext.DECIMAL64)
-                        .add(notaryFee, MathContext.DECIMAL64), 
-                MathContext.DECIMAL64);
+                REALTOR_FEE.add(STAMP_TAX, DECIMAL64)
+                        .add(REGISTER_TAX, DECIMAL64)
+                        .add(NOTARY_FEE, DECIMAL64),
+                DECIMAL64);
 
         final var start = new YearMonth(2010, 8);
         final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalInitialCost, "USD"),
                 start.getYear(), start.getMonth(),
                 limit.getYear(), limit.getMonth());
-        
+
         final var realTransactionCost = USD_INFLATION.adjust(new MoneyAmount(nominalTransactionCost, "USD"),
                 start.getYear(), start.getMonth(),
                 limit.getYear(), limit.getMonth());
 
-
-        final var months = BigDecimal.valueOf(start.monthsUntil(limit));
-        final var years = months.divide(new BigDecimal(12), MathContext.DECIMAL64);
+        final var months = BigDecimal.valueOf(start.monthsUntil(timeLimit));
+        final var years = months.divide(new BigDecimal(12), DECIMAL64);
 
         // interest rate cost
         final var opportunityCost = new MoneyAmount(
                 nominalInitialCost
-                        .multiply(rate, MathContext.DECIMAL64)
-                        .multiply(years, MathContext.DECIMAL64), "USD");
+                        .multiply(rate, DECIMAL64)
+                        .multiply(years, DECIMAL64), "USD");
 
         final var totalRealExpense = realExpensesInUSD.add(opportunityCost).add(realTransactionCost);
 
-        this.appendLine("===< Irrecoverable cost since ", String.valueOf(start.getMonth()), "/", String.valueOf(start.getYear()), " with anual return of ", percentFormat.format(rate), " >===");
-        this.appendLine("\tInversión inicial real USD ", format("{0,number, currency}", realInitialCost.getAmount()));
-        this.appendLine("Costo:");
+        this.appendLine("===< Costo de ", 
+                String.valueOf(start.getMonth()), "/", String.valueOf(start.getYear()), 
+                " a ",
+                String.valueOf(timeLimit.getMonth()), "/", String.valueOf(timeLimit.getYear()),
+                " con retorno anual de ", percentFormat.format(rate), " >===");
+        //this.appendLine("\tInversión inicial real USD ", format("{0,number, currency}", realInitialCost.getAmount()));
+        //this.appendLine("Costo:");
+        this.appendLine("USD reales ", String.valueOf(limit.getMonth()), "/", String.valueOf(limit.getYear()));
         this.appendLine("\tTotal USD ",
                 format("{0,number,currency} ", totalRealExpense.getAmount()),
-                format("{0}", percentFormat.format(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), MathContext.DECIMAL64))));
+                format("{0}", percentFormat.format(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), DECIMAL64))));
 
-        final var monthlyCost = totalRealExpense.getAmount().divide(months, MathContext.DECIMAL64);
+        final var monthlyCost = totalRealExpense.getAmount().divide(months, DECIMAL64);
         this.appendLine("\tMensual USD ",
                 format("{0,number,currency} ", monthlyCost),
-                format("{0}", percentFormat.format(monthlyCost.divide(realInitialCost.getAmount(), MathContext.DECIMAL64))),
+                format("{0}", percentFormat.format(monthlyCost.divide(realInitialCost.getAmount(), DECIMAL64))),
                 format(" - ARS {0,number,currency}", ForeignExchanges.getForeignExchange("USD", "ARS")
                         .exchange(new MoneyAmount(monthlyCost, "USD"), "ARS", limit.getYear(), limit.getMonth())
                         .getAmount()));
 
-        final var yearlyCost = totalRealExpense.getAmount().divide(years, MathContext.DECIMAL64);
+        final var yearlyCost = totalRealExpense.getAmount().divide(years, DECIMAL64);
         this.appendLine("\tAnual USD ",
                 format("{0,number,currency} ", yearlyCost),
-                format("{0}\n", percentFormat.format(yearlyCost.divide(realInitialCost.getAmount(), MathContext.DECIMAL64))));
+                format("{0}\n", percentFormat.format(yearlyCost.divide(realInitialCost.getAmount(), DECIMAL64))));
 
     }
 }
