@@ -585,7 +585,7 @@ public class ConsoleReports {
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
                 .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
-                .map(s -> s.map((ym, amount) -> ym.compareTo(timeLimit) <= 0 ? amount : new MoneyAmount(ZERO, amount.getCurrency())))
+                .map(s -> s.map((ym, amount) -> this.limit(timeLimit, ym, amount)))
                 .map(MoneyAmountSeries::moneyAmountStream)
                 .orElseGet(Stream::empty)
                 .reduce(MoneyAmount::add)
@@ -595,6 +595,10 @@ public class ConsoleReports {
         this.buyVsRent(realExpensesInUSD, new BigDecimal("0.02"), timeLimit);
         this.buyVsRent(realExpensesInUSD, new BigDecimal("0.03"), timeLimit);
 
+    }
+
+    private MoneyAmount limit(YearMonth timeLimit, YearMonth ym, MoneyAmount amount){
+        return ym.compareTo(timeLimit) <= 0 ? amount : new MoneyAmount(ZERO, amount.getCurrency());
     }
 
     private void buyVsRent(MoneyAmount realExpensesInUSD, BigDecimal rate, YearMonth timeLimit) {
