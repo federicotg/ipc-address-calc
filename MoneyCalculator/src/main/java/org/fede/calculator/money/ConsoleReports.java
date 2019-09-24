@@ -665,31 +665,31 @@ public class ConsoleReports {
     private void expenses(){
 
     var expenses = Stream.of(
-        Pair.of("service", "absa.json"),
-        Pair.of("communications", "cablevision.json"),
-        Pair.of("communications", "celular-a.json"),
-        Pair.of("communications", "celular-f.json"),
-        Pair.of("taxes", "contadora.json"),
-        Pair.of("health", "emergencia.json"),
-        Pair.of("home", "expensas.json"),
-        Pair.of("service", "gas.json"),
-        Pair.of("taxes", "inmobiliario-43.json"),
-        Pair.of("health", "ioma.json"),
-        Pair.of("home", "limpieza.json"),
-        Pair.of("service", "luz.json"),
-        Pair.of("taxes", "monotributo-angeles.json"),
-        Pair.of("taxes", "municipal-43.json"),
-        Pair.of("entertainment", "netflix.json"),
-        Pair.of("home", "seguro.json"),
-        Pair.of("communications", "telefono-43.json"),
-        Pair.of("entertainment", "xbox.json"))
+        of("service", "absa.json"),
+        of("communications", "cablevision.json"),
+        of("communications", "celular-a.json"),
+        of("communications", "celular-f.json"),
+        of("taxes", "contadora.json"),
+        of("health", "emergencia.json"),
+        of("home", "expensas.json"),
+        of("service", "gas.json"),
+        of("taxes", "inmobiliario-43.json"),
+        of("health", "ioma.json"),
+        of("home", "limpieza.json"),
+        of("service", "luz.json"),
+        of("taxes", "monotributo-angeles.json"),
+        of("taxes", "municipal-43.json"),
+        of("entertainment", "netflix.json"),
+        of("home", "seguro.json"),
+        of("communications", "telefono-43.json"),
+        of("entertainment", "xbox.json"))
         .collect(groupingBy(Pair::getFirst, mapping(Pair::getSecond, Collectors.toList())));
 
     var limit = USD_INFLATION.getTo();
         
     expenses.entrySet()
         .stream()
-        .map(e -> Pair.of(e.getKey(), this.totalRealUSD(e.getValue(), limit).getAmount()))
+        .map(e -> of(e.getKey(), this.totalRealUSD(e.getValue(), limit).getAmount()))
         .sorted(Comparator.comparing(Pair::getSecond))
         .forEach(e -> this.appendLine(e.getFirst(), " USD ", format("{0,number,currency} ", e.getSecond())));
     }
