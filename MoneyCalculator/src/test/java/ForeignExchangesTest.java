@@ -106,7 +106,7 @@ public class ForeignExchangesTest {
     public void euroTest() {
         MoneyAmount oneEuro = new MoneyAmount(BigDecimal.ONE, "EUR");
         MoneyAmount usd = ForeignExchanges.getForeignExchange("EUR", "USD").exchange(oneEuro, "USD", 2019,1);
-        System.out.println(usd.getAmount());
+        //System.out.println(usd.getAmount());
         assertEquals(0, usd.getAmount().setScale(4, RoundingMode.HALF_UP)
                 .compareTo(new BigDecimal("1.1416").setScale(4, RoundingMode.HALF_UP)));
     }
@@ -115,7 +115,7 @@ public class ForeignExchangesTest {
     public void euroTestInverse() {
         MoneyAmount oneUSD = new MoneyAmount(BigDecimal.ONE, "USD");
         MoneyAmount eur = ForeignExchanges.getForeignExchange("USD", "EUR").exchange(oneUSD, "EUR", 2019,1);
-        System.out.println(eur.getAmount());
+        //System.out.println(eur.getAmount());
         assertEquals(0, eur.getAmount().setScale(4, RoundingMode.HALF_UP)
                 .compareTo(new BigDecimal("0.875963559915908").setScale(4, RoundingMode.HALF_UP)));
     }

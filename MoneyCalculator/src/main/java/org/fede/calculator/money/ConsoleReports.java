@@ -507,7 +507,9 @@ public class ConsoleReports {
                     entry(of("house", 28), () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
                     entry(of("house1", 29), () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
                     entry(of("house3", 30), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
-                    entry(of("house5", 31), () -> me.houseIrrecoverableCosts(new YearMonth(2015,8)))
+                    entry(of("house5", 31), () -> me.houseIrrecoverableCosts(new YearMonth(2015,8))),
+                    entry(of("exp", 32), () -> me.expenses())
+                    
                     
             );
 
@@ -659,4 +661,61 @@ public class ConsoleReports {
                 format("{0}\n", percentFormat.format(yearlyCost.divide(realInitialCost.getAmount(), DECIMAL64))));
 
     }
+
+    private void expenses(){
+
+    var expenses = Stream.of(
+        Pair.of("service", "absa.json"),
+        Pair.of("communications", "cablevision.json"),
+        Pair.of("communications", "celular-a.json"),
+        Pair.of("communications", "celular-f.json"),
+        Pair.of("taxes", "contadora.json"),
+        Pair.of("health", "emergencia.json"),
+        Pair.of("home", "expensas.json"),
+        Pair.of("service", "gas.json"),
+        Pair.of("taxes", "inmobiliario-43.json"),
+        Pair.of("health", "ioma.json"),
+        Pair.of("home", "limpieza.json"),
+        Pair.of("service", "luz.json"),
+        Pair.of("taxes", "monotributo-angeles.json"),
+        Pair.of("taxes", "municipal-43.json"),
+        Pair.of("entertainment", "netflix.json"),
+        Pair.of("home", "seguro.json"),
+        Pair.of("communications", "telefono-43.json"),
+        Pair.of("entertainment", "xbox.json"))
+        .collect(groupingBy(Pair::getFirst, mapping(Pair::getSecond, Collectors.toList())));
+
+    var limit = USD_INFLATION.getTo();
+        
+    expenses.entrySet()
+        .stream()
+        .map(e -> Pair.of(e.getKey(), this.totalRealUSD(e.getValue(), limit).getAmount()))
+        .sorted(Comparator.comparing(Pair::getSecond))
+        .forEach(e -> this.appendLine(e.getFirst(), " USD ", format("{0,number,currency} ", e.getSecond())));
+    }
+
+
+
+    private MoneyAmount totalRealUSD(List<String> jsonResources, YearMonth limit){
+        return jsonResources.stream()
+        .map(s -> "expense/" + s)
+        .map(SeriesReader::readSeries)
+        .reduce(MoneyAmountSeries::add)
+                .map(expenses -> expenses.exchangeInto("USD"))
+                .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
+                //.map(MoneyAmountSeries::moneyAmountStream)
+                .map(this::average)
+                .orElse(new MoneyAmount(ZERO, "USD"));
+
+    }
+
+    private MoneyAmount average(MoneyAmountSeries s){
+        var months = s.getFrom().monthsUntil(s.getTo());
+        return new MoneyAmount(s.moneyAmountStream()
+            .map(MoneyAmount::getAmount)
+            .reduce(BigDecimal::add)
+            .orElse(ZERO)
+            .divide(new BigDecimal(months), DECIMAL64), "USD");
+    }
+
 }
