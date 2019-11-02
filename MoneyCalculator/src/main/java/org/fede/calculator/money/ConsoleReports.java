@@ -499,7 +499,7 @@ public class ConsoleReports {
                     entry(of("income18", 20), () -> me.income(18)),
                     entry(of("income24", 21), () -> me.income(24)),
                     entry(of("income", 22), me::income),
-                    entry(of("close", 23), me::closeCONAAFA),
+                    //entry(of("close", 23), me::closeCONAAFA),
                     entry(of("EIMI", 24), () -> me.currentInvestmentsRealProfit("EIMI", ETF)),
                     entry(of("MEUD", 25), () -> me.currentInvestmentsRealProfit("MEUD", ETF)),
                     entry(of("XRSU", 26), () -> me.currentInvestmentsRealProfit("XRSU", ETF)),
