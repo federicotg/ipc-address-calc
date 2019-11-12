@@ -584,7 +584,7 @@ public class ConsoleReports {
                 .map(this::applyCoefficient);
 
         final var realExpensesInUSD = Stream.concat(
-            Stream.of("expense/inmobiliario-43.json", "expense/seguro.json").map(SeriesReader::readSeries), 
+            Stream.of("expense/inmobiliario-43.json", "expense/seguro.json", "expense/reparaciones.json").map(SeriesReader::readSeries), 
             Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
@@ -681,6 +681,7 @@ public class ConsoleReports {
         of("taxes", "municipal-43.json"),
         of("entertainment", "netflix.json"),
         of("home", "seguro.json"),
+        of("home", "reparaciones.json"),
         of("communications", "telefono-43.json"),
         of("entertainment", "xbox.json"))
         .collect(groupingBy(Pair::getFirst, mapping(Pair::getSecond, Collectors.toList())));
