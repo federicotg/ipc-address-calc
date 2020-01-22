@@ -153,7 +153,7 @@ public class ConsoleReports {
         final var reportCurrency = "USD";
         final var limit = USD_INFLATION.getTo();
 
-        appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()), ">===");
+        appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()), " >===");
 
         final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json");
 
@@ -220,9 +220,10 @@ public class ConsoleReports {
     private void listStockByTpe() {
 
         final var reportCurrency = "USD";
-        appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo >===");
-
         final var limit = USD_INFLATION.getTo();
+        final var limitStr = String.valueOf(limit.getMonth()) + "/" + String.valueOf(limit.getYear());
+
+        appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo. ", limitStr," >===");  
 
         final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json");
 
@@ -486,7 +487,7 @@ public class ConsoleReports {
                     //entry(of("AY24", 7), () -> me.currentInvestmentsRealProfit("AY24", BONO)),
                     entry(of("USD", 8), () -> me.currentInvestmentsRealProfit("USD", BONO)),
                     //entry(of("CONAAFA", 9), () -> me.currentInvestmentsRealProfit("CONAAFA", FCI)),
-                    entry(of("USD", 10), () -> me.currentInvestmentsRealProfit("USD", PF)),
+                    entry(of("PFUSD", 10), () -> me.currentInvestmentsRealProfit("USD", PF)),
                     entry(of("gold", 11), () -> me.currentInvestmentsRealProfit("XAU", XAU)),
                     entry(of("bp", 12), () -> me.fci(2018)),
                     entry(of("current", 13), me::currentInvestmentsRealProfit),
