@@ -483,7 +483,7 @@ public class ConsoleReports {
                     entry(of("ti", 3), me::listStockByTpe),
                     entry(of("UVA", 4), () -> me.currentInvestmentsRealProfit("UVA", PF)),
                     entry(of("LETE", 5), () -> me.currentInvestmentsRealProfit("LETE", BONO)),
-                    entry(of("LECAP", 6), () -> me.currentInvestmentsRealProfit("LECAP", BONO)),
+                    //entry(of("LECAP", 6), () -> me.currentInvestmentsRealProfit("LECAP", BONO)),
                     //entry(of("AY24", 7), () -> me.currentInvestmentsRealProfit("AY24", BONO)),
                     entry(of("USD", 8), () -> me.currentInvestmentsRealProfit("USD", BONO)),
                     //entry(of("CONAAFA", 9), () -> me.currentInvestmentsRealProfit("CONAAFA", FCI)),
