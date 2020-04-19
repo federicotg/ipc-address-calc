@@ -671,6 +671,7 @@ public class ConsoleReports {
         of("communications", "celular-a.json"),
         of("communications", "celular-f.json"),
         of("taxes", "contadora.json"),
+        of("taxes", "bbpp.json"),
         of("health", "emergencia.json"),
         of("home", "expensas.json"),
         of("service", "gas.json"),
