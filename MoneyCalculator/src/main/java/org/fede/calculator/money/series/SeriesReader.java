@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -43,7 +44,7 @@ public class SeriesReader {
     private static final TypeReference<List<JSONDataPoint>> INDEX_SERIES_TYPE_REFERENCE = new TypeReference<List<JSONDataPoint>>() {
     };
 
-    private static final Map<String, MoneyAmountSeries> MACACHE = new HashMap<>();
+    private static final Map<String, MoneyAmountSeries> MACACHE = new ConcurrentHashMap<>();
 
     public static IndexSeries readIndexSeries(String name) {
         return CACHE.computeIfAbsent(name, seriesName -> new JSONIndexSeries(read(seriesName, INDEX_SERIES_TYPE_REFERENCE)));
