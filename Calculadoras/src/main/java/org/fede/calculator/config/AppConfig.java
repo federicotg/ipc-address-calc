@@ -138,6 +138,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Peso", "saving/ahorros-peso.json"),
                 new ExpenseChartSeriesDTO("Dolar Liq.", "saving/ahorros-dolar-liq.json"),
                 new ExpenseChartSeriesDTO("Dolar Banco", "saving/ahorros-dolar-banco.json"),
+                new ExpenseChartSeriesDTO("€", "saving/ahorros-euro.json"),
                 new ExpenseChartSeriesDTO("Dolar ON", "saving/ahorros-dolar-ON.json"),
                 new ExpenseChartSeriesDTO("Oro", "saving/ahorros-oro.json"),
                 new ExpenseChartSeriesDTO("Acciones Argentina FCI", "saving/ahorros-conaafa.json"),
@@ -299,6 +300,7 @@ public class AppConfig {
             "saving/ahorros-xrsu.json",
             "saving/ahorros-meud.json",
             "saving/ahorros-dolar-banco.json", 
+            "saving/ahorros-euro.json", 
             "saving/ahorros-dolar-ON.json", 
             "saving/ahorros-dolar-liq.json", 
             "saving/ahorros-oro.json"}));

@@ -460,15 +460,15 @@ public class ConsoleReports {
                 " ",
                 format("{0,number,currency}", averageRealUSDIncome.getAmount()));
 
-        final var twentyPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.2")), averageRealUSDIncome.getCurrency());
+        final var savingPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.3")), averageRealUSDIncome.getCurrency());
 
-        this.appendLine("20% saving: ",
+        this.appendLine("30% saving: ",
                 averageRealUSDIncome.getCurrency(),
                 " ",
-                format("{0,number,currency}", twentyPct.getAmount()),
+                format("{0,number,currency}", savingPct.getAmount()),
                 " / ",
                 format("{0,number,currency}",
-                        ForeignExchanges.getForeignExchange(twentyPct.getCurrency(), "ARS").exchange(twentyPct, "ARS", limit.getYear(), limit.getMonth()).getAmount()));
+                        ForeignExchanges.getForeignExchange(savingPct.getCurrency(), "ARS").exchange(savingPct, "ARS", limit.getYear(), limit.getMonth()).getAmount()));
     }
 
     public static void main(String[] args) {
