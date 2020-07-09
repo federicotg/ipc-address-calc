@@ -209,7 +209,8 @@ public class AppConfig {
                 "#993300",
                 "#006600",
                 "#ff9999",
-                "#fcba03"
+                "#fcba03",
+                "#ffffcc"
         ).collect(toList());
     }
 
