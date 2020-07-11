@@ -193,30 +193,6 @@ public class ConsoleReports {
 
     }
 
-    private String investmentType(Investment investment) {
-        if ("CONAAFA".equals(investment.getCurrency())) {
-            return "Renta Variable ARS";
-        }
-        if (investment.getType().equals(USD)) {
-            return "Líquido";
-        }
-
-        if (investment.getType().equals(XAU)) {
-            return "Gold";
-        }
-        if (investment.getInvestment().getCurrency().equals("LECAP")) {
-            return "Renta Fija ARS";
-        }
-        if (investment.getInvestment().getCurrency().equals("CSPX")) {
-            return "Renta Variable USD";
-        }
-        if (BONO.equals(investment.getType())
-                || (PF.equals(investment.getType()) && investment.getCurrency().equals("USD"))) {
-            return "Renta Fija USD";
-        }
-        return "Renta Fija ARS";
-    }
-
     private void listStockByTpe() {
 
         final var reportCurrency = "USD";
