@@ -56,6 +56,11 @@ public class ForeignExchanges {
             "EUR", 
             USD);
 
+    public static final ForeignExchange USD_DAI = new SimpleForeignExchange(
+            SeriesReader.readIndexSeries("index/USD-DAI.json"),
+            "DAI", 
+            USD);
+
     public static final ForeignExchange ARS_LECAP = new SimpleForeignExchange(
             IndexSeriesSupport.CONSTANT_SERIES,
             "LECAP",
@@ -117,6 +122,7 @@ public class ForeignExchanges {
         map("ARS", USD, USD_ARS);
         map("LETE", USD, USD_LETE);
         map(USD, "EUR", USD_EUR);
+        map(USD, "DAI", USD_DAI);
         map("XAU", USD, USD_XAU);
         map("ARS", USD, USD_ARS);
         map("ARS", "CONAAFA", ARS_CONAAFA);
@@ -136,7 +142,9 @@ public class ForeignExchanges {
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CAPLUSA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CONBALA", "ARS");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("LECAP", "ARS");
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("USD", "EUR");
+        //INTERMEDIATE_FOREIGN_EXCHANGES.put("USD", "EUR");
+        INTERMEDIATE_FOREIGN_EXCHANGES.put("MEUD", "EUR");
+        INTERMEDIATE_FOREIGN_EXCHANGES.put("DAI", "USD");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("XAU", "USD");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("ARS", "USD");
     }

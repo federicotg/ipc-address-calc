@@ -140,6 +140,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Dolar Liq.", "saving/ahorros-dolar-liq.json"),
                 new ExpenseChartSeriesDTO("Dolar Banco", "saving/ahorros-dolar-banco.json"),
                 new ExpenseChartSeriesDTO("€", "saving/ahorros-euro.json"),
+                new ExpenseChartSeriesDTO("DAI", "saving/ahorros-dai.json"),
                 new ExpenseChartSeriesDTO("Dolar ON", "saving/ahorros-dolar-ON.json"),
                 new ExpenseChartSeriesDTO("Oro", "saving/ahorros-oro.json"),
                 new ExpenseChartSeriesDTO("Acciones Argentina FCI", "saving/ahorros-conaafa.json"),
@@ -191,7 +192,7 @@ public class AppConfig {
     @Bean
     public List<String> colors() {
         return Stream.of(
-                "#00ffcc","#7f0000", "#000033","#330700",  
+                "#00ffcc","#262b4d","#7f0000", "#000033","#330700",  
                 "#1d734b","#b32d98",
                 "#734139", "#bfd0ff","#ff4400", "#7f3300", 
                 "#ffb380", "#33210d", "#ffaa00", 
@@ -201,7 +202,7 @@ public class AppConfig {
                 "#003329", "#ff9180",
                 "#60bfb9", "#00ccff", "#005c73", 
                 "#0077b3", "#0088ff", "#4d5766",  
-                "#262b4d",  "#362699", "#ff0044",
+                  "#362699", "#ff0044",
                 "#7960bf", "#6600ff", "#ee00ff", 
                 "#ffbffb",  "#66335c", 
                 "#ff0088", "#33001b", "#8c6977", 
@@ -298,6 +299,7 @@ public class AppConfig {
             "saving/ahorros-meud.json",
             "saving/ahorros-dolar-banco.json", 
             "saving/ahorros-euro.json", 
+            "saving/ahorros-dai.json",
             "saving/ahorros-dolar-ON.json", 
             "saving/ahorros-dolar-liq.json", 
             "saving/ahorros-oro.json"}));
