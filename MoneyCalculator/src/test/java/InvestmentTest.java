@@ -139,7 +139,7 @@ public class InvestmentTest {
     }
 
     private List<Investment> readExt(String name) throws IOException {
-        try (InputStream in = new FileInputStream("/home/fede/Sync/app-resources/" + name);) {
+        try (InputStream in = new FileInputStream(System.getProperty("user.home")+"/Sync/app-resources/" + name);) {
             ObjectMapper om = new ObjectMapper();
 
             return om.readValue(in, new TypeReference<List<Investment>>() {

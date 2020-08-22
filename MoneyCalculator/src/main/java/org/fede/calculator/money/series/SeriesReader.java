@@ -51,7 +51,7 @@ public class SeriesReader {
     }
 
     public static <T> T read(String name, TypeReference<T> typeReference) {
-        try (InputStream in = new FileInputStream(new File("/home/fede/Sync/app-resources/" + name));) {
+        try (InputStream in = new FileInputStream(new File(System.getProperty("user.home")+"/Sync/app-resources/" + name));) {
             return OM.readValue(in, typeReference);
         } catch (IOException ioEx) {
             throw new IllegalArgumentException("Could not read series from resource " + name, ioEx);
@@ -68,7 +68,7 @@ public class SeriesReader {
             return new SortedMapMoneyAmountSeries("ARS");
         }
 
-        try (InputStream is = new FileInputStream("/home/fede/Sync/app-resources/" + name)) {
+        try (InputStream is = new FileInputStream(System.getProperty("user.home")+"/Sync/app-resources/" + name)) {
 
             JSONSeries series = OM.readValue(is, JSONSeries.class);
 
