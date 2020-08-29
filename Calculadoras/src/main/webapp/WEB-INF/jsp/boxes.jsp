@@ -29,7 +29,7 @@
               type="image/png" 
               href="/images/favicon.png" />
         <title>Contenido de las Cajas</title>
-        <link rel="stylesheet" type="text/css" href="/styles/style.min.css" />
+        <link rel="stylesheet" type="text/css" href="/styles/style.css" />
         <style type="text/css">
             li{
                 line-height: 2.3em;

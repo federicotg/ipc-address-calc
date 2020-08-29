@@ -16,26 +16,20 @@
  */
 package org.fede.calculator;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.text.MessageFormat;
-import java.util.List;
+
 import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.ForeignExchanges.getForeignExchange;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
-import org.fede.util.Util;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -142,16 +136,7 @@ public class IndexTest {
 
     }
 
-    private List<Investment> read(String name) throws IOException {
-        try (InputStream in = IndexTest.class.getResourceAsStream("/" + name);) {
-            ObjectMapper om = new ObjectMapper();
-
-            return om.readValue(in, new TypeReference<List<Investment>>() {
-            });
-        }
-    }
-
-    
+  
         
     @Test
     

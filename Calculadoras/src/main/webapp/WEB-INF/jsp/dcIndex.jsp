@@ -26,7 +26,7 @@
         <link rel="icon" 
               type="image/png" 
               href="/images/favicon.png" />
-        <link rel="stylesheet" type="text/css" href="/styles/style.min.css" />
+        <link rel="stylesheet" type="text/css" href="/styles/style.css" />
         <title>Catálogo de Contenidos Digitales</title>
     </head>
     <body>

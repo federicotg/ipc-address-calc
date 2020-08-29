@@ -39,7 +39,7 @@ public class JSONBlsCPISource implements BlsCPISource {
     @Override
     public BlsResponse getResponse(int year) throws IOException {
         if (this.list == null) {
-            try (InputStream in = new FileInputStream(System.getProperty("user.home")+"/Sync/app-resources/" + name)) {
+            try (InputStream in = new FileInputStream(System.getProperty("user.home") + "/Sync/app-resources/" + name)) {
                 this.list = new ObjectMapper().readValue(in, new TypeReference<List<BlsResponse>>() {
                 });
             }

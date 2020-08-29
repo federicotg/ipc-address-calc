@@ -30,7 +30,7 @@
               type="image/png" 
               href="/images/favicon.png" />
         <title>Calculadora de Inflación</title>
-        <link rel="stylesheet" type="text/css" href="/styles/style.min.css"/>
+        <link rel="stylesheet" type="text/css" href="/styles/style.css"/>
         <style type="text/css">
             input[type="text"]{
                 width:8em;
@@ -55,7 +55,7 @@
             
         </style>
         <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/mootools/1.5.2/mootools.min.js"></script>
-        <script type="text/javascript" src="/scripts/all.min.js"></script>
+        <script type="text/javascript" src="/scripts/accounting.js"></script><script type="text/javascript" src="/scripts/canvasjs.min.js"></script><script type="text/javascript" src="/scripts/charts.js"></script>
         <script type="text/javascript">
             window.addEvent('domready', function () {
                 var req = new Request.JSON({

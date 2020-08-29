@@ -31,7 +31,7 @@
               type="image/png" 
               href="/images/favicon.png" />
         <title>Inversión</title>
-        <link rel="stylesheet" type="text/css" href="/styles/style.min.css" />
+        <link rel="stylesheet" type="text/css" href="/styles/style.css" />
         <style type="text/css">
 
             #chart{

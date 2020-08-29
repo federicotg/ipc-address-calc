@@ -26,7 +26,7 @@
               type="image/png" 
               href="/images/favicon.png" />
         <title>Visualización de Datos</title>
-        <link rel="stylesheet" type="text/css" href="/styles/style.min.css" />
+        <link rel="stylesheet" type="text/css" href="/styles/style.css" />
     </head>
     <body>
         <%@include file="../jspf/menu.jspf" %>

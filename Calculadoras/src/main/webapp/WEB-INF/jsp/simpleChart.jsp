@@ -28,8 +28,8 @@
               type="image/png" 
               href="/images/favicon.png" />
         <title>${title}</title>
-        <link rel="stylesheet" type="text/css" href="/styles/style.min.css" />
-        <script type="text/javascript" src="/scripts/all.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="/styles/style.css" />
+        <script type="text/javascript" src="/scripts/accounting.js"></script><script type="text/javascript" src="/scripts/canvasjs.min.js"></script><script type="text/javascript" src="/scripts/charts.js"></script>
         <script type="text/javascript">
 
             window.onload = function () {
