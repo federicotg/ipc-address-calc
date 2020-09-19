@@ -191,23 +191,27 @@ public class AppConfig {
 
     @Bean
     public List<String> colors() {
-        return Stream.of(
-                "#00ffcc","#262b4d","#7f0000", "#000033","#330700",  
-                "#1d734b","#b32d98",
-                "#734139", "#bfd0ff","#ff4400", "#7f3300", 
-                "#ffb380", "#33210d", "#ffaa00", 
+        final var colors = Stream.of(
+                "#00ffcc", "#262b4d", "#7f0000", "#000033", "#330700",
+                "#1d734b", "#b32d98",
+                "#734139", "#bfd0ff", "#ff4400", "#7f3300",
+                "#ffb380", "#33210d", "#ffaa00",
                 "#8c5e00", "#736039", "#ffe680",
-                "#eeff00", "#838c00", "#919973", 
+                "#eeff00", "#838c00", "#919973",
                 "#3b5900", "#8cff40", "#60bf6c",
                 "#003329", "#ff9180",
-                "#60bfb9", "#00ccff", "#005c73", 
-                "#0077b3", "#0088ff", "#4d5766",  
-                  "#362699", "#ff0044",
-                "#7960bf", "#6600ff", "#ee00ff", 
-                "#ffbffb",  "#66335c", 
-                "#ff0088", "#33001b", "#8c6977", 
-                "#731d34", "#ffbfc8"
-        ).collect(toList());
+                "#60bfb9", "#00ccff", "#005c73",
+                "#0077b3", "#0088ff", "#4d5766",
+                "#362699", "#ff0044",
+                "#7960bf", "#6600ff", "#ee00ff",
+                "#ffbffb", "#66335c",
+                "#ff0088", "#33001b", "#8c6977",
+                "#731d34", "#ffbfc8")
+                .collect(toList());
+
+        Collections.shuffle(colors);
+
+        return colors;
     }
 
     @Bean
@@ -278,7 +282,6 @@ public class AppConfig {
                 this.colors());
     }
 
-
     @Bean
     public Map<String, List<String>> savingsReportSeries() {
         Map<String, List<String>> map = new HashMap<>();
@@ -288,20 +291,20 @@ public class AppConfig {
             "saving/ahorros-peso.json",
             "saving/ahorros-caplusa.json",
             "saving/ahorros-uva.json",
-            "saving/ahorros-lecap.json"           
+            "saving/ahorros-lecap.json"
         }));
         map.put("usd", Arrays.asList(new String[]{
-            "saving/ahorros-lete.json", 
+            "saving/ahorros-lete.json",
             "saving/ahorros-ay24.json",
             "saving/ahorros-cspx.json",
             "saving/ahorros-eimi.json",
             "saving/ahorros-xrsu.json",
             "saving/ahorros-meud.json",
-            "saving/ahorros-dolar-banco.json", 
-            "saving/ahorros-euro.json", 
+            "saving/ahorros-dolar-banco.json",
+            "saving/ahorros-euro.json",
             "saving/ahorros-dai.json",
-            "saving/ahorros-dolar-ON.json", 
-            "saving/ahorros-dolar-liq.json", 
+            "saving/ahorros-dolar-ON.json",
+            "saving/ahorros-dolar-liq.json",
             "saving/ahorros-oro.json"}));
         map.put("fx", Arrays.asList(new String[]{"index/peso-dolar-libre.json"}));
         return map;
