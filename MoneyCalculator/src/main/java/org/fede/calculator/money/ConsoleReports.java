@@ -264,6 +264,7 @@ public class ConsoleReports {
         this.pastInvestmentsRealProfit("LECAP", BONO);
         this.pastInvestmentsRealProfit("LETE", BONO);
         this.pastInvestmentsRealProfit("AY24", BONO);
+        this.pastInvestmentsRealProfit("USD", BONO);
     }
 
     private void currentInvestmentsRealProfit() {
