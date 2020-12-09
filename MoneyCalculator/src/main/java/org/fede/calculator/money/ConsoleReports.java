@@ -25,7 +25,6 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.MathContext.DECIMAL64;
 import java.math.RoundingMode;
-import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
@@ -77,21 +76,6 @@ public class ConsoleReports {
     private static final BigDecimal STAMP_TAX = new BigDecimal("0.018");
     private static final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
     private static final BigDecimal NOTARY_FEE = new BigDecimal("0.02").multiply(new BigDecimal("1.21", DECIMAL64));
-
-    private static final String REPORT_FORMAT = "\"{0}\";\"{1}\";\"{2}\";\"{3}\";\"{4}\";\"{5}\";\"{6}\";\"{7}\"";
-
-    private static final Map<String, String> FCI_NAMES = Map.of(
-            "CONAAFA", "Consultatio Acciones Argentina Clase A",
-            "CONBALA", "Consultatio Balance Fund F.C.I. Clase A",
-            "CAPLUSA", "Consultatio Ahorro Plus Argentina (Ahorro Plus A)");
-
-    private static final Map<String, String> FCI_TYPES = Map.of(
-            "CONAAFA", "Renta variable en $",
-            "CONBALA", "Renta fija en $",
-            "CAPLUSA", "Renta fija en $");
-
-    private static final String CONSULTATIO_ASSET_MANAGEMENT_CUIT = "30-67726994-0";
-    private static final String BANCO_DE_VALORES_CUIT = "30-57612427-5";
 
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
@@ -345,55 +329,55 @@ public class ConsoleReports {
         out.println(this.out.toString());
     }
 
-    private void fci(final int year) {
-
-        final var df = DateFormat.getDateInstance();
-        final var nf = NumberFormat.getInstance();
-        nf.setMinimumFractionDigits(6);
-
-        final var conbala = SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json");
-        final var conaafa = SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json");
-        final var caplusa = SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json");
-
-        final var dicPreviousYearValues = Map.of(
-                "CONAAFA", conaafa.getIndex(year - 1, 12),
-                "CONBALA", conbala.getIndex(year - 1, 12),
-                "CAPLUSA", caplusa.getIndex(year - 1, 12));
-
-        final var dicValues = Map.of(
-                "CONAAFA", conaafa.getIndex(year, 12),
-                "CONBALA", conbala.getIndex(year, 12),
-                "CAPLUSA", caplusa.getIndex(year, 12));
-
-        this.appendLine(
-                format(REPORT_FORMAT,
-                        Stream.of("Fecha de adquisición",
-                                "Tipo de fondo",
-                                "Denominación",
-                                "CUIT Soc. Gerente",
-                                "CUIT Soc. Depositaria",
-                                "Cantidad",
-                                "Valor cotización al 31/12/" + (year - 1),
-                                "Valor cotización al 31/12/" + year)
-                                .toArray(Object[]::new)));
-
-        this.investments.stream()
-                .filter(inv -> FCI.equals(inv.getType()))
-                .filter(inv -> inv.currentInYear(year))
-                .sorted(Comparator.comparing(Investment::getInitialDate, (left, right) -> left.compareTo(right)))
-                .map(inv
-                        -> format(REPORT_FORMAT,
-                        df.format(inv.getInitialDate()),
-                        FCI_TYPES.get(inv.getInvestment().getCurrency()),
-                        FCI_NAMES.get(inv.getInvestment().getCurrency()),
-                        CONSULTATIO_ASSET_MANAGEMENT_CUIT,
-                        BANCO_DE_VALORES_CUIT,
-                        nf.format(inv.getInvestment().getAmount()),
-                        nf.format(dicPreviousYearValues.get(inv.getInvestment().getCurrency())),
-                        nf.format(dicValues.get(inv.getInvestment().getCurrency()))
-                )).forEach(this::appendLine);
-
-    }
+//    private void fci(final int year) {
+//
+//        final var df = DateFormat.getDateInstance();
+//        final var nf = NumberFormat.getInstance();
+//        nf.setMinimumFractionDigits(6);
+//
+//        final var conbala = SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json");
+//        final var conaafa = SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json");
+//        final var caplusa = SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json");
+//
+//        final var dicPreviousYearValues = Map.of(
+//                "CONAAFA", conaafa.getIndex(year - 1, 12),
+//                "CONBALA", conbala.getIndex(year - 1, 12),
+//                "CAPLUSA", caplusa.getIndex(year - 1, 12));
+//
+//        final var dicValues = Map.of(
+//                "CONAAFA", conaafa.getIndex(year, 12),
+//                "CONBALA", conbala.getIndex(year, 12),
+//                "CAPLUSA", caplusa.getIndex(year, 12));
+//
+//        this.appendLine(
+//                format(REPORT_FORMAT,
+//                        Stream.of("Fecha de adquisición",
+//                                "Tipo de fondo",
+//                                "Denominación",
+//                                "CUIT Soc. Gerente",
+//                                "CUIT Soc. Depositaria",
+//                                "Cantidad",
+//                                "Valor cotización al 31/12/" + (year - 1),
+//                                "Valor cotización al 31/12/" + year)
+//                                .toArray(Object[]::new)));
+//
+//        this.investments.stream()
+//                .filter(inv -> FCI.equals(inv.getType()))
+//                .filter(inv -> inv.currentInYear(year))
+//                .sorted(Comparator.comparing(Investment::getInitialDate, (left, right) -> left.compareTo(right)))
+//                .map(inv
+//                        -> format(REPORT_FORMAT,
+//                        df.format(inv.getInitialDate()),
+//                        FCI_TYPES.get(inv.getInvestment().getCurrency()),
+//                        FCI_NAMES.get(inv.getInvestment().getCurrency()),
+//                        CONSULTATIO_ASSET_MANAGEMENT_CUIT,
+//                        BANCO_DE_VALORES_CUIT,
+//                        nf.format(inv.getInvestment().getAmount()),
+//                        nf.format(dicPreviousYearValues.get(inv.getInvestment().getCurrency())),
+//                        nf.format(dicValues.get(inv.getInvestment().getCurrency()))
+//                )).forEach(this::appendLine);
+//
+//    }
 
     private void income() {
         this.income(3);
@@ -466,7 +450,7 @@ public class ConsoleReports {
                     //entry(of("CONAAFA", 9), () -> me.currentInvestmentsRealProfit("CONAAFA", FCI)),
                     entry(of("PFUSD", 10), () -> me.currentInvestmentsRealProfit("USD", PF)),
                     entry(of("gold", 11), () -> me.currentInvestmentsRealProfit("XAU", XAU)),
-                    entry(of("bp", 12), () -> me.fci(2018)),
+                    //entry(of("bp", 12), () -> me.fci(2018)),
                     entry(of("current", 13), me::currentInvestmentsRealProfit),
                     entry(of("allpast", 14), me::pastInvestmentsRealProfit),
                     entry(of("global", 15), me::globalInvestmentsRealProfit),
@@ -486,7 +470,7 @@ public class ConsoleReports {
                     entry(of("house1", 29), () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
                     entry(of("house3", 30), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
                     entry(of("house5", 31), () -> me.houseIrrecoverableCosts(new YearMonth(2015,8))),
-                    entry(of("exp", 32), () -> me.expenses())
+                    entry(of("exp", 32), me::expenses)
                     
                     
             );

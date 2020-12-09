@@ -17,7 +17,6 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.MessageFormat;
@@ -29,7 +28,6 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
@@ -42,36 +40,11 @@ import org.fede.calculator.money.series.YearMonth;
 public class RealProfit {
 
     private static final String REPORT_PATTERN = "{0} {1} => {2}. {3} {4} {5}";
-    private static final BigDecimal BIG_LOSS = new BigDecimal("-0.10");
-    private static final BigDecimal BIG_WIN = new BigDecimal("0.10");
-    private static final BigDecimal LOSS = new BigDecimal("-0.05");
-    private static final BigDecimal WIN = new BigDecimal("0.05");
 
     public static String plusMinus(BigDecimal pct) {
 
         return IntStream.range(0, pct.abs().movePointRight(2).setScale(0, RoundingMode.HALF_UP).intValue())
-                .mapToObj(index -> pct.signum() >= 0? "+":"-").collect(Collectors.joining());
-        
-//        if (pct.compareTo(BIG_LOSS) <= 0) {
-//            return "----";
-//        }
-//        if (pct.compareTo(LOSS) <= 0) {
-//            return "--";
-//        }
-//        if (pct.compareTo(BigDecimal.ZERO) <= 0) {
-//            return "-";
-//        }
-//        if (pct.compareTo(BIG_WIN) >= 0) {
-//            return "++++";
-//        }
-//        if (pct.compareTo(WIN) >= 0) {
-//            return "++";
-//        }
-//        if (pct.compareTo(BigDecimal.ZERO) >= 0) {
-//            return "+";
-//        }
-//        return "";
-
+                .mapToObj(index -> pct.signum() >= 0 ? "+" : "-").collect(Collectors.joining());
     }
 
     private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
