@@ -682,7 +682,7 @@ public class ConsoleReports {
     }
 
     private void savingEvolution(String type) {
-
+        
         final var files = List.of(
                 of("BO", "ahorros-ay24"), 
                 of("BO", "ahorros-conbala"), 
@@ -715,8 +715,10 @@ public class ConsoleReports {
                 .reduce(MoneyAmountSeries::add)
                 .get();
 
+        
         real.forEach((ym, mo) -> this.appendLine(format("{0}/{1}", String.valueOf(ym.getYear()), ym.getMonth()), " ", format("{0,number,currency} ", mo.getAmount())));
 
+        appendLine("USD reales ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
     }
 
 }
