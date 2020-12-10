@@ -183,7 +183,7 @@ public class ConsoleReports {
         final var limit = USD_INFLATION.getTo();
         final var limitStr = String.valueOf(limit.getMonth()) + "/" + String.valueOf(limit.getYear());
 
-        appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo. ", limitStr," >===");  
+        appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo. ", limitStr, " >===");
 
         final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json");
 
@@ -378,7 +378,6 @@ public class ConsoleReports {
 //                )).forEach(this::appendLine);
 //
 //    }
-
     private void income() {
         this.income(3);
         this.appendLine("");
@@ -469,10 +468,12 @@ public class ConsoleReports {
                     entry(of("house", 28), () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
                     entry(of("house1", 29), () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
                     entry(of("house3", 30), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
-                    entry(of("house5", 31), () -> me.houseIrrecoverableCosts(new YearMonth(2015,8))),
-                    entry(of("exp", 32), me::expenses)
-                    
-                    
+                    entry(of("house5", 31), () -> me.houseIrrecoverableCosts(new YearMonth(2015, 8))),
+                    entry(of("exp", 32), me::expenses),
+                    entry(of("saving", 33), () -> me.savingEvolution(null)),
+                    entry(of("seq", 34), () -> me.savingEvolution("EQ")),
+                    entry(of("sbo", 35), () -> me.savingEvolution("BO")),
+                    entry(of("sliq", 36), () -> me.savingEvolution("LIQ"))
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
@@ -541,13 +542,13 @@ public class ConsoleReports {
     private void houseIrrecoverableCosts(YearMonth timeLimit) {
 
         final var limit = USD_INFLATION.getTo();
-        
+
         final var proportionalExpenses = SeriesReader.readSeries("expense/consorcio-reparaciones.json")
                 .map(this::applyCoefficient);
 
         final var realExpensesInUSD = Stream.concat(
-            Stream.of("expense/inmobiliario-43.json", "expense/seguro.json", "expense/reparaciones.json").map(SeriesReader::readSeries), 
-            Stream.of(proportionalExpenses))
+                Stream.of("expense/inmobiliario-43.json", "expense/seguro.json", "expense/reparaciones.json").map(SeriesReader::readSeries),
+                Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
                 .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
@@ -563,7 +564,7 @@ public class ConsoleReports {
 
     }
 
-    private MoneyAmount limit(YearMonth timeLimit, YearMonth ym, MoneyAmount amount){
+    private MoneyAmount limit(YearMonth timeLimit, YearMonth ym, MoneyAmount amount) {
         return ym.compareTo(timeLimit) <= 0 ? amount : new MoneyAmount(ZERO, amount.getCurrency());
     }
 
@@ -597,8 +598,8 @@ public class ConsoleReports {
 
         final var totalRealExpense = realExpensesInUSD.add(opportunityCost).add(realTransactionCost);
 
-        this.appendLine("===< Costo de ", 
-                String.valueOf(start.getMonth()), "/", String.valueOf(start.getYear()), 
+        this.appendLine("===< Costo de ",
+                String.valueOf(start.getMonth()), "/", String.valueOf(start.getYear()),
                 " a ",
                 String.valueOf(timeLimit.getMonth()), "/", String.valueOf(timeLimit.getYear()),
                 " con retorno anual de ", percentFormat.format(rate), " >===");
@@ -624,47 +625,45 @@ public class ConsoleReports {
 
     }
 
-    private void expenses(){
+    private void expenses() {
 
-    var expenses = Stream.of(
-        of("service", "absa.json"),
-        of("communications", "cablevision.json"),
-        of("communications", "celular-a.json"),
-        of("communications", "celular-f.json"),
-        of("taxes", "contadora.json"),
-        of("taxes", "bbpp.json"),
-        of("health", "emergencia.json"),
-        of("home", "expensas.json"),
-        of("service", "gas.json"),
-        of("taxes", "inmobiliario-43.json"),
-        of("health", "ioma.json"),
-        of("home", "limpieza.json"),
-        of("service", "luz.json"),
-        of("taxes", "monotributo-angeles.json"),
-        of("taxes", "municipal-43.json"),
-        of("entertainment", "netflix.json"),
-        of("home", "seguro.json"),
-        of("home", "reparaciones.json"),
-        of("communications", "telefono-43.json"),
-        of("entertainment", "xbox.json"))
-        .collect(groupingBy(Pair::getFirst, mapping(Pair::getSecond, Collectors.toList())));
+        var expenses = Stream.of(
+                of("service", "absa.json"),
+                of("communications", "cablevision.json"),
+                of("communications", "celular-a.json"),
+                of("communications", "celular-f.json"),
+                of("taxes", "contadora.json"),
+                of("taxes", "bbpp.json"),
+                of("health", "emergencia.json"),
+                of("home", "expensas.json"),
+                of("service", "gas.json"),
+                of("taxes", "inmobiliario-43.json"),
+                of("health", "ioma.json"),
+                of("home", "limpieza.json"),
+                of("service", "luz.json"),
+                of("taxes", "monotributo-angeles.json"),
+                of("taxes", "municipal-43.json"),
+                of("entertainment", "netflix.json"),
+                of("home", "seguro.json"),
+                of("home", "reparaciones.json"),
+                of("communications", "telefono-43.json"),
+                of("entertainment", "xbox.json"))
+                .collect(groupingBy(Pair::getFirst, mapping(Pair::getSecond, Collectors.toList())));
 
-    var limit = USD_INFLATION.getTo();
-        
-    expenses.entrySet()
-        .stream()
-        .map(e -> of(e.getKey(), this.totalRealUSD(e.getValue(), limit).getAmount()))
-        .sorted(Comparator.comparing(Pair::getSecond))
-        .forEach(e -> this.appendLine(e.getFirst(), " USD ", format("{0,number,currency} ", e.getSecond())));
+        var limit = USD_INFLATION.getTo();
+
+        expenses.entrySet()
+                .stream()
+                .map(e -> of(e.getKey(), this.totalRealUSD(e.getValue(), limit).getAmount()))
+                .sorted(Comparator.comparing(Pair::getSecond))
+                .forEach(e -> this.appendLine(e.getFirst(), " USD ", format("{0,number,currency} ", e.getSecond())));
     }
 
-
-
-    private MoneyAmount totalRealUSD(List<String> jsonResources, YearMonth limit){
+    private MoneyAmount totalRealUSD(List<String> jsonResources, YearMonth limit) {
         return jsonResources.stream()
-        .map(s -> "expense/" + s)
-        .map(SeriesReader::readSeries)
-        .reduce(MoneyAmountSeries::add)
+                .map(s -> "expense/" + s)
+                .map(SeriesReader::readSeries)
+                .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
                 .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
                 //.map(MoneyAmountSeries::moneyAmountStream)
@@ -673,13 +672,51 @@ public class ConsoleReports {
 
     }
 
-    private MoneyAmount average(MoneyAmountSeries s){
+    private MoneyAmount average(MoneyAmountSeries s) {
         var months = s.getFrom().monthsUntil(s.getTo());
         return new MoneyAmount(s.moneyAmountStream()
-            .map(MoneyAmount::getAmount)
-            .reduce(BigDecimal::add)
-            .orElse(ZERO)
-            .divide(new BigDecimal(months), DECIMAL64), "USD");
+                .map(MoneyAmount::getAmount)
+                .reduce(BigDecimal::add)
+                .orElse(ZERO)
+                .divide(new BigDecimal(months), DECIMAL64), "USD");
+    }
+
+    private void savingEvolution(String type) {
+
+        final var files = List.of(
+                of("BO", "ahorros-ay24"), 
+                of("BO", "ahorros-conbala"), 
+                of("LIQ", "ahorros-dolar-banco"), 
+                of("EQ", "ahorros-eimi"), 
+                of("BO", "ahorros-lete"), 
+                of("LIQ", "ahorros-peso"),
+                of("BO", "ahorros-caplusa"), 
+                of("EQ", "ahorros-cspx"), 
+                of("LIQ", "ahorros-dolar-liq"), 
+                of("LIQ", "ahorros-euro"), 
+                of("EQ", "ahorros-meud"), 
+                of("BO", "ahorros-uva"),
+                of("EQ", "ahorros-conaafa"), 
+                of("LIQ", "ahorros-dai"), 
+                of("BO", "ahorros-dolar-ON"), 
+                of("BO", "ahorros-lecap"), 
+                of("LIQ", "ahorros-oro"), 
+                of("EQ", "ahorros-xrsu"));
+
+        var limit = USD_INFLATION.getTo();
+
+        var real = files.stream()
+                .filter(e -> type == null || e.getFirst().equals(type))
+                .map(Pair::getSecond)
+                .map(f -> "saving/" + f + ".json")
+                .map(SeriesReader::readSeries)
+                .map(s -> s.exchangeInto("USD"))
+                .map(s -> Inflation.USD_INFLATION.adjust(s, limit.getYear(), limit.getMonth()))
+                .reduce(MoneyAmountSeries::add)
+                .get();
+
+        real.forEach((ym, mo) -> this.appendLine(format("{0}/{1}", String.valueOf(ym.getYear()), ym.getMonth()), " ", format("{0,number,currency} ", mo.getAmount())));
+
     }
 
 }
