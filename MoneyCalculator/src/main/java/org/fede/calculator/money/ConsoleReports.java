@@ -49,6 +49,7 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.fede.calculator.money.series.Investment;
@@ -473,7 +474,15 @@ public class ConsoleReports {
                     entry(of("saving", 33), () -> me.savingEvolution(null)),
                     entry(of("seq", 34), () -> me.savingEvolution("EQ")),
                     entry(of("sbo", 35), () -> me.savingEvolution("BO")),
-                    entry(of("sliq", 36), () -> me.savingEvolution("LIQ"))
+                    entry(of("sliq", 36), () -> me.savingEvolution("LIQ")),
+                    entry(of("inc", 37), () -> me.incomeEvolution(null)),
+                    entry(of("lifia", 38), () -> me.incomeEvolution("lifia")),
+                    entry(of("unlp", 39), () -> me.incomeEvolution("unlp")),
+                    entry(of("desp", 40), () -> me.incomeEvolution("desp")),
+                    entry(of("inc12", 41), () -> me.incomeAverageEvolution(null, 12)),
+                    entry(of("inc6", 42), () -> me.incomeAverageEvolution(null, 6)),
+                    entry(of("inc3", 43), () -> me.incomeAverageEvolution(null, 3)),
+                    entry(of("inc2", 44), () -> me.incomeAverageEvolution(null, 2))
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
@@ -681,31 +690,30 @@ public class ConsoleReports {
                 .divide(new BigDecimal(months), DECIMAL64), "USD");
     }
 
-    private void savingEvolution(String type) {
-        
+    private MoneyAmountSeries realSavings(String type) {
         final var files = List.of(
-                of("BO", "ahorros-ay24"), 
-                of("BO", "ahorros-conbala"), 
-                of("LIQ", "ahorros-dolar-banco"), 
-                of("EQ", "ahorros-eimi"), 
-                of("BO", "ahorros-lete"), 
+                of("BO", "ahorros-ay24"),
+                of("BO", "ahorros-conbala"),
+                of("LIQ", "ahorros-dolar-banco"),
+                of("EQ", "ahorros-eimi"),
+                of("BO", "ahorros-lete"),
                 of("LIQ", "ahorros-peso"),
-                of("BO", "ahorros-caplusa"), 
-                of("EQ", "ahorros-cspx"), 
-                of("LIQ", "ahorros-dolar-liq"), 
-                of("LIQ", "ahorros-euro"), 
-                of("EQ", "ahorros-meud"), 
+                of("BO", "ahorros-caplusa"),
+                of("EQ", "ahorros-cspx"),
+                of("LIQ", "ahorros-dolar-liq"),
+                of("LIQ", "ahorros-euro"),
+                of("EQ", "ahorros-meud"),
                 of("BO", "ahorros-uva"),
-                of("EQ", "ahorros-conaafa"), 
-                of("LIQ", "ahorros-dai"), 
-                of("BO", "ahorros-dolar-ON"), 
-                of("BO", "ahorros-lecap"), 
-                of("LIQ", "ahorros-oro"), 
+                of("EQ", "ahorros-conaafa"),
+                of("LIQ", "ahorros-dai"),
+                of("BO", "ahorros-dolar-ON"),
+                of("BO", "ahorros-lecap"),
+                of("LIQ", "ahorros-oro"),
                 of("EQ", "ahorros-xrsu"));
 
         var limit = USD_INFLATION.getTo();
 
-        var real = files.stream()
+        return files.stream()
                 .filter(e -> type == null || e.getFirst().equals(type))
                 .map(Pair::getSecond)
                 .map(f -> "saving/" + f + ".json")
@@ -715,10 +723,79 @@ public class ConsoleReports {
                 .reduce(MoneyAmountSeries::add)
                 .get();
 
-        
-        real.forEach((ym, mo) -> this.appendLine(format("{0}/{1}", String.valueOf(ym.getYear()), ym.getMonth()), " ", format("{0,number,currency} ", mo.getAmount())));
+    }
 
-        appendLine("USD reales ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
+    private void savingEvolution(String type) {
+
+        var limit = USD_INFLATION.getTo();
+
+        this.realSavings(type)
+                .forEach((ym, mo) -> this.appendLine(
+                format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
+                " ",
+                format("{0,number,currency} ", mo.getAmount()),
+                " ",
+                this.bar(mo.getAmount(), 2500)));
+
+        appendLine("\nSavings real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
+    }
+
+    private MoneyAmountSeries realIncome(String type) {
+        final var files = List.of(
+                of("desp", "despegar"),
+                of("lifia", "lifia"),
+                of("unlp", "unlp"));
+
+        final var limit = USD_INFLATION.getTo();
+
+        return files.stream()
+                .filter(e -> type == null || e.getFirst().equals(type))
+                .map(Pair::getSecond)
+                .map(f -> "income/" + f + ".json")
+                .map(SeriesReader::readSeries)
+                .map(s -> s.exchangeInto("USD"))
+                .map(s -> Inflation.USD_INFLATION.adjust(s, limit.getYear(), limit.getMonth()))
+                .reduce(MoneyAmountSeries::add)
+                .get();
+
+    }
+
+    private void incomeEvolution(String type) {
+
+        final var limit = USD_INFLATION.getTo();
+        this.realIncome(type).forEach((ym, mo) -> this.appendLine(
+                format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
+                " ",
+                format("{0,number,currency} ", mo.getAmount()),
+                " ",
+                this.bar(mo.getAmount(), 100)));
+
+        appendLine("\nIncome real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
+    }
+
+    private void incomeAverageEvolution(String type, int months) {
+
+        final var limit = USD_INFLATION.getTo();
+        new SimpleAggregation(months)
+                .average(this.realIncome(type))
+                .forEach((ym, mo) -> this.appendLine(format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
+                " ",
+                format("{0,number,currency} ", mo.getAmount()),
+                " ",
+                this.bar(mo.getAmount(), 100)));
+
+        appendLine("\nIncome ",
+                String.valueOf(months),
+                "-month average real USD ",
+                format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
+    }
+
+    private String bar(BigDecimal value, int scale) {
+
+        return IntStream.range(0, value.divide(BigDecimal.valueOf(scale), DECIMAL64).setScale(0, RoundingMode.HALF_UP).intValue())
+                .mapToObj(x -> "+")
+                .collect(Collectors.joining());
+
     }
 
 }
