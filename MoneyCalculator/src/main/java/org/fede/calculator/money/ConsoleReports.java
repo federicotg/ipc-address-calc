@@ -16,16 +16,12 @@
  */
 package org.fede.calculator.money;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.MathContext.DECIMAL64;
 import java.math.RoundingMode;
-import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.List;
@@ -36,7 +32,6 @@ import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.mapping;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
@@ -46,8 +41,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -330,55 +323,6 @@ public class ConsoleReports {
         out.println(this.out.toString());
     }
 
-//    private void fci(final int year) {
-//
-//        final var df = DateFormat.getDateInstance();
-//        final var nf = NumberFormat.getInstance();
-//        nf.setMinimumFractionDigits(6);
-//
-//        final var conbala = SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json");
-//        final var conaafa = SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json");
-//        final var caplusa = SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json");
-//
-//        final var dicPreviousYearValues = Map.of(
-//                "CONAAFA", conaafa.getIndex(year - 1, 12),
-//                "CONBALA", conbala.getIndex(year - 1, 12),
-//                "CAPLUSA", caplusa.getIndex(year - 1, 12));
-//
-//        final var dicValues = Map.of(
-//                "CONAAFA", conaafa.getIndex(year, 12),
-//                "CONBALA", conbala.getIndex(year, 12),
-//                "CAPLUSA", caplusa.getIndex(year, 12));
-//
-//        this.appendLine(
-//                format(REPORT_FORMAT,
-//                        Stream.of("Fecha de adquisición",
-//                                "Tipo de fondo",
-//                                "Denominación",
-//                                "CUIT Soc. Gerente",
-//                                "CUIT Soc. Depositaria",
-//                                "Cantidad",
-//                                "Valor cotización al 31/12/" + (year - 1),
-//                                "Valor cotización al 31/12/" + year)
-//                                .toArray(Object[]::new)));
-//
-//        this.investments.stream()
-//                .filter(inv -> FCI.equals(inv.getType()))
-//                .filter(inv -> inv.currentInYear(year))
-//                .sorted(Comparator.comparing(Investment::getInitialDate, (left, right) -> left.compareTo(right)))
-//                .map(inv
-//                        -> format(REPORT_FORMAT,
-//                        df.format(inv.getInitialDate()),
-//                        FCI_TYPES.get(inv.getInvestment().getCurrency()),
-//                        FCI_NAMES.get(inv.getInvestment().getCurrency()),
-//                        CONSULTATIO_ASSET_MANAGEMENT_CUIT,
-//                        BANCO_DE_VALORES_CUIT,
-//                        nf.format(inv.getInvestment().getAmount()),
-//                        nf.format(dicPreviousYearValues.get(inv.getInvestment().getCurrency())),
-//                        nf.format(dicValues.get(inv.getInvestment().getCurrency()))
-//                )).forEach(this::appendLine);
-//
-//    }
     private void income() {
         this.income(3);
         this.appendLine("");
@@ -443,14 +387,9 @@ public class ConsoleReports {
                     entry(of("gi", 2), me::groupedInvestments),
                     entry(of("ti", 3), me::listStockByTpe),
                     entry(of("UVA", 4), () -> me.currentInvestmentsRealProfit("UVA", PF)),
-                    //entry(of("LETE", 5), () -> me.currentInvestmentsRealProfit("LETE", BONO)),
-                    //entry(of("LECAP", 6), () -> me.currentInvestmentsRealProfit("LECAP", BONO)),
-                    //entry(of("AY24", 7), () -> me.currentInvestmentsRealProfit("AY24", BONO)),
                     entry(of("USD", 8), () -> me.currentInvestmentsRealProfit("USD", BONO)),
-                    //entry(of("CONAAFA", 9), () -> me.currentInvestmentsRealProfit("CONAAFA", FCI)),
                     entry(of("PFUSD", 10), () -> me.currentInvestmentsRealProfit("USD", PF)),
                     entry(of("gold", 11), () -> me.currentInvestmentsRealProfit("XAU", XAU)),
-                    //entry(of("bp", 12), () -> me.fci(2018)),
                     entry(of("current", 13), me::currentInvestmentsRealProfit),
                     entry(of("allpast", 14), me::pastInvestmentsRealProfit),
                     entry(of("global", 15), me::globalInvestmentsRealProfit),
@@ -461,11 +400,9 @@ public class ConsoleReports {
                     entry(of("income18", 20), () -> me.income(18)),
                     entry(of("income24", 21), () -> me.income(24)),
                     entry(of("income", 22), me::income),
-                    //entry(of("close", 23), me::closeCONAAFA),
                     entry(of("EIMI", 24), () -> me.currentInvestmentsRealProfit("EIMI", ETF)),
                     entry(of("MEUD", 25), () -> me.currentInvestmentsRealProfit("MEUD", ETF)),
                     entry(of("XRSU", 26), () -> me.currentInvestmentsRealProfit("XRSU", ETF)),
-                    //entry(of("VAGU", 27), () -> me.currentInvestmentsRealProfit("VAGU", ETF)),
                     entry(of("house", 28), () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
                     entry(of("house1", 29), () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
                     entry(of("house3", 30), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
@@ -482,7 +419,8 @@ public class ConsoleReports {
                     entry(of("inc12", 41), () -> me.incomeAverageEvolution(null, 12)),
                     entry(of("inc6", 42), () -> me.incomeAverageEvolution(null, 6)),
                     entry(of("inc3", 43), () -> me.incomeAverageEvolution(null, 3)),
-                    entry(of("inc2", 44), () -> me.incomeAverageEvolution(null, 2))
+                    entry(of("inc2", 44), () -> me.incomeAverageEvolution(null, 2)),
+                    entry(of("savingchange", 45), me::savingChange)
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
@@ -512,37 +450,6 @@ public class ConsoleReports {
         }
     }
 
-    public void closeCONAAFA() {
-        final BigDecimal sellPrice = new BigDecimal("174.2392938");
-
-        final Date sellDate = Date.from(LocalDate.of(2019, Month.AUGUST, 23).atStartOfDay(ZoneId.systemDefault()).toInstant());
-        ObjectMapper om = new ObjectMapper();
-        om.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        this.investments
-                .stream()
-                .sorted(Comparator.comparing(Investment::getInitialDate))
-                .filter(inv -> inv.getCurrency().equals("CONAAFA"))
-                .filter(inv -> inv.getOut() == null)
-                .map(inv -> this.close(inv, sellPrice, sellDate))
-                .forEach(i -> this.print(om, i));
-    }
-
-    private Investment close(Investment inv, BigDecimal sellPrice, Date sellDate) {
-        InvestmentEvent out = new InvestmentEvent();
-        out.setAmount(inv.getInvestment().getAmount().multiply(sellPrice, DECIMAL64));
-        out.setCurrency("ARS");
-        out.setDate(sellDate);
-        inv.setOut(out);
-        return inv;
-    }
-
-    private void print(ObjectMapper om, Investment i) {
-        try {
-            System.out.println(MessageFormat.format("{0},", om.writeValueAsString(i)));
-        } catch (JsonProcessingException ex) {
-            Logger.getLogger(ConsoleReports.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 
     private MoneyAmount applyCoefficient(YearMonth ym, MoneyAmount amount) {
         return new MoneyAmount(amount.getAmount().multiply(COEFFICIENT, DECIMAL64), amount.getCurrency());
@@ -675,7 +582,6 @@ public class ConsoleReports {
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
                 .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
-                //.map(MoneyAmountSeries::moneyAmountStream)
                 .map(this::average)
                 .orElse(new MoneyAmount(ZERO, "USD"));
 
@@ -725,19 +631,34 @@ public class ConsoleReports {
 
     }
 
+    private void evolutionReport(YearMonth ym, MoneyAmount mo, int scale) {
+        this.appendLine(
+                format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
+                " ",
+                String.format("%14s", format("{0,number,currency} ", mo.getAmount())),
+                " ",
+                this.bar(mo.getAmount(), scale));
+    }
+
     private void savingEvolution(String type) {
 
         var limit = USD_INFLATION.getTo();
 
-        this.realSavings(type)
-                .forEach((ym, mo) -> this.appendLine(
-                format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
-                " ",
-                format("{0,number,currency} ", mo.getAmount()),
-                " ",
-                this.bar(mo.getAmount(), 2500)));
+        this.realSavings(type).forEach((ym, ma) -> this.evolutionReport(ym, ma, 2500));
 
         appendLine("\nSavings real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
+    }
+    
+    
+    private void savingChange() {
+
+        var limit = USD_INFLATION.getTo();
+
+        new SimpleAggregation(2)
+                .change(this.realSavings(null))
+                .forEach((ym, ma) -> this.evolutionReport(ym, ma, 100));
+
+        appendLine("\nSavings change real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
     }
 
     private MoneyAmountSeries realIncome(String type) {
@@ -763,12 +684,7 @@ public class ConsoleReports {
     private void incomeEvolution(String type) {
 
         final var limit = USD_INFLATION.getTo();
-        this.realIncome(type).forEach((ym, mo) -> this.appendLine(
-                format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
-                " ",
-                format("{0,number,currency} ", mo.getAmount()),
-                " ",
-                this.bar(mo.getAmount(), 100)));
+        this.realIncome(type).forEach((ym, ma) -> this.evolutionReport(ym, ma, 100));
 
         appendLine("\nIncome real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
     }
@@ -778,11 +694,7 @@ public class ConsoleReports {
         final var limit = USD_INFLATION.getTo();
         new SimpleAggregation(months)
                 .average(this.realIncome(type))
-                .forEach((ym, mo) -> this.appendLine(format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
-                " ",
-                format("{0,number,currency} ", mo.getAmount()),
-                " ",
-                this.bar(mo.getAmount(), 100)));
+                .forEach((ym, mo) -> this.evolutionReport(ym, mo, 100));
 
         appendLine("\nIncome ",
                 String.valueOf(months),
@@ -792,8 +704,10 @@ public class ConsoleReports {
 
     private String bar(BigDecimal value, int scale) {
 
-        return IntStream.range(0, value.divide(BigDecimal.valueOf(scale), DECIMAL64).setScale(0, RoundingMode.HALF_UP).intValue())
-                .mapToObj(x -> "+")
+        final var symbol = value.signum() < 0 ? "-" : "+";
+        
+        return IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), DECIMAL64).setScale(0, RoundingMode.HALF_UP).intValue())
+                .mapToObj(x -> symbol)
                 .collect(Collectors.joining());
 
     }
