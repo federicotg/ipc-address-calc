@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
+import java.math.MathContext;
 import static java.math.MathContext.DECIMAL64;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
@@ -32,6 +33,7 @@ import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.mapping;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
@@ -420,7 +422,8 @@ public class ConsoleReports {
                     entry(of("inc6", 35), () -> me.incomeAverageEvolution(null, 6)),
                     entry(of("inc3", 36), () -> me.incomeAverageEvolution(null, 3)),
                     entry(of("inc2", 37), () -> me.incomeAverageEvolution(null, 2)),
-                    entry(of("savingchange", 38), me::savingChange)
+                    entry(of("savingchange", 38), me::savingChange),
+                    entry(of("goal", 39), me::goal)
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
@@ -449,7 +452,6 @@ public class ConsoleReports {
             ex.printStackTrace(System.err);
         }
     }
-
 
     private MoneyAmount applyCoefficient(YearMonth ym, MoneyAmount amount) {
         return new MoneyAmount(amount.getAmount().multiply(COEFFICIENT, DECIMAL64), amount.getCurrency());
@@ -648,8 +650,7 @@ public class ConsoleReports {
 
         appendLine("\nSavings real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
     }
-    
-    
+
     private void savingChange() {
 
         var limit = USD_INFLATION.getTo();
@@ -705,11 +706,85 @@ public class ConsoleReports {
     private String bar(BigDecimal value, int scale) {
 
         final var symbol = value.signum() < 0 ? "-" : "+";
-        
+
         return IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), DECIMAL64).setScale(0, RoundingMode.HALF_UP).intValue())
                 .mapToObj(x -> symbol)
                 .collect(Collectors.joining());
+    }
 
+    private void goal() {
+        final var goal = new BigDecimal((100 - 66) * 12 * 1546);
+
+        final var todaySavings = this.realSavings(null).getAmount(Inflation.USD_INFLATION.getTo());
+
+        final var monthsToGo = Inflation.USD_INFLATION.getTo().monthsUntil(new YearMonth(1978 + 65, 12));
+
+        final var d80Estimate = new BigDecimal(40000);
+        final var c47Estimate = new BigDecimal(40000);
+        final var c53Estimate = new BigDecimal(35000);
+        final var morenoEstimate = new BigDecimal(25000);
+        final var angEstimate = new BigDecimal(34500);
+        final var c42Estimate = new BigDecimal(20000);
+        final var usdLiqEstimate = new BigDecimal(40000);
+        
+        final var windfallEstimate = d80Estimate
+                .add(c47Estimate, DECIMAL64)
+                .add(c53Estimate, DECIMAL64)
+                .add(angEstimate, DECIMAL64)
+                .add(c42Estimate, DECIMAL64)
+                .add(usdLiqEstimate, DECIMAL64)
+                .add(morenoEstimate, DECIMAL64);
+        
+        final var usdInflation = new BigDecimal("1.02");
+        final var averageRealReturn = usdInflation.add(new BigDecimal("0.04"), DECIMAL64);
+        final var invested = this.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
+
+        final var yearlyInvestment = BigDecimal.valueOf(4000);
+        var investment = invested.getAmount();
+        var addition = BigDecimal.ZERO;
+        
+        for(var i=1; i <= monthsToGo / 12 ; i++) {
+            
+            final var realAddition = yearlyInvestment
+                    .multiply(usdInflation.pow(i, DECIMAL64), DECIMAL64);
+            
+            addition = addition
+                    .add(realAddition, DECIMAL64);
+            
+            //System.out.println("Adding in year " + i + ": " + realAddition);
+            
+            investment = investment
+                    .multiply(averageRealReturn, DECIMAL64)
+                    .add(realAddition, DECIMAL64);
+        }
+
+        final var investmentReturn = investment
+                .subtract(invested.getAmount(), DECIMAL64)
+                .subtract(addition, DECIMAL64);
+        
+        appendLine("Goal savings ", format("{0,number,currency}.", goal));
+
+        appendLine("Goal ", format("{0,number,currency} ", goal.divide(BigDecimal.valueOf(monthsToGo), DECIMAL64)), "per month.");
+
+        appendLine("Goal with ",
+                percentFormat.format(averageRealReturn.subtract(BigDecimal.ONE, DECIMAL64)), 
+                " investment returns ",
+                format("{0,number,currency} ",
+                        goal.subtract(investmentReturn, MathContext.DECIMAL64)
+                                .divide(BigDecimal.valueOf(monthsToGo), DECIMAL64)), "per month.");
+
+//        appendLine("Goal with windfall ",
+//                format("{0,number,currency} ",
+//                        goal.subtract(realStateEstimate, MathContext.DECIMAL64)
+//                                .divide(BigDecimal.valueOf(monthsToGo), DECIMAL64)), "per month.");
+
+        appendLine("Goal with ",
+                percentFormat.format(averageRealReturn.subtract(BigDecimal.ONE, DECIMAL64)), 
+                " investment returns and windfall ",
+                format("{0,number,currency} ",
+                        goal.subtract(investmentReturn, MathContext.DECIMAL64)
+                                .subtract(windfallEstimate, MathContext.DECIMAL64)
+                                .divide(BigDecimal.valueOf(monthsToGo), DECIMAL64)), "per month.");
     }
 
 }
