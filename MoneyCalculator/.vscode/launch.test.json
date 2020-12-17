@@ -1,0 +1,30 @@
+{
+    "run": {
+        "default": "",
+        "items": [
+            {
+                "name": "MoneyCalculator",
+                "projectName": "MoneyCalculator",
+                "workingDirectory": "/home/fede/Desarrollo/ipc-address-calc/MoneyCalculator",
+                "args": [],
+                "vmargs": [],
+                "env": {},
+                "preLaunchTask": ""
+            }
+        ]
+    },
+    "debug": {
+        "default": "",
+        "items": [
+            {
+                "name": "MoneyCalculator",
+                "projectName": "MoneyCalculator",
+                "workingDirectory": "/home/fede/Desarrollo/ipc-address-calc/MoneyCalculator",
+                "args": [],
+                "vmargs": [],
+                "env": {},
+                "preLaunchTask": ""
+            }
+        ]
+    }
+}
