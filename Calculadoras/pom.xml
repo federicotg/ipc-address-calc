@@ -13,10 +13,10 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <org.springframework.version>5.2.8.RELEASE</org.springframework.version>
-        <spring-security.version>5.3.3.RELEASE</spring-security.version>
-        <hibernate-validator-version>6.1.5.Final</hibernate-validator-version>
-        <jackson2-version>[2.11.2,2.12)</jackson2-version>
+        <org.springframework.version>5.2.12.RELEASE</org.springframework.version>
+        <spring-security.version>5.3.6.RELEASE</spring-security.version>
+        <hibernate-validator-version>6.1.6.Final</hibernate-validator-version>
+        <jackson2-version>2.12.0</jackson2-version>
     </properties>
 
     <prerequisites>
@@ -130,7 +130,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
         
