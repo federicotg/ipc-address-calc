@@ -36,14 +36,12 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -63,7 +61,6 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SP500HistoricalReturn;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
-import org.fede.util.BigDecimalAverageCollector;
 
 /**
  *
@@ -741,18 +738,17 @@ public class ConsoleReports {
 
         final var invested = this.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
 
-        final var allReturns = this.periods(10, 20);
+        final var allReturns = this.periods(10, 10);
 
-        final var trials = 10000;
+        final var trials = 100000;
         final var cash = todaySavings.getAmount()
                 .subtract(invested.getAmount(), DECIMAL64);
 
-        appendLine(format("{0} / {1}", IntStream.range(0, trials)
-                .mapToObj(i -> this.randomReturns(allReturns, 7))
+        appendLine(format("{0}/{1}", IntStream.range(0, trials)
+                .mapToObj(i -> this.randomReturns(allReturns, 6))
                 .map(randomReturns -> this.goals(cash, invested.getAmount(), 2, randomReturns, 500, 1000, false))
                 .filter(remainder -> remainder.signum() > 0)
                 .count(), trials));
-
     }
 
     /*
@@ -770,7 +766,6 @@ public class ConsoleReports {
                 .limit(periods.size() - outliers)
                 .collect(Collectors.toList());
 
-        //Collections.shuffle(periods);
         return periods;
 
     }
@@ -778,18 +773,7 @@ public class ConsoleReports {
     private BigDecimal sum(List<BigDecimal> l) {
         return l.stream().reduce(BigDecimal::add).get();
     }
-//
-//    private BigDecimal worstYears() {
-//        return this.returns(20, BigDecimal::min);
-//    }
 
-//    private BigDecimal returns(int window, BinaryOperator<BigDecimal> reducer) {
-//
-//        return IntStream.range(0, this.sp500TotalReturns.size() - window)
-//                .mapToObj(start -> this.sp500TotalReturns.stream().skip(start).limit(window).collect(new BigDecimalAverageCollector()))
-//                .reduce(reducer)
-//                .get();
-//    }
     private BigDecimal goals(
             final BigDecimal cash,
             final BigDecimal investedAmount,
