@@ -33,14 +33,17 @@ import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.mapping;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -57,8 +60,10 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.SP500HistoricalReturn;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
+import org.fede.util.BigDecimalAverageCollector;
 
 /**
  *
@@ -72,7 +77,6 @@ public class ConsoleReports {
     private static final BigDecimal STAMP_TAX = new BigDecimal("0.018");
     private static final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
     private static final BigDecimal NOTARY_FEE = new BigDecimal("0.02").multiply(new BigDecimal("1.21", DECIMAL64));
-
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
@@ -88,12 +92,23 @@ public class ConsoleReports {
     private final NumberFormat nf = NumberFormat.getNumberInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
     private final List<Investment> investments;
+
+    private final List<BigDecimal> sp500TotalReturns;
     private final StringBuilder out;
 
     private ConsoleReports(StringBuilder out) {
         this.nf.setMaximumFractionDigits(2);
         this.percentFormat.setMinimumFractionDigits(2);
         this.investments = SeriesReader.read("investments.json", TR);
+
+        this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", new TypeReference<List<SP500HistoricalReturn>>() {
+        })
+                .stream()
+                .sorted(Comparator.comparing(SP500HistoricalReturn::getYear))
+                .map(SP500HistoricalReturn::getTotalReturn)
+                //.map(totalReturn -> totalReturn.movePointLeft(2))
+                .collect(Collectors.toList());
+
         this.out = out;
     }
 
@@ -712,79 +727,148 @@ public class ConsoleReports {
                 .collect(Collectors.joining());
     }
 
+    private List<BigDecimal> randomReturns(List<List<BigDecimal>> allReturns, int periods) {
+        return ThreadLocalRandom.current().ints(periods, 0, allReturns.size())
+                .mapToObj(allReturns::get)
+                .flatMap(Collection::stream)
+                .map(r -> BigDecimal.ONE.add(r.movePointLeft(2), DECIMAL64))
+                .collect(Collectors.toList());
+    }
+
     private void goal() {
-        final var goal = new BigDecimal((100 - 66) * 12 * 1546);
 
         final var todaySavings = this.realSavings(null).getAmount(Inflation.USD_INFLATION.getTo());
 
-        final var monthsToGo = Inflation.USD_INFLATION.getTo().monthsUntil(new YearMonth(1978 + 65, 12));
-
-        final var d80Estimate = new BigDecimal(40000);
-        final var c47Estimate = new BigDecimal(40000);
-        final var c53Estimate = new BigDecimal(35000);
-        final var morenoEstimate = new BigDecimal(25000);
-        final var angEstimate = new BigDecimal(34500);
-        final var c42Estimate = new BigDecimal(20000);
-        final var usdLiqEstimate = new BigDecimal(40000);
-        
-        final var windfallEstimate = d80Estimate
-                .add(c47Estimate, DECIMAL64)
-                .add(c53Estimate, DECIMAL64)
-                .add(angEstimate, DECIMAL64)
-                .add(c42Estimate, DECIMAL64)
-                .add(usdLiqEstimate, DECIMAL64)
-                .add(morenoEstimate, DECIMAL64);
-        
-        final var usdInflation = new BigDecimal("1.02");
-        final var averageRealReturn = usdInflation.add(new BigDecimal("0.04"), DECIMAL64);
         final var invested = this.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
 
-        final var yearlyInvestment = BigDecimal.valueOf(4000);
-        var investment = invested.getAmount();
-        var addition = BigDecimal.ZERO;
-        
-        for(var i=1; i <= monthsToGo / 12 ; i++) {
-            
-            final var realAddition = yearlyInvestment
-                    .multiply(usdInflation.pow(i, DECIMAL64), DECIMAL64);
-            
-            addition = addition
-                    .add(realAddition, DECIMAL64);
-            
-            //System.out.println("Adding in year " + i + ": " + realAddition);
-            
-            investment = investment
-                    .multiply(averageRealReturn, DECIMAL64)
-                    .add(realAddition, DECIMAL64);
+        final var allReturns = this.periods(10, 20);
+
+        final var trials = 10000;
+        final var cash = todaySavings.getAmount()
+                .subtract(invested.getAmount(), DECIMAL64);
+
+        appendLine(format("{0} / {1}", IntStream.range(0, trials)
+                .mapToObj(i -> this.randomReturns(allReturns, 7))
+                .map(randomReturns -> this.goals(cash, invested.getAmount(), 2, randomReturns, 500, 1000, false))
+                .filter(remainder -> remainder.signum() > 0)
+                .count(), trials));
+
+    }
+
+    /*
+    saco los outlier mejores
+     */
+    private List<List<BigDecimal>> periods(int years, int outliers) {
+
+        var periods = IntStream.range(0, this.sp500TotalReturns.size() - years)
+                .mapToObj(start -> this.sp500TotalReturns.stream().skip(start).limit(years).collect(Collectors.toList()))
+                .sorted(Comparator.comparing(this::sum))
+                .collect(Collectors.toList());
+
+        periods = periods.stream()
+                //.skip(outliers)
+                .limit(periods.size() - outliers)
+                .collect(Collectors.toList());
+
+        //Collections.shuffle(periods);
+        return periods;
+
+    }
+
+    private BigDecimal sum(List<BigDecimal> l) {
+        return l.stream().reduce(BigDecimal::add).get();
+    }
+//
+//    private BigDecimal worstYears() {
+//        return this.returns(20, BigDecimal::min);
+//    }
+
+//    private BigDecimal returns(int window, BinaryOperator<BigDecimal> reducer) {
+//
+//        return IntStream.range(0, this.sp500TotalReturns.size() - window)
+//                .mapToObj(start -> this.sp500TotalReturns.stream().skip(start).limit(window).collect(new BigDecimalAverageCollector()))
+//                .reduce(reducer)
+//                .get();
+//    }
+    private BigDecimal goals(
+            final BigDecimal cash,
+            final BigDecimal investedAmount,
+            final int expectedInflationRate,
+            final List<BigDecimal> returns,
+            final int monthlyDeposit,
+            final int monthlyWithdraw,
+            boolean print) {
+
+        final int startingYear = Inflation.USD_INFLATION.getTo().next().getYear();
+        final int retirement = 2043;
+        final int end = 2077;
+
+//        if (print) {
+//            appendLine("Expected savings evolution.");
+//        }
+        final var inflationRate = BigDecimal.ONE.add(BigDecimal.valueOf(expectedInflationRate).movePointLeft(2), DECIMAL64);
+
+//        if (print) {
+//            appendLine("Cash: ", format("{0,number,currency} ", cash),
+//                    ", invested: ", format("{0,number,currency} ", investedAmount),
+//                    ", expected inflation: ", String.valueOf(expectedInflationRate), "%");
+//        }
+        final var deposit = BigDecimal.valueOf(monthlyDeposit * 12);
+        final var withdraw = BigDecimal.valueOf(monthlyWithdraw * 12);
+
+        BigDecimal cashAmount = cash;
+        BigDecimal amount = investedAmount;
+        // depositing
+        for (var i = startingYear; i < retirement; i++) {
+
+            var realDeposit = deposit.multiply(inflationRate.pow(i - startingYear + 1, DECIMAL64));
+//            if (print) {
+//                appendLine("Age ",
+//                        String.valueOf(i - 1978),
+//                        format(" {0,number,currency} ", amount),
+//                        " depositing ",
+//                        format(" {0,number,currency} ", realDeposit.divide(BigDecimal.valueOf(12), DECIMAL64)),
+//                        ". Return ", this.percentFormat.format(returns.get(i - startingYear)));
+//            }
+            amount = amount.multiply(returns.get(i - startingYear), DECIMAL64);
+            amount = amount
+                    .add(realDeposit, DECIMAL64);
         }
+//        if (print) {
+//            appendLine(" => Retirement amount: ", format("{0,number,currency} ", amount));
+//        }
+        // withdrawing
+        for (var i = retirement; i <= end; i++) {
 
-        final var investmentReturn = investment
-                .subtract(invested.getAmount(), DECIMAL64)
-                .subtract(addition, DECIMAL64);
-        
-        appendLine("Goal savings ", format("{0,number,currency}.", goal));
+            final var realWithdrawal = withdraw
+                    .multiply(inflationRate.pow(i - startingYear + 1, DECIMAL64));
+//            if (print) {
+//                appendLine("Age ",
+//                        String.valueOf(i - 1978),
+//                        format(" {0,number,currency} ", amount),
+//                        " withdrawing ",
+//                        format(" {0,number,currency} ", realWithdrawal.divide(BigDecimal.valueOf(12), DECIMAL64)),
+//                        ". Return ", this.percentFormat.format(returns.get(i - startingYear)));
+//            }
+            amount = amount.subtract(realWithdrawal, DECIMAL64);
 
-        appendLine("Goal ", format("{0,number,currency} ", goal.divide(BigDecimal.valueOf(monthsToGo), DECIMAL64)), "per month.");
+            if (amount.compareTo(ZERO) > 0) {
+                amount = amount.multiply(returns.get(i - startingYear), DECIMAL64);
+            } else {
+                cashAmount = cashAmount.add(amount, DECIMAL64);
+                amount = BigDecimal.ZERO;
+//                if (print) {
+//                    appendLine("Cash: ", format(" {0,number,currency} ", cashAmount));
+//                }
+            }
+        }
+//        if (print) {
+//            appendLine("Invested at end point: ", format("{0,number,currency} ", amount));
+//
+//            appendLine("Final total amount: ", format("{0,number,currency} ", amount.add(cashAmount, DECIMAL64)));
+//        }
 
-        appendLine("Goal with ",
-                percentFormat.format(averageRealReturn.subtract(BigDecimal.ONE, DECIMAL64)), 
-                " investment returns ",
-                format("{0,number,currency} ",
-                        goal.subtract(investmentReturn, MathContext.DECIMAL64)
-                                .divide(BigDecimal.valueOf(monthsToGo), DECIMAL64)), "per month.");
-
-//        appendLine("Goal with windfall ",
-//                format("{0,number,currency} ",
-//                        goal.subtract(realStateEstimate, MathContext.DECIMAL64)
-//                                .divide(BigDecimal.valueOf(monthsToGo), DECIMAL64)), "per month.");
-
-        appendLine("Goal with ",
-                percentFormat.format(averageRealReturn.subtract(BigDecimal.ONE, DECIMAL64)), 
-                " investment returns and windfall ",
-                format("{0,number,currency} ",
-                        goal.subtract(investmentReturn, MathContext.DECIMAL64)
-                                .subtract(windfallEstimate, MathContext.DECIMAL64)
-                                .divide(BigDecimal.valueOf(monthsToGo), DECIMAL64)), "per month.");
+        return amount.add(cashAmount, DECIMAL64);
     }
 
 }
