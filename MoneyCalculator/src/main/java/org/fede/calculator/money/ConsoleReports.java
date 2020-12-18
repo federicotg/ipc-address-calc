@@ -728,7 +728,7 @@ public class ConsoleReports {
         return ThreadLocalRandom.current().ints(periods, 0, allReturns.size())
                 .mapToObj(allReturns::get)
                 .flatMap(Collection::stream)
-                .map(r -> BigDecimal.ONE.add(r.movePointLeft(2), DECIMAL64))
+                //.map(r -> BigDecimal.ONE.add(r.movePointLeft(2), DECIMAL64))
                 .collect(Collectors.toList());
     }
 
@@ -738,17 +738,42 @@ public class ConsoleReports {
 
         final var invested = this.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
 
-        final var allReturns = this.periods(10, 10);
+        final var periodYears = 10;
+        final var allReturns = this.periods(periodYears, 2)
+                .stream()
+                .map(decade -> decade.stream().map(r -> BigDecimal.ONE.add(r.movePointLeft(2), DECIMAL64)).collect(Collectors.toList()))
+                .collect(Collectors.toList());
 
         final var trials = 100000;
         final var cash = todaySavings.getAmount()
                 .subtract(invested.getAmount(), DECIMAL64);
 
-        appendLine(format("{0}/{1}", IntStream.range(0, trials)
-                .mapToObj(i -> this.randomReturns(allReturns, 6))
-                .map(randomReturns -> this.goals(cash, invested.getAmount(), 2, randomReturns, 500, 1000, false))
+        final var inflation = 2;
+
+        final var inflationRate = BigDecimal.ONE.add(BigDecimal.valueOf(inflation).movePointLeft(2), DECIMAL64);
+
+        final var deposit = BigDecimal.valueOf(500 * 13);
+        final var withdraw = BigDecimal.valueOf(1000 * 12);
+
+        final var investedAmount = invested.getAmount();
+        
+        appendLine(format("Simulating {0} returns in {1}-year periods.", trials, periodYears));
+        appendLine("Cash: ", format("{0,number,currency}", cash),
+                ", invested: ", format("{0,number,currency}", invested.getAmount()),
+                ", expected inflation: ", String.valueOf(inflation), "%");
+
+        final var periods = Math.round((60.0f / periodYears)+ 0.5f);
+        
+        final var successes = IntStream.range(0, trials)
+                .parallel()
+                .mapToObj(i -> this.randomReturns(allReturns, periods))
+                .map(randomReturns -> this.goals(cash, investedAmount, inflationRate, randomReturns, deposit, withdraw))
                 .filter(remainder -> remainder.signum() > 0)
-                .count(), trials));
+                .count();
+
+        appendLine(format("{0}/{1}", successes, trials),
+                " ",
+                this.percentFormat.format((double) successes / (double) trials));
     }
 
     /*
@@ -777,80 +802,59 @@ public class ConsoleReports {
     private BigDecimal goals(
             final BigDecimal cash,
             final BigDecimal investedAmount,
-            final int expectedInflationRate,
+            final BigDecimal inflationRate,
             final List<BigDecimal> returns,
-            final int monthlyDeposit,
-            final int monthlyWithdraw,
-            boolean print) {
+            final BigDecimal deposit,
+            final BigDecimal withdraw) {
 
         final int startingYear = Inflation.USD_INFLATION.getTo().next().getYear();
         final int retirement = 2043;
         final int end = 2077;
 
-//        if (print) {
 //            appendLine("Expected savings evolution.");
-//        }
-        final var inflationRate = BigDecimal.ONE.add(BigDecimal.valueOf(expectedInflationRate).movePointLeft(2), DECIMAL64);
-
-//        if (print) {
 //            appendLine("Cash: ", format("{0,number,currency} ", cash),
 //                    ", invested: ", format("{0,number,currency} ", investedAmount),
 //                    ", expected inflation: ", String.valueOf(expectedInflationRate), "%");
-//        }
-        final var deposit = BigDecimal.valueOf(monthlyDeposit * 12);
-        final var withdraw = BigDecimal.valueOf(monthlyWithdraw * 12);
-
         BigDecimal cashAmount = cash;
         BigDecimal amount = investedAmount;
         // depositing
         for (var i = startingYear; i < retirement; i++) {
 
             var realDeposit = deposit.multiply(inflationRate.pow(i - startingYear + 1, DECIMAL64));
-//            if (print) {
 //                appendLine("Age ",
 //                        String.valueOf(i - 1978),
 //                        format(" {0,number,currency} ", amount),
 //                        " depositing ",
 //                        format(" {0,number,currency} ", realDeposit.divide(BigDecimal.valueOf(12), DECIMAL64)),
 //                        ". Return ", this.percentFormat.format(returns.get(i - startingYear)));
-//            }
-            amount = amount.multiply(returns.get(i - startingYear), DECIMAL64);
-            amount = amount
+            amount = amount.multiply(returns.get(i - startingYear), DECIMAL64)
                     .add(realDeposit, DECIMAL64);
         }
-//        if (print) {
 //            appendLine(" => Retirement amount: ", format("{0,number,currency} ", amount));
-//        }
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
             final var realWithdrawal = withdraw
                     .multiply(inflationRate.pow(i - startingYear + 1, DECIMAL64));
-//            if (print) {
 //                appendLine("Age ",
 //                        String.valueOf(i - 1978),
 //                        format(" {0,number,currency} ", amount),
 //                        " withdrawing ",
 //                        format(" {0,number,currency} ", realWithdrawal.divide(BigDecimal.valueOf(12), DECIMAL64)),
 //                        ". Return ", this.percentFormat.format(returns.get(i - startingYear)));
-//            }
             amount = amount.subtract(realWithdrawal, DECIMAL64);
 
-            if (amount.compareTo(ZERO) > 0) {
+            if (amount.signum() > 0) {
                 amount = amount.multiply(returns.get(i - startingYear), DECIMAL64);
             } else {
                 cashAmount = cashAmount.add(amount, DECIMAL64);
                 amount = BigDecimal.ZERO;
-//                if (print) {
 //                    appendLine("Cash: ", format(" {0,number,currency} ", cashAmount));
-//                }
             }
         }
-//        if (print) {
 //            appendLine("Invested at end point: ", format("{0,number,currency} ", amount));
 //
 //            appendLine("Final total amount: ", format("{0,number,currency} ", amount.add(cashAmount, DECIMAL64)));
-//        }
 
         return amount.add(cashAmount, DECIMAL64);
     }
