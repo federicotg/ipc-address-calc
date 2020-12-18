@@ -103,6 +103,7 @@ public class ConsoleReports {
                 .stream()
                 .sorted(Comparator.comparing(SP500HistoricalReturn::getYear))
                 .map(SP500HistoricalReturn::getTotalReturn)
+                .map(r -> BigDecimal.ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
                 .collect(Collectors.toList());
 
         this.out = out;
@@ -723,10 +724,16 @@ public class ConsoleReports {
                 .collect(Collectors.joining());
     }
 
-    private List<BigDecimal> randomReturns(List<List<BigDecimal>> allReturns, int periods) {
+    private List<BigDecimal> randomPeriods(List<List<BigDecimal>> allReturns, int periods) {
         return ThreadLocalRandom.current().ints(periods, 0, allReturns.size())
                 .mapToObj(allReturns::get)
                 .flatMap(Collection::stream)
+                .collect(toList());
+    }
+
+    private List<BigDecimal> randomYears(int years) {
+        return ThreadLocalRandom.current().ints(years, 0, this.sp500TotalReturns.size())
+                .mapToObj(this.sp500TotalReturns::get)
                 .collect(toList());
     }
 
@@ -737,10 +744,7 @@ public class ConsoleReports {
         final var invested = this.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
 
         final var periodYears = 10;
-        final var allReturns = this.periods(periodYears, 5)
-                .stream()
-                .map(decade -> decade.stream().map(r -> BigDecimal.ONE.add(r.movePointLeft(2), DECIMAL64)).collect(toList()))
-                .collect(Collectors.toList());
+        final var allPeriods = this.periods(periodYears, 5);
 
         final var trials = 100000;
         final var cash = todaySavings.getAmount()
@@ -748,14 +752,13 @@ public class ConsoleReports {
 
         final var inflation = 2;
 
-        final var inflationRate = BigDecimal.ONE.add(BigDecimal.valueOf(inflation).movePointLeft(2), DECIMAL64);
+        final var inflationRate = BigDecimal.ONE.setScale(6).add(BigDecimal.valueOf(inflation).setScale(6).movePointLeft(2), DECIMAL64);
 
         final var deposit = BigDecimal.valueOf(500 * 13);
         final var withdraw = BigDecimal.valueOf(1000 * 12);
 
         final var investedAmount = invested.getAmount();
 
-        appendLine(format("Simulating {0} returns in {1}-year periods.", trials, periodYears));
         appendLine("Cash: ", format("{0,number,currency}", cash),
                 ", invested: ", format("{0,number,currency}", invested.getAmount()),
                 ", expected inflation: ", String.valueOf(inflation), "%");
@@ -763,20 +766,34 @@ public class ConsoleReports {
         final int startingYear = Inflation.USD_INFLATION.getTo().getYear();
         final var end = 2078;
         final var yearsLeft = end - startingYear + 1;
-        
+
         final var periods = Math.round(((float) yearsLeft / periodYears) + 0.5f);
 
-        final var inflationFactors = IntStream.rangeClosed(1, yearsLeft)
+        final var inflationFactors = IntStream.range(0, yearsLeft)
                 .mapToObj(year -> inflationRate.pow(year, DECIMAL64))
                 .collect(toList());
+        
+        final var realDeposits = inflationFactors.stream().limit(25).map(f -> f.multiply(deposit, DECIMAL64)).collect(toList());
+        final var realWithdrawals = inflationFactors.stream().map(f -> f.multiply(withdraw, DECIMAL64)).collect(toList());
 
-        final var successes = IntStream.range(0, trials)
-                .mapToObj(i -> this.randomReturns(allReturns, periods))
-                .filter(randomReturns -> this.goals(startingYear, end, cash, investedAmount, inflationFactors, randomReturns, deposit, withdraw))
+        var successes = IntStream.range(0, trials)
+                .mapToObj(i -> this.randomPeriods(allPeriods, periods))
+                .filter(randomReturns -> this.goals(startingYear, end, cash, investedAmount, randomReturns, realDeposits, realWithdrawals))
                 .count();
 
-        appendLine(format("{0}/{1}", successes, trials),
-                " ",
+        appendLine(format("\nSimulating {0} returns in {1}-year periods.", trials, periodYears));
+
+        appendLine(format("{0}/{1} ", successes, trials),
+                this.percentFormat.format((double) successes / (double) trials));
+
+        successes = IntStream.range(0, trials)
+                .mapToObj(i -> this.randomYears(yearsLeft))
+                .filter(randomReturns -> this.goals(startingYear, end, cash, investedAmount, randomReturns, realDeposits, realWithdrawals))
+                .count();
+
+        appendLine(format("\nSimulating {0} returns in random years.", trials, periodYears));
+
+        appendLine(format("{0}/{1} ", successes, trials),
                 this.percentFormat.format((double) successes / (double) trials));
     }
 
@@ -786,7 +803,7 @@ public class ConsoleReports {
     private List<List<BigDecimal>> periods(int years, int outliers) {
 
         var periods = IntStream.range(0, this.sp500TotalReturns.size() - years)
-                .mapToObj(start -> this.sp500TotalReturns.stream().skip(start).limit(years).collect(Collectors.toList()))
+                .mapToObj(start -> this.sp500TotalReturns.stream().skip(start).limit(years).collect(toList()))
                 .sorted(Comparator.comparing(this::sum))
                 .collect(toList());
 
@@ -808,30 +825,24 @@ public class ConsoleReports {
             final int end,
             final BigDecimal cash,
             final BigDecimal investedAmount,
-            final List<BigDecimal> inflationFactors,
             final List<BigDecimal> returns,
-            final BigDecimal deposit,
-            final BigDecimal withdraw) {
+            final List<BigDecimal> deposit,
+            final List<BigDecimal> withdraw) {
 
-        
         final int retirement = 2043;
-        
+
         BigDecimal cashAmount = cash;
         BigDecimal amount = investedAmount;
         // depositing
         for (var i = startingYear; i < retirement; i++) {
 
-            var realDeposit = deposit.multiply(inflationFactors.get(i - startingYear), DECIMAL64);
             amount = amount.multiply(returns.get(i - startingYear), DECIMAL64)
-                    .add(realDeposit, DECIMAL64);
+                    .add(deposit.get(i - startingYear), DECIMAL64);
         }
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
-            final var realWithdrawal = withdraw
-                    .multiply(inflationFactors.get(i - startingYear), DECIMAL64);
-
-            amount = amount.subtract(realWithdrawal, DECIMAL64);
+            amount = amount.subtract(withdraw.get(i - startingYear), DECIMAL64);
 
             if (amount.signum() > 0) {
                 amount = amount.multiply(returns.get(i - startingYear), DECIMAL64);
