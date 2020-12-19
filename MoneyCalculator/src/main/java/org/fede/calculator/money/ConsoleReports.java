@@ -769,7 +769,7 @@ public class ConsoleReports {
 
         final var invested = this.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
 
-        final var allPeriods = this.periods(periodYears, 5);
+        final var allPeriods = this.periods(periodYears);
 
         final var cash = todaySavings.getAmount()
                 .subtract(invested.getAmount(), DECIMAL64);
@@ -794,7 +794,7 @@ public class ConsoleReports {
         final var end = 2078;
         final var yearsLeft = end - startingYear + 1;
 
-        final var periods = Math.round(((float) yearsLeft / periodYears) + 0.5f);
+        final var periods = Math.round((float) yearsLeft / periodYears);
 
         final var inflationFactors = IntStream.range(0, yearsLeft)
                 .mapToObj(year -> inflationRate.pow(year, DECIMAL64))
@@ -804,6 +804,7 @@ public class ConsoleReports {
                 .limit(1978 + retirementAge - startingYear)
                 .map(f -> f.multiply(deposit, DECIMAL64))
                 .collect(toList());
+        
         final var realWithdrawals = inflationFactors.stream()
                 .map(f -> f.multiply(withdraw, DECIMAL64))
                 .collect(toList());
@@ -813,7 +814,7 @@ public class ConsoleReports {
                 .filter(randomReturns -> this.goals(startingYear, 1978 + retirementAge, end, cash, investedAmount, randomReturns, realDeposits, realWithdrawals))
                 .count();
 
-        appendLine(format("\nSimulating {0} returns in {1}-year periods.", trials, periodYears));
+        appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
 
         appendLine(format("{0}/{1} ", successes, trials),
                 this.percentFormat.format((double) successes / (double) trials));
@@ -821,9 +822,9 @@ public class ConsoleReports {
     }
 
     /*
-    saco los outlier mejores
+    saco el 10%  mejor
      */
-    private List<List<BigDecimal>> periods(int years, int outliers) {
+    private List<List<BigDecimal>> periods(final int years) {
 
         var periods = IntStream.range(0, this.sp500TotalReturns.size() - years)
                 .mapToObj(start -> this.sp500TotalReturns.stream().skip(start).limit(years).collect(toList()))
@@ -831,7 +832,7 @@ public class ConsoleReports {
                 .collect(toList());
 
         periods = periods.stream()
-                .limit(periods.size() - outliers)
+                .limit(Math.round(periods.size() * 0.9d))
                 .collect(toList());
 
         return periods;
