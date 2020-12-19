@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
+import static java.math.BigDecimal.ONE;
 import static java.math.MathContext.DECIMAL64;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
@@ -91,7 +92,7 @@ public class ConsoleReports {
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
     private final List<Investment> investments;
 
-    private final List<BigDecimal> sp500TotalReturns;
+    private List<BigDecimal> sp500TotalReturns;
     private final StringBuilder out;
 
     private ConsoleReports(StringBuilder out) {
@@ -99,14 +100,7 @@ public class ConsoleReports {
         this.percentFormat.setMinimumFractionDigits(2);
         this.investments = SeriesReader.read("investments.json", TR);
 
-        this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", new TypeReference<List<SP500HistoricalReturn>>() {
-        })
-                .stream()
-                .sorted(Comparator.comparing(SP500HistoricalReturn::getYear))
-                .map(SP500HistoricalReturn::getTotalReturn)
-                .map(r -> BigDecimal.ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
-                .collect(Collectors.toList());
-
+        
         this.out = out;
     }
 
@@ -748,7 +742,10 @@ public class ConsoleReports {
         final var inflation = Integer.parseInt(params.getOrDefault("inflation", "2"));
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "65"));
 
-        this.goal(trials, periodYears, deposit, withdraw, inflation, retirementAge);
+        final var buySellFee = ONE.setScale(6)
+                .add(new BigDecimal("0.006").multiply(new BigDecimal("1.21", DECIMAL64)));
+        
+        this.goal(trials, periodYears, deposit, withdraw, inflation, retirementAge, buySellFee);
     }
 
     private void goal(
@@ -757,8 +754,17 @@ public class ConsoleReports {
             final int monthlyDeposit,
             final int monthlyWithdraw,
             final int inflation,
-            final int retirementAge) {
+            final int retirementAge,
+            final BigDecimal buySellFee) {
 
+        this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", new TypeReference<List<SP500HistoricalReturn>>() {
+        })
+                .stream()
+                .sorted(Comparator.comparing(SP500HistoricalReturn::getYear))
+                .map(SP500HistoricalReturn::getTotalReturn)
+                .map(r -> BigDecimal.ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
+                .collect(Collectors.toList());
+        
         final var todaySavings = this.realSavings(null).getAmount(Inflation.USD_INFLATION.getTo());
 
         final var invested = this.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
@@ -768,11 +774,11 @@ public class ConsoleReports {
         final var cash = todaySavings.getAmount()
                 .subtract(invested.getAmount(), DECIMAL64);
 
-        final var inflationRate = BigDecimal.ONE.setScale(6)
+        final var inflationRate = ONE.setScale(6)
                 .add(BigDecimal.valueOf(inflation).setScale(6).movePointLeft(2), DECIMAL64);
 
-        final var deposit = BigDecimal.valueOf(monthlyDeposit * 13);
-        final var withdraw = BigDecimal.valueOf(monthlyWithdraw * 12);
+        final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).divide(buySellFee, DECIMAL64);
+        final var withdraw = BigDecimal.valueOf(monthlyWithdraw * 12).multiply(buySellFee, DECIMAL64);;
 
         final var investedAmount = invested.getAmount();
 
@@ -863,7 +869,7 @@ public class ConsoleReports {
                 amount = amount.multiply(returns.get(i - startingYear), DECIMAL64);
             } else {
                 cashAmount = cashAmount.add(amount, DECIMAL64);
-                amount = BigDecimal.ZERO;
+                amount = ZERO;
             }
             if (cashAmount.signum() <= 0) {
                 return false;
