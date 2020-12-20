@@ -764,11 +764,12 @@ public class ConsoleReports {
         final var withdraw = Integer.parseInt(params.getOrDefault("w", "1000"));
         final var inflation = Integer.parseInt(params.getOrDefault("inflation", "2"));
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "65"));
+        final var extraCash = Integer.parseInt(params.getOrDefault("cash", "0"));
 
         final var buySellFee = ONE.setScale(6)
                 .add(new BigDecimal("0.006").multiply(new BigDecimal("1.21", DECIMAL64)));
 
-        this.goal(trials, periodYears, deposit, withdraw, inflation, retirementAge, buySellFee);
+        this.goal(trials, periodYears, deposit, withdraw, inflation, retirementAge, buySellFee, BigDecimal.valueOf(extraCash));
     }
 
     private void goal(
@@ -778,7 +779,8 @@ public class ConsoleReports {
             final int monthlyWithdraw,
             final int inflation,
             final int retirementAge,
-            final BigDecimal buySellFee) {
+            final BigDecimal buySellFee,
+            final BigDecimal extraCash) {
 
         this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", new TypeReference<List<SP500HistoricalReturn>>() {
         })
@@ -795,7 +797,8 @@ public class ConsoleReports {
         final var allPeriods = this.periods(periodYears);
 
         final var cash = todaySavings.getAmount()
-                .subtract(invested.getAmount(), DECIMAL64);
+                .subtract(invested.getAmount(), DECIMAL64)
+                .add(extraCash, DECIMAL64);
 
         final var inflationRate = ONE.setScale(6)
                 .add(BigDecimal.valueOf(inflation).setScale(6).movePointLeft(2), DECIMAL64);
