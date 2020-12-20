@@ -93,6 +93,8 @@ public class ConsoleReports {
     private final List<Investment> investments;
 
     private List<BigDecimal> sp500TotalReturns;
+    private Map<String, List<MoneyAmountSeries>> realUSDSavingsByType;
+
     private final StringBuilder out;
 
     private ConsoleReports(StringBuilder out) {
@@ -100,7 +102,6 @@ public class ConsoleReports {
         this.percentFormat.setMinimumFractionDigits(2);
         this.investments = SeriesReader.read("investments.json", TR);
 
-        
         this.out = out;
     }
 
@@ -112,7 +113,7 @@ public class ConsoleReports {
 
     private void investments() {
 
-        appendLine("===< Inversiones actuales agrupados por moneda >===");
+        appendLine("===< Inversiones actuales agrupadas por moneda >===");
 
         final NumberFormat sixDigits = NumberFormat.getNumberInstance();
         sixDigits.setMinimumFractionDigits(6);
@@ -209,7 +210,6 @@ public class ConsoleReports {
         Stream.concat(Stream.of(i), investments.stream())
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(
-                        //this::investmentType,
                         this::assetAllocation,
                         mapping(inv -> ForeignExchanges.getForeignExchange(inv.getInvestment().getCurrency(), reportCurrency)
                         .exchange(inv.getInvestment().getMoneyAmount(), reportCurrency, limit.getYear(), limit.getMonth())
@@ -573,7 +573,7 @@ public class ConsoleReports {
                 of("home", "reparaciones.json"),
                 of("communications", "telefono-43.json"),
                 of("entertainment", "xbox.json"))
-                .collect(groupingBy(Pair::getFirst, mapping(Pair::getSecond, Collectors.toList())));
+                .collect(groupingBy(Pair::getFirst, mapping(Pair::getSecond, toList())));
 
         var limit = USD_INFLATION.getTo();
 
@@ -605,39 +605,48 @@ public class ConsoleReports {
                 .divide(new BigDecimal(months), DECIMAL64), "USD");
     }
 
-    private MoneyAmountSeries realSavings(String type) {
-        final var files = List.of(
-                of("BO", "ahorros-ay24"),
-                of("BO", "ahorros-conbala"),
-                of("LIQ", "ahorros-dolar-banco"),
-                of("EQ", "ahorros-eimi"),
-                of("BO", "ahorros-lete"),
-                of("LIQ", "ahorros-peso"),
-                of("BO", "ahorros-caplusa"),
-                of("EQ", "ahorros-cspx"),
-                of("LIQ", "ahorros-dolar-liq"),
-                of("LIQ", "ahorros-euro"),
-                of("EQ", "ahorros-meud"),
-                of("BO", "ahorros-uva"),
-                of("EQ", "ahorros-conaafa"),
-                of("LIQ", "ahorros-dai"),
-                of("BO", "ahorros-dolar-ON"),
-                of("BO", "ahorros-lecap"),
-                of("LIQ", "ahorros-oro"),
-                of("EQ", "ahorros-xrsu"));
-
+    private MoneyAmountSeries asRealUSDSeries(String fileName) {
         var limit = USD_INFLATION.getTo();
+        return Inflation.USD_INFLATION.adjust(
+                SeriesReader.readSeries("saving/" + fileName + ".json").exchangeInto("USD"),
+                limit.getYear(),
+                limit.getMonth());
+    }
 
-        return files.stream()
-                .filter(e -> type == null || e.getFirst().equals(type))
-                .map(Pair::getSecond)
-                .map(f -> "saving/" + f + ".json")
-                .map(SeriesReader::readSeries)
-                .map(s -> s.exchangeInto("USD"))
-                .map(s -> Inflation.USD_INFLATION.adjust(s, limit.getYear(), limit.getMonth()))
+    private MoneyAmountSeries realSavings(String type) {
+
+        if (this.realUSDSavingsByType == null) {
+
+            final var files = List.of(
+                    of("BO", "ahorros-ay24"),
+                    of("BO", "ahorros-conbala"),
+                    of("LIQ", "ahorros-dolar-banco"),
+                    of("EQ", "ahorros-eimi"),
+                    of("BO", "ahorros-lete"),
+                    of("LIQ", "ahorros-peso"),
+                    of("BO", "ahorros-caplusa"),
+                    of("EQ", "ahorros-cspx"),
+                    of("LIQ", "ahorros-dolar-liq"),
+                    of("LIQ", "ahorros-euro"),
+                    of("EQ", "ahorros-meud"),
+                    of("BO", "ahorros-uva"),
+                    of("EQ", "ahorros-conaafa"),
+                    of("LIQ", "ahorros-dai"),
+                    of("BO", "ahorros-dolar-ON"),
+                    of("BO", "ahorros-lecap"),
+                    of("LIQ", "ahorros-oro"),
+                    of("EQ", "ahorros-xrsu"));
+
+            this.realUSDSavingsByType = files.stream()
+                    .collect(Collectors.groupingBy(Pair::getFirst, Collectors.mapping(p -> this.asRealUSDSeries(p.getSecond()), toList())));
+        }
+
+        return this.realUSDSavingsByType.entrySet().stream()
+                .filter(e -> type == null || e.getKey().equals(type))
+                .map(e -> e.getValue())
+                .flatMap(Collection::stream)
                 .reduce(MoneyAmountSeries::add)
                 .get();
-
     }
 
     private void evolutionReport(YearMonth ym, MoneyAmount mo, int scale) {
@@ -686,7 +695,6 @@ public class ConsoleReports {
                 .map(s -> Inflation.USD_INFLATION.adjust(s, limit.getYear(), limit.getMonth()))
                 .reduce(MoneyAmountSeries::add)
                 .get();
-
     }
 
     private void incomeEvolution(String type) {
@@ -744,7 +752,7 @@ public class ConsoleReports {
 
         final var buySellFee = ONE.setScale(6)
                 .add(new BigDecimal("0.006").multiply(new BigDecimal("1.21", DECIMAL64)));
-        
+
         this.goal(trials, periodYears, deposit, withdraw, inflation, retirementAge, buySellFee);
     }
 
@@ -763,8 +771,8 @@ public class ConsoleReports {
                 .sorted(Comparator.comparing(SP500HistoricalReturn::getYear))
                 .map(SP500HistoricalReturn::getTotalReturn)
                 .map(r -> BigDecimal.ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
-                .collect(Collectors.toList());
-        
+                .collect(toList());
+
         final var todaySavings = this.realSavings(null).getAmount(Inflation.USD_INFLATION.getTo());
 
         final var invested = this.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
@@ -804,7 +812,7 @@ public class ConsoleReports {
                 .limit(1978 + retirementAge - startingYear)
                 .map(f -> f.multiply(deposit, DECIMAL64))
                 .collect(toList());
-        
+
         final var realWithdrawals = inflationFactors.stream()
                 .map(f -> f.multiply(withdraw, DECIMAL64))
                 .collect(toList());
@@ -826,7 +834,7 @@ public class ConsoleReports {
      */
     private List<List<BigDecimal>> periods(final int years) {
 
-        var periods = IntStream.range(0, this.sp500TotalReturns.size() - years)
+        var periods = IntStream.range(0, this.sp500TotalReturns.size() - years + 1)
                 .mapToObj(start -> this.sp500TotalReturns.stream().skip(start).limit(years).collect(toList()))
                 .sorted(Comparator.comparing(this::sum))
                 .collect(toList());
