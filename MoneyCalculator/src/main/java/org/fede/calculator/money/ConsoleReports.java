@@ -31,6 +31,8 @@ import java.util.stream.Collector;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -312,7 +314,7 @@ public class ConsoleReports {
                         .filter(t -> totalOnly)
                         .filter(Objects::nonNull)
                         .map(Object::toString)
-                        .collect(Collectors.joining("", "", " ")),
+                        .collect(joining("", "", " ")),
                 total.add(profit)));
     }
 
@@ -440,7 +442,7 @@ public class ConsoleReports {
                         .stream()
                         .sorted(Comparator.comparing(Pair::getSecond))
                         .map(Pair::getFirst)
-                        .collect(Collectors.joining(", ")));
+                        .collect(joining(", ")));
             } else {
 
                 actions.entrySet()
@@ -724,7 +726,7 @@ public class ConsoleReports {
 
         return IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), DECIMAL64).setScale(0, RoundingMode.HALF_UP).intValue())
                 .mapToObj(x -> symbol)
-                .collect(Collectors.joining());
+                .collect(joining());
     }
 
     private List<BigDecimal> randomPeriods(List<List<BigDecimal>> allReturns, int periods) {
@@ -741,7 +743,7 @@ public class ConsoleReports {
                 .dropWhile(p -> "goal".equals(p))
                 .takeWhile(p -> p.contains("="))
                 .map(separator::split)
-                .collect(Collectors.toMap(parts -> parts[0], parts -> parts[1]));
+                .collect(toMap(parts -> parts[0], parts -> parts[1]));
 
         final var trials = Integer.parseInt(params.getOrDefault("trials", "100000"));
         final var periodYears = Integer.parseInt(params.getOrDefault("period", "10"));
