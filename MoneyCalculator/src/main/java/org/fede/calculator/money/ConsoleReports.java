@@ -439,11 +439,15 @@ public class ConsoleReports {
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
 
             if (params.contains("help")) {
-                System.out.println(actions.keySet()
-                        .stream()
-                        .sorted(comparing(Pair::getSecond))
-                        .map(Pair::getFirst)
-                        .collect(joining(", ")));
+                System.out.println(
+                        Stream.concat(
+                                actions.keySet()
+                                        .stream()
+                                        .filter(action -> !"goal".equals(action.getFirst()))
+                                        .sorted(comparing(Pair::getSecond))
+                                        .map(Pair::getFirst),
+                                Stream.of("goal [trials period retirement w d inflation cash]")
+                        ).collect(joining(" ")));
             } else {
 
                 actions.entrySet()
@@ -619,7 +623,7 @@ public class ConsoleReports {
     private MoneyAmountSeries realSavings() {
         return this.realSavings(null);
     }
-    
+
     private MoneyAmountSeries realSavings(String type) {
 
         if (this.realUSDSavingsByType == null) {
@@ -668,7 +672,7 @@ public class ConsoleReports {
     private void savingEvolution() {
         this.savingEvolution(null);
     }
-    
+
     private void savingEvolution(String type) {
 
         var limit = USD_INFLATION.getTo();
@@ -711,7 +715,7 @@ public class ConsoleReports {
     private void incomeEvolution() {
         this.incomeEvolution(null);
     }
-    
+
     private void incomeEvolution(String type) {
 
         final var limit = USD_INFLATION.getTo();
