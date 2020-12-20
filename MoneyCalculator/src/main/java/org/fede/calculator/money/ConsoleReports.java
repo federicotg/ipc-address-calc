@@ -25,6 +25,7 @@ import static java.math.MathContext.DECIMAL64;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Comparator;
+import static java.util.Comparator.comparing;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collector;
@@ -83,8 +84,8 @@ public class ConsoleReports {
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
     private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), REDUCER);
 
-    private static final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = Comparator.comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
-            .thenComparing(Comparator.comparing(pair -> pair.getFirst().getSecond()));
+    private static final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
+            .thenComparing(comparing(pair -> pair.getFirst().getSecond()));
 
     private static <T, U, V> Pair<Pair<T, U>, V> ter(T t, U u, V v) {
         return of(of(t, u), v);
@@ -294,7 +295,7 @@ public class ConsoleReports {
                 .filter(predicate)
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
-                .sorted(Comparator.comparing(Investment::getInitialDate))
+                .sorted(comparing(Investment::getInitialDate))
                 .map(RealProfit::new)
                 .map(RealProfit::toString)
                 .forEach(this::appendLine);
@@ -419,11 +420,11 @@ public class ConsoleReports {
                     entry(of("house3", 23), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
                     entry(of("house5", 24), () -> me.houseIrrecoverableCosts(new YearMonth(2015, 8))),
                     entry(of("exp", 25), me::expenses),
-                    entry(of("saving", 26), () -> me.savingEvolution(null)),
+                    entry(of("saving", 26), me::savingEvolution),
                     entry(of("seq", 27), () -> me.savingEvolution("EQ")),
                     entry(of("sbo", 28), () -> me.savingEvolution("BO")),
                     entry(of("sliq", 29), () -> me.savingEvolution("LIQ")),
-                    entry(of("inc", 30), () -> me.incomeEvolution(null)),
+                    entry(of("inc", 30), me::incomeEvolution),
                     entry(of("lifia", 31), () -> me.incomeEvolution("lifia")),
                     entry(of("unlp", 32), () -> me.incomeEvolution("unlp")),
                     entry(of("desp", 33), () -> me.incomeEvolution("desp")),
@@ -440,7 +441,7 @@ public class ConsoleReports {
             if (params.contains("help")) {
                 System.out.println(actions.keySet()
                         .stream()
-                        .sorted(Comparator.comparing(Pair::getSecond))
+                        .sorted(comparing(Pair::getSecond))
                         .map(Pair::getFirst)
                         .collect(joining(", ")));
             } else {
@@ -448,7 +449,7 @@ public class ConsoleReports {
                 actions.entrySet()
                         .stream()
                         .filter(e -> params.isEmpty() || params.contains(e.getKey().getFirst().toLowerCase()))
-                        .sorted(Comparator.comparing(e -> e.getKey().getSecond()))
+                        .sorted(comparing(e -> e.getKey().getSecond()))
                         .map(Map.Entry::getValue)
                         .forEach(r -> {
                             r.run();
@@ -582,7 +583,7 @@ public class ConsoleReports {
         expenses.entrySet()
                 .stream()
                 .map(e -> of(e.getKey(), this.totalRealUSD(e.getValue(), limit).getAmount()))
-                .sorted(Comparator.comparing(Pair::getSecond))
+                .sorted(comparing(Pair::getSecond))
                 .forEach(e -> this.appendLine(e.getFirst(), " USD ", format("{0,number,currency} ", e.getSecond())));
     }
 
@@ -615,6 +616,10 @@ public class ConsoleReports {
                 limit.getMonth());
     }
 
+    private MoneyAmountSeries realSavings() {
+        return this.realSavings(null);
+    }
+    
     private MoneyAmountSeries realSavings(String type) {
 
         if (this.realUSDSavingsByType == null) {
@@ -660,6 +665,10 @@ public class ConsoleReports {
                 this.bar(mo.getAmount(), scale));
     }
 
+    private void savingEvolution() {
+        this.savingEvolution(null);
+    }
+    
     private void savingEvolution(String type) {
 
         var limit = USD_INFLATION.getTo();
@@ -674,7 +683,7 @@ public class ConsoleReports {
         var limit = USD_INFLATION.getTo();
 
         new SimpleAggregation(2)
-                .change(this.realSavings(null))
+                .change(this.realSavings())
                 .forEach((ym, ma) -> this.evolutionReport(ym, ma, 100));
 
         appendLine("\nSavings change real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
@@ -699,6 +708,10 @@ public class ConsoleReports {
                 .get();
     }
 
+    private void incomeEvolution() {
+        this.incomeEvolution(null);
+    }
+    
     private void incomeEvolution(String type) {
 
         final var limit = USD_INFLATION.getTo();
@@ -770,12 +783,12 @@ public class ConsoleReports {
         this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", new TypeReference<List<SP500HistoricalReturn>>() {
         })
                 .stream()
-                .sorted(Comparator.comparing(SP500HistoricalReturn::getYear))
+                .sorted(comparing(SP500HistoricalReturn::getYear))
                 .map(SP500HistoricalReturn::getTotalReturn)
                 .map(r -> BigDecimal.ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
                 .collect(toList());
 
-        final var todaySavings = this.realSavings(null).getAmount(Inflation.USD_INFLATION.getTo());
+        final var todaySavings = this.realSavings().getAmount(Inflation.USD_INFLATION.getTo());
 
         final var invested = this.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
 
@@ -838,7 +851,7 @@ public class ConsoleReports {
 
         var periods = IntStream.range(0, this.sp500TotalReturns.size() - years + 1)
                 .mapToObj(start -> this.sp500TotalReturns.stream().skip(start).limit(years).collect(toList()))
-                .sorted(Comparator.comparing(this::sum))
+                .sorted(comparing(this::sum))
                 .collect(toList());
 
         periods = periods.stream()
