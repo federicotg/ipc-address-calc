@@ -22,7 +22,7 @@ import java.math.BigDecimal;
  *
  * @author fede
  */
-public class SP500HistoricalReturn {
+public class AnnualHistoricalReturn {
 
     private int year;
     private BigDecimal totalReturn;

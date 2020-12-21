@@ -63,7 +63,7 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.SP500HistoricalReturn;
+import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
 
@@ -79,6 +79,12 @@ public class ConsoleReports {
     private static final BigDecimal STAMP_TAX = new BigDecimal("0.018");
     private static final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
     private static final BigDecimal NOTARY_FEE = new BigDecimal("0.02").multiply(new BigDecimal("1.21", DECIMAL64));
+
+    private static final BigDecimal RUSSELL2000_PCT = new BigDecimal("0.1");
+    private static final BigDecimal SP500_PCT = new BigDecimal("0.7");
+    private static final BigDecimal EIMI_PCT = new BigDecimal("0.1");
+    private static final BigDecimal MEUD_PCT = new BigDecimal("0.1");
+
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
@@ -96,6 +102,7 @@ public class ConsoleReports {
     private final List<Investment> investments;
 
     private List<BigDecimal> sp500TotalReturns;
+    private List<BigDecimal> russell2000TotalReturns;
     private Map<String, List<MoneyAmountSeries>> realUSDSavingsByType;
 
     private final StringBuilder out;
@@ -786,19 +793,25 @@ public class ConsoleReports {
             final BigDecimal buySellFee,
             final BigDecimal extraCash) {
 
-        this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", new TypeReference<List<SP500HistoricalReturn>>() {
+        this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", new TypeReference<List<AnnualHistoricalReturn>>() {
         })
                 .stream()
-                .sorted(comparing(SP500HistoricalReturn::getYear))
-                .map(SP500HistoricalReturn::getTotalReturn)
+                .sorted(comparing(AnnualHistoricalReturn::getYear))
+                .map(AnnualHistoricalReturn::getTotalReturn)
+                .map(r -> BigDecimal.ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
+                .collect(toList());
+
+        this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", new TypeReference<List<AnnualHistoricalReturn>>() {
+        })
+                .stream()
+                .sorted(comparing(AnnualHistoricalReturn::getYear))
+                .map(AnnualHistoricalReturn::getTotalReturn)
                 .map(r -> BigDecimal.ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
                 .collect(toList());
 
         final var todaySavings = this.realSavings().getAmount(Inflation.USD_INFLATION.getTo());
 
         final var invested = this.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
-
-        final var allPeriods = this.periods(periodYears);
 
         final var cash = todaySavings.getAmount()
                 .subtract(invested.getAmount(), DECIMAL64)
@@ -839,8 +852,13 @@ public class ConsoleReports {
                 .map(f -> f.multiply(withdraw, DECIMAL64))
                 .collect(toList());
 
+        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.85d);
+        final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 0.8d);
+        final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.75d);
+        final var allMEUDPeriods = this.periods(this.russell2000TotalReturns, periodYears, 0.70d);
+
         final var successes = IntStream.range(0, trials)
-                .mapToObj(i -> this.randomPeriods(allPeriods, periods))
+                .mapToObj(i -> this.balanceProportions(periods, allSP500Periods, allRussell2000Periods, allEIMIPeriods, allMEUDPeriods))
                 .filter(randomReturns -> this.goals(startingYear, 1978 + retirementAge, end, cash, investedAmount, randomReturns, realDeposits, realWithdrawals))
                 .count();
 
@@ -851,18 +869,38 @@ public class ConsoleReports {
 
     }
 
+    private List<BigDecimal> balanceProportions(int periods, 
+            List<List<BigDecimal>> allSP500Periods, 
+            List<List<BigDecimal>> allRussell2000Periods,
+            List<List<BigDecimal>> allEIMIPeriods,
+            List<List<BigDecimal>> allMEUDPeriods) {
+
+        final var sp500Periods = this.randomPeriods(allSP500Periods, periods);
+        final var russell2000Periods = this.randomPeriods(allRussell2000Periods, periods);
+        final var eimiPeriods = this.randomPeriods(allEIMIPeriods, periods);
+        final var meudPeriods = this.randomPeriods(allMEUDPeriods, periods);
+
+        return IntStream.range(0, sp500Periods.size())
+                .mapToObj(i
+                        -> sp500Periods.get(i).multiply(SP500_PCT, DECIMAL64)
+                        .add(russell2000Periods.get(i).multiply(RUSSELL2000_PCT, DECIMAL64), DECIMAL64)
+                        .add(meudPeriods.get(i).multiply(MEUD_PCT, DECIMAL64), DECIMAL64)
+                        .add(eimiPeriods.get(i).multiply(EIMI_PCT, DECIMAL64), DECIMAL64))
+                .collect(toList());
+    }
+
     /*
     saco el 10%  mejor
      */
-    private List<List<BigDecimal>> periods(final int years) {
+    private List<List<BigDecimal>> periods(List<BigDecimal> returns, final int years, double keepWorsePct) {
 
-        var periods = IntStream.range(0, this.sp500TotalReturns.size() - years + 1)
-                .mapToObj(start -> this.sp500TotalReturns.stream().skip(start).limit(years).collect(toList()))
+        var periods = IntStream.range(0, returns.size() - years + 1)
+                .mapToObj(start -> returns.stream().skip(start).limit(years).collect(toList()))
                 .sorted(comparing(this::sum))
                 .collect(toList());
 
         periods = periods.stream()
-                .limit(Math.round(periods.size() * 0.9d))
+                .limit(Math.round(periods.size() * keepWorsePct))
                 .collect(toList());
 
         return periods;
