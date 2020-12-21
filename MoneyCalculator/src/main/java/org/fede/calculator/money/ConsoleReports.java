@@ -793,25 +793,28 @@ public class ConsoleReports {
             final BigDecimal buySellFee,
             final BigDecimal extraCash) {
 
-        this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", new TypeReference<List<AnnualHistoricalReturn>>() {
-        })
+        final var tr = new TypeReference<List<AnnualHistoricalReturn>>() {
+        };
+        
+        this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", tr)
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(AnnualHistoricalReturn::getTotalReturn)
                 .map(r -> BigDecimal.ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
                 .collect(toList());
 
-        this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", new TypeReference<List<AnnualHistoricalReturn>>() {
-        })
+        this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", tr)
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(AnnualHistoricalReturn::getTotalReturn)
                 .map(r -> BigDecimal.ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
                 .collect(toList());
 
-        final var todaySavings = this.realSavings().getAmount(Inflation.USD_INFLATION.getTo());
+        final var to = Inflation.USD_INFLATION.getTo();
+        
+        final var todaySavings = this.realSavings().getAmount(to);
 
-        final var invested = this.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
+        final var invested = this.realSavings("EQ").getAmount(to);
 
         final var cash = todaySavings.getAmount()
                 .subtract(invested.getAmount(), DECIMAL64)
@@ -833,7 +836,7 @@ public class ConsoleReports {
                 ", retiring at ", String.valueOf(retirementAge)
         );
 
-        final int startingYear = Inflation.USD_INFLATION.getTo().getYear();
+        final int startingYear = to.getYear();
         final var end = 2078;
         final var yearsLeft = end - startingYear + 1;
 
