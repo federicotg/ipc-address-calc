@@ -453,7 +453,7 @@ public class ConsoleReports {
                                         .filter(action -> !"goal".equals(action.getFirst()))
                                         .sorted(comparing(Pair::getSecond))
                                         .map(Pair::getFirst),
-                                Stream.of("goal [trials period retirement w d inflation cash]")
+                                Stream.of("goal [trials period retirement w d inflation cash sp500]")
                         ).collect(joining(" ")));
             } else {
 
