@@ -776,11 +776,12 @@ public class ConsoleReports {
         final var inflation = Integer.parseInt(params.getOrDefault("inflation", "2"));
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "65"));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", "0"));
+        final var onlySP50 = Boolean.parseBoolean(params.getOrDefault("sp500", "false"));
 
         final var buySellFee = ONE.setScale(6)
                 .add(new BigDecimal("0.006").multiply(new BigDecimal("1.21", DECIMAL64)));
 
-        this.goal(trials, periodYears, deposit, withdraw, inflation, retirementAge, buySellFee, BigDecimal.valueOf(extraCash));
+        this.goal(trials, periodYears, deposit, withdraw, inflation, retirementAge, buySellFee, BigDecimal.valueOf(extraCash), onlySP50);
     }
 
     private void goal(
@@ -791,11 +792,12 @@ public class ConsoleReports {
             final int inflation,
             final int retirementAge,
             final BigDecimal buySellFee,
-            final BigDecimal extraCash) {
+            final BigDecimal extraCash,
+            final boolean onlySP500) {
 
         final var tr = new TypeReference<List<AnnualHistoricalReturn>>() {
         };
-        
+
         this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", tr)
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
@@ -811,7 +813,7 @@ public class ConsoleReports {
                 .collect(toList());
 
         final var to = Inflation.USD_INFLATION.getTo();
-        
+
         final var todaySavings = this.realSavings().getAmount(to);
 
         final var invested = this.realSavings("EQ").getAmount(to);
@@ -861,7 +863,7 @@ public class ConsoleReports {
         final var allMEUDPeriods = this.periods(this.russell2000TotalReturns, periodYears, 0.70d);
 
         final var successes = IntStream.range(0, trials)
-                .mapToObj(i -> this.balanceProportions(periods, allSP500Periods, allRussell2000Periods, allEIMIPeriods, allMEUDPeriods))
+                .mapToObj(i -> this.balanceProportions(periods, allSP500Periods, allRussell2000Periods, allEIMIPeriods, allMEUDPeriods, onlySP500))
                 .filter(randomReturns -> this.goals(startingYear, 1978 + retirementAge, end, cash, investedAmount, randomReturns, realDeposits, realWithdrawals))
                 .count();
 
@@ -872,16 +874,23 @@ public class ConsoleReports {
 
     }
 
-    private List<BigDecimal> balanceProportions(int periods, 
-            List<List<BigDecimal>> allSP500Periods, 
+    private List<BigDecimal> balanceProportions(int periods,
+            List<List<BigDecimal>> allSP500Periods,
             List<List<BigDecimal>> allRussell2000Periods,
             List<List<BigDecimal>> allEIMIPeriods,
-            List<List<BigDecimal>> allMEUDPeriods) {
+            List<List<BigDecimal>> allMEUDPeriods,
+            boolean onlySP500) {
 
         final var sp500Periods = this.randomPeriods(allSP500Periods, periods);
-        final var russell2000Periods = this.randomPeriods(allRussell2000Periods, periods);
-        final var eimiPeriods = this.randomPeriods(allEIMIPeriods, periods);
-        final var meudPeriods = this.randomPeriods(allMEUDPeriods, periods);
+        final var russell2000Periods = onlySP500
+                ? sp500Periods
+                : this.randomPeriods(allRussell2000Periods, periods);
+        final var eimiPeriods = onlySP500
+                ? sp500Periods
+                : this.randomPeriods(allEIMIPeriods, periods);
+        final var meudPeriods = onlySP500
+                ? sp500Periods
+                : this.randomPeriods(allMEUDPeriods, periods);
 
         return IntStream.range(0, sp500Periods.size())
                 .mapToObj(i
