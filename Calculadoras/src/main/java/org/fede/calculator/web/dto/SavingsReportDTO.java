@@ -95,13 +95,6 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
         this.real.getDollars().setAmount(nov99Dollars);
     }
 
-    public BigDecimal getNov99Pesos() {
-        return this.real.getPesos().getAmount();
-    }
-
-    public void setNov99Pesos(BigDecimal nov99Pesos) {
-        this.real.getPesos().setAmount(nov99Pesos);
-    }
 
     public BigDecimal getTotalNov99Dollars() {
         return this.real.getTotalDollars().getAmount();
@@ -109,14 +102,6 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
 
     public void setTotalNov99Dollars(BigDecimal totalNov99Dollars) {
         this.real.getTotalDollars().setAmount(totalNov99Dollars);
-    }
-
-    public BigDecimal getTotalNov99Pesos() {
-        return this.real.getTotalPesos().getAmount();
-    }
-
-    public void setTotalNov99Pesos(BigDecimal totalNov99Pesos) {
-        this.real.getTotalPesos().setAmount(totalNov99Pesos);
     }
 
     public BigDecimal getPesosForDollarPctVar() {
@@ -151,14 +136,6 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
         this.real.getTotalDollars().setVariation(totalNov99DollarsPctVar);
     }
 
-    public BigDecimal getTotalNov99PesosPctVar() {
-        return this.real.getTotalPesos().getVariation();
-    }
-
-    public void setTotalNov99PesosPctVar(BigDecimal totalNov99PesosPctVar) {
-        this.real.getTotalPesos().setVariation(totalNov99PesosPctVar);
-    }
-
     public BigDecimal getNominalIncomePesos() {
         return this.nominal.getIncomePesos().getAmount();
     }
@@ -175,28 +152,12 @@ public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
         this.nominal.getIncomeDollars().setAmount(nominalIncomeDollars);
     }
 
-    public BigDecimal getNov99IncomePesos() {
-        return this.real.getIncomePesos().getAmount();
-    }
-
-    public void setNov99IncomePesos(BigDecimal nov99IncomePesos) {
-        this.real.getIncomePesos().setAmount(nov99IncomePesos);
-    }
-
     public BigDecimal getNov99IncomeDollars() {
         return this.real.getIncomeDollars().getAmount();
     }
 
     public void setNov99IncomeDollars(BigDecimal nov99IncomeDollars) {
         this.real.getIncomeDollars().setAmount(nov99IncomeDollars);
-    }
-
-    public BigDecimal getNov99PesosPctSaved() {
-        return this.real.getPesosSaved();
-    }
-
-    public void setNov99PesosPctSaved(BigDecimal nov99PesosPctSaved) {
-        this.real.setPesosSaved(nov99PesosPctSaved);
     }
 
     public BigDecimal getNov99DollarPctSaved() {

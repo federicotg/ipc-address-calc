@@ -33,7 +33,6 @@ import static java.util.stream.Collectors.reducing;
 import org.fede.calculator.money.Aggregation;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
-import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MathConstants;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
@@ -65,7 +64,6 @@ public class InvestmentServiceImpl implements InvestmentService {
 
     static {
         MAP.put("USD", USD_INFLATION);
-        MAP.put("ARS", ARS_INFLATION);
     }
 
     private final List<ExpenseChartSeriesDTO> incomeSeries;
@@ -96,7 +94,6 @@ public class InvestmentServiceImpl implements InvestmentService {
         final MoneyAmountSeries nominalIncomePesos = sumSeries("ARS", this.incomeSeries);
 
         final Aggregation yearSum = new SimpleAggregation(12);
-        final MoneyAmountSeries nov99IncomePesos12 = yearSum.sum(ARS_INFLATION.adjust(nominalIncomePesos, toYear, toMonth));
 
         final MoneyAmountSeries nominalIncomeDollars = nominalIncomePesos.exchangeInto("USD");
         final MoneyAmountSeries nov99IncomeDollars12 = yearSum.sum(USD_INFLATION.adjust(nominalIncomeDollars, toYear, toMonth));
@@ -120,10 +117,8 @@ public class InvestmentServiceImpl implements InvestmentService {
             dto.setNominalPesos(ars.getAmount());
 
             MoneyAmount nov99Usd = USD_INFLATION.adjust(usd, year, month, toYear, toMonth);
-            MoneyAmount nov99Ars = ARS_INFLATION.adjust(ars, year, month, toYear, toMonth);
 
             dto.setNov99Dollars(nov99Usd.getAmount());
-            dto.setNov99Pesos(nov99Ars.getAmount());
 
             MoneyAmount totNominalUSD = usd.add(ForeignExchanges.USD_ARS.exchange(ars, "USD", year, month));
 
@@ -133,13 +128,11 @@ public class InvestmentServiceImpl implements InvestmentService {
             dto.setTotalNominalPesos(totNominalARS.getAmount());
 
             dto.setTotalNov99Dollars(USD_INFLATION.adjust(totNominalUSD, year, month, toYear, toMonth).getAmount());
-            dto.setTotalNov99Pesos(ARS_INFLATION.adjust(totNominalARS, year, month, toYear, toMonth).getAmount());
 
             dto.setPesosForDollar(dollarPrice.getIndex(year, month));
 
             dto.setNominalIncomePesos(nominalIncomePesos12.getAmount(yearMonth).getAmount());
             dto.setNominalIncomeDollars(nominalIncomeDollars12.getAmount(yearMonth).getAmount());
-            dto.setNov99IncomePesos(nov99IncomePesos12.getAmount(yearMonth).getAmount());
             dto.setNov99IncomeDollars(nov99IncomeDollars12.getAmount(yearMonth).getAmount());
 
             if (report.size() > 12) {
@@ -151,10 +144,10 @@ public class InvestmentServiceImpl implements InvestmentService {
                 dto.setTotalNominalPesosPctVar(pctChange(dto.getTotalNominalPesos(), otherDto.getTotalNominalPesos()));
 
                 dto.setTotalNov99DollarsPctVar(pctChange(dto.getTotalNov99Dollars(), otherDto.getTotalNov99Dollars()));
-                dto.setTotalNov99PesosPctVar(pctChange(dto.getTotalNov99Pesos(), otherDto.getTotalNov99Pesos()));
+
 
                 dto.setNominalPesosPctSaved(savingsPct(dto.getTotalNominalPesos(), otherDto.getTotalNominalPesos(), dto.getNominalIncomePesos()));
-                dto.setNov99PesosPctSaved(savingsPct(dto.getTotalNov99Pesos(), otherDto.getTotalNov99Pesos(), dto.getNov99IncomePesos()));
+
                 dto.setNominalDollarPctSaved(savingsPct(dto.getTotalNominalDollars(), otherDto.getTotalNominalDollars(), dto.getNominalIncomeDollars()));
                 dto.setNov99DollarPctSaved(savingsPct(dto.getTotalNov99Dollars(), otherDto.getTotalNov99Dollars(), dto.getNov99IncomeDollars()));
             }

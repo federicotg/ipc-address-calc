@@ -25,7 +25,6 @@ import java.util.List;
 public class CombinedChartDTO extends MonthGroupingChartDTO {
 
     private boolean pn = false;
-    private boolean pr = true;
     private boolean dn = true;
     private boolean dr = true;
     private boolean en = true;
@@ -45,14 +44,6 @@ public class CombinedChartDTO extends MonthGroupingChartDTO {
 
     public void setPn(boolean pn) {
         this.pn = pn;
-    }
-
-    public boolean isPr() {
-        return pr;
-    }
-
-    public void setPr(boolean pr) {
-        this.pr = pr;
     }
 
     public boolean isDn() {

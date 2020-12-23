@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
@@ -45,7 +44,6 @@ import org.fede.util.Util;
 public class CanvasJSChartService implements ChartService {
 
     public CanvasJSChartService(
-            CanvasJSDatapointAssembler realPesosDatapointAssembler,
             CanvasJSDatapointAssembler nominalPesosDatapointAssembler,
             CanvasJSDatapointAssembler realUSDDatapointAssembler,
             CanvasJSDatapointAssembler nominalUSDDatapointAssembler,
@@ -55,7 +53,6 @@ public class CanvasJSChartService implements ChartService {
             List<ExpenseChartSeriesDTO> savingsSeries,
             List<String> colors,
             Map<Integer, String> monthNames) {
-        this.realPesosDatapointAssembler = realPesosDatapointAssembler;
         this.nominalPesosDatapointAssembler = nominalPesosDatapointAssembler;
         this.realUSDDatapointAssembler = realUSDDatapointAssembler;
         this.nominalUSDDatapointAssembler = nominalUSDDatapointAssembler;
@@ -66,8 +63,6 @@ public class CanvasJSChartService implements ChartService {
         this.colors = colors;
         this.monthNames = monthNames;
     }
-
-    private final CanvasJSDatapointAssembler realPesosDatapointAssembler;
 
     private final CanvasJSDatapointAssembler nominalPesosDatapointAssembler;
 
@@ -91,7 +86,6 @@ public class CanvasJSChartService implements ChartService {
     public CanvasJSChartDTO combinedIncomes(
             int months,
             boolean pn,
-            boolean pr,
             boolean dn,
             boolean dr,
             boolean en,
@@ -114,13 +108,12 @@ public class CanvasJSChartService implements ChartService {
             }
         }
         return this.createCombinedChart(sb.toString(), combinedSeries,
-                months, pn, pr, dn, dr, en, er, year, month);
+                months, pn, dn, dr, en, er, year, month);
     }
 
     @Override
     public CanvasJSChartDTO savings(
             boolean pn,
-            boolean pr,
             boolean dn,
             boolean dr,
             boolean en,
@@ -143,7 +136,7 @@ public class CanvasJSChartService implements ChartService {
         return this.createCombinedChart(
                 "Ahorros",
                 savingsSum,
-                1, pn, pr, dn, dr, en, er,
+                1, pn, dn, dr, en, er,
                 year, month);
     }
 
@@ -152,7 +145,6 @@ public class CanvasJSChartService implements ChartService {
             MoneyAmountSeries series,
             int months,
             boolean pn,
-            boolean pr,
             boolean dn,
             boolean dr,
             boolean en,
@@ -169,9 +161,7 @@ public class CanvasJSChartService implements ChartService {
         dto.setAxisY(yAxis);
 
         List<CanvasJSDatumDTO> seriesList = new ArrayList<>(6);
-        if (pr) {
-            seriesList.add(this.getDatum("line", colors.get(0), "Pesos Reales", this.realPesosDatapointAssembler.getDatapoints(months, series, year, month)));
-        }
+        
         if (pn) {
             seriesList.add(this.getDatum("line", colors.get(1), "Pesos Nominales", this.nominalPesosDatapointAssembler.getDatapoints(months, series)));
         }
@@ -311,43 +301,6 @@ public class CanvasJSChartService implements ChartService {
 
         return dto;
 
-    }
-
-    @Override
-    public CanvasJSChartDTO hisotricDollar() {
-        YearMonth latestData = Inflation.USD_INFLATION.getTo();
-        final int todayMonth = latestData.getMonth();
-        final int todayYear = latestData.getYear();
-        final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
-
-        /**
-         * - tomo USD 1.00, - lo ajusto por la inflación de USA y obtengo una
-         * serie, - cada valor de la serie lo paso a pesos según valor dolar de
-         * cada momento, - cada valor lo paso a pesos de hoy.
-         *
-         */
-        MoneyAmountSeries usdSeries = USD_INFLATION.adjust(oneDollar, todayYear, todayMonth);
-
-        final MoneyAmountSeries historicDollar = ARS_INFLATION.adjust(
-                ForeignExchanges.USD_ARS.exchange(
-                        usdSeries, "ARS"), todayYear, todayMonth);
-
-        CanvasJSChartDTO dto = new CanvasJSChartDTO();
-        CanvasJSTitleDTO title = new CanvasJSTitleDTO("Dólar en Pesos de " + this.monthNames.get(todayMonth) + "/" + todayYear);
-        dto.setTitle(title);
-        dto.setXAxisTitle("Año");
-        CanvasJSAxisDTO yAxis = new CanvasJSAxisDTO();
-        yAxis.setValueFormatString("$0");
-        yAxis.setTitle("Pesos Reales");
-        dto.setAxisY(yAxis);
-
-        List<CanvasJSDatumDTO> seriesList = new ArrayList<>(1);
-        dto.setData(seriesList);
-
-        final List<CanvasJSDatapointDTO> datapoints = new ArrayList<>();
-        historicDollar.forEach(new CanvasJSMoneyAmountProcessor(datapoints));
-        seriesList.add(this.getDatum("area", this.colors.get(0), "Dólar", datapoints));
-        return dto;
     }
 
     @Override

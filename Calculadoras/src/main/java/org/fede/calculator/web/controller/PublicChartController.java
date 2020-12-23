@@ -60,13 +60,6 @@ public class PublicChartController {
         return "publicCharts";
     }
 
-    @RequestMapping(value = "realPesosForDollar", method = GET)
-    public ModelAndView realDollarPrice() {
-        return new ModelAndView("simpleChart")
-                .addObject("uri", "realPesosForDollarChart")
-                .addObject("title", "Dólar en Pesos Reales");
-    }
-
     @RequestMapping(value = "realDollarsForTroyOunce", method = GET)
     public ModelAndView realGoldPrice() {
         return new ModelAndView("simpleChart")
@@ -74,11 +67,6 @@ public class PublicChartController {
                 .addObject("title", "Oro en Dólares Reales");
     }
 
-    @ResponseBody
-    @RequestMapping(value = "realPesosForDollarChart", method = GET)
-    public CanvasJSChartDTO realPesosForDollarChart() {
-        return this.chartService.hisotricDollar();
-    }
 
     @ResponseBody
     @RequestMapping(value = "realDollarsForTroyOunceChart", method = GET)

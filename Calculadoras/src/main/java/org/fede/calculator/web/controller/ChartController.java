@@ -74,10 +74,6 @@ public class ChartController {
     @Lazy
     private MultiSeriesChartService savingsService;
 
-//    @Resource(name = "fciService")
-//    @Lazy
-//    private MultiSeriesChartService fciService;
-
     @Resource(name = "usdMoneyService")
     @Lazy
     private MoneyService referenceMoneyService;
@@ -264,7 +260,7 @@ public class ChartController {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
-        return this.chartService.combinedIncomes(dto.getMonths(), dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth(), dto.getSeries());
+        return this.chartService.combinedIncomes(dto.getMonths(), dto.isPn(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth(), dto.getSeries());
     }
 
     @ResponseBody
@@ -273,7 +269,7 @@ public class ChartController {
         if (errors.hasErrors()) {
             return this.notOkResponse();
         }
-        return this.chartService.savings(dto.isPn(), dto.isPr(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
+        return this.chartService.savings(dto.isPn(), dto.isDn(), dto.isDr(), dto.isEn(), dto.isEr(), dto.getYear(), dto.getMonth());
     }
 
     @ResponseBody
@@ -294,14 +290,6 @@ public class ChartController {
         return this.expenseService.renderAbsoluteChart("Gastos", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "USD");
     }
 
-//    @ResponseBody
-//    @RequestMapping(value = "fciChart", method = GET)
-//    public CanvasJSChartDTO fciChart(@ModelAttribute("dto") @Valid ExpenseChartDTO dto, BindingResult errors) {
-//        if (errors.hasErrors()) {
-//            return this.notOkResponse();
-//        }
-//        return this.fciService.renderAbsoluteChart("Consultatio Plus F.C.I.", dto.getMonths(), dto.getSeries(), dto.getYear(), dto.getMonth(), "USD");
-//    }
 
     @ResponseBody
     @RequestMapping(value = "savingsDetailChart", method = GET)

@@ -48,7 +48,6 @@
                 }
 
                 var pn = document.getElementById('pn').checked;
-                var pr = document.getElementById('pr').checked;
                 var dn = document.getElementById('dn').checked;
                 var dr = document.getElementById('dr').checked;
                 var en = document.getElementById('en').checked;
@@ -72,7 +71,6 @@
                 showChart('/secure/${uri}.json',
                         (m ? 'months=' + m : '')
                         + '&pn=' + pn
-                        + '&pr=' + pr
                         + '&dn=' + dn
                         + '&dr=' + dr
                         + '&en=' + en
@@ -109,7 +107,6 @@
             </c:if>
             <fieldset>
                 <form:checkbox id="pn" path="pn" onchange="reloadChart()"/><label for="pn">Pesos Nominales</label>
-                <form:checkbox id="pr" path="pr" onchange="reloadChart()"/><label for="pr">Pesos Reales</label>
                 <form:checkbox id="dn" path="dn" onchange="reloadChart()"/><label for="dn">Dólares Nominales</label>
                 <form:checkbox id="dr" path="dr" onchange="reloadChart()"/><label for="dr">Dólares Reales</label>
                 <form:checkbox id="en" path="en" onchange="reloadChart()"/><label for="en">Euros Nominales</label>

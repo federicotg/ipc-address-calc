@@ -32,7 +32,6 @@
         <%@include file="../jspf/menu.jspf" %>
         <h1>Visualización de Datos</h1>
         <ul>
-            <li><a href="realPesosForDollar">Dólar Histórico</a></li>
             <li><a href="realDollarsForTroyOunce">Oro Histórico</a></li>
         </ul>
     </body>

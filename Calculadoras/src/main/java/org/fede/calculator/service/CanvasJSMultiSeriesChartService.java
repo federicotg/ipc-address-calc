@@ -44,8 +44,6 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
 
     private static final String TOTAL_SERIES_NAME = "Total";
 
-    private final CanvasJSDatapointAssembler realPesosDatapointAssembler;
-
     private final CanvasJSDatapointAssembler realUSDDatapointAssembler;
 
     private final CanvasJSDatapointAssembler nominalPesosDatapointAssembler;
@@ -57,7 +55,6 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
     private final List<String> colors;
 
     public CanvasJSMultiSeriesChartService(
-            CanvasJSDatapointAssembler realPesosAssembler,
             CanvasJSDatapointAssembler realUSDAssembler,
             CanvasJSDatapointAssembler nominalPesosAssembler,
             List<ExpenseChartSeriesDTO> incomeSeries,
@@ -67,7 +64,6 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
         this.colors = colors;
         this.incomeSeries = incomeSeries;
         this.series = series;
-        this.realPesosDatapointAssembler = realPesosAssembler;
         this.realUSDDatapointAssembler = realUSDAssembler;
     }
 
@@ -88,7 +84,6 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
         Map<String, CanvasJSDatapointAssembler> assemblers = new HashMap<>();
 
         assemblers.put("USD", realUSDDatapointAssembler);
-        assemblers.put("ARS", realPesosDatapointAssembler);
 
         return assemblers.get(currency);
     }

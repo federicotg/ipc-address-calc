@@ -28,7 +28,6 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
-import org.fede.calculator.service.ARGMoneyService;
 import org.fede.calculator.service.CanvasJSChartService;
 import org.fede.calculator.service.CanvasJSDatapointAssembler;
 import org.fede.calculator.service.CanvasJSMultiSeriesChartService;
@@ -43,7 +42,6 @@ import org.fede.calculator.service.MoneyService;
 import org.fede.calculator.service.MultiSeriesChartService;
 import org.fede.calculator.service.NominalCanvasJSDatapointAssembler;
 import org.fede.calculator.service.RealEURCanvasJSDatapointAssembler;
-import org.fede.calculator.service.RealPesosCanvasJSDatapointAssembler;
 import org.fede.calculator.service.RealUSDCanvasJSDatapointAssembler;
 import org.fede.calculator.service.USDMoneyService;
 import org.fede.calculator.web.dto.ExpenseChartSeriesDTO;
@@ -180,11 +178,6 @@ public class AppConfig {
     }
 
     @Bean
-    public CanvasJSDatapointAssembler realPesosDatapointAssembler() {
-        return new RealPesosCanvasJSDatapointAssembler();
-    }
-
-    @Bean
     public CanvasJSDatapointAssembler realUSDDatapointAssembler() {
         return new RealUSDCanvasJSDatapointAssembler();
     }
@@ -241,7 +234,6 @@ public class AppConfig {
     @Bean
     public MultiSeriesChartService savingsService() {
         return new CanvasJSMultiSeriesChartService(
-                this.realPesosDatapointAssembler(),
                 this.realUSDDatapointAssembler(),
                 this.nominalPesosDatapointAssembler(),
                 this.incomesSeries(),
@@ -252,7 +244,6 @@ public class AppConfig {
     @Bean
     public MultiSeriesChartService consortiumExpensesService() {
         return new CanvasJSMultiSeriesChartService(
-                this.realPesosDatapointAssembler(),
                 this.realUSDDatapointAssembler(),
                 this.nominalPesosDatapointAssembler(),
                 this.incomesSeries(),
@@ -263,7 +254,6 @@ public class AppConfig {
     @Bean
     public MultiSeriesChartService expensesService() {
         return new CanvasJSMultiSeriesChartService(
-                this.realPesosDatapointAssembler(),
                 this.realUSDDatapointAssembler(),
                 this.nominalPesosDatapointAssembler(),
                 this.incomesSeries(),
@@ -274,7 +264,6 @@ public class AppConfig {
     @Bean
     public MultiSeriesChartService incomesService() {
         return new CanvasJSMultiSeriesChartService(
-                this.realPesosDatapointAssembler(),
                 this.realUSDDatapointAssembler(),
                 this.nominalPesosDatapointAssembler(),
                 this.incomesSeries(),
@@ -324,22 +313,15 @@ public class AppConfig {
     }
 
     @Bean
-    public MoneyService argMoneyService() {
-        return new ARGMoneyService();
-    }
-
-    @Bean
     public Map<String, MoneyService> moneyServices() {
         Map<String, MoneyService> map = new HashMap<>();
         map.put("USD", this.usdMoneyService());
-        map.put("ARS", this.argMoneyService());
         return map;
     }
 
     @Bean
     public ChartService canvasJSChartService() {
         return new CanvasJSChartService(
-                this.realPesosDatapointAssembler(),
                 this.nominalPesosDatapointAssembler(),
                 this.realUSDDatapointAssembler(),
                 this.nominalUSDDatapointAssembler(),

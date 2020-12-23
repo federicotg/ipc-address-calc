@@ -29,6 +29,9 @@ import java.util.List;
  */
 public class JSONBlsCPISource implements BlsCPISource {
 
+    private static final TypeReference<List<BlsResponse>> TR = new TypeReference<>() {
+    };
+
     private final String name;
     private List<BlsResponse> list;
 
@@ -40,8 +43,7 @@ public class JSONBlsCPISource implements BlsCPISource {
     public BlsResponse getResponse(int year) throws IOException {
         if (this.list == null) {
             try (InputStream in = new FileInputStream(System.getProperty("user.home") + "/Sync/app-resources/" + name)) {
-                this.list = new ObjectMapper().readValue(in, new TypeReference<List<BlsResponse>>() {
-                });
+                this.list = new ObjectMapper().readValue(in, TR);
             }
         }
 

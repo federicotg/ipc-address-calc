@@ -46,10 +46,6 @@ public class MoneyCalculator {
 
     private static final Logger LOG = Logger.getLogger(MoneyCalculator.class.getName());
 
-    @Resource(name = "argMoneyService")
-    @Lazy
-    private MoneyService arsMoneyService;
-
     @Resource(name = "usdMoneyService")
     @Lazy
     private MoneyService usdMoneyService;
@@ -72,7 +68,7 @@ public class MoneyCalculator {
     public ModelAndView showMoneyForm() {
         return new ModelAndView(
                 "money",
-                "limits", Arrays.asList(new CurrencyLimitsDTO[]{usdMoneyService.getLimits(), arsMoneyService.getLimits()}))
+                "limits", Arrays.asList(new CurrencyLimitsDTO[]{usdMoneyService.getLimits()}))
                 .addObject("dto", new MoneyDTO());
     }
 

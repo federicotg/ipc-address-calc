@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import java.util.Date;
 import org.fede.calculator.money.series.DollarCPISeries;
-import org.fede.calculator.money.series.IndexSeriesSupport;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -32,7 +31,6 @@ import org.fede.calculator.money.series.YearMonth;
 public interface Inflation extends Series {
 
     public static final Inflation USD_INFLATION = new CPIInflation(new DollarCPISeries(), "USD");
-    public static final Inflation ARS_INFLATION = new CPIInflation(IndexSeriesSupport.CONSTANT_SERIES, "ARS"); //new ArgentinaInflation();
 
     /**
      * Ajusta por inflación un monto.

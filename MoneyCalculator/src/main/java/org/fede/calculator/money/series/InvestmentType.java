@@ -60,7 +60,7 @@ public enum InvestmentType {
     ETF {
         @Override
         public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {
-            return Set.of("CSPX").contains(asset.getCurrency());
+            return Set.of("CSPX", "MEUD", "EIMI", "XRSU").contains(asset.getCurrency());
         }
     };
 

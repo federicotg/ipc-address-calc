@@ -25,17 +25,15 @@ import org.fede.calculator.web.dto.CanvasJSChartDTO;
  */
 public interface ChartService {
 
-    CanvasJSChartDTO savings(boolean pn, boolean pr, boolean dn, boolean dr, boolean en, boolean er, int year, int month);
+    CanvasJSChartDTO savings(boolean pn, boolean dn, boolean dr, boolean en, boolean er, int year, int month);
 
     CanvasJSChartDTO goldIncomeAndSavings();
 
     CanvasJSChartDTO savedSalaries();
 
-    CanvasJSChartDTO hisotricDollar();
-
     CanvasJSChartDTO historicGold();
 
-    CanvasJSChartDTO combinedIncomes(int months, boolean pn, boolean pr, boolean dn, boolean dr, boolean en, boolean er,
+    CanvasJSChartDTO combinedIncomes(int months, boolean pn, boolean dn, boolean dr, boolean en, boolean er,
             int year, int month, List<String> seriesNames);
 
     CanvasJSChartDTO savingsAndIncomeEvolution();

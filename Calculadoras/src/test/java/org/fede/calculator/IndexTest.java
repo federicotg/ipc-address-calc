@@ -23,7 +23,6 @@ import java.text.MessageFormat;
 import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.ForeignExchanges.getForeignExchange;
 import org.fede.calculator.money.Inflation;
-import static org.fede.calculator.money.Inflation.ARS_INFLATION;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -107,33 +106,6 @@ public class IndexTest {
                 //System.out.println(MessageFormat.format("{0}{1}\t{2}", String.valueOf(year), month, amount.getAmount()));
             //}
         //});
-    }
-
-       
-    // @Test
-    public void historicDollar()  {
-
-        YearMonth latestData = Inflation.USD_INFLATION.getTo();
-        final int todayMonth = latestData.getMonth();
-        final int todayYear = latestData.getYear();
-        final MoneyAmount oneDollar = new MoneyAmount(BigDecimal.ONE, "USD");
-        final String ars = "ARS";
-
-        final MoneyAmountSeries historicDollar = ARS_INFLATION.adjust(
-                ForeignExchanges.USD_ARS.exchange(
-                        USD_INFLATION.adjust(oneDollar, todayYear, todayMonth), ars), todayYear, todayMonth);
-
-        YearMonth comparisonYM = new YearMonth(2004, 1);
-
-        MoneyAmount oneDollarInDollarInComparisonYM = ARS_INFLATION.adjust(
-                ForeignExchanges.getForeignExchange(oneDollar.getCurrency(), ars).exchange(
-                USD_INFLATION.adjust(oneDollar, latestData.getYear(), latestData.getMonth(), comparisonYM.getYear(), comparisonYM.getMonth()),
-                ars, comparisonYM.getYear(), comparisonYM.getMonth()),
-                comparisonYM.getYear(), comparisonYM.getMonth(),
-                todayYear, todayMonth);
-
-        assertEquals(oneDollarInDollarInComparisonYM, historicDollar.getAmount(comparisonYM));
-
     }
 
   

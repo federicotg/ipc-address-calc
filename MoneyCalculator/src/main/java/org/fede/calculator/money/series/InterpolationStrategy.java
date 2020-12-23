@@ -42,11 +42,6 @@ public enum InterpolationStrategy {
         public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
             return new MoneyAmount(BigDecimal.ZERO, currency);
         }
-    }, ARS_INFLATION_INTERPOLATION {
-        @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
-            return inflationInterpolation(Inflation.ARS_INFLATION, lastValue, lastValueYearMonth, currency);
-        }
     }, USD_INFLATION_INTERPOLATION {
         @Override
         public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
