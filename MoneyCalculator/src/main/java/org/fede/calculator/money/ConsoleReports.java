@@ -85,6 +85,8 @@ public class ConsoleReports {
     private static final BigDecimal EIMI_PCT = new BigDecimal("0.1");
     private static final BigDecimal MEUD_PCT = new BigDecimal("0.1");
 
+    private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
+
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
@@ -265,10 +267,6 @@ public class ConsoleReports {
         this.pastInvestmentsRealProfit("USD", BONO);
     }
 
-    private void currentInvestmentsRealProfit() {
-        this.currentInvestmentsRealProfit(null, null);
-    }
-
     private void pastInvestmentsRealProfit() {
         this.investmentsRealProfit(null, null, Investment::isPast, true);
     }
@@ -343,16 +341,8 @@ public class ConsoleReports {
         out.println(this.out.toString());
     }
 
-    private void income() {
-        this.income(3);
-        this.appendLine("");
-        this.income(6);
-        this.appendLine("");
-        this.income(12);
-        this.appendLine("");
-        this.income(18);
-        this.appendLine("");
-        this.income(24);
+    private void income(String[] args, String paramName) {
+        this.income(Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "12")));
 
         final var limit = USD_INFLATION.getTo();
 
@@ -363,7 +353,6 @@ public class ConsoleReports {
                         .flatMap(MoneyAmountSeries::moneyAmountStream)
                         .collect(reducing(MoneyAmount::add))
                         .orElse(new MoneyAmount(ZERO, "USD")).getAmount()));
-
     }
 
     private void income(int months) {
@@ -410,16 +399,11 @@ public class ConsoleReports {
                     entry(of("USD", 5), () -> me.currentInvestmentsRealProfit("USD", BONO)),
                     entry(of("PFUSD", 6), () -> me.currentInvestmentsRealProfit("USD", PF)),
                     entry(of("gold", 7), () -> me.currentInvestmentsRealProfit("XAU", XAU)),
-                    entry(of("current", 8), me::currentInvestmentsRealProfit),
+                    entry(of("current", 8), () -> me.currentInvestmentsRealProfit(null, null)),
                     entry(of("allpast", 9), me::pastInvestmentsRealProfit),
                     entry(of("global", 10), me::globalInvestmentsRealProfit),
+                    entry(of("income", 11), () -> me.income(args, "income")),
                     entry(of("CSPX", 11), () -> me.currentInvestmentsRealProfit("CSPX", ETF)),
-                    entry(of("income12", 12), () -> me.income(12)),
-                    entry(of("income6", 13), () -> me.income(6)),
-                    entry(of("income3", 14), () -> me.income(3)),
-                    entry(of("income18", 15), () -> me.income(18)),
-                    entry(of("income24", 16), () -> me.income(24)),
-                    entry(of("income", 17), me::income),
                     entry(of("EIMI", 18), () -> me.currentInvestmentsRealProfit("EIMI", ETF)),
                     entry(of("MEUD", 19), () -> me.currentInvestmentsRealProfit("MEUD", ETF)),
                     entry(of("XRSU", 20), () -> me.currentInvestmentsRealProfit("XRSU", ETF)),
@@ -428,22 +412,13 @@ public class ConsoleReports {
                     entry(of("house3", 23), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
                     entry(of("house5", 24), () -> me.houseIrrecoverableCosts(new YearMonth(2015, 8))),
                     entry(of("expenses", 25), me::expenses),
-                    entry(of("savings-evo", 26), () -> me.savingEvolution(null)),
-                    entry(of("eq-savings-evo", 27), () -> me.savingEvolution("EQ")),
-                    entry(of("bo-savings-evo", 28), () -> me.savingEvolution("BO")),
-                    entry(of("liq-savings-evo", 29), () -> me.savingEvolution("LIQ")),
-                    entry(of("income-evo", 30), () -> me.incomeEvolution(null)),
-                    entry(of("lifia-evo", 31), () -> me.incomeEvolution("lifia")),
-                    entry(of("unlp-evo", 32), () -> me.incomeEvolution("unlp")),
-                    entry(of("desp-evo", 33), () -> me.incomeEvolution("desp")),
-                    entry(of("income-avg-evo-12", 34), () -> me.incomeAverageEvolution(null, 12)),
-                    entry(of("income-avg-evo-6", 35), () -> me.incomeAverageEvolution(null, 6)),
-                    entry(of("income-avg-evo-3", 36), () -> me.incomeAverageEvolution(null, 3)),
-                    entry(of("income-avg-evo-2", 37), () -> me.incomeAverageEvolution(null, 2)),
+                    entry(of("savings-evo", 26), () -> me.savingEvolution(args, "savings-evo")),
+                    entry(of("income-evo", 30), () -> me.incomeEvolution(args, "income-evo")),
+                    entry(of("income-avg-evo", 34), () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     entry(of("savings-change", 38), me::savingChange),
                     entry(of("expenses-evo", 39), () -> me.expenseEvolution(null)),
                     entry(of("expenses-change", 40), me::expensesChange),
-                    entry(of("goal", 50), () -> me.goal(args))
+                    entry(of("goal", 50), () -> me.goal(args, "goal"))
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
@@ -725,9 +700,9 @@ public class ConsoleReports {
 
     }
 
-    private void savingEvolution(String type) {
+    private void savingEvolution(String[] args, String paramName) {
 
-        this.evolution("Savings", this.realSavings(type), 2500);
+        this.evolution("Savings", this.realSavings(this.paramsValue(args, paramName).get("type")), 2500);
     }
 
     private void expenseEvolution(String type) {
@@ -769,9 +744,23 @@ public class ConsoleReports {
                 .get();
     }
 
-    private void incomeEvolution(String type) {
+    private void incomeEvolution(String[] args, String paramName) {
+
+        final var params = this.paramsValue(args, paramName);
+
+        final var type = params.get("type");
 
         this.evolution("Income", this.realIncome(type), 100);
+    }
+
+    private void incomeAverageEvolution(String[] args, String paramName) {
+        var params = this.paramsValue(args, paramName);
+
+        var type = params.get("type");
+        var months = Integer.parseInt(params.getOrDefault("months", "12"));
+
+        this.incomeAverageEvolution(type, months);
+
     }
 
     private void incomeAverageEvolution(String type, int months) {
@@ -798,14 +787,17 @@ public class ConsoleReports {
                 .collect(toList());
     }
 
-    private void goal(String[] args) {
-        final var separator = Pattern.compile("=");
-
-        final var params = Arrays.stream(args)
-                .dropWhile(p -> "goal".equals(p))
+    private Map<String, String> paramsValue(String[] args, String paramName) {
+        return Arrays.stream(args)
+                .dropWhile(p -> paramName.equals(p))
                 .takeWhile(p -> p.contains("="))
-                .map(separator::split)
+                .map(PARAM_SEPARATOR::split)
                 .collect(toMap(parts -> parts[0], parts -> parts[1]));
+    }
+
+    private void goal(String[] args, String paramName) {
+
+        final var params = this.paramsValue(args, paramName);
 
         final var trials = Integer.parseInt(params.getOrDefault("trials", "100000"));
         final var periodYears = Integer.parseInt(params.getOrDefault("period", "10"));
@@ -939,8 +931,8 @@ public class ConsoleReports {
                 .collect(toList());
     }
 
-    /*
-    saco el 10%  mejor
+    /**
+     * Me quedo con el keepWorsePct % peor.
      */
     private List<List<BigDecimal>> periods(List<BigDecimal> returns, final int years, double keepWorsePct) {
 
