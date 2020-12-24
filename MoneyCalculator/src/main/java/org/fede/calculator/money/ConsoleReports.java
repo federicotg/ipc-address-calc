@@ -104,6 +104,7 @@ public class ConsoleReports {
     private List<BigDecimal> sp500TotalReturns;
     private List<BigDecimal> russell2000TotalReturns;
     private Map<String, List<MoneyAmountSeries>> realUSDSavingsByType;
+    private Map<String, List<MoneyAmountSeries>> realUSDExpensesByType;
 
     private final StringBuilder out;
 
@@ -426,21 +427,23 @@ public class ConsoleReports {
                     entry(of("house1", 22), () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
                     entry(of("house3", 23), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
                     entry(of("house5", 24), () -> me.houseIrrecoverableCosts(new YearMonth(2015, 8))),
-                    entry(of("exp", 25), me::expenses),
-                    entry(of("saving", 26), me::savingEvolution),
-                    entry(of("seq", 27), () -> me.savingEvolution("EQ")),
-                    entry(of("sbo", 28), () -> me.savingEvolution("BO")),
-                    entry(of("sliq", 29), () -> me.savingEvolution("LIQ")),
-                    entry(of("inc", 30), me::incomeEvolution),
-                    entry(of("lifia", 31), () -> me.incomeEvolution("lifia")),
-                    entry(of("unlp", 32), () -> me.incomeEvolution("unlp")),
-                    entry(of("desp", 33), () -> me.incomeEvolution("desp")),
-                    entry(of("inc12", 34), () -> me.incomeAverageEvolution(null, 12)),
-                    entry(of("inc6", 35), () -> me.incomeAverageEvolution(null, 6)),
-                    entry(of("inc3", 36), () -> me.incomeAverageEvolution(null, 3)),
-                    entry(of("inc2", 37), () -> me.incomeAverageEvolution(null, 2)),
-                    entry(of("savingchange", 38), me::savingChange),
-                    entry(of("goal", 39), () -> me.goal(args))
+                    entry(of("expenses", 25), me::expenses),
+                    entry(of("savings-evo", 26), () -> me.savingEvolution(null)),
+                    entry(of("eq-savings-evo", 27), () -> me.savingEvolution("EQ")),
+                    entry(of("bo-savings-evo", 28), () -> me.savingEvolution("BO")),
+                    entry(of("liq-savings-evo", 29), () -> me.savingEvolution("LIQ")),
+                    entry(of("income-evo", 30), () -> me.incomeEvolution(null)),
+                    entry(of("lifia-evo", 31), () -> me.incomeEvolution("lifia")),
+                    entry(of("unlp-evo", 32), () -> me.incomeEvolution("unlp")),
+                    entry(of("desp-evo", 33), () -> me.incomeEvolution("desp")),
+                    entry(of("income-avg-evo-12", 34), () -> me.incomeAverageEvolution(null, 12)),
+                    entry(of("income-avg-evo-6", 35), () -> me.incomeAverageEvolution(null, 6)),
+                    entry(of("income-avg-evo-3", 36), () -> me.incomeAverageEvolution(null, 3)),
+                    entry(of("income-avg-evo-2", 37), () -> me.incomeAverageEvolution(null, 2)),
+                    entry(of("savings-change", 38), me::savingChange),
+                    entry(of("expenses-evo", 39), () -> me.expenseEvolution(null)),
+                    entry(of("expenses-change", 40), me::expensesChange),
+                    entry(of("goal", 50), () -> me.goal(args))
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
@@ -620,15 +623,15 @@ public class ConsoleReports {
     }
 
     private MoneyAmountSeries asRealUSDSeries(String fileName) {
-        var limit = USD_INFLATION.getTo();
-        return Inflation.USD_INFLATION.adjust(
-                SeriesReader.readSeries("saving/" + fileName + ".json").exchangeInto("USD"),
-                limit.getYear(),
-                limit.getMonth());
+        return this.asRealUSDSeries("saving/", fileName);
     }
 
-    private MoneyAmountSeries realSavings() {
-        return this.realSavings(null);
+    private MoneyAmountSeries asRealUSDSeries(String prefix, String fileName) {
+        var limit = USD_INFLATION.getTo();
+        return Inflation.USD_INFLATION.adjust(
+                SeriesReader.readSeries(prefix + fileName + ".json").exchangeInto("USD"),
+                limit.getYear(),
+                limit.getMonth());
     }
 
     private MoneyAmountSeries realSavings(String type) {
@@ -667,6 +670,43 @@ public class ConsoleReports {
                 .get();
     }
 
+    private MoneyAmountSeries realExpenses(String type) {
+
+        if (this.realUSDExpensesByType == null) {
+
+            final var files = List.of(
+                    of("TAX", "bbpp"),
+                    of("SE", "cablevision"),
+                    of("SE", "celular-a"),
+                    of("SE", "celular-f"),
+                    of("TAX", "contadora"),
+                    of("SE", "emergencia"),
+                    of("HO", "expensas"),
+                    of("SE", "gas"),
+                    of("TAX", "inmobiliario-43"),
+                    of("SE", "ioma"),
+                    of("SE", "limpieza"),
+                    of("SE", "luz"),
+                    of("TAX", "monotributo-angeles"),
+                    of("TAX", "municipal-43"),
+                    of("SE", "netflix"),
+                    of("HO", "reparaciones"),
+                    of("HO", "seguro"),
+                    of("SE", "telefono-43"),
+                    of("SE", "xbox"));
+
+            this.realUSDExpensesByType = files.stream()
+                    .collect(Collectors.groupingBy(Pair::getFirst, Collectors.mapping(p -> this.asRealUSDSeries("expense/", p.getSecond()), toList())));
+        }
+
+        return this.realUSDExpensesByType.entrySet().stream()
+                .filter(e -> type == null || e.getKey().equals(type))
+                .map(e -> e.getValue())
+                .flatMap(Collection::stream)
+                .reduce(MoneyAmountSeries::add)
+                .get();
+    }
+
     private void evolutionReport(YearMonth ym, MoneyAmount mo, int scale) {
         this.appendLine(
                 format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
@@ -676,28 +716,38 @@ public class ConsoleReports {
                 this.bar(mo.getAmount(), scale));
     }
 
-    private void savingEvolution() {
-        this.savingEvolution(null);
+    private void evolution(String name, MoneyAmountSeries s, int scale) {
+        var limit = USD_INFLATION.getTo();
+
+        s.forEach((ym, ma) -> this.evolutionReport(ym, ma, scale));
+
+        appendLine("\n", name, " real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
+
     }
 
     private void savingEvolution(String type) {
 
-        var limit = USD_INFLATION.getTo();
+        this.evolution("Savings", this.realSavings(type), 2500);
+    }
 
-        this.realSavings(type).forEach((ym, ma) -> this.evolutionReport(ym, ma, 2500));
+    private void expenseEvolution(String type) {
 
-        appendLine("\nSavings real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
+        this.evolution("Expenses", this.realExpenses(type), 15);
     }
 
     private void savingChange() {
 
-        var limit = USD_INFLATION.getTo();
+        this.evolution("Savings change", new SimpleAggregation(2)
+                .change(this.realSavings(null)), 100);
 
-        new SimpleAggregation(2)
-                .change(this.realSavings())
-                .forEach((ym, ma) -> this.evolutionReport(ym, ma, 100));
+    }
 
-        appendLine("\nSavings change real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
+    private void expensesChange() {
+
+        this.evolution("12-month average expenses change",
+                new SimpleAggregation(2)
+                        .change(new SimpleAggregation(12)
+                                .average(this.realExpenses(null))), 5);
     }
 
     private MoneyAmountSeries realIncome(String type) {
@@ -719,29 +769,17 @@ public class ConsoleReports {
                 .get();
     }
 
-    private void incomeEvolution() {
-        this.incomeEvolution(null);
-    }
-
     private void incomeEvolution(String type) {
 
-        final var limit = USD_INFLATION.getTo();
-        this.realIncome(type).forEach((ym, ma) -> this.evolutionReport(ym, ma, 100));
-
-        appendLine("\nIncome real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
+        this.evolution("Income", this.realIncome(type), 100);
     }
 
     private void incomeAverageEvolution(String type, int months) {
 
-        final var limit = USD_INFLATION.getTo();
-        new SimpleAggregation(months)
-                .average(this.realIncome(type))
-                .forEach((ym, mo) -> this.evolutionReport(ym, mo, 100));
-
-        appendLine("\nIncome ",
-                String.valueOf(months),
-                "-month average real USD ",
-                format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
+        this.evolution("Income " + String.valueOf(months) + "-month average",
+                new SimpleAggregation(months)
+                        .average(this.realIncome(type)),
+                100);
     }
 
     private String bar(BigDecimal value, int scale) {
@@ -814,7 +852,7 @@ public class ConsoleReports {
 
         final var to = Inflation.USD_INFLATION.getTo();
 
-        final var todaySavings = this.realSavings().getAmount(to);
+        final var todaySavings = this.realSavings(null).getAmount(to);
 
         final var invested = this.realSavings("EQ").getAmount(to);
 
