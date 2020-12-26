@@ -275,6 +275,27 @@ public class ConsoleReports {
         this.investmentsRealProfit(null, null, (inv) -> true, true);
     }
 
+    private void currentInvestmentsRealProfit(String[] args, String type) {
+        final var params = this.paramsValue(args, type);
+        
+        final var action = params.getOrDefault("type", "current");
+        
+        final Map<String, Runnable> actions = Map.ofEntries(
+            
+                    entry("on",  () -> this.currentInvestmentsRealProfit("USD", BONO)),
+                    entry("pf",  () -> this.currentInvestmentsRealProfit("USD", PF)),
+                    entry("gold",  () -> this.currentInvestmentsRealProfit("XAU", XAU)),
+                    entry("current",  () -> this.currentInvestmentsRealProfit((String) null, (InvestmentType) null)),
+                    entry("cspx",  () -> this.currentInvestmentsRealProfit("CSPX", ETF)),
+                    entry("eimi",  () -> this.currentInvestmentsRealProfit("EIMI", ETF)),
+                    entry("meud",  () -> this.currentInvestmentsRealProfit("MEUD", ETF)),
+                    entry("xrsu",  () -> this.currentInvestmentsRealProfit("XRSU", ETF)));
+        
+        actions.getOrDefault(action, () -> this.appendLine("Unknown type: ", action)).run();
+        
+        
+    }
+    
     private void currentInvestmentsRealProfit(String currency, InvestmentType type) {
         this.investmentsRealProfit(currency, type, Investment::isCurrent, false);
     }
@@ -395,18 +416,10 @@ public class ConsoleReports {
                     entry(of("i", 1), me::investments),
                     entry(of("gi", 2), me::groupedInvestments),
                     entry(of("ti", 3), me::listStockByTpe),
-                    entry(of("UVA", 4), () -> me.currentInvestmentsRealProfit("UVA", PF)),
-                    entry(of("USD", 5), () -> me.currentInvestmentsRealProfit("USD", BONO)),
-                    entry(of("PFUSD", 6), () -> me.currentInvestmentsRealProfit("USD", PF)),
-                    entry(of("gold", 7), () -> me.currentInvestmentsRealProfit("XAU", XAU)),
-                    entry(of("current", 8), () -> me.currentInvestmentsRealProfit(null, null)),
+                    entry(of("current", 8), () -> me.currentInvestmentsRealProfit(args, "current")),
                     entry(of("allpast", 9), me::pastInvestmentsRealProfit),
                     entry(of("global", 10), me::globalInvestmentsRealProfit),
                     entry(of("income", 11), () -> me.income(args, "income")),
-                    entry(of("CSPX", 11), () -> me.currentInvestmentsRealProfit("CSPX", ETF)),
-                    entry(of("EIMI", 18), () -> me.currentInvestmentsRealProfit("EIMI", ETF)),
-                    entry(of("MEUD", 19), () -> me.currentInvestmentsRealProfit("MEUD", ETF)),
-                    entry(of("XRSU", 20), () -> me.currentInvestmentsRealProfit("XRSU", ETF)),
                     entry(of("house", 21), () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
                     entry(of("house1", 22), () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
                     entry(of("house3", 23), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
