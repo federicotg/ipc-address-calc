@@ -23,6 +23,7 @@ import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import static java.math.MathContext.DECIMAL64;
 import java.math.RoundingMode;
+import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -116,6 +117,38 @@ public class ConsoleReports {
         this.investments = SeriesReader.read("investments.json", TR);
 
         this.out = out;
+    }
+
+    public Map<String, List<MoneyAmountSeries>> getRealUSDExpensesByType() {
+
+        if (this.realUSDExpensesByType == null) {
+
+            final var files = List.of(
+                    of("taxes", "bbpp"),
+                    of("taxes", "inmobiliario-43"),
+                    of("taxes", "monotributo-angeles"),
+                    of("taxes", "municipal-43"),
+                    of("taxes", "contadora"),
+                    of("phone", "celular-a"),
+                    of("phone", "celular-f"),
+                    of("phone", "telefono-43"),
+                    of("insurance", "emergencia"),
+                    of("insurance", "ioma"),
+                    of("insurance", "seguro"),
+                    of("services", "gas"),
+                    of("services", "luz"),
+                    of("services", "cablevision"),
+                    of("home", "reparaciones"),
+                    of("home", "limpieza"),
+                    of("home", "expensas"),
+                    of("entertainment", "netflix"),
+                    of("entertainment", "xbox"));
+
+            this.realUSDExpensesByType = files.stream()
+                    .collect(Collectors.groupingBy(Pair::getFirst, Collectors.mapping(p -> this.asRealUSDSeries("expense/", p.getSecond()), toList())));
+        }
+
+        return realUSDExpensesByType;
     }
 
     private void appendLine(String... texts) {
@@ -414,36 +447,51 @@ public class ConsoleReports {
                     entry(of("i", 1), me::investments),
                     entry(of("gi", 2), me::groupedInvestments),
                     entry(of("ti", 3), me::listStockByTpe),
-                    entry(of("current", 8), () -> me.currentInvestmentsRealProfit(args, "current")),
-                    entry(of("allpast", 9), me::pastInvestmentsRealProfit),
-                    entry(of("global", 10), me::globalInvestmentsRealProfit),
-                    entry(of("income", 11), () -> me.income(args, "income")),
-                    entry(of("house", 21), () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
-                    entry(of("house1", 22), () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
-                    entry(of("house3", 23), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
-                    entry(of("house5", 24), () -> me.houseIrrecoverableCosts(new YearMonth(2015, 8))),
-                    entry(of("expenses", 25), () -> me.expenses(args, "expenses")),
-                    entry(of("savings-evo", 26), () -> me.savingEvolution(args, "savings-evo")),
-                    entry(of("income-evo", 30), () -> me.incomeEvolution(args, "income-evo")),
-                    entry(of("income-avg-evo", 34), () -> me.incomeAverageEvolution(args, "income-avg-evo")),
-                    entry(of("savings-change", 38), me::savingChange),
-                    entry(of("expenses-evo", 39), () -> me.expenseEvolution(null)),
-                    entry(of("expenses-change", 40), me::expensesChange),
-                    entry(of("goal", 50), () -> me.goal(args, "goal"))
+                    entry(of("current", 4), () -> me.currentInvestmentsRealProfit(args, "current")),
+                    entry(of("allpast", 5), me::pastInvestmentsRealProfit),
+                    entry(of("global", 6), me::globalInvestmentsRealProfit),
+                    //savings
+                    entry(of("savings-evo", 7), () -> me.savingEvolution(args, "savings-evo")),
+                    entry(of("savings-change", 8), me::savingChange),
+                    //income
+                    entry(of("income", 9), () -> me.income(args, "income")),
+                    entry(of("income-evo", 10), () -> me.incomeEvolution(args, "income-evo")),
+                    entry(of("income-avg-evo", 11), () -> me.incomeAverageEvolution(args, "income-avg-evo")),
+                    //house cost
+                    entry(of("house", 12), () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
+                    entry(of("house1", 13), () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
+                    entry(of("house3", 14), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
+                    entry(of("house5", 15), () -> me.houseIrrecoverableCosts(new YearMonth(2015, 8))),
+                    //expenses
+                    entry(of("expenses", 16), () -> me.expenses(args, "expenses")),
+                    entry(of("expenses-evo", 17), () -> me.expenseEvolution(null)),
+                    entry(of("expenses-change", 18), me::expensesChange),
+                    //goal
+                    entry(of("goal", 19), () -> me.goal(args, "goal"))
             );
 
             final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
 
             if (params.contains("help")) {
-                System.out.println(
-                        Stream.concat(
-                                actions.keySet()
-                                        .stream()
-                                        .filter(action -> !"goal".equals(action.getFirst()))
-                                        .sorted(comparing(Pair::getSecond))
-                                        .map(Pair::getFirst),
-                                Stream.of("goal [trials period retirement w d inflation cash sp500]")
-                        ).collect(joining(" ")));
+
+                final var help = Map.of(
+                        "goal", "trials=100000 period=10 retirement=65 w=1000 d=500 inflation=2 cash=cash sp500=false",
+                        "current", "type=(current* | on | pf | gold | cspx | eimi | meud | xrsu)",
+                        "income", "months=12",
+                        "income-evo", "type=(desp | lifia | unlp)",
+                        "income-avg-evo", "type=(desp | lifia | unlp) months=12",
+                        "expenses", "type=(service | communications | home | health | taxes | entertainment) months=12",
+                        "savings-evo", "type=(BO | LIQ | EQ)"
+                );
+
+                Stream.concat(
+                        actions.keySet()
+                                .stream()
+                                .filter(action -> !help.keySet().contains(action.getFirst()))
+                                .map(Pair::getFirst)
+                                .map(action -> format(" - {0}", action)),
+                        help.entrySet().stream().map(e -> format(" - {0} {1}", e.getKey(), e.getValue())))
+                        .forEach(me::appendLine);
             } else {
 
                 actions.entrySet()
@@ -455,8 +503,8 @@ public class ConsoleReports {
                             r.run();
                             me.appendLine("");
                         });
-                me.printReport(System.out);
             }
+            me.printReport(System.out);
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
             ex.printStackTrace(System.err);
@@ -560,55 +608,21 @@ public class ConsoleReports {
         String exp = params.get("type");
         int months = Integer.parseInt(params.getOrDefault("months", "12"));
 
-        var expenses = Stream.of(
-                of("service", "absa.json"),
-                of("service", "gas.json"),
-                of("service", "luz.json"),
-                
-                of("communications", "cablevision.json"),
-                of("communications", "celular-a.json"),
-                of("communications", "celular-f.json"),
-                of("communications", "telefono-43.json"),
-                
-                of("home", "expensas.json"),
-                of("home", "limpieza.json"),
-                of("home", "seguro.json"),
-                of("home", "reparaciones.json"),
-                
-                of("health", "emergencia.json"),
-                of("health", "ioma.json"),
-                
-                of("taxes", "contadora.json"),
-                of("taxes", "bbpp.json"),
-                of("taxes", "inmobiliario-43.json"),
-                of("taxes", "monotributo-angeles.json"),
-                of("taxes", "municipal-43.json"),
-                
-                of("entertainment", "netflix.json"),
-                of("entertainment", "xbox.json"))
-                
-                .collect(groupingBy(Pair::getFirst, mapping(Pair::getSecond, toList())));
-
-        var limit = USD_INFLATION.getTo();
-
         this.appendLine("Real USD expenses in the last ",
                 String.valueOf(months),
                 " months.");
 
-        expenses.entrySet()
+        this.getRealUSDExpensesByType()
+                .entrySet()
                 .stream()
                 .filter(p -> exp == null || exp.equals(p.getKey()))
-                .map(e -> of(e.getKey(), this.asRealUSD(e.getValue(), limit, s -> this.lastMonths(s, months)).getAmount()))
+                .map(e -> of(e.getKey(), this.asRealUSD(e.getValue(), s -> this.lastMonths(s, months)).getAmount()))
                 .sorted(comparing(Pair::getSecond))
                 .forEach(e -> this.appendLine(e.getFirst(), " USD ", format("{0,number,currency} ", e.getSecond())));
     }
 
-    private MoneyAmount asRealUSD(List<String> jsonResources, YearMonth limit, Function<MoneyAmountSeries, MoneyAmount> aggregation) {
-        return jsonResources.stream()
-                .map(s -> "expense/" + s)
-                .map(SeriesReader::readSeries)
-                .map(expenses -> expenses.exchangeInto("USD"))
-                .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
+    private MoneyAmount asRealUSD(List<MoneyAmountSeries> mas, Function<MoneyAmountSeries, MoneyAmount> aggregation) {
+        return mas.stream()
                 .map(aggregation)
                 .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
 
@@ -626,15 +640,6 @@ public class ConsoleReports {
 
         return amount;
 
-    }
-
-    private MoneyAmount average(MoneyAmountSeries s) {
-        var months = s.getFrom().monthsUntil(s.getTo());
-        return new MoneyAmount(s.moneyAmountStream()
-                .map(MoneyAmount::getAmount)
-                .reduce(BigDecimal::add)
-                .orElse(ZERO)
-                .divide(BigDecimal.valueOf(months), DECIMAL64), "USD");
     }
 
     private MoneyAmountSeries asRealUSDSeries(String fileName) {
@@ -656,21 +661,21 @@ public class ConsoleReports {
             final var files = List.of(
                     of("BO", "ahorros-ay24"),
                     of("BO", "ahorros-conbala"),
-                    of("LIQ", "ahorros-dolar-banco"),
-                    of("EQ", "ahorros-eimi"),
-                    of("BO", "ahorros-lete"),
-                    of("LIQ", "ahorros-peso"),
-                    of("BO", "ahorros-caplusa"),
-                    of("EQ", "ahorros-cspx"),
-                    of("LIQ", "ahorros-dolar-liq"),
-                    of("LIQ", "ahorros-euro"),
-                    of("EQ", "ahorros-meud"),
                     of("BO", "ahorros-uva"),
-                    of("EQ", "ahorros-conaafa"),
-                    of("LIQ", "ahorros-dai"),
                     of("BO", "ahorros-dolar-ON"),
                     of("BO", "ahorros-lecap"),
+                    of("BO", "ahorros-lete"),
+                    of("BO", "ahorros-caplusa"),
+                    of("LIQ", "ahorros-dolar-banco"),
+                    of("LIQ", "ahorros-peso"),
+                    of("LIQ", "ahorros-dolar-liq"),
+                    of("LIQ", "ahorros-euro"),
+                    of("LIQ", "ahorros-dai"),
                     of("LIQ", "ahorros-oro"),
+                    of("EQ", "ahorros-cspx"),
+                    of("EQ", "ahorros-eimi"),
+                    of("EQ", "ahorros-meud"),
+                    of("EQ", "ahorros-conaafa"),
                     of("EQ", "ahorros-xrsu"));
 
             this.realUSDSavingsByType = files.stream()
@@ -687,34 +692,7 @@ public class ConsoleReports {
 
     private MoneyAmountSeries realExpenses(String type) {
 
-        if (this.realUSDExpensesByType == null) {
-
-            final var files = List.of(
-                    of("TAX", "bbpp"),
-                    of("SE", "cablevision"),
-                    of("SE", "celular-a"),
-                    of("SE", "celular-f"),
-                    of("TAX", "contadora"),
-                    of("SE", "emergencia"),
-                    of("HO", "expensas"),
-                    of("SE", "gas"),
-                    of("TAX", "inmobiliario-43"),
-                    of("SE", "ioma"),
-                    of("SE", "limpieza"),
-                    of("SE", "luz"),
-                    of("TAX", "monotributo-angeles"),
-                    of("TAX", "municipal-43"),
-                    of("SE", "netflix"),
-                    of("HO", "reparaciones"),
-                    of("HO", "seguro"),
-                    of("SE", "telefono-43"),
-                    of("SE", "xbox"));
-
-            this.realUSDExpensesByType = files.stream()
-                    .collect(Collectors.groupingBy(Pair::getFirst, Collectors.mapping(p -> this.asRealUSDSeries("expense/", p.getSecond()), toList())));
-        }
-
-        return this.realUSDExpensesByType.entrySet().stream()
+        return this.getRealUSDExpensesByType().entrySet().stream()
                 .filter(e -> type == null || e.getKey().equals(type))
                 .map(e -> e.getValue())
                 .flatMap(Collection::stream)
