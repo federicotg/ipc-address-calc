@@ -373,7 +373,7 @@ public class ConsoleReports {
                         .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
                         .flatMap(MoneyAmountSeries::moneyAmountStream)
                         .collect(reducing(MoneyAmount::add))
-                        .orElse(new MoneyAmount(ZERO, "USD")).getAmount()));
+                        .orElseGet(() -> new MoneyAmount(ZERO, "USD")).getAmount()));
     }
 
     private void income(int months) {
@@ -386,7 +386,7 @@ public class ConsoleReports {
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(new SimpleAggregation(months)::average)
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(allRealUSDIncome.getTo()))
-                .orElse(new MoneyAmount(ZERO, "USD"));
+                .orElseGet(() -> new MoneyAmount(ZERO, "USD"));
 
         this.appendLine("===< Average ", String.valueOf(months), " month income in ", String.valueOf(limit.getMonth()), "/", String.valueOf(limit.getYear()), " real USD >===");
 
@@ -486,7 +486,7 @@ public class ConsoleReports {
                 .map(MoneyAmountSeries::moneyAmountStream)
                 .orElseGet(Stream::empty)
                 .reduce(MoneyAmount::add)
-                .orElse(new MoneyAmount(ZERO, "USD"));
+                .orElseGet(() -> new MoneyAmount(ZERO, "USD"));
 
         this.buyVsRent(realExpensesInUSD, ZERO, timeLimit);
         this.buyVsRent(realExpensesInUSD, new BigDecimal("0.02"), timeLimit);
@@ -518,7 +518,7 @@ public class ConsoleReports {
                 limit.getYear(), limit.getMonth());
 
         final var months = BigDecimal.valueOf(start.monthsUntil(timeLimit));
-        final var years = months.divide(new BigDecimal(12), DECIMAL64);
+        final var years = months.divide(BigDecimal.valueOf(12), DECIMAL64);
 
         // interest rate cost
         final var opportunityCost = new MoneyAmount(
@@ -597,7 +597,7 @@ public class ConsoleReports {
                 .map(expenses -> expenses.exchangeInto("USD"))
                 .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
                 .map(this::average)
-                .orElse(new MoneyAmount(ZERO, "USD"));
+                .orElseGet(() -> new MoneyAmount(ZERO, "USD"));
 
     }
 
@@ -607,7 +607,7 @@ public class ConsoleReports {
                 .map(MoneyAmount::getAmount)
                 .reduce(BigDecimal::add)
                 .orElse(ZERO)
-                .divide(new BigDecimal(months), DECIMAL64), "USD");
+                .divide(BigDecimal.valueOf(months), DECIMAL64), "USD");
     }
 
     private MoneyAmountSeries asRealUSDSeries(String fileName) {
