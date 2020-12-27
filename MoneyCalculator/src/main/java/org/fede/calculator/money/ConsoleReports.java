@@ -23,7 +23,6 @@ import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import static java.math.MathContext.DECIMAL64;
 import java.math.RoundingMode;
-import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -35,6 +34,7 @@ import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -49,7 +49,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -102,7 +101,7 @@ public class ConsoleReports {
 
     private final NumberFormat nf = NumberFormat.getNumberInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-    private final List<Investment> investments;
+    private List<Investment> investments;
 
     private List<BigDecimal> sp500TotalReturns;
     private List<BigDecimal> russell2000TotalReturns;
@@ -114,8 +113,6 @@ public class ConsoleReports {
     private ConsoleReports(StringBuilder out) {
         this.nf.setMaximumFractionDigits(2);
         this.percentFormat.setMinimumFractionDigits(2);
-        this.investments = SeriesReader.read("investments.json", TR);
-
         this.out = out;
     }
 
@@ -123,7 +120,7 @@ public class ConsoleReports {
 
         if (this.realUSDExpensesByType == null) {
 
-            final var files = List.of(
+            this.realUSDExpensesByType = Stream.of(
                     of("taxes", "bbpp"),
                     of("taxes", "inmobiliario-43"),
                     of("taxes", "monotributo-angeles"),
@@ -142,10 +139,11 @@ public class ConsoleReports {
                     of("home", "limpieza"),
                     of("home", "expensas"),
                     of("entertainment", "netflix"),
-                    of("entertainment", "xbox"));
-
-            this.realUSDExpensesByType = files.stream()
-                    .collect(Collectors.groupingBy(Pair::getFirst, Collectors.mapping(p -> this.asRealUSDSeries("expense/", p.getSecond()), toList())));
+                    of("entertainment", "xbox"))
+                    .collect(groupingBy(
+                            Pair::getFirst,
+                            mapping(p -> this.asRealUSDSeries("expense/", p.getSecond()),
+                                    toList())));
         }
 
         return realUSDExpensesByType;
@@ -164,7 +162,7 @@ public class ConsoleReports {
         final NumberFormat sixDigits = NumberFormat.getNumberInstance();
         sixDigits.setMinimumFractionDigits(6);
 
-        investments.stream()
+        getInvestments().stream()
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(inv -> of(inv.getType().toString(), inv.getCurrency()), MAPPER))
                 .entrySet()
@@ -176,7 +174,7 @@ public class ConsoleReports {
     }
 
     private Optional<MoneyAmount> total(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
-        return investments.stream()
+        return getInvestments().stream()
                 .filter(predicate)
                 .map(i -> i.getInvestment().getMoneyAmount())
                 .map(investedAmount -> ForeignExchanges.getForeignExchange(investedAmount.getCurrency(), reportCurrency).exchange(investedAmount, reportCurrency, limit.getYear(), limit.getMonth()))
@@ -194,7 +192,7 @@ public class ConsoleReports {
         final MoneyAmount cash = cashSeries.getAmount(cashSeries.getTo());
 
         final var total = this.total(Investment::isCurrent, reportCurrency, limit).map(t -> t.add(cash));
-        Stream.concat(investments.stream()
+        Stream.concat(getInvestments().stream()
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(in -> of(in.getType().toString(), in.getCurrency()), MAPPER))
                 .entrySet()
@@ -253,7 +251,7 @@ public class ConsoleReports {
         i.setInvestment(asset);
         i.setType(InvestmentType.USD);
 
-        Stream.concat(Stream.of(i), investments.stream())
+        Stream.concat(Stream.of(i), getInvestments().stream())
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(
                         this::assetAllocation,
@@ -348,7 +346,7 @@ public class ConsoleReports {
             }
         }
 
-        this.investments.stream()
+        this.getInvestments().stream()
                 .filter(i -> !totalOnly)
                 .filter(predicate)
                 .filter(i -> type == null || i.getType().equals(type))
@@ -379,14 +377,14 @@ public class ConsoleReports {
 
     private BigDecimal totalSum(String currency, InvestmentType type, Function<RealProfit, MoneyAmount> totalFunction, Predicate<Investment> predicate) {
 
-        return this.investments.stream()
+        return this.getInvestments().stream()
                 .filter(predicate)
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .map(RealProfit::new)
                 .map(totalFunction)
                 .map(MoneyAmount::getAmount)
-                .collect(Collectors.reducing(ZERO, BigDecimal::add));
+                .collect(reducing(ZERO, BigDecimal::add));
     }
 
     private void printReport(PrintStream out) {
@@ -464,13 +462,15 @@ public class ConsoleReports {
                     entry(of("house5", 15), () -> me.houseIrrecoverableCosts(new YearMonth(2015, 8))),
                     //expenses
                     entry(of("expenses", 16), () -> me.expenses(args, "expenses")),
-                    entry(of("expenses-evo", 17), () -> me.expenseEvolution(null)),
+                    entry(of("expenses-evo", 17), () -> me.expenseEvolution(args, "expenses-evo")),
                     entry(of("expenses-change", 18), me::expensesChange),
                     //goal
                     entry(of("goal", 19), () -> me.goal(args, "goal"))
             );
 
-            final var params = Arrays.stream(args).map(String::toLowerCase).collect(Collectors.toSet());
+            final var params = Arrays.stream(args)
+                    .map(String::toLowerCase)
+                    .collect(toSet());
 
             if (params.contains("help")) {
 
@@ -480,7 +480,8 @@ public class ConsoleReports {
                         "income", "months=12",
                         "income-evo", "type=(desp | lifia | unlp)",
                         "income-avg-evo", "type=(desp | lifia | unlp) months=12",
-                        "expenses", "type=(service | communications | home | health | taxes | entertainment) months=12",
+                        "expenses", "type=(taxes | insurance | phone | services | home | entertainment) months=12",
+                        "expenses-evo", "type=(taxes | insurance | phone | services | home | entertainment)",
                         "savings-evo", "type=(BO | LIQ | EQ)"
                 );
 
@@ -658,7 +659,7 @@ public class ConsoleReports {
 
         if (this.realUSDSavingsByType == null) {
 
-            final var files = List.of(
+            this.realUSDSavingsByType = Stream.of(
                     of("BO", "ahorros-ay24"),
                     of("BO", "ahorros-conbala"),
                     of("BO", "ahorros-uva"),
@@ -676,10 +677,11 @@ public class ConsoleReports {
                     of("EQ", "ahorros-eimi"),
                     of("EQ", "ahorros-meud"),
                     of("EQ", "ahorros-conaafa"),
-                    of("EQ", "ahorros-xrsu"));
-
-            this.realUSDSavingsByType = files.stream()
-                    .collect(Collectors.groupingBy(Pair::getFirst, Collectors.mapping(p -> this.asRealUSDSeries(p.getSecond()), toList())));
+                    of("EQ", "ahorros-xrsu"))
+                    .collect(groupingBy(
+                            Pair::getFirst,
+                            mapping(p -> this.asRealUSDSeries(p.getSecond()),
+                                    toList())));
         }
 
         return this.realUSDSavingsByType.entrySet().stream()
@@ -721,6 +723,10 @@ public class ConsoleReports {
     private void savingEvolution(String[] args, String paramName) {
 
         this.evolution("Savings", this.realSavings(this.paramsValue(args, paramName).get("type")), 2500);
+    }
+
+    private void expenseEvolution(String[] args, String paramName) {
+        this.expenseEvolution(this.paramsValue(args, paramName).get("type"));
     }
 
     private void expenseEvolution(String type) {
@@ -1008,4 +1014,11 @@ public class ConsoleReports {
         return amount.add(cashAmount, DECIMAL64).signum() > 0;
     }
 
+    public List<Investment> getInvestments() {
+        if (this.investments == null) {
+            this.investments = SeriesReader.read("investments.json", TR);
+        }
+
+        return investments;
+    }
 }
