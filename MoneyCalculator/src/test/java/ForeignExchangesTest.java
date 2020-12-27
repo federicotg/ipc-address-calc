@@ -43,29 +43,12 @@ public class ForeignExchangesTest {
     public ForeignExchangesTest() {
     }
 
-    @BeforeClass
-    public static void setUpClass() {
-    }
 
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
 
     private void identity(String currency) {
         assertEquals(ForeignExchanges.getIdentityForeignExchange(currency), getForeignExchange(currency, currency));
     }
 
-    // TODO add test methods here.
-    // The methods must be annotated with annotation @Test. For example:
-    //
     @Test
     public void gettingThem() {
 
