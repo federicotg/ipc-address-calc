@@ -277,25 +277,23 @@ public class ConsoleReports {
 
     private void currentInvestmentsRealProfit(String[] args, String type) {
         final var params = this.paramsValue(args, type);
-        
+
         final var action = params.getOrDefault("type", "current");
-        
+
         final Map<String, Runnable> actions = Map.ofEntries(
-            
-                    entry("on",  () -> this.currentInvestmentsRealProfit("USD", BONO)),
-                    entry("pf",  () -> this.currentInvestmentsRealProfit("USD", PF)),
-                    entry("gold",  () -> this.currentInvestmentsRealProfit("XAU", XAU)),
-                    entry("current",  () -> this.currentInvestmentsRealProfit((String) null, (InvestmentType) null)),
-                    entry("cspx",  () -> this.currentInvestmentsRealProfit("CSPX", ETF)),
-                    entry("eimi",  () -> this.currentInvestmentsRealProfit("EIMI", ETF)),
-                    entry("meud",  () -> this.currentInvestmentsRealProfit("MEUD", ETF)),
-                    entry("xrsu",  () -> this.currentInvestmentsRealProfit("XRSU", ETF)));
-        
+                entry("on", () -> this.currentInvestmentsRealProfit("USD", BONO)),
+                entry("pf", () -> this.currentInvestmentsRealProfit("USD", PF)),
+                entry("gold", () -> this.currentInvestmentsRealProfit("XAU", XAU)),
+                entry("current", () -> this.currentInvestmentsRealProfit((String) null, (InvestmentType) null)),
+                entry("cspx", () -> this.currentInvestmentsRealProfit("CSPX", ETF)),
+                entry("eimi", () -> this.currentInvestmentsRealProfit("EIMI", ETF)),
+                entry("meud", () -> this.currentInvestmentsRealProfit("MEUD", ETF)),
+                entry("xrsu", () -> this.currentInvestmentsRealProfit("XRSU", ETF)));
+
         actions.getOrDefault(action, () -> this.appendLine("Unknown type: ", action)).run();
-        
-        
+
     }
-    
+
     private void currentInvestmentsRealProfit(String currency, InvestmentType type) {
         this.investmentsRealProfit(currency, type, Investment::isCurrent, false);
     }
@@ -424,7 +422,7 @@ public class ConsoleReports {
                     entry(of("house1", 22), () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
                     entry(of("house3", 23), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
                     entry(of("house5", 24), () -> me.houseIrrecoverableCosts(new YearMonth(2015, 8))),
-                    entry(of("expenses", 25), me::expenses),
+                    entry(of("expenses", 25), () -> me.expenses(args, "expenses")),
                     entry(of("savings-evo", 26), () -> me.savingEvolution(args, "savings-evo")),
                     entry(of("income-evo", 30), () -> me.incomeEvolution(args, "income-evo")),
                     entry(of("income-avg-evo", 34), () -> me.incomeAverageEvolution(args, "income-avg-evo")),
@@ -555,7 +553,12 @@ public class ConsoleReports {
 
     }
 
-    private void expenses() {
+    private void expenses(String[] args, String type) {
+
+        var params = this.paramsValue(args, type);
+
+        String exp = params.get("type");
+        int months = Integer.parseInt(params.getOrDefault("months", "12"));
 
         var expenses = Stream.of(
                 of("service", "absa.json"),
@@ -582,22 +585,41 @@ public class ConsoleReports {
 
         var limit = USD_INFLATION.getTo();
 
+        this.appendLine("Real USD expenses in the last ",
+                String.valueOf(months),
+                " months.");
+
         expenses.entrySet()
                 .stream()
-                .map(e -> of(e.getKey(), this.totalRealUSD(e.getValue(), limit).getAmount()))
+                .filter(p -> exp == null || exp.equals(p.getKey()))
+                .map(e -> of(e.getKey(), this.asRealUSD(e.getValue(), limit, s -> this.lastMonths(s, months)).getAmount()))
                 .sorted(comparing(Pair::getSecond))
                 .forEach(e -> this.appendLine(e.getFirst(), " USD ", format("{0,number,currency} ", e.getSecond())));
     }
 
-    private MoneyAmount totalRealUSD(List<String> jsonResources, YearMonth limit) {
+    private MoneyAmount asRealUSD(List<String> jsonResources, YearMonth limit, Function<MoneyAmountSeries, MoneyAmount> aggregation) {
         return jsonResources.stream()
                 .map(s -> "expense/" + s)
                 .map(SeriesReader::readSeries)
-                .reduce(MoneyAmountSeries::add)
+                //.reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
                 .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
-                .map(this::average)
-                .orElse(new MoneyAmount(ZERO, "USD"));
+                .map(aggregation)
+                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+
+    }
+
+    private MoneyAmount lastMonths(MoneyAmountSeries s, int months) {
+
+        var ym = Inflation.USD_INFLATION.getTo();
+        var amount = new MoneyAmount(ZERO, "USD");
+
+        for (var i = 0; i < months; i++) {
+            amount = amount.add(s.getAmountOrElseZero(ym));
+            ym = ym.prev();
+        }
+
+        return amount;
 
     }
 

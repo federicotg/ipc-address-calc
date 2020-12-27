@@ -85,6 +85,13 @@ public class YearMonth implements Comparable<YearMonth> {
         return new YearMonth(this.year, this.month + 1);
     }
 
+    public YearMonth prev() {
+        if (this.month == 1) {
+            return new YearMonth(this.year - 1, 12);
+        }
+        return new YearMonth(this.year, this.month - 1);
+    }
+    
     @Override
     public String toString() {
         return "YearMonth{" + "year=" + year + ", month=" + month + '}';
