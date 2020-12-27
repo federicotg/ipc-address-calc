@@ -562,25 +562,31 @@ public class ConsoleReports {
 
         var expenses = Stream.of(
                 of("service", "absa.json"),
+                of("service", "gas.json"),
+                of("service", "luz.json"),
+                
                 of("communications", "cablevision.json"),
                 of("communications", "celular-a.json"),
                 of("communications", "celular-f.json"),
-                of("taxes", "contadora.json"),
-                of("taxes", "bbpp.json"),
-                of("health", "emergencia.json"),
+                of("communications", "telefono-43.json"),
+                
                 of("home", "expensas.json"),
-                of("service", "gas.json"),
-                of("taxes", "inmobiliario-43.json"),
-                of("health", "ioma.json"),
                 of("home", "limpieza.json"),
-                of("service", "luz.json"),
-                of("taxes", "monotributo-angeles.json"),
-                of("taxes", "municipal-43.json"),
-                of("entertainment", "netflix.json"),
                 of("home", "seguro.json"),
                 of("home", "reparaciones.json"),
-                of("communications", "telefono-43.json"),
+                
+                of("health", "emergencia.json"),
+                of("health", "ioma.json"),
+                
+                of("taxes", "contadora.json"),
+                of("taxes", "bbpp.json"),
+                of("taxes", "inmobiliario-43.json"),
+                of("taxes", "monotributo-angeles.json"),
+                of("taxes", "municipal-43.json"),
+                
+                of("entertainment", "netflix.json"),
                 of("entertainment", "xbox.json"))
+                
                 .collect(groupingBy(Pair::getFirst, mapping(Pair::getSecond, toList())));
 
         var limit = USD_INFLATION.getTo();
@@ -601,7 +607,6 @@ public class ConsoleReports {
         return jsonResources.stream()
                 .map(s -> "expense/" + s)
                 .map(SeriesReader::readSeries)
-                //.reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
                 .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
                 .map(aggregation)
