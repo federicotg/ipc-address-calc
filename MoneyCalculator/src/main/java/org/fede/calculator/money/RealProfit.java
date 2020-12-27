@@ -17,7 +17,7 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import static java.math.RoundingMode.HALF_UP;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
@@ -43,8 +43,13 @@ public class RealProfit {
 
     public static String plusMinus(BigDecimal pct) {
 
-        return IntStream.range(0, pct.abs().movePointRight(2).setScale(0, RoundingMode.HALF_UP).intValue())
-                .mapToObj(index -> pct.signum() >= 0 ? "+" : "-").collect(Collectors.joining());
+        final var sign = pct.signum() >= 0 
+                ? "+" 
+                : "-";
+        
+        return IntStream.range(0, pct.abs().movePointRight(2).setScale(0, HALF_UP).intValue())
+                .mapToObj(index -> sign)
+                .collect(Collectors.joining());
     }
 
     private final NumberFormat moneyFormat = NumberFormat.getCurrencyInstance();
@@ -116,10 +121,10 @@ public class RealProfit {
         return new MoneyAmount(
                 in.getInvestment()
                         .getAmount()
-                        .setScale(12, RoundingMode.HALF_UP)
+                        .setScale(12, HALF_UP)
                         .multiply(in.getInterest())
                         .multiply(this.days(in))
-                        .setScale(12, RoundingMode.HALF_UP)
+                        .setScale(12, HALF_UP)
                         .divide(BigDecimal.valueOf(ChronoUnit.YEARS.getDuration().toDays()), MathConstants.CONTEXT),
                 in.getInvestment().getCurrency());
 
