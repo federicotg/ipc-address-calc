@@ -36,11 +36,9 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.text.MessageFormat.format;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -105,7 +103,7 @@ public class ConsoleReports {
         return of(of(t, u), v);
     }
 
-    private final NumberFormat nf = NumberFormat.getNumberInstance();
+    //private final NumberFormat nf = NumberFormat.getNumberInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
     private List<Investment> investments;
 
@@ -117,7 +115,7 @@ public class ConsoleReports {
     private final StringBuilder out;
 
     private ConsoleReports(StringBuilder out) {
-        this.nf.setMaximumFractionDigits(2);
+        //this.nf.setMaximumFractionDigits(2);
         this.percentFormat.setMinimumFractionDigits(2);
         this.out = out;
     }
@@ -1036,8 +1034,6 @@ public class ConsoleReports {
 
         var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-        //appendLine("Date" + date.toString());
-
         final var bbpp2020 = bbppYears
                 .stream()
                 .filter(y -> y.getYear() == year)
@@ -1091,7 +1087,7 @@ public class ConsoleReports {
                 .map(i -> i.getValue().multiply(i.getHolding(), DECIMAL64))
                 .reduce(ZERO, BigDecimal::add);
 
-        appendLine(format("Total amount {0}", totalAmount));
+        appendLine(format("Total amount {0,number,currency}", totalAmount));
 
         final var taxedDomesticAmount = allArs
                 .stream()
@@ -1101,7 +1097,7 @@ public class ConsoleReports {
                 .reduce(ZERO, BigDecimal::add)
                 .multiply(new BigDecimal("1.05"), DECIMAL64);
 
-        appendLine(format("Taxed domestic amount {0}", taxedDomesticAmount));
+        appendLine(format("Taxed domestic amount {0,number,currency}", taxedDomesticAmount));
 
         final var taxedForeignAmount = allArs
                 .stream()
@@ -1110,14 +1106,14 @@ public class ConsoleReports {
                 .map(i -> i.getValue().multiply(i.getHolding(), DECIMAL64))
                 .reduce(ZERO, BigDecimal::add);
 
-        appendLine(format("Taxed foreign amount {0}", taxedForeignAmount));
+        appendLine(format("Taxed foreign amount {0,number,currency}", taxedForeignAmount));
 
         final var taxedTotal = bbpp2020.getMinimum()
                 .negate()
                 .add(taxedDomesticAmount, DECIMAL64)
                 .add(taxedForeignAmount, DECIMAL64);
 
-        appendLine(format("Taxed total {0}", taxedTotal));
+        appendLine(format("Taxed total {0,number,currency}", taxedTotal));
 
         final var taxRate = bbpp2020.getBrakets()
                 .stream()
@@ -1127,10 +1123,31 @@ public class ConsoleReports {
                 .get()
                 .getTax();
 
-        appendLine(format("Tax rate {0}", taxRate));
+        appendLine(format("Tax rate {0}", this.percentFormat.format(taxRate)));
 
         final var taxAmount = taxedTotal.multiply(taxRate, DECIMAL64);
-        appendLine(format("Tax amount {0}", taxAmount));
+
+        final var usdTaxAmount = ForeignExchanges.getForeignExchange("ARS", "USD")
+                .exchange(new MoneyAmount(taxAmount, "ARS"), "USD", year, 12);
+
+        appendLine(format("Tax amount {0,number,currency} / USD {1,number,currency}",
+                taxAmount,
+                usdTaxAmount.getAmount()));
+
+        appendLine(format("Monthly tax amount USD {0,number,currency}", usdTaxAmount.adjust(BigDecimal.valueOf(12), ONE).getAmount()));
+
+        final var allInvested = this.getInvestments()
+                .stream()
+                .filter(i -> i.isCurrent(date))
+                .map(Investment::getInvestment)
+                .map(i -> i.getMoneyAmount())
+                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", year, 12))
+                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+
+        appendLine(format("Effective tax rate is {0}. Tax is {1} of investments.",
+                this.percentFormat.format(taxAmount.divide(totalAmount, DECIMAL64)),
+                this.percentFormat.format(usdTaxAmount.getAmount().divide(allInvested.getAmount(), DECIMAL64))));
+
     }
 
     private BBPPItem toARS(BBPPItem item, BigDecimal usdValue, int year) {
