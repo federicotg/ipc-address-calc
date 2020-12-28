@@ -472,7 +472,7 @@ public class ConsoleReports {
                     entry(of("expenses-change", 18), me::expensesChange),
                     //goal
                     entry(of("goal", 19), () -> me.goal(args, "goal")),
-                    entry(of("bbpp", 20), () -> me.bbpp())
+                    entry(of("bbpp", 20), () -> me.bbpp(2020))
             );
 
             final var params = Arrays.stream(args)
