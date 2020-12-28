@@ -36,8 +36,11 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.text.MessageFormat.format;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -64,6 +67,9 @@ import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.AnnualHistoricalReturn;
+import org.fede.calculator.money.series.BBPPItem;
+import org.fede.calculator.money.series.BBPPTaxBraket;
+import org.fede.calculator.money.series.BBPPYear;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
 
@@ -465,7 +471,8 @@ public class ConsoleReports {
                     entry(of("expenses-evo", 17), () -> me.expenseEvolution(args, "expenses-evo")),
                     entry(of("expenses-change", 18), me::expensesChange),
                     //goal
-                    entry(of("goal", 19), () -> me.goal(args, "goal"))
+                    entry(of("goal", 19), () -> me.goal(args, "goal")),
+                    entry(of("bbpp", 20), () -> me.bbpp())
             );
 
             final var params = Arrays.stream(args)
@@ -1021,4 +1028,137 @@ public class ConsoleReports {
 
         return investments;
     }
+
+    private void bbpp(int year) {
+
+        List<BBPPYear> bbppYears = SeriesReader.read("bbpp.json", new TypeReference<List<BBPPYear>>() {
+        });
+
+        var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        //appendLine("Date" + date.toString());
+
+        final var bbpp2020 = bbppYears
+                .stream()
+                .filter(y -> y.getYear() == year)
+                .findAny()
+                .get();
+
+        final var etfs = this.getInvestments()
+                .stream()
+                .filter(i -> i.isCurrent(date))
+                .filter(i -> InvestmentType.ETF.equals(i.getType()))
+                .map(Investment::getInvestment)
+                .map(i -> i.getMoneyAmount())
+                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", year, 12))
+                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+
+        final var ons = this.getInvestments()
+                .stream()
+                .filter(i -> i.isCurrent(date))
+                .filter(i -> InvestmentType.BONO.equals(i.getType()))
+                .map(Investment::getInvestment)
+                .map(i -> i.getMoneyAmount())
+                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", year, 12))
+                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+
+        final var etfsItem = new BBPPItem();
+        etfsItem.setCurrency(etfs.getCurrency());
+        etfsItem.setDomestic(false);
+        etfsItem.setExempt(false);
+        etfsItem.setHolding(ONE);
+        etfsItem.setName("ETFs");
+        etfsItem.setValue(etfs.getAmount());
+
+        final var onsItem = new BBPPItem();
+        onsItem.setCurrency(ons.getCurrency());
+        onsItem.setDomestic(true);
+        onsItem.setExempt(false);
+        onsItem.setHolding(ONE);
+        onsItem.setName("ONs");
+        onsItem.setValue(ons.getAmount());
+
+        bbpp2020.getItems().add(etfsItem);
+        bbpp2020.getItems().add(onsItem);
+
+        final var allArs = bbpp2020.getItems()
+                .stream()
+                .map(i -> this.toARS(i, bbpp2020.getUsd(), 2020))
+                .collect(toList());
+
+        final var totalAmount = allArs
+                .stream()
+                .map(i -> i.getValue().multiply(i.getHolding(), DECIMAL64))
+                .reduce(ZERO, BigDecimal::add);
+
+        appendLine(format("Total amount {0}", totalAmount));
+
+        final var taxedDomesticAmount = allArs
+                .stream()
+                .filter(BBPPItem::isDomestic)
+                .filter(i -> !i.isExempt())
+                .map(i -> i.getValue().multiply(i.getHolding(), DECIMAL64))
+                .reduce(ZERO, BigDecimal::add)
+                .multiply(new BigDecimal("1.05"), DECIMAL64);
+
+        appendLine(format("Taxed domestic amount {0}", taxedDomesticAmount));
+
+        final var taxedForeignAmount = allArs
+                .stream()
+                .filter(i -> !i.isDomestic())
+                .filter(i -> !i.isExempt())
+                .map(i -> i.getValue().multiply(i.getHolding(), DECIMAL64))
+                .reduce(ZERO, BigDecimal::add);
+
+        appendLine(format("Taxed foreign amount {0}", taxedForeignAmount));
+
+        final var taxedTotal = bbpp2020.getMinimum()
+                .negate()
+                .add(taxedDomesticAmount, DECIMAL64)
+                .add(taxedForeignAmount, DECIMAL64);
+
+        appendLine(format("Taxed total {0}", taxedTotal));
+
+        final var taxRate = bbpp2020.getBrakets()
+                .stream()
+                .sorted(comparing(BBPPTaxBraket::getFrom))
+                .filter(b -> b.getFrom().compareTo(totalAmount) <= 0)
+                .reduce((left, right) -> right)
+                .get()
+                .getTax();
+
+        appendLine(format("Tax rate {0}", taxRate));
+
+        final var taxAmount = taxedTotal.multiply(taxRate, DECIMAL64);
+        appendLine(format("Tax amount {0}", taxAmount));
+    }
+
+    private BBPPItem toARS(BBPPItem item, BigDecimal usdValue, int year) {
+        if (item.getCurrency().equals("ARS")) {
+            return item;
+        }
+
+        final var newItem = new BBPPItem();
+        newItem.setCurrency("ARS");
+        newItem.setDomestic(item.isDomestic());
+        newItem.setExempt(item.isExempt());
+        newItem.setHolding(item.getHolding());
+        newItem.setName(item.getName());
+
+        if (item.getCurrency().equals("USD")) {
+
+            newItem.setValue(item.getValue().multiply(usdValue, DECIMAL64));
+
+        }
+        if (item.getCurrency().equals("EUR")) {
+            newItem.setValue(ForeignExchanges.getForeignExchange("EUR", "USD")
+                    .exchange(new MoneyAmount(item.getValue(), item.getCurrency()), "USD", year, 12)
+                    .getAmount()
+                    .multiply(usdValue, DECIMAL64));
+
+        }
+        return newItem;
+
+    }
+
 }

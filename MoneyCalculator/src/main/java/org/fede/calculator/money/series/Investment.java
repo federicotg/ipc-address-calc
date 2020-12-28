@@ -154,10 +154,15 @@ public class Investment {
 
     @JsonIgnore
     public boolean isCurrent() {
-        final Date now = new Date();
+        return this.isCurrent(new Date());
+    }
+
+    @JsonIgnore
+    public boolean isCurrent(Date now) {
         return this.getIn().getDate().before(now) && (this.getOut() == null || this.getOut().getDate().after(now));
     }
 
+    
     @JsonIgnore
     public boolean isPast() {
         final Date now = new Date();
