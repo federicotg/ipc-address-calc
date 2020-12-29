@@ -470,7 +470,7 @@ public class ConsoleReports {
                     entry(of("expenses-change", 18), me::expensesChange),
                     //goal
                     entry(of("goal", 19), () -> me.goal(args, "goal")),
-                    entry(of("bbpp", 20), () -> me.bbpp(2020))
+                    entry(of("bbpp", 20), () -> me.bbpp(args, "bbpp"))
             );
 
             final var params = Arrays.stream(args)
@@ -1027,14 +1027,16 @@ public class ConsoleReports {
         return investments;
     }
 
-    private void bbpp(int year) {
+    private void bbpp(String[] args, String paramName) {
+
+        final var year = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("year", "2020"));
 
         List<BBPPYear> bbppYears = SeriesReader.read("bbpp.json", new TypeReference<List<BBPPYear>>() {
         });
 
         var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-        final var bbpp2020 = bbppYears
+        final var bbpp = bbppYears
                 .stream()
                 .filter(y -> y.getYear() == year)
                 .findAny()
@@ -1043,7 +1045,7 @@ public class ConsoleReports {
         final var etfs = this.getInvestments()
                 .stream()
                 .filter(i -> i.isCurrent(date))
-                .filter(i -> InvestmentType.ETF.equals(i.getType()))
+                .filter(i -> ETF.equals(i.getType()))
                 .map(Investment::getInvestment)
                 .map(i -> i.getMoneyAmount())
                 .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", year, 12))
@@ -1052,7 +1054,7 @@ public class ConsoleReports {
         final var ons = this.getInvestments()
                 .stream()
                 .filter(i -> i.isCurrent(date))
-                .filter(i -> InvestmentType.BONO.equals(i.getType()))
+                .filter(i -> BONO.equals(i.getType()))
                 .map(Investment::getInvestment)
                 .map(i -> i.getMoneyAmount())
                 .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", year, 12))
@@ -1074,12 +1076,12 @@ public class ConsoleReports {
         onsItem.setName("ONs");
         onsItem.setValue(ons.getAmount());
 
-        bbpp2020.getItems().add(etfsItem);
-        bbpp2020.getItems().add(onsItem);
+        bbpp.getItems().add(etfsItem);
+        bbpp.getItems().add(onsItem);
 
-        final var allArs = bbpp2020.getItems()
+        final var allArs = bbpp.getItems()
                 .stream()
-                .map(i -> this.toARS(i, bbpp2020.getUsd(), 2020))
+                .map(i -> this.toARS(i, bbpp.getUsd(), bbpp.getEur()))
                 .collect(toList());
 
         final var totalAmount = allArs
@@ -1108,14 +1110,14 @@ public class ConsoleReports {
 
         appendLine(format("Taxed foreign amount {0,number,currency}", taxedForeignAmount));
 
-        final var taxedTotal = bbpp2020.getMinimum()
+        final var taxedTotal = bbpp.getMinimum()
                 .negate()
                 .add(taxedDomesticAmount, DECIMAL64)
                 .add(taxedForeignAmount, DECIMAL64);
 
         appendLine(format("Taxed total {0,number,currency}", taxedTotal));
 
-        final var taxRate = bbpp2020.getBrakets()
+        final var taxRate = bbpp.getBrakets()
                 .stream()
                 .sorted(comparing(BBPPTaxBraket::getFrom))
                 .filter(b -> b.getFrom().compareTo(totalAmount) <= 0)
@@ -1150,7 +1152,7 @@ public class ConsoleReports {
 
     }
 
-    private BBPPItem toARS(BBPPItem item, BigDecimal usdValue, int year) {
+    private BBPPItem toARS(BBPPItem item, BigDecimal usdValue, BigDecimal eurValue) {
         if (item.getCurrency().equals("ARS")) {
             return item;
         }
@@ -1168,10 +1170,8 @@ public class ConsoleReports {
 
         }
         if (item.getCurrency().equals("EUR")) {
-            newItem.setValue(ForeignExchanges.getForeignExchange("EUR", "USD")
-                    .exchange(new MoneyAmount(item.getValue(), item.getCurrency()), "USD", year, 12)
-                    .getAmount()
-                    .multiply(usdValue, DECIMAL64));
+
+            newItem.setValue(item.getValue().multiply(eurValue, DECIMAL64));
 
         }
         return newItem;

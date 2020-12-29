@@ -29,6 +29,7 @@ public class BBPPYear {
     private List<BBPPTaxBraket> brakets;
     private BigDecimal minimum;
     private BigDecimal usd;
+    private BigDecimal eur;
     private List<BBPPItem> items;
 
     public int getYear() {
@@ -39,6 +40,16 @@ public class BBPPYear {
         this.year = year;
     }
 
+    public BigDecimal getEur() {
+        return eur;
+    }
+
+    public void setEur(BigDecimal eur) {
+        this.eur = eur;
+    }
+
+    
+    
     public BigDecimal getUsd() {
         return usd;
     }
