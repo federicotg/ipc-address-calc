@@ -39,14 +39,14 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class RealProfit {
 
-    private static final String REPORT_PATTERN = "{0} {1} => {2}. {3} {4} {5}";
+    private static final String REPORT_PATTERN = "{0} {1} => {2}. {3} {4}. Net {5} {6} {7}";
 
     public static String plusMinus(BigDecimal pct) {
 
-        final var sign = pct.signum() >= 0 
-                ? "+" 
+        final var sign = pct.signum() >= 0
+                ? "+"
                 : "-";
-        
+
         return IntStream.range(0, pct.abs().movePointRight(2).setScale(0, HALF_UP).intValue())
                 .mapToObj(index -> sign)
                 .collect(Collectors.joining());
@@ -60,11 +60,21 @@ public class RealProfit {
     private final Investment realInvestment;
     private final MoneyAmount profit;
 
-    public RealProfit(Investment nominalInvestment) {
+    private final BigDecimal tax;
+    private final BigDecimal fee;
+    
+    public RealProfit(Investment nominalInvestment){
+        this(nominalInvestment, BigDecimal.ZERO, BigDecimal.ZERO);
+    }
+    
+    public RealProfit(Investment nominalInvestment, BigDecimal tax, BigDecimal fee) {
         this.percentFormat.setMinimumFractionDigits(2);
         this.nominalInvestment = ForeignExchanges.exchange(nominalInvestment, "USD");
         this.realInvestment = Inflation.USD_INFLATION.real(this.nominalInvestment);
 
+        this.fee = fee;
+        this.tax = tax;
+        
         final YearMonth limit = USD_INFLATION.getTo();
 
         MoneyAmount p = this.profit(this.nominalInvestment);
@@ -148,14 +158,26 @@ public class RealProfit {
     @Override
     public String toString() {
 
+        final var capitalGain = this.profit.subtract(this.realInvestment.getInitialMoneyAmount());
+
+        final var afterTaxAndFee = capitalGain
+                        .subtract(capitalGain.adjust(BigDecimal.ONE, this.tax))
+                        .subtract(this.profit.adjust(BigDecimal.ONE, this.fee));
+        
+        final var pctAfterTaxAndFee = afterTaxAndFee.getAmount()
+                        .divide(this.realInvestment.getInitialMoneyAmount().getAmount(), MathConstants.CONTEXT);
+        
         final BigDecimal pct = this.getRate();
         return MessageFormat.format(REPORT_PATTERN,
                 this.df.format(this.nominalInvestment.getInitialDate()),
                 this.fmt(this.realInvestment.getInitialMoneyAmount()),
                 this.fmt(this.profit),
-                this.fmt(this.profit.subtract(this.realInvestment.getInitialMoneyAmount())),
+                this.fmt(capitalGain),
                 this.percentFormat.format(pct),
-                plusMinus(pct));
+                this.fmt(afterTaxAndFee),
+                this.percentFormat.format(pctAfterTaxAndFee),
+                plusMinus(pctAfterTaxAndFee)
+        );
     }
 
     public MoneyAmount getRealProfit() {

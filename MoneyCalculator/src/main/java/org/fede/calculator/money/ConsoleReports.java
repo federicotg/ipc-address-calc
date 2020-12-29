@@ -350,13 +350,18 @@ public class ConsoleReports {
             }
         }
 
+        final var tax = new BigDecimal("0.15");
+        final var fee = new BigDecimal("0.0193");
+        
+        
         this.getInvestments().stream()
                 .filter(i -> !totalOnly)
                 .filter(predicate)
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .sorted(comparing(Investment::getInitialDate))
-                .map(RealProfit::new)
+                //.map(RealProfit::new)
+                .map(i -> ETF.equals(i.getType()) ? new RealProfit(i, tax, fee) : new RealProfit(i))
                 .map(RealProfit::toString)
                 .forEach(this::appendLine);
 
