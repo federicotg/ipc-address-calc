@@ -384,9 +384,9 @@ public class ConsoleReports {
         final BigDecimal total = this.totalSum(realProfits, initialFunction);
         final BigDecimal profit = this.totalSum(realProfits, totalFunction);
 
-        final BigDecimal pct = total.compareTo(BigDecimal.ZERO) > 0
+        final BigDecimal pct = total.compareTo(ZERO) > 0
                 ? profit.divide(total, MathConstants.CONTEXT)
-                : BigDecimal.ZERO;
+                : ZERO;
 
         this.appendLine(format("{4} {0,number,currency} => {5,number,currency} {1,number,currency} {2} {3}",
                 total,
@@ -881,14 +881,14 @@ public class ConsoleReports {
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> BigDecimal.ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
+                .map(r -> ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
                 .collect(toList());
 
         this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", tr)
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> BigDecimal.ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
+                .map(r -> ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
                 .collect(toList());
 
         final var to = Inflation.USD_INFLATION.getTo();

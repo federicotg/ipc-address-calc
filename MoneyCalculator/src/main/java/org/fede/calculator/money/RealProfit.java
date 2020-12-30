@@ -64,8 +64,6 @@ public class RealProfit {
 
     private final MoneyAmount afterFeesAndTaxesProfit;
 
-    private final BigDecimal tax;
-    private final BigDecimal fee;
 
     public RealProfit(Investment nominalInvestment) {
         this(nominalInvestment, ZERO, ZERO);
@@ -75,9 +73,6 @@ public class RealProfit {
         this.percentFormat.setMinimumFractionDigits(2);
         this.nominalInvestment = ForeignExchanges.exchange(nominalInvestment, "USD");
         this.realInvestment = Inflation.USD_INFLATION.real(this.nominalInvestment);
-
-        this.fee = fee;
-        this.tax = tax;
 
         final YearMonth limit = USD_INFLATION.getTo();
 

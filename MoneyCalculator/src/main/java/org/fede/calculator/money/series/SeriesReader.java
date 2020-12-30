@@ -72,7 +72,7 @@ public class SeriesReader {
         try (InputStream is = new BufferedInputStream(new FileInputStream(System.getProperty("user.home")+"/Sync/app-resources/" + name))) {
 
             JSONSeries series = OM.readValue(is, JSONSeries.class);
-
+           
             final SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
             final String currency = series.getCurrency();
             for (JSONDataPoint dp : series.getData()) {
