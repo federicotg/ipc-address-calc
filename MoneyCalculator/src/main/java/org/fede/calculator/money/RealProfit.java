@@ -17,6 +17,8 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import static java.math.BigDecimal.ONE;
+import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.HALF_UP;
 import java.text.DateFormat;
 import java.text.MessageFormat;
@@ -60,13 +62,15 @@ public class RealProfit {
     private final Investment realInvestment;
     private final MoneyAmount profit;
 
+    private final MoneyAmount afterFeesAndTaxesProfit;
+
     private final BigDecimal tax;
     private final BigDecimal fee;
-    
-    public RealProfit(Investment nominalInvestment){
-        this(nominalInvestment, BigDecimal.ZERO, BigDecimal.ZERO);
+
+    public RealProfit(Investment nominalInvestment) {
+        this(nominalInvestment, ZERO, ZERO);
     }
-    
+
     public RealProfit(Investment nominalInvestment, BigDecimal tax, BigDecimal fee) {
         this.percentFormat.setMinimumFractionDigits(2);
         this.nominalInvestment = ForeignExchanges.exchange(nominalInvestment, "USD");
@@ -74,7 +78,7 @@ public class RealProfit {
 
         this.fee = fee;
         this.tax = tax;
-        
+
         final YearMonth limit = USD_INFLATION.getTo();
 
         MoneyAmount p = this.profit(this.nominalInvestment);
@@ -88,11 +92,20 @@ public class RealProfit {
                     .exchange(p, "USD", limit.getYear(), limit.getMonth());
         }
 
+        final var afterFee = usdProfit.adjust(ONE, ONE.subtract(fee));
+
+        final var afterFeesAndTaxes = afterFee
+                .subtract(afterFee.subtract(this.nominalInvestment.getInitialMoneyAmount()).adjust(ONE, tax));
+
         if (this.nominalInvestment.getOut() != null && this.nominalInvestment.getOut().getDate().before(new Date())) {
             final YearMonth endYM = new YearMonth(this.nominalInvestment.getOut().getDate());
             this.profit = USD_INFLATION.adjust(usdProfit, endYM.getYear(), endYM.getMonth(), limit.getYear(), limit.getMonth());
+
+            this.afterFeesAndTaxesProfit = USD_INFLATION.adjust(afterFeesAndTaxes, endYM.getYear(), endYM.getMonth(), limit.getYear(), limit.getMonth());
+
         } else {
             this.profit = usdProfit;
+            this.afterFeesAndTaxesProfit = afterFeesAndTaxes;
         }
     }
 
@@ -160,21 +173,20 @@ public class RealProfit {
 
         final var capitalGain = this.profit.subtract(this.realInvestment.getInitialMoneyAmount());
 
-        final var afterTaxAndFee = capitalGain
-                        .subtract(capitalGain.adjust(BigDecimal.ONE, this.tax))
-                        .subtract(this.profit.adjust(BigDecimal.ONE, this.fee));
-        
-        final var pctAfterTaxAndFee = afterTaxAndFee.getAmount()
-                        .divide(this.realInvestment.getInitialMoneyAmount().getAmount(), MathConstants.CONTEXT);
-        
+        final var afterFeesAndTaxesCapitalGain = this.afterFeesAndTaxesProfit.subtract(this.realInvestment.getInitialMoneyAmount());
+
+        final var pctAfterTaxAndFee = afterFeesAndTaxesCapitalGain.getAmount()
+                .divide(this.realInvestment.getInitialMoneyAmount().getAmount(), MathConstants.CONTEXT);
+
         final BigDecimal pct = this.getRate();
+
         return MessageFormat.format(REPORT_PATTERN,
                 this.df.format(this.nominalInvestment.getInitialDate()),
                 this.fmt(this.realInvestment.getInitialMoneyAmount()),
                 this.fmt(this.profit),
                 this.fmt(capitalGain),
                 this.percentFormat.format(pct),
-                this.fmt(afterTaxAndFee),
+                this.fmt(afterFeesAndTaxesCapitalGain),
                 this.percentFormat.format(pctAfterTaxAndFee),
                 plusMinus(pctAfterTaxAndFee)
         );
@@ -186,6 +198,10 @@ public class RealProfit {
 
     public MoneyAmount getRealInitialAmount() {
         return this.realInvestment.getInitialMoneyAmount();
+    }
+
+    public MoneyAmount getAfterFeesAndTaxesProfit() {
+        return afterFeesAndTaxesProfit.subtract(this.realInvestment.getInitialMoneyAmount());
     }
 
 }

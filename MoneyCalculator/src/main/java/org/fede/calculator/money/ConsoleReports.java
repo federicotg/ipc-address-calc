@@ -337,7 +337,7 @@ public class ConsoleReports {
         this.investmentsRealProfit(currency, type, Investment::isPast, true);
     }
 
-    private void investmentsRealProfit(String currency, InvestmentType type, Predicate<Investment> predicate, boolean totalOnly) {
+    private void investmentsRealProfit(final String currency, final InvestmentType type, final Predicate<Investment> predicate, final boolean totalOnly) {
 
         final var currencyText = Optional.ofNullable(currency).map(c -> format(" {0}", c)).orElse("");
 
@@ -352,26 +352,43 @@ public class ConsoleReports {
 
         final var tax = new BigDecimal("0.15");
         final var fee = new BigDecimal("0.0193");
-        
-        
-        this.getInvestments().stream()
-                .filter(i -> !totalOnly)
+
+        final var realProfits = this.getInvestments().stream()
                 .filter(predicate)
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .sorted(comparing(Investment::getInitialDate))
-                //.map(RealProfit::new)
                 .map(i -> ETF.equals(i.getType()) ? new RealProfit(i, tax, fee) : new RealProfit(i))
+                .collect(toList());
+
+        realProfits
+                .stream()
+                .filter(i -> !totalOnly)
                 .map(RealProfit::toString)
                 .forEach(this::appendLine);
 
-        final BigDecimal total = this.totalSum(currency, type, RealProfit::getRealInitialAmount, predicate);
-        final BigDecimal profit = this.totalSum(currency, type, RealProfit::getRealProfit, predicate);
+        this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText +" gross", RealProfit::getRealInitialAmount, RealProfit::getRealProfit);
+
+        this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText +" net  ", RealProfit::getRealInitialAmount, RealProfit::getAfterFeesAndTaxesProfit);
+
+    }
+
+    private void totalRealProfitReportLine(
+            List<RealProfit> realProfits,
+            InvestmentType type,
+            boolean totalOnly,
+            String currencyText,
+            Function<RealProfit, MoneyAmount> initialFunction,
+            Function<RealProfit, MoneyAmount> totalFunction) {
+
+        final BigDecimal total = this.totalSum(realProfits, initialFunction);
+        final BigDecimal profit = this.totalSum(realProfits, totalFunction);
+
         final BigDecimal pct = total.compareTo(BigDecimal.ZERO) > 0
                 ? profit.divide(total, MathConstants.CONTEXT)
                 : BigDecimal.ZERO;
 
-        this.appendLine(format("{4}TOTAL: {0,number,currency} => {5,number,currency} {1,number,currency} {2} {3}",
+        this.appendLine(format("{4} {0,number,currency} => {5,number,currency} {1,number,currency} {2} {3}",
                 total,
                 profit,
                 this.percentFormat.format(pct),
@@ -382,15 +399,13 @@ public class ConsoleReports {
                         .map(Object::toString)
                         .collect(joining("", "", " ")),
                 total.add(profit)));
+
     }
 
-    private BigDecimal totalSum(String currency, InvestmentType type, Function<RealProfit, MoneyAmount> totalFunction, Predicate<Investment> predicate) {
+    private BigDecimal totalSum(List<RealProfit> realProfits, Function<RealProfit, MoneyAmount> totalFunction) {
 
-        return this.getInvestments().stream()
-                .filter(predicate)
-                .filter(i -> type == null || i.getType().equals(type))
-                .filter(i -> currency == null || i.getCurrency().equals(currency))
-                .map(RealProfit::new)
+        return realProfits
+                .stream()
                 .map(totalFunction)
                 .map(MoneyAmount::getAmount)
                 .collect(reducing(ZERO, BigDecimal::add));
