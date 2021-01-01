@@ -475,6 +475,8 @@ public class ConsoleReports {
                     //savings
                     entry(of("savings-evo", 7), () -> me.savingEvolution(args, "savings-evo")),
                     entry(of("savings-change", 8), me::savingChange),
+                    entry(of("savings-dist", 21), me::savingsDistributionEvolution),
+                    entry(of("savings-dist-pct", 22), me::savingsDistributionPercentEvolution),
                     //income
                     entry(of("income", 9), () -> me.income(args, "income")),
                     entry(of("income-evo", 10), () -> me.incomeEvolution(args, "income-evo")),
@@ -742,6 +744,45 @@ public class ConsoleReports {
 
     }
 
+    private void savingsDistributionEvolution() {
+        final var cash = this.realSavings("LIQ");
+        final var eq = this.realSavings("EQ");
+        final var bo = this.realSavings("BO");
+
+        cash.forEach((ym, cashMa) -> appendLine(
+                this.bar(ym, cashMa, eq.getAmountOrElseZero(ym), bo.getAmountOrElseZero(ym), 1500)));
+    }
+
+    private void savingsDistributionPercentEvolution() {
+        final var cash = this.realSavings("LIQ");
+        final var eq = this.realSavings("EQ");
+        final var bo = this.realSavings("BO");
+
+        cash.forEach((ym, cashMa) -> appendLine(
+                this.percentBar(ym, cashMa, eq.getAmountOrElseZero(ym), bo.getAmountOrElseZero(ym))
+        ));
+    }
+
+    private String percentBar(YearMonth ym, MoneyAmount one, MoneyAmount two, MoneyAmount three) {
+
+        final var total = one.add(two).add(three).getAmount();
+
+        return this.bar(ym,
+                one.adjust(total, ONE).movePoint(2),
+                two.adjust(total, ONE).movePoint(2),
+                three.adjust(total, ONE).movePoint(2), 1);
+
+    }
+
+    private String bar(YearMonth ym, MoneyAmount one, MoneyAmount two, MoneyAmount three, int scale) {
+        return format("{0}/{1} {2}{3}{4}",
+                String.valueOf(ym.getYear()),
+                String.format("%02d", ym.getMonth()),
+                this.bar(one.getAmount(), scale, "#"),
+                this.bar(two.getAmount(), scale, "-"),
+                this.bar(three.getAmount(), scale, "+"));
+    }
+
     private void savingEvolution(String[] args, String paramName) {
 
         this.evolution("Savings", this.realSavings(this.paramsValue(args, paramName).get("type")), 2500);
@@ -820,6 +861,11 @@ public class ConsoleReports {
     private String bar(BigDecimal value, int scale) {
 
         final var symbol = value.signum() < 0 ? "-" : "+";
+
+        return this.bar(value, scale, symbol);
+    }
+
+    private String bar(BigDecimal value, int scale, String symbol) {
 
         return IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), DECIMAL64).setScale(0, RoundingMode.HALF_UP).intValue())
                 .mapToObj(x -> symbol)
