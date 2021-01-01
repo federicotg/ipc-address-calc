@@ -203,11 +203,6 @@ public class ChartController {
         return this.buildExpenseModelAndView("Gastos", this.expenseService.getSeries(), "expensesChart");
     }
 
-//    @RequestMapping(value = "consultatio", method = GET)
-//    public ModelAndView consultatio() {
-//        return this.buildExpenseModelAndView("Consultatio Plus F.C.I.", this.fciService.getSeries(), "fciChart");
-//    }
-
     private ModelAndView buildExpenseModelAndView(String title, List<ExpenseChartSeriesDTO> dtoSeries, String uri) {
         return this.buildExpenseModelAndView(title, dtoSeries, uri, 12);
     }

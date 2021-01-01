@@ -65,10 +65,6 @@ public class SeriesReader {
 
     private static MoneyAmountSeries read(String name) {
 
-        if (name.startsWith("fci/")) {
-            return new SortedMapMoneyAmountSeries("ARS");
-        }
-
         try (InputStream is = new BufferedInputStream(new FileInputStream(System.getProperty("user.home")+"/Sync/app-resources/" + name))) {
 
             JSONSeries series = OM.readValue(is, JSONSeries.class);
