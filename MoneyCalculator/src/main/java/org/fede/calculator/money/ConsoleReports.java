@@ -585,10 +585,6 @@ public class ConsoleReports {
                 start.getYear(), start.getMonth(),
                 limit.getYear(), limit.getMonth());
 
-//        final var realTransactionCost = USD_INFLATION.adjust(new MoneyAmount(nominalTransactionCost, "USD"),
-//                start.getYear(), start.getMonth(),
-//                limit.getYear(), limit.getMonth());
-
         final var months = BigDecimal.valueOf(start.monthsUntil(timeLimit));
         final var years = months.divide(BigDecimal.valueOf(12), DECIMAL64);
 
@@ -608,25 +604,23 @@ public class ConsoleReports {
                 String.valueOf(timeLimit.getYear()),
                 percentFormat.format(rate)));
 
-        this.appendLine("USD reales ", String.valueOf(limit.getMonth()), "/", String.valueOf(limit.getYear()));
-        this.appendLine("\tTotal USD ",
-                format("{0,number,currency} {1}",
-                        totalRealExpense.getAmount(),
-                        percentFormat.format(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), DECIMAL64))));
+        this.appendLine(format("USD reales {0}/{1}", limit.getMonth(), String.valueOf(limit.getYear())));
+        this.appendLine(format("\tTotal USD {0,number,currency} {1}",
+                totalRealExpense.getAmount(),
+                percentFormat.format(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), DECIMAL64))));
 
         final var monthlyCost = totalRealExpense.getAmount().divide(months, DECIMAL64);
-        this.appendLine("\tMensual USD ",
-                format("{0,number,currency} {1} - ARS {2,number,currency}",
-                        monthlyCost,
-                        percentFormat.format(monthlyCost.divide(realInitialCost.getAmount(), DECIMAL64)),
-                        ForeignExchanges.getForeignExchange("USD", "ARS")
-                                .exchange(new MoneyAmount(monthlyCost, "USD"), "ARS", limit.getYear(), limit.getMonth())
-                                .getAmount()));
+        this.appendLine(format("\tMensual USD {0,number,currency} {1} - ARS {2,number,currency}",
+                monthlyCost,
+                percentFormat.format(monthlyCost.divide(realInitialCost.getAmount(), DECIMAL64)),
+                ForeignExchanges.getForeignExchange("USD", "ARS")
+                        .exchange(new MoneyAmount(monthlyCost, "USD"), "ARS", limit.getYear(), limit.getMonth())
+                        .getAmount()));
 
         final var yearlyCost = totalRealExpense.getAmount().divide(years, DECIMAL64);
-        this.appendLine("\tAnual USD ",
-                format("{0,number,currency} ", yearlyCost),
-                format("{0}\n", percentFormat.format(yearlyCost.divide(realInitialCost.getAmount(), DECIMAL64))));
+        this.appendLine(format("\tAnual USD {0,number,currency} {0}\n",
+                yearlyCost,
+                percentFormat.format(yearlyCost.divide(realInitialCost.getAmount(), DECIMAL64))));
 
     }
 
