@@ -112,6 +112,8 @@ public class ConsoleReports {
     private Map<String, List<MoneyAmountSeries>> realUSDSavingsByType;
     private Map<String, List<MoneyAmountSeries>> realUSDExpensesByType;
 
+    private List<MoneyAmountSeries> incomeSeries;
+
     private final StringBuilder out;
 
     private ConsoleReports(StringBuilder out) {
@@ -418,25 +420,32 @@ public class ConsoleReports {
     private void income(String[] args, String paramName) {
         this.income(Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "12")));
 
-        final var limit = USD_INFLATION.getTo();
-
         this.appendLine(format("Total income: {0,number,currency}",
-                Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
-                        .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
-                        .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
+                this.getIncomeSeries()
+                        .stream()
                         .flatMap(MoneyAmountSeries::moneyAmountStream)
                         .collect(reducing(MoneyAmount::add))
                         .orElseGet(() -> new MoneyAmount(ZERO, "USD"))
                         .getAmount()));
     }
 
+    private List<MoneyAmountSeries> getIncomeSeries() {
+
+        if (this.incomeSeries == null) {
+
+            final var limit = USD_INFLATION.getTo();
+            this.incomeSeries = Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
+                    .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
+                    .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
+                    .collect(toList());
+        }
+        return this.incomeSeries;
+    }
+
     private void income(int months) {
-
         final var limit = USD_INFLATION.getTo();
-
-        final var averageRealUSDIncome = Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
-                .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
-                .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
+        final var averageRealUSDIncome = this.getIncomeSeries()
+                .stream()
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(new SimpleAggregation(months)::average)
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(allRealUSDIncome.getTo()))
@@ -465,35 +474,36 @@ public class ConsoleReports {
 
             final var me = new ConsoleReports(new StringBuilder(1024));
 
-            final Map<Pair<String, Integer>, Runnable> actions = Map.ofEntries(
-                    entry(of("past", 0), me::pastInvestmentsProfit),
-                    entry(of("i", 1), me::investments),
-                    entry(of("gi", 2), me::groupedInvestments),
-                    entry(of("ti", 3), me::listStockByTpe),
-                    entry(of("current", 4), () -> me.currentInvestmentsRealProfit(args, "current")),
-                    entry(of("allpast", 5), me::pastInvestmentsRealProfit),
-                    entry(of("global", 6), me::globalInvestmentsRealProfit),
+            final Map<String, Runnable> actions = Map.ofEntries(
+                    entry("past", me::pastInvestmentsProfit),
+                    entry("i", me::investments),
+                    entry("gi", me::groupedInvestments),
+                    entry("ti", me::listStockByTpe),
+                    entry("current", () -> me.currentInvestmentsRealProfit(args, "current")),
+                    entry("allpast", me::pastInvestmentsRealProfit),
+                    entry("global", me::globalInvestmentsRealProfit),
                     //savings
-                    entry(of("savings-evo", 7), () -> me.savingEvolution(args, "savings-evo")),
-                    entry(of("savings-change", 8), me::savingChange),
-                    entry(of("savings-dist", 21), me::savingsDistributionEvolution),
-                    entry(of("savings-dist-pct", 22), me::savingsDistributionPercentEvolution),
+                    entry("savings", () -> me.savings()),
+                    entry("savings-evo", () -> me.savingEvolution(args, "savings-evo")),
+                    entry("savings-change", me::savingChange),
+                    entry("savings-dist", me::savingsDistributionEvolution),
+                    entry("savings-dist-pct", me::savingsDistributionPercentEvolution),
                     //income
-                    entry(of("income", 9), () -> me.income(args, "income")),
-                    entry(of("income-evo", 10), () -> me.incomeEvolution(args, "income-evo")),
-                    entry(of("income-avg-evo", 11), () -> me.incomeAverageEvolution(args, "income-avg-evo")),
+                    entry("income", () -> me.income(args, "income")),
+                    entry("income-evo", () -> me.incomeEvolution()),
+                    entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
-                    entry(of("house", 12), () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
-                    entry(of("house1", 13), () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
-                    entry(of("house3", 14), () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
-                    entry(of("house5", 15), () -> me.houseIrrecoverableCosts(new YearMonth(2015, 8))),
+                    entry("house", () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
+                    entry("house1", () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
+                    entry("house3", () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
+                    entry("house5", () -> me.houseIrrecoverableCosts(new YearMonth(2015, 8))),
                     //expenses
-                    entry(of("expenses", 16), () -> me.expenses(args, "expenses")),
-                    entry(of("expenses-evo", 17), () -> me.expenseEvolution(args, "expenses-evo")),
-                    entry(of("expenses-change", 18), me::expensesChange),
+                    entry("expenses", () -> me.expenses(args, "expenses")),
+                    entry("expenses-evo", () -> me.expenseEvolution(args, "expenses-evo")),
+                    entry("expenses-change", me::expensesChange),
                     //goal
-                    entry(of("goal", 19), () -> me.goal(args, "goal")),
-                    entry(of("bbpp", 20), () -> me.bbpp(args, "bbpp"))
+                    entry("goal", () -> me.goal(args, "goal")),
+                    entry("bbpp", () -> me.bbpp(args, "bbpp"))
             );
 
             final var params = Arrays.stream(args)
@@ -506,8 +516,7 @@ public class ConsoleReports {
                         "goal", "trials=100000 period=10 retirement=65 w=1000 d=500 inflation=2 cash=cash sp500=false",
                         "current", "type=(current* | on | pf | gold | cspx | eimi | meud | xrsu)",
                         "income", "months=12",
-                        "income-evo", "type=(desp | lifia | unlp)",
-                        "income-avg-evo", "type=(desp | lifia | unlp) months=12",
+                        "income-avg-evo", "months=12",
                         "expenses", "type=(taxes | insurance | phone | services | home | entertainment) months=12",
                         "expenses-evo", "type=(taxes | insurance | phone | services | home | entertainment)",
                         "savings-evo", "type=(BO | LIQ | EQ)"
@@ -516,17 +525,16 @@ public class ConsoleReports {
                 Stream.concat(
                         actions.keySet()
                                 .stream()
-                                .filter(action -> !help.keySet().contains(action.getFirst()))
-                                .map(Pair::getFirst)
+                                .filter(action -> !help.keySet().contains(action))
                                 .map(action -> format(" - {0}", action)),
                         help.entrySet().stream().map(e -> format(" - {0} {1}", e.getKey(), e.getValue())))
+                        .sorted()
                         .forEach(me::appendLine);
             } else {
 
                 actions.entrySet()
                         .stream()
-                        .filter(e -> params.isEmpty() || params.contains(e.getKey().getFirst().toLowerCase()))
-                        .sorted(comparing(e -> e.getKey().getSecond()))
+                        .filter(e -> params.isEmpty() || params.contains(e.getKey().toLowerCase()))
                         .map(Map.Entry::getValue)
                         .forEach(r -> {
                             r.run();
@@ -538,6 +546,35 @@ public class ConsoleReports {
             System.err.println(ex.getMessage());
             ex.printStackTrace(System.err);
         }
+    }
+
+    private void savings() {
+
+        // total savings
+        final var limit = USD_INFLATION.getTo();
+
+        final var totalSavings = this.realSavings(null).getAmount(limit);
+
+        // total income
+        final var totalIncome = this.realIncome()
+                .moneyAmountStream()
+                .reduce(MoneyAmount::add)
+                .get();
+
+        final var months = this.realIncome().getFrom().monthsUntil(limit);
+
+        final var avgSalary = totalIncome.getAmount().divide(BigDecimal.valueOf(months), DECIMAL64);
+
+        // % saved
+        appendLine(format("Income USD {0,number,currency}\nSavings USD {1,number,currency} {2}\nAverage salary {3,number,currency}\nSaved salaries {4}",
+                totalIncome.getAmount(),
+                totalSavings.getAmount(),
+                this.percentFormat.format(totalSavings.getAmount().divide(totalIncome.getAmount(), DECIMAL64)),
+                avgSalary,
+                totalSavings.getAmount().divide(avgSalary, DECIMAL64)));
+        
+        
+        //saved salaries
     }
 
     private MoneyAmount applyCoefficient(YearMonth ym, MoneyAmount amount) {
@@ -833,49 +870,32 @@ public class ConsoleReports {
                                 .average(this.realExpenses(null))), 5);
     }
 
-    private MoneyAmountSeries realIncome(String type) {
-        final var files = List.of(
-                of("desp", "despegar"),
-                of("lifia", "lifia"),
-                of("unlp", "unlp"));
+    private MoneyAmountSeries realIncome() {
 
-        final var limit = USD_INFLATION.getTo();
-
-        return files.stream()
-                .filter(e -> type == null || e.getFirst().equals(type))
-                .map(Pair::getSecond)
-                .map(f -> "income/" + f + ".json")
-                .map(SeriesReader::readSeries)
-                .map(s -> s.exchangeInto("USD"))
-                .map(s -> Inflation.USD_INFLATION.adjust(s, limit.getYear(), limit.getMonth()))
+        return this.getIncomeSeries().stream()
                 .reduce(MoneyAmountSeries::add)
                 .get();
     }
 
-    private void incomeEvolution(String[] args, String paramName) {
+    private void incomeEvolution() {
 
-        final var params = this.paramsValue(args, paramName);
-
-        final var type = params.get("type");
-
-        this.evolution("Income", this.realIncome(type), 100);
+        this.evolution("Income", this.realIncome(), 100);
     }
 
     private void incomeAverageEvolution(String[] args, String paramName) {
         var params = this.paramsValue(args, paramName);
 
-        var type = params.get("type");
         var months = Integer.parseInt(params.getOrDefault("months", "12"));
 
-        this.incomeAverageEvolution(type, months);
+        this.incomeAverageEvolution(months);
 
     }
 
-    private void incomeAverageEvolution(String type, int months) {
+    private void incomeAverageEvolution(int months) {
 
         this.evolution("Income " + String.valueOf(months) + "-month average",
                 new SimpleAggregation(months)
-                        .average(this.realIncome(type)),
+                        .average(this.realIncome()),
                 100);
     }
 
