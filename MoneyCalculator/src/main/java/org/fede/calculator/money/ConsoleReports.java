@@ -426,7 +426,8 @@ public class ConsoleReports {
                         .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
                         .flatMap(MoneyAmountSeries::moneyAmountStream)
                         .collect(reducing(MoneyAmount::add))
-                        .orElseGet(() -> new MoneyAmount(ZERO, "USD")).getAmount()));
+                        .orElseGet(() -> new MoneyAmount(ZERO, "USD"))
+                        .getAmount()));
     }
 
     private void income(int months) {
@@ -628,10 +629,10 @@ public class ConsoleReports {
 
     private void expenses(String[] args, String type) {
 
-        var params = this.paramsValue(args, type);
+        final var params = this.paramsValue(args, type);
 
-        String exp = params.get("type");
-        int months = Integer.parseInt(params.getOrDefault("months", "12"));
+        final String exp = params.get("type");
+        final int months = Integer.parseInt(params.getOrDefault("months", "12"));
 
         this.appendLine("Real USD expenses in the last ",
                 String.valueOf(months),
@@ -750,7 +751,7 @@ public class ConsoleReports {
         final var bo = this.realSavings("BO");
 
         cash.forEach((ym, cashMa) -> appendLine(
-                this.bar(ym, cashMa, eq.getAmountOrElseZero(ym), bo.getAmountOrElseZero(ym), 1500)));
+                this.bar(ym, cashMa.getAmount(), eq.getAmountOrElseZero(ym).getAmount(), bo.getAmountOrElseZero(ym).getAmount(), 1500)));
     }
 
     private void savingsDistributionPercentEvolution() {
@@ -763,24 +764,44 @@ public class ConsoleReports {
         ));
     }
 
+    private BigDecimal asPct(MoneyAmount ma, MoneyAmount total) {
+        return ma.getAmount()
+                .divide(total.getAmount(), DECIMAL64)
+                .movePointRight(2)
+                .setScale(0, RoundingMode.HALF_UP);
+    }
+
     private String percentBar(YearMonth ym, MoneyAmount one, MoneyAmount two, MoneyAmount three) {
 
-        final var total = one.add(two).add(three).getAmount();
+        final var total = one.add(two).add(three);
 
-        return this.bar(ym,
-                one.adjust(total, ONE).movePoint(2),
-                two.adjust(total, ONE).movePoint(2),
-                three.adjust(total, ONE).movePoint(2), 1);
+        if (total.getAmount().signum() == 0) {
+            return "";
+        }
+
+        final var hundred = BigDecimal.valueOf(100);
+
+        var bar1 = this.asPct(one, total);
+        var bar2 = this.asPct(two, total);
+        var bar3 = this.asPct(three, total);
+
+        if (bar1.add(bar2, DECIMAL64).add(bar3, DECIMAL64).compareTo(hundred) != 0) {
+
+            bar1 = hundred.subtract(bar2.add(bar3, DECIMAL64), DECIMAL64);
+
+        }
+
+        return this.bar(ym, bar1, bar2, bar3, 1);
 
     }
 
-    private String bar(YearMonth ym, MoneyAmount one, MoneyAmount two, MoneyAmount three, int scale) {
+    private String bar(YearMonth ym, BigDecimal one, BigDecimal two, BigDecimal three, int scale) {
         return format("{0}/{1} {2}{3}{4}",
                 String.valueOf(ym.getYear()),
                 String.format("%02d", ym.getMonth()),
-                this.bar(one.getAmount(), scale, "#"),
-                this.bar(two.getAmount(), scale, "-"),
-                this.bar(three.getAmount(), scale, "+"));
+                this.bar(one, scale, "#"),
+                this.bar(two, scale, "+"),
+                this.bar(three, scale, "%"));
     }
 
     private void savingEvolution(String[] args, String paramName) {
