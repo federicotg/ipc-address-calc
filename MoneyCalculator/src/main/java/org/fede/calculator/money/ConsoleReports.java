@@ -285,7 +285,7 @@ public class ConsoleReports {
     private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type, String currency) {
         return format("{0} {1}: {2,number,currency}. {3}", type, currency, subtotal.getAmount(),
                 percentFormat
-                        .format(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), MathConstants.CONTEXT))
+                        .format(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), CONTEXT))
                                 .orElse(ZERO)));
     }
 
@@ -316,8 +316,7 @@ public class ConsoleReports {
 
     private void currentInvestmentsRealProfit(String[] args, String type) {
 
-        appendLine("===< Current Investments Profit in Real USD >===");
-
+        //appendLine("===< Current Investments Profit in Real USD >===");
         final var params = this.paramsValue(args, type);
 
         final var action = params.getOrDefault("type", "current");
@@ -392,7 +391,7 @@ public class ConsoleReports {
         final BigDecimal profit = this.totalSum(realProfits, totalFunction);
 
         final BigDecimal pct = total.compareTo(ZERO) > 0
-                ? profit.divide(total, MathConstants.CONTEXT)
+                ? profit.divide(total, CONTEXT)
                 : ZERO;
 
         this.appendLine(format("{4} {0,number,currency} => {5,number,currency} {1,number,currency} {2} {3}",
@@ -567,9 +566,8 @@ public class ConsoleReports {
 
     private void savings() {
 
-        
         appendLine("===< Historical Real USD Savings Stats >===");
-        
+
         // total savings
         final var limit = USD_INFLATION.getTo();
 
