@@ -421,16 +421,14 @@ public class ConsoleReports {
         this.income(Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "12")));
 
         final var totalIncome = this.getIncomeSeries()
-                        .stream()
-                        .flatMap(MoneyAmountSeries::moneyAmountStream)
-                        .collect(reducing(MoneyAmount::add))
-                        .orElseGet(() -> new MoneyAmount(ZERO, "USD"))
-                        .getAmount();
-        
-        this.appendLine(format("Total income: {0,number,currency}",totalIncome));
-        
-        
-        
+                .stream()
+                .flatMap(MoneyAmountSeries::moneyAmountStream)
+                .collect(reducing(MoneyAmount::add))
+                .orElseGet(() -> new MoneyAmount(ZERO, "USD"))
+                .getAmount();
+
+        this.appendLine(format("Total income: {0,number,currency}", totalIncome));
+
     }
 
     private List<MoneyAmountSeries> getIncomeSeries() {
@@ -455,9 +453,9 @@ public class ConsoleReports {
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(allRealUSDIncome.getTo()))
                 .orElseGet(() -> new MoneyAmount(ZERO, "USD"));
 
-        this.appendLine(format("===< Average {0}-month income in {1}/{2} real USD >===", 
-                months, 
-                limit.getMonth(), 
+        this.appendLine(format("===< Average {0}-month income in {1}/{2} real USD >===",
+                months,
+                limit.getMonth(),
                 String.valueOf(limit.getYear())));
 
         this.appendLine("\tIncome: ",
@@ -474,11 +472,11 @@ public class ConsoleReports {
                 " / ",
                 format("{0,number,currency}",
                         ForeignExchanges.getForeignExchange(savingPct.getCurrency(), "ARS").exchange(savingPct, "ARS", limit.getYear(), limit.getMonth()).getAmount()));
-    
-        appendLine(format("Saved salaries {0}", 
+
+        appendLine(format("Saved salaries {0}",
                 this.realSavings(null).getAmount(limit).getAmount()
                         .divide(averageRealUSDIncome.getAmount(), DECIMAL64)));
-    
+
     }
 
     public static void main(String[] args) {
@@ -500,6 +498,7 @@ public class ConsoleReports {
                     entry("savings-change", me::savingChange),
                     entry("savings-dist", me::savingsDistributionEvolution),
                     entry("savings-dist-pct", me::savingsDistributionPercentEvolution),
+                    entry("saved-salaries-evo", () -> me.averageSavedSalaries(args, "saved-salaries-evo")),
                     //income
                     entry("income", () -> me.income(args, "income")),
                     entry("income-evo", me::incomeEvolution),
@@ -528,6 +527,7 @@ public class ConsoleReports {
                         "goal", "trials=100000 period=10 retirement=65 w=1000 d=500 inflation=2 cash=cash sp500=false",
                         "current", "type=(current* | on | pf | gold | cspx | eimi | meud | xrsu)",
                         "income", "months=12",
+                        "saved-salaries-evo", "months=12",
                         "income-avg-evo", "months=12",
                         "expenses", "type=(taxes | insurance | phone | services | home | entertainment) months=12",
                         "expenses-evo", "type=(taxes | insurance | phone | services | home | entertainment)",
@@ -584,8 +584,7 @@ public class ConsoleReports {
                 this.percentFormat.format(totalSavings.getAmount().divide(totalIncome.getAmount(), DECIMAL64)),
                 avgSalary,
                 totalSavings.getAmount().divide(avgSalary, DECIMAL64)));
-        
-        
+
         //saved salaries
     }
 
@@ -777,12 +776,24 @@ public class ConsoleReports {
     }
 
     private void evolutionReport(YearMonth ym, MoneyAmount mo, int scale) {
+        this.evolutionReport(ym, mo, scale, "{0,number,currency} ");
+    }
+
+    private void evolutionReport(YearMonth ym, MoneyAmount mo, int scale, String format) {
         this.appendLine(
                 format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
                 " ",
-                String.format("%14s", format("{0,number,currency} ", mo.getAmount())),
+                String.format("%14s", format(format, mo.getAmount())),
                 " ",
                 this.bar(mo.getAmount(), scale));
+    }
+
+    private void numericEvolution(String name, MoneyAmountSeries s, int scale) {
+        var limit = USD_INFLATION.getTo();
+
+        s.forEach((ym, ma) -> this.evolutionReport(ym, ma, scale, "{0}"));
+
+        appendLine("\n", name, " ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
     }
 
     private void evolution(String name, MoneyAmountSeries s, int scale) {
@@ -1292,6 +1303,19 @@ public class ConsoleReports {
         }
         return newItem;
 
+    }
+
+    private void averageSavedSalaries(String[] args, String name) {
+
+        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+
+        final var savings = new SimpleAggregation(months).average(this.realSavings(null));
+        final var income = new SimpleAggregation(months).average(this.realIncome());
+
+        this.numericEvolution(
+                format("Average {0}-month real USD saved salaries", months),
+                income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).getAmount().divide(ONE.max(ma.getAmount()), DECIMAL64), "USD")),
+                2);
     }
 
 }
