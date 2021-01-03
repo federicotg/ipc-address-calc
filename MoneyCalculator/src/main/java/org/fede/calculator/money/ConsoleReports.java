@@ -688,9 +688,7 @@ public class ConsoleReports {
         final String exp = params.get("type");
         final int months = Integer.parseInt(params.getOrDefault("months", "12"));
 
-        this.appendLine("===< Real USD expenses in the last ",
-                String.valueOf(months),
-                " months. >===");
+        this.appendLine(format("===< Real USD expenses in the last {0} months >===", months));
 
         this.getRealUSDExpensesByType()
                 .entrySet()
