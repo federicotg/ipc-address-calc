@@ -21,7 +21,7 @@ import java.io.PrintStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
-import static java.math.MathContext.DECIMAL64;
+import static org.fede.calculator.money.MathConstants.CONTEXT;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Comparator;
@@ -82,7 +82,7 @@ public class ConsoleReports {
     private static final BigDecimal REALTOR_FEE = new BigDecimal("0.045");
     private static final BigDecimal STAMP_TAX = new BigDecimal("0.018");
     private static final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
-    private static final BigDecimal NOTARY_FEE = new BigDecimal("0.02").multiply(new BigDecimal("1.21", DECIMAL64));
+    private static final BigDecimal NOTARY_FEE = new BigDecimal("0.02").multiply(new BigDecimal("1.21", CONTEXT));
 
     private static final BigDecimal RUSSELL2000_PCT = new BigDecimal("0.1");
     private static final BigDecimal SP500_PCT = new BigDecimal("0.7");
@@ -305,14 +305,19 @@ public class ConsoleReports {
     }
 
     private void pastInvestmentsRealProfit() {
+        appendLine("===< All Past Investments Profits in Real USD >===");
         this.investmentsRealProfit(null, null, Investment::isPast, true);
     }
 
     private void globalInvestmentsRealProfit() {
+        appendLine("===< Past and Current Investments Profit in Real USD >===");
         this.investmentsRealProfit(null, null, (inv) -> true, true);
     }
 
     private void currentInvestmentsRealProfit(String[] args, String type) {
+
+        appendLine("===< Current Investments Profit in Real USD >===");
+
         final var params = this.paramsValue(args, type);
 
         final var action = params.getOrDefault("type", "current");
@@ -475,7 +480,7 @@ public class ConsoleReports {
 
         appendLine(format("Saved salaries {0}",
                 this.realSavings(null).getAmount(limit).getAmount()
-                        .divide(averageRealUSDIncome.getAmount(), DECIMAL64)));
+                        .divide(averageRealUSDIncome.getAmount(), CONTEXT)));
 
     }
 
@@ -562,6 +567,9 @@ public class ConsoleReports {
 
     private void savings() {
 
+        
+        appendLine("===< Historical Real USD Savings Stats >===");
+        
         // total savings
         final var limit = USD_INFLATION.getTo();
 
@@ -575,21 +583,19 @@ public class ConsoleReports {
 
         final var months = this.realIncome().getFrom().monthsUntil(limit);
 
-        final var avgSalary = totalIncome.getAmount().divide(BigDecimal.valueOf(months), DECIMAL64);
+        final var avgSalary = totalIncome.getAmount().divide(BigDecimal.valueOf(months), CONTEXT);
 
-        // % saved
         appendLine(format("Income USD {0,number,currency}\nSavings USD {1,number,currency} {2}\nAverage salary {3,number,currency}\nSaved salaries {4}",
                 totalIncome.getAmount(),
                 totalSavings.getAmount(),
-                this.percentFormat.format(totalSavings.getAmount().divide(totalIncome.getAmount(), DECIMAL64)),
+                this.percentFormat.format(totalSavings.getAmount().divide(totalIncome.getAmount(), CONTEXT)),
                 avgSalary,
-                totalSavings.getAmount().divide(avgSalary, DECIMAL64)));
+                totalSavings.getAmount().divide(avgSalary, CONTEXT)));
 
-        //saved salaries
     }
 
     private MoneyAmount applyCoefficient(YearMonth ym, MoneyAmount amount) {
-        return new MoneyAmount(amount.getAmount().multiply(COEFFICIENT, DECIMAL64), amount.getCurrency());
+        return new MoneyAmount(amount.getAmount().multiply(COEFFICIENT, CONTEXT), amount.getCurrency());
     }
 
     private void houseIrrecoverableCosts(YearMonth timeLimit) {
@@ -626,10 +632,10 @@ public class ConsoleReports {
 
         final var nominalInitialCost = new BigDecimal("96000");
         final var nominalTransactionCost = nominalInitialCost.multiply(
-                REALTOR_FEE.add(STAMP_TAX, DECIMAL64)
-                        .add(REGISTER_TAX, DECIMAL64)
-                        .add(NOTARY_FEE, DECIMAL64),
-                DECIMAL64);
+                REALTOR_FEE.add(STAMP_TAX, CONTEXT)
+                        .add(REGISTER_TAX, CONTEXT)
+                        .add(NOTARY_FEE, CONTEXT),
+                CONTEXT);
 
         final var start = new YearMonth(2010, 8);
         final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalInitialCost, "USD"),
@@ -637,14 +643,14 @@ public class ConsoleReports {
                 limit.getYear(), limit.getMonth());
 
         final var months = BigDecimal.valueOf(start.monthsUntil(timeLimit));
-        final var years = months.divide(BigDecimal.valueOf(12), DECIMAL64);
+        final var years = months.divide(BigDecimal.valueOf(12), CONTEXT);
 
         // interest rate cost
         final var opportunityCost = new MoneyAmount(
                 nominalInitialCost
-                        .add(nominalTransactionCost, DECIMAL64)
-                        .multiply(ONE.add(rate, DECIMAL64).pow(years.intValue(), DECIMAL64), DECIMAL64)
-                        .subtract(nominalInitialCost, DECIMAL64), "USD");
+                        .add(nominalTransactionCost, CONTEXT)
+                        .multiply(ONE.add(rate, CONTEXT).pow(years.intValue(), CONTEXT), CONTEXT)
+                        .subtract(nominalInitialCost, CONTEXT), "USD");
 
         final var totalRealExpense = realExpensesInUSD.add(opportunityCost);
 
@@ -658,20 +664,20 @@ public class ConsoleReports {
         this.appendLine(format("USD reales {0}/{1}", limit.getMonth(), String.valueOf(limit.getYear())));
         this.appendLine(format("\tTotal USD {0,number,currency} {1}",
                 totalRealExpense.getAmount(),
-                percentFormat.format(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), DECIMAL64))));
+                percentFormat.format(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), CONTEXT))));
 
-        final var monthlyCost = totalRealExpense.getAmount().divide(months, DECIMAL64);
+        final var monthlyCost = totalRealExpense.getAmount().divide(months, CONTEXT);
         this.appendLine(format("\tMensual USD {0,number,currency} {1} - ARS {2,number,currency}",
                 monthlyCost,
-                percentFormat.format(monthlyCost.divide(realInitialCost.getAmount(), DECIMAL64)),
+                percentFormat.format(monthlyCost.divide(realInitialCost.getAmount(), CONTEXT)),
                 ForeignExchanges.getForeignExchange("USD", "ARS")
                         .exchange(new MoneyAmount(monthlyCost, "USD"), "ARS", limit.getYear(), limit.getMonth())
                         .getAmount()));
 
-        final var yearlyCost = totalRealExpense.getAmount().divide(years, DECIMAL64);
-        this.appendLine(format("\tAnual USD {0,number,currency} {0}\n",
+        final var yearlyCost = totalRealExpense.getAmount().divide(years, CONTEXT);
+        this.appendLine(format("\tAnual USD {0,number,currency} {1}\n",
                 yearlyCost,
-                percentFormat.format(yearlyCost.divide(realInitialCost.getAmount(), DECIMAL64))));
+                percentFormat.format(yearlyCost.divide(realInitialCost.getAmount(), CONTEXT))));
 
     }
 
@@ -682,9 +688,9 @@ public class ConsoleReports {
         final String exp = params.get("type");
         final int months = Integer.parseInt(params.getOrDefault("months", "12"));
 
-        this.appendLine("Real USD expenses in the last ",
+        this.appendLine("===< Real USD expenses in the last ",
                 String.valueOf(months),
-                " months.");
+                " months. >===");
 
         this.getRealUSDExpensesByType()
                 .entrySet()
@@ -806,6 +812,9 @@ public class ConsoleReports {
     }
 
     private void savingsDistributionEvolution() {
+
+        appendLine("===< Savings Distribution Evolution >===");
+
         final var cash = this.realSavings("LIQ");
         final var eq = this.realSavings("EQ");
         final var bo = this.realSavings("BO");
@@ -815,6 +824,9 @@ public class ConsoleReports {
     }
 
     private void savingsDistributionPercentEvolution() {
+
+        appendLine("===< Savings Distribution Percent Evolution >===");
+
         final var cash = this.realSavings("LIQ");
         final var eq = this.realSavings("EQ");
         final var bo = this.realSavings("BO");
@@ -826,7 +838,7 @@ public class ConsoleReports {
 
     private BigDecimal asPct(MoneyAmount ma, MoneyAmount total) {
         return ma.getAmount()
-                .divide(total.getAmount(), DECIMAL64)
+                .divide(total.getAmount(), CONTEXT)
                 .movePointRight(2)
                 .setScale(0, RoundingMode.HALF_UP);
     }
@@ -845,9 +857,9 @@ public class ConsoleReports {
         var bar2 = this.asPct(two, total);
         var bar3 = this.asPct(three, total);
 
-        if (bar1.add(bar2, DECIMAL64).add(bar3, DECIMAL64).compareTo(hundred) != 0) {
+        if (bar1.add(bar2, CONTEXT).add(bar3, CONTEXT).compareTo(hundred) != 0) {
 
-            bar1 = hundred.subtract(bar2.add(bar3, DECIMAL64), DECIMAL64);
+            bar1 = hundred.subtract(bar2.add(bar3, CONTEXT), CONTEXT);
 
         }
 
@@ -865,11 +877,12 @@ public class ConsoleReports {
     }
 
     private void savingEvolution(String[] args, String paramName) {
-
+        appendLine("===< Savings Evolution >===");
         this.evolution("Savings", this.realSavings(this.paramsValue(args, paramName).get("type")), 2500);
     }
 
     private void expenseEvolution(String[] args, String paramName) {
+        appendLine("===< Expenses Evolution >===");
         this.expenseEvolution(this.paramsValue(args, paramName).get("type"));
     }
 
@@ -879,13 +892,15 @@ public class ConsoleReports {
     }
 
     private void savingChange() {
-
+        appendLine("===<  Savings Change >===");
         this.evolution("Savings change", new SimpleAggregation(2)
                 .change(this.realSavings(null)), 100);
 
     }
 
     private void expensesChange() {
+
+        appendLine("===< Expenses Change >===");
 
         this.evolution("12-month average expenses change",
                 new SimpleAggregation(2)
@@ -902,6 +917,7 @@ public class ConsoleReports {
 
     private void incomeEvolution() {
 
+        appendLine("===< Income evolution >===");
         this.evolution("Income", this.realIncome(), 100);
     }
 
@@ -909,6 +925,8 @@ public class ConsoleReports {
         var params = this.paramsValue(args, paramName);
 
         var months = Integer.parseInt(params.getOrDefault("months", "12"));
+
+        appendLine(format("===< Income average {0}-month evolution >===", months));
 
         this.incomeAverageEvolution(months);
 
@@ -931,7 +949,7 @@ public class ConsoleReports {
 
     private String bar(BigDecimal value, int scale, String symbol) {
 
-        return IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), DECIMAL64).setScale(0, RoundingMode.HALF_UP).intValue())
+        return IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue())
                 .mapToObj(x -> symbol)
                 .collect(joining());
     }
@@ -953,6 +971,8 @@ public class ConsoleReports {
 
     private void goal(String[] args, String paramName) {
 
+        appendLine("===< Goals >===");
+
         final var params = this.paramsValue(args, paramName);
 
         final var trials = Integer.parseInt(params.getOrDefault("trials", "100000"));
@@ -965,7 +985,8 @@ public class ConsoleReports {
         final var onlySP50 = Boolean.parseBoolean(params.getOrDefault("sp500", "false"));
 
         final var buySellFee = ONE.setScale(6)
-                .add(new BigDecimal("0.006").multiply(new BigDecimal("1.21", DECIMAL64)));
+                .add(new BigDecimal("0.006").multiply(new BigDecimal("1.21", CONTEXT)))
+                .add(new BigDecimal("0.012"), CONTEXT);
 
         this.goal(trials, periodYears, deposit, withdraw, inflation, retirementAge, buySellFee, BigDecimal.valueOf(extraCash), onlySP50);
     }
@@ -988,14 +1009,14 @@ public class ConsoleReports {
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
+                .map(r -> ONE.setScale(6).add(r.setScale(6).movePointLeft(2), CONTEXT))
                 .collect(toList());
 
         this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", tr)
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(6).add(r.setScale(6).movePointLeft(2), DECIMAL64))
+                .map(r -> ONE.setScale(6).add(r.setScale(6).movePointLeft(2), CONTEXT))
                 .collect(toList());
 
         final var to = Inflation.USD_INFLATION.getTo();
@@ -1005,14 +1026,14 @@ public class ConsoleReports {
         final var invested = this.realSavings("EQ").getAmount(to);
 
         final var cash = todaySavings.getAmount()
-                .subtract(invested.getAmount(), DECIMAL64)
-                .add(extraCash, DECIMAL64);
+                .subtract(invested.getAmount(), CONTEXT)
+                .add(extraCash, CONTEXT);
 
         final var inflationRate = ONE.setScale(6)
-                .add(BigDecimal.valueOf(inflation).setScale(6).movePointLeft(2), DECIMAL64);
+                .add(BigDecimal.valueOf(inflation).setScale(6).movePointLeft(2), CONTEXT);
 
-        final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).divide(buySellFee, DECIMAL64);
-        final var withdraw = BigDecimal.valueOf(monthlyWithdraw * 12).multiply(buySellFee, DECIMAL64);;
+        final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).divide(buySellFee, CONTEXT);
+        final var withdraw = BigDecimal.valueOf(monthlyWithdraw * 12).multiply(buySellFee, CONTEXT);;
 
         final var investedAmount = invested.getAmount();
 
@@ -1031,16 +1052,16 @@ public class ConsoleReports {
         final var periods = Math.round((float) yearsLeft / periodYears);
 
         final var inflationFactors = IntStream.range(0, yearsLeft)
-                .mapToObj(year -> inflationRate.pow(year, DECIMAL64))
+                .mapToObj(year -> inflationRate.pow(year, CONTEXT))
                 .collect(toList());
 
         final var realDeposits = inflationFactors.stream()
                 .limit(1978 + retirementAge - startingYear)
-                .map(f -> f.multiply(deposit, DECIMAL64))
+                .map(f -> f.multiply(deposit, CONTEXT))
                 .collect(toList());
 
         final var realWithdrawals = inflationFactors.stream()
-                .map(f -> f.multiply(withdraw, DECIMAL64))
+                .map(f -> f.multiply(withdraw, CONTEXT))
                 .collect(toList());
 
         final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.85d);
@@ -1080,10 +1101,10 @@ public class ConsoleReports {
 
         return IntStream.range(0, sp500Periods.size())
                 .mapToObj(i
-                        -> sp500Periods.get(i).multiply(SP500_PCT, DECIMAL64)
-                        .add(russell2000Periods.get(i).multiply(RUSSELL2000_PCT, DECIMAL64), DECIMAL64)
-                        .add(meudPeriods.get(i).multiply(MEUD_PCT, DECIMAL64), DECIMAL64)
-                        .add(eimiPeriods.get(i).multiply(EIMI_PCT, DECIMAL64), DECIMAL64))
+                        -> sp500Periods.get(i).multiply(SP500_PCT, CONTEXT)
+                        .add(russell2000Periods.get(i).multiply(RUSSELL2000_PCT, CONTEXT), CONTEXT)
+                        .add(meudPeriods.get(i).multiply(MEUD_PCT, CONTEXT), CONTEXT)
+                        .add(eimiPeriods.get(i).multiply(EIMI_PCT, CONTEXT), CONTEXT))
                 .collect(toList());
     }
 
@@ -1124,18 +1145,18 @@ public class ConsoleReports {
         // depositing
         for (var i = startingYear; i < retirement; i++) {
 
-            amount = amount.multiply(returns.get(i - startingYear), DECIMAL64)
-                    .add(deposit.get(i - startingYear), DECIMAL64);
+            amount = amount.multiply(returns.get(i - startingYear), CONTEXT)
+                    .add(deposit.get(i - startingYear), CONTEXT);
         }
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
-            amount = amount.subtract(withdraw.get(i - startingYear), DECIMAL64);
+            amount = amount.subtract(withdraw.get(i - startingYear), CONTEXT);
 
             if (amount.signum() > 0) {
-                amount = amount.multiply(returns.get(i - startingYear), DECIMAL64);
+                amount = amount.multiply(returns.get(i - startingYear), CONTEXT);
             } else {
-                cashAmount = cashAmount.add(amount, DECIMAL64);
+                cashAmount = cashAmount.add(amount, CONTEXT);
                 amount = ZERO;
             }
             if (cashAmount.signum() <= 0) {
@@ -1143,7 +1164,7 @@ public class ConsoleReports {
             }
         }
 
-        return amount.add(cashAmount, DECIMAL64).signum() > 0;
+        return amount.add(cashAmount, CONTEXT).signum() > 0;
     }
 
     public List<Investment> getInvestments() {
@@ -1157,6 +1178,8 @@ public class ConsoleReports {
     private void bbpp(String[] args, String paramName) {
 
         final var year = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("year", "2020"));
+
+        appendLine("===< ", format("BB.PP. {0}", String.valueOf(year)), " >===");
 
         List<BBPPYear> bbppYears = SeriesReader.read("bbpp.json", new TypeReference<List<BBPPYear>>() {
         });
@@ -1213,7 +1236,7 @@ public class ConsoleReports {
 
         final var totalAmount = allArs
                 .stream()
-                .map(i -> i.getValue().multiply(i.getHolding(), DECIMAL64))
+                .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
                 .reduce(ZERO, BigDecimal::add);
 
         appendLine(format("Total amount {0,number,currency}", totalAmount));
@@ -1222,9 +1245,9 @@ public class ConsoleReports {
                 .stream()
                 .filter(BBPPItem::isDomestic)
                 .filter(i -> !i.isExempt())
-                .map(i -> i.getValue().multiply(i.getHolding(), DECIMAL64))
+                .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
                 .reduce(ZERO, BigDecimal::add)
-                .multiply(new BigDecimal("1.05"), DECIMAL64);
+                .multiply(new BigDecimal("1.05"), CONTEXT);
 
         appendLine(format("Taxed domestic amount {0,number,currency}", taxedDomesticAmount));
 
@@ -1232,15 +1255,15 @@ public class ConsoleReports {
                 .stream()
                 .filter(i -> !i.isDomestic())
                 .filter(i -> !i.isExempt())
-                .map(i -> i.getValue().multiply(i.getHolding(), DECIMAL64))
+                .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
                 .reduce(ZERO, BigDecimal::add);
 
         appendLine(format("Taxed foreign amount {0,number,currency}", taxedForeignAmount));
 
         final var taxedTotal = bbpp.getMinimum()
                 .negate()
-                .add(taxedDomesticAmount, DECIMAL64)
-                .add(taxedForeignAmount, DECIMAL64);
+                .add(taxedDomesticAmount, CONTEXT)
+                .add(taxedForeignAmount, CONTEXT);
 
         appendLine(format("Taxed total {0,number,currency}", taxedTotal));
 
@@ -1254,7 +1277,7 @@ public class ConsoleReports {
 
         appendLine(format("Tax rate {0}", this.percentFormat.format(taxRate)));
 
-        final var taxAmount = taxedTotal.multiply(taxRate, DECIMAL64);
+        final var taxAmount = taxedTotal.multiply(taxRate, CONTEXT);
 
         final var usdTaxAmount = ForeignExchanges.getForeignExchange("ARS", "USD")
                 .exchange(new MoneyAmount(taxAmount, "ARS"), "USD", year, 12);
@@ -1274,8 +1297,8 @@ public class ConsoleReports {
                 .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
 
         appendLine(format("Effective tax rate is {0}. Tax is {1} of investments.",
-                this.percentFormat.format(taxAmount.divide(totalAmount, DECIMAL64)),
-                this.percentFormat.format(usdTaxAmount.getAmount().divide(allInvested.getAmount(), DECIMAL64))));
+                this.percentFormat.format(taxAmount.divide(totalAmount, CONTEXT)),
+                this.percentFormat.format(usdTaxAmount.getAmount().divide(allInvested.getAmount(), CONTEXT))));
 
     }
 
@@ -1293,12 +1316,12 @@ public class ConsoleReports {
 
         if (item.getCurrency().equals("USD")) {
 
-            newItem.setValue(item.getValue().multiply(usdValue, DECIMAL64));
+            newItem.setValue(item.getValue().multiply(usdValue, CONTEXT));
 
         }
         if (item.getCurrency().equals("EUR")) {
 
-            newItem.setValue(item.getValue().multiply(eurValue, DECIMAL64));
+            newItem.setValue(item.getValue().multiply(eurValue, CONTEXT));
 
         }
         return newItem;
@@ -1309,12 +1332,14 @@ public class ConsoleReports {
 
         final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
 
+        appendLine("===< ", format("Average {0}-month real USD saved salaries", months), " >===");
+
         final var savings = new SimpleAggregation(months).average(this.realSavings(null));
         final var income = new SimpleAggregation(months).average(this.realIncome());
 
         this.numericEvolution(
                 format("Average {0}-month real USD saved salaries", months),
-                income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).getAmount().divide(ONE.max(ma.getAmount()), DECIMAL64), "USD")),
+                income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).getAmount().divide(ONE.max(ma.getAmount()), CONTEXT), "USD")),
                 2);
     }
 
