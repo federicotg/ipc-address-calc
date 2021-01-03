@@ -533,6 +533,7 @@ public class ConsoleReports {
                         "income", "months=12",
                         "saved-salaries-evo", "months=12",
                         "income-avg-evo", "months=12",
+                        "bbpp", "year=2020",
                         "expenses", "type=(taxes | insurance | phone | services | home | entertainment) months=12",
                         "expenses-evo", "type=(taxes | insurance | phone | services | home | entertainment)",
                         "savings-evo", "type=(BO | LIQ | EQ)"
