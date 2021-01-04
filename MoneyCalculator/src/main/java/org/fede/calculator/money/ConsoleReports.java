@@ -357,7 +357,7 @@ public class ConsoleReports {
         }
 
         final var tax = new BigDecimal("0.15");
-        final var fee = new BigDecimal("0.0193");
+        final var fee = new BigDecimal("0.01946");
 
         final var realProfits = this.getInvestments().stream()
                 .filter(predicate)
@@ -982,8 +982,7 @@ public class ConsoleReports {
         final var onlySP50 = Boolean.parseBoolean(params.getOrDefault("sp500", "false"));
 
         final var buySellFee = ONE.setScale(6)
-                .add(new BigDecimal("0.006").multiply(new BigDecimal("1.21", CONTEXT)))
-                .add(new BigDecimal("0.012"), CONTEXT);
+                .add(new BigDecimal("0.01946"), CONTEXT);
 
         this.goal(trials, periodYears, deposit, withdraw, inflation, retirementAge, buySellFee, BigDecimal.valueOf(extraCash), onlySP50);
     }
