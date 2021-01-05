@@ -528,7 +528,7 @@ public class ConsoleReports {
             if (params.contains("help")) {
 
                 final var help = Map.of(
-                        "goal", "trials=100000 period=10 retirement=65 w=1000 d=500 inflation=2 cash=cash sp500=false",
+                        "goal", "trials=100000 period=10 retirement=65 w=1000 d=500 inflation=2 cash=cash sp500=false tax=false",
                         "current", "type=(current* | on | pf | gold | cspx | eimi | meud | xrsu)",
                         "income", "months=12",
                         "saved-salaries-evo", "months=12",
@@ -951,10 +951,11 @@ public class ConsoleReports {
                 .collect(joining());
     }
 
-    private List<BigDecimal> randomPeriods(List<List<BigDecimal>> allReturns, int periods) {
+    private List<BigDecimal> randomPeriods(List<List<BigDecimal>> allReturns, int periods, BigDecimal fee) {
         return ThreadLocalRandom.current().ints(periods, 0, allReturns.size())
                 .mapToObj(allReturns::get)
                 .flatMap(Collection::stream)
+                .map(value -> value.subtract(fee, CONTEXT))
                 .collect(toList());
     }
 
@@ -979,12 +980,13 @@ public class ConsoleReports {
         final var inflation = Integer.parseInt(params.getOrDefault("inflation", "2"));
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "65"));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", "0"));
-        final var onlySP50 = Boolean.parseBoolean(params.getOrDefault("sp500", "false"));
+        final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", "false"));
+        final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "false"));
 
         final var buySellFee = ONE.setScale(6)
                 .add(new BigDecimal("0.01946"), CONTEXT);
 
-        this.goal(trials, periodYears, deposit, withdraw, inflation, retirementAge, buySellFee, BigDecimal.valueOf(extraCash), onlySP50);
+        this.goal(trials, periodYears, deposit, withdraw, inflation, retirementAge, buySellFee, BigDecimal.valueOf(extraCash), onlySP500, afterTax);
     }
 
     private void goal(
@@ -996,7 +998,8 @@ public class ConsoleReports {
             final int retirementAge,
             final BigDecimal buySellFee,
             final BigDecimal extraCash,
-            final boolean onlySP500) {
+            final boolean onlySP500,
+            final boolean afterTax) {
 
         final var tr = new TypeReference<List<AnnualHistoricalReturn>>() {
         };
@@ -1029,17 +1032,15 @@ public class ConsoleReports {
                 .add(BigDecimal.valueOf(inflation).setScale(6).movePointLeft(2), CONTEXT);
 
         final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).divide(buySellFee, CONTEXT);
-        final var withdraw = BigDecimal.valueOf(monthlyWithdraw * 12).multiply(buySellFee, CONTEXT);;
+        final var withdraw = BigDecimal.valueOf(monthlyWithdraw * 12)
+                .multiply(buySellFee, CONTEXT)
+                .multiply(afterTax ? new BigDecimal("1.1") : ONE, CONTEXT);
 
         final var investedAmount = invested.getAmount();
 
-        appendLine("Cash: ", format("{0,number,currency}", cash),
-                ", invested: ", format("{0,number,currency}", invested.getAmount()));
-        appendLine("Saving ", format("{0,number,currency}", monthlyDeposit),
-                ", spending ", format("{0,number,currency}", monthlyWithdraw));
-        appendLine("Expected inflation: ", String.valueOf(inflation), "%",
-                ", retiring at ", String.valueOf(retirementAge)
-        );
+        appendLine(format("Cash: {0,number,currency}, invested: {1,number,currency}",cash,invested.getAmount()));
+        appendLine(format("Saving {0,number,currency}, spending {1,number,currency}",monthlyDeposit, monthlyWithdraw), afterTax ? " after tax." : ".");
+        appendLine(format("Expected {0}% inflation, retiring at {1}.", inflation, retirementAge));
 
         final int startingYear = to.getYear();
         final var end = 2078;
@@ -1065,8 +1066,13 @@ public class ConsoleReports {
         final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.75d);
         final var allMEUDPeriods = this.periods(this.russell2000TotalReturns, periodYears, 0.70d);
 
+        final var sp500Fee = new BigDecimal("0.0007");
+        final var russellFee = new BigDecimal("0.003");
+        final var eimiFee = new BigDecimal("0.0018");
+        final var meudFee = new BigDecimal("0.0007");
+
         final var successes = IntStream.range(0, trials)
-                .mapToObj(i -> this.balanceProportions(periods, allSP500Periods, allRussell2000Periods, allEIMIPeriods, allMEUDPeriods, onlySP500))
+                .mapToObj(i -> this.balanceProportions(periods, allSP500Periods, allRussell2000Periods, allEIMIPeriods, allMEUDPeriods, onlySP500, sp500Fee, russellFee, eimiFee, meudFee))
                 .filter(randomReturns -> this.goals(startingYear, 1978 + retirementAge, end, cash, investedAmount, randomReturns, realDeposits, realWithdrawals))
                 .count();
 
@@ -1082,18 +1088,25 @@ public class ConsoleReports {
             List<List<BigDecimal>> allRussell2000Periods,
             List<List<BigDecimal>> allEIMIPeriods,
             List<List<BigDecimal>> allMEUDPeriods,
-            boolean onlySP500) {
+            boolean onlySP500,
+            BigDecimal sp500Fee,
+            BigDecimal russellFee,
+            BigDecimal eimiFee,
+            BigDecimal meudFee) {
 
-        final var sp500Periods = this.randomPeriods(allSP500Periods, periods);
+        final var sp500Periods = this.randomPeriods(allSP500Periods, periods, sp500Fee);
+
         final var russell2000Periods = onlySP500
                 ? sp500Periods
-                : this.randomPeriods(allRussell2000Periods, periods);
+                : this.randomPeriods(allRussell2000Periods, periods, russellFee);
+
         final var eimiPeriods = onlySP500
                 ? sp500Periods
-                : this.randomPeriods(allEIMIPeriods, periods);
+                : this.randomPeriods(allEIMIPeriods, periods, eimiFee);
+
         final var meudPeriods = onlySP500
                 ? sp500Periods
-                : this.randomPeriods(allMEUDPeriods, periods);
+                : this.randomPeriods(allMEUDPeriods, periods, meudFee);
 
         return IntStream.range(0, sp500Periods.size())
                 .mapToObj(i
