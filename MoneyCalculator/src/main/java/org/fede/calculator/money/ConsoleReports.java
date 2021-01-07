@@ -41,6 +41,7 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import static java.util.Map.entry;
@@ -1108,7 +1109,7 @@ public class ConsoleReports {
         final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.85d);
         final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 0.8d);
         final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.75d);
-        final var allMEUDPeriods = this.periods(this.russell2000TotalReturns, periodYears, 0.70d);
+        final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.70d);
 
         final var sp500Fee = new BigDecimal("0.0007");
         final var russellFee = new BigDecimal("0.003");
@@ -1385,14 +1386,15 @@ public class ConsoleReports {
 
         final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
 
-        appendLine("===< ", format("Average {0}-month real USD saved salaries", months), " >===");
+        final var title = format("Average {0}-month real USD saved salaries", months);
+        appendLine("===< ", title, " >===");
 
         final var savings = new SimpleAggregation(months).average(this.realSavings(null));
         final var income = new SimpleAggregation(months).average(this.realIncome());
 
         this.numericEvolution(
-                format("Average {0}-month real USD saved salaries", months),
-                income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).getAmount().divide(ONE.max(ma.getAmount()), CONTEXT), "USD")),
+                title,
+                income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).getAmount().divide(ONE.max(ma.getAmount()), CONTEXT), ma.getCurrency())),
                 2);
     }
 
@@ -1423,10 +1425,10 @@ public class ConsoleReports {
     private void monthlySavings() {
         appendLine("===< Net monthly savings >===");
 
-        this.evolution("Net savings", this.netRealSavings(), 100);
+        this.evolution("Net savings", this.realNetSavings(), 100);
     }
 
-    private MoneyAmountSeries netRealSavings() {
+    private MoneyAmountSeries realNetSavings() {
 
         final var limit = USD_INFLATION.getTo();
 
@@ -1442,10 +1444,13 @@ public class ConsoleReports {
     private void monthlySavings(String[] args, String name) {
 
         final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
-        appendLine("===< ", format("Average {0}-month net average savings", months), " >===");
 
-        this.evolution(format("Net average {0}-month savings", months),
-                new SimpleAggregation(months).average(this.netRealSavings()),
+        final var title = format("Average {0}-month net monthly savings", months);
+
+        appendLine("===< ", title, " >===");
+
+        this.evolution(title,
+                new SimpleAggregation(months).average(this.realNetSavings()),
                 50);
     }
 
@@ -1453,20 +1458,22 @@ public class ConsoleReports {
 
         final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
 
-        appendLine("===< ", format("Average {0}-month net average savings percent", months), " >===");
+        final var title = format("===< Average {0}-month net monthly average savings percent >===", months);
+
+        appendLine(title);
 
         final var agg = new SimpleAggregation(months);
         final var income = agg.average(this.realIncome());
-        final var netSaving = agg.average(this.netRealSavings());
+        final var netSaving = agg.average(this.realNetSavings());
 
         netSaving.map((ym, ma) -> new MoneyAmount(ZERO.max(ma.getAmount()), ma.getCurrency()))
                 .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
                 .forEach((ym, savingMa) -> appendLine(this.percentBar(ym, savingMa, income.getAmountOrElseZero(ym).subtract(savingMa))));
 
+        appendLine(title);
+        appendLine("");
         appendLine("References:");
         appendLine("#: saved, +: spent.");
-
-        appendLine("===< ", format("Average {0}-month net average savings percent", months), " >===");
 
     }
 
