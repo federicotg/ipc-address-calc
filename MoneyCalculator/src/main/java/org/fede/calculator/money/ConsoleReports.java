@@ -846,7 +846,24 @@ public class ConsoleReports {
     }
 
     private String percentBar(YearMonth ym, MoneyAmount one, MoneyAmount two) {
-        return this.percentBar(ym, one, two, new MoneyAmount(ZERO, one.getCurrency()));
+        final var total = one.add(two);
+
+        if (total.getAmount().signum() == 0) {
+            return "";
+        }
+
+        final var hundred = BigDecimal.valueOf(100);
+
+        var bar1 = this.asPct(one, total);
+        var bar2 = this.asPct(two, total);
+
+        if (bar1.add(bar2, CONTEXT).compareTo(hundred) != 0) {
+
+            bar1 = hundred.subtract(bar2, CONTEXT);
+
+        }
+
+        return this.bar(ym, bar1, bar2, 1);
     }
 
     private String percentBar(YearMonth ym, MoneyAmount one, MoneyAmount two, MoneyAmount three) {
@@ -873,12 +890,30 @@ public class ConsoleReports {
 
     }
 
-    private String bar(YearMonth ym, BigDecimal one, BigDecimal two, BigDecimal three, int scale) {
-        return format("{0}/{1} {2}{3}{4}",
+    private String pctNumber(BigDecimal value) {
+        return String.format("%3d", value.intValue()).concat("%");
+
+    }
+
+    private String bar(YearMonth ym, BigDecimal one, BigDecimal two, int scale) {
+        return format("{0}/{1} [{2},{4}] {3}{5}",
                 String.valueOf(ym.getYear()),
                 String.format("%02d", ym.getMonth()),
+                this.pctNumber(one),
                 this.bar(one, scale, "#"),
+                this.pctNumber(two),
+                this.bar(two, scale, "+"));
+    }
+
+    private String bar(YearMonth ym, BigDecimal one, BigDecimal two, BigDecimal three, int scale) {
+        return format("{0}/{1} [{2},{4},{6}] {3}{5}{7}",
+                String.valueOf(ym.getYear()),
+                String.format("%02d", ym.getMonth()),
+                this.pctNumber(one),
+                this.bar(one, scale, "#"),
+                this.pctNumber(two),
                 this.bar(two, scale, "+"),
+                this.pctNumber(three),
                 this.bar(three, scale, "%"));
     }
 
@@ -1415,8 +1450,7 @@ public class ConsoleReports {
         appendLine("===< ", format("Average {0}-month net average savings", months), " >===");
 
         this.evolution(format("Net average {0}-month savings", months),
-                new SimpleAggregation(months).average(this.netRealSavings()
-                ),
+                new SimpleAggregation(months).average(this.netRealSavings()),
                 50);
     }
 
@@ -1427,15 +1461,16 @@ public class ConsoleReports {
         appendLine("===< ", format("Average {0}-month net average savings percent", months), " >===");
 
         final var agg = new SimpleAggregation(months);
-        final var income = agg
-                .average(this.realIncome());
-
+        final var income = agg.average(this.realIncome());
         final var netSaving = agg.average(this.netRealSavings());
 
         netSaving.map((ym, ma) -> new MoneyAmount(ZERO.max(ma.getAmount()), ma.getCurrency()))
                 .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
                 .forEach((ym, savingMa) -> appendLine(this.percentBar(ym, savingMa, income.getAmountOrElseZero(ym).subtract(savingMa))));
 
+        appendLine("References:");
+        appendLine("#: saved, +: spent.");
+        
         appendLine("===< ", format("Average {0}-month net average savings percent", months), " >===");
 
     }
