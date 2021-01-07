@@ -500,6 +500,9 @@ public class ConsoleReports {
                     entry("savings", me::savings),
                     entry("savings-evo", () -> me.savingEvolution(args, "savings-evo")),
                     entry("savings-change", me::savingChange),
+                    entry("savings-net-change", me::monthlySavings),
+                    entry("savings-avg-net-change", () -> me.monthlySavings(args, "savings-avg-net-change")),
+                    entry("savings-avg-net-pct", () -> me.netAvgSavingPct(args, "savings-avg-net-pct")),
                     entry("savings-dist", me::savingsDistributionEvolution),
                     entry("savings-dist-pct", me::savingsDistributionPercentEvolution),
                     entry("saved-salaries-evo", () -> me.averageSavedSalaries(args, "saved-salaries-evo")),
@@ -527,16 +530,18 @@ public class ConsoleReports {
 
             if (params.contains("help")) {
 
-                final var help = Map.of(
-                        "goal", "trials=100000 period=10 retirement=65 w=1000 d=500 inflation=2 cash=cash sp500=false tax=false",
-                        "current", "type=(current* | on | pf | gold | cspx | eimi | meud | xrsu)",
-                        "income", "months=12",
-                        "saved-salaries-evo", "months=12",
-                        "income-avg-evo", "months=12",
-                        "bbpp", "year=2020",
-                        "expenses", "type=(taxes | insurance | phone | services | home | entertainment) months=12",
-                        "expenses-evo", "type=(taxes | insurance | phone | services | home | entertainment)",
-                        "savings-evo", "type=(BO | LIQ | EQ)"
+                final var help = Map.ofEntries(
+                        entry("goal", "trials=100000 period=10 retirement=65 w=1000 d=500 inflation=2 cash=cash sp500=false tax=false"),
+                        entry("current", "type=(current* | on | pf | gold | cspx | eimi | meud | xrsu)"),
+                        entry("income", "months=12"),
+                        entry("saved-salaries-evo", "months=12"),
+                        entry("income-avg-evo", "months=12"),
+                        entry("bbpp", "year=2020"),
+                        entry("savings-avg-net-change", "months=12"),
+                        entry("savings-avg-net-pct", "months=12"),
+                        entry("expenses", "type=(taxes | insurance | phone | services | home | entertainment) months=12"),
+                        entry("expenses-evo", "type=(taxes | insurance | phone | services | home | entertainment)"),
+                        entry("savings-evo", "type=(BO | LIQ | EQ)")
                 );
 
                 Stream.concat(
@@ -840,6 +845,10 @@ public class ConsoleReports {
                 .setScale(0, RoundingMode.HALF_UP);
     }
 
+    private String percentBar(YearMonth ym, MoneyAmount one, MoneyAmount two) {
+        return this.percentBar(ym, one, two, new MoneyAmount(ZERO, one.getCurrency()));
+    }
+
     private String percentBar(YearMonth ym, MoneyAmount one, MoneyAmount two, MoneyAmount three) {
 
         final var total = one.add(two).add(three);
@@ -1038,8 +1047,8 @@ public class ConsoleReports {
 
         final var investedAmount = invested.getAmount();
 
-        appendLine(format("Cash: {0,number,currency}, invested: {1,number,currency}",cash,invested.getAmount()));
-        appendLine(format("Saving {0,number,currency}, spending {1,number,currency}",monthlyDeposit, monthlyWithdraw), afterTax ? " after tax." : ".");
+        appendLine(format("Cash: {0,number,currency}, invested: {1,number,currency}", cash, invested.getAmount()));
+        appendLine(format("Saving {0,number,currency}, spending {1,number,currency}", monthlyDeposit, monthlyWithdraw), afterTax ? " after tax." : ".");
         appendLine(format("Expected {0}% inflation, retiring at {1}.", inflation, retirementAge));
 
         final int startingYear = to.getYear();
@@ -1350,6 +1359,85 @@ public class ConsoleReports {
                 format("Average {0}-month real USD saved salaries", months),
                 income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).getAmount().divide(ONE.max(ma.getAmount()), CONTEXT), "USD")),
                 2);
+    }
+
+    private List<MoneyAmountSeries> savingsSeries() {
+        return Stream.of("ahorros-ay24",
+                "ahorros-conbala",
+                "ahorros-uva",
+                "ahorros-dolar-ON",
+                "ahorros-lecap",
+                "ahorros-lete",
+                "ahorros-caplusa",
+                "ahorros-dolar-banco",
+                "ahorros-peso",
+                "ahorros-dolar-liq",
+                "ahorros-euro",
+                "ahorros-dai",
+                "ahorros-oro",
+                "ahorros-cspx",
+                "ahorros-eimi",
+                "ahorros-meud",
+                "ahorros-conaafa",
+                "ahorros-xrsu")
+                .map(f -> "saving/" + f + ".json")
+                .map(SeriesReader::readSeries)
+                .collect(toList());
+    }
+
+    private void monthlySavings() {
+        final var limit = USD_INFLATION.getTo();
+        final var agg = new SimpleAggregation(2);
+
+        appendLine("===< Net monthly savings >===");
+
+        this.evolution("Net savings",
+                this.netRealSavings(),
+                100);
+    }
+
+    private MoneyAmountSeries netRealSavings() {
+
+        final var limit = USD_INFLATION.getTo();
+
+        return this.savingsSeries()
+                .stream()
+                .map(new SimpleAggregation(2)::change)
+                .map(series -> series.exchangeInto("USD"))
+                .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
+                .reduce(MoneyAmountSeries::add)
+                .get();
+    }
+
+    private void monthlySavings(String[] args, String name) {
+
+        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+        appendLine("===< ", format("Average {0}-month net average savings", months), " >===");
+
+        this.evolution(format("Net average {0}-month savings", months),
+                new SimpleAggregation(months).average(this.netRealSavings()
+                ),
+                50);
+    }
+
+    private void netAvgSavingPct(String[] args, String name) {
+
+        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+
+        appendLine("===< ", format("Average {0}-month net average savings percent", months), " >===");
+
+        final var agg = new SimpleAggregation(months);
+        final var income = agg
+                .average(this.realIncome());
+
+        final var netSaving = agg.average(this.netRealSavings());
+
+        netSaving.map((ym, ma) -> new MoneyAmount(ZERO.max(ma.getAmount()), ma.getCurrency()))
+                .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
+                .forEach((ym, savingMa) -> appendLine(this.percentBar(ym, savingMa, income.getAmountOrElseZero(ym).subtract(savingMa))));
+
+        appendLine("===< ", format("Average {0}-month net average savings percent", months), " >===");
+
     }
 
 }
