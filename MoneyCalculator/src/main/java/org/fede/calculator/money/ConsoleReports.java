@@ -1421,14 +1421,9 @@ public class ConsoleReports {
     }
 
     private void monthlySavings() {
-        final var limit = USD_INFLATION.getTo();
-        final var agg = new SimpleAggregation(2);
-
         appendLine("===< Net monthly savings >===");
 
-        this.evolution("Net savings",
-                this.netRealSavings(),
-                100);
+        this.evolution("Net savings", this.netRealSavings(), 100);
     }
 
     private MoneyAmountSeries netRealSavings() {
@@ -1470,7 +1465,7 @@ public class ConsoleReports {
 
         appendLine("References:");
         appendLine("#: saved, +: spent.");
-        
+
         appendLine("===< ", format("Average {0}-month net average savings percent", months), " >===");
 
     }
