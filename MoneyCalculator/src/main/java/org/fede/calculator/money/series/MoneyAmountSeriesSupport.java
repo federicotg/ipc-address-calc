@@ -19,6 +19,8 @@ package org.fede.calculator.money.series;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -31,6 +33,8 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements MoneyAmountSeries {
+
+    static final Map<String, MoneyAmount> ZERO_AMOUNTS = new HashMap<>();
 
     private final String currency;
 
@@ -182,7 +186,10 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
         if (this.hasValue(moment)) {
             return this.getAmount(moment);
         }
-        return new MoneyAmount(BigDecimal.ZERO, this.currency);
+
+        return ZERO_AMOUNTS.computeIfAbsent(this.currency, c -> new MoneyAmount(BigDecimal.ZERO, c));
+
+        //return new MoneyAmount(BigDecimal.ZERO, this.currency);
     }
 
     protected abstract boolean hasValue(YearMonth moment);

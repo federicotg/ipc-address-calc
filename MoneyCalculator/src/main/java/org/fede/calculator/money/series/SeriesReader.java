@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,7 +53,7 @@ public class SeriesReader {
     }
 
     public static <T> T read(String name, TypeReference<T> typeReference) {
-        try (InputStream in = new BufferedInputStream(new FileInputStream(new File(System.getProperty("user.home")+"/Sync/app-resources/" + name)));) {
+        try (InputStream in = new BufferedInputStream(new FileInputStream(new File(System.getProperty("user.home") + "/Sync/app-resources/" + name)));) {
             return OM.readValue(in, typeReference);
         } catch (IOException ioEx) {
             throw new IllegalArgumentException("Could not read series from resource " + name, ioEx);
@@ -63,16 +64,22 @@ public class SeriesReader {
         return MACACHE.computeIfAbsent(name, (seriesName) -> read(seriesName));
     }
 
+    private static MoneyAmount moneyAmount(BigDecimal value, String currency) {
+        return value.signum() == 0
+                ? MoneyAmountSeriesSupport.ZERO_AMOUNTS.computeIfAbsent(currency, c -> new MoneyAmount(BigDecimal.ZERO, c))
+                : new MoneyAmount(value, currency);
+    }
+
     private static MoneyAmountSeries read(String name) {
 
-        try (InputStream is = new BufferedInputStream(new FileInputStream(System.getProperty("user.home")+"/Sync/app-resources/" + name))) {
+        try (InputStream is = new BufferedInputStream(new FileInputStream(System.getProperty("user.home") + "/Sync/app-resources/" + name))) {
 
             JSONSeries series = OM.readValue(is, JSONSeries.class);
-           
+
             final SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
             final String currency = series.getCurrency();
             for (JSONDataPoint dp : series.getData()) {
-                if (interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), new MoneyAmount(dp.getValue(), currency)) != null) {
+                if (interpolatedData.put(new YearMonth(dp.getYear(), dp.getMonth()), moneyAmount(dp.getValue(), currency)) != null) {
                     throw new IllegalArgumentException(MessageFormat.format("Series {0} has two values for year {1} and month {2}", name, dp.getYear(), dp.getMonth()));
                 }
             }

@@ -40,7 +40,7 @@ public enum InterpolationStrategy {
     }, ZERO_VALUE_INTERPOLATION {
         @Override
         public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
-            return new MoneyAmount(BigDecimal.ZERO, currency);
+            return MoneyAmountSeriesSupport.ZERO_AMOUNTS.computeIfAbsent(currency, c -> new MoneyAmount(BigDecimal.ZERO, c));
         }
     }, USD_INFLATION_INTERPOLATION {
         @Override

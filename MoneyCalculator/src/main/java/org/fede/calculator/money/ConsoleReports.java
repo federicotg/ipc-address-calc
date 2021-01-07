@@ -504,6 +504,7 @@ public class ConsoleReports {
                     entry("savings-net-change", me::monthlySavings),
                     entry("savings-avg-net-change", () -> me.monthlySavings(args, "savings-avg-net-change")),
                     entry("savings-avg-net-pct", () -> me.netAvgSavingPct(args, "savings-avg-net-pct")),
+                    entry("savings-avg-spent-pct", () -> me.netAvgSavingSpentPct(args, "savings-avg-spent-pct")),
                     entry("savings-dist", me::savingsDistributionEvolution),
                     entry("savings-dist-pct", me::savingsDistributionPercentEvolution),
                     entry("saved-salaries-evo", () -> me.averageSavedSalaries(args, "saved-salaries-evo")),
@@ -1475,6 +1476,41 @@ public class ConsoleReports {
         appendLine("References:");
         appendLine("#: saved, +: spent.");
 
+    }
+
+    private void netAvgSavingSpentPct(String[] args, String name) {
+
+        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+
+        final var title = format("===< Average {0}-month net monthly average savings and spending percent >===", months);
+
+        appendLine(title);
+
+        final var agg = new SimpleAggregation(months);
+        final var income = agg.average(this.realIncome());
+        final var netSaving = agg.average(this.realNetSavings());
+        final var spending = agg.average(this.realExpenses(null));
+
+        netSaving.map((ym, ma) -> this.positiveOrZero(ma))
+                .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
+                .forEach((ym, savingMa) -> appendLine(
+                this.percentBar(ym,
+                        savingMa,
+                        spending.getAmountOrElseZero(ym),
+                        this.positiveOrZero(
+                                income.getAmountOrElseZero(ym)
+                                        .subtract(savingMa)
+                                        .subtract(spending.getAmountOrElseZero(ym))))));
+
+        appendLine(title);
+        appendLine("");
+        appendLine("References:");
+        appendLine("#: saved, +: spent, % other spending.");
+
+    }
+
+    private MoneyAmount positiveOrZero(MoneyAmount ma) {
+        return new MoneyAmount(ZERO.max(ma.getAmount()), ma.getCurrency());
     }
 
 }
