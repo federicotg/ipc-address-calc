@@ -77,6 +77,8 @@ import static org.fede.calculator.money.series.SeriesReader.readSeries;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class ConsoleReports {
+    
+    private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
     private static final BigDecimal COEFFICIENT = new BigDecimal("0.1223");
 
@@ -541,6 +543,7 @@ public class ConsoleReports {
                         entry("bbpp", "year=2020"),
                         entry("savings-avg-net-change", "months=12"),
                         entry("savings-avg-net-pct", "months=12"),
+                        entry("savings-avg-spent-pct", "months=12"),
                         entry("expenses", "type=(taxes | insurance | phone | services | home | entertainment) months=12"),
                         entry("expenses-evo", "type=(taxes | insurance | phone | services | home | entertainment)"),
                         entry("savings-evo", "type=(BO | LIQ | EQ)")
@@ -838,6 +841,13 @@ public class ConsoleReports {
         cash.forEach((ym, cashMa) -> appendLine(
                 this.percentBar(ym, cashMa, eq.getAmountOrElseZero(ym), bo.getAmountOrElseZero(ym))
         ));
+        
+        
+        appendLine("===< Savings Distribution Percent Evolution >===");
+        appendLine("");
+        appendLine("References:");
+        appendLine("#: cash, +: equity, % bonds.");
+        
     }
 
     private BigDecimal asPct(MoneyAmount ma, MoneyAmount total) {
@@ -854,14 +864,13 @@ public class ConsoleReports {
             return "";
         }
 
-        final var hundred = BigDecimal.valueOf(100);
-
+        
         var bar1 = this.asPct(one, total);
         var bar2 = this.asPct(two, total);
 
-        if (bar1.add(bar2, CONTEXT).compareTo(hundred) != 0) {
+        if (bar1.add(bar2, CONTEXT).compareTo(HUNDRED) != 0) {
 
-            bar1 = hundred.subtract(bar2, CONTEXT);
+            bar1 = HUNDRED.subtract(bar2, CONTEXT);
 
         }
 
@@ -876,15 +885,13 @@ public class ConsoleReports {
             return "";
         }
 
-        final var hundred = BigDecimal.valueOf(100);
-
         var bar1 = this.asPct(one, total);
         var bar2 = this.asPct(two, total);
         var bar3 = this.asPct(three, total);
 
-        if (bar1.add(bar2, CONTEXT).add(bar3, CONTEXT).compareTo(hundred) != 0) {
+        if (bar1.add(bar2, CONTEXT).add(bar3, CONTEXT).compareTo(HUNDRED) != 0) {
 
-            bar1 = hundred.subtract(bar2.add(bar3, CONTEXT), CONTEXT);
+            bar1 = HUNDRED.subtract(bar2.add(bar3, CONTEXT), CONTEXT);
 
         }
 
@@ -1467,7 +1474,7 @@ public class ConsoleReports {
         final var income = agg.average(this.realIncome());
         final var netSaving = agg.average(this.realNetSavings());
 
-        netSaving.map((ym, ma) -> new MoneyAmount(ZERO.max(ma.getAmount()), ma.getCurrency()))
+        netSaving.map((ym, ma) -> this.positiveOrZero(ma))
                 .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
                 .forEach((ym, savingMa) -> appendLine(this.percentBar(ym, savingMa, income.getAmountOrElseZero(ym).subtract(savingMa))));
 

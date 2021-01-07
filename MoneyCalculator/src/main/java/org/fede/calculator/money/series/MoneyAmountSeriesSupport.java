@@ -189,7 +189,6 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
         return ZERO_AMOUNTS.computeIfAbsent(this.currency, c -> new MoneyAmount(BigDecimal.ZERO, c));
 
-        //return new MoneyAmount(BigDecimal.ZERO, this.currency);
     }
 
     protected abstract boolean hasValue(YearMonth moment);
