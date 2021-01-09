@@ -1130,7 +1130,7 @@ public class ConsoleReports {
         final var end = 2078;
         final var yearsLeft = end - startingYear + 1;
 
-        final var periods = Math.round((float) yearsLeft / periodYears);
+        final var periods = (int) Math.ceil((float) yearsLeft / periodYears);
 
         final var inflationFactors = IntStream.range(0, yearsLeft)
                 .mapToObj(year -> inflationRate.pow(year, CONTEXT))
