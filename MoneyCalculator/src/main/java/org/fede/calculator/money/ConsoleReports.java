@@ -85,8 +85,11 @@ public class ConsoleReports {
     private static final BigDecimal REALTOR_FEE = new BigDecimal("0.045");
     private static final BigDecimal STAMP_TAX = new BigDecimal("0.018");
     private static final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
-    private static final BigDecimal NOTARY_FEE = new BigDecimal("0.02").multiply(new BigDecimal("1.21", CONTEXT));
+    private static final BigDecimal IVA = new BigDecimal("1.21");
+    private static final BigDecimal NOTARY_FEE = new BigDecimal("0.02").multiply(IVA, CONTEXT);
 
+    private static final BigDecimal TRADING_FEE = new BigDecimal("0.006");
+    
     private static final BigDecimal RUSSELL2000_PCT = new BigDecimal("0.1");
     private static final BigDecimal SP500_PCT = new BigDecimal("0.7");
     private static final BigDecimal EIMI_PCT = new BigDecimal("0.1");
@@ -360,7 +363,9 @@ public class ConsoleReports {
         }
 
         final var tax = new BigDecimal("0.15");
-        final var fee = new BigDecimal("0.01946");
+        final var fee = TRADING_FEE.multiply(IVA, CONTEXT)
+                .add(TRADING_FEE, CONTEXT)
+                .add(TRADING_FEE, CONTEXT);
 
         final var realProfits = this.getInvestments().stream()
                 .filter(predicate)
@@ -379,7 +384,9 @@ public class ConsoleReports {
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " gross", RealProfit::getRealInitialAmount, RealProfit::getRealProfit);
 
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " net  ", RealProfit::getRealInitialAmount, RealProfit::getAfterFeesAndTaxesProfit);
-
+        
+        appendLine(format("\nExit fee: {0}.  Capital gains tax rate: {1}", percentFormat.format(fee), percentFormat.format(tax)));
+        
     }
 
     private void totalRealProfitReportLine(
@@ -629,7 +636,6 @@ public class ConsoleReports {
         this.buyVsRent(realExpensesInUSD, ZERO, timeLimit);
         this.buyVsRent(realExpensesInUSD, new BigDecimal("0.02"), timeLimit);
         this.buyVsRent(realExpensesInUSD, new BigDecimal("0.03"), timeLimit);
-
     }
 
     private MoneyAmount limit(YearMonth timeLimit, YearMonth ym, MoneyAmount amount) {
@@ -1049,7 +1055,9 @@ public class ConsoleReports {
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "false"));
 
         final var buySellFee = ONE.setScale(6)
-                .add(new BigDecimal("0.01946"), CONTEXT);
+                .add(TRADING_FEE.multiply(IVA, CONTEXT), CONTEXT)
+                .add(TRADING_FEE, CONTEXT)
+                .add(TRADING_FEE, CONTEXT);
 
         this.goal(trials, periodYears, deposit, withdraw, inflation, retirementAge, buySellFee, BigDecimal.valueOf(extraCash), onlySP500, afterTax);
     }
