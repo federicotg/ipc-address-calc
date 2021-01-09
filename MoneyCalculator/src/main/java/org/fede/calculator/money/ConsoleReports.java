@@ -77,7 +77,7 @@ import static org.fede.calculator.money.series.SeriesReader.readSeries;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class ConsoleReports {
-    
+
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
     private static final BigDecimal COEFFICIENT = new BigDecimal("0.1223");
@@ -826,8 +826,22 @@ public class ConsoleReports {
         final var eq = this.realSavings("EQ");
         final var bo = this.realSavings("BO");
 
+        final var nf = NumberFormat.getCurrencyInstance();
+
         cash.forEach((ym, cashMa) -> appendLine(
-                this.bar(ym, cashMa.getAmount(), eq.getAmountOrElseZero(ym).getAmount(), bo.getAmountOrElseZero(ym).getAmount(), 1500)));
+                this.bar(
+                        ym,
+                        cashMa.getAmount(),
+                        eq.getAmountOrElseZero(ym).getAmount(),
+                        bo.getAmountOrElseZero(ym).getAmount(),
+                        1500,
+                        value -> String.format("%10s", nf.format(value)))));
+
+        appendLine("===< Savings Distribution Evolution >===");
+        appendLine("");
+        appendLine("References:");
+        appendLine("#: cash, +: equity, % bonds.");
+
     }
 
     private void savingsDistributionPercentEvolution() {
@@ -841,13 +855,12 @@ public class ConsoleReports {
         cash.forEach((ym, cashMa) -> appendLine(
                 this.percentBar(ym, cashMa, eq.getAmountOrElseZero(ym), bo.getAmountOrElseZero(ym))
         ));
-        
-        
+
         appendLine("===< Savings Distribution Percent Evolution >===");
         appendLine("");
         appendLine("References:");
         appendLine("#: cash, +: equity, % bonds.");
-        
+
     }
 
     private BigDecimal asPct(MoneyAmount ma, MoneyAmount total) {
@@ -864,7 +877,6 @@ public class ConsoleReports {
             return "";
         }
 
-        
         var bar1 = this.asPct(one, total);
         var bar2 = this.asPct(two, total);
 
@@ -874,7 +886,7 @@ public class ConsoleReports {
 
         }
 
-        return this.bar(ym, bar1, bar2, 1);
+        return this.bar(ym, bar1, bar2, 1, this::pctNumber);
     }
 
     private String percentBar(YearMonth ym, MoneyAmount one, MoneyAmount two, MoneyAmount three) {
@@ -895,7 +907,7 @@ public class ConsoleReports {
 
         }
 
-        return this.bar(ym, bar1, bar2, bar3, 1);
+        return this.bar(ym, bar1, bar2, bar3, 1, this::pctNumber);
 
     }
 
@@ -904,25 +916,25 @@ public class ConsoleReports {
 
     }
 
-    private String bar(YearMonth ym, BigDecimal one, BigDecimal two, int scale) {
+    private String bar(YearMonth ym, BigDecimal one, BigDecimal two, int scale, Function<BigDecimal, String> format) {
         return format("{0}/{1} [{2},{4}] {3}{5}",
                 String.valueOf(ym.getYear()),
                 String.format("%02d", ym.getMonth()),
-                this.pctNumber(one),
+                format.apply(one),
                 this.bar(one, scale, "#"),
-                this.pctNumber(two),
+                format.apply(two),
                 this.bar(two, scale, "+"));
     }
 
-    private String bar(YearMonth ym, BigDecimal one, BigDecimal two, BigDecimal three, int scale) {
+    private String bar(YearMonth ym, BigDecimal one, BigDecimal two, BigDecimal three, int scale, Function<BigDecimal, String> format) {
         return format("{0}/{1} [{2},{4},{6}] {3}{5}{7}",
                 String.valueOf(ym.getYear()),
                 String.format("%02d", ym.getMonth()),
-                this.pctNumber(one),
+                format.apply(one),
                 this.bar(one, scale, "#"),
-                this.pctNumber(two),
+                format.apply(two),
                 this.bar(two, scale, "+"),
-                this.pctNumber(three),
+                format.apply(three),
                 this.bar(three, scale, "%"));
     }
 
