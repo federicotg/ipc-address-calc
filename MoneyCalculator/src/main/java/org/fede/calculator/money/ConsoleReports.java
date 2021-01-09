@@ -375,12 +375,15 @@ public class ConsoleReports {
                 .map(i -> this.asRealProfit(i, tax, fee))
                 .collect(toList());
 
+        appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %         Fee        Tax ");
+        
         realProfits
                 .stream()
                 .filter(i -> !totalOnly)
                 .map(RealProfit::toString)
                 .forEach(this::appendLine);
 
+        appendLine("");
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " gross", RealProfit::getRealInitialAmount, RealProfit::getRealProfit);
 
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " net  ", RealProfit::getRealInitialAmount, RealProfit::getAfterFeesAndTaxesProfit);
@@ -459,7 +462,7 @@ public class ConsoleReports {
 
             final var limit = USD_INFLATION.getTo();
             this.incomeSeries = Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
-                    .map(incomeSeries -> incomeSeries.exchangeInto("USD"))
+                    .map(is -> is.exchangeInto("USD"))
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
                     .collect(toList());
         }

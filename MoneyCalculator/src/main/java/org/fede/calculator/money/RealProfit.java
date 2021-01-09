@@ -41,9 +41,9 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class RealProfit {
 
-    private static final String REPORT_PATTERN = "{0} {1} => {2}. {3} {4}. Net {5} {6}. Fee {7}. Tax {8}";
+    private static final String REPORT_PATTERN = "{0} {1} {2} {3} {4} {5} {6} {7} {8}";
 
-    private static final String SIMPLE_REPORT_PATTERN = "{0} {1} => {2}. {3} {4}";
+    private static final String SIMPLE_REPORT_PATTERN = "{0} {1} {2} {3} {4}";
 
     public static String plusMinus(BigDecimal pct) {
 
@@ -157,7 +157,7 @@ public class RealProfit {
     }
 
     private String fmt(MoneyAmount ma) {
-        return moneyFormat.format(ma.getAmount());
+        return String.format("%11s",moneyFormat.format(ma.getAmount()));
     }
 
     public BigDecimal getRate() {
@@ -186,23 +186,23 @@ public class RealProfit {
         if (afterFeesAndTaxesCapitalGain.getAmount().compareTo(capitalGain.getAmount()) != 0) {
 
             return MessageFormat.format(REPORT_PATTERN,
-                    this.df.format(this.nominalInvestment.getInitialDate()),
+                    String.format("%12s", this.df.format(this.nominalInvestment.getInitialDate())),
                     this.fmt(this.realInvestment.getInitialMoneyAmount()),
                     this.fmt(this.profit),
                     this.fmt(capitalGain),
-                    this.percentFormat.format(pct),
+                    String.format("%8s",this.percentFormat.format(pct)),
                     this.fmt(afterFeesAndTaxesCapitalGain),
-                    this.percentFormat.format(pctAfterTaxAndFee),
+                    String.format("%8s",this.percentFormat.format(pctAfterTaxAndFee)),
                     this.fmt(this.feeAmount),
                     this.fmt(this.taxAmount));
         }
 
         return MessageFormat.format(SIMPLE_REPORT_PATTERN,
-                this.df.format(this.nominalInvestment.getInitialDate()),
+                String.format("%12s",this.df.format(this.nominalInvestment.getInitialDate())),
                 this.fmt(this.realInvestment.getInitialMoneyAmount()),
                 this.fmt(this.profit),
                 this.fmt(capitalGain),
-                this.percentFormat.format(pct));
+                String.format("%8s",this.percentFormat.format(pct)));
     }
 
     public MoneyAmount getRealProfit() {
