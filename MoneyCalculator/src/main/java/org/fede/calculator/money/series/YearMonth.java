@@ -44,13 +44,6 @@ public class YearMonth implements Comparable<YearMonth> {
     private final int year;
     private final int month;
 
-//    private YearMonth(Date day) {
-//
-//        LocalDate date = day.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
-//        this.year = date.getYear();
-//        this.month = date.getMonthValue();
-//    }
-
     private YearMonth(int year, int month) {
         this.year = year;
         this.month = month;
