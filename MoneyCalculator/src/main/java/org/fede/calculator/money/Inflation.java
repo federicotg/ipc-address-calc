@@ -95,7 +95,7 @@ public interface Inflation extends Series {
         }
 
         InvestmentEvent answer = new InvestmentEvent();
-        YearMonth start = new YearMonth(in.getDate());
+        YearMonth start = YearMonth.of(in.getDate());
         MoneyAmount adjusted = this.adjust(in.getMoneyAmount(), start.getYear(), start.getMonth(), moment.getYear(), moment.getMonth());
         answer.setCurrency(adjusted.getCurrency());
         answer.setAmount(adjusted.getAmount());

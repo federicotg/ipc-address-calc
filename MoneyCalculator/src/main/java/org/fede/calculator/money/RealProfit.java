@@ -101,7 +101,7 @@ public class RealProfit {
         this.taxAmount = afterFeesAndTaxes.subtract(afterFee);
         
         if (this.nominalInvestment.getOut() != null && this.nominalInvestment.getOut().getDate().before(new Date())) {
-            final YearMonth endYM = new YearMonth(this.nominalInvestment.getOut().getDate());
+            final YearMonth endYM = YearMonth.of(this.nominalInvestment.getOut().getDate());
             this.profit = USD_INFLATION.adjust(usdProfit, endYM.getYear(), endYM.getMonth(), limit.getYear(), limit.getMonth());
 
             this.afterFeesAndTaxesProfit = USD_INFLATION.adjust(afterFeesAndTaxes, endYM.getYear(), endYM.getMonth(), limit.getYear(), limit.getMonth());

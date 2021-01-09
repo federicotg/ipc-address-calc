@@ -44,7 +44,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
     @Override
     public final MoneyAmount getAmount(Date day) {
-        return this.getAmount(new YearMonth(day));
+        return this.getAmount(YearMonth.of(day));
     }
 
     @Override
@@ -119,7 +119,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
     @Override
     public final void putAmount(int year, int month, MoneyAmount amount) {
-        this.putAmount(new YearMonth(year, month), amount);
+        this.putAmount(YearMonth.of(year, month), amount);
     }
 
     @Override
@@ -178,7 +178,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
     @Override
     public final MoneyAmount getAmount(int year, int month) {
-        return this.getAmount(new YearMonth(year, month));
+        return this.getAmount(YearMonth.of(year, month));
     }
 
     @Override

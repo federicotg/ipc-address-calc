@@ -60,7 +60,7 @@ public class SimpleAggregationTest {
     private final Aggregation aggr = new SimpleAggregation(12);
 
     public SimpleAggregationTest() {
-        YearMonth ym = new YearMonth(1936, 8);
+        YearMonth ym = YearMonth.of(1936, 8);
         SortedMap<YearMonth, MoneyAmount> ascendingValues = new TreeMap<>();
         for (String s : ASCENDING) {
             ascendingValues.put(ym, new MoneyAmount(new BigDecimal(s), "ARS"));

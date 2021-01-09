@@ -534,9 +534,9 @@ public class ConsoleReports {
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
                     entry("house", () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
-                    entry("house1", () -> me.houseIrrecoverableCosts(new YearMonth(2011, 8))),
-                    entry("house3", () -> me.houseIrrecoverableCosts(new YearMonth(2013, 8))),
-                    entry("house5", () -> me.houseIrrecoverableCosts(new YearMonth(2015, 8))),
+                    entry("house1", () -> me.houseIrrecoverableCosts(YearMonth.of(2011, 8))),
+                    entry("house3", () -> me.houseIrrecoverableCosts(YearMonth.of(2013, 8))),
+                    entry("house5", () -> me.houseIrrecoverableCosts(YearMonth.of(2015, 8))),
                     //expenses
                     entry("expenses", () -> me.expenses(args, "expenses")),
                     entry("expenses-evo", () -> me.expenseEvolution(args, "expenses-evo")),
@@ -663,7 +663,7 @@ public class ConsoleReports {
                         .add(NOTARY_FEE, CONTEXT),
                 CONTEXT);
 
-        final var start = new YearMonth(2010, 8);
+        final var start = YearMonth.of(2010, 8);
         final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalInitialCost, "USD"),
                 start.getYear(), start.getMonth(),
                 limit.getYear(), limit.getMonth());
@@ -1220,7 +1220,7 @@ public class ConsoleReports {
     }
 
     private BigDecimal sum(List<BigDecimal> l) {
-        return l.stream().reduce(BigDecimal::add).get();
+        return l.stream().reduce(ZERO, BigDecimal::add);
     }
 
     private boolean goals(

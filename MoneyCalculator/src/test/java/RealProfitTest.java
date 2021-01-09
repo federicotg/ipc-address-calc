@@ -51,7 +51,7 @@ public class RealProfitTest {
 
         final var initialDate = Date.from(LocalDate.of(2019, Month.MARCH, 13).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-        final var initialYm = new YearMonth(initialDate);
+        final var initialYm = YearMonth.of(initialDate);
         final var finalYm = Inflation.USD_INFLATION.getTo();
 
         InvestmentEvent in = new InvestmentEvent();

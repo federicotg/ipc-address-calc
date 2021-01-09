@@ -20,6 +20,9 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import org.fede.util.Pair;
 
 /**
  *
@@ -27,17 +30,28 @@ import java.util.Date;
  */
 public class YearMonth implements Comparable<YearMonth> {
 
+    private static final Map<Pair<Integer, Integer>, YearMonth> POOL = new HashMap<>();
+    
+    public static YearMonth of(Date day){
+        LocalDate date = day.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+        return of(date.getYear(), date.getMonthValue());
+    }
+    
+    public static YearMonth of(int year, int month){
+        return POOL.computeIfAbsent(Pair.of(year, month), p -> new YearMonth(p.getFirst(), p.getSecond()));
+    }
+    
     private final int year;
     private final int month;
 
-    public YearMonth(Date day) {
+//    private YearMonth(Date day) {
+//
+//        LocalDate date = day.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+//        this.year = date.getYear();
+//        this.month = date.getMonthValue();
+//    }
 
-        LocalDate date = day.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
-        this.year = date.getYear();
-        this.month = date.getMonthValue();
-    }
-
-    public YearMonth(int year, int month) {
+    private YearMonth(int year, int month) {
         this.year = year;
         this.month = month;
     }
@@ -80,16 +94,16 @@ public class YearMonth implements Comparable<YearMonth> {
 
     public YearMonth next() {
         if (this.month == 12) {
-            return new YearMonth(this.year + 1, 1);
+            return YearMonth.of(this.year + 1, 1);
         }
-        return new YearMonth(this.year, this.month + 1);
+        return YearMonth.of(this.year, this.month + 1);
     }
 
     public YearMonth prev() {
         if (this.month == 1) {
-            return new YearMonth(this.year - 1, 12);
+            return YearMonth.of(this.year - 1, 12);
         }
-        return new YearMonth(this.year, this.month - 1);
+        return YearMonth.of(this.year, this.month - 1);
     }
     
     @Override

@@ -45,18 +45,18 @@ public class JSONIndexSeries extends IndexSeriesSupport {
     @Override
     public YearMonth getFrom() {
         JSONDataPoint point = this.data.get(0);
-        return new YearMonth(point.getYear(), point.getMonth());
+        return YearMonth.of(point.getYear(), point.getMonth());
     }
 
     @Override
     public YearMonth getTo() {
         JSONDataPoint point = this.data.get(this.data.size() - 1);
-        return new YearMonth(point.getYear(), point.getMonth());
+        return YearMonth.of(point.getYear(), point.getMonth());
     }
 
     @Override
     public BigDecimal predictValue(int year, int month) {
-        if (new YearMonth(year, month).compareTo(this.getTo()) > 0) {
+        if (YearMonth.of(year, month).compareTo(this.getTo()) > 0) {
             return this.data.get(this.data.size() - 1).getValue();
         }
         throw new NoSeriesDataFoundException("No data for specified year and month.");

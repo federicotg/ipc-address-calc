@@ -148,7 +148,7 @@ public class Investment {
 
     private static MoneyAmount changeCurrency(MoneyAmount ma, String targetCurrency, Date date) {
         ForeignExchange fx = ForeignExchanges.getForeignExchange(ma.getCurrency(), targetCurrency);
-        YearMonth min = new YearMonth(date).min(fx.getTo());
+        YearMonth min = YearMonth.of(date).min(fx.getTo());
         return fx.exchange(ma, targetCurrency, min.getYear(), min.getMonth());
     }
 

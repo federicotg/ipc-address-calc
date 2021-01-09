@@ -30,12 +30,12 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
     public static IndexSeries CONSTANT_SERIES = new IndexSeriesSupport() {
         @Override
         public YearMonth getFrom() {
-            return new YearMonth(1, 1);
+            return YearMonth.of(1, 1);
         }
 
         @Override
         public YearMonth getTo() {
-            return new YearMonth(5000, 12);
+            return YearMonth.of(5000, 12);
         }
 
         @Override
