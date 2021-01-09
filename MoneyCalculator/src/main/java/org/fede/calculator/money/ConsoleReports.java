@@ -41,7 +41,6 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import static java.util.Map.entry;
@@ -86,7 +85,8 @@ public class ConsoleReports {
     private static final BigDecimal STAMP_TAX = new BigDecimal("0.018");
     private static final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
     private static final BigDecimal IVA = new BigDecimal("1.21");
-    private static final BigDecimal NOTARY_FEE = new BigDecimal("0.02").multiply(IVA, CONTEXT);
+    private static final BigDecimal NOTARY_FEE = new BigDecimal("0.02")
+            .multiply(IVA, CONTEXT);
 
     private static final BigDecimal TRADING_FEE = new BigDecimal("0.006");
     
@@ -857,7 +857,7 @@ public class ConsoleReports {
         appendLine("===< Savings Distribution Evolution >===");
         appendLine("");
         appendLine("References:");
-        appendLine("#: cash, +: equity, % bonds.");
+        appendLine("#: cash, +: equity, %: bonds.");
 
     }
 
@@ -876,7 +876,7 @@ public class ConsoleReports {
         appendLine("===< Savings Distribution Percent Evolution >===");
         appendLine("");
         appendLine("References:");
-        appendLine("#: cash, +: equity, % bonds.");
+        appendLine("#: cash, +: equity, %: bonds.");
 
     }
 
@@ -1543,7 +1543,7 @@ public class ConsoleReports {
         appendLine(title);
         appendLine("");
         appendLine("References:");
-        appendLine("#: saved, +: spent, % other spending.");
+        appendLine("#: saved, +: spent, %: other spending.");
 
     }
 
