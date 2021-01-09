@@ -372,7 +372,7 @@ public class ConsoleReports {
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .sorted(comparing(Investment::getInitialDate))
-                .map(i -> ETF.equals(i.getType()) ? new RealProfit(i, tax, fee) : new RealProfit(i))
+                .map(i -> this.asRealProfit(i, tax, fee))
                 .collect(toList());
 
         realProfits
@@ -387,6 +387,14 @@ public class ConsoleReports {
         
         appendLine(format("\nExit fee: {0}.  Capital gains tax rate: {1}", percentFormat.format(fee), percentFormat.format(tax)));
         
+    }
+    
+    
+    private RealProfit asRealProfit(Investment i, BigDecimal tax, BigDecimal fee){
+        if(i.getType().equals(ETF) && i.getOut() == null){
+            return new RealProfit(i, tax, fee);
+        }
+        return new RealProfit(i);
     }
 
     private void totalRealProfitReportLine(

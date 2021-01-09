@@ -43,6 +43,8 @@ public class RealProfit {
 
     private static final String REPORT_PATTERN = "{0} {1} => {2}. {3} {4}. Net {5} {6} {7}";
 
+    private static final String SIMPLE_REPORT_PATTERN = "{0} {1} => {2}. {3} {4} {5}";
+
     public static String plusMinus(BigDecimal pct) {
 
         final var sign = pct.signum() >= 0
@@ -63,7 +65,6 @@ public class RealProfit {
     private final MoneyAmount profit;
 
     private final MoneyAmount afterFeesAndTaxesProfit;
-
 
     public RealProfit(Investment nominalInvestment) {
         this(nominalInvestment, ZERO, ZERO);
@@ -175,16 +176,26 @@ public class RealProfit {
 
         final BigDecimal pct = this.getRate();
 
-        return MessageFormat.format(REPORT_PATTERN,
+        if (afterFeesAndTaxesCapitalGain.getAmount().compareTo(capitalGain.getAmount()) != 0) {
+
+            return MessageFormat.format(REPORT_PATTERN,
+                    this.df.format(this.nominalInvestment.getInitialDate()),
+                    this.fmt(this.realInvestment.getInitialMoneyAmount()),
+                    this.fmt(this.profit),
+                    this.fmt(capitalGain),
+                    this.percentFormat.format(pct),
+                    this.fmt(afterFeesAndTaxesCapitalGain),
+                    this.percentFormat.format(pctAfterTaxAndFee),
+                    plusMinus(pctAfterTaxAndFee));
+        }
+
+        return MessageFormat.format(SIMPLE_REPORT_PATTERN,
                 this.df.format(this.nominalInvestment.getInitialDate()),
                 this.fmt(this.realInvestment.getInitialMoneyAmount()),
                 this.fmt(this.profit),
                 this.fmt(capitalGain),
                 this.percentFormat.format(pct),
-                this.fmt(afterFeesAndTaxesCapitalGain),
-                this.percentFormat.format(pctAfterTaxAndFee),
-                plusMinus(pctAfterTaxAndFee)
-        );
+                plusMinus(pctAfterTaxAndFee));
     }
 
     public MoneyAmount getRealProfit() {
