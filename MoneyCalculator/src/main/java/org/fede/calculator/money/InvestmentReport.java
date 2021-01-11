@@ -143,20 +143,20 @@ public class InvestmentReport {
         final var grp = this.getGrossRealProfit();
         final var gri = this.getGrossRealInvestment();
         final var cgt = this.capitalGainsTax();
+        final var fa = this.feeAmount();
+        final var cv = this.currentValue(this.real);
         return MessageFormat.format(REPORT_PATTERN,
                 String.format("%12s", DF.format(this.nominal.getInitialDate())),
                 this.fmt(this.getNetRealInvestment()),
-                this.fmt(this.currentValue(this.real)),
+                this.fmt(cv),
                 this.fmt(grp),
                 String.format("%8s", PCT_FORMAT.format(this.percent(grp, gri))),
                 this.fmt(this.getNetRealProfit()),
                 String.format("%8s", PCT_FORMAT.format(this.percent(this.getNetRealProfit(), gri))),
-                this.fmt(this.feeAmount()),
-                String.format("%7s", PCT_FORMAT.format(this.percent(this.feeAmount(), this.currentValue(this.real)))),
+                this.fmt(fa),
+                String.format("%7s", PCT_FORMAT.format(this.percent(fa, cv))),
                 this.fmt(cgt),
-                String.format("%7s", PCT_FORMAT.format(this.percent(cgt, this.currentValue(this.real))))
-        
-        );
+                String.format("%7s", PCT_FORMAT.format(this.percent(cgt, cv))));
     }
 
     private String fmt(MoneyAmount ma) {
