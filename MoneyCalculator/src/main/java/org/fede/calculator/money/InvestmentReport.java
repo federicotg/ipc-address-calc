@@ -39,7 +39,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class InvestmentReport {
 
-    private static final String REPORT_PATTERN = "{0} {1} {2} {3} {4} {5} {6} {7} {8}";
+    private static final String REPORT_PATTERN = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}";
 
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance();
     private static final DateFormat DF = DateFormat.getDateInstance();
@@ -142,7 +142,7 @@ public class InvestmentReport {
 
         final var grp = this.getGrossRealProfit();
         final var gri = this.getGrossRealInvestment();
-
+        final var cgt = this.capitalGainsTax();
         return MessageFormat.format(REPORT_PATTERN,
                 String.format("%12s", DF.format(this.nominal.getInitialDate())),
                 this.fmt(this.getNetRealInvestment()),
@@ -152,7 +152,11 @@ public class InvestmentReport {
                 this.fmt(this.getNetRealProfit()),
                 String.format("%8s", PCT_FORMAT.format(this.percent(this.getNetRealProfit(), gri))),
                 this.fmt(this.feeAmount()),
-                this.fmt(this.capitalGainsTax()));
+                String.format("%7s", PCT_FORMAT.format(this.percent(this.feeAmount(), this.currentValue(this.real)))),
+                this.fmt(cgt),
+                String.format("%7s", PCT_FORMAT.format(this.percent(cgt, this.currentValue(this.real))))
+        
+        );
     }
 
     private String fmt(MoneyAmount ma) {

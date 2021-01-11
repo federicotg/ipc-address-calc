@@ -376,7 +376,7 @@ public class ConsoleReports {
                 .map(i -> this.asReport(i, tax, fee))
                 .collect(toList());
 
-        appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %         Fee        Tax ");
+        appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %          Fee       %        Tax       %");
         
         realProfits
                 .stream()
