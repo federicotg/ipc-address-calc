@@ -174,14 +174,14 @@ public class RealProfit {
     @Override
     public String toString() {
 
-        // TODO calcular investment + fee, profit - fee.
-        
+        final var iva = new BigDecimal("1.21");
+
         final var capitalGain = this.profit.subtract(this.realInvestment.getInitialMoneyAmount());
 
         final var afterFeesAndTaxesCapitalGain = this.afterFeesAndTaxesProfit.subtract(this.realInvestment.getInitialMoneyAmount());
 
         final var pctAfterTaxAndFee = afterFeesAndTaxesCapitalGain
-                .subtract(this.realInvestment.getIn().getFeeMoneyAmount())
+                .subtract(this.realInvestment.getIn().getFeeMoneyAmount().adjust(ONE, iva))
                 .getAmount()
                 .divide(this.realInvestment.getInitialMoneyAmount().getAmount(), MathConstants.CONTEXT);
 
@@ -191,11 +191,11 @@ public class RealProfit {
 
             return MessageFormat.format(REPORT_PATTERN,
                     String.format("%12s", this.df.format(this.nominalInvestment.getInitialDate())),
-                    this.fmt(this.realInvestment.getInitialMoneyAmount().add(this.realInvestment.getIn().getFeeMoneyAmount())),
+                    this.fmt(this.realInvestment.getInitialMoneyAmount().add(this.realInvestment.getIn().getFeeMoneyAmount().adjust(ONE, iva))),
                     this.fmt(this.profit),
-                    this.fmt(capitalGain.subtract(this.realInvestment.getIn().getFeeMoneyAmount())),
+                    this.fmt(capitalGain.subtract(this.realInvestment.getIn().getFeeMoneyAmount().adjust(ONE, iva))),
                     String.format("%8s", this.percentFormat.format(pct)),
-                    this.fmt(afterFeesAndTaxesCapitalGain.subtract(this.realInvestment.getIn().getFeeMoneyAmount())),
+                    this.fmt(afterFeesAndTaxesCapitalGain.subtract(this.realInvestment.getIn().getFeeMoneyAmount().adjust(ONE, iva))),
                     String.format("%8s", this.percentFormat.format(pctAfterTaxAndFee)),
                     this.fmt(this.feeAmount),
                     this.fmt(this.taxAmount));
@@ -203,9 +203,9 @@ public class RealProfit {
 
         return MessageFormat.format(SIMPLE_REPORT_PATTERN,
                 String.format("%12s", this.df.format(this.nominalInvestment.getInitialDate())),
-                this.fmt(this.realInvestment.getInitialMoneyAmount().add(this.realInvestment.getIn().getFeeMoneyAmount())),
+                this.fmt(this.realInvestment.getInitialMoneyAmount().add(this.realInvestment.getIn().getFeeMoneyAmount().adjust(ONE, iva))),
                 this.fmt(this.profit),
-                this.fmt(capitalGain.subtract(this.realInvestment.getIn().getFeeMoneyAmount())),
+                this.fmt(capitalGain.subtract(this.realInvestment.getIn().getFeeMoneyAmount().adjust(ONE, iva))),
                 String.format("%8s", this.percentFormat.format(pct)));
     }
 

@@ -372,7 +372,8 @@ public class ConsoleReports {
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .sorted(comparing(Investment::getInitialDate))
-                .map(i -> this.asRealProfit(i, tax, fee))
+                //.map(i -> this.asRealProfit(i, tax, fee))
+                .map(i -> this.asReport(i, tax, fee))
                 .collect(toList());
 
         appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %         Fee        Tax ");
@@ -380,18 +381,25 @@ public class ConsoleReports {
         realProfits
                 .stream()
                 .filter(i -> !totalOnly)
-                .map(RealProfit::toString)
+                .map(InvestmentReport::toString)
                 .forEach(this::appendLine);
 
         appendLine("");
-        this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " gross", RealProfit::getRealInitialAmount, RealProfit::getRealProfit);
+        this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " gross", InvestmentReport::getNetRealInvestment, InvestmentReport::getGrossRealProfit);
 
-        this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " net  ", RealProfit::getRealInitialAmount, RealProfit::getAfterFeesAndTaxesProfit);
+        this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " net  ", InvestmentReport::getGrossRealInvestment, InvestmentReport::getNetRealProfit);
         
         appendLine(format("\nExit fee: {0}.  Capital gains tax rate: {1}", percentFormat.format(fee), percentFormat.format(tax)));
         
     }
-    
+
+
+    private InvestmentReport asReport(Investment i, BigDecimal tax, BigDecimal fee){
+        if(i.getType().equals(ETF) && i.getOut() == null){
+            return new InvestmentReport(i, tax, fee, IVA);
+        }
+        return new InvestmentReport(i, ZERO, ZERO, ONE);
+    }    
     
     private RealProfit asRealProfit(Investment i, BigDecimal tax, BigDecimal fee){
         if(i.getType().equals(ETF) && i.getOut() == null){
@@ -401,12 +409,12 @@ public class ConsoleReports {
     }
 
     private void totalRealProfitReportLine(
-            List<RealProfit> realProfits,
+            List<InvestmentReport> realProfits,
             InvestmentType type,
             boolean totalOnly,
             String currencyText,
-            Function<RealProfit, MoneyAmount> initialFunction,
-            Function<RealProfit, MoneyAmount> totalFunction) {
+            Function<InvestmentReport, MoneyAmount> initialFunction,
+            Function<InvestmentReport, MoneyAmount> totalFunction) {
 
         final BigDecimal total = this.totalSum(realProfits, initialFunction);
         final BigDecimal profit = this.totalSum(realProfits, totalFunction);
@@ -429,7 +437,7 @@ public class ConsoleReports {
 
     }
 
-    private BigDecimal totalSum(List<RealProfit> realProfits, Function<RealProfit, MoneyAmount> totalFunction) {
+    private BigDecimal totalSum(List<InvestmentReport> realProfits, Function<InvestmentReport, MoneyAmount> totalFunction) {
 
         return realProfits
                 .stream()
