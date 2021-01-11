@@ -26,7 +26,7 @@ import org.fede.calculator.money.series.YearMonth;
 public class SavingsReportDTO implements Comparable<SavingsReportDTO> {
 
     public SavingsReportDTO(int year, int month) {
-        this.moment = new YearMonth(year, month);
+        this.moment = YearMonth.of(year, month);
     }
 
     private YearMonth moment;

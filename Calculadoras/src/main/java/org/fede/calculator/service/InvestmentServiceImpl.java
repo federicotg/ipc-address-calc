@@ -217,9 +217,9 @@ public class InvestmentServiceImpl implements InvestmentService {
 
         //if (exactLocalDate.getDayOfMonth() < 16) {
         //    LocalDate adjusted = exactLocalDate.minusMonths(1).with(TemporalAdjusters.lastDayOfMonth());
-        //    return new YearMonth(adjusted.getYear(), adjusted.getMonthValue());
+        //    return YearMonth.of(adjusted.getYear(), adjusted.getMonthValue());
         //}
-        return new YearMonth(exactLocalDate.getYear(), exactLocalDate.getMonthValue());
+        return YearMonth.of(exactLocalDate.getYear(), exactLocalDate.getMonthValue());
     }
 
     private DetailedInvestmentReportDTO investmentReport(String currency, Predicate<Investment> filter, boolean includeTotal) {
