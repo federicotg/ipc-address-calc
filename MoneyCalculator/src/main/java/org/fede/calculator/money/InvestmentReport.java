@@ -106,7 +106,7 @@ public class InvestmentReport {
 
     private MoneyAmount feeAmount() {
         return this.real.getIn().getFeeMoneyAmount().adjust(ONE, this.feeTaxRate)
-                .add(this.currentValue(real).adjust(ONE, this.feeRate).adjust(ONE, this.feeTaxRate));
+                .add(this.currentValue(real).adjust(ONE, this.feeRate));
     }
 
     private MoneyAmount capitalGainsTax() {
@@ -122,7 +122,7 @@ public class InvestmentReport {
 
         final var currentValue = this.currentValue(this.real);
 
-        final var feeAmount = currentValue.adjust(ONE, this.feeRate.multiply(feeTaxRate, MathContext.DECIMAL64));
+        final var feeAmount = currentValue.adjust(ONE, this.feeRate);
 
         final var capitalGainAmount = this.capitalGainsTax();
 
