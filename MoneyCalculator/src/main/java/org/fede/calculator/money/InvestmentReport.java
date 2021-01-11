@@ -41,8 +41,6 @@ public class InvestmentReport {
 
     private static final String REPORT_PATTERN = "{0} {1} {2} {3} {4} {5} {6} {7} {8}";
 
-    private static final String SIMPLE_REPORT_PATTERN = "{0} {1} {2} {3} {4}";
-
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance();
     private static final DateFormat DF = DateFormat.getDateInstance();
     private static final NumberFormat PCT_FORMAT = NumberFormat.getPercentInstance();
@@ -84,7 +82,7 @@ public class InvestmentReport {
      */
     public MoneyAmount getGrossRealInvestment() {
         return this.getNetRealInvestment()
-                .add(this.real.getIn().getFeeMoneyAmount().adjust(BigDecimal.ONE, this.feeTaxRate));
+                .add(this.real.getIn().getFeeMoneyAmount().adjust(ONE, this.feeTaxRate));
     }
 
     /*
@@ -101,19 +99,20 @@ public class InvestmentReport {
      */
     public MoneyAmount getGrossRealProfit() {
 
-        return this.currentValue(this.real).subtract(this.getNetRealInvestment());
+        return this.currentValue(this.real)
+                .subtract(this.getNetRealInvestment());
 
     }
 
     private MoneyAmount feeAmount() {
-        return this.real.getIn().getFeeMoneyAmount().adjust(BigDecimal.ONE, this.feeTaxRate)
-                .add(this.currentValue(real).adjust(BigDecimal.ONE, this.feeRate).adjust(BigDecimal.ONE, this.feeTaxRate));
+        return this.real.getIn().getFeeMoneyAmount().adjust(ONE, this.feeTaxRate)
+                .add(this.currentValue(real).adjust(ONE, this.feeRate).adjust(ONE, this.feeTaxRate));
     }
 
     private MoneyAmount capitalGainsTax() {
         return this.currentValue(this.real)
                 .subtract(this.getNetNominalInvestment())
-                .adjust(BigDecimal.ONE, this.capitalGainsTaxRate);
+                .adjust(ONE, this.capitalGainsTaxRate);
     }
 
     /*
@@ -123,7 +122,7 @@ public class InvestmentReport {
 
         final var currentValue = this.currentValue(this.real);
 
-        final var feeAmount = currentValue.adjust(BigDecimal.ONE, this.feeRate.multiply(feeTaxRate, MathContext.DECIMAL64));
+        final var feeAmount = currentValue.adjust(ONE, this.feeRate.multiply(feeTaxRate, MathContext.DECIMAL64));
 
         final var capitalGainAmount = this.capitalGainsTax();
 
@@ -134,23 +133,26 @@ public class InvestmentReport {
     }
 
     private BigDecimal percent(MoneyAmount value, MoneyAmount total) {
-        return value.getAmount().divide(total.getAmount(), MathContext.DECIMAL64);
+        return value.getAmount()
+                .divide(total.getAmount(), MathContext.DECIMAL64);
     }
 
     @Override
     public String toString() {
 
+        final var grp = this.getGrossRealProfit();
+        final var gri = this.getGrossRealInvestment();
+
         return MessageFormat.format(REPORT_PATTERN,
                 String.format("%12s", DF.format(this.nominal.getInitialDate())),
                 this.fmt(this.getNetRealInvestment()),
                 this.fmt(this.currentValue(this.real)),
-                this.fmt(this.getGrossRealProfit()),
-                String.format("%8s", PCT_FORMAT.format(this.percent(this.getGrossRealProfit(), this.getGrossRealInvestment()))),
+                this.fmt(grp),
+                String.format("%8s", PCT_FORMAT.format(this.percent(grp, gri))),
                 this.fmt(this.getNetRealProfit()),
-                String.format("%8s", PCT_FORMAT.format(this.percent(this.getNetRealProfit(), this.getGrossRealInvestment()))),
+                String.format("%8s", PCT_FORMAT.format(this.percent(this.getNetRealProfit(), gri))),
                 this.fmt(this.feeAmount()),
                 this.fmt(this.capitalGainsTax()));
-
     }
 
     private String fmt(MoneyAmount ma) {
@@ -160,7 +162,7 @@ public class InvestmentReport {
     public MoneyAmount getCurrentValue() {
         return this.currentValue(real);
     }
-    
+
     private MoneyAmount currentValue(Investment in) {
 
         if (in.getInterest() != null || in.getOut() == null) {
@@ -185,7 +187,6 @@ public class InvestmentReport {
         final YearMonth limit = USD_INFLATION.getTo();
         return ForeignExchanges.getForeignExchange(amount.getCurrency(), "USD")
                 .exchange(amount, "USD", limit.getYear(), limit.getMonth());
-
     }
 
     private MoneyAmount interest(Investment in) {
