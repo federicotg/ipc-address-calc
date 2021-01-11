@@ -203,7 +203,6 @@ public class InvestmentReport {
                         .setScale(12, HALF_UP)
                         .divide(BigDecimal.valueOf(ChronoUnit.YEARS.getDuration().toDays()), MathConstants.CONTEXT),
                 in.getInvestment().getCurrency());
-
     }
 
     private BigDecimal days(Investment in) {

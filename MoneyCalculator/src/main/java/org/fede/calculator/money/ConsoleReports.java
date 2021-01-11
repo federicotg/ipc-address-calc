@@ -391,6 +391,13 @@ public class ConsoleReports {
         
         appendLine(format("\nClosing fee and tax: {0}. Capital gains tax rate: {1}", percentFormat.format(fee), percentFormat.format(tax)));
         
+        appendLine("");
+        appendLine("Investment: invested amount ignoring openning fees and taxes");
+        appendLine("Current: currently invested amount");
+        appendLine("Profit: capital gains before fees and taxes");
+        appendLine("Net Profit: capital gains after fees and taxes if closing today");
+        appendLine("Fee: opening fee and taxes, closing and ccl fees and taxes");
+        appendLine("Tax: capital gains tax as of today.");
     }
 
 
@@ -401,13 +408,6 @@ public class ConsoleReports {
         return new InvestmentReport(i, ZERO, ZERO, ONE);
     }    
     
-//    private RealProfit asRealProfit(Investment i, BigDecimal tax, BigDecimal fee){
-//        if(i.getType().equals(ETF) && i.getOut() == null){
-//            return new RealProfit(i, tax, fee);
-//        }
-//        return new RealProfit(i);
-//    }
-
     private void totalRealProfitReportLine(
             List<InvestmentReport> realProfits,
             InvestmentType type,
