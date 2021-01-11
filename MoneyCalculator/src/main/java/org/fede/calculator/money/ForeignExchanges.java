@@ -209,11 +209,14 @@ public class ForeignExchanges {
         }
         ForeignExchange fx = ForeignExchanges.getForeignExchange(in.getCurrency(), currency);
 
+        final var fee = new MoneyAmount(in.getFee(), in.getCurrency());
+        
         InvestmentEvent answer = new InvestmentEvent();
         MoneyAmount ma = fx.exchange(in.getMoneyAmount(), currency, in.getDate());
         answer.setAmount(ma.getAmount());
         answer.setCurrency(ma.getCurrency());
         answer.setDate(in.getDate());
+        answer.setFee(fx.exchange(fee, currency, in.getDate()).getAmount());
         return answer;
     }
 

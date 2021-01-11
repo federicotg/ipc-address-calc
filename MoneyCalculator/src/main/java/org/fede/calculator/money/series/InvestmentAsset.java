@@ -2,7 +2,6 @@ package org.fede.calculator.money.series;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
-import java.util.Objects;
 import java.util.StringJoiner;
 import org.fede.calculator.money.MoneyAmount;
 

@@ -40,7 +40,8 @@ public interface Inflation extends Series {
      * @param fromMonth el mes del año en el que está basado el monto.
      * @param toYear el año al que se quiere llevar el monto
      * @param toMonth el mes del año al que se quiere llevar el monto.
-     * @return el monto ajustado por inflación. Queda expresado en valores de toYear y toMonth
+     * @return el monto ajustado por inflación. Queda expresado en valores de
+     * toYear y toMonth
      * @throws NoSeriesDataFoundException
      */
     MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth);
@@ -51,9 +52,11 @@ public interface Inflation extends Series {
      * Ajusta por inflación todos los valores de la serie
      *
      * @param series la serie a ajustar.
-     * @param referenceYear el año al que se quiere llevar los valores de la serie.
+     * @param referenceYear el año al que se quiere llevar los valores de la
+     * serie.
      * @param referenceMonth el mes.
-     * @return una serie de valores expresados en valores de referenceYear y referenceMonth
+     * @return una serie de valores expresados en valores de referenceYear y
+     * referenceMonth
      * @throws NoSeriesDataFoundException
      */
     MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth);
@@ -61,12 +64,14 @@ public interface Inflation extends Series {
     MoneyAmountSeries adjust(MoneyAmountSeries series, Date moment);
 
     /**
-     * Calcula el valor ajustado por inflación del monto especificado en cada mes que se pueda.
+     * Calcula el valor ajustado por inflación del monto especificado en cada
+     * mes que se pueda.
      *
      * @param amount el monto a ajustar
      * @param referenceYear el año del monto
      * @param referenceMonth el mes del monto
-     * @return el valor especificado expresado en valores ajustados para cada mes de la serie.
+     * @return el valor especificado expresado en valores ajustados para cada
+     * mes de la serie.
      * @throws NoSeriesDataFoundException
      */
     MoneyAmountSeries adjust(MoneyAmount amount, int referenceYear, int referenceMonth);
@@ -100,8 +105,14 @@ public interface Inflation extends Series {
         answer.setCurrency(adjusted.getCurrency());
         answer.setAmount(adjusted.getAmount());
         answer.setDate(in.getDate());
+        answer.setFee(
+                this.adjust(
+                        new MoneyAmount(in.getFee(), in.getCurrency()),
+                        start.getYear(),
+                        start.getMonth(),
+                        moment.getYear(),
+                        moment.getMonth()).getAmount());
         return answer;
     }
-
 
 }

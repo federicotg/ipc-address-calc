@@ -2,8 +2,10 @@ package org.fede.calculator.money.series;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Optional;
 import java.util.StringJoiner;
 import org.fede.calculator.money.MoneyAmount;
 
@@ -32,7 +34,9 @@ public class InvestmentEvent {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy", timezone = "GMT-3")
     private Date date;
     private BigDecimal amount;
+    private BigDecimal fee;
     private String currency;
+    
 
     public Date getDate() {
         return date;
@@ -58,6 +62,15 @@ public class InvestmentEvent {
         this.currency = currency;
     }
 
+    public BigDecimal getFee() {
+        return Optional.ofNullable(fee)
+                .orElse(BigDecimal.ZERO);
+    }
+
+    public void setFee(BigDecimal fee) {
+        this.fee = fee;
+    }
+    
     @JsonIgnore
     public MoneyAmount getMoneyAmount() {
         return new MoneyAmount(this.getAmount(), this.getCurrency());
