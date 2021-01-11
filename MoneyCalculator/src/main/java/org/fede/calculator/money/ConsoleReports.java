@@ -401,12 +401,12 @@ public class ConsoleReports {
         return new InvestmentReport(i, ZERO, ZERO, ONE);
     }    
     
-    private RealProfit asRealProfit(Investment i, BigDecimal tax, BigDecimal fee){
-        if(i.getType().equals(ETF) && i.getOut() == null){
-            return new RealProfit(i, tax, fee);
-        }
-        return new RealProfit(i);
-    }
+//    private RealProfit asRealProfit(Investment i, BigDecimal tax, BigDecimal fee){
+//        if(i.getType().equals(ETF) && i.getOut() == null){
+//            return new RealProfit(i, tax, fee);
+//        }
+//        return new RealProfit(i);
+//    }
 
     private void totalRealProfitReportLine(
             List<InvestmentReport> realProfits,
