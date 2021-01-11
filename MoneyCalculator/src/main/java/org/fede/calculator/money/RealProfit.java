@@ -180,7 +180,9 @@ public class RealProfit {
 
         final var afterFeesAndTaxesCapitalGain = this.afterFeesAndTaxesProfit.subtract(this.realInvestment.getInitialMoneyAmount());
 
-        final var pctAfterTaxAndFee = afterFeesAndTaxesCapitalGain.getAmount()
+        final var pctAfterTaxAndFee = afterFeesAndTaxesCapitalGain
+                .subtract(this.realInvestment.getIn().getFeeMoneyAmount())
+                .getAmount()
                 .divide(this.realInvestment.getInitialMoneyAmount().getAmount(), MathConstants.CONTEXT);
 
         final BigDecimal pct = this.getRate();
@@ -189,11 +191,11 @@ public class RealProfit {
 
             return MessageFormat.format(REPORT_PATTERN,
                     String.format("%12s", this.df.format(this.nominalInvestment.getInitialDate())),
-                    this.fmt(this.realInvestment.getInitialMoneyAmount()),
+                    this.fmt(this.realInvestment.getInitialMoneyAmount().add(this.realInvestment.getIn().getFeeMoneyAmount())),
                     this.fmt(this.profit),
-                    this.fmt(capitalGain),
+                    this.fmt(capitalGain.subtract(this.realInvestment.getIn().getFeeMoneyAmount())),
                     String.format("%8s", this.percentFormat.format(pct)),
-                    this.fmt(afterFeesAndTaxesCapitalGain),
+                    this.fmt(afterFeesAndTaxesCapitalGain.subtract(this.realInvestment.getIn().getFeeMoneyAmount())),
                     String.format("%8s", this.percentFormat.format(pctAfterTaxAndFee)),
                     this.fmt(this.feeAmount),
                     this.fmt(this.taxAmount));
@@ -201,14 +203,14 @@ public class RealProfit {
 
         return MessageFormat.format(SIMPLE_REPORT_PATTERN,
                 String.format("%12s", this.df.format(this.nominalInvestment.getInitialDate())),
-                this.fmt(this.realInvestment.getInitialMoneyAmount()),
+                this.fmt(this.realInvestment.getInitialMoneyAmount().add(this.realInvestment.getIn().getFeeMoneyAmount())),
                 this.fmt(this.profit),
-                this.fmt(capitalGain),
+                this.fmt(capitalGain.subtract(this.realInvestment.getIn().getFeeMoneyAmount())),
                 String.format("%8s", this.percentFormat.format(pct)));
     }
 
     public MoneyAmount getRealProfit() {
-        return this.profit.subtract(this.realInvestment.getInitialMoneyAmount());
+        return this.profit.subtract(this.realInvestment.getInitialMoneyAmount().add(this.realInvestment.getIn().getFeeMoneyAmount()));
     }
 
     public MoneyAmount getRealInitialAmount() {
@@ -216,7 +218,7 @@ public class RealProfit {
     }
 
     public MoneyAmount getAfterFeesAndTaxesProfit() {
-        return afterFeesAndTaxesProfit.subtract(this.realInvestment.getInitialMoneyAmount());
+        return afterFeesAndTaxesProfit.subtract(this.realInvestment.getInitialMoneyAmount().add(this.realInvestment.getIn().getFeeMoneyAmount()));
     }
 
 }

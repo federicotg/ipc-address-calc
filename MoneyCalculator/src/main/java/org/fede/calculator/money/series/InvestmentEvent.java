@@ -2,7 +2,6 @@ package org.fede.calculator.money.series;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Optional;
@@ -76,6 +75,11 @@ public class InvestmentEvent {
         return new MoneyAmount(this.getAmount(), this.getCurrency());
     }
 
+    @JsonIgnore
+    public MoneyAmount getFeeMoneyAmount() {
+        return new MoneyAmount(this.getFee(), this.getCurrency());
+    }
+    
     @Override
     public String toString() {
         return new StringJoiner(", ", this.getClass().getSimpleName() + " [", "]")
