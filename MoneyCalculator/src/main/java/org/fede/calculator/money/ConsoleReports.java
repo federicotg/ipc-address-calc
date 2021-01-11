@@ -389,7 +389,7 @@ public class ConsoleReports {
 
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " net  ", InvestmentReport::getGrossRealInvestment, InvestmentReport::getNetRealProfit);
         
-        appendLine(format("\nExit fee: {0}.  Capital gains tax rate: {1}", percentFormat.format(fee), percentFormat.format(tax)));
+        appendLine(format("\nClosing fee and tax: {0}. Capital gains tax rate: {1}", percentFormat.format(fee), percentFormat.format(tax)));
         
     }
 
