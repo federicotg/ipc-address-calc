@@ -376,7 +376,7 @@ public class ConsoleReports {
                 .map(i -> this.asReport(i, tax, fee))
                 .collect(toList());
 
-        appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %          Fee       %        Tax       %");
+        appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %    Annualized    Fee       %        Tax       %");
         
         realProfits
                 .stream()
@@ -396,6 +396,7 @@ public class ConsoleReports {
         appendLine("Current: currently invested amount");
         appendLine("Profit: capital gains before fees and taxes");
         appendLine("Net Profit: capital gains after fees and taxes if closing today");
+        appendLine("Annualized: annualized real return after fees and taxes / target > 2.25 %");
         appendLine("Fee: opening fee and taxes, closing and ccl fees and taxes");
         appendLine("Tax: capital gains tax as of today.");
     }

@@ -39,7 +39,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class InvestmentReport {
 
-    private static final String REPORT_PATTERN = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}";
+    private static final String REPORT_PATTERN = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11}";
 
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance();
     private static final DateFormat DF = DateFormat.getDateInstance();
@@ -93,6 +93,10 @@ public class InvestmentReport {
         return this.nominal.getInitialMoneyAmount();
     }
 
+    private MoneyAmount getGrossNominalInvestment() {
+        return this.nominal.getInitialMoneyAmount().add(this.nominal.getIn().getFeeMoneyAmount());
+    }
+
     /*
      * sin taxes y fees 
      * @return 
@@ -110,9 +114,15 @@ public class InvestmentReport {
     }
 
     private MoneyAmount capitalGainsTax() {
-        return this.currentValue(this.real)
-                .subtract(this.getNetNominalInvestment())
-                .adjust(ONE, this.capitalGainsTaxRate);
+
+        final var capitalGain = this.currentValue(this.real)
+                .subtract(this.getNetNominalInvestment());
+
+        if (capitalGain.getAmount().signum() <= 0) {
+            return new MoneyAmount(BigDecimal.ZERO, capitalGain.getCurrency());
+        }
+
+        return capitalGain.adjust(ONE, this.capitalGainsTaxRate);
     }
 
     /*
@@ -153,10 +163,29 @@ public class InvestmentReport {
                 String.format("%8s", PCT_FORMAT.format(this.percent(grp, gri))),
                 this.fmt(this.getNetRealProfit()),
                 String.format("%8s", PCT_FORMAT.format(this.percent(this.getNetRealProfit(), gri))),
+                String.format("%8s", PCT_FORMAT.format(this.tna())),
                 this.fmt(fa),
                 String.format("%7s", PCT_FORMAT.format(this.percent(fa, cv))),
                 this.fmt(cgt),
-                String.format("%7s", PCT_FORMAT.format(this.percent(cgt, cv))));
+                String.format("%7s", PCT_FORMAT.format(this.percent(cgt, cv)))
+        );
+    }
+
+    private BigDecimal tna() {
+        final var days = this.days(real);
+        if (days.signum() <= 0) {
+            return BigDecimal.ZERO;
+        }
+        
+        final var cumulativeProfit =  this.getNetRealProfit().getAmount().divide(this.getGrossRealInvestment().getAmount(), MathContext.DECIMAL64);
+        
+
+        final double x = Math.pow(
+                BigDecimal.ONE.add(cumulativeProfit).doubleValue(),
+                365.0d / days.doubleValue()) - 1.0d;
+
+        return BigDecimal.valueOf(x);
+
     }
 
     private String fmt(MoneyAmount ma) {
