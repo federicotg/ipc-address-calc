@@ -30,7 +30,7 @@ import org.fede.util.Pair;
  */
 public class YearMonth implements Comparable<YearMonth> {
 
-    private static final Map<Pair<Integer, Integer>, YearMonth> POOL = new HashMap<>();
+    private static final Map<Pair<Integer, Integer>, YearMonth> POOL = new HashMap<>(100, 0.75f);
     
     public static YearMonth of(Date day){
         LocalDate date = day.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
