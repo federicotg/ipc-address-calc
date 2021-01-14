@@ -861,7 +861,7 @@ public class ConsoleReports {
                         eq.getAmountOrElseZero(ym).getAmount(),
                         bo.getAmountOrElseZero(ym).getAmount(),
                         1500,
-                        value -> String.format("%10s", nf.format(value)))));
+                        value -> String.format("%11s", nf.format(value)))));
 
         appendLine("===< Savings Distribution Evolution >===");
         appendLine("");
