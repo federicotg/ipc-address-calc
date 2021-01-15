@@ -23,6 +23,7 @@ import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import java.math.RoundingMode;
+import static java.math.RoundingMode.HALF_UP;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -50,6 +51,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -89,7 +91,7 @@ public class ConsoleReports {
             .multiply(IVA, CONTEXT);
 
     private static final BigDecimal TRADING_FEE = new BigDecimal("0.006");
-    
+
     private static final BigDecimal RUSSELL2000_PCT = new BigDecimal("0.1");
     private static final BigDecimal SP500_PCT = new BigDecimal("0.7");
     private static final BigDecimal EIMI_PCT = new BigDecimal("0.1");
@@ -377,7 +379,7 @@ public class ConsoleReports {
                 .collect(toList());
 
         appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %    Annualized    Fee       %        Tax       %");
-        
+
         realProfits
                 .stream()
                 .filter(i -> !totalOnly)
@@ -388,9 +390,9 @@ public class ConsoleReports {
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " gross", InvestmentReport::getNetRealInvestment, InvestmentReport::getGrossRealProfit);
 
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " net  ", InvestmentReport::getGrossRealInvestment, InvestmentReport::getNetRealProfit);
-        
+
         appendLine(format("\nClosing fee and tax: {0}. Capital gains tax rate: {1}", percentFormat.format(fee), percentFormat.format(tax)));
-        
+
         appendLine("");
         appendLine("Investment: invested amount ignoring openning fees and taxes");
         appendLine("Current: currently invested amount");
@@ -401,14 +403,24 @@ public class ConsoleReports {
         appendLine("Tax: capital gains tax as of today.");
     }
 
-
-    private InvestmentReport asReport(Investment i, BigDecimal tax, BigDecimal fee){
-        if(i.getType().equals(ETF) && i.getOut() == null){
+    private InvestmentReport asReport(Investment i, BigDecimal tax, BigDecimal fee) {
+        if (i.getType().equals(ETF) && i.getOut() == null) {
             return new InvestmentReport(i, tax, fee, IVA);
         }
         return new InvestmentReport(i, ZERO, ZERO, ONE);
-    }    
-    
+    }
+
+    private static String plusMinus(BigDecimal pct) {
+
+        final var sign = pct.signum() >= 0
+                ? "+"
+                : "-";
+
+        return IntStream.range(0, pct.abs().movePointRight(2).setScale(0, HALF_UP).intValue())
+                .mapToObj(index -> sign)
+                .collect(joining());
+    }
+
     private void totalRealProfitReportLine(
             List<InvestmentReport> realProfits,
             InvestmentType type,
@@ -428,7 +440,7 @@ public class ConsoleReports {
                 total,
                 profit,
                 this.percentFormat.format(pct),
-                RealProfit.plusMinus(pct),
+                plusMinus(pct),
                 Stream.of(type, currencyText)
                         .filter(t -> totalOnly)
                         .filter(Objects::nonNull)

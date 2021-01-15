@@ -93,9 +93,6 @@ public class InvestmentReport {
         return this.nominal.getInitialMoneyAmount();
     }
 
-    private MoneyAmount getGrossNominalInvestment() {
-        return this.nominal.getInitialMoneyAmount().add(this.nominal.getIn().getFeeMoneyAmount());
-    }
 
     /*
      * sin taxes y fees 
