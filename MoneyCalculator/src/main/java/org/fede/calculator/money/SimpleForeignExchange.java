@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
+import java.util.function.Supplier;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesSupport;
@@ -34,28 +35,37 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     private static final BigDecimal ONE = BigDecimal.ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE);
 
-    private final IndexSeries exchangeRatesSeries;
+    private final Supplier<IndexSeries> exchangeRatesSeriesSupplier;
+
+    private IndexSeries exchangeRatesSeries;
 
     private final String fromCurrency;
 
     private final String targetCurrency;
 
-    public SimpleForeignExchange(IndexSeries exchangeRatesSeries,
+    public SimpleForeignExchange(Supplier<IndexSeries> exchangeRatesSeriesSupplier,
             String fromCurrency,
             String targetCurrency) {
-        this.exchangeRatesSeries = exchangeRatesSeries;
+        this.exchangeRatesSeriesSupplier = exchangeRatesSeriesSupplier;
         this.fromCurrency = fromCurrency;
         this.targetCurrency = targetCurrency;
     }
 
+    private IndexSeries getSeries() {
+        if (this.exchangeRatesSeries == null) {
+            this.exchangeRatesSeries = this.exchangeRatesSeriesSupplier.get();
+        }
+        return this.exchangeRatesSeries;
+    }
+
     @Override
     public YearMonth getFrom() {
-        return this.exchangeRatesSeries.getFrom();
+        return this.getSeries().getFrom();
     }
 
     @Override
     public YearMonth getTo() {
-        return this.exchangeRatesSeries.getTo();
+        return this.getSeries().getTo();
     }
 
     @Override
@@ -64,11 +74,11 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
             return amount;
         }
         if (this.targetCurrency.equals(targetCurrency)) {
-            return amount.exchange(targetCurrency, exchangeRatesSeries.getIndex(year, month));
+            return amount.exchange(targetCurrency, getSeries().getIndex(year, month));
         }
 
         if (this.fromCurrency.equals(targetCurrency)) {
-            return amount.exchange(targetCurrency, ONE.divide(exchangeRatesSeries.getIndex(year, month), MathConstants.CONTEXT));
+            return amount.exchange(targetCurrency, ONE.divide(getSeries().getIndex(year, month), MathConstants.CONTEXT));
         }
 
         throw new IllegalArgumentException("Unknown currency.");
@@ -77,7 +87,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     @Override
     public MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency) {
 
-        YearMonth from = this.exchangeRatesSeries.maximumFrom(series);
+        YearMonth from = this.getSeries().maximumFrom(series);
         YearMonth to = series.getTo();
 
         if (from.compareTo(to) > 0) {
@@ -148,7 +158,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.fromCurrency, this.targetCurrency, this.exchangeRatesSeries);
+        return Objects.hash(this.fromCurrency, this.targetCurrency, this.getSeries());
     }
 
     @Override
@@ -156,7 +166,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         return obj instanceof SimpleForeignExchange
                 && Objects.equals(this.fromCurrency, ((SimpleForeignExchange) obj).fromCurrency)
                 && Objects.equals(this.targetCurrency, ((SimpleForeignExchange) obj).targetCurrency)
-                && Objects.equals(this.exchangeRatesSeries, ((SimpleForeignExchange) obj).exchangeRatesSeries);
+                && Objects.equals(this.getSeries(), ((SimpleForeignExchange) obj).getSeries());
     }
 
     @Override

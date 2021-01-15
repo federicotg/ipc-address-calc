@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +40,7 @@ public class SeriesReader {
 
     private static final ObjectMapper OM = new ObjectMapper();
 
-    private static final Map<String, JSONIndexSeries> CACHE = new HashMap<>();
+    private static final Map<String, JSONIndexSeries> CACHE = new ConcurrentHashMap<>();
 
     private static final TypeReference<List<JSONDataPoint>> INDEX_SERIES_TYPE_REFERENCE = new TypeReference<List<JSONDataPoint>>() {
     };

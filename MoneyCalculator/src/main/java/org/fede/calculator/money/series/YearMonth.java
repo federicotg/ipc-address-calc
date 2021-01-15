@@ -20,8 +20,8 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.fede.util.Pair;
 
 /**
@@ -30,7 +30,7 @@ import org.fede.util.Pair;
  */
 public class YearMonth implements Comparable<YearMonth> {
 
-    private static final Map<Pair<Integer, Integer>, YearMonth> POOL = new HashMap<>(100, 0.75f);
+    private static final Map<Pair<Integer, Integer>, YearMonth> POOL = new ConcurrentHashMap<>(100, 0.75f);
     
     public static YearMonth of(Date day){
         LocalDate date = day.toInstant().atZone(ZoneOffset.UTC).toLocalDate();

@@ -39,73 +39,72 @@ public class ForeignExchanges {
     private static final String USD = "USD";
 
     public static final ForeignExchange USD_ARS = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/peso-dolar-libre.json"),
+            () -> SeriesReader.readIndexSeries("index/peso-dolar-libre.json"),
             USD,
             "ARS");
 
     public static final ForeignExchange USD_LETE = new SimpleForeignExchange(
-            IndexSeriesSupport.CONSTANT_SERIES, "USD", "LETE");
-    
+            () -> IndexSeriesSupport.CONSTANT_SERIES, "USD", "LETE");
+
     public static final ForeignExchange USD_XAU = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/gold.json"),
+            () -> SeriesReader.readIndexSeries("index/gold.json"),
             "XAU",
             USD);
 
     public static final ForeignExchange USD_EUR = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/USD-EUR.json"),
-            "EUR", 
+            () -> SeriesReader.readIndexSeries("index/USD-EUR.json"),
+            "EUR",
             USD);
 
     public static final ForeignExchange USD_DAI = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/USD-DAI.json"),
-            "DAI", 
+            () -> SeriesReader.readIndexSeries("index/USD-DAI.json"),
+            "DAI",
             USD);
 
     public static final ForeignExchange ARS_LECAP = new SimpleForeignExchange(
-            IndexSeriesSupport.CONSTANT_SERIES,
+            () -> IndexSeriesSupport.CONSTANT_SERIES,
             "LECAP",
             "ARS");
-    
+
     public static final ForeignExchange ARS_CONAAFA = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json"),
+            () -> SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json"),
             "CONAAFA",
             "ARS");
 
     public static final ForeignExchange ARS_CONBALA = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json"),
+            () -> SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json"),
             "CONBALA",
             "ARS");
 
     public static final ForeignExchange ARS_CAPLUSA = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json"),
+            () -> SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json"),
             "CAPLUSA",
             "ARS");
 
     public static final ForeignExchange ARS_UVA = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/UVA-peso.json"),
+            () -> SeriesReader.readIndexSeries("index/UVA-peso.json"),
             "UVA",
             "ARS");
-    
+
     public static final ForeignExchange USD_AY24 = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/AY24-USD.json"),
+            () -> SeriesReader.readIndexSeries("index/AY24-USD.json"),
             "AY24", USD);
-    
+
     public static final ForeignExchange USD_CSPX = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/CSPX-USD.json"),
+            () -> SeriesReader.readIndexSeries("index/CSPX-USD.json"),
             "CSPX", USD);
-    
+
     public static final ForeignExchange USD_EIMI = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/EIMI-USD.json"),
+            () -> SeriesReader.readIndexSeries("index/EIMI-USD.json"),
             "EIMI", USD);
-    
+
     public static final ForeignExchange USD_XRSU = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/XRSU-USD.json"),
+            () -> SeriesReader.readIndexSeries("index/XRSU-USD.json"),
             "XRSU", USD);
-    
+
     public static final ForeignExchange EUR_MEUD = new SimpleForeignExchange(
-            SeriesReader.readIndexSeries("index/MEUD-EUR.json"),
+            () -> SeriesReader.readIndexSeries("index/MEUD-EUR.json"),
             "MEUD", "EUR");
-    
 
     private static void map(String from, String to, ForeignExchange fx) {
         DIRECT_FOREIGN_EXCHANGES.put(new Pair<>(from, to), fx);
@@ -170,7 +169,7 @@ public class ForeignExchanges {
     }
 
     public static ForeignExchange getIdentityForeignExchange(String currency) {
-        return new SimpleForeignExchange(IndexSeriesSupport.CONSTANT_SERIES, currency, currency);
+        return new SimpleForeignExchange(() -> IndexSeriesSupport.CONSTANT_SERIES, currency, currency);
     }
 
     public static Investment exchange(Investment investment, String targetCurrency) {
@@ -192,7 +191,7 @@ public class ForeignExchanges {
         answer.setOut(exchangeInto(investment.getOut(), targetCurrency));
         answer.setType(investment.getType());
         answer.setInterest(investment.getInterest());
-        
+
         // investment in original currency.
         InvestmentAsset asset = new InvestmentAsset();
         asset.setCurrency(investment.getInvestment().getCurrency());
@@ -210,7 +209,7 @@ public class ForeignExchanges {
         ForeignExchange fx = ForeignExchanges.getForeignExchange(in.getCurrency(), currency);
 
         final var fee = new MoneyAmount(in.getFee(), in.getCurrency());
-        
+
         InvestmentEvent answer = new InvestmentEvent();
         MoneyAmount ma = fx.exchange(in.getMoneyAmount(), currency, in.getDate());
         answer.setAmount(ma.getAmount());

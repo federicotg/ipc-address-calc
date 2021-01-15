@@ -19,9 +19,9 @@ package org.fede.calculator.money.series;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import org.fede.calculator.money.ForeignExchanges;
@@ -34,7 +34,7 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements MoneyAmountSeries {
 
-    static final Map<String, MoneyAmount> ZERO_AMOUNTS = new HashMap<>();
+    static final Map<String, MoneyAmount> ZERO_AMOUNTS = new ConcurrentHashMap<>();
 
     private final String currency;
 
