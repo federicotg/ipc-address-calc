@@ -39,7 +39,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class InvestmentReport {
 
-    private static final String REPORT_PATTERN = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11}";
+    private static final String REPORT_PATTERN = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12}";
 
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance();
     private static final DateFormat DF = DateFormat.getDateInstance();
@@ -54,6 +54,9 @@ public class InvestmentReport {
     private final BigDecimal capitalGainsTaxRate;
     private final BigDecimal feeRate;
     private final BigDecimal feeTaxRate;
+    private final String type;
+
+    private BigDecimal annualizedReturn;
 
     public InvestmentReport(
             Investment nominalInv,
@@ -67,7 +70,10 @@ public class InvestmentReport {
 
         this.nominal = ForeignExchanges.exchange(nominalInv, "USD");
         this.real = Inflation.USD_INFLATION.real(this.nominal);
-
+        this.type = MessageFormat.format("{0} {1} {2}",
+                nominalInv.getType().toString(),
+                nominalInv.getCurrency(),
+                Optional.ofNullable(nominalInv.getComment()).orElse(""));
     }
 
     /* sin tax y fee*/
@@ -100,19 +106,19 @@ public class InvestmentReport {
      */
     public MoneyAmount getGrossRealProfit() {
 
-        return this.currentValue(this.real)
+        return this.getCurrentValue()
                 .subtract(this.getNetRealInvestment());
 
     }
 
     private MoneyAmount feeAmount() {
         return this.real.getIn().getFeeMoneyAmount().adjust(ONE, this.feeTaxRate)
-                .add(this.currentValue(real).adjust(ONE, this.feeRate));
+                .add(this.getCurrentValue().adjust(ONE, this.feeRate));
     }
 
     private MoneyAmount capitalGainsTax() {
 
-        final var capitalGain = this.currentValue(this.real)
+        final var capitalGain = this.getCurrentValue()
                 .subtract(this.getNetNominalInvestment());
 
         if (capitalGain.getAmount().signum() <= 0) {
@@ -127,7 +133,7 @@ public class InvestmentReport {
      */
     public MoneyAmount getNetRealProfit() {
 
-        final var currentValue = this.currentValue(this.real);
+        final var currentValue = this.getCurrentValue();
 
         final var feeAmount = currentValue.adjust(ONE, this.feeRate);
 
@@ -151,7 +157,7 @@ public class InvestmentReport {
         final var gri = this.getGrossRealInvestment();
         final var cgt = this.capitalGainsTax();
         final var fa = this.feeAmount();
-        final var cv = this.currentValue(this.real);
+        final var cv = this.getCurrentValue();
         return MessageFormat.format(REPORT_PATTERN,
                 String.format("%12s", DF.format(this.nominal.getInitialDate())),
                 this.fmt(this.getNetRealInvestment()),
@@ -164,25 +170,31 @@ public class InvestmentReport {
                 this.fmt(fa),
                 String.format("%7s", PCT_FORMAT.format(this.percent(fa, cv))),
                 this.fmt(cgt),
-                String.format("%7s", PCT_FORMAT.format(this.percent(cgt, cv)))
+                String.format("%7s", PCT_FORMAT.format(this.percent(cgt, cv))),
+                this.type
         );
     }
 
     private BigDecimal tna() {
-        final var days = this.days(real);
-        if (days.signum() <= 0) {
-            return BigDecimal.ZERO;
+
+        if (this.annualizedReturn == null) {
+
+            final var days = this.days(real);
+            
+            if (days.signum() <= 0) {
+                return BigDecimal.ZERO;
+            }
+
+            final var cumulativeProfit = this.getNetRealProfit().getAmount().divide(this.getGrossRealInvestment().getAmount(), MathContext.DECIMAL64);
+
+            final double x = Math.pow(
+                    BigDecimal.ONE.add(cumulativeProfit).doubleValue(),
+                    365.0d / days.doubleValue()) - 1.0d;
+
+            this.annualizedReturn = BigDecimal.valueOf(x);
         }
         
-        final var cumulativeProfit =  this.getNetRealProfit().getAmount().divide(this.getGrossRealInvestment().getAmount(), MathContext.DECIMAL64);
-        
-
-        final double x = Math.pow(
-                BigDecimal.ONE.add(cumulativeProfit).doubleValue(),
-                365.0d / days.doubleValue()) - 1.0d;
-
-        return BigDecimal.valueOf(x);
-
+        return this.annualizedReturn;
     }
 
     private String fmt(MoneyAmount ma) {
@@ -190,31 +202,28 @@ public class InvestmentReport {
     }
 
     public MoneyAmount getCurrentValue() {
-        return this.currentValue(real);
-    }
+        final var in = this.real;
 
-    private MoneyAmount currentValue(Investment in) {
-
-        if (in.getInterest() != null || in.getOut() == null) {
+        if (in.getOut() == null) {
 
             return this.toUSD(Optional.ofNullable(in)
                     .filter(inv -> inv.getInterest() != null)
                     .map(inv -> inv.getInvestment().getMoneyAmount().add(this.interest(inv)))
-                    .orElseGet(in.getInvestment()::getMoneyAmount));
+                    .orElseGet(in.getInvestment()::getMoneyAmount),
+                    USD_INFLATION.getTo());
         }
 
-        return this.toUSD(new MoneyAmount(
-                in.getOut().getMoneyAmount().getAmount(),
-                in.getOut().getCurrency()));
+        final var endYm = YearMonth.of(in.getOut().getDate());
 
+        return this.toUSD(in.getOut().getMoneyAmount(), endYm);
     }
 
-    private MoneyAmount toUSD(MoneyAmount amount) {
+    private MoneyAmount toUSD(MoneyAmount amount, YearMonth limit) {
         if ("USD".equals(amount.getCurrency())) {
             return amount;
         }
 
-        final YearMonth limit = USD_INFLATION.getTo();
+        //final YearMonth limit = USD_INFLATION.getTo();
         return ForeignExchanges.getForeignExchange(amount.getCurrency(), "USD")
                 .exchange(amount, "USD", limit.getYear(), limit.getMonth());
     }
@@ -241,7 +250,7 @@ public class InvestmentReport {
                 .map(InvestmentEvent::getDate)
                 .map(Date::toInstant)
                 .map(instant -> LocalDate.ofInstant(instant, ZoneId.systemDefault()))
-                .filter(date -> date.isBefore(now))
+                //.filter(date -> date.isBefore(now))
                 .orElse(now);
 
         return BigDecimal.valueOf(ChronoUnit.DAYS.between(startDate, endDate));

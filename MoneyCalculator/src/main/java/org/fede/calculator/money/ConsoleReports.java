@@ -317,6 +317,11 @@ public class ConsoleReports {
         this.investmentsRealProfit(null, null, Investment::isPast, true);
     }
 
+    private void pastInvestmentsRealProfitDetail() {
+        appendLine("===< All Past Investments Profits Detail in Real USD >===");
+        this.investmentsRealProfit(null, null, Investment::isPast, false);
+    }
+
     private void globalInvestmentsRealProfit() {
         appendLine("===< Past and Current Investments Profit in Real USD >===");
         this.investmentsRealProfit(null, null, (inv) -> true, true);
@@ -345,10 +350,25 @@ public class ConsoleReports {
 
     private void currentInvestmentsRealProfit(String currency, InvestmentType type) {
         this.investmentsRealProfit(currency, type, Investment::isCurrent, false);
+
+        appendLine(format("\nClosing fee and tax: {0}. Capital gains tax rate: {1}",
+                percentFormat.format(TRADING_FEE.multiply(IVA, CONTEXT)
+                        .add(TRADING_FEE, CONTEXT)
+                        .add(TRADING_FEE, CONTEXT)),
+                "15 %"));
+        appendLine("");
+        appendLine("Investment: invested amount ignoring openning fees and taxes");
+        appendLine("Current: currently invested amount");
+        appendLine("Profit: capital gains before fees and taxes");
+        appendLine("Net Profit: capital gains after fees and taxes if closing today");
+        appendLine("Annualized: annualized real return after fees and taxes / target > 2.25 %");
+        appendLine("Fee: opening fee and taxes, closing and ccl fees and taxes");
+        appendLine("Tax: capital gains tax as of today.");
+
     }
 
     private void pastInvestmentsRealProfit(String currency, InvestmentType type) {
-        this.investmentsRealProfit(currency, type, Investment::isPast, true);
+        this.investmentsRealProfit(currency, type, Investment::isPast, false);
     }
 
     private void investmentsRealProfit(final String currency, final InvestmentType type, final Predicate<Investment> predicate, final boolean totalOnly) {
@@ -358,7 +378,6 @@ public class ConsoleReports {
         if (!totalOnly) {
             if (type == null) {
                 appendLine("===< Ganancia en Inversiones Actuales", currencyText, " en USD reales >===");
-
             } else {
                 appendLine("===< Ganancia en Inversiones Actuales en ", type.toString(), currencyText, " en USD reales >===");
             }
@@ -378,7 +397,9 @@ public class ConsoleReports {
                 .map(i -> this.asReport(i, tax, fee))
                 .collect(toList());
 
-        appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %    Annualized    Fee       %        Tax       %");
+        if (!totalOnly) {
+            appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %    Annualized    Fee       %        Tax       %");
+        }
 
         realProfits
                 .stream()
@@ -386,21 +407,13 @@ public class ConsoleReports {
                 .map(InvestmentReport::toString)
                 .forEach(this::appendLine);
 
+        appendLine("\nAfter fee investment  Before fee/tax current     Profit     %");
+        this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getNetRealInvestment, InvestmentReport::getGrossRealProfit);
+
+        appendLine("\nTotal investment      After fee/tax current      Profit     %");
+        this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getGrossRealInvestment, InvestmentReport::getNetRealProfit);
         appendLine("");
-        this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " gross", InvestmentReport::getNetRealInvestment, InvestmentReport::getGrossRealProfit);
 
-        this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText + " net  ", InvestmentReport::getGrossRealInvestment, InvestmentReport::getNetRealProfit);
-
-        appendLine(format("\nClosing fee and tax: {0}. Capital gains tax rate: {1}", percentFormat.format(fee), percentFormat.format(tax)));
-
-        appendLine("");
-        appendLine("Investment: invested amount ignoring openning fees and taxes");
-        appendLine("Current: currently invested amount");
-        appendLine("Profit: capital gains before fees and taxes");
-        appendLine("Net Profit: capital gains after fees and taxes if closing today");
-        appendLine("Annualized: annualized real return after fees and taxes / target > 2.25 %");
-        appendLine("Fee: opening fee and taxes, closing and ccl fees and taxes");
-        appendLine("Tax: capital gains tax as of today.");
     }
 
     private InvestmentReport asReport(Investment i, BigDecimal tax, BigDecimal fee) {
@@ -436,7 +449,7 @@ public class ConsoleReports {
                 ? profit.divide(total, CONTEXT)
                 : ZERO;
 
-        this.appendLine(format("{4} {0,number,currency} => {5,number,currency} {1,number,currency} {2} {3}",
+        this.appendLine(format("{4} {0,number,currency}            {5,number,currency}          {1,number,currency}  {2}  {3}",
                 total,
                 profit,
                 this.percentFormat.format(pct),
@@ -537,6 +550,7 @@ public class ConsoleReports {
                     entry("ti", me::listStockByTpe),
                     entry("current", () -> me.currentInvestmentsRealProfit(args, "current")),
                     entry("allpast", me::pastInvestmentsRealProfit),
+                    entry("allpastdetail", me::pastInvestmentsRealProfitDetail),
                     entry("global", me::globalInvestmentsRealProfit),
                     //savings
                     entry("savings", me::savings),
