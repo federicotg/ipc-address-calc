@@ -1546,24 +1546,27 @@ public class ConsoleReports {
     private void group(String title, MoneyAmountSeries series, MoneyAmountSeries comparisonSeries, Function<YearMonth, String> classifier) {
         appendLine("===< " + title + " >===");
 
-        final Map<String, MoneyAmount> byYear = new HashMap<>(20, 0.75f);
+        final Map<String, MoneyAmount> byYear = new HashMap<>(32, 0.75f);
 
         series.forEachNonZero((ym, ma) -> byYear.merge(classifier.apply(ym), ma, MoneyAmount::add));
 
-        final Map<String, MoneyAmount> comparisonByYear = new HashMap<>(20, 0.75f);
+        final Map<String, MoneyAmount> comparisonByYear = new HashMap<>(32, 0.75f);
 
         if (comparisonSeries != null) {
             comparisonSeries.forEachNonZero((ym, ma) -> comparisonByYear.merge(classifier.apply(ym), ma, MoneyAmount::add));
         }
-
+        
+        final var nf = NumberFormat.getCurrencyInstance();
+        
         byYear.entrySet().stream()
-                .sorted(Comparator.comparing(e -> e.getKey()))
-                .forEach(e -> this.appendLine(format("{0} USD {1,number,currency} {2}",
+                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .forEach(e -> this.appendLine(format("{0} {1} {2} {3}",
                 e.getKey(),
-                e.getValue().getAmount(),
+                String.format("%11s",nf.format(e.getValue().getAmount())),
                 Optional.ofNullable(comparisonByYear.get(e.getKey()))
                         .map(comp -> this.pctNumber(e.getValue().getAmount().divide(comp.getAmount(), CONTEXT).movePointRight(2)))
-                        .orElse(""))));
+                        .orElse(""),
+                this.bar(e.getValue().getAmount(), 500))));
     }
 
     private MoneyAmountSeries realNetSavings() {

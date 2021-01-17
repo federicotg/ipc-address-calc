@@ -79,8 +79,7 @@ public interface Inflation extends Series {
     String getCurrency();
 
     default Investment real(Investment investment) {
-        YearMonth moment = this.getTo();
-        return this.real(investment, moment);
+        return this.real(investment, this.getTo());
     }
 
     private Investment real(Investment in, YearMonth moment) {

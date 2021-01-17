@@ -62,6 +62,7 @@ public class InvestmentReport {
     private final String type;
 
     private BigDecimal annualizedReturn;
+    private MoneyAmount currentValue;
 
     public InvestmentReport(
             Investment nominalInv,
@@ -138,13 +139,13 @@ public class InvestmentReport {
      */
     public MoneyAmount getNetRealProfit() {
 
-        final var currentValue = this.getCurrentValue();
+        final var cv = this.getCurrentValue();
 
-        final var feeAmount = currentValue.adjust(ONE, this.feeRate);
+        final var feeAmount = cv.adjust(ONE, this.feeRate);
 
         final var capitalGainAmount = this.capitalGainsTax();
 
-        return currentValue
+        return cv
                 .subtract(this.getGrossRealInvestment())
                 .subtract(feeAmount)
                 .subtract(capitalGainAmount);
@@ -175,7 +176,7 @@ public class InvestmentReport {
                 this.pctBar(this.tna()),
                 this.fmt(fa, 9),
                 String.format("%7s", PCT_FORMAT.format(this.percent(fa, cv))),
-                this.fmt(cgt,10),
+                this.fmt(cgt, 10),
                 String.format("%7s", PCT_FORMAT.format(this.percent(cgt, cv))),
                 this.type
         );
@@ -214,18 +215,22 @@ public class InvestmentReport {
     }
 
     public MoneyAmount getCurrentValue() {
-        final var in = this.real;
 
-        if (in.getOut() == null) {
+        if (this.currentValue == null) {
+            
+            if (this.real.getOut() == null) {
 
-            return this.toUSD(Optional.ofNullable(in)
-                    .filter(inv -> inv.getInterest() != null)
-                    .map(inv -> inv.getInvestment().getMoneyAmount().add(this.interest(inv)))
-                    .orElseGet(in.getInvestment()::getMoneyAmount),
-                    USD_INFLATION.getTo());
+                this.currentValue = this.toUSD(Optional.ofNullable(this.real)
+                        .filter(inv -> inv.getInterest() != null)
+                        .map(inv -> inv.getInvestment().getMoneyAmount().add(this.interest(inv)))
+                        .orElseGet(this.real.getInvestment()::getMoneyAmount),
+                        USD_INFLATION.getTo());
+            } else {
+
+                this.currentValue = this.toUSD(this.real.getOut().getMoneyAmount(), YearMonth.of(this.real.getOut().getDate()));
+            }
         }
-
-        return this.toUSD(in.getOut().getMoneyAmount(), YearMonth.of(in.getOut().getDate()));
+        return this.currentValue;
     }
 
     private MoneyAmount toUSD(MoneyAmount amount, YearMonth limit) {
