@@ -16,7 +16,6 @@
  */
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import org.fede.calculator.money.CompoundForeignExchange;
 import org.fede.calculator.money.ForeignExchange;
@@ -27,10 +26,6 @@ import static org.fede.calculator.money.ForeignExchanges.USD_XAU;
 import static org.fede.calculator.money.ForeignExchanges.ARS_CONAAFA;
 import static org.fede.calculator.money.ForeignExchanges.getForeignExchange;
 import org.fede.calculator.money.MoneyAmount;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

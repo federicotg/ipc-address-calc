@@ -403,7 +403,7 @@ public class ConsoleReports {
                 .collect(toList());
 
         if (!totalOnly) {
-            appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %    Annualized    Fee       %        Tax       %");
+            appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %    Annualized                    Fee       %        Tax       %");
         }
 
         realProfits

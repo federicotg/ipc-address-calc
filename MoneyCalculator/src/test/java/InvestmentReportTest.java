@@ -28,21 +28,39 @@ import static org.junit.Assert.*;
  * @author federico
  */
 public class InvestmentReportTest {
-    
+
+    private static final BigDecimal EPSILON = BigDecimal.ONE.movePointLeft(4);
+    private static ObjectMapper OM = new ObjectMapper();
+
     public InvestmentReportTest() {
     }
-    
-    
+
     @Test
-     public void hello() throws JsonProcessingException {
-     
-     final var inv = new ObjectMapper().readValue(
-             "{ \"type\": \"PF\", \"in\": { \"currency\": \"ARS\", \"date\": \"09/05/2006\", \"amount\": \"4800\" }, \"investment\": { \"currency\": \"ARS\", \"amount\": \"4800\" }, \"out\": { \"currency\": \"ARS\", \"date\": \"08/06/2006\", \"amount\": \"4820.12\" } }", 
-             Investment.class);
-     
-     final var r = new InvestmentReport(inv, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
-     
-     assertNotNull(r);
-     
-     }
+    public void pfArs() throws JsonProcessingException {
+
+        final var inv = OM.readValue(
+                "{ \"type\": \"PF\", \"in\": { \"currency\": \"ARS\", \"date\": \"09/05/2006\", \"amount\": \"4800\" }, \"investment\": { \"currency\": \"ARS\", \"amount\": \"4800\" }, \"out\": { \"currency\": \"ARS\", \"date\": \"08/06/2006\", \"amount\": \"4820.12\" } }",
+                Investment.class);
+
+        final var r = new InvestmentReport(inv, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+
+        assertNotNull(r);
+
+        assertTrue(r.getGrossRealInvestment().getAmount().subtract(new BigDecimal("2004.609909")).abs().compareTo(EPSILON) <= 0);
+        assertTrue(r.getCurrentValue().getAmount().subtract(new BigDecimal("2002.542322")).abs().compareTo(EPSILON) <= 0);
+        assertTrue(r.getNetRealProfit().getAmount().subtract(new BigDecimal("-2.06758")).abs().compareTo(EPSILON) <= 0);
+    }
+
+    @Test
+    public void pfUVA() throws JsonProcessingException {
+        final var inv = OM.readValue(
+                "{ \"type\": \"PF\", \"interest\": \"0.050088\", \"in\": { \"currency\": \"ARS\", \"date\": \"04/09/2018\", \"amount\": 20000 }, \"investment\": { \"currency\": \"UVA\", \"amount\": 769.82 }, \"out\": { \"currency\": \"ARS\", \"date\": \"03/12/2018\", \"amount\": 23231.76 } }",
+                Investment.class);
+        final var r = new InvestmentReport(inv, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+
+        assertNotNull(r);
+        //System.out.println(r.getNetRealProfit().getAmount());
+        assertTrue(r.getNetRealProfit().getAmount().subtract(new BigDecimal("131.2417")).abs().compareTo(EPSILON) <= 0);
+
+    }
 }

@@ -19,6 +19,7 @@ package org.fede.calculator.money;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import java.math.MathContext;
+import java.math.RoundingMode;
 import static java.math.RoundingMode.HALF_UP;
 import java.text.DateFormat;
 import java.text.MessageFormat;
@@ -28,7 +29,11 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
+import static java.util.stream.Collectors.joining;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.YearMonth;
@@ -39,7 +44,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class InvestmentReport {
 
-    private static final String REPORT_PATTERN = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12}";
+    private static final String REPORT_PATTERN = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13}";
 
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance();
     private static final DateFormat DF = DateFormat.getDateInstance();
@@ -167,9 +172,10 @@ public class InvestmentReport {
                 this.fmt(this.getNetRealProfit()),
                 String.format("%8s", PCT_FORMAT.format(this.percent(this.getNetRealProfit(), gri))),
                 String.format("%8s", PCT_FORMAT.format(this.tna())),
-                this.fmt(fa),
+                this.pctBar(this.tna()),
+                this.fmt(fa, 9),
                 String.format("%7s", PCT_FORMAT.format(this.percent(fa, cv))),
-                this.fmt(cgt),
+                this.fmt(cgt,10),
                 String.format("%7s", PCT_FORMAT.format(this.percent(cgt, cv))),
                 this.type
         );
@@ -197,8 +203,14 @@ public class InvestmentReport {
         return this.annualizedReturn;
     }
 
+    private String fmt(MoneyAmount ma, int padding) {
+
+        return String.format("%" + String.valueOf(padding) + "s", MONEY_FORMAT.format(ma.getAmount()));
+
+    }
+
     private String fmt(MoneyAmount ma) {
-        return String.format("%11s", MONEY_FORMAT.format(ma.getAmount()));
+        return this.fmt(ma, 11);
     }
 
     public MoneyAmount getCurrentValue() {
@@ -213,9 +225,7 @@ public class InvestmentReport {
                     USD_INFLATION.getTo());
         }
 
-        final var endYm = YearMonth.of(in.getOut().getDate());
-
-        return this.toUSD(in.getOut().getMoneyAmount(), endYm);
+        return this.toUSD(in.getOut().getMoneyAmount(), YearMonth.of(in.getOut().getDate()));
     }
 
     private MoneyAmount toUSD(MoneyAmount amount, YearMonth limit) {
@@ -248,5 +258,27 @@ public class InvestmentReport {
                         .map(Date::toInstant)
                         .map(instant -> LocalDate.ofInstant(instant, ZoneId.systemDefault()))
                         .orElseGet(LocalDate::now)) + 1);
+    }
+
+    private String pctBar(BigDecimal value) {
+        final var symbol = value.signum() < 0
+                ? "-"
+                : "+";
+
+        final var steps = value.movePointRight(2)
+                .abs()
+                .divide(BigDecimal.TEN, CONTEXT)
+                .setScale(0, RoundingMode.HALF_UP)
+                .intValue();
+
+        final var stream = steps < 15
+                ? IntStream.range(0, steps).mapToObj(x -> symbol)
+                : Stream.concat(
+                        Stream.concat(
+                                IntStream.range(0, 6).mapToObj(x -> symbol),
+                                Stream.of("/-/")),
+                        IntStream.range(0, 6).mapToObj(x -> symbol));
+
+        return String.format("%-15s", stream.collect(joining()));
     }
 }
