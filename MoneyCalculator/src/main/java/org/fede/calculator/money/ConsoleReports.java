@@ -765,7 +765,6 @@ public class ConsoleReports {
         return mas.stream()
                 .map(aggregation)
                 .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
-
     }
 
     private MoneyAmount lastMonths(MoneyAmountSeries s, int months) {
