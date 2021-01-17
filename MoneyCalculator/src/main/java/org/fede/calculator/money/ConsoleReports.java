@@ -43,6 +43,7 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Objects;
@@ -561,6 +562,7 @@ public class ConsoleReports {
                     entry("savings-evo", () -> me.savingEvolution(args, "savings-evo")),
                     entry("savings-change", me::savingChange),
                     entry("savings-net-change", me::monthlySavings),
+                    entry("savings-year", me::yearlySavings),
                     entry("savings-avg-net-change", () -> me.monthlySavings(args, "savings-avg-net-change")),
                     entry("savings-avg-net-pct", () -> me.netAvgSavingPct(args, "savings-avg-net-pct")),
                     entry("savings-avg-spent-pct", () -> me.netAvgSavingSpentPct(args, "savings-avg-spent-pct")),
@@ -570,6 +572,7 @@ public class ConsoleReports {
                     //income
                     entry("income", () -> me.income(args, "income")),
                     entry("income-evo", me::incomeEvolution),
+                    entry("income-year", me::yearlyIncome),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
                     entry("house", () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
@@ -1500,6 +1503,38 @@ public class ConsoleReports {
         appendLine("===< Net monthly savings >===");
 
         this.evolution("Net savings", this.realNetSavings(), 100);
+    }
+
+    private void yearlySavings() {
+
+        this.yearly("Net yearly savings", this.realNetSavings(), this.realIncome());
+    }
+
+    private void yearlyIncome() {
+        this.yearly("Yearly income", this.realIncome(), null);
+    }
+
+    private void yearly(String title, MoneyAmountSeries series, MoneyAmountSeries comparisonSeries) {
+        appendLine("===< " + title + " >===");
+
+        final Map<Integer, MoneyAmount> byYear = new HashMap<>(20, 0.75f);
+
+        series.forEachNonZero((ym, ma) -> byYear.merge(ym.getYear(), ma, MoneyAmount::add));
+
+        final Map<Integer, MoneyAmount> comparisonByYear = new HashMap<>(20, 0.75f);
+
+        if (comparisonSeries != null) {
+            comparisonSeries.forEachNonZero((ym, ma) -> comparisonByYear.merge(ym.getYear(), ma, MoneyAmount::add));
+        }
+
+        byYear.entrySet().stream()
+                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .forEach(e -> this.appendLine(format("{0} USD {1,number,currency} {2}",
+                String.valueOf(e.getKey()),
+                e.getValue().getAmount(),
+                Optional.ofNullable(comparisonByYear.get(e.getKey()))
+                        .map(comp -> this.pctNumber(e.getValue().getAmount().divide(comp.getAmount(), CONTEXT).movePointRight(2)))
+                        .orElse(""))));
     }
 
     private MoneyAmountSeries realNetSavings() {
