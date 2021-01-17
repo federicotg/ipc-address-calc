@@ -180,7 +180,7 @@ public class InvestmentReport {
         if (this.annualizedReturn == null) {
 
             final var days = this.days(real);
-            
+
             if (days.signum() <= 0) {
                 return BigDecimal.ZERO;
             }
@@ -193,7 +193,7 @@ public class InvestmentReport {
 
             this.annualizedReturn = BigDecimal.valueOf(x);
         }
-        
+
         return this.annualizedReturn;
     }
 
@@ -223,7 +223,6 @@ public class InvestmentReport {
             return amount;
         }
 
-        //final YearMonth limit = USD_INFLATION.getTo();
         return ForeignExchanges.getForeignExchange(amount.getCurrency(), "USD")
                 .exchange(amount, "USD", limit.getYear(), limit.getMonth());
     }
@@ -242,17 +241,12 @@ public class InvestmentReport {
 
     private BigDecimal days(Investment in) {
 
-        LocalDate now = LocalDate.now();
-
-        final LocalDate startDate = LocalDate.ofInstant(in.getInitialDate().toInstant(), ZoneId.systemDefault());
-
-        final LocalDate endDate = Optional.ofNullable(in.getOut())
-                .map(InvestmentEvent::getDate)
-                .map(Date::toInstant)
-                .map(instant -> LocalDate.ofInstant(instant, ZoneId.systemDefault()))
-                //.filter(date -> date.isBefore(now))
-                .orElse(now);
-
-        return BigDecimal.valueOf(ChronoUnit.DAYS.between(startDate, endDate));
+        return BigDecimal.valueOf(ChronoUnit.DAYS.between(
+                LocalDate.ofInstant(in.getInitialDate().toInstant(), ZoneId.systemDefault()),
+                Optional.ofNullable(in.getOut())
+                        .map(InvestmentEvent::getDate)
+                        .map(Date::toInstant)
+                        .map(instant -> LocalDate.ofInstant(instant, ZoneId.systemDefault()))
+                        .orElseGet(LocalDate::now)) + 1);
     }
 }

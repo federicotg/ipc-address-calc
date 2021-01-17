@@ -51,7 +51,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -111,7 +110,6 @@ public class ConsoleReports {
         return of(of(t, u), v);
     }
 
-    //private final NumberFormat nf = NumberFormat.getNumberInstance();
     private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
     private List<Investment> investments;
 
@@ -125,7 +123,6 @@ public class ConsoleReports {
     private final StringBuilder out;
 
     private ConsoleReports(StringBuilder out) {
-        //this.nf.setMaximumFractionDigits(2);
         this.percentFormat.setMinimumFractionDigits(2);
         this.out = out;
     }
@@ -297,19 +294,28 @@ public class ConsoleReports {
                                 .orElse(ZERO)));
     }
 
-    private void pastInvestmentsProfit() {
+    private void pastInvestmentsProfit(String[] params, String paramName) {
 
-        appendLine("===< Ganancia Inversiones Finalizadas en USD reales >===");
-        this.pastInvestmentsRealProfit("CONBALA", FCI);
-        this.pastInvestmentsRealProfit("CAPLUSA", FCI);
-        this.pastInvestmentsRealProfit("CONAAFA", FCI);
-        this.pastInvestmentsRealProfit("USD", PF);
-        this.pastInvestmentsRealProfit("UVA", PF);
-        this.pastInvestmentsRealProfit("ARS", PF);
-        this.pastInvestmentsRealProfit("LECAP", BONO);
-        this.pastInvestmentsRealProfit("LETE", BONO);
-        this.pastInvestmentsRealProfit("AY24", BONO);
-        this.pastInvestmentsRealProfit("USD", BONO);
+        final var action = this.paramsValue(params, paramName).get("type");
+
+        final Map<String, Runnable> actions = Map.of(
+                "conbala", () -> this.pastInvestmentsRealProfit("CONBALA", FCI),
+                "caplusa", () -> this.pastInvestmentsRealProfit("CAPLUSA", FCI),
+                "conaafa", () -> this.pastInvestmentsRealProfit("CONAAFA", FCI),
+                "usd", () -> {
+                    this.pastInvestmentsRealProfit("USD", PF);
+                    this.pastInvestmentsRealProfit("USD", BONO);
+                },
+                "uva", () -> this.pastInvestmentsRealProfit("UVA", PF),
+                "ars", () -> this.pastInvestmentsRealProfit("ARS", PF),
+                "lecap", () -> this.pastInvestmentsRealProfit("LECAP", BONO),
+                "lete", () -> this.pastInvestmentsRealProfit("LETE", BONO),
+                "ay24", () -> this.pastInvestmentsRealProfit("AY24", BONO));
+
+        actions.entrySet().stream()
+                .filter(e -> action == null || action.equals(e.getKey()))
+                .map(Map.Entry::getValue)
+                .forEach(Runnable::run);
     }
 
     private void pastInvestmentsRealProfit() {
@@ -393,7 +399,6 @@ public class ConsoleReports {
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .sorted(comparing(Investment::getInitialDate))
-                //.map(i -> this.asRealProfit(i, tax, fee))
                 .map(i -> this.asReport(i, tax, fee))
                 .collect(toList());
 
@@ -460,7 +465,6 @@ public class ConsoleReports {
                         .map(Object::toString)
                         .collect(joining("", "", " ")),
                 total.add(profit)));
-
     }
 
     private BigDecimal totalSum(List<InvestmentReport> realProfits, Function<InvestmentReport, MoneyAmount> totalFunction) {
@@ -544,7 +548,7 @@ public class ConsoleReports {
             final var me = new ConsoleReports(new StringBuilder(1024));
 
             final Map<String, Runnable> actions = Map.ofEntries(
-                    entry("past", me::pastInvestmentsProfit),
+                    entry("past", () -> me.pastInvestmentsProfit(args, "past")),
                     entry("i", me::investments),
                     entry("gi", me::groupedInvestments),
                     entry("ti", me::listStockByTpe),
@@ -590,6 +594,7 @@ public class ConsoleReports {
                 final var help = Map.ofEntries(
                         entry("goal", "trials=100000 period=10 retirement=65 w=1000 d=500 inflation=2 cash=cash sp500=false tax=false"),
                         entry("current", "type=(current* | on | pf | gold | cspx | eimi | meud | xrsu)"),
+                        entry("past", "type=(conbala | conaafa | caplusa | usd | lete | lecap | ay24 | uva | ars)"),
                         entry("income", "months=12"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
@@ -656,23 +661,19 @@ public class ConsoleReports {
 
     }
 
-    private MoneyAmount applyCoefficient(YearMonth ym, MoneyAmount amount) {
-        return new MoneyAmount(amount.getAmount().multiply(COEFFICIENT, CONTEXT), amount.getCurrency());
-    }
-
     private void houseIrrecoverableCosts(YearMonth timeLimit) {
 
         final var limit = USD_INFLATION.getTo();
 
         final var proportionalExpenses = SeriesReader.readSeries("expense/consorcio-reparaciones.json")
-                .map(this::applyCoefficient);
+                .map((ym, amount) -> amount.adjust(ONE, COEFFICIENT));
 
         final var realExpensesInUSD = Stream.concat(
                 Stream.of("expense/inmobiliario-43.json", "expense/seguro.json", "expense/reparaciones.json").map(SeriesReader::readSeries),
                 Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
-                .map(usdExpenses -> Inflation.USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
+                .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
                 .map(s -> s.map((ym, amount) -> this.limit(timeLimit, ym, amount)))
                 .map(MoneyAmountSeries::moneyAmountStream)
                 .orElseGet(Stream::empty)
