@@ -336,7 +336,6 @@ public class ConsoleReports {
 
     private void currentInvestmentsRealProfit(String[] args, String type) {
 
-        //appendLine("===< Current Investments Profit in Real USD >===");
         final var params = this.paramsValue(args, type);
 
         final var action = params.getOrDefault("type", "current");
@@ -563,6 +562,8 @@ public class ConsoleReports {
                     entry("savings-change", me::savingChange),
                     entry("savings-net-change", me::monthlySavings),
                     entry("savings-year", me::yearlySavings),
+                    entry("savings-half", me::halfSavings),
+                    entry("savings-quarter", me::quarterSavings),
                     entry("savings-avg-net-change", () -> me.monthlySavings(args, "savings-avg-net-change")),
                     entry("savings-avg-net-pct", () -> me.netAvgSavingPct(args, "savings-avg-net-pct")),
                     entry("savings-avg-spent-pct", () -> me.netAvgSavingSpentPct(args, "savings-avg-spent-pct")),
@@ -573,6 +574,8 @@ public class ConsoleReports {
                     entry("income", () -> me.income(args, "income")),
                     entry("income-evo", me::incomeEvolution),
                     entry("income-year", me::yearlyIncome),
+                    entry("income-half", me::halfIncome),
+                    entry("income-quarter", me::quarterIncome),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
                     entry("house", () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
@@ -1507,30 +1510,56 @@ public class ConsoleReports {
 
     private void yearlySavings() {
 
-        this.yearly("Net yearly savings", this.realNetSavings(), this.realIncome());
+        this.group("Net yearly savings", this.realNetSavings(), this.realIncome(), ym -> String.valueOf(ym.getYear()));
     }
 
     private void yearlyIncome() {
-        this.yearly("Yearly income", this.realIncome(), null);
+        this.group("Yearly income", this.realIncome(), null, ym -> String.valueOf(ym.getYear()));
     }
 
-    private void yearly(String title, MoneyAmountSeries series, MoneyAmountSeries comparisonSeries) {
+    private String half(YearMonth ym) {
+        return format("{0}-H{1}", String.valueOf(ym.getYear()), ((ym.getMonth() - 1) / 6) + 1);
+    }
+
+    private String quarter(YearMonth ym) {
+        return format("{0}-Q{1}", String.valueOf(ym.getYear()), ((ym.getMonth() - 1) / 3) + 1);
+    }
+
+    private void halfSavings() {
+
+        this.group("Net half savings", this.realNetSavings(), this.realIncome(), this::half);
+    }
+
+    private void halfIncome() {
+        this.group("Half income", this.realIncome(), null, this::half);
+    }
+
+    private void quarterSavings() {
+
+        this.group("Net quarter savings", this.realNetSavings(), this.realIncome(), this::quarter);
+    }
+
+    private void quarterIncome() {
+        this.group("Quarter income", this.realIncome(), null, this::quarter);
+    }
+
+    private void group(String title, MoneyAmountSeries series, MoneyAmountSeries comparisonSeries, Function<YearMonth, String> classifier) {
         appendLine("===< " + title + " >===");
 
-        final Map<Integer, MoneyAmount> byYear = new HashMap<>(20, 0.75f);
+        final Map<String, MoneyAmount> byYear = new HashMap<>(20, 0.75f);
 
-        series.forEachNonZero((ym, ma) -> byYear.merge(ym.getYear(), ma, MoneyAmount::add));
+        series.forEachNonZero((ym, ma) -> byYear.merge(classifier.apply(ym), ma, MoneyAmount::add));
 
-        final Map<Integer, MoneyAmount> comparisonByYear = new HashMap<>(20, 0.75f);
+        final Map<String, MoneyAmount> comparisonByYear = new HashMap<>(20, 0.75f);
 
         if (comparisonSeries != null) {
-            comparisonSeries.forEachNonZero((ym, ma) -> comparisonByYear.merge(ym.getYear(), ma, MoneyAmount::add));
+            comparisonSeries.forEachNonZero((ym, ma) -> comparisonByYear.merge(classifier.apply(ym), ma, MoneyAmount::add));
         }
 
         byYear.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .sorted(Comparator.comparing(e -> e.getKey()))
                 .forEach(e -> this.appendLine(format("{0} USD {1,number,currency} {2}",
-                String.valueOf(e.getKey()),
+                e.getKey(),
                 e.getValue().getAmount(),
                 Optional.ofNullable(comparisonByYear.get(e.getKey()))
                         .map(comp -> this.pctNumber(e.getValue().getAmount().divide(comp.getAmount(), CONTEXT).movePointRight(2)))
