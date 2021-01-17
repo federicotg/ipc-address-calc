@@ -25,6 +25,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+import org.fede.calculator.money.MathConstants;
 
 /**
  *
@@ -58,9 +59,10 @@ public class BigDecimalAverageCollector implements Collector<BigDecimal, BigDeci
     }
 
     public static class BigDecimalAccumulator {
+
         private BigDecimal sum;
         private BigDecimal count;
-        
+
         public BigDecimalAccumulator() {
             this.sum = BigDecimal.ZERO;
             this.count = BigDecimal.ZERO;
@@ -70,8 +72,6 @@ public class BigDecimalAverageCollector implements Collector<BigDecimal, BigDeci
             this.sum = sum;
             this.count = count;
         }
-
-
 
         public BigDecimal getSum() {
             return sum;
@@ -89,14 +89,14 @@ public class BigDecimalAverageCollector implements Collector<BigDecimal, BigDeci
 
         BigDecimalAccumulator combine(BigDecimalAccumulator another) {
             return new BigDecimalAccumulator(
-                    sum.add(another.getSum()),
-                    count.add(another.getCount())
+                    sum.add(another.getSum(), MathConstants.CONTEXT),
+                    count.add(another.getCount(), MathConstants.CONTEXT)
             );
         }
 
         void add(BigDecimal successRate) {
-            count = count.add(BigDecimal.ONE);
-            sum = sum.add(successRate);
+            count = count.add(BigDecimal.ONE, MathConstants.CONTEXT);
+            sum = sum.add(successRate, MathConstants.CONTEXT);
         }
     }
 

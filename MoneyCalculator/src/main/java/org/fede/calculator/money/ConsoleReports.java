@@ -526,7 +526,7 @@ public class ConsoleReports {
                 " ",
                 format("{0,number,currency}", averageRealUSDIncome.getAmount()));
 
-        final var savingPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.3")), averageRealUSDIncome.getCurrency());
+        final var savingPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.3"),CONTEXT), averageRealUSDIncome.getCurrency());
 
         this.appendLine("30% saving: ",
                 averageRealUSDIncome.getCurrency(),

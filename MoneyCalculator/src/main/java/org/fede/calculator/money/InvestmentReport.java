@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
-import java.math.MathContext;
 import java.math.RoundingMode;
 import static java.math.RoundingMode.HALF_UP;
 import java.text.DateFormat;
@@ -153,7 +152,7 @@ public class InvestmentReport {
 
     private BigDecimal percent(MoneyAmount value, MoneyAmount total) {
         return value.getAmount()
-                .divide(total.getAmount(), MathContext.DECIMAL64);
+                .divide(total.getAmount(), CONTEXT);
     }
 
     @Override
@@ -178,8 +177,7 @@ public class InvestmentReport {
                 String.format("%7s", PCT_FORMAT.format(this.percent(fa, cv))),
                 this.fmt(cgt, 10),
                 String.format("%7s", PCT_FORMAT.format(this.percent(cgt, cv))),
-                this.type
-        );
+                this.type);
     }
 
     private BigDecimal tna() {
@@ -192,7 +190,7 @@ public class InvestmentReport {
                 return BigDecimal.ZERO;
             }
 
-            final var cumulativeProfit = this.getNetRealProfit().getAmount().divide(this.getGrossRealInvestment().getAmount(), MathContext.DECIMAL64);
+            final var cumulativeProfit = this.getNetRealProfit().getAmount().divide(this.getGrossRealInvestment().getAmount(), MathConstants.CONTEXT);
 
             final double x = Math.pow(
                     BigDecimal.ONE.add(cumulativeProfit).doubleValue(),
@@ -217,7 +215,7 @@ public class InvestmentReport {
     public MoneyAmount getCurrentValue() {
 
         if (this.currentValue == null) {
-            
+
             if (this.real.getOut() == null) {
 
                 this.currentValue = this.toUSD(Optional.ofNullable(this.real)
@@ -247,10 +245,10 @@ public class InvestmentReport {
                 in.getInvestment()
                         .getAmount()
                         .setScale(12, HALF_UP)
-                        .multiply(in.getInterest())
-                        .multiply(this.days(in))
+                        .multiply(in.getInterest(), CONTEXT)
+                        .multiply(this.days(in), CONTEXT)
                         .setScale(12, HALF_UP)
-                        .divide(BigDecimal.valueOf(ChronoUnit.YEARS.getDuration().toDays()), MathConstants.CONTEXT),
+                        .divide(BigDecimal.valueOf(ChronoUnit.YEARS.getDuration().toDays()), CONTEXT),
                 in.getInvestment().getCurrency());
     }
 

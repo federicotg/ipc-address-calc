@@ -40,14 +40,14 @@ public class MoneyAmount {
             return this;
         }
         return new MoneyAmount(this.amount.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).divide(divisor, MathConstants.CONTEXT)
-                .multiply(factor), this.currency);
+                .multiply(factor,MathConstants.CONTEXT), this.currency);
     }
 
     public MoneyAmount exchange(String newCurrency, BigDecimal exchangeRate) {
         if (this.isZero()) {
             return new MoneyAmount(BigDecimal.ZERO, newCurrency);
         }
-        return new MoneyAmount(this.amount.multiply(exchangeRate), newCurrency);
+        return new MoneyAmount(this.amount.multiply(exchangeRate, MathConstants.CONTEXT), newCurrency);
     }
 
     @Override
@@ -90,11 +90,14 @@ public class MoneyAmount {
         if (!other.getCurrency().equals(this.getCurrency())) {
             throw new IllegalArgumentException("Money amounts must be in the same currency.");
         }
-        return new MoneyAmount(this.getAmount().add(other.getAmount()), this.getCurrency());
+        return new MoneyAmount(this.getAmount().add(other.getAmount(), MathConstants.CONTEXT), this.getCurrency());
     }
 
     public MoneyAmount subtract(MoneyAmount other) {
-        return this.add(new MoneyAmount(other.getAmount().negate(), other.getCurrency()));
+        if (!other.getCurrency().equals(this.getCurrency())) {
+            throw new IllegalArgumentException("Money amounts must be in the same currency.");
+        }
+        return new MoneyAmount(this.getAmount().subtract(other.getAmount(), MathConstants.CONTEXT), this.getCurrency());
     }
 
     public boolean isZero() {
