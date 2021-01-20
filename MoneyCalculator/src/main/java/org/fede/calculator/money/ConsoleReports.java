@@ -52,6 +52,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -526,7 +527,7 @@ public class ConsoleReports {
                 " ",
                 format("{0,number,currency}", averageRealUSDIncome.getAmount()));
 
-        final var savingPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.3"),CONTEXT), averageRealUSDIncome.getCurrency());
+        final var savingPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.3"), CONTEXT), averageRealUSDIncome.getCurrency());
 
         this.appendLine("30% saving: ",
                 averageRealUSDIncome.getCurrency(),
@@ -573,6 +574,9 @@ public class ConsoleReports {
                     //income
                     entry("income", () -> me.income(args, "income")),
                     entry("income-evo", me::incomeEvolution),
+                    
+                    entry("contrib", me::netContribution),
+                    
                     entry("income-year", me::yearlyIncome),
                     entry("income-half", me::halfIncome),
                     entry("income-quarter", me::quarterIncome),
@@ -1555,14 +1559,14 @@ public class ConsoleReports {
         if (comparisonSeries != null) {
             comparisonSeries.forEachNonZero((ym, ma) -> comparisonByYear.merge(classifier.apply(ym), ma, MoneyAmount::add));
         }
-        
+
         final var nf = NumberFormat.getCurrencyInstance();
-        
+
         byYear.entrySet().stream()
                 .sorted(Comparator.comparing(Map.Entry::getKey))
                 .forEach(e -> this.appendLine(format("{0} {1} {2} {3}",
                 e.getKey(),
-                String.format("%11s",nf.format(e.getValue().getAmount())),
+                String.format("%11s", nf.format(e.getValue().getAmount())),
                 Optional.ofNullable(comparisonByYear.get(e.getKey()))
                         .map(comp -> this.pctNumber(e.getValue().getAmount().divide(comp.getAmount(), CONTEXT).movePointRight(2)))
                         .orElse(""),
@@ -1651,6 +1655,45 @@ public class ConsoleReports {
 
     private MoneyAmount positiveOrZero(MoneyAmount ma) {
         return new MoneyAmount(ZERO.max(ma.getAmount()), ma.getCurrency());
+    }
+
+    private void netContribution() {
+
+        final Stream<Pair<Integer, MoneyAmount>> contributions = this.getInvestments().stream()
+                .map(Investment::getIn)
+                .map(event -> realUSDMoneyAmount(event, false));
+
+        final Stream<Pair<Integer, MoneyAmount>> withdrawals = this.getInvestments().stream().map(Investment::getOut)
+                .filter(Objects::nonNull)
+                .map(event -> realUSDMoneyAmount(event, true));
+
+        final var zero = new MoneyAmount(ZERO, "USD");
+
+        final Map<Integer, MoneyAmount> netContributions = Stream.concat(contributions, withdrawals)
+                .collect(groupingBy(
+                        Pair::getFirst,
+                        Collectors.reducing(zero, Pair::getSecond, MoneyAmount::add)));
+
+        netContributions.entrySet()
+                .stream()
+                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .forEach(e -> appendLine(format("{0} {1,number,currency}",
+                String.valueOf(e.getKey()),
+              
+                e.getValue().getAmount())));
+    }
+
+    private Pair<Integer, MoneyAmount> realUSDMoneyAmount(InvestmentEvent ev, boolean withdrawal) {
+
+        final var amount = withdrawal
+                ? new MoneyAmount(ev.getMoneyAmount().getAmount().negate(), ev.getMoneyAmount().getCurrency())
+                : ev.getMoneyAmount().add(ev.getFeeMoneyAmount());
+
+        final var fx = ForeignExchanges.getForeignExchange(ev.getCurrency(), "USD");
+        final var usdAmount = fx.exchange(amount, "USD", ev.getDate());
+
+        return Pair.of(YearMonth.of(ev.getDate()).getYear(), USD_INFLATION.adjust(usdAmount, ev.getDate(), USD_INFLATION.getTo().asToDate()));
+
     }
 
 }
