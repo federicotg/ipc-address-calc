@@ -17,9 +17,13 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
+import org.fede.calculator.money.series.IndexSeries;
+import org.fede.calculator.money.series.JSONDataPoint;
+import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 
 /**
@@ -45,7 +49,7 @@ public class SimpleAggregation implements Aggregation {
     private MoneyAmount avg(List<MoneyAmount> lastValues) {
         return new MoneyAmount(
                 lastValues.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add)
-                .divide(new BigDecimal(lastValues.size()), MathConstants.CONTEXT), lastValues.get(0).getCurrency());
+                        .divide(new BigDecimal(lastValues.size()), MathConstants.CONTEXT), lastValues.get(0).getCurrency());
     }
 
     private MoneyAmount sum(List<MoneyAmount> lastValues) {
@@ -56,6 +60,19 @@ public class SimpleAggregation implements Aggregation {
 
     private MoneyAmount change(List<MoneyAmount> lastValues) {
         return new MoneyAmount(lastValues.get(0).getAmount().subtract(lastValues.get(lastValues.size() - 1).getAmount()), lastValues.get(0).getCurrency());
+    }
+
+    private BigDecimal percentChange(List<MoneyAmount> lastValues) {
+
+        final var last = lastValues.get(lastValues.size() - 1).getAmount();
+        if (last.signum() == 0) {
+            return BigDecimal.ZERO;
+        }
+        return lastValues.get(0)
+                .getAmount()
+                .subtract(last)
+                .divide(last, MathConstants.CONTEXT);
+
     }
 
     private MoneyAmountSeries aggregate(MoneyAmountSeries series, final Function<List<MoneyAmount>, MoneyAmount> aggregationFunction) {
@@ -87,6 +104,28 @@ public class SimpleAggregation implements Aggregation {
     @Override
     public MoneyAmountSeries change(MoneyAmountSeries series) {
         return this.aggregate(series, this::change);
+    }
+
+    @Override
+    public IndexSeries percentChange(MoneyAmountSeries series) {
+
+        final var list = new ArrayList<JSONDataPoint>();
+
+        final LinkedList<MoneyAmount> lastValues = new LinkedList<>();
+
+        series.forEach((ym, ma) -> {
+
+            lastValues.addFirst(ma);
+            if (lastValues.size() > months) {
+                lastValues.removeLast();
+            }
+
+            list.add(new JSONDataPoint(ym.getYear(), ym.getMonth(), this.percentChange(lastValues)));
+
+        });
+
+        return new JSONIndexSeries(list);
+
     }
 
 }

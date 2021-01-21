@@ -71,6 +71,7 @@ import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.BBPPItem;
 import org.fede.calculator.money.series.BBPPTaxBraket;
 import org.fede.calculator.money.series.BBPPYear;
+import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
 
@@ -560,7 +561,8 @@ public class ConsoleReports {
                     //savings
                     entry("savings", me::savings),
                     entry("savings-evo", () -> me.savingEvolution(args, "savings-evo")),
-                    entry("savings-change", me::savingChange),
+                    entry("savings-change", () -> me.savingChange(args, "savings-change")),
+                    entry("savings-change-pct", () -> me.savingsPercentChange(args, "savings-change-pct")),
                     entry("savings-net-change", me::monthlySavings),
                     entry("savings-year", me::yearlySavings),
                     entry("savings-half", me::halfSavings),
@@ -574,9 +576,7 @@ public class ConsoleReports {
                     //income
                     entry("income", () -> me.income(args, "income")),
                     entry("income-evo", me::incomeEvolution),
-                    
                     entry("contrib", me::netContribution),
-                    
                     entry("income-year", me::yearlyIncome),
                     entry("income-half", me::halfIncome),
                     entry("income-quarter", me::quarterIncome),
@@ -605,6 +605,8 @@ public class ConsoleReports {
                         entry("goal", "trials=100000 period=10 retirement=65 w=1000 d=500 inflation=2 cash=cash sp500=false tax=false"),
                         entry("current", "type=(current* | on | pf | gold | cspx | eimi | meud | xrsu)"),
                         entry("past", "type=(conbala | conaafa | caplusa | usd | lete | lecap | ay24 | uva | ars)"),
+                        entry("savings-change", "months=1"),
+                        entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
@@ -863,6 +865,15 @@ public class ConsoleReports {
                 this.bar(mo.getAmount(), scale));
     }
 
+    private void percentEvolutionReport(YearMonth ym, BigDecimal mo) {
+        this.appendLine(
+                format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
+                " ",
+                String.format("%8s", this.percentFormat.format(mo)),
+                " ",
+                this.bar(mo.movePointRight(2), 1));
+    }
+
     private void numericEvolution(String name, MoneyAmountSeries s, int scale) {
         var limit = USD_INFLATION.getTo();
 
@@ -1015,11 +1026,35 @@ public class ConsoleReports {
         this.evolution("Expenses", this.realExpenses(type), 15);
     }
 
-    private void savingChange() {
-        appendLine("===<  Savings Change >===");
-        this.evolution("Savings change", new SimpleAggregation(2)
-                .change(this.realSavings(null)), 100);
+    private void savingChange(String[] args, String paramName) {
 
+        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "1")) + 1;
+
+        appendLine(format("===< {0}-month Savings Change >===", months-1));
+        this.evolution(format("{0}-month Savings Change", months-1), new SimpleAggregation(months)
+                .change(this.realSavings(null)), 50 * months);
+
+    }
+
+    private void savingsPercentChange(String[] args, String paramName) {
+
+        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "1")) + 1;
+
+        appendLine(format("===< {0}-month Savings Change >===", months-1));
+        final var s = new SimpleAggregation(months)
+                .percentChange(this.realSavings(null));
+
+        var ym = s.getFrom();
+        var limit = s.getTo();
+
+        while (ym.compareTo(limit) <= 0) {
+
+            this.percentEvolutionReport(ym, s.getIndex(ym.getYear(), ym.getMonth()));
+
+            ym = ym.next();
+        }
+
+        //appendLine("\n", name, " real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
     }
 
     private void expensesChange() {
@@ -1679,7 +1714,6 @@ public class ConsoleReports {
                 .sorted(Comparator.comparing(Map.Entry::getKey))
                 .forEach(e -> appendLine(format("{0} {1,number,currency}",
                 String.valueOf(e.getKey()),
-              
                 e.getValue().getAmount())));
     }
 

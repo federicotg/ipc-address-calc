@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.money;
 
+import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 
 /**
@@ -29,5 +30,7 @@ public interface Aggregation {
     MoneyAmountSeries sum(MoneyAmountSeries series);
 
     MoneyAmountSeries change(MoneyAmountSeries series);
+    
+    IndexSeries percentChange(MoneyAmountSeries series);
 
 }
