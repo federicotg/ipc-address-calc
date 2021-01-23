@@ -31,7 +31,6 @@ import java.util.Optional;
 import static java.util.stream.Collectors.joining;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
@@ -53,6 +52,7 @@ public class InvestmentReport {
         PCT_FORMAT.setMinimumFractionDigits(2);
     }
 
+    private final Inflation inflation;
     private final Investment nominal;
     private final Investment real;
     private final BigDecimal capitalGainsTaxRate;
@@ -68,13 +68,24 @@ public class InvestmentReport {
             BigDecimal capitalGainsTaxRate,
             BigDecimal feeRate,
             BigDecimal feeTaxRate) {
+        this(Inflation.USD_INFLATION, nominalInv, capitalGainsTaxRate, feeRate, feeTaxRate);
 
+    }
+
+    public InvestmentReport(
+            Inflation inflation,
+            Investment nominalInv,
+            BigDecimal capitalGainsTaxRate,
+            BigDecimal feeRate,
+            BigDecimal feeTaxRate) {
+
+        this.inflation = inflation;
         this.capitalGainsTaxRate = capitalGainsTaxRate;
         this.feeRate = feeRate;
         this.feeTaxRate = feeTaxRate;
 
         this.nominal = ForeignExchanges.exchange(nominalInv, "USD");
-        this.real = Inflation.USD_INFLATION.real(this.nominal);
+        this.real = this.inflation.real(this.nominal);
         this.type = MessageFormat.format("{0} {1} {2}",
                 nominalInv.getType().toString(),
                 nominalInv.getCurrency(),
@@ -222,7 +233,7 @@ public class InvestmentReport {
                         .filter(inv -> inv.getInterest() != null)
                         .map(inv -> inv.getInvestment().getMoneyAmount().add(this.interest(inv)))
                         .orElseGet(this.real.getInvestment()::getMoneyAmount),
-                        USD_INFLATION.getTo());
+                        this.inflation.getTo().min(YearMonth.of(new Date())));
             } else {
 
                 this.currentValue = this.toUSD(this.real.getOut().getMoneyAmount(), YearMonth.of(this.real.getOut().getDate()));

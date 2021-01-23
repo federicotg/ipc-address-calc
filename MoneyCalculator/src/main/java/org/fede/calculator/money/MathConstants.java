@@ -25,7 +25,7 @@ import java.math.RoundingMode;
  */
 public interface MathConstants {
 
-    static final MathContext CONTEXT = MathContext.DECIMAL128;
-    static final int SCALE = 20;
+    static final MathContext CONTEXT = MathContext.DECIMAL64;
+    static final int SCALE = 10;
     static final RoundingMode ROUNDING_MODE = CONTEXT.getRoundingMode();
 }

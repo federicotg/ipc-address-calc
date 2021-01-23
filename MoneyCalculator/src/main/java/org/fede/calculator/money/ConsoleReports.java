@@ -71,7 +71,7 @@ import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.BBPPItem;
 import org.fede.calculator.money.series.BBPPTaxBraket;
 import org.fede.calculator.money.series.BBPPYear;
-import org.fede.calculator.money.series.IndexSeries;
+import org.fede.calculator.money.series.IndexSeriesSupport;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
 
@@ -297,67 +297,13 @@ public class ConsoleReports {
                                 .orElse(ZERO)));
     }
 
-    private void pastInvestmentsProfit(String[] params, String paramName) {
-
-        final var action = this.paramsValue(params, paramName).get("type");
-
-        final Map<String, Runnable> actions = Map.of(
-                "conbala", () -> this.pastInvestmentsRealProfit("CONBALA", FCI),
-                "caplusa", () -> this.pastInvestmentsRealProfit("CAPLUSA", FCI),
-                "conaafa", () -> this.pastInvestmentsRealProfit("CONAAFA", FCI),
-                "usd", () -> {
-                    this.pastInvestmentsRealProfit("USD", PF);
-                    this.pastInvestmentsRealProfit("USD", BONO);
-                },
-                "uva", () -> this.pastInvestmentsRealProfit("UVA", PF),
-                "ars", () -> this.pastInvestmentsRealProfit("ARS", PF),
-                "lecap", () -> this.pastInvestmentsRealProfit("LECAP", BONO),
-                "lete", () -> this.pastInvestmentsRealProfit("LETE", BONO),
-                "ay24", () -> this.pastInvestmentsRealProfit("AY24", BONO));
-
-        actions.entrySet().stream()
-                .filter(e -> action == null || action.equals(e.getKey()))
-                .map(Map.Entry::getValue)
-                .forEach(Runnable::run);
+    private void globalInvestmentsProfit(boolean nominal) {
+        appendLine("===< Past and Current Investments Profit in ", nominal ? "nominal" : "real", " USD >===");
+        this.investmentsProfit(null, null, (inv) -> true, true, nominal);
     }
 
-    private void pastInvestmentsRealProfit() {
-        appendLine("===< All Past Investments Profits in Real USD >===");
-        this.investmentsRealProfit(null, null, Investment::isPast, true);
-    }
-
-    private void pastInvestmentsRealProfitDetail() {
-        appendLine("===< All Past Investments Profits Detail in Real USD >===");
-        this.investmentsRealProfit(null, null, Investment::isPast, false);
-    }
-
-    private void globalInvestmentsRealProfit() {
-        appendLine("===< Past and Current Investments Profit in Real USD >===");
-        this.investmentsRealProfit(null, null, (inv) -> true, true);
-    }
-
-    private void currentInvestmentsRealProfit(String[] args, String type) {
-
-        final var params = this.paramsValue(args, type);
-
-        final var action = params.getOrDefault("type", "current");
-
-        final Map<String, Runnable> actions = Map.ofEntries(
-                entry("on", () -> this.currentInvestmentsRealProfit("USD", BONO)),
-                entry("pf", () -> this.currentInvestmentsRealProfit("USD", PF)),
-                entry("gold", () -> this.currentInvestmentsRealProfit("XAU", XAU)),
-                entry("current", () -> this.currentInvestmentsRealProfit((String) null, (InvestmentType) null)),
-                entry("cspx", () -> this.currentInvestmentsRealProfit("CSPX", ETF)),
-                entry("eimi", () -> this.currentInvestmentsRealProfit("EIMI", ETF)),
-                entry("meud", () -> this.currentInvestmentsRealProfit("MEUD", ETF)),
-                entry("xrsu", () -> this.currentInvestmentsRealProfit("XRSU", ETF)));
-
-        actions.getOrDefault(action, () -> this.appendLine("Unknown type: ", action)).run();
-
-    }
-
-    private void currentInvestmentsRealProfit(String currency, InvestmentType type) {
-        this.investmentsRealProfit(currency, type, Investment::isCurrent, false);
+    private void currentInvestmentsProfit(String currency, InvestmentType type, boolean nominal) {
+        this.investmentsProfit(currency, type, Investment::isCurrent, false, nominal);
 
         appendLine(format("\nClosing fee and tax: {0}. Capital gains tax rate: {1}",
                 percentFormat.format(TRADING_FEE.multiply(IVA, CONTEXT)
@@ -369,25 +315,25 @@ public class ConsoleReports {
         appendLine("Current: currently invested amount");
         appendLine("Profit: capital gains before fees and taxes");
         appendLine("Net Profit: capital gains after fees and taxes if closing today");
-        appendLine("Annualized: annualized real return after fees and taxes / target > 2.25 %");
+        appendLine("CAGR: annualized real return after fees and taxes / target > 2.25 %");
         appendLine("Fee: opening fee and taxes, closing and ccl fees and taxes");
         appendLine("Tax: capital gains tax as of today.");
 
     }
 
-    private void pastInvestmentsRealProfit(String currency, InvestmentType type) {
-        this.investmentsRealProfit(currency, type, Investment::isPast, false);
+    private void pastInvestmentsProfit(String currency, InvestmentType type, boolean nominal) {
+        this.investmentsProfit(currency, type, Investment::isPast, false, nominal);
     }
 
-    private void investmentsRealProfit(final String currency, final InvestmentType type, final Predicate<Investment> predicate, final boolean totalOnly) {
+    private void investmentsProfit(final String currency, final InvestmentType type, final Predicate<Investment> predicate, final boolean totalOnly, boolean nominal) {
 
         final var currencyText = Optional.ofNullable(currency).map(c -> format(" {0}", c)).orElse("");
 
         if (!totalOnly) {
             if (type == null) {
-                appendLine("===< Ganancia en Inversiones Actuales", currencyText, " en USD reales >===");
+                appendLine("===< Ganancia en Inversiones Actuales", currencyText, " en USD ", nominal ? "nominales" : "reales", " >===");
             } else {
-                appendLine("===< Ganancia en Inversiones Actuales en ", type.toString(), currencyText, " en USD reales >===");
+                appendLine("===< Ganancia en Inversiones Actuales en ", type.toString(), currencyText, " en USD ", nominal ? "nominales" : "reales", " >===");
             }
         }
 
@@ -396,16 +342,20 @@ public class ConsoleReports {
                 .add(TRADING_FEE, CONTEXT)
                 .add(TRADING_FEE, CONTEXT);
 
+        final var inflation = nominal
+                ? new CPIInflation(IndexSeriesSupport.CONSTANT_SERIES, "USD")
+                : Inflation.USD_INFLATION;
+
         final var realProfits = this.getInvestments().stream()
                 .filter(predicate)
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .sorted(comparing(Investment::getInitialDate))
-                .map(i -> this.asReport(i, tax, fee))
+                .map(i -> this.asReport(i, tax, fee, inflation))
                 .collect(toList());
 
         if (!totalOnly) {
-            appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %    Annualized                    Fee       %        Tax       %");
+            appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %      CAGR                        Fee       %        Tax       %");
         }
 
         realProfits
@@ -423,11 +373,11 @@ public class ConsoleReports {
 
     }
 
-    private InvestmentReport asReport(Investment i, BigDecimal tax, BigDecimal fee) {
+    private InvestmentReport asReport(Investment i, BigDecimal tax, BigDecimal fee, Inflation inflation) {
         if (i.getType().equals(ETF) && i.getOut() == null) {
-            return new InvestmentReport(i, tax, fee, IVA);
+            return new InvestmentReport(inflation, i, tax, fee, IVA);
         }
-        return new InvestmentReport(i, ZERO, ZERO, ONE);
+        return new InvestmentReport(inflation, i, ZERO, ZERO, ONE);
     }
 
     private static String plusMinus(BigDecimal pct) {
@@ -544,20 +494,68 @@ public class ConsoleReports {
 
     }
 
+    private void invReport(String[] args, String paranName) {
+
+        final var params = this.paramsValue(args, paranName);
+
+        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+
+        final var type = params.getOrDefault("type", "current");
+
+        final var subtype = params.getOrDefault("subtype", "all");
+
+        final Runnable defaultAction = () -> this.appendLine(format("Unknown type: \"{0}\" subtype: \"{1}\".", type, subtype));
+
+        if (type.equals("current")) {
+
+            final Map<String, Runnable> actions = Map.ofEntries(
+                    entry("on", () -> this.currentInvestmentsProfit("USD", BONO, nominal)),
+                    entry("pf", () -> this.currentInvestmentsProfit("USD", PF, nominal)),
+                    entry("gold", () -> this.currentInvestmentsProfit("XAU", XAU, nominal)),
+                    entry("all", () -> this.currentInvestmentsProfit((String) null, (InvestmentType) null, nominal)),
+                    entry("cspx", () -> this.currentInvestmentsProfit("CSPX", ETF, nominal)),
+                    entry("eimi", () -> this.currentInvestmentsProfit("EIMI", ETF, nominal)),
+                    entry("meud", () -> this.currentInvestmentsProfit("MEUD", ETF, nominal)),
+                    entry("xrsu", () -> this.currentInvestmentsProfit("XRSU", ETF, nominal)));
+
+            actions.getOrDefault(subtype, defaultAction).run();
+        } else if (type.equals("past")) {
+
+            final Map<String, Runnable> actions = Map.of(
+                    "conbala", () -> this.pastInvestmentsProfit("CONBALA", FCI, nominal),
+                    "caplusa", () -> this.pastInvestmentsProfit("CAPLUSA", FCI, nominal),
+                    "conaafa", () -> this.pastInvestmentsProfit("CONAAFA", FCI, nominal),
+                    "usd", () -> {
+                        this.pastInvestmentsProfit("USD", PF, nominal);
+                        this.pastInvestmentsProfit("USD", BONO, nominal);
+                    },
+                    "uva", () -> this.pastInvestmentsProfit("UVA", PF, nominal),
+                    "ars", () -> this.pastInvestmentsProfit("ARS", PF, nominal),
+                    "lecap", () -> this.pastInvestmentsProfit("LECAP", BONO, nominal),
+                    "lete", () -> this.pastInvestmentsProfit("LETE", BONO, nominal),
+                    "all", () -> this.pastInvestmentsProfit(null, null, nominal),
+                    "ay24", () -> this.pastInvestmentsProfit("AY24", BONO, nominal));
+
+            actions.getOrDefault(subtype, defaultAction).run();
+
+        } else if (type.equals("global")) {
+            this.globalInvestmentsProfit(nominal);
+        } else {
+            defaultAction.run();
+        }
+
+    }
+
     public static void main(String[] args) {
         try {
 
             final var me = new ConsoleReports(new StringBuilder(1024));
 
             final Map<String, Runnable> actions = Map.ofEntries(
-                    entry("past", () -> me.pastInvestmentsProfit(args, "past")),
                     entry("i", me::investments),
                     entry("gi", me::groupedInvestments),
                     entry("ti", me::listStockByTpe),
-                    entry("current", () -> me.currentInvestmentsRealProfit(args, "current")),
-                    entry("allpast", me::pastInvestmentsRealProfit),
-                    entry("allpastdetail", me::pastInvestmentsRealProfitDetail),
-                    entry("global", me::globalInvestmentsRealProfit),
+                    entry("inv", () -> me.invReport(args, "inv")),
                     //savings
                     entry("savings", me::savings),
                     entry("savings-evo", () -> me.savingEvolution(args, "savings-evo")),
@@ -599,15 +597,14 @@ public class ConsoleReports {
                     .map(String::toLowerCase)
                     .collect(toSet());
 
-            if (params.contains("help")) {
+            if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
                         entry("goal", "trials=100000 period=10 retirement=65 w=1000 d=500 inflation=2 cash=cash sp500=false tax=false"),
-                        entry("current", "type=(current* | on | pf | gold | cspx | eimi | meud | xrsu)"),
-                        entry("past", "type=(conbala | conaafa | caplusa | usd | lete | lecap | ay24 | uva | ars)"),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
+                        entry("inv", "type=(current* | past ) subtype=(all* | cspx | meud | xrsu | eimi | ay24 | ars | usd | lete | lecap | gold | on | uva | conbala | conaafa | caplusa | pf) nominal=false"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
                         entry("bbpp", "year=2020"),
@@ -1030,8 +1027,8 @@ public class ConsoleReports {
 
         final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "1")) + 1;
 
-        appendLine(format("===< {0}-month Savings Change >===", months-1));
-        this.evolution(format("{0}-month Savings Change", months-1), new SimpleAggregation(months)
+        appendLine(format("===< {0}-month Savings Change >===", months - 1));
+        this.evolution(format("{0}-month Savings Change", months - 1), new SimpleAggregation(months)
                 .change(this.realSavings(null)), 50 * months);
 
     }
@@ -1040,7 +1037,7 @@ public class ConsoleReports {
 
         final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "1")) + 1;
 
-        appendLine(format("===< {0}-month Savings Change >===", months-1));
+        appendLine(format("===< {0}-month Savings Change >===", months - 1));
         final var s = new SimpleAggregation(months)
                 .percentChange(this.realSavings(null));
 
