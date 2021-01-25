@@ -331,9 +331,9 @@ public class ConsoleReports {
 
         if (!totalOnly) {
             if (type == null) {
-                appendLine("===< Ganancia en Inversiones Actuales", currencyText, " en USD ", nominal ? "nominales" : "reales", " >===");
+                appendLine("===< Ganancia en Inversiones", currencyText, " en USD ", nominal ? "nominales" : "reales", " >===");
             } else {
-                appendLine("===< Ganancia en Inversiones Actuales en ", type.toString(), currencyText, " en USD ", nominal ? "nominales" : "reales", " >===");
+                appendLine("===< Ganancia en Inversiones en ", type.toString(), " ", currencyText, " en USD ", nominal ? "nominales" : "reales", " >===");
             }
         }
 
@@ -369,7 +369,6 @@ public class ConsoleReports {
 
         appendLine("\nTotal investment      After fee/tax current      Profit     %");
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getGrossRealInvestment, InvestmentReport::getNetRealProfit);
-        appendLine("");
 
     }
 
