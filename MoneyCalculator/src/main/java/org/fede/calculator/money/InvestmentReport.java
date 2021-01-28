@@ -126,13 +126,13 @@ public class InvestmentReport {
                 .subtract(this.getNetRealInvestment());
 
     }
-
-    private MoneyAmount feeAmount() {
+    
+    public MoneyAmount feeAmount() {
         return this.real.getIn().getFeeMoneyAmount().adjust(ONE, this.feeTaxRate)
                 .add(this.getCurrentValue().adjust(ONE, this.feeRate));
     }
 
-    private MoneyAmount capitalGainsTax() {
+    public MoneyAmount capitalGainsTax() {
 
         final var capitalGain = this.getCurrentValue()
                 .subtract(this.getNetNominalInvestment());

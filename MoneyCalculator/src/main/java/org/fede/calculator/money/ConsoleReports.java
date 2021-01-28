@@ -305,11 +305,11 @@ public class ConsoleReports {
     private void currentInvestmentsProfit(String currency, InvestmentType type, boolean nominal) {
         this.investmentsProfit(currency, type, Investment::isCurrent, false, nominal);
 
-        appendLine(format("\nClosing fee and tax: {0}. Capital gains tax rate: {1}",
-                percentFormat.format(TRADING_FEE.multiply(IVA, CONTEXT)
-                        .add(TRADING_FEE, CONTEXT)
-                        .add(TRADING_FEE, CONTEXT)),
-                "15 %"));
+//        appendLine(format("\nClosing fee and tax: {0}. Capital gains tax rate: {1}",
+//                percentFormat.format(TRADING_FEE.multiply(IVA, CONTEXT)
+//                        .add(TRADING_FEE, CONTEXT)
+//                        .add(TRADING_FEE, CONTEXT)),
+//                "15 %"));
         appendLine("");
         appendLine("Investment: invested amount ignoring openning fees and taxes");
         appendLine("Current: currently invested amount");
@@ -364,12 +364,37 @@ public class ConsoleReports {
                 .map(InvestmentReport::toString)
                 .forEach(this::appendLine);
 
+        
+        final var totalFee = realProfits.stream()
+                .map(InvestmentReport::feeAmount)
+                .map(MoneyAmount::getAmount)
+                .reduce(ZERO, BigDecimal::add);
+        
+        final var totalTax = realProfits.stream()
+                .map(InvestmentReport::capitalGainsTax)
+                .map(MoneyAmount::getAmount)
+                .reduce(ZERO, BigDecimal::add);
+        
+        final var currentTotal = realProfits.stream()
+                .map(InvestmentReport::getCurrentValue)
+                .map(MoneyAmount::getAmount)
+                .reduce(ZERO, BigDecimal::add);
+        
+        
         appendLine("\nAfter fee investment  Before fee/tax current     Profit     %");
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getNetRealInvestment, InvestmentReport::getGrossRealProfit);
 
         appendLine("\nTotal investment      After fee/tax current      Profit     %");
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getGrossRealInvestment, InvestmentReport::getNetRealProfit);
 
+        
+        appendLine(format("\nTotal fee {0,number,currency} ({2}). Total tax {1,number,currency} ({3}).", 
+                totalFee, 
+                totalTax,
+                this.percentFormat.format(totalFee.divide(currentTotal, CONTEXT)),
+                this.percentFormat.format(totalTax.divide(currentTotal, CONTEXT))
+                ));
+        
     }
 
     private InvestmentReport asReport(Investment i, BigDecimal tax, BigDecimal fee, Inflation inflation) {
@@ -599,7 +624,7 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", "trials=100000 period=10 retirement=65 w=1000 d=500 inflation=2 cash=cash sp500=false tax=false"),
+                        entry("goal", "trials=100000 period=20 retirement=60 w=1000 d=600 inflation=2 cash=0 sp500=true tax=true"),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
@@ -1132,14 +1157,14 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         final var trials = Integer.parseInt(params.getOrDefault("trials", "100000"));
-        final var periodYears = Integer.parseInt(params.getOrDefault("period", "10"));
-        final var deposit = Integer.parseInt(params.getOrDefault("d", "500"));
+        final var periodYears = Integer.parseInt(params.getOrDefault("period", "20"));
+        final var deposit = Integer.parseInt(params.getOrDefault("d", "600"));
         final var withdraw = Integer.parseInt(params.getOrDefault("w", "1000"));
-        final var inflation = Integer.parseInt(params.getOrDefault("inflation", "2"));
-        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "65"));
+        final var inflation = Integer.parseInt(params.getOrDefault("inflation", "3"));
+        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "60"));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", "0"));
-        final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", "false"));
-        final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "false"));
+        final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", "true"));
+        final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "true"));
 
         final var buySellFee = ONE.setScale(6)
                 .add(TRADING_FEE.multiply(IVA, CONTEXT), CONTEXT)
@@ -1690,11 +1715,14 @@ public class ConsoleReports {
 
     private void netContribution() {
 
-        final Stream<Pair<Integer, MoneyAmount>> contributions = this.getInvestments().stream()
+        final Stream<Pair<Integer, MoneyAmount>> contributions = this.getInvestments()
+                .stream()
                 .map(Investment::getIn)
                 .map(event -> realUSDMoneyAmount(event, false));
 
-        final Stream<Pair<Integer, MoneyAmount>> withdrawals = this.getInvestments().stream().map(Investment::getOut)
+        final Stream<Pair<Integer, MoneyAmount>> withdrawals = this.getInvestments()
+                .stream()
+                .map(Investment::getOut)
                 .filter(Objects::nonNull)
                 .map(event -> realUSDMoneyAmount(event, true));
 
@@ -1703,7 +1731,7 @@ public class ConsoleReports {
         final Map<Integer, MoneyAmount> netContributions = Stream.concat(contributions, withdrawals)
                 .collect(groupingBy(
                         Pair::getFirst,
-                        Collectors.reducing(zero, Pair::getSecond, MoneyAmount::add)));
+                        reducing(zero, Pair::getSecond, MoneyAmount::add)));
 
         netContributions.entrySet()
                 .stream()
