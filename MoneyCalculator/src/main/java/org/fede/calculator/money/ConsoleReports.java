@@ -598,7 +598,6 @@ public class ConsoleReports {
                     //income
                     entry("income", () -> me.income(args, "income")),
                     entry("income-evo", me::incomeEvolution),
-                    entry("contrib", me::netContribution),
                     entry("income-year", me::yearlyIncome),
                     entry("income-half", me::halfIncome),
                     entry("income-quarter", me::quarterIncome),
@@ -628,16 +627,16 @@ public class ConsoleReports {
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
-                        entry("inv", "type=(current* | past ) subtype=(all* | cspx | meud | xrsu | eimi | ay24 | ars | usd | lete | lecap | gold | on | uva | conbala | conaafa | caplusa | pf) nominal=false"),
+                        entry("inv", "type=(current*|past|global) subtype=(all*|cspx|meud|xrsu|eimi|ay24|ars|usd|lete|lecap|gold|on|uva|conbala|conaafa|caplusa|pf) nominal=false"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
                         entry("bbpp", "year=2020"),
                         entry("savings-avg-net-change", "months=12"),
                         entry("savings-avg-net-pct", "months=12"),
                         entry("savings-avg-spent-pct", "months=12"),
-                        entry("expenses", "type=(taxes | insurance | phone | services | home | entertainment) months=12"),
-                        entry("expenses-evo", "type=(taxes | insurance | phone | services | home | entertainment)"),
-                        entry("savings-evo", "type=(BO | LIQ | EQ)")
+                        entry("expenses", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
+                        entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment)"),
+                        entry("savings-evo", "type=(BO|LIQ|EQ)")
                 );
 
                 Stream.concat(
@@ -1711,34 +1710,6 @@ public class ConsoleReports {
 
     private MoneyAmount positiveOrZero(MoneyAmount ma) {
         return new MoneyAmount(ZERO.max(ma.getAmount()), ma.getCurrency());
-    }
-
-    private void netContribution() {
-
-        final Stream<Pair<Integer, MoneyAmount>> contributions = this.getInvestments()
-                .stream()
-                .map(Investment::getIn)
-                .map(event -> realUSDMoneyAmount(event, false));
-
-        final Stream<Pair<Integer, MoneyAmount>> withdrawals = this.getInvestments()
-                .stream()
-                .map(Investment::getOut)
-                .filter(Objects::nonNull)
-                .map(event -> realUSDMoneyAmount(event, true));
-
-        final var zero = new MoneyAmount(ZERO, "USD");
-
-        final Map<Integer, MoneyAmount> netContributions = Stream.concat(contributions, withdrawals)
-                .collect(groupingBy(
-                        Pair::getFirst,
-                        reducing(zero, Pair::getSecond, MoneyAmount::add)));
-
-        netContributions.entrySet()
-                .stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .forEach(e -> appendLine(format("{0} {1,number,currency}",
-                String.valueOf(e.getKey()),
-                e.getValue().getAmount())));
     }
 
     private Pair<Integer, MoneyAmount> realUSDMoneyAmount(InvestmentEvent ev, boolean withdrawal) {
