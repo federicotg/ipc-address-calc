@@ -40,6 +40,7 @@ import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -364,37 +365,34 @@ public class ConsoleReports {
                 .map(InvestmentReport::toString)
                 .forEach(this::appendLine);
 
-        
         final var totalFee = realProfits.stream()
                 .map(InvestmentReport::feeAmount)
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
-        
+
         final var totalTax = realProfits.stream()
                 .map(InvestmentReport::capitalGainsTax)
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
-        
+
         final var currentTotal = realProfits.stream()
                 .map(InvestmentReport::getCurrentValue)
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
-        
-        
+
         appendLine("\nAfter fee investment  Before fee/tax current     Profit     %");
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getNetRealInvestment, InvestmentReport::getGrossRealProfit);
 
         appendLine("\nTotal investment      After fee/tax current      Profit     %");
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getGrossRealInvestment, InvestmentReport::getNetRealProfit);
 
-        
-        appendLine(format("\nTotal fee {0,number,currency} ({2}). Total tax {1,number,currency} ({3}).", 
-                totalFee, 
+        appendLine(format("\nTotal fee {0,number,currency} ({2}). Total tax {1,number,currency} ({3}).",
+                totalFee,
                 totalTax,
                 this.percentFormat.format(totalFee.divide(currentTotal, CONTEXT)),
                 this.percentFormat.format(totalTax.divide(currentTotal, CONTEXT))
-                ));
-        
+        ));
+
     }
 
     private InvestmentReport asReport(Investment i, BigDecimal tax, BigDecimal fee, Inflation inflation) {
@@ -690,6 +688,34 @@ public class ConsoleReports {
                 this.percentFormat.format(totalSavings.getAmount().divide(totalIncome.getAmount(), CONTEXT)),
                 avgSalary,
                 totalSavings.getAmount().divide(avgSalary, CONTEXT)));
+
+        final var minSalary = BigDecimal.valueOf(500);
+
+        final var salariesOver500 = this.realIncome()
+                .filter((ym, ma) -> ma.getAmount().compareTo(minSalary) >= 0)
+                .collect(toList());
+
+        final var totalIncomeOver500 = salariesOver500.stream()
+                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+
+        final var averageSalaryOver500 = totalIncomeOver500.getAmount()
+                .divide(BigDecimal.valueOf(salariesOver500.size()), CONTEXT);
+
+        final var futureExpenseFactor = BigDecimal.valueOf(6).movePointLeft(1);
+        
+        final var m = totalSavings.getAmount().divide(averageSalaryOver500.multiply(futureExpenseFactor, CONTEXT), CONTEXT);
+        
+        final var yearAndMonth = m.divideAndRemainder(BigDecimal.valueOf(12), CONTEXT);
+        
+        
+        appendLine(format(
+                "Projected {0} years and {1} months of income spending {2} of current average salaries over USD {3}.",
+                yearAndMonth[0],
+                yearAndMonth[1].setScale(0, MathConstants.ROUNDING_MODE),
+                this.percentFormat.format(futureExpenseFactor),
+                minSalary)
+        
+        );
 
     }
 
@@ -1489,10 +1515,15 @@ public class ConsoleReports {
                 .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", year, 12))
                 .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
 
-        appendLine(format("Effective tax rate is {0}. Tax is {1} of investments.",
-                this.percentFormat.format(taxAmount.divide(totalAmount, CONTEXT)),
-                this.percentFormat.format(usdTaxAmount.getAmount().divide(allInvested.getAmount(), CONTEXT))));
+        final var yearRealIncome = new ArrayList<MoneyAmount>(12);
 
+        this.realIncome()
+                .forEachNonZero((ym, ma) -> Optional.of(ma).filter(m -> ym.getYear() == year).ifPresent(yearRealIncome::add));
+
+        appendLine(format("Effective tax rate is {0}. Tax is {1} of investments. Tax is {2} of income.",
+                this.percentFormat.format(taxAmount.divide(totalAmount, CONTEXT)),
+                this.percentFormat.format(usdTaxAmount.getAmount().divide(allInvested.getAmount(), CONTEXT)),
+                this.percentFormat.format(usdTaxAmount.getAmount().divide(yearRealIncome.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add), CONTEXT))));
     }
 
     private BBPPItem toARS(BBPPItem item, BigDecimal usdValue, BigDecimal eurValue) {

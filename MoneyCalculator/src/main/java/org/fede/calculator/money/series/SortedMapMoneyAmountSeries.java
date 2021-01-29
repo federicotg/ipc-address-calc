@@ -16,9 +16,11 @@
  */
 package org.fede.calculator.money.series;
 
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 import org.fede.calculator.money.MoneyAmount;
 
@@ -59,17 +61,16 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
         return this.values.get(ym);
     }
 
-
     @Override
     public void putAmount(YearMonth ym, MoneyAmount amount) {
         this.values.put(ym, amount);
     }
-    
+
     @Override
     public void forEach(BiConsumer<YearMonth, MoneyAmount> consumer) {
         this.values.forEach(consumer);
     }
-    
+
     @Override
     protected boolean hasValue(YearMonth moment) {
         return this.values.containsKey(moment);
@@ -78,6 +79,14 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
     @Override
     public Stream<MoneyAmount> moneyAmountStream() {
         return this.values.values().stream();
+    }
+
+    @Override
+    public Stream<MoneyAmount> filter(BiPredicate<YearMonth, MoneyAmount> predicate) {
+
+        return this.values.entrySet().stream()
+                .filter(e -> predicate.test(e.getKey(), e.getValue()))
+                .map(Map.Entry::getValue);
     }
 
 }
