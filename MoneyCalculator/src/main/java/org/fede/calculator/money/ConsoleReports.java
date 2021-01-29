@@ -689,7 +689,7 @@ public class ConsoleReports {
                 avgSalary,
                 totalSavings.getAmount().divide(avgSalary, CONTEXT)));
 
-        final var minSalary = BigDecimal.valueOf(500);
+        final var minSalary = BigDecimal.valueOf(300);
 
         final var salariesOver500 = this.realIncome()
                 .filter((ym, ma) -> ma.getAmount().compareTo(minSalary) >= 0)
@@ -701,7 +701,7 @@ public class ConsoleReports {
         final var averageSalaryOver500 = totalIncomeOver500.getAmount()
                 .divide(BigDecimal.valueOf(salariesOver500.size()), CONTEXT);
 
-        final var futureExpenseFactor = BigDecimal.valueOf(6).movePointLeft(1);
+        final var futureExpenseFactor = BigDecimal.valueOf(5).movePointLeft(1);
         
         final var m = totalSavings.getAmount().divide(averageSalaryOver500.multiply(futureExpenseFactor, CONTEXT), CONTEXT);
         
