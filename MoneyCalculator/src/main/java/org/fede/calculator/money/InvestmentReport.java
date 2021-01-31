@@ -126,7 +126,7 @@ public class InvestmentReport {
                 .subtract(this.getNetRealInvestment());
 
     }
-    
+
     public MoneyAmount feeAmount() {
         return this.real.getIn().getFeeMoneyAmount().adjust(ONE, this.feeTaxRate)
                 .add(this.getCurrentValue().adjust(ONE, this.feeRate));
@@ -150,11 +150,8 @@ public class InvestmentReport {
     public MoneyAmount getNetRealProfit() {
 
         final var cv = this.getCurrentValue();
-
         final var feeAmount = cv.adjust(ONE, this.feeRate);
-
         final var capitalGainAmount = this.capitalGainsTax();
-
         return cv
                 .subtract(this.getGrossRealInvestment())
                 .subtract(feeAmount)
@@ -198,25 +195,23 @@ public class InvestmentReport {
             final var days = this.days(real);
 
             if (days.signum() <= 0) {
-                return BigDecimal.ZERO;
+                this.annualizedReturn = BigDecimal.ZERO;
+            } else {
+
+                final var cumulativeProfit = this.getNetRealProfit().getAmount().divide(this.getGrossRealInvestment().getAmount(), MathConstants.CONTEXT);
+
+                final double x = Math.pow(
+                        BigDecimal.ONE.add(cumulativeProfit).doubleValue(),
+                        365.0d / days.doubleValue()) - 1.0d;
+
+                this.annualizedReturn = BigDecimal.valueOf(x);
             }
-
-            final var cumulativeProfit = this.getNetRealProfit().getAmount().divide(this.getGrossRealInvestment().getAmount(), MathConstants.CONTEXT);
-
-            final double x = Math.pow(
-                    BigDecimal.ONE.add(cumulativeProfit).doubleValue(),
-                    365.0d / days.doubleValue()) - 1.0d;
-
-            this.annualizedReturn = BigDecimal.valueOf(x);
         }
-
         return this.annualizedReturn;
     }
 
     private String fmt(MoneyAmount ma, int padding) {
-
         return String.format("%" + String.valueOf(padding) + "s", MONEY_FORMAT.format(ma.getAmount()));
-
     }
 
     private String fmt(MoneyAmount ma) {

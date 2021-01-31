@@ -204,10 +204,14 @@ public class ConsoleReports {
 
         appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()), " >===");
 
-        final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json");
+        final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json")
+                .add(SeriesReader.readSeries("saving/ahorros-euro.json").exchangeInto("USD"))
+                .add(SeriesReader.readSeries("saving/ahorros-dai.json").exchangeInto("USD"));
 
         final MoneyAmount cash = cashSeries.getAmount(cashSeries.getTo());
 
+        System.out.println(cash);
+        
         final var total = this.total(Investment::isCurrent, reportCurrency, limit).map(t -> t.add(cash));
         Stream.concat(getInvestments().stream()
                 .filter(Investment::isCurrent)
@@ -250,10 +254,15 @@ public class ConsoleReports {
 
         appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo. ", limitStr, " >===");
 
-        final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json");
+        final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json")
+                .add(SeriesReader.readSeries("saving/ahorros-euro.json").exchangeInto("USD"))
+                .add(SeriesReader.readSeries("saving/ahorros-dai.json").exchangeInto("USD"));
 
         final MoneyAmount cash = cashSeries.getAmount(cashSeries.getTo());
 
+                System.out.println(cash);
+
+        
         final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit).map(tot -> tot.add(cash));
 
         final Investment i = new Investment();
