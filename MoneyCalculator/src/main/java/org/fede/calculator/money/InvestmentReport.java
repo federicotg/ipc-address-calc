@@ -180,7 +180,7 @@ public class InvestmentReport {
                 this.fmt(this.getNetRealProfit()),
                 String.format("%8s", PCT_FORMAT.format(this.percent(this.getNetRealProfit(), gri))),
                 String.format("%8s", PCT_FORMAT.format(this.tna())),
-                this.pctBar(this.tna()),
+                pctBar(this.tna()),
                 this.fmt(fa, 9),
                 String.format("%7s", PCT_FORMAT.format(this.percent(fa, cv))),
                 this.fmt(cgt, 10),
@@ -269,7 +269,7 @@ public class InvestmentReport {
                         .orElseGet(LocalDate::now)) + 1);
     }
 
-    private String pctBar(BigDecimal value) {
+    private static String pctBar(BigDecimal value) {
         final var symbol = value.signum() < 0
                 ? "-"
                 : "+";

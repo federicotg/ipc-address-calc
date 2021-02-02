@@ -24,7 +24,6 @@ import static java.math.BigDecimal.ONE;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import java.math.RoundingMode;
 import static java.math.RoundingMode.HALF_UP;
-import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -204,23 +203,18 @@ public class ConsoleReports {
 
         appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()), " >===");
 
-        final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json")
-                .add(SeriesReader.readSeries("saving/ahorros-euro.json").exchangeInto("USD"))
-                .add(SeriesReader.readSeries("saving/ahorros-dai.json").exchangeInto("USD"));
-
-        final MoneyAmount cash = cashSeries.getAmount(cashSeries.getTo());
-
-        System.out.println(cash);
-        
-        final var total = this.total(Investment::isCurrent, reportCurrency, limit).map(t -> t.add(cash));
-        Stream.concat(getInvestments().stream()
+//        final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json")
+//                .add(SeriesReader.readSeries("saving/ahorros-euro.json").exchangeInto("USD"))
+//                .add(SeriesReader.readSeries("saving/ahorros-dai.json").exchangeInto("USD"));
+        //final MoneyAmount cash = cashSeries.getAmount(cashSeries.getTo());
+        final var total = this.total(Investment::isCurrent, reportCurrency, limit);
+        getInvestments().stream()
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(in -> of(in.getType().toString(), in.getCurrency()), MAPPER))
                 .entrySet()
                 .stream()
                 .map(e -> of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
-                .map(p -> of(p.getFirst(), this.fx(p, reportCurrency))),
-                Stream.of(ter("CASH", "USD", cash)))
+                .map(p -> of(p.getFirst(), this.fx(p, reportCurrency)))
                 .sorted((p, q) -> q.getSecond().getAmount().compareTo(p.getSecond().getAmount()))
                 .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
                 .forEach(this::appendLine);
@@ -254,30 +248,14 @@ public class ConsoleReports {
 
         appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo. ", limitStr, " >===");
 
-        final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json")
-                .add(SeriesReader.readSeries("saving/ahorros-euro.json").exchangeInto("USD"))
-                .add(SeriesReader.readSeries("saving/ahorros-dai.json").exchangeInto("USD"));
+//        final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json")
+//                .add(SeriesReader.readSeries("saving/ahorros-euro.json").exchangeInto("USD"))
+//                .add(SeriesReader.readSeries("saving/ahorros-dai.json").exchangeInto("USD"));
+//
+//        final MoneyAmount cash = cashSeries.getAmount(cashSeries.getTo());
+        final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit);
 
-        final MoneyAmount cash = cashSeries.getAmount(cashSeries.getTo());
-
-                System.out.println(cash);
-
-        
-        final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit).map(tot -> tot.add(cash));
-
-        final Investment i = new Investment();
-        final InvestmentEvent in = new InvestmentEvent();
-        final InvestmentAsset asset = new InvestmentAsset();
-        in.setAmount(cash.getAmount());
-        in.setCurrency(cash.getCurrency());
-        in.setDate(Date.from(LocalDate.now().minusYears(1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        i.setIn(in);
-        asset.setAmount(cash.getAmount());
-        asset.setCurrency(cash.getCurrency());
-        i.setInvestment(asset);
-        i.setType(InvestmentType.USD);
-
-        Stream.concat(Stream.of(i), getInvestments().stream())
+        getInvestments().stream()
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(
                         this::assetAllocation,
@@ -612,6 +590,7 @@ public class ConsoleReports {
                     entry("income-year", me::yearlyIncome),
                     entry("income-half", me::halfIncome),
                     entry("income-quarter", me::quarterIncome),
+                    entry("p", () -> me.portfolio(args, "p")),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
                     entry("house", () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
@@ -634,10 +613,11 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", "trials=100000 period=20 retirement=60 w=1000 d=600 inflation=2 cash=0 sp500=true tax=true"),
+                        entry("goal", "trials=100000 period=20 retirement=60 w=1000 d=739 inflation=3 cash=0 sp500=true tax=true"),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
+                        entry("p", "type=(full|pct) y=current m=current"),
                         entry("inv", "type=(current*|past|global) subtype=(all*|cspx|meud|xrsu|eimi|ay24|ars|usd|lete|lecap|gold|on|uva|conbala|conaafa|caplusa|pf) nominal=false"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
@@ -1862,6 +1842,85 @@ public class ConsoleReports {
 
     private String cell(String value) {
         return String.format("%12s", value);
+    }
+
+    private void portfolio(String[] args, String name) {
+
+        final var params = this.paramsValue(args, name);
+
+        final var type = params.getOrDefault("type", "full");
+
+        final var limit = Inflation.USD_INFLATION.getTo();
+
+        final var year = Optional.ofNullable(params.get("y"))
+                .map(Integer::parseInt)
+                .orElseGet(limit::getYear);
+        final var month = Optional.ofNullable(params.get("m"))
+                .map(Integer::parseInt)
+                .orElseGet(limit::getMonth);
+
+        final var ym = YearMonth.of(year, month);
+
+        final Map<String, Map<String, Optional<MoneyAmount>>> grouped
+                = Stream.of(
+                        of("BONDS", this.lastAmount("ahorros-ay24", ym)),
+                        of("BONDS", this.lastAmount("ahorros-conbala", ym)),
+                        of("BONDS", this.lastAmount("ahorros-uva", ym)),
+                        of("BONDS", this.lastAmount("ahorros-dolar-ON", ym)),
+                        of("BONDS", this.lastAmount("ahorros-lecap", ym)),
+                        of("BONDS", this.lastAmount("ahorros-lete", ym)),
+                        of("BONDS", this.lastAmount("ahorros-caplusa", ym)),
+                        of("CASH", this.lastAmount("ahorros-dolar-banco", ym)),
+                        of("CASH", this.lastAmount("ahorros-peso", ym)),
+                        of("CASH", this.lastAmount("ahorros-dolar-liq", ym)),
+                        of("CASH", this.lastAmount("ahorros-euro", ym)),
+                        of("CASH", this.lastAmount("ahorros-dai", ym)),
+                        of("COMMODITY", this.lastAmount("ahorros-oro", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-cspx", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-eimi", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-meud", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-conaafa", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-xrsu", ym)))
+                        .collect(groupingBy(
+                                Pair::getFirst,
+                                groupingBy(
+                                        p -> p.getSecond().getCurrency(),
+                                        mapping(
+                                                Pair::getSecond,
+                                                reducing(MoneyAmount::add)))));
+
+        final var items = grouped.entrySet().stream()
+                .flatMap(e -> this.item(e.getKey(), e.getValue(), ym))
+                .sorted(comparing((PortfolioItem pi) -> pi.getDollarAmount().getAmount()).reversed())
+                .collect(toList());
+
+        final var total = items.stream()
+                .map(PortfolioItem::getDollarAmount)
+                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+
+        final var pct = "pct".equals(type);
+
+        items.stream()
+                .map(i -> pct ? i.asPercentReport(total) : i.asReport(total))
+                .forEach(this::appendLine);
+
+        if (!pct) {
+            this.appendLine("--------------------------------------");
+            this.appendLine(format("Total {0,number,currency}", total.getAmount()));
+        }
+    }
+
+    private Stream<PortfolioItem> item(String type, Map<String, Optional<MoneyAmount>> amounts, YearMonth ym) {
+
+        return amounts.values().stream()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(ma -> !ma.isZero())
+                .map(amount -> new PortfolioItem(amount, type, ym));
+    }
+
+    private MoneyAmount lastAmount(String seriesName, YearMonth ym) {
+        return SeriesReader.readSeries("saving/" + seriesName + ".json").getAmountOrElseZero(ym);
     }
 
 }

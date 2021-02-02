@@ -18,6 +18,7 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import static java.math.RoundingMode.HALF_UP;
+import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Objects;
 
@@ -40,7 +41,7 @@ public class MoneyAmount {
             return this;
         }
         return new MoneyAmount(this.amount.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).divide(divisor, MathConstants.CONTEXT)
-                .multiply(factor,MathConstants.CONTEXT), this.currency);
+                .multiply(factor, MathConstants.CONTEXT), this.currency);
     }
 
     public MoneyAmount exchange(String newCurrency, BigDecimal exchangeRate) {
