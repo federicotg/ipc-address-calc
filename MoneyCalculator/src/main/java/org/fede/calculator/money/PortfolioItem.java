@@ -58,10 +58,6 @@ public class PortfolioItem {
         return type;
     }
 
-    public boolean hasValue() {
-        return !this.amount.isZero();
-    }
-
     public MoneyAmount getDollarAmount() {
         return dollarAmount;
     }

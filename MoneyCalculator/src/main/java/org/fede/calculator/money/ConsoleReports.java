@@ -1863,13 +1863,13 @@ public class ConsoleReports {
 
         final Map<String, Map<String, Optional<MoneyAmount>>> grouped
                 = Stream.of(
-                        of("BONDS", this.lastAmount("ahorros-ay24", ym)),
-                        of("BONDS", this.lastAmount("ahorros-conbala", ym)),
-                        of("BONDS", this.lastAmount("ahorros-uva", ym)),
-                        of("BONDS", this.lastAmount("ahorros-dolar-ON", ym)),
-                        of("BONDS", this.lastAmount("ahorros-lecap", ym)),
-                        of("BONDS", this.lastAmount("ahorros-lete", ym)),
-                        of("BONDS", this.lastAmount("ahorros-caplusa", ym)),
+                        of("BOND", this.lastAmount("ahorros-ay24", ym)),
+                        of("BOND", this.lastAmount("ahorros-conbala", ym)),
+                        of("BOND", this.lastAmount("ahorros-uva", ym)),
+                        of("BOND", this.lastAmount("ahorros-dolar-ON", ym)),
+                        of("BOND", this.lastAmount("ahorros-lecap", ym)),
+                        of("BOND", this.lastAmount("ahorros-lete", ym)),
+                        of("BOND", this.lastAmount("ahorros-caplusa", ym)),
                         of("CASH", this.lastAmount("ahorros-dolar-banco", ym)),
                         of("CASH", this.lastAmount("ahorros-peso", ym)),
                         of("CASH", this.lastAmount("ahorros-dolar-liq", ym)),
