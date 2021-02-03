@@ -203,10 +203,6 @@ public class ConsoleReports {
 
         appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()), " >===");
 
-//        final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json")
-//                .add(SeriesReader.readSeries("saving/ahorros-euro.json").exchangeInto("USD"))
-//                .add(SeriesReader.readSeries("saving/ahorros-dai.json").exchangeInto("USD"));
-        //final MoneyAmount cash = cashSeries.getAmount(cashSeries.getTo());
         final var total = this.total(Investment::isCurrent, reportCurrency, limit);
         getInvestments().stream()
                 .filter(Investment::isCurrent)
@@ -248,11 +244,6 @@ public class ConsoleReports {
 
         appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo. ", limitStr, " >===");
 
-//        final MoneyAmountSeries cashSeries = SeriesReader.readSeries("saving/ahorros-dolar-liq.json")
-//                .add(SeriesReader.readSeries("saving/ahorros-euro.json").exchangeInto("USD"))
-//                .add(SeriesReader.readSeries("saving/ahorros-dai.json").exchangeInto("USD"));
-//
-//        final MoneyAmount cash = cashSeries.getAmount(cashSeries.getTo());
         final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit);
 
         getInvestments().stream()
@@ -317,7 +308,9 @@ public class ConsoleReports {
 
     private void investmentsProfit(final String currency, final InvestmentType type, final Predicate<Investment> predicate, final boolean totalOnly, boolean nominal) {
 
-        final var currencyText = Optional.ofNullable(currency).map(c -> format(" {0}", c)).orElse("");
+        final var currencyText = Optional.ofNullable(currency)
+                .map(c -> format(" {0}", c))
+                .orElse("");
 
         if (!totalOnly) {
             if (type == null) {
