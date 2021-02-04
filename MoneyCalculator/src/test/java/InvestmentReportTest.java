@@ -18,6 +18,7 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.util.concurrent.ThreadLocalRandom;
 import org.fede.calculator.money.InvestmentReport;
 import org.fede.calculator.money.series.Investment;
 import org.junit.Test;
@@ -61,6 +62,6 @@ public class InvestmentReportTest {
         assertNotNull(r);
         //System.out.println(r.getNetRealProfit().getAmount());
         assertTrue(r.getNetRealProfit().getAmount().subtract(new BigDecimal("131.2417")).abs().compareTo(EPSILON) <= 0);
-
+       
     }
 }

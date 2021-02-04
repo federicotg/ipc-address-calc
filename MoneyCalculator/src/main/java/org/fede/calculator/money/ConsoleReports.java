@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
@@ -126,6 +127,10 @@ public class ConsoleReports {
     private MoneyAmountSeries realNetSavings;
 
     private final StringBuilder out;
+    
+    private double bbppMean;
+    private double bbppVar;
+    private BigDecimal bbppMinFactor;
 
     private ConsoleReports(StringBuilder out) {
         this.percentFormat.setMinimumFractionDigits(2);
@@ -1155,11 +1160,19 @@ public class ConsoleReports {
         final var deposit = Integer.parseInt(params.getOrDefault("d", "739"));
         final var withdraw = Integer.parseInt(params.getOrDefault("w", "1000"));
         final var inflation = Integer.parseInt(params.getOrDefault("inflation", "3"));
-        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "60"));
-        final var extraCash = Integer.parseInt(params.getOrDefault("cash", "0"));
+        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "65"));
+        final var extraCash = Integer.parseInt(params.getOrDefault("cash", "30000"));
         final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", "true"));
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "true"));
+        final var bbppTax = afterTax
+                ? new BigDecimal(params.getOrDefault("bbpp", "2.25")).movePointLeft(2)
+                : ZERO;
 
+        
+        this.bbppMean = bbppTax.doubleValue() * 0.66d;
+        this.bbppVar = bbppTax.doubleValue() / 5.0d;
+        this.bbppMinFactor = ONE.subtract(bbppTax, CONTEXT);
+        
         final var buySellFee = ONE.setScale(6)
                 .add(TRADING_FEE.multiply(IVA, CONTEXT), CONTEXT)
                 .add(TRADING_FEE, CONTEXT)
@@ -1318,6 +1331,15 @@ public class ConsoleReports {
         return l.stream().reduce(ZERO, BigDecimal::add);
     }
 
+    private BigDecimal bbppFactor() {
+        return ONE
+                .min(ONE
+                        .subtract(
+                                BigDecimal.valueOf(this.bbppMean + ThreadLocalRandom.current().nextGaussian() * this.bbppVar),
+                                CONTEXT))
+                .max(this.bbppMinFactor);
+    }
+
     private boolean goals(
             final int startingYear,
             final int retirement,
@@ -1328,16 +1350,23 @@ public class ConsoleReports {
             final List<BigDecimal> deposit,
             final List<BigDecimal> withdraw) {
 
+        //final var bbppFactor = ONE.subtract(bbppTax, CONTEXT);
         BigDecimal cashAmount = cash;
         BigDecimal amount = investedAmount;
         // depositing
         for (var i = startingYear; i < retirement; i++) {
+
+            // BB.PP.
+            amount = amount.multiply(bbppFactor(), CONTEXT);
 
             amount = amount.multiply(returns.get(i - startingYear), CONTEXT)
                     .add(deposit.get(i - startingYear), CONTEXT);
         }
         // withdrawing
         for (var i = retirement; i <= end; i++) {
+
+            // BB.PP.
+            amount = amount.multiply(bbppFactor(), CONTEXT);
 
             amount = amount.subtract(withdraw.get(i - startingYear), CONTEXT);
 
