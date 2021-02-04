@@ -1350,7 +1350,6 @@ public class ConsoleReports {
             final List<BigDecimal> deposit,
             final List<BigDecimal> withdraw) {
 
-        //final var bbppFactor = ONE.subtract(bbppTax, CONTEXT);
         BigDecimal cashAmount = cash;
         BigDecimal amount = investedAmount;
         // depositing
