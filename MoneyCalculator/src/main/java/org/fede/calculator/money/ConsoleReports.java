@@ -65,8 +65,6 @@ import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import org.fede.calculator.money.series.InvestmentAsset;
-import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.BBPPItem;
@@ -104,8 +102,8 @@ public class ConsoleReports {
 
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
-    private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(6, RoundingMode.HALF_UP), BigDecimal::add);
-    private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, RoundingMode.HALF_UP), REDUCER);
+    private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(6, MathConstants.ROUNDING_MODE), BigDecimal::add);
+    private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, MathConstants.ROUNDING_MODE), REDUCER);
 
     private static final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
             .thenComparing(comparing(pair -> pair.getFirst().getSecond()));
@@ -258,7 +256,7 @@ public class ConsoleReports {
                         mapping(inv -> ForeignExchanges.getForeignExchange(inv.getInvestment().getCurrency(), reportCurrency)
                         .exchange(inv.getInvestment().getMoneyAmount(), reportCurrency, limit.getYear(), limit.getMonth())
                         .getAmount()
-                        .setScale(6, RoundingMode.HALF_UP),
+                        .setScale(6, MathConstants.ROUNDING_MODE),
                                 REDUCER)))
                 .entrySet()
                 .stream()
@@ -332,7 +330,7 @@ public class ConsoleReports {
 
         final var inflation = nominal
                 ? new CPIInflation(IndexSeriesSupport.CONSTANT_SERIES, "USD")
-                : Inflation.USD_INFLATION;
+                : USD_INFLATION;
 
         final var realProfits = this.getInvestments().stream()
                 .filter(predicate)
@@ -801,7 +799,7 @@ public class ConsoleReports {
 
     private MoneyAmount lastMonths(MoneyAmountSeries s, int months) {
 
-        var ym = Inflation.USD_INFLATION.getTo();
+        var ym = USD_INFLATION.getTo();
         var amount = new MoneyAmount(ZERO, "USD");
 
         for (var i = 0; i < months; i++) {
@@ -819,7 +817,7 @@ public class ConsoleReports {
 
     private MoneyAmountSeries asRealUSDSeries(String prefix, String fileName) {
         var limit = USD_INFLATION.getTo();
-        return Inflation.USD_INFLATION.adjust(
+        return USD_INFLATION.adjust(
                 SeriesReader.readSeries(prefix + fileName + ".json").exchangeInto("USD"),
                 limit.getYear(),
                 limit.getMonth());
@@ -1168,10 +1166,10 @@ public class ConsoleReports {
                 ? new BigDecimal(params.getOrDefault("bbpp", "2.25")).movePointLeft(2)
                 : ZERO;
 
-        
         this.bbppMean = bbppTax.doubleValue() * 0.66d;
         this.bbppVar = bbppTax.doubleValue() / 5.0d;
-        this.bbppMinFactor = ONE.subtract(bbppTax, CONTEXT);
+        this.bbppMinFactor = ONE.setScale(6, MathConstants.ROUNDING_MODE)
+                .subtract(bbppTax, CONTEXT);
         
         final var buySellFee = ONE.setScale(6)
                 .add(TRADING_FEE.multiply(IVA, CONTEXT), CONTEXT)
@@ -1200,17 +1198,17 @@ public class ConsoleReports {
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(6).add(r.setScale(6).movePointLeft(2), CONTEXT))
+                .map(r -> ONE.setScale(6, MathConstants.ROUNDING_MODE).add(r.setScale(6, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT))
                 .collect(toList());
 
         this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", tr)
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(6).add(r.setScale(6).movePointLeft(2), CONTEXT))
+                .map(r -> ONE.setScale(6, MathConstants.ROUNDING_MODE).add(r.setScale(6, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT))
                 .collect(toList());
 
-        final var to = Inflation.USD_INFLATION.getTo();
+        final var to = USD_INFLATION.getTo();
 
         final var todaySavings = this.realSavings(null).getAmount(to);
 
@@ -1220,8 +1218,8 @@ public class ConsoleReports {
                 .subtract(invested.getAmount(), CONTEXT)
                 .add(extraCash, CONTEXT);
 
-        final var inflationRate = ONE.setScale(6)
-                .add(BigDecimal.valueOf(inflation).setScale(6).movePointLeft(2), CONTEXT);
+        final var inflationRate = ONE.setScale(6, MathConstants.ROUNDING_MODE)
+                .add(BigDecimal.valueOf(inflation).setScale(6, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT);
 
         final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).divide(buySellFee, CONTEXT);
         final var withdraw = BigDecimal.valueOf(monthlyWithdraw * 12)
@@ -1333,7 +1331,7 @@ public class ConsoleReports {
 
     private BigDecimal bbppFactor() {
         return ONE
-                .min(ONE
+                .min(ONE.setScale(6, MathConstants.ROUNDING_MODE)
                         .subtract(
                                 BigDecimal.valueOf(this.bbppMean + ThreadLocalRandom.current().nextGaussian() * this.bbppVar),
                                 CONTEXT))
@@ -1795,7 +1793,7 @@ public class ConsoleReports {
 
     private void yearSavingsIncomeTable() {
 
-        final int[] years = IntStream.rangeClosed(1999, Inflation.USD_INFLATION.getTo().getYear()).toArray();
+        final int[] years = IntStream.rangeClosed(1999, USD_INFLATION.getTo().getYear()).toArray();
 
         final var incomes = IntStream.of(years)
                 .mapToObj(i -> Map.entry(i, this.yearIncome(i)))
@@ -1829,7 +1827,7 @@ public class ConsoleReports {
                 .stream()
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(new SimpleAggregation(years * 12)::average)
-                .map(allRealUSDIncome -> allRealUSDIncome.getAmount(Inflation.USD_INFLATION.getTo()))
+                .map(allRealUSDIncome -> allRealUSDIncome.getAmount(USD_INFLATION.getTo()))
                 .orElseGet(() -> new MoneyAmount(ZERO, "USD"));
 
     }
@@ -1837,7 +1835,7 @@ public class ConsoleReports {
     private MoneyAmount savingsAverage(int years) {
         return new SimpleAggregation(years * 12)
                 .average(this.realNetSavings())
-                .getAmount(Inflation.USD_INFLATION.getTo());
+                .getAmount(USD_INFLATION.getTo());
     }
 
     private MoneyAmount yearIncome(int year) {
@@ -1871,7 +1869,7 @@ public class ConsoleReports {
 
         final var type = params.getOrDefault("type", "full");
 
-        final var limit = Inflation.USD_INFLATION.getTo();
+        final var limit = USD_INFLATION.getTo();
 
         final var year = Optional.ofNullable(params.get("y"))
                 .map(Integer::parseInt)
@@ -1941,7 +1939,7 @@ public class ConsoleReports {
     }
 
     private MoneyAmount lastAmount(String seriesName, YearMonth ym) {
-        return SeriesReader.readSeries("saving/" + seriesName + ".json").getAmountOrElseZero(ym);
+        return SeriesReader.readSeries("saving/" .concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
     }
 
 }
