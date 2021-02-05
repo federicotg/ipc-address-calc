@@ -1932,9 +1932,9 @@ public class ConsoleReports {
 
     private Stream<PortfolioItem> item(String type, Map<String, Optional<MoneyAmount>> amounts, YearMonth ym) {
 
-        return amounts.values().stream()
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+        return amounts.values()
+                .stream()
+                .flatMap(Optional::stream)
                 .filter(ma -> !ma.isZero())
                 .map(amount -> new PortfolioItem(amount, type, ym));
     }
