@@ -125,7 +125,7 @@ public class ConsoleReports {
     private MoneyAmountSeries realNetSavings;
 
     private final StringBuilder out;
-    
+
     private double bbppMean;
     private double bbppVar;
     private BigDecimal bbppMinFactor;
@@ -1170,7 +1170,7 @@ public class ConsoleReports {
         this.bbppVar = bbppTax.doubleValue() / 5.0d;
         this.bbppMinFactor = ONE.setScale(6, MathConstants.ROUNDING_MODE)
                 .subtract(bbppTax, CONTEXT);
-        
+
         final var buySellFee = ONE.setScale(6)
                 .add(TRADING_FEE.multiply(IVA, CONTEXT), CONTEXT)
                 .add(TRADING_FEE, CONTEXT)
@@ -1844,12 +1844,14 @@ public class ConsoleReports {
                 .stream()
                 .map(s -> s.filter((ym, ma) -> ym.getYear() == year))
                 .flatMap(s -> s)
-                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add)
+                .adjust(BigDecimal.valueOf(12), ONE);
     }
 
     private MoneyAmount yearSavings(int year) {
         return this.realNetSavings().filter((ym, ma) -> ym.getYear() == year)
-                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add)
+                .adjust(BigDecimal.valueOf(12), ONE);
 
     }
 
@@ -1939,7 +1941,7 @@ public class ConsoleReports {
     }
 
     private MoneyAmount lastAmount(String seriesName, YearMonth ym) {
-        return SeriesReader.readSeries("saving/" .concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
+        return SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
     }
 
 }
