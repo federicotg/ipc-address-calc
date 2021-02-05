@@ -48,7 +48,6 @@ import java.util.HashMap;
 import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Objects;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
@@ -1843,7 +1842,7 @@ public class ConsoleReports {
         return this.getIncomeSeries()
                 .stream()
                 .map(s -> s.filter((ym, ma) -> ym.getYear() == year))
-                .flatMap(s -> s)
+                .flatMap(Function.identity())
                 .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add)
                 .adjust(BigDecimal.valueOf(12), ONE);
     }
