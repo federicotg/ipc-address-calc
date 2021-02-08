@@ -37,14 +37,17 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.text.MessageFormat.format;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Objects;
@@ -70,6 +73,7 @@ import org.fede.calculator.money.series.BBPPItem;
 import org.fede.calculator.money.series.BBPPTaxBraket;
 import org.fede.calculator.money.series.BBPPYear;
 import org.fede.calculator.money.series.IndexSeriesSupport;
+import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
 
@@ -594,6 +598,7 @@ public class ConsoleReports {
                     entry("income-half", me::halfIncome),
                     entry("income-quarter", me::quarterIncome),
                     entry("p", () -> me.portfolio(args, "p")),
+                    entry("pa", () -> me.portfolioAllocation(args, "pa")),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
                     entry("house", () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
@@ -1982,6 +1987,98 @@ public class ConsoleReports {
 
     private MoneyAmount lastAmount(String seriesName, YearMonth ym) {
         return SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
+    }
+
+    private void portfolioAllocation(String[] args, String name) {
+
+        Map<String, Map<String, Optional<DayDollars>>> dayDollarsByYear = this.getInvestments()
+                .stream()
+                .flatMap(this::asDayDollarsByYear)
+                .collect(groupingBy(
+                        DayDollars::getYear,
+                        groupingBy(DayDollars::getType, reducing(DayDollars::combine))));
+
+        dayDollarsByYear.entrySet()
+                .stream()
+                .sorted(comparing(Map.Entry::getKey))
+                .forEach(e -> this.allocationYear(e.getKey(), e.getValue()));
+
+    }
+
+    private void allocationYear(String year, Map<String, Optional<DayDollars>> byType) {
+        this.appendLine("Year: ", year);
+
+        final var total = byType.values()
+                .stream()
+                .flatMap(Optional::stream)
+                .map(DayDollars::getAmount)
+                .reduce(ZERO, BigDecimal::add);
+
+        byType.values()
+                .stream()
+                .flatMap(Optional::stream)
+                .sorted(comparing((DayDollars d) -> d.getAmount()).reversed())
+                .map(d -> format("\t{0} {1}", 
+                        String.format("%-11s", d.getType()), 
+                        this.pctBar(d.getAmount().divide(total, CONTEXT))))
+                .forEach(this::appendLine);
+        this.appendLine("");
+
+    }
+
+    private Stream<DayDollars> asDayDollarsByYear(Investment i) {
+
+        return IntStream.rangeClosed(
+                YearMonth.of(i.getIn().getDate()).getYear(),
+                Optional.ofNullable(i.getOut())
+                        .map(InvestmentEvent::getDate)
+                        .map(YearMonth::of)
+                        .map(YearMonth::getYear)
+                        .orElse(USD_INFLATION.getTo().getYear()))
+                .mapToObj(year -> this.dayDollarsInYear(year, i));
+
+    }
+
+    private DayDollars dayDollarsInYear(int year, Investment i) {
+
+        final var yearStart = LocalDate.of(year, Month.JANUARY, 1);
+        final var yearEnd = LocalDate.of(year, Month.DECEMBER, 31);
+
+        final var investmentStart = LocalDate.ofInstant(i.getIn().getDate().toInstant(), ZoneId.systemDefault());
+
+        final var investmentEnd = Optional.ofNullable(i.getOut())
+                .map(InvestmentEvent::getDate)
+                .map(Date::toInstant)
+                .map(instant -> LocalDate.ofInstant(instant, ZoneId.systemDefault()))
+                .orElse(LocalDate.now());
+
+        final var to = min(yearEnd, investmentEnd);
+
+        final var daysInvestedInYear = ChronoUnit.DAYS.between(
+                max(yearStart, investmentStart),
+                to.plusDays(1));
+
+        final var usdInvested = ForeignExchanges.getForeignExchange(i.getCurrency(), "USD")
+                .exchange(i.getMoneyAmount(), "USD", to.getYear(), to.getMonthValue());
+
+        return new DayDollars(
+                year,
+                i.getType(),
+                i.getCurrency(),
+                usdInvested.getAmount().multiply(BigDecimal.valueOf(daysInvestedInYear), CONTEXT));
+
+    }
+
+    private static LocalDate min(LocalDate d1, LocalDate d2) {
+        return d1.compareTo(d2) <= 0
+                ? d1
+                : d2;
+    }
+
+    private static LocalDate max(LocalDate d1, LocalDate d2) {
+        return d1.compareTo(d2) >= 0
+                ? d1
+                : d2;
     }
 
 }
