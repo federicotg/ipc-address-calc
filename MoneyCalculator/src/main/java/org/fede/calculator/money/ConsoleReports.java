@@ -694,16 +694,30 @@ public class ConsoleReports {
                 avgSalary,
                 totalSavings.getAmount().divide(avgSalary, CONTEXT)));
 
-        final var m = totalSavings.getAmount().movePointLeft(3);
+        
+        //ingreso promedio de N meses
+        
+        final var agg = new SimpleAggregation(YearMonth.of(2012,1).monthsUntil(USD_INFLATION.getTo()));
+        
+        final var averagIncome = agg.average(this.realIncome()).getAmount(USD_INFLATION.getTo());
+
+          
+        // ahorro promedio de N meses
+        final var averagNetSavings = agg.average(this.realNetSavings()).getAmount(USD_INFLATION.getTo());
+       
+        
+        final var m = totalSavings.getAmount().divide(averagIncome.subtract(averagNetSavings).getAmount(), CONTEXT);
 
         final var yearAndMonth = m.divideAndRemainder(BigDecimal.valueOf(12), CONTEXT);
-
+        
+      
+        
         appendLine(format(
                 "Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
                 yearAndMonth[0],
                 yearAndMonth[1].setScale(0, MathConstants.ROUNDING_MODE),
-                PERCENT_FORMAT.format(new BigDecimal("0.58")),
-                new BigDecimal("1000")));
+                PERCENT_FORMAT.format(ONE.subtract(averagNetSavings.getAmount().divide(averagIncome.getAmount(), CONTEXT), CONTEXT)),
+                averagIncome.subtract(averagNetSavings).getAmount()));
 
     }
 
