@@ -103,8 +103,29 @@ public class InvestmentReport {
      * con tax y fee
      */
     public MoneyAmount getGrossRealInvestment() {
+
         return this.getNetRealInvestment()
-                .add(this.real.getIn().getFeeMoneyAmount().adjust(ONE, this.feeTaxRate));
+                .add(this.inFeeAmount());
+    }
+
+    private MoneyAmount outFeeAmount() {
+        return this.getCurrentValue().adjust(
+                ONE,
+                this.feeRate
+                        .add(this.feeRate, CONTEXT)
+                        .add(this.feeRate
+                                .multiply(this.feeTaxRate, CONTEXT), CONTEXT));
+    }
+
+    private MoneyAmount inFeeAmount() {
+
+        // ccl fee factor 1 - 2 * fee = 0,988
+        final var cclFeeFactor = ONE
+                .subtract(this.feeRate.add(this.feeRate, CONTEXT), CONTEXT);
+
+        return this.real.getIn().getFeeMoneyAmount().adjust(ONE, this.feeTaxRate)
+                .add(this.real.getIn().getMoneyAmount().adjust(cclFeeFactor, ONE)
+                        .subtract(this.real.getIn().getMoneyAmount()));
     }
 
     /*
@@ -128,8 +149,7 @@ public class InvestmentReport {
     }
 
     public MoneyAmount feeAmount() {
-        return this.real.getIn().getFeeMoneyAmount().adjust(ONE, this.feeTaxRate)
-                .add(this.getCurrentValue().adjust(ONE, this.feeRate));
+        return this.inFeeAmount().add(this.outFeeAmount());
     }
 
     public MoneyAmount capitalGainsTax() {
@@ -150,11 +170,10 @@ public class InvestmentReport {
     public MoneyAmount getNetRealProfit() {
 
         final var cv = this.getCurrentValue();
-        final var feeAmount = cv.adjust(ONE, this.feeRate);
         final var capitalGainAmount = this.capitalGainsTax();
         return cv
                 .subtract(this.getGrossRealInvestment())
-                .subtract(feeAmount)
+                .subtract(this.outFeeAmount())
                 .subtract(capitalGainAmount);
     }
 

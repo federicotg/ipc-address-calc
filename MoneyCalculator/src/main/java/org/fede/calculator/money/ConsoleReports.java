@@ -95,6 +95,8 @@ public class ConsoleReports {
 
     private static final BigDecimal TRADING_FEE = new BigDecimal("0.006");
 
+    
+    private static final BigDecimal CAPITAL_GAINS_TAR_RATE = new BigDecimal("0.15");
     private static final BigDecimal RUSSELL2000_PCT = new BigDecimal("0.1");
     private static final BigDecimal SP500_PCT = new BigDecimal("0.7");
     private static final BigDecimal EIMI_PCT = new BigDecimal("0.1");
@@ -337,10 +339,10 @@ public class ConsoleReports {
             }
         }
 
-        final var tax = new BigDecimal("0.15");
-        final var fee = TRADING_FEE.multiply(IVA, CONTEXT)
-                .add(TRADING_FEE, CONTEXT)
-                .add(TRADING_FEE, CONTEXT);
+        
+//        final var fee = TRADING_FEE.multiply(IVA, CONTEXT)
+//                .add(TRADING_FEE, CONTEXT)
+//                .add(TRADING_FEE, CONTEXT);
 
         final var inflation = nominal
                 ? new CPIInflation(IndexSeriesSupport.CONSTANT_SERIES, "USD")
@@ -351,7 +353,7 @@ public class ConsoleReports {
                 .filter(i -> type == null || i.getType().equals(type))
                 .filter(i -> currency == null || i.getCurrency().equals(currency))
                 .sorted(comparing(Investment::getInitialDate))
-                .map(i -> this.asReport(i, tax, fee, inflation))
+                .map(i -> this.asReport(i, inflation))
                 .collect(toList());
 
         if (!totalOnly) {
@@ -394,9 +396,9 @@ public class ConsoleReports {
 
     }
 
-    private InvestmentReport asReport(Investment i, BigDecimal tax, BigDecimal fee, Inflation inflation) {
+    private InvestmentReport asReport(Investment i, Inflation inflation) {
         if (i.getType().equals(ETF) && i.getOut() == null) {
-            return new InvestmentReport(inflation, i, tax, fee, IVA);
+            return new InvestmentReport(inflation, i, CAPITAL_GAINS_TAR_RATE, TRADING_FEE, IVA);
         }
         return new InvestmentReport(inflation, i, ZERO, ZERO, ONE);
     }
