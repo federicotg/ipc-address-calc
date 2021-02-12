@@ -94,6 +94,7 @@ public class ConsoleReports {
             .multiply(IVA, CONTEXT);
 
     private static final BigDecimal TRADING_FEE = new BigDecimal("0.006");
+    private static final BigDecimal TRADING_FX_FEE = new BigDecimal("0.0025");
 
     private static final BigDecimal CAPITAL_GAINS_TAR_RATE = new BigDecimal("0.15");
     private static final BigDecimal RUSSELL2000_PCT = new BigDecimal("0.1");
@@ -474,9 +475,9 @@ public class ConsoleReports {
 
     private InvestmentReport asReport(Investment i, Inflation inflation) {
         if (i.getType().equals(ETF) && i.getOut() == null) {
-            return new InvestmentReport(inflation, i, CAPITAL_GAINS_TAR_RATE, TRADING_FEE, IVA);
+            return new InvestmentReport(inflation, i, CAPITAL_GAINS_TAR_RATE, TRADING_FEE, IVA, TRADING_FX_FEE);
         }
-        return new InvestmentReport(inflation, i, ZERO, ZERO, ONE);
+        return new InvestmentReport(inflation, i, ZERO, ZERO, ONE, ZERO);
     }
 
     private static String plusMinus(BigDecimal pct) {

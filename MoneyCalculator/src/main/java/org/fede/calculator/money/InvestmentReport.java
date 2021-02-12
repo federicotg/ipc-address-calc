@@ -58,6 +58,7 @@ public class InvestmentReport {
     private final BigDecimal capitalGainsTaxRate;
     private final BigDecimal feeRate;
     private final BigDecimal feeTaxRate;
+    private final BigDecimal fxFee;
     private final String type;
 
     private BigDecimal annualizedReturn;
@@ -67,8 +68,9 @@ public class InvestmentReport {
             Investment nominalInv,
             BigDecimal capitalGainsTaxRate,
             BigDecimal feeRate,
-            BigDecimal feeTaxRate) {
-        this(Inflation.USD_INFLATION, nominalInv, capitalGainsTaxRate, feeRate, feeTaxRate);
+            BigDecimal feeTaxRate,
+            BigDecimal fxFee) {
+        this(Inflation.USD_INFLATION, nominalInv, capitalGainsTaxRate, feeRate, feeTaxRate, fxFee);
 
     }
 
@@ -77,13 +79,16 @@ public class InvestmentReport {
             Investment nominalInv,
             BigDecimal capitalGainsTaxRate,
             BigDecimal feeRate,
-            BigDecimal feeTaxRate) {
+            BigDecimal feeTaxRate,
+            BigDecimal fxFee) {
 
         this.inflation = inflation;
         this.capitalGainsTaxRate = capitalGainsTaxRate;
         this.feeRate = feeRate;
         this.feeTaxRate = feeTaxRate;
-
+        this.fxFee = nominalInv.getCurrency().equals("MEUD")
+                ? fxFee
+                : BigDecimal.ZERO;
         this.nominal = ForeignExchanges.exchange(nominalInv, "USD");
         this.real = this.inflation.real(this.nominal);
         this.type = MessageFormat.format("{0} {1} {2}",
@@ -109,12 +114,17 @@ public class InvestmentReport {
     }
 
     public MoneyAmount outFeeAmount() {
-        return this.getCurrentValue().adjust(
-                ONE,
-                this.feeRate
-                        .add(this.feeRate, CONTEXT)
-                        .add(this.feeRate
-                                .multiply(this.feeTaxRate, CONTEXT), CONTEXT));
+
+        final var feeWithTax = this.feeRate
+                .add(this.fxFee, CONTEXT)
+                .multiply(this.feeTaxRate, CONTEXT);
+
+        final var cclFee = this.feeRate
+                .add(this.feeRate, CONTEXT);
+
+        final var totalFee = cclFee.add(feeWithTax, CONTEXT);
+
+        return this.getCurrentValue().adjust(ONE, totalFee);
     }
 
     public MoneyAmount inFeeAmount() {
