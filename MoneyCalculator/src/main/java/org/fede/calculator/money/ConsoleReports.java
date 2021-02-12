@@ -95,7 +95,6 @@ public class ConsoleReports {
 
     private static final BigDecimal TRADING_FEE = new BigDecimal("0.006");
 
-    
     private static final BigDecimal CAPITAL_GAINS_TAR_RATE = new BigDecimal("0.15");
     private static final BigDecimal RUSSELL2000_PCT = new BigDecimal("0.1");
     private static final BigDecimal SP500_PCT = new BigDecimal("0.7");
@@ -302,23 +301,19 @@ public class ConsoleReports {
         this.investmentsProfit(null, null, (inv) -> true, true, nominal);
     }
 
-    private void currentInvestmentsProfit(String currency, InvestmentType type, boolean nominal) {
+    private void currentInvestmentsProfit(String currency, InvestmentType type, boolean nominal, boolean ref) {
         this.investmentsProfit(currency, type, Investment::isCurrent, false, nominal);
 
-//        appendLine(format("\nClosing fee and tax: {0}. Capital gains tax rate: {1}",
-//                percentFormat.format(TRADING_FEE.multiply(IVA, CONTEXT)
-//                        .add(TRADING_FEE, CONTEXT)
-//                        .add(TRADING_FEE, CONTEXT)),
-//                "15 %"));
-        appendLine("");
-        appendLine("Investment: invested amount ignoring openning fees and taxes");
-        appendLine("Current: currently invested amount");
-        appendLine("Profit: capital gains before fees and taxes");
-        appendLine("Net Profit: capital gains after fees and taxes if closing today");
-        appendLine("CAGR: annualized real return after fees and taxes / target > 2.25 %");
-        appendLine("Fee: opening fee and taxes, closing and ccl fees and taxes");
-        appendLine("Tax: capital gains tax as of today.");
-
+        if (ref) {
+            appendLine("");
+            appendLine("Investment: invested amount fees and taxes.");
+            appendLine("Current: today's value.");
+            appendLine("Profit: gains ignoring fees and taxes.");
+            appendLine("Net Profit: gains after fees and taxes.");
+            appendLine("CAGR: annualized ", nominal ? "nominal" : "real", " return after fees and taxes. Target > 2.25 %.");
+            appendLine("Fee: buy and sell fees.");
+            appendLine("Tax: capital gains tax.");
+        }
     }
 
     private void pastInvestmentsProfit(String currency, InvestmentType type, boolean nominal) {
@@ -338,11 +333,6 @@ public class ConsoleReports {
                 appendLine("===< Ganancia en Inversiones en ", type.toString(), " ", currencyText, " en USD ", nominal ? "nominales" : "reales", " >===");
             }
         }
-
-        
-//        final var fee = TRADING_FEE.multiply(IVA, CONTEXT)
-//                .add(TRADING_FEE, CONTEXT)
-//                .add(TRADING_FEE, CONTEXT);
 
         final var inflation = nominal
                 ? new CPIInflation(IndexSeriesSupport.CONSTANT_SERIES, "USD")
@@ -366,18 +356,8 @@ public class ConsoleReports {
                 .map(InvestmentReport::toString)
                 .forEach(this::appendLine);
 
-        final var totalFee = realProfits.stream()
-                .map(InvestmentReport::feeAmount)
-                .map(MoneyAmount::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-
         final var totalTax = realProfits.stream()
                 .map(InvestmentReport::capitalGainsTax)
-                .map(MoneyAmount::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-
-        final var currentTotal = realProfits.stream()
-                .map(InvestmentReport::getCurrentValue)
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
@@ -387,12 +367,108 @@ public class ConsoleReports {
         appendLine("\nTotal investment      After fee/tax current      Profit     %");
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getGrossRealInvestment, InvestmentReport::getNetRealProfit);
 
-        appendLine(format("\nTotal fee {0,number,currency} ({2}). Total tax {1,number,currency} ({3}).",
-                totalFee,
-                totalTax,
-                PERCENT_FORMAT.format(totalFee.divide(currentTotal, CONTEXT)),
-                PERCENT_FORMAT.format(totalTax.divide(currentTotal, CONTEXT))
+        final var inFee = realProfits.stream()
+                .map(InvestmentReport::inFeeAmount)
+                .map(MoneyAmount::getAmount)
+                .reduce(ZERO, BigDecimal::add);
+
+        final var outFee = realProfits.stream()
+                .map(InvestmentReport::outFeeAmount)
+                .map(MoneyAmount::getAmount)
+                .reduce(ZERO, BigDecimal::add);
+
+        final var investment = realProfits.stream()
+                .map(InvestmentReport::getNetRealInvestment)
+                .map(MoneyAmount::getAmount)
+                .reduce(ZERO, BigDecimal::add);
+
+        final var grossProfit = realProfits.stream()
+                .map(InvestmentReport::getGrossRealProfit)
+                .map(MoneyAmount::getAmount)
+                .reduce(ZERO, BigDecimal::add);
+
+        final var profit = grossProfit
+                .subtract(outFee, CONTEXT)
+                .subtract(totalTax, CONTEXT);
+
+        final var totalAmount = inFee
+                .add(outFee, CONTEXT)
+                .add(investment, CONTEXT)
+                .add(profit, CONTEXT)
+                .add(totalTax, CONTEXT);
+
+        appendLine("");
+        appendLine(format("{0}{1}{2}",
+                text("Buy fee", 10),
+                currency(inFee, 11),
+                pctBar(inFee.divide(totalAmount, CONTEXT))));
+
+        appendLine(format("{0}{1}{2}",
+                text("Invested", 10),
+                currency(investment, 11),
+                pctBar(investment.divide(totalAmount, CONTEXT))));
+
+        appendLine(format("{0}{1}{2}",
+                text("Profit", 10),
+                currency(profit, 11),
+                pctBar(profit.divide(totalAmount, CONTEXT))));
+
+        appendLine(format("{0}{1}{2}",
+                text("Sell fee", 10),
+                currency(outFee, 11),
+                pctBar(outFee.divide(totalAmount, CONTEXT))));
+
+        appendLine(format("{0}{1}{2}",
+                text("Tax", 10),
+                currency(totalTax, 11),
+                pctBar(totalTax.divide(totalAmount, CONTEXT))));
+
+//        appendLine(format("------------------------------\n{0}{1}",
+//                text("Total", 11),
+//                currency(totalAmount, 11)));
+        appendLine("");
+
+        appendLine(format("{0}{1}{2}",
+                text("Initial", 10),
+                text("", 12),
+                currency(inFee.add(investment, CONTEXT), 12)));
+
+        appendLine(format("{0}{1}{2}",
+                text("Buy fee", 10),
+                currency(inFee.negate(CONTEXT), 12),
+                currency(investment, 12)));
+
+        appendLine(format("{0}{1}{2}",
+                text("Profit", 10),
+                currency(grossProfit, 12),
+                currency(investment.add(grossProfit, CONTEXT), 12)
         ));
+
+        appendLine(format("{0}{1}",
+                text("Sell fee", 10),
+                currency(outFee.negate(CONTEXT), 12)));
+
+        appendLine(format("{0}{1}",
+                text("Tax", 10),
+                currency(totalTax.negate(CONTEXT), 12)));
+
+        appendLine(format("{0}{1}{2}",
+                text("Result", 11),
+                text("", 12),
+                currency(investment
+                        .add(grossProfit, CONTEXT)
+                        .subtract(outFee, CONTEXT)
+                        .subtract(totalTax, CONTEXT), 12)));
+
+        appendLine(format("{0}{1}",
+                text("Neto", 10),
+                currency(investment
+                        .add(grossProfit, CONTEXT)
+                        .subtract(outFee, CONTEXT)
+                        .subtract(totalTax, CONTEXT)
+                        .subtract(inFee, CONTEXT)
+                        .subtract(investment, CONTEXT),
+                        12)));
 
     }
 
@@ -522,6 +598,8 @@ public class ConsoleReports {
 
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
 
+        final var ref = Boolean.parseBoolean(params.getOrDefault("ref", "false"));
+
         final var type = params.getOrDefault("type", "current");
 
         final var subtype = params.getOrDefault("subtype", "all");
@@ -531,14 +609,14 @@ public class ConsoleReports {
         if (type.equals("current")) {
 
             final Map<String, Runnable> actions = Map.ofEntries(
-                    entry("on", () -> this.currentInvestmentsProfit("USD", BONO, nominal)),
-                    entry("pf", () -> this.currentInvestmentsProfit("USD", PF, nominal)),
-                    entry("gold", () -> this.currentInvestmentsProfit("XAU", XAU, nominal)),
-                    entry("all", () -> this.currentInvestmentsProfit((String) null, (InvestmentType) null, nominal)),
-                    entry("cspx", () -> this.currentInvestmentsProfit("CSPX", ETF, nominal)),
-                    entry("eimi", () -> this.currentInvestmentsProfit("EIMI", ETF, nominal)),
-                    entry("meud", () -> this.currentInvestmentsProfit("MEUD", ETF, nominal)),
-                    entry("xrsu", () -> this.currentInvestmentsProfit("XRSU", ETF, nominal)));
+                    entry("on", () -> this.currentInvestmentsProfit("USD", BONO, nominal, ref)),
+                    entry("pf", () -> this.currentInvestmentsProfit("USD", PF, nominal, ref)),
+                    entry("gold", () -> this.currentInvestmentsProfit("XAU", XAU, nominal, ref)),
+                    entry("all", () -> this.currentInvestmentsProfit((String) null, (InvestmentType) null, nominal, ref)),
+                    entry("cspx", () -> this.currentInvestmentsProfit("CSPX", ETF, nominal, ref)),
+                    entry("eimi", () -> this.currentInvestmentsProfit("EIMI", ETF, nominal, ref)),
+                    entry("meud", () -> this.currentInvestmentsProfit("MEUD", ETF, nominal, ref)),
+                    entry("xrsu", () -> this.currentInvestmentsProfit("XRSU", ETF, nominal, ref)));
 
             actions.getOrDefault(subtype, defaultAction).run();
         } else if (type.equals("past")) {
@@ -630,7 +708,7 @@ public class ConsoleReports {
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                        entry("inv", "type=(current*|past|global) subtype=(all*|cspx|meud|xrsu|eimi|ay24|ars|usd|lete|lecap|gold|on|uva|conbala|conaafa|caplusa|pf) nominal=false"),
+                        entry("inv", "type=(current*|past|global) subtype=(all*|cspx|meud|xrsu|eimi|ay24|ars|usd|lete|lecap|gold|on|uva|conbala|conaafa|caplusa|pf) nominal=false ref=false"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
                         entry("bbpp", "year=2020"),
@@ -694,24 +772,18 @@ public class ConsoleReports {
                 avgSalary,
                 totalSavings.getAmount().divide(avgSalary, CONTEXT)));
 
-        
         //ingreso promedio de N meses
-        
-        final var agg = new SimpleAggregation(YearMonth.of(2012,1).monthsUntil(USD_INFLATION.getTo()));
-        
+        final var agg = new SimpleAggregation(YearMonth.of(2012, 1).monthsUntil(USD_INFLATION.getTo()));
+
         final var averagIncome = agg.average(this.realIncome()).getAmount(USD_INFLATION.getTo());
 
-          
         // ahorro promedio de N meses
         final var averagNetSavings = agg.average(this.realNetSavings()).getAmount(USD_INFLATION.getTo());
-       
-        
+
         final var m = totalSavings.getAmount().divide(averagIncome.subtract(averagNetSavings).getAmount(), CONTEXT);
 
         final var yearAndMonth = m.divideAndRemainder(BigDecimal.valueOf(12), CONTEXT);
-        
-      
-        
+
         appendLine(format(
                 "Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
                 yearAndMonth[0],
@@ -831,12 +903,11 @@ public class ConsoleReports {
                 currency(e.getSecond(), 10),
                 pctBar(e.getSecond().divide(total, CONTEXT))))
                 .forEach(this::appendLine);
-        
-        this.appendLine(format("-----------------------------\n{0} USD {1}", 
-                text("Total", 5), 
+
+        this.appendLine(format("-----------------------------\n{0} USD {1}",
+                text("Total", 5),
                 currency(total, 10)));
-                
-        
+
     }
 
     private MoneyAmount aggregate(List<MoneyAmountSeries> mas, Function<MoneyAmountSeries, MoneyAmount> aggregation) {
@@ -1705,7 +1776,7 @@ public class ConsoleReports {
                 .sorted(Comparator.comparing(Map.Entry::getKey))
                 .forEach(e -> this.appendLine(format("{0} {1} {2} {3}",
                 e.getKey(),
-                currency(e.getValue().getAmount(),11),
+                currency(e.getValue().getAmount(), 11),
                 Optional.ofNullable(comparisonByYear.get(e.getKey()))
                         .map(comp -> this.pctNumber(e.getValue().getAmount().divide(comp.getAmount(), CONTEXT).movePointRight(2)))
                         .orElse(""),

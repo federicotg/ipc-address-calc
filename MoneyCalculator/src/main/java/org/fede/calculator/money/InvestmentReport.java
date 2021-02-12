@@ -108,7 +108,7 @@ public class InvestmentReport {
                 .add(this.inFeeAmount());
     }
 
-    private MoneyAmount outFeeAmount() {
+    public MoneyAmount outFeeAmount() {
         return this.getCurrentValue().adjust(
                 ONE,
                 this.feeRate
@@ -117,7 +117,7 @@ public class InvestmentReport {
                                 .multiply(this.feeTaxRate, CONTEXT), CONTEXT));
     }
 
-    private MoneyAmount inFeeAmount() {
+    public MoneyAmount inFeeAmount() {
 
         // ccl fee factor 1 - 2 * fee = 0,988
         final var cclFeeFactor = ONE
