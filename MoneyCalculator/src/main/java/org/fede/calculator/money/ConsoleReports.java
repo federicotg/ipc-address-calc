@@ -399,21 +399,58 @@ public class ConsoleReports {
                 .add(totalTax, CONTEXT);
 
         appendLine("");
+        
+        
+        appendLine("\t<----------->");
+        appendLine("\t<- Details ->");
+        appendLine("\t<----------->");
+        
+        appendLine("");
         appendLine(format("{0}{1}{2}",
                 text("Buy fee", 10),
                 currency(inFee, 11),
                 pctBar(inFee.divide(totalAmount, CONTEXT))));
 
+        appendLine("");
         appendLine(format("{0}{1}{2}",
                 text("Invested", 10),
                 currency(investment, 11),
                 pctBar(investment.divide(totalAmount, CONTEXT))));
 
+        
+        Comparator<Map.Entry<String, BigDecimal>> descendingByAmount = comparing((Map.Entry<String, BigDecimal> e) -> e.getValue()).reversed();
+        
+        // detail
+        realProfits.stream()
+                .collect(groupingBy(InvestmentReport::currency,
+                        mapping(InvestmentReport::getNetRealInvestment,
+                                mapping(MoneyAmount::getAmount,
+                                        reducing(ZERO, BigDecimal::add)))))
+                .entrySet()
+                .stream()
+                .sorted(descendingByAmount)
+                .map(e -> format("\t{0}{1}{2}", text(e.getKey(), 8), currency(e.getValue(), 12), pctBar(e.getValue().divide(investment, CONTEXT))))
+                .forEach(this::appendLine);
+
+        appendLine("");
         appendLine(format("{0}{1}{2}",
                 text("Profit", 10),
                 currency(profit, 11),
                 pctBar(profit.divide(totalAmount, CONTEXT))));
 
+        // detail
+        realProfits.stream()
+                .collect(groupingBy(InvestmentReport::currency,
+                        mapping((InvestmentReport r) -> r.getGrossRealProfit().subtract(r.outFeeAmount()).subtract(r.capitalGainsTax()),
+                                mapping(MoneyAmount::getAmount,
+                                        reducing(ZERO, BigDecimal::add)))))
+                .entrySet()
+                .stream()
+                .sorted(descendingByAmount)
+                .map(e -> format("\t{0}{1}{2}", text(e.getKey(), 8), currency(e.getValue(), 12), pctBar(e.getValue().divide(investment, CONTEXT))))
+                .forEach(this::appendLine);
+
+        appendLine("");
         appendLine(format("{0}{1}{2}",
                 text("Sell fee", 10),
                 currency(outFee, 11),
@@ -424,9 +461,6 @@ public class ConsoleReports {
                 currency(totalTax, 11),
                 pctBar(totalTax.divide(totalAmount, CONTEXT))));
 
-//        appendLine(format("------------------------------\n{0}{1}",
-//                text("Total", 11),
-//                currency(totalAmount, 11)));
         appendLine("");
 
         appendLine(format("{0}{1}{2}",

@@ -319,4 +319,8 @@ public class InvestmentReport {
 
         return String.format("%-15s", stream.collect(joining()));
     }
+    
+    public String currency(){
+        return this.nominal.getCurrency();
+    }
 }
