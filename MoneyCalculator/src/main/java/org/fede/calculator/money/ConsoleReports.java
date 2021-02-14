@@ -462,37 +462,39 @@ public class ConsoleReports {
         appendLine("\t<---------->");
         appendLine("\t<- Cuenta ->");
         appendLine("\t<---------->");
+        
+        final var width = 12;
 
         appendLine(format("{0}{1}{2}",
                 text("Initial", textWidth),
-                text("", 12),
-                currency(inFee.add(investment, CONTEXT), 12)));
+                text("", width),
+                currency(inFee.add(investment, CONTEXT), width)));
 
         appendLine(format("{0}{1}{2}",
                 text("Buy fee", textWidth),
-                currency(inFee.negate(CONTEXT), 12),
-                currency(investment, 12)));
+                currency(inFee.negate(CONTEXT), width),
+                currency(investment, width)));
 
         appendLine(format("{0}{1}{2}",
                 text("Profit", textWidth),
-                currency(grossProfit, 12),
-                currency(investment.add(grossProfit, CONTEXT), 12)));
+                currency(grossProfit, width),
+                currency(investment.add(grossProfit, CONTEXT), width)));
 
         appendLine(format("{0}{1}",
                 text("Sell fee", textWidth),
-                currency(outFee.negate(CONTEXT), 12)));
+                currency(outFee.negate(CONTEXT), width)));
 
         appendLine(format("{0}{1}",
                 text("Tax", textWidth),
-                currency(totalTax.negate(CONTEXT), 12)));
+                currency(totalTax.negate(CONTEXT), width)));
 
         appendLine(format("{0}{1}{2}",
                 text("Result", textWidth),
-                text("", 12),
+                text("", width),
                 currency(investment
                         .add(grossProfit, CONTEXT)
                         .subtract(outFee, CONTEXT)
-                        .subtract(totalTax, CONTEXT), 12)));
+                        .subtract(totalTax, CONTEXT), width)));
 
         appendLine(format("{0}{1}",
                 text("Neto", textWidth),
@@ -502,7 +504,7 @@ public class ConsoleReports {
                         .subtract(totalTax, CONTEXT)
                         .subtract(inFee, CONTEXT)
                         .subtract(investment, CONTEXT),
-                        12)));
+                        width)));
 
     }
 
