@@ -728,7 +728,7 @@ public class ConsoleReports {
                     //expenses
                     entry("expenses", () -> me.expenses(args, "expenses")),
                     entry("expenses-evo", () -> me.expenseEvolution(args, "expenses-evo")),
-                    entry("expenses-change", me::expensesChange),
+                    entry("expenses-change", () -> me.expensesChange(args, "expenses-change")),
                     //goal
                     entry("goal", () -> me.goal(args, "goal")),
                     entry("bbpp", () -> me.bbpp(args, "bbpp"))
@@ -754,6 +754,7 @@ public class ConsoleReports {
                         entry("savings-avg-net-pct", "months=12"),
                         entry("savings-avg-spent-pct", "months=12"),
                         entry("expenses", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
+                        entry("expenses-change", "months=12"),
                         entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment)"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)")
                 );
@@ -1233,13 +1234,15 @@ public class ConsoleReports {
         //appendLine("\n", name, " real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
     }
 
-    private void expensesChange() {
+    private void expensesChange(String[] args, String name) {
+
+        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
 
         appendLine("===< Expenses Change >===");
 
-        this.evolution("12-month average expenses change",
+        this.evolution(format("{0}-month average expenses change", months),
                 new SimpleAggregation(2)
-                        .change(new SimpleAggregation(12)
+                        .change(new SimpleAggregation(months)
                                 .average(this.realExpenses(null))), 5);
     }
 
