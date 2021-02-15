@@ -54,6 +54,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -169,6 +170,7 @@ public class ConsoleReports {
                     of("home", "limpieza"),
                     of("home", "expensas"),
                     of("entertainment", "netflix"),
+                    of("entertainment", "viajes"),
                     of("entertainment", "xbox"))
                     .collect(groupingBy(
                             Pair::getFirst,
@@ -406,13 +408,13 @@ public class ConsoleReports {
         appendLine(format("{0}{1}{2}",
                 text("Buy fee", textWidth),
                 currency(inFee, numberWidth),
-                pctBar(inFee.divide(totalAmount, CONTEXT))));
+                pctBar(inFee, totalAmount)));
 
         appendLine("");
         appendLine(format("{0}{1}{2}",
                 text("Invested", textWidth),
                 currency(investment, numberWidth),
-                pctBar(investment.divide(totalAmount, CONTEXT))));
+                pctBar(investment, totalAmount)));
 
         Comparator<Map.Entry<String, BigDecimal>> descendingByAmount = comparing((Map.Entry<String, BigDecimal> e) -> e.getValue()).reversed();
 
@@ -425,14 +427,14 @@ public class ConsoleReports {
                 .entrySet()
                 .stream()
                 .sorted(descendingByAmount)
-                .map(e -> format("\t{0}{1}{2}", text(e.getKey(), 8), currency(e.getValue(), numberWidth + 1), pctBar(e.getValue().divide(investment, CONTEXT))))
+                .map(e -> format("\t{0}{1}{2}", text(e.getKey(), 8), currency(e.getValue(), numberWidth + 1), pctBar(e.getValue(), investment)))
                 .forEach(this::appendLine);
 
         appendLine("");
         appendLine(format("{0}{1}{2}",
                 text("Profit", textWidth),
                 currency(profit, numberWidth),
-                pctBar(profit.divide(totalAmount, CONTEXT))));
+                pctBar(profit, totalAmount)));
 
         // detail
         realProfits.stream()
@@ -443,26 +445,26 @@ public class ConsoleReports {
                 .entrySet()
                 .stream()
                 .sorted(descendingByAmount)
-                .map(e -> format("\t{0}{1}{2}", text(e.getKey(), 8), currency(e.getValue(), numberWidth + 1), pctBar(e.getValue().divide(profit, CONTEXT))))
+                .map(e -> format("\t{0}{1}{2}", text(e.getKey(), 8), currency(e.getValue(), numberWidth + 1), pctBar(e.getValue(), profit)))
                 .forEach(this::appendLine);
 
         appendLine("");
         appendLine(format("{0}{1}{2}",
                 text("Sell fee", textWidth),
                 currency(outFee, numberWidth),
-                pctBar(outFee.divide(totalAmount, CONTEXT))));
+                pctBar(outFee, totalAmount)));
 
         appendLine(format("{0}{1}{2}",
                 text("Tax", textWidth),
                 currency(totalTax, numberWidth),
-                pctBar(totalTax.divide(totalAmount, CONTEXT))));
+                pctBar(totalTax, totalAmount)));
 
         appendLine("");
 
         appendLine("\t<---------->");
         appendLine("\t<- Cuenta ->");
         appendLine("\t<---------->");
-        
+
         final var width = 12;
 
         appendLine(format("{0}{1}{2}",
@@ -739,7 +741,7 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", "trials=100000 period=20 retirement=65 age=100 w=1000 d=739 inflation=3 cash=0 sp500=true tax=true"),
+                        entry("goal", "trials=100000 period=20 retirement=65 age=100 w=900 d=800 inflation=3 cash=0 sp500=true tax=true bbpp=2.25"),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
@@ -937,7 +939,7 @@ public class ConsoleReports {
                 text(e.getFirst(), 13),
                 text(" USD ", 4),
                 currency(e.getSecond(), 10),
-                pctBar(e.getSecond().divide(total, CONTEXT))))
+                pctBar(e.getSecond(), total)))
                 .forEach(this::appendLine);
 
         this.appendLine(format("-----------------------------\n{0} USD {1}",
@@ -1311,11 +1313,11 @@ public class ConsoleReports {
 
         final var trials = Integer.parseInt(params.getOrDefault("trials", "100000"));
         final var periodYears = Integer.parseInt(params.getOrDefault("period", "20"));
-        final var deposit = Integer.parseInt(params.getOrDefault("d", "739"));
+        final var deposit = Integer.parseInt(params.getOrDefault("d", "900"));
         final var withdraw = Integer.parseInt(params.getOrDefault("w", "1000"));
         final var inflation = Integer.parseInt(params.getOrDefault("inflation", "3"));
-        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "65"));
-        final var age = Integer.parseInt(params.getOrDefault("age", "100"));
+        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "61"));
+        final var age = Integer.parseInt(params.getOrDefault("age", "99"));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", "0"));
         final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", "true"));
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "true"));
@@ -1420,8 +1422,8 @@ public class ConsoleReports {
                 .map(f -> f.multiply(withdraw, CONTEXT))
                 .collect(toList());
 
-        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.85d);
-        final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 0.8d);
+        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 1.0d);
+        final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 1.0d);
         final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.75d);
         final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.70d);
 
@@ -1760,11 +1762,11 @@ public class ConsoleReports {
 
     private void yearlySavings() {
 
-        this.group("Net yearly savings", this.realNetSavings(), this.realIncome(), ym -> String.valueOf(ym.getYear()));
+        this.group("Net yearly savings", this.realNetSavings(), this.realIncome(), ym -> String.valueOf(ym.getYear()), 12);
     }
 
     private void yearlyIncome() {
-        this.group("Yearly income", this.realIncome(), null, ym -> String.valueOf(ym.getYear()));
+        this.group("Yearly income", this.realIncome(), null, ym -> String.valueOf(ym.getYear()), 12);
     }
 
     private String half(YearMonth ym) {
@@ -1777,23 +1779,23 @@ public class ConsoleReports {
 
     private void halfSavings() {
 
-        this.group("Net half savings", this.realNetSavings(), this.realIncome(), this::half);
+        this.group("Net half savings", this.realNetSavings(), this.realIncome(), this::half, 6);
     }
 
     private void halfIncome() {
-        this.group("Half income", this.realIncome(), null, this::half);
+        this.group("Half income", this.realIncome(), null, this::half, 6);
     }
 
     private void quarterSavings() {
 
-        this.group("Net quarter savings", this.realNetSavings(), this.realIncome(), this::quarter);
+        this.group("Net quarter savings", this.realNetSavings(), this.realIncome(), this::quarter, 3);
     }
 
     private void quarterIncome() {
-        this.group("Quarter income", this.realIncome(), null, this::quarter);
+        this.group("Quarter income", this.realIncome(), null, this::quarter, 3);
     }
 
-    private void group(String title, MoneyAmountSeries series, MoneyAmountSeries comparisonSeries, Function<YearMonth, String> classifier) {
+    private void group(String title, MoneyAmountSeries series, MoneyAmountSeries comparisonSeries, Function<YearMonth, String> classifier, int months) {
         appendLine("===< " + title + " >===");
 
         final Map<String, MoneyAmount> byYear = new HashMap<>(32, 0.75f);
@@ -1806,13 +1808,12 @@ public class ConsoleReports {
             comparisonSeries.forEachNonZero((ym, ma) -> comparisonByYear.merge(classifier.apply(ym), ma, MoneyAmount::add));
         }
 
-        final var nf = NumberFormat.getCurrencyInstance();
-
+        //final var nf = NumberFormat.getCurrencyInstance();
         byYear.entrySet().stream()
                 .sorted(Comparator.comparing(Map.Entry::getKey))
                 .forEach(e -> this.appendLine(format("{0} {1} {2} {3}",
                 e.getKey(),
-                currency(e.getValue().getAmount(), 11),
+                currency(e.getValue().getAmount().divide(BigDecimal.valueOf(months), CONTEXT), 11),
                 Optional.ofNullable(comparisonByYear.get(e.getKey()))
                         .map(comp -> this.pctNumber(e.getValue().getAmount().divide(comp.getAmount(), CONTEXT).movePointRight(2)))
                         .orElse(""),
@@ -1974,7 +1975,7 @@ public class ConsoleReports {
 
         IntStream.of(years)
                 .mapToObj(y -> this.row(Stream.of(
-                format("-= {0} =-", String.valueOf(y)),
+                format("-= {0} =-", String.valueOf(y) + (y == USD_INFLATION.getTo().getYear() ? "*" : "")),
                 currency(incomes.get(y).getAmount()),
                 currency(savings.get(y).getAmount()),
                 currency(incomes.get(y).subtract(savings.get(y)).getAmount()),
@@ -2005,18 +2006,27 @@ public class ConsoleReports {
 
     private MoneyAmount yearIncome(int year) {
 
+        final var months = year < USD_INFLATION.getTo().getYear()
+                ? 12
+                : USD_INFLATION.getTo().getMonth();
+
         return this.getIncomeSeries()
                 .stream()
                 .map(s -> s.filter((ym, ma) -> ym.getYear() == year))
                 .flatMap(Function.identity())
                 .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add)
-                .adjust(BigDecimal.valueOf(12), ONE);
+                .adjust(BigDecimal.valueOf(months), ONE);
     }
 
     private MoneyAmount yearSavings(int year) {
+
+        final var months = year < USD_INFLATION.getTo().getYear()
+                ? 12
+                : USD_INFLATION.getTo().getMonth();
+
         return this.realNetSavings().filter((ym, ma) -> ym.getYear() == year)
                 .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add)
-                .adjust(BigDecimal.valueOf(12), ONE);
+                .adjust(BigDecimal.valueOf(months), ONE);
 
     }
 
@@ -2142,7 +2152,7 @@ public class ConsoleReports {
                 .sorted(comparing((DayDollars d) -> d.getAmount()).reversed())
                 .map(d -> format("\t{0} {1}",
                 String.format("%-11s", d.getType()),
-                pctBar(d.getAmount().divide(total, CONTEXT))))
+                pctBar(d.getAmount(), total)))
                 .forEach(this::appendLine);
         this.appendLine("");
 
@@ -2217,6 +2227,10 @@ public class ConsoleReports {
 
     private static String currency(MoneyAmount value, int width) {
         return String.format("%" + width + "s", format("{0} {1,number,currency}", value.getCurrency(), value.getAmount()));
+    }
+
+    private static String pctBar(BigDecimal value, BigDecimal total) {
+        return pctBar(value.divide(total, CONTEXT));
     }
 
     private static String pctBar(BigDecimal value) {

@@ -97,6 +97,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("Reparaciones", "expense/reparaciones.json"),
                 new ExpenseChartSeriesDTO("XBOX", "expense/xbox.json"),
                 new ExpenseChartSeriesDTO("Netflix", "expense/netflix.json"),
+                new ExpenseChartSeriesDTO("Viajes", "expense/viajes.json"),
                 new ExpenseChartSeriesDTO("Limpieza", "expense/limpieza.json"),
                 new ExpenseChartSeriesDTO("Monotributo-A", "expense/monotributo-angeles.json"),
                 new ExpenseChartSeriesDTO("Total", "")
