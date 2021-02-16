@@ -42,7 +42,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class InvestmentReport {
 
-    private static final String REPORT_PATTERN = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13}";
+    private static final String REPORT_PATTERN = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12} {13} {14}";
 
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance();
     private static final DateFormat DF = DateFormat.getDateInstance();
@@ -91,10 +91,9 @@ public class InvestmentReport {
                 : BigDecimal.ZERO;
         this.nominal = ForeignExchanges.exchange(nominalInv, "USD");
         this.real = this.inflation.real(this.nominal);
-        this.type = MessageFormat.format("{0} {1} {2}",
+        this.type = MessageFormat.format("{0} {1}",
                 nominalInv.getType().toString(),
-                nominalInv.getCurrency(),
-                Optional.ofNullable(nominalInv.getComment()).orElse(""));
+                nominalInv.getCurrency());
     }
 
     /* sin tax y fee*/
@@ -212,6 +211,10 @@ public class InvestmentReport {
                 pctBar(this.tna()),
                 this.fmt(fa, 9),
                 String.format("%7s", PCT_FORMAT.format(this.percent(fa, cv))),
+                String.format("%7s", PCT_FORMAT.format(
+                        this.percent(fa, cv)
+                                .divide(this.days(real), CONTEXT)
+                                .multiply(BigDecimal.valueOf(365l), CONTEXT))),
                 this.fmt(cgt, 10),
                 String.format("%7s", PCT_FORMAT.format(this.percent(cgt, cv))),
                 this.type);
@@ -319,8 +322,8 @@ public class InvestmentReport {
 
         return String.format("%-15s", stream.collect(joining()));
     }
-    
-    public String currency(){
+
+    public String currency() {
         return this.nominal.getCurrency();
     }
 }

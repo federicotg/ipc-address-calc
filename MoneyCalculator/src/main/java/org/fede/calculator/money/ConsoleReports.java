@@ -346,7 +346,7 @@ public class ConsoleReports {
                 .collect(toList());
 
         if (!totalOnly) {
-            appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %      CAGR                        Fee       %        Tax       %");
+            appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %      CAGR                        Fee     %     % p.a.     Tax       %");
         }
 
         realProfits
@@ -465,7 +465,7 @@ public class ConsoleReports {
         appendLine("\t<- Cuenta ->");
         appendLine("\t<---------->");
 
-        final var width = 12;
+        final var width = 13;
 
         appendLine(format("{0}{1}{2}",
                 text("Initial", textWidth),
@@ -651,6 +651,7 @@ public class ConsoleReports {
                     entry("pf", () -> this.currentInvestmentsProfit("USD", PF, nominal, ref)),
                     entry("gold", () -> this.currentInvestmentsProfit("XAU", XAU, nominal, ref)),
                     entry("all", () -> this.currentInvestmentsProfit((String) null, (InvestmentType) null, nominal, ref)),
+                    entry("etf", () -> this.currentInvestmentsProfit((String) null, ETF, nominal, ref)),
                     entry("cspx", () -> this.currentInvestmentsProfit("CSPX", ETF, nominal, ref)),
                     entry("eimi", () -> this.currentInvestmentsProfit("EIMI", ETF, nominal, ref)),
                     entry("meud", () -> this.currentInvestmentsProfit("MEUD", ETF, nominal, ref)),
@@ -746,7 +747,7 @@ public class ConsoleReports {
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                        entry("inv", "type=(current*|past|global) subtype=(all*|cspx|meud|xrsu|eimi|ay24|ars|usd|lete|lecap|gold|on|uva|conbala|conaafa|caplusa|pf) nominal=false ref=false"),
+                        entry("inv", "type=(current*|past|global) subtype=(all*|etf|cspx|meud|xrsu|eimi|ay24|ars|usd|lete|lecap|gold|on|uva|conbala|conaafa|caplusa|pf) nominal=false ref=false"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
                         entry("bbpp", "year=2020"),
@@ -2238,14 +2239,30 @@ public class ConsoleReports {
 
     private static String pctBar(BigDecimal value) {
 
-        if (value.compareTo(ONE_PERCENT) < 0) {
-            return String.format("%8s", "<1 %");
+        final var symbol = value.signum() >= 0 ? "#" : "%";
+
+        if (value.abs().compareTo(ONE_PERCENT) < 0) {
+            return String.format("%10s", "<1 %");
+        }
+
+        final var end = value.abs().movePointRight(2).intValue();
+
+        if (end > 100) {
+
+            final var part = IntStream.range(0, 48)
+                    .mapToObj(i -> symbol)
+                    .collect(joining());
+
+            return format("{0} {1}",
+                    String.format("%10s", PERCENT_FORMAT.format(value)),
+                    part + "/-/" + part);
+
         }
 
         return format("{0} {1}",
-                String.format("%8s", PERCENT_FORMAT.format(value)),
-                IntStream.range(0, value.movePointRight(2).intValue())
-                        .mapToObj(i -> "#")
+                String.format("%10s", PERCENT_FORMAT.format(value)),
+                IntStream.range(0, end)
+                        .mapToObj(i -> symbol)
                         .collect(joining()));
     }
 
