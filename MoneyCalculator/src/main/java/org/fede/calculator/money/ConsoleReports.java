@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
@@ -361,8 +362,26 @@ public class ConsoleReports {
                 .reduce(ZERO, BigDecimal::add);
 
         appendLine("\nAfter fee investment  Before fee/tax current     Profit     %");
-        this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getNetRealInvestment, InvestmentReport::getGrossRealProfit);
+        final var pct = this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getNetRealInvestment, InvestmentReport::getGrossRealProfit);
 
+        final var benchmarks = SeriesReader.read("index/benchmarks.json", new TypeReference<Map<String, BenchmarkItem>>() {
+        });
+
+        if (nominal) {
+            appendLine("");
+
+            appendLine("\t<------------->");
+            appendLine("\t<- Benchmark ->");
+            appendLine("\t<------------->");
+
+            Stream.concat(
+                    benchmarks.entrySet().stream()
+                            .map(e -> of(e.getKey(), e.getValue().getCurrent().divide(e.getValue().getInitial(), CONTEXT).subtract(ONE, CONTEXT))),
+                    Stream.of(of("Portfolio", pct)))
+                    .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
+                    .map(p -> format("{0} {1}", text(p.getFirst(), 10), pctBar(p.getSecond())))
+                    .forEach(this::appendLine);
+        }
         appendLine("\nTotal investment      After fee/tax current      Profit     %");
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getGrossRealInvestment, InvestmentReport::getNetRealProfit);
 
@@ -510,6 +529,15 @@ public class ConsoleReports {
 
     }
 
+    private BigDecimal adjustedInitial(BenchmarkItem item) {
+        return USD_INFLATION.adjust(
+                new MoneyAmount(item.getInitial(), "USD"),
+                2019,
+                7,
+                USD_INFLATION.getTo().getYear(),
+                USD_INFLATION.getTo().getMonth()).getAmount();
+    }
+
     private InvestmentReport asReport(Investment i, Inflation inflation) {
         if (i.getType().equals(ETF) && i.getOut() == null) {
             return new InvestmentReport(inflation, i, CAPITAL_GAINS_TAR_RATE, TRADING_FEE, IVA, TRADING_FX_FEE);
@@ -528,7 +556,7 @@ public class ConsoleReports {
                 .collect(joining());
     }
 
-    private void totalRealProfitReportLine(
+    private BigDecimal totalRealProfitReportLine(
             List<InvestmentReport> realProfits,
             InvestmentType type,
             boolean totalOnly,
@@ -554,6 +582,7 @@ public class ConsoleReports {
                         .map(Object::toString)
                         .collect(joining("", "", " ")),
                 total.add(profit)));
+        return pct;
     }
 
     private BigDecimal totalSum(List<InvestmentReport> realProfits, Function<InvestmentReport, MoneyAmount> totalFunction) {
