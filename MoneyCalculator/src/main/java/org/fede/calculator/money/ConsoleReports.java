@@ -108,8 +108,8 @@ public class ConsoleReports {
     private static final BigDecimal EIMI_FEE = new BigDecimal("0.0018");
     private static final BigDecimal MEUD_FEE = new BigDecimal("0.0007");
 
-    private static final double BBPP_FX_GAP_PERCENT = 0.7d;
-    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = new BigDecimal("1.13");
+    private static final double BBPP_FX_GAP_PERCENT = 0.85d;
+    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = new BigDecimal("1.15");
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 
@@ -1341,8 +1341,8 @@ public class ConsoleReports {
         final var deposit = Integer.parseInt(params.getOrDefault("d", "900"));
         final var withdraw = Integer.parseInt(params.getOrDefault("w", "1000"));
         final var inflation = Integer.parseInt(params.getOrDefault("inflation", "3"));
-        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "61"));
-        final var age = Integer.parseInt(params.getOrDefault("age", "99"));
+        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "65"));
+        final var age = Integer.parseInt(params.getOrDefault("age", "100"));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", "0"));
         final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", "true"));
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "true"));
