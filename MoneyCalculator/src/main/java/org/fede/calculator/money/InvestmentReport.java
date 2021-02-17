@@ -207,8 +207,8 @@ public class InvestmentReport {
                 String.format("%8s", PCT_FORMAT.format(this.percent(grp, gri))),
                 this.fmt(this.getNetRealProfit()),
                 String.format("%8s", PCT_FORMAT.format(this.percent(this.getNetRealProfit(), gri))),
-                String.format("%8s", PCT_FORMAT.format(this.tna())),
-                pctBar(this.tna()),
+                String.format("%8s", PCT_FORMAT.format(this.cagr())),
+                pctBar(this.cagr()),
                 this.fmt(fa, 9),
                 String.format("%7s", PCT_FORMAT.format(this.percent(fa, cv))),
                 String.format("%7s", PCT_FORMAT.format(
@@ -220,7 +220,7 @@ public class InvestmentReport {
                 this.type);
     }
 
-    private BigDecimal tna() {
+    public BigDecimal cagr() {
 
         if (this.annualizedReturn == null) {
 

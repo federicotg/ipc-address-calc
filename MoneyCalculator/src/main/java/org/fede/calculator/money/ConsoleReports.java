@@ -55,7 +55,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -529,15 +528,6 @@ public class ConsoleReports {
 
     }
 
-    private BigDecimal adjustedInitial(BenchmarkItem item) {
-        return USD_INFLATION.adjust(
-                new MoneyAmount(item.getInitial(), "USD"),
-                2019,
-                7,
-                USD_INFLATION.getTo().getYear(),
-                USD_INFLATION.getTo().getMonth()).getAmount();
-    }
-
     private InvestmentReport asReport(Investment i, Inflation inflation) {
         if (i.getType().equals(ETF) && i.getOut() == null) {
             return new InvestmentReport(inflation, i, CAPITAL_GAINS_TAR_RATE, TRADING_FEE, IVA, TRADING_FX_FEE);
@@ -571,6 +561,8 @@ public class ConsoleReports {
                 ? profit.divide(total, CONTEXT)
                 : ZERO;
 
+        final var totalPlusProfit = total.add(profit);
+
         this.appendLine(format("{4} {0,number,currency}            {5,number,currency}          {1,number,currency}  {2}  {3}",
                 total,
                 profit,
@@ -581,7 +573,7 @@ public class ConsoleReports {
                         .filter(Objects::nonNull)
                         .map(Object::toString)
                         .collect(joining("", "", " ")),
-                total.add(profit)));
+                totalPlusProfit));
         return pct;
     }
 
