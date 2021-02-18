@@ -17,7 +17,6 @@
 package org.fede.calculator.money;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
@@ -1336,9 +1335,9 @@ public class ConsoleReports {
 
         final var params = this.paramsValue(args, paramName);
 
-        final var trials = Integer.parseInt(params.getOrDefault("trials", "100000"));
+        final var trials = Integer.parseInt(params.getOrDefault("trials", "20000"));
         final var periodYears = Integer.parseInt(params.getOrDefault("period", "20"));
-        final var deposit = Integer.parseInt(params.getOrDefault("d", "900"));
+        final var deposit = Integer.parseInt(params.getOrDefault("d", "850"));
         final var withdraw = Integer.parseInt(params.getOrDefault("w", "1000"));
         final var inflation = Integer.parseInt(params.getOrDefault("inflation", "3"));
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "65"));
@@ -1417,7 +1416,7 @@ public class ConsoleReports {
         final var inflationRate = ONE.setScale(6, MathConstants.ROUNDING_MODE)
                 .add(BigDecimal.valueOf(inflation).setScale(6, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT);
 
-        final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).divide(buySellFee, CONTEXT);
+        final var deposit = BigDecimal.valueOf(monthlyDeposit * 12).divide(buySellFee, CONTEXT);
         final var withdraw = BigDecimal.valueOf(monthlyWithdraw * 12)
                 .multiply(buySellFee, CONTEXT)
                 .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, CONTEXT);
@@ -1447,13 +1446,12 @@ public class ConsoleReports {
                 .map(f -> f.multiply(withdraw, CONTEXT))
                 .collect(toList());
 
-        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 1.0d);
-        final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 1.0d);
+        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, -1.0d);
+        final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, -1.0d);
         final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.75d);
         final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.70d);
 
         final var successes = IntStream.range(0, trials)
-                .parallel()
                 .mapToObj(i -> this.balanceProportions(periods, allSP500Periods, allRussell2000Periods, allEIMIPeriods, allMEUDPeriods, onlySP500, CSPX_FEE, XRSU_FEE, EIMI_FEE, MEUD_FEE))
                 .filter(randomReturns -> this.goals(startingYear, 1978 + retirementAge, end, cash, investedAmount, randomReturns, realDeposits, realWithdrawals))
                 .count();
@@ -1509,10 +1507,11 @@ public class ConsoleReports {
                 .sorted(comparing(this::sum))
                 .collect(toList());
 
-        periods = periods.stream()
-                .limit(Math.round(periods.size() * keepWorsePct))
-                .collect(toList());
-
+        if (keepWorsePct > 0.0d) {
+            periods = periods.stream()
+                    .limit(Math.round(periods.size() * keepWorsePct))
+                    .collect(toList());
+        }
         return periods;
 
     }
