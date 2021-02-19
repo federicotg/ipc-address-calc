@@ -762,7 +762,7 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", "trials=100000 period=20 retirement=65 age=100 w=900 d=800 inflation=3 cash=0 sp500=true tax=true bbpp=2.25"),
+                        entry("goal", "trials=20000 period=20 retirement=65 age=100 w=850 d=1000 inflation=3 cash=0 sp500=true tax=true bbpp=2.25"),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
