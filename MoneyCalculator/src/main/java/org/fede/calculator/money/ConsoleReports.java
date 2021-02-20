@@ -50,6 +50,7 @@ import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -74,6 +75,7 @@ import org.fede.calculator.money.series.IndexSeriesSupport;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
+import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 
 /**
  *
@@ -742,6 +744,7 @@ public class ConsoleReports {
                     entry("pa", () -> me.portfolioAllocation(args, "pa")),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
+                    entry("house-evo", () -> me.houseCostsEvolution()),
                     entry("house", () -> me.houseIrrecoverableCosts(USD_INFLATION.getTo())),
                     entry("house1", () -> me.houseIrrecoverableCosts(YearMonth.of(2011, 8))),
                     entry("house3", () -> me.houseIrrecoverableCosts(YearMonth.of(2013, 8))),
@@ -850,6 +853,59 @@ public class ConsoleReports {
                 yearAndMonth[1].setScale(0, MathConstants.ROUNDING_MODE),
                 PERCENT_FORMAT.format(ONE.subtract(averagNetSavings.getAmount().divide(averagIncome.getAmount(), CONTEXT), CONTEXT)),
                 averagIncome.subtract(averagNetSavings).getAmount()));
+
+    }
+
+    private void houseCostsEvolution() {
+
+        final var limit = USD_INFLATION.getTo();
+
+        final var nominalInitialCost = new BigDecimal("96000");
+        final var nominalTransactionCost = nominalInitialCost.multiply(
+                REALTOR_FEE.add(STAMP_TAX, CONTEXT)
+                        .add(REGISTER_TAX, CONTEXT)
+                        .add(NOTARY_FEE, CONTEXT),
+                CONTEXT);
+
+        final var start = YearMonth.of(2010, 8);
+        final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalInitialCost.add(nominalTransactionCost, CONTEXT), "USD"),
+                start.getYear(), start.getMonth(),
+                limit.getYear(), limit.getMonth());
+
+        final var zero = new MoneyAmount(ZERO, "USD");
+        
+        final var initialCostSeries = new SortedMapMoneyAmountSeries(
+                "USD", 
+                new TreeMap<>(
+                        Map.of(
+                                start, realInitialCost,
+                                YearMonth.of(2010, 9), zero,
+                                YearMonth.of(2010, 10), zero,
+                                YearMonth.of(2010, 11), zero,
+                                YearMonth.of(2010, 12), zero,
+                                YearMonth.of(2011, 1), zero
+                                )));
+
+        final var proportionalExpenses = SeriesReader.readSeries("expense/consorcio-reparaciones.json")
+                .map((ym, amount) -> amount.adjust(ONE, COEFFICIENT));
+
+        final var ongoingExpenses = Stream.concat(
+                Stream.of("expense/inmobiliario-43.json", "expense/seguro.json", "expense/reparaciones.json")
+                        .map(SeriesReader::readSeries),
+                Stream.of(proportionalExpenses))
+                .reduce(MoneyAmountSeries::add)
+                .map(expenses -> expenses.exchangeInto("USD"))
+                .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
+                .get();
+
+        
+        
+        final var allExpenses = new SimpleAggregation(1200).sum(ongoingExpenses.add(initialCostSeries));
+
+        final var initialExpenseYM = allExpenses.getFrom();
+        
+        this.evolution("House cost evolution",
+                allExpenses.map((ym, ma) -> ma.adjust(BigDecimal.valueOf(initialExpenseYM.monthsUntil(ym) + 1), ONE)), 900);
 
     }
 
