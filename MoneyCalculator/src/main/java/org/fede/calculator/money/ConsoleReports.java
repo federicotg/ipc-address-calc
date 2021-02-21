@@ -109,6 +109,9 @@ public class ConsoleReports {
     private static final BigDecimal EIMI_FEE = new BigDecimal("0.0018");
     private static final BigDecimal MEUD_FEE = new BigDecimal("0.0007");
 
+    private static final int RETIREMENT_AGE_STD = 3;
+    private static final int END_AGE_STD = 5;
+
     private static final double BBPP_FX_GAP_PERCENT = 0.85d;
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = new BigDecimal("1.15");
 
@@ -873,9 +876,9 @@ public class ConsoleReports {
                 limit.getYear(), limit.getMonth());
 
         final var zero = new MoneyAmount(ZERO, "USD");
-        
+
         final var initialCostSeries = new SortedMapMoneyAmountSeries(
-                "USD", 
+                "USD",
                 new TreeMap<>(
                         Map.of(
                                 start, realInitialCost,
@@ -884,7 +887,7 @@ public class ConsoleReports {
                                 YearMonth.of(2010, 11), zero,
                                 YearMonth.of(2010, 12), zero,
                                 YearMonth.of(2011, 1), zero
-                                )));
+                        )));
 
         final var proportionalExpenses = SeriesReader.readSeries("expense/consorcio-reparaciones.json")
                 .map((ym, amount) -> amount.adjust(ONE, COEFFICIENT));
@@ -898,12 +901,10 @@ public class ConsoleReports {
                 .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
                 .get();
 
-        
-        
         final var allExpenses = new SimpleAggregation(1200).sum(ongoingExpenses.add(initialCostSeries));
 
         final var initialExpenseYM = allExpenses.getFrom();
-        
+
         this.evolution("House cost evolution",
                 allExpenses.map((ym, ma) -> ma.adjust(BigDecimal.valueOf(initialExpenseYM.monthsUntil(ym) + 1), ONE)), 900);
 
@@ -1391,13 +1392,13 @@ public class ConsoleReports {
 
         final var params = this.paramsValue(args, paramName);
 
-        final var trials = Integer.parseInt(params.getOrDefault("trials", "20000"));
+        final var trials = Integer.parseInt(params.getOrDefault("trials", "100000"));
         final var periodYears = Integer.parseInt(params.getOrDefault("period", "20"));
         final var deposit = Integer.parseInt(params.getOrDefault("d", "850"));
         final var withdraw = Integer.parseInt(params.getOrDefault("w", "1000"));
         final var inflation = Integer.parseInt(params.getOrDefault("inflation", "3"));
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "65"));
-        final var age = Integer.parseInt(params.getOrDefault("age", "100"));
+        final var age = Integer.parseInt(params.getOrDefault("age", "94"));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", "0"));
         final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", "true"));
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "true"));
@@ -1481,20 +1482,20 @@ public class ConsoleReports {
 
         appendLine(format("Cash: {0,number,currency}, invested: {1,number,currency}", cash, invested.getAmount()));
         appendLine(format("Saving {0,number,currency}, spending {1,number,currency}", monthlyDeposit, monthlyWithdraw), afterTax ? " after tax." : ".");
-        appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2}.", inflation, retirementAge, age));
+        appendLine(format("Expected {0}% inflation, retiring at {1} +/-{3}, until age {2} +/-{4}.", inflation, retirementAge, age, RETIREMENT_AGE_STD, END_AGE_STD));
 
         final int startingYear = to.getYear();
         final var end = 1978 + age;
-        final var yearsLeft = end - startingYear + 1;
+        final var yearsLeft = 100;
 
         final var periods = (int) Math.ceil((float) yearsLeft / periodYears);
 
-        final var inflationFactors = IntStream.range(0, yearsLeft)
+        final var inflationFactors = IntStream.range(0, 200)
                 .mapToObj(year -> inflationRate.pow(year, CONTEXT))
                 .collect(toList());
 
         final var realDeposits = inflationFactors.stream()
-                .limit(1978 + retirementAge - startingYear)
+                //.limit(1978 + retirementAge - startingYear)
                 .map(f -> f.multiply(deposit, CONTEXT))
                 .collect(toList());
 
@@ -1508,8 +1509,18 @@ public class ConsoleReports {
         final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.70d);
 
         final var successes = IntStream.range(0, trials)
+                .parallel()
                 .mapToObj(i -> this.balanceProportions(periods, allSP500Periods, allRussell2000Periods, allEIMIPeriods, allMEUDPeriods, onlySP500, CSPX_FEE, XRSU_FEE, EIMI_FEE, MEUD_FEE))
-                .filter(randomReturns -> this.goals(startingYear, 1978 + retirementAge, end, cash, investedAmount, randomReturns, realDeposits, realWithdrawals))
+                .filter(randomReturns
+                        -> this.goals(
+                        startingYear,
+                        1978 + gauss(retirementAge, RETIREMENT_AGE_STD),
+                        gauss(end, END_AGE_STD),
+                        cash,
+                        investedAmount,
+                        randomReturns,
+                        realDeposits,
+                        realWithdrawals))
                 .count();
 
         appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
@@ -1517,6 +1528,10 @@ public class ConsoleReports {
         appendLine(format("{0}/{1} ", successes, trials),
                 PERCENT_FORMAT.format((double) successes / (double) trials));
 
+    }
+
+    private int gauss(int mean, int std) {
+        return (int) (mean + ThreadLocalRandom.current().nextGaussian() * std);
     }
 
     private List<BigDecimal> balanceProportions(int periods,
@@ -1595,6 +1610,9 @@ public class ConsoleReports {
             final List<BigDecimal> deposit,
             final List<BigDecimal> withdraw) {
 
+//        if(retirement - 1978 < 50 || end - 1978 < 50){
+//            System.out.println("ret: " + (retirement - 1978) + " end: " + (end - 1978));
+//        }
         BigDecimal cashAmount = cash;
         BigDecimal amount = investedAmount;
         // depositing
