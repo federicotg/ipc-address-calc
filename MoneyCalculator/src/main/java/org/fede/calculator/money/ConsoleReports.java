@@ -871,7 +871,7 @@ public class ConsoleReports {
                 CONTEXT);
 
         final var start = YearMonth.of(2010, 8);
-        final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalInitialCost.add(nominalTransactionCost, CONTEXT), "USD"),
+        final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalTransactionCost, "USD"),
                 start.getYear(), start.getMonth(),
                 limit.getYear(), limit.getMonth());
 
@@ -906,7 +906,7 @@ public class ConsoleReports {
         final var initialExpenseYM = allExpenses.getFrom();
 
         this.evolution("House cost evolution",
-                allExpenses.map((ym, ma) -> ma.adjust(BigDecimal.valueOf(initialExpenseYM.monthsUntil(ym) + 1), ONE)), 900);
+                allExpenses.map((ym, ma) -> ma.adjust(BigDecimal.valueOf(initialExpenseYM.monthsUntil(ym) + 1), ONE)), 120);
 
     }
 
