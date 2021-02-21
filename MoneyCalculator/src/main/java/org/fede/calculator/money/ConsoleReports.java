@@ -98,7 +98,7 @@ public class ConsoleReports {
     private static final BigDecimal TRADING_FEE = new BigDecimal("0.006");
     private static final BigDecimal TRADING_FX_FEE = new BigDecimal("0.0025");
 
-    private static final BigDecimal CAPITAL_GAINS_TAR_RATE = new BigDecimal("0.15");
+    private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
     private static final BigDecimal RUSSELL2000_PCT = new BigDecimal("0.1");
     private static final BigDecimal SP500_PCT = new BigDecimal("0.7");
     private static final BigDecimal EIMI_PCT = new BigDecimal("0.1");
@@ -110,10 +110,12 @@ public class ConsoleReports {
     private static final BigDecimal MEUD_FEE = new BigDecimal("0.0007");
 
     private static final int RETIREMENT_AGE_STD = 3;
-    private static final int END_AGE_STD = 5;
+    private static final int END_AGE_STD = 6;
 
     private static final double BBPP_FX_GAP_PERCENT = 0.85d;
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = new BigDecimal("1.15");
+
+    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO, "USD");
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 
@@ -534,7 +536,7 @@ public class ConsoleReports {
 
     private InvestmentReport asReport(Investment i, Inflation inflation) {
         if (i.getType().equals(ETF) && i.getOut() == null) {
-            return new InvestmentReport(inflation, i, CAPITAL_GAINS_TAR_RATE, TRADING_FEE, IVA, TRADING_FX_FEE);
+            return new InvestmentReport(inflation, i, CAPITAL_GAINS_TAX_RATE, TRADING_FEE, IVA, TRADING_FX_FEE);
         }
         return new InvestmentReport(inflation, i, ZERO, ZERO, ONE, ZERO);
     }
@@ -601,7 +603,7 @@ public class ConsoleReports {
                 .stream()
                 .flatMap(MoneyAmountSeries::moneyAmountStream)
                 .collect(reducing(MoneyAmount::add))
-                .orElseGet(() -> new MoneyAmount(ZERO, "USD"))
+                .orElse(ZERO_USD)
                 .getAmount();
 
         this.appendLine(format("Total income: {0,number,currency}", totalIncome));
@@ -628,7 +630,7 @@ public class ConsoleReports {
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(new SimpleAggregation(months)::average)
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(allRealUSDIncome.getTo()))
-                .orElseGet(() -> new MoneyAmount(ZERO, "USD"));
+                .orElse(ZERO_USD);
 
         this.appendLine(format("===< Average {0}-month income in {1}/{2} real USD >===",
                 months,
@@ -875,18 +877,16 @@ public class ConsoleReports {
                 start.getYear(), start.getMonth(),
                 limit.getYear(), limit.getMonth());
 
-        final var zero = new MoneyAmount(ZERO, "USD");
-
         final var initialCostSeries = new SortedMapMoneyAmountSeries(
                 "USD",
                 new TreeMap<>(
                         Map.of(
                                 start, realInitialCost,
-                                YearMonth.of(2010, 9), zero,
-                                YearMonth.of(2010, 10), zero,
-                                YearMonth.of(2010, 11), zero,
-                                YearMonth.of(2010, 12), zero,
-                                YearMonth.of(2011, 1), zero
+                                YearMonth.of(2010, 9), ZERO_USD,
+                                YearMonth.of(2010, 10), ZERO_USD,
+                                YearMonth.of(2010, 11), ZERO_USD,
+                                YearMonth.of(2010, 12), ZERO_USD,
+                                YearMonth.of(2011, 1), ZERO_USD
                         )));
 
         final var proportionalExpenses = SeriesReader.readSeries("expense/consorcio-reparaciones.json")
@@ -927,7 +927,7 @@ public class ConsoleReports {
                 .map(MoneyAmountSeries::moneyAmountStream)
                 .orElseGet(Stream::empty)
                 .reduce(MoneyAmount::add)
-                .orElseGet(() -> new MoneyAmount(ZERO, "USD"));
+                .orElse(ZERO_USD);
 
         this.buyVsRent(realExpensesInUSD, ZERO, timeLimit);
         this.buyVsRent(realExpensesInUSD, new BigDecimal("0.02"), timeLimit);
@@ -1030,13 +1030,13 @@ public class ConsoleReports {
     private MoneyAmount aggregate(List<MoneyAmountSeries> mas, Function<MoneyAmountSeries, MoneyAmount> aggregation) {
         return mas.stream()
                 .map(aggregation)
-                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
     }
 
     private MoneyAmount lastMonths(MoneyAmountSeries s, int months) {
 
         var ym = USD_INFLATION.getTo();
-        var amount = new MoneyAmount(ZERO, "USD");
+        var amount = ZERO_USD;
 
         for (var i = 0; i < months; i++) {
             amount = amount.add(s.getAmountOrElseZero(ym));
@@ -1530,10 +1530,6 @@ public class ConsoleReports {
 
     }
 
-    private int gauss(int mean, int std) {
-        return (int) (mean + ThreadLocalRandom.current().nextGaussian() * std);
-    }
-
     private List<BigDecimal> balanceProportions(int periods,
             List<List<BigDecimal>> allSP500Periods,
             List<List<BigDecimal>> allRussell2000Periods,
@@ -1591,11 +1587,20 @@ public class ConsoleReports {
         return l.stream().reduce(ZERO, BigDecimal::add);
     }
 
+    private static double gauss(double mean, double std) {
+        return mean + ThreadLocalRandom.current().nextGaussian() * std;
+    }
+
+    private static int gauss(int mean, int std) {
+
+        return (int) gauss((double) mean, (double) std);
+    }
+
     private BigDecimal bbppFactor() {
         return ONE
                 .min(ONE.setScale(6, MathConstants.ROUNDING_MODE)
                         .subtract(
-                                BigDecimal.valueOf(this.bbppMean + ThreadLocalRandom.current().nextGaussian() * this.bbppVar),
+                                BigDecimal.valueOf(gauss(this.bbppMean, this.bbppVar)),
                                 CONTEXT))
                 .max(this.bbppMinFactor);
     }
@@ -1678,7 +1683,7 @@ public class ConsoleReports {
                 .map(Investment::getInvestment)
                 .map(i -> i.getMoneyAmount())
                 .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", year, 12))
-                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
 
         final var ons = this.getInvestments()
                 .stream()
@@ -1687,7 +1692,7 @@ public class ConsoleReports {
                 .map(Investment::getInvestment)
                 .map(i -> i.getMoneyAmount())
                 .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", year, 12))
-                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
 
         final var etfsItem = new BBPPItem();
         etfsItem.setCurrency(etfs.getCurrency());
@@ -1773,7 +1778,7 @@ public class ConsoleReports {
                 .map(Investment::getInvestment)
                 .map(i -> i.getMoneyAmount())
                 .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", year, 12))
-                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
 
         final var yearRealIncome = new ArrayList<MoneyAmount>(12);
 
@@ -2092,7 +2097,7 @@ public class ConsoleReports {
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(new SimpleAggregation(years * 12)::average)
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(USD_INFLATION.getTo()))
-                .orElseGet(() -> new MoneyAmount(ZERO, "USD"));
+                .orElse(ZERO_USD);
 
     }
 
@@ -2112,7 +2117,7 @@ public class ConsoleReports {
                 .stream()
                 .map(s -> s.filter((ym, ma) -> ym.getYear() == year))
                 .flatMap(Function.identity())
-                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add)
+                .reduce(ZERO_USD, MoneyAmount::add)
                 .adjust(BigDecimal.valueOf(months), ONE);
     }
 
@@ -2123,7 +2128,7 @@ public class ConsoleReports {
                 : USD_INFLATION.getTo().getMonth();
 
         return this.realNetSavings().filter((ym, ma) -> ym.getYear() == year)
-                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add)
+                .reduce(ZERO_USD, MoneyAmount::add)
                 .adjust(BigDecimal.valueOf(months), ONE);
 
     }
@@ -2192,7 +2197,7 @@ public class ConsoleReports {
 
         final var total = items.stream()
                 .map(PortfolioItem::getDollarAmount)
-                .reduce(new MoneyAmount(ZERO, "USD"), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
 
         final var pct = "pct".equals(type);
 
