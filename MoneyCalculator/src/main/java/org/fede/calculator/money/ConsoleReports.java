@@ -99,15 +99,15 @@ public class ConsoleReports {
     private static final BigDecimal TRADING_FX_FEE = new BigDecimal("0.0025");
 
     private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
-    private static final BigDecimal RUSSELL2000_PCT = new BigDecimal("0.1");
-    private static final BigDecimal SP500_PCT = new BigDecimal("0.7");
-    private static final BigDecimal EIMI_PCT = new BigDecimal("0.1");
-    private static final BigDecimal MEUD_PCT = new BigDecimal("0.1");
+    private static final double RUSSELL2000_PCT = new BigDecimal("0.1").doubleValue();
+    private static final double SP500_PCT = new BigDecimal("0.7").doubleValue();
+    private static final double EIMI_PCT = new BigDecimal("0.1").doubleValue();
+    private static final double MEUD_PCT = new BigDecimal("0.1").doubleValue();
 
-    private static final BigDecimal CSPX_FEE = new BigDecimal("0.0007");
-    private static final BigDecimal XRSU_FEE = new BigDecimal("0.003");
-    private static final BigDecimal EIMI_FEE = new BigDecimal("0.0018");
-    private static final BigDecimal MEUD_FEE = new BigDecimal("0.0007");
+    private static final double CSPX_FEE = new BigDecimal("0.0007").doubleValue();
+    private static final double XRSU_FEE = new BigDecimal("0.003").doubleValue();
+    private static final double EIMI_FEE = new BigDecimal("0.0018").doubleValue();
+    private static final double MEUD_FEE = new BigDecimal("0.0007").doubleValue();
 
     private static final int RETIREMENT_AGE_STD = 3;
     private static final int END_AGE_STD = 6;
@@ -151,7 +151,7 @@ public class ConsoleReports {
 
     private double bbppMean;
     private double bbppVar;
-    private BigDecimal bbppMinFactor;
+    private double bbppMinFactor;
 
     private ConsoleReports(StringBuilder out) {
         this.out = out;
@@ -1390,12 +1390,13 @@ public class ConsoleReports {
                 .collect(joining());
     }
 
-    private List<BigDecimal> randomPeriods(List<List<BigDecimal>> allReturns, int periods, BigDecimal fee) {
+    private double[] randomPeriods(List<List<BigDecimal>> allReturns, int periods, double fee) {
         return ThreadLocalRandom.current().ints(periods, 0, allReturns.size())
                 .mapToObj(allReturns::get)
                 .flatMap(Collection::stream)
-                .map(value -> value.subtract(fee, CONTEXT))
-                .collect(toList());
+                .mapToDouble(BigDecimal::doubleValue)
+                .map(value -> value - fee)
+                .toArray();
     }
 
     private Map<String, String> paramsValue(String[] args, String paramName) {
@@ -1423,13 +1424,12 @@ public class ConsoleReports {
         final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", "true"));
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "true"));
         final var bbppTax = afterTax
-                ? new BigDecimal(params.getOrDefault("bbpp", "2.25")).movePointLeft(2)
-                : ZERO;
+                ? Double.parseDouble(params.getOrDefault("bbpp", "2.25")) / 100.0d
+                : 0.0d;
 
-        this.bbppMean = bbppTax.doubleValue() * BBPP_FX_GAP_PERCENT;
-        this.bbppVar = bbppTax.doubleValue() / 5.0d;
-        this.bbppMinFactor = ONE.setScale(6, MathConstants.ROUNDING_MODE)
-                .subtract(bbppTax, CONTEXT);
+        this.bbppMean = bbppTax * BBPP_FX_GAP_PERCENT;
+        this.bbppVar = bbppTax / 5.0d;
+        this.bbppMinFactor = 1.0d - bbppTax;
 
         final var buySellFee = ONE.setScale(6)
                 .add(TRADING_FEE.multiply(IVA, CONTEXT), CONTEXT)
@@ -1488,19 +1488,19 @@ public class ConsoleReports {
 
         final var cash = todaySavings.getAmount()
                 .subtract(invested.getAmount(), CONTEXT)
-                .add(extraCash, CONTEXT);
+                .add(extraCash, CONTEXT).doubleValue();
 
         final var inflationRate = ONE.setScale(6, MathConstants.ROUNDING_MODE)
-                .add(BigDecimal.valueOf(inflation).setScale(6, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT);
+                .add(BigDecimal.valueOf(inflation).setScale(6, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT).doubleValue();
 
-        final var deposit = BigDecimal.valueOf(monthlyDeposit * 12).divide(buySellFee, CONTEXT);
+        final var deposit = BigDecimal.valueOf(monthlyDeposit * 12).divide(buySellFee, CONTEXT).doubleValue();
         final var withdraw = BigDecimal.valueOf(monthlyWithdraw * 12)
                 .multiply(buySellFee, CONTEXT)
-                .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, CONTEXT);
+                .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, CONTEXT).doubleValue();
 
-        final var investedAmount = invested.getAmount();
+        final var investedAmount = invested.getAmount().doubleValue();
 
-        appendLine(format("Cash: {0,number,currency}, invested: {1,number,currency}", cash, invested.getAmount()));
+        appendLine(format("Cash: {0,number,currency}, invested: {1,number,currency}", cash, investedAmount));
         appendLine(format("Saving {0,number,currency}, spending {1,number,currency}", monthlyDeposit, monthlyWithdraw), afterTax ? " after tax." : ".");
         appendLine(format("Expected {0}% inflation, retiring at {1} +/-{3}, until age {2} +/-{4}.", inflation, retirementAge, age, RETIREMENT_AGE_STD, END_AGE_STD));
 
@@ -1511,16 +1511,16 @@ public class ConsoleReports {
         final var periods = (int) Math.ceil((float) yearsLeft / periodYears);
 
         final var inflationFactors = IntStream.range(0, 180)
-                .mapToObj(year -> inflationRate.pow(year, CONTEXT))
-                .collect(toList());
+                .mapToDouble(year -> Math.pow(inflationRate, year))
+                .toArray();
 
-        final var realDeposits = inflationFactors.stream()
-                .map(f -> f.multiply(deposit, CONTEXT))
-                .collect(toList());
+        final var realDeposits = Arrays.stream(inflationFactors)
+                .map(f -> f * deposit)
+                .toArray();
 
-        final var realWithdrawals = inflationFactors.stream()
-                .map(f -> f.multiply(withdraw, CONTEXT))
-                .collect(toList());
+        final var realWithdrawals = Arrays.stream(inflationFactors)
+                .map(f -> f * withdraw)
+                .toArray();
 
         final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, -1.0d);
         final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, -1.0d);
@@ -1549,16 +1549,16 @@ public class ConsoleReports {
 
     }
 
-    private List<BigDecimal> balanceProportions(int periods,
+    private double[] balanceProportions(int periods,
             List<List<BigDecimal>> allSP500Periods,
             List<List<BigDecimal>> allRussell2000Periods,
             List<List<BigDecimal>> allEIMIPeriods,
             List<List<BigDecimal>> allMEUDPeriods,
             boolean onlySP500,
-            BigDecimal sp500Fee,
-            BigDecimal russellFee,
-            BigDecimal eimiFee,
-            BigDecimal meudFee) {
+            double sp500Fee,
+            double russellFee,
+            double eimiFee,
+            double meudFee) {
 
         final var sp500Periods = this.randomPeriods(allSP500Periods, periods, sp500Fee);
 
@@ -1574,13 +1574,12 @@ public class ConsoleReports {
                 ? sp500Periods
                 : this.randomPeriods(allMEUDPeriods, periods, meudFee);
 
-        return IntStream.range(0, sp500Periods.size())
-                .mapToObj(i
-                        -> sp500Periods.get(i).multiply(SP500_PCT, CONTEXT)
-                        .add(russell2000Periods.get(i).multiply(RUSSELL2000_PCT, CONTEXT), CONTEXT)
-                        .add(meudPeriods.get(i).multiply(MEUD_PCT, CONTEXT), CONTEXT)
-                        .add(eimiPeriods.get(i).multiply(EIMI_PCT, CONTEXT), CONTEXT))
-                .collect(toList());
+        return IntStream.range(0, sp500Periods.length)
+                .mapToDouble(i -> sp500Periods[i] * SP500_PCT
+                + russell2000Periods[i] * RUSSELL2000_PCT
+                + meudPeriods[i] * MEUD_PCT
+                + eimiPeriods[i] * EIMI_PCT)
+                .toArray();
     }
 
     /**
@@ -1615,59 +1614,59 @@ public class ConsoleReports {
         return (int) Math.round(gauss((double) mean, (double) std));
     }
 
-    private BigDecimal bbppFactor() {
-        return ONE
-                .min(ONE.setScale(6, MathConstants.ROUNDING_MODE)
-                        .subtract(
-                                BigDecimal.valueOf(gauss(this.bbppMean, this.bbppVar)),
-                                CONTEXT))
-                .max(this.bbppMinFactor);
+    private double bbppFactor() {
+
+        return Math.max(
+                this.bbppMinFactor,
+                Math.min(
+                        1.0d,
+                        1.0d - gauss(this.bbppMean, this.bbppVar)));
+
     }
 
     private boolean goals(
             final int startingYear,
             final int retirement,
             final int end,
-            final BigDecimal cash,
-            final BigDecimal investedAmount,
-            final List<BigDecimal> returns,
-            final List<BigDecimal> deposit,
-            final List<BigDecimal> withdraw) {
+            final double cash,
+            final double investedAmount,
+            final double[] returns,
+            final double[] deposit,
+            final double[] withdraw) {
 
 //        if(retirement - 1978 < 50 || end - 1978 < 50){
 //            System.out.println("ret: " + (retirement - 1978) + " end: " + (end - 1978));
 //        }
-        BigDecimal cashAmount = cash;
-        BigDecimal amount = investedAmount;
+        double cashAmount = cash;
+        double amount = investedAmount;
         // depositing
         for (var i = startingYear; i < retirement; i++) {
 
             // BB.PP.
-            amount = amount.multiply(bbppFactor(), CONTEXT);
+            amount *= bbppFactor();
 
-            amount = amount.multiply(returns.get(i - startingYear), CONTEXT)
-                    .add(deposit.get(i - startingYear), CONTEXT);
+            amount = amount * returns[i - startingYear] + deposit[i - startingYear];
         }
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
             // BB.PP.
-            amount = amount.multiply(bbppFactor(), CONTEXT);
+            amount *= bbppFactor();
 
-            amount = amount.subtract(withdraw.get(i - startingYear), CONTEXT);
+            amount -= withdraw[i - startingYear];
 
-            if (amount.signum() > 0) {
-                amount = amount.multiply(returns.get(i - startingYear), CONTEXT);
+            if (amount > 0.0d) {
+                amount *= returns[i - startingYear];
             } else {
-                cashAmount = cashAmount.add(amount, CONTEXT);
-                amount = ZERO;
+                cashAmount += amount;
+                amount = 0.0d;
             }
-            if (cashAmount.signum() <= 0) {
+            if (cashAmount <= 0.0d) {
                 return false;
             }
         }
 
-        return amount.add(cashAmount, CONTEXT).signum() > 0;
+        return amount + cashAmount > 0.0d;
     }
 
     public List<Investment> getInvestments() {
