@@ -121,6 +121,10 @@ public class ConsoleReports {
 
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
+
+    private static final TypeReference<Map<String, BenchmarkItem>> BENCHMARK_TR = new TypeReference<Map<String, BenchmarkItem>>() {
+    };
+
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(6, MathConstants.ROUNDING_MODE), BigDecimal::add);
     private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, MathConstants.ROUNDING_MODE), REDUCER);
 
@@ -325,6 +329,31 @@ public class ConsoleReports {
         this.investmentsProfit(currency, type, Investment::isPast, false, nominal);
     }
 
+    private BenchmarkItem real(BenchmarkItem item) {
+
+        BenchmarkItem answer = new BenchmarkItem();
+        answer.setCurrent(item.getCurrent());
+        answer.setInitial(USD_INFLATION.adjust(
+                new MoneyAmount(item.getInitial(), "USD"),
+                2019,
+                7,
+                USD_INFLATION.getTo().getYear(),
+                USD_INFLATION.getTo().getYear()).getAmount());
+        return answer;
+    }
+
+    private void subtitle(String title) {
+
+        final var line = IntStream.range(0, title.length() + 4)
+                .mapToObj(i -> "-")
+                .collect(joining());
+
+        appendLine("");
+        appendLine("\t<", line, ">");
+        appendLine("\t<- ", title, " ->");
+        appendLine("\t<", line, ">");
+    }
+
     private void investmentsProfit(final String currency, final InvestmentType type, final Predicate<Investment> predicate, final boolean totalOnly, boolean nominal) {
 
         final var currencyText = Optional.ofNullable(currency)
@@ -369,24 +398,23 @@ public class ConsoleReports {
         appendLine("\nAfter fee investment  Before fee/tax current     Profit     %");
         final var pct = this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getNetRealInvestment, InvestmentReport::getGrossRealProfit);
 
-        final var benchmarks = SeriesReader.read("index/benchmarks.json", new TypeReference<Map<String, BenchmarkItem>>() {
-        });
+        final var benchmarks = SeriesReader.read("index/benchmarks.json", BENCHMARK_TR)
+                .entrySet()
+                .stream()
+                .collect(toMap(
+                        Map.Entry::getKey,
+                        e -> nominal ? e.getValue() : this.real(e.getValue())));
 
-        if (nominal) {
-            appendLine("");
+        this.subtitle("Benchmark");
 
-            appendLine("\t<------------->");
-            appendLine("\t<- Benchmark ->");
-            appendLine("\t<------------->");
+        Stream.concat(
+                benchmarks.entrySet().stream()
+                        .map(e -> of(e.getKey(), e.getValue().getCurrent().divide(e.getValue().getInitial(), CONTEXT).subtract(ONE, CONTEXT))),
+                Stream.of(of("Portfolio", pct)))
+                .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
+                .map(p -> format("{0} {1}", text(p.getFirst(), 10), pctBar(p.getSecond())))
+                .forEach(this::appendLine);
 
-            Stream.concat(
-                    benchmarks.entrySet().stream()
-                            .map(e -> of(e.getKey(), e.getValue().getCurrent().divide(e.getValue().getInitial(), CONTEXT).subtract(ONE, CONTEXT))),
-                    Stream.of(of("Portfolio", pct)))
-                    .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
-                    .map(p -> format("{0} {1}", text(p.getFirst(), 10), pctBar(p.getSecond())))
-                    .forEach(this::appendLine);
-        }
         appendLine("\nTotal investment      After fee/tax current      Profit     %");
         this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getGrossRealInvestment, InvestmentReport::getNetRealProfit);
 
@@ -420,11 +448,7 @@ public class ConsoleReports {
                 .add(profit, CONTEXT)
                 .add(totalTax, CONTEXT);
 
-        appendLine("");
-
-        appendLine("\t<----------->");
-        appendLine("\t<- Details ->");
-        appendLine("\t<----------->");
+        this.subtitle("Details");
 
         final var textWidth = 9;
         final var numberWidth = 11;
@@ -483,11 +507,7 @@ public class ConsoleReports {
                 currency(totalTax, numberWidth),
                 pctBar(totalTax, totalAmount)));
 
-        appendLine("");
-
-        appendLine("\t<---------->");
-        appendLine("\t<- Cuenta ->");
-        appendLine("\t<---------->");
+        this.subtitle("Cuenta");
 
         final var width = 13;
 
