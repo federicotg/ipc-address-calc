@@ -1390,11 +1390,10 @@ public class ConsoleReports {
                 .collect(joining());
     }
 
-    private double[] randomPeriods(List<List<BigDecimal>> allReturns, int periods, double fee) {
+    private double[] randomPeriods(List<double[]> allReturns, int periods, double fee) {
         return ThreadLocalRandom.current().ints(periods, 0, allReturns.size())
                 .mapToObj(allReturns::get)
-                .flatMap(Collection::stream)
-                .mapToDouble(BigDecimal::doubleValue)
+                .flatMapToDouble(Arrays::stream)            
                 .map(value -> value - fee)
                 .toArray();
     }
@@ -1550,10 +1549,10 @@ public class ConsoleReports {
     }
 
     private double[] balanceProportions(int periods,
-            List<List<BigDecimal>> allSP500Periods,
-            List<List<BigDecimal>> allRussell2000Periods,
-            List<List<BigDecimal>> allEIMIPeriods,
-            List<List<BigDecimal>> allMEUDPeriods,
+            List<double[]> allSP500Periods,
+            List<double[]> allRussell2000Periods,
+            List<double[]> allEIMIPeriods,
+            List<double[]> allMEUDPeriods,
             boolean onlySP500,
             double sp500Fee,
             double russellFee,
@@ -1585,10 +1584,10 @@ public class ConsoleReports {
     /**
      * Me quedo con el keepWorsePct % peor.
      */
-    private List<List<BigDecimal>> periods(List<BigDecimal> returns, final int years, double keepWorsePct) {
+    private List<double[]> periods(List<BigDecimal> returns, final int years, double keepWorsePct) {
 
         var periods = IntStream.range(0, returns.size() - years + 1)
-                .mapToObj(start -> returns.stream().skip(start).limit(years).collect(toList()))
+                .mapToObj(start -> returns.stream().skip(start).limit(years).mapToDouble(BigDecimal::doubleValue).toArray())
                 .sorted(comparing(this::sum))
                 .collect(toList());
 
@@ -1601,8 +1600,8 @@ public class ConsoleReports {
 
     }
 
-    private BigDecimal sum(List<BigDecimal> l) {
-        return l.stream().reduce(ZERO, BigDecimal::add);
+    private double sum(double[] l) {
+        return Arrays.stream(l).sum();
     }
 
     private static double gauss(double mean, double std) {
