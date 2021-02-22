@@ -1490,12 +1490,11 @@ public class ConsoleReports {
 
         final var periods = (int) Math.ceil((float) yearsLeft / periodYears);
 
-        final var inflationFactors = IntStream.range(0, 200)
+        final var inflationFactors = IntStream.range(0, 180)
                 .mapToObj(year -> inflationRate.pow(year, CONTEXT))
                 .collect(toList());
 
         final var realDeposits = inflationFactors.stream()
-                //.limit(1978 + retirementAge - startingYear)
                 .map(f -> f.multiply(deposit, CONTEXT))
                 .collect(toList());
 
