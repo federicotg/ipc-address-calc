@@ -1593,7 +1593,7 @@ public class ConsoleReports {
 
     private static int gauss(int mean, int std) {
 
-        return (int) gauss((double) mean, (double) std);
+        return (int) Math.round(gauss((double) mean, (double) std));
     }
 
     private BigDecimal bbppFactor() {
