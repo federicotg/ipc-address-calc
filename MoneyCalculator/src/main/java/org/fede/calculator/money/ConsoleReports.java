@@ -100,14 +100,14 @@ public class ConsoleReports {
 
     private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
     private static final double RUSSELL2000_PCT = new BigDecimal("0.1").doubleValue();
-    private static final double SP500_PCT = new BigDecimal("0.7").doubleValue();
-    private static final double EIMI_PCT = new BigDecimal("0.1").doubleValue();
-    private static final double MEUD_PCT = new BigDecimal("0.1").doubleValue();
+    private static final double SP500_PCT = 0.7d;
+    private static final double EIMI_PCT = 0.1d;
+    private static final double MEUD_PCT = 0.1d;
 
-    private static final double CSPX_FEE = new BigDecimal("0.0007").doubleValue();
-    private static final double XRSU_FEE = new BigDecimal("0.003").doubleValue();
-    private static final double EIMI_FEE = new BigDecimal("0.0018").doubleValue();
-    private static final double MEUD_FEE = new BigDecimal("0.0007").doubleValue();
+    private static final double CSPX_FEE = 0.0007d;
+    private static final double XRSU_FEE = 0.003d;
+    private static final double EIMI_FEE = 0.0018d;
+    private static final double MEUD_FEE = 0.0007d;
 
     private static final int RETIREMENT_AGE_STD = 3;
     private static final int END_AGE_STD = 6;
