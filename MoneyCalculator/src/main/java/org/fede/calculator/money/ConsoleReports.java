@@ -1393,7 +1393,7 @@ public class ConsoleReports {
     private double[] randomPeriods(List<double[]> allReturns, int periods, double fee) {
         return ThreadLocalRandom.current().ints(periods, 0, allReturns.size())
                 .mapToObj(allReturns::get)
-                .flatMapToDouble(Arrays::stream)            
+                .flatMapToDouble(Arrays::stream)
                 .map(value -> value - fee)
                 .toArray();
     }
@@ -1422,6 +1422,8 @@ public class ConsoleReports {
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", "0"));
         final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", "true"));
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "true"));
+        final var pension = Integer.parseInt(params.getOrDefault("pension", "0"));
+
         final var bbppTax = afterTax
                 ? Double.parseDouble(params.getOrDefault("bbpp", "2.25")) / 100.0d
                 : 0.0d;
@@ -1446,7 +1448,8 @@ public class ConsoleReports {
                 BigDecimal.valueOf(extraCash),
                 onlySP500,
                 afterTax,
-                age);
+                age,
+                pension);
     }
 
     private void goal(
@@ -1460,7 +1463,8 @@ public class ConsoleReports {
             final BigDecimal extraCash,
             final boolean onlySP500,
             final boolean afterTax,
-            final int age) {
+            final int age,
+            final int pension) {
 
         final var tr = new TypeReference<List<AnnualHistoricalReturn>>() {
         };
@@ -1493,15 +1497,22 @@ public class ConsoleReports {
                 .add(BigDecimal.valueOf(inflation).setScale(6, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT).doubleValue();
 
         final var deposit = BigDecimal.valueOf(monthlyDeposit * 12).divide(buySellFee, CONTEXT).doubleValue();
-        final var withdraw = BigDecimal.valueOf(monthlyWithdraw * 12)
+        final var withdraw = BigDecimal.valueOf((monthlyWithdraw - pension) * 12)
                 .multiply(buySellFee, CONTEXT)
                 .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, CONTEXT).doubleValue();
 
         final var investedAmount = invested.getAmount().doubleValue();
 
         appendLine(format("Cash: {0,number,currency}, invested: {1,number,currency}", cash, investedAmount));
-        appendLine(format("Saving {0,number,currency}, spending {1,number,currency}", monthlyDeposit, monthlyWithdraw), afterTax ? " after tax." : ".");
-        appendLine(format("Expected {0}% inflation, retiring at {1} +/-{3}, until age {2} +/-{4}.", inflation, retirementAge, age, RETIREMENT_AGE_STD, END_AGE_STD));
+        appendLine(format(
+                "Saving {0,number,currency}, spending {1,number,currency}",
+                monthlyDeposit,
+                monthlyWithdraw),
+                afterTax ? " after tax." : ".");
+        if (pension > 0) {
+            appendLine(format("Considering {0,number,currency} pension.", pension));
+        }
+        appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2} +/-{4}.", inflation, retirementAge, age, RETIREMENT_AGE_STD, END_AGE_STD));
 
         final int startingYear = to.getYear();
         final var end = 1978 + age;
@@ -1532,7 +1543,8 @@ public class ConsoleReports {
                 .filter(randomReturns
                         -> this.goals(
                         startingYear,
-                        1978 + gauss(retirementAge, RETIREMENT_AGE_STD),
+                        //1978 + gauss(retirementAge, RETIREMENT_AGE_STD),
+                        1978 + retirementAge,
                         gauss(end, END_AGE_STD),
                         cash,
                         investedAmount,
