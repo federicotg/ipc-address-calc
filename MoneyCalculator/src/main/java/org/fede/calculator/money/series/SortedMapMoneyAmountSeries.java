@@ -89,4 +89,9 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
                 .map(Map.Entry::getValue);
     }
 
+    @Override
+    public Stream<YearMonth> yearMonthStream() {
+        return this.values.keySet().stream();
+    }
+
 }

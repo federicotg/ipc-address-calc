@@ -48,6 +48,8 @@ public interface MoneyAmountSeries extends Series {
     void forEachNonZero(BiConsumer<YearMonth, MoneyAmount> consumer);
     
     Stream<MoneyAmount> moneyAmountStream();
+    
+    Stream<YearMonth> yearMonthStream();
 
     MoneyAmountSeries map(BiFunction<YearMonth, MoneyAmount, MoneyAmount> f);
     

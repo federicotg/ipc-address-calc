@@ -55,6 +55,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -1934,22 +1935,24 @@ public class ConsoleReports {
 
         series.forEachNonZero((ym, ma) -> byYear.merge(classifier.apply(ym), ma, MoneyAmount::add));
 
+        final Map<String, Long> counts = series.yearMonthStream()
+                .collect(Collectors.groupingBy(classifier, Collectors.counting()));
+        
         final Map<String, MoneyAmount> comparisonByYear = new HashMap<>(32, 0.75f);
 
         if (comparisonSeries != null) {
             comparisonSeries.forEachNonZero((ym, ma) -> comparisonByYear.merge(classifier.apply(ym), ma, MoneyAmount::add));
         }
 
-        //final var nf = NumberFormat.getCurrencyInstance();
         byYear.entrySet().stream()
                 .sorted(Comparator.comparing(Map.Entry::getKey))
                 .forEach(e -> this.appendLine(format("{0} {1} {2} {3}",
                 e.getKey(),
-                currency(e.getValue().getAmount().divide(BigDecimal.valueOf(months), CONTEXT), 11),
+                currency(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), CONTEXT), 11),
                 Optional.ofNullable(comparisonByYear.get(e.getKey()))
                         .map(comp -> this.pctNumber(e.getValue().getAmount().divide(comp.getAmount(), CONTEXT).movePointRight(2)))
                         .orElse(""),
-                this.bar(e.getValue().getAmount(), 500))));
+                this.bar(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), CONTEXT), 50))));
     }
 
     private MoneyAmountSeries realNetSavings() {
