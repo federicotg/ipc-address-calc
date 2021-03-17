@@ -113,28 +113,35 @@ public class InvestmentReport {
     }
 
     public MoneyAmount outFeeAmount() {
-
+       
         final var feeWithTax = this.feeRate
-                .add(this.fxFee, CONTEXT)
                 .multiply(this.feeTaxRate, CONTEXT);
 
         final var cclFee = this.feeRate
                 .add(this.feeRate, CONTEXT);
 
-        final var totalFee = cclFee.add(feeWithTax, CONTEXT);
+        final var totalFee = cclFee.add(feeWithTax, CONTEXT).add(this.fxFee, CONTEXT);
 
         return this.getCurrentValue().adjust(ONE, totalFee);
     }
 
     public MoneyAmount inFeeAmount() {
 
+        final var fullAmount = this.real.getIn().getMoneyAmount()
+                .add(this.real.getIn().getFeeMoneyAmount());
+        
         // ccl fee factor 1 - 2 * fee = 0,988
         final var cclFeeFactor = ONE
                 .subtract(this.feeRate.add(this.feeRate, CONTEXT), CONTEXT);
 
-        return this.real.getIn().getFeeMoneyAmount().adjust(ONE, this.feeTaxRate)
-                .add(this.real.getIn().getMoneyAmount().adjust(cclFeeFactor, ONE)
-                        .subtract(this.real.getIn().getMoneyAmount()));
+        // fx fee factor = 1- fxFee
+        final var fxFeeFactor =  ONE.subtract(this.fxFee,CONTEXT);
+        
+        //fee + ((monto_total / fee_ccl) - monto_total) + ((monto / fx_fee) - monto)
+        
+        return this.real.getIn().getFeeMoneyAmount()
+                .add(fullAmount.adjust(cclFeeFactor, ONE).subtract(fullAmount))
+                .add(this.real.getIn().getMoneyAmount().adjust(fxFeeFactor, ONE)).subtract(this.real.getIn().getMoneyAmount());
     }
 
     /*
