@@ -128,6 +128,7 @@ public class AppConfig {
                 new ExpenseChartSeriesDTO("UNLP", "income/unlp.json"),
                 new ExpenseChartSeriesDTO("LIFIA", "income/lifia.json"),
                 new ExpenseChartSeriesDTO("Despegar", "income/despegar.json"),
+                new ExpenseChartSeriesDTO("Despegar-split", "income/despegar-split.json"),
                 new ExpenseChartSeriesDTO("Total", "")
         ).collect(toList());
     }
