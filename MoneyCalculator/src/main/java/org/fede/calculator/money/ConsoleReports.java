@@ -636,7 +636,11 @@ public class ConsoleReports {
         if (this.incomeSeries == null) {
 
             final var limit = USD_INFLATION.getTo();
-            this.incomeSeries = Stream.of(readSeries("income/lifia.json"), readSeries("income/unlp.json"), readSeries("income/despegar.json"))
+            this.incomeSeries = Stream.of(
+                    readSeries("income/lifia.json"), 
+                    readSeries("income/unlp.json"), 
+                    readSeries("income/despegar.json"),
+                    readSeries("income/despegar-split.json"))
                     .map(is -> is.exchangeInto("USD"))
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
                     .collect(toList());
@@ -791,7 +795,8 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", "trials=20000 period=20 retirement=65 age=100 d=850 w=1000 inflation=3 cash=0 sp500=true tax=true bbpp=2.25"),
+
+                        entry("goal", "trials=20000 period=20 retirement=65 age=100 w=1000 d=850 inflation=3 cash=0 sp500=true tax=true bbpp=2.25"),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
