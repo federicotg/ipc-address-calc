@@ -2370,7 +2370,10 @@ public class ConsoleReports {
     }
 
     private static String pctBar(BigDecimal value, BigDecimal total) {
-        return pctBar(value.divide(total, CONTEXT));
+        return Optional.of(total)
+                .filter(t -> t.signum() != 0)
+                .map(t -> pctBar(value.divide(t, CONTEXT)))
+                .orElse("");
     }
 
     private static String pctBar(BigDecimal value) {
