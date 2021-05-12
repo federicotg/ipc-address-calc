@@ -14,7 +14,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.springframework.version>5.2.13.RELEASE</org.springframework.version>
-        <spring-security.version>5.3.8.RELEASE</spring-security.version>
+        <spring-security.version>5.3.9.RELEASE</spring-security.version>
         <hibernate-validator-version>7.0.1.Final</hibernate-validator-version>
         <jackson2-version>2.12.2</jackson2-version>
     </properties>
