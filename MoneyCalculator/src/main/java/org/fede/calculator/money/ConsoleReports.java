@@ -24,6 +24,7 @@ import static java.math.BigDecimal.ONE;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import java.math.RoundingMode;
 import static java.math.RoundingMode.HALF_UP;
+import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -40,6 +41,7 @@ import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -637,8 +639,8 @@ public class ConsoleReports {
 
             final var limit = USD_INFLATION.getTo();
             this.incomeSeries = Stream.of(
-                    readSeries("income/lifia.json"), 
-                    readSeries("income/unlp.json"), 
+                    readSeries("income/lifia.json"),
+                    readSeries("income/unlp.json"),
                     readSeries("income/despegar.json"),
                     readSeries("income/despegar-split.json"))
                     .map(is -> is.exchangeInto("USD"))
@@ -683,6 +685,8 @@ public class ConsoleReports {
     }
 
     private void invReport(String[] args, String paranName) {
+
+        this.inv2();
 
         final var params = this.paramsValue(args, paranName);
 
@@ -795,7 +799,6 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-
                         entry("goal", "trials=20000 period=20 retirement=65 age=100 w=1000 d=850 inflation=3 cash=0 sp500=true tax=true bbpp=2.25"),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
@@ -1942,7 +1945,7 @@ public class ConsoleReports {
 
         final Map<String, Long> counts = series.yearMonthStream()
                 .collect(Collectors.groupingBy(classifier, Collectors.counting()));
-        
+
         final Map<String, MoneyAmount> comparisonByYear = new HashMap<>(32, 0.75f);
 
         if (comparisonSeries != null) {
@@ -2405,4 +2408,34 @@ public class ConsoleReports {
                         .collect(joining()));
     }
 
+    private void inv2() {
+
+        // agregar profit neto y bruto
+        // monto invertido neto y bruto
+        // 
+        
+        final var ics = new InvestmentCostStrategy("USD", TRADING_FEE, TRADING_FX_FEE, new BigDecimal("0.21"), CAPITAL_GAINS_TAX_RATE);
+
+        this.getInvestments()
+                .stream()
+                .filter(Investment::isCurrent)
+                .filter(i -> i.getType().equals(InvestmentType.ETF))
+                .filter(i -> i.getCurrency().equals("MEUD"))
+                .map(ics::details)
+                .forEach(this::print);
+    }
+
+    private void print(InvestmentDetails d) {
+        var df = DateTimeFormatter.ISO_LOCAL_DATE;
+
+        this.appendLine(text(df.format(d.getInventmentDate()), 11),
+                " ",
+                text(d.getInvestmentCurrency(), 6),
+                "CG ",
+                currency(d.getCapitalGainsTax(), 11),
+                "Fees ",
+                currency(d.getFees(), 11),
+                "Taxes ",
+                currency(d.getTaxes(), 11));
+    }
 }
