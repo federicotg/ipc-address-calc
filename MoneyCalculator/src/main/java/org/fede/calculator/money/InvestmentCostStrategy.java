@@ -89,13 +89,13 @@ public class InvestmentCostStrategy {
                 .exchange(inv.getMoneyAmount(), this.currency, limit.getYear(), limit.getMonth())
                 .getAmount();
 
-        final var sellFee = presentValue.multiply(this.sellFeeRate, CONTEXT);
-        final var sellFeeTax = sellFee.multiply(sellFeeTaxRate, CONTEXT);
+        final var sellFee = presentValue.multiply(this.sellFeeRate, CONTEXT).max(BigDecimal.ZERO);
+        final var sellFeeTax = sellFee.multiply(sellFeeTaxRate, CONTEXT).max(BigDecimal.ZERO);
 
         final var sellFxFee = "MEUD".equals(inv.getCurrency())
-                ? investedAmount.multiply(sellFxFeeRate, CONTEXT)
+                ? investedAmount.multiply(sellFxFeeRate, CONTEXT).max(BigDecimal.ZERO)
                 : BigDecimal.ZERO;
-        final var sellFxFeeTax = sellFxFee.multiply(this.sellFxFeeTaxRate, CONTEXT);
+        final var sellFxFeeTax = sellFxFee.multiply(this.sellFxFeeTaxRate, CONTEXT).max(BigDecimal.ZERO);
 
         final var beforeCclAmount = presentValue
                 .subtract(sellFee, CONTEXT)
@@ -105,14 +105,14 @@ public class InvestmentCostStrategy {
 
         final var capitalGains = beforeCclAmount
                 .subtract(afterCclAmount, CONTEXT) // o investedAmount
-                .multiply(this.capitalGainsTaxRate, CONTEXT);
+                .multiply(this.capitalGainsTaxRate, CONTEXT).max(BigDecimal.ZERO);
 
         // ccl
-        final var firstSellCclFee = beforeCclAmount.multiply(this.cclFeeRate, CONTEXT);
+        final var firstSellCclFee = beforeCclAmount.multiply(this.cclFeeRate, CONTEXT).max(BigDecimal.ZERO);
 
         final var secondSellCclFee = beforeCclAmount
                 .subtract(firstSellCclFee, CONTEXT)
-                .multiply(this.cclFeeRate, CONTEXT);
+                .multiply(this.cclFeeRate, CONTEXT).max(BigDecimal.ZERO);
 
         final var d = new InvestmentDetails();
         d.setBuyFee(new MoneyAmount(buyFee, this.currency));
