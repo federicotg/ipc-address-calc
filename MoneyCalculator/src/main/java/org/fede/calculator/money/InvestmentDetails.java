@@ -18,6 +18,7 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.fede.calculator.money.series.YearMonth;
 import java.time.temporal.ChronoUnit;
 
 /**
@@ -26,9 +27,12 @@ import java.time.temporal.ChronoUnit;
  */
 public class InvestmentDetails {
 
+    private final boolean nominal;
+
     private String investmentCurrency;
 
     private LocalDate inventmentDate;
+    private YearMonth investmentYM;
 
     private MoneyAmount buyCclFee;
     private MoneyAmount buyFee;
@@ -46,6 +50,14 @@ public class InvestmentDetails {
     private MoneyAmount capitalGainsTax;
 
     private MoneyAmount currentAmount;
+
+    public InvestmentDetails(boolean nominal) {
+        this.nominal = nominal;
+    }
+
+    public InvestmentDetails() {
+        this(true);
+    }
 
     public LocalDate getInventmentDate() {
         return inventmentDate;
@@ -243,6 +255,49 @@ public class InvestmentDetails {
     private static BigDecimal days(LocalDate date) {
 
         return BigDecimal.valueOf(ChronoUnit.DAYS.between(date, LocalDate.now()) + 1);
+    }
+
+    public InvestmentDetails asReal() {
+        if (!"USD".equals(this.getCurrentAmount().getCurrency())) {
+            throw new IllegalArgumentException("No way to turn into real " + this.getCurrentAmount().getCurrency() + ".");
+        }
+
+        if (this.nominal) {
+
+            final var real = new InvestmentDetails(false);
+
+            real.setBuyCclFee(this.real(this.getBuyCclFee()));
+            real.setBuyFee(this.real(this.getBuyFee()));
+            real.setBuyFeeTax(this.real(this.getBuyFeeTax()));
+            real.setBuyFxFee(this.real(this.getBuyFxFee()));
+            real.setBuyFxFeeTax(this.real(this.getBuyFxFeeTax()));
+            real.setInvestedAmount(this.real(this.getInvestedAmount()));
+
+            real.setCapitalGainsTax(this.getCapitalGainsTax());
+            real.setCurrentAmount(this.getCurrentAmount());
+            real.setInventmentDate(this.getInventmentDate());
+            real.setInvestmentCurrency(this.getInvestmentCurrency());
+            real.setSellCclFee(this.getSellCclFee());
+            real.setSellFee(this.getSellFee());
+            real.setSellFeeTax(this.getSellFeeTax());
+            real.setSellFxFee(this.getSellFxFee());
+            real.setSellFxFeeTax(this.getSellFxFeeTax());
+
+            return real;
+        }
+
+        return this;
+    }
+
+    private MoneyAmount real(MoneyAmount nominal) {
+
+        if (this.investmentYM == null) {
+            this.investmentYM = YearMonth.of(this.getInventmentDate().getYear(), this.getInventmentDate().getMonthValue());
+        }
+
+        return Inflation.USD_INFLATION.adjust(
+                nominal, this.investmentYM.getYear(), this.investmentYM.getMonth(),
+                Inflation.USD_INFLATION.getTo().getYear(), Inflation.USD_INFLATION.getTo().getMonth());
     }
 
 }

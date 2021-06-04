@@ -686,8 +686,19 @@ public class ConsoleReports {
 
     private void invReport(String[] args, String paranName) {
 
-        this.inv2();
+        final var params = this.paramsValue(args, paranName);
 
+        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+
+        final var type = params.getOrDefault("type", "all");
+
+        this.inv("all".equalsIgnoreCase(type) ? x -> true : x -> x.getCurrency().equalsIgnoreCase(type), nominal);
+
+    }
+
+    private void invReportOld(String[] args, String paranName) {
+
+        //this.inv2();
         final var params = this.paramsValue(args, paranName);
 
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
@@ -750,6 +761,7 @@ public class ConsoleReports {
                     entry("i", me::investments),
                     entry("gi", me::groupedInvestments),
                     entry("ti", me::listStockByTpe),
+                    entry("inv2", () -> me.invReportOld(args, "inv2")),
                     entry("inv", () -> me.invReport(args, "inv")),
                     //savings
                     entry("savings", me::savings),
@@ -2412,13 +2424,11 @@ public class ConsoleReports {
                         .collect(joining()));
     }
 
-    private void inv2() {
+    private void inv(final Predicate<Investment> everyone, boolean nominal) {
 
-        this.inv(x -> true);
-
-    }
-
-    private void inv(Predicate<Investment> everyone) {
+        appendLine();
+        appendLine(format("{0} Investment Results", nominal ? "Nominal" : "Real"));
+        appendLine();
 
         final var ics = new InvestmentCostStrategy("USD", TRADING_FEE, TRADING_FX_FEE, new BigDecimal("0.21"), CAPITAL_GAINS_TAX_RATE);
 
@@ -2445,6 +2455,7 @@ public class ConsoleReports {
                 .filter(i -> i.getType().equals(InvestmentType.ETF))
                 .filter(everyone)
                 .map(ics::details)
+                .map(d -> nominal ? d : d.asReal())
                 .forEach(this::print);
 
         final var benchmarks = SeriesReader.read("index/benchmarks.json", BENCHMARK_TR)
@@ -2452,14 +2463,14 @@ public class ConsoleReports {
                 .stream()
                 .collect(toMap(
                         Map.Entry::getKey,
-                        e -> e.getValue()));
+                        e -> nominal ? e.getValue() : real(e.getValue())));
 
-        final var totalGrossGains = this.total(ics, everyone, InvestmentDetails::getGrossCapitalGains);
-        final var totalNetGains = this.total(ics, everyone, InvestmentDetails::getNetCapitalGains);
-        final var totalCurrent = this.total(ics, everyone, InvestmentDetails::getCurrentAmount);
-        final var totalTax = this.total(ics, everyone, InvestmentDetails::getTaxes);
-        final var totalFee = this.total(ics, everyone, InvestmentDetails::getFees);
-        final var totalInvested = this.total(ics, everyone, InvestmentDetails::getInvestedAmount);
+        final var totalGrossGains = this.total(ics, everyone, InvestmentDetails::getGrossCapitalGains, nominal);
+        final var totalNetGains = this.total(ics, everyone, InvestmentDetails::getNetCapitalGains, nominal);
+        final var totalCurrent = this.total(ics, everyone, InvestmentDetails::getCurrentAmount, nominal);
+        final var totalTax = this.total(ics, everyone, InvestmentDetails::getTaxes, nominal);
+        final var totalFee = this.total(ics, everyone, InvestmentDetails::getFees, nominal);
+        final var totalInvested = this.total(ics, everyone, InvestmentDetails::getInvestedAmount, nominal);
 
         this.subtitle("Total");
 
@@ -2498,20 +2509,21 @@ public class ConsoleReports {
                 .forEach(this::appendLine);
     }
 
-    private BigDecimal total(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, MoneyAmount> f) {
+    private BigDecimal total(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, MoneyAmount> f, boolean nominal) {
         return this.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(i -> i.getType().equals(InvestmentType.ETF))
                 .filter(predicate)
                 .map(ics::details)
+                .map(d -> nominal ? d : d.asReal())
                 .map(f)
                 .map(MoneyAmount::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private void print(InvestmentDetails d) {
-        
+
         final var mw = 13;
         this.appendLine(
                 text(d.getInvestmentCurrency(), 5),
