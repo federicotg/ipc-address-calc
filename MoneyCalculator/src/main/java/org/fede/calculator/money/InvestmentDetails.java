@@ -16,8 +16,9 @@
  */
 package org.fede.calculator.money;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.temporal.ChronoUnit;
 
 /**
  *
@@ -43,6 +44,8 @@ public class InvestmentDetails {
     private MoneyAmount sellFxFee;
     private MoneyAmount sellFxFeeTax;
     private MoneyAmount capitalGainsTax;
+
+    private MoneyAmount currentAmount;
 
     public LocalDate getInventmentDate() {
         return inventmentDate;
@@ -156,6 +159,14 @@ public class InvestmentDetails {
         this.investmentCurrency = investmentCurrency;
     }
 
+    public MoneyAmount getCurrentAmount() {
+        return currentAmount;
+    }
+
+    public void setCurrentAmount(MoneyAmount currentAmount) {
+        this.currentAmount = currentAmount;
+    }
+
     public MoneyAmount getFees() {
         return this.getBuyCclFee()
                 .add(this.getBuyFee())
@@ -166,6 +177,16 @@ public class InvestmentDetails {
 
     }
 
+    public BigDecimal getFeePercent() {
+        return this.getFees().getAmount()
+                .divide(this.getCurrentAmount().getAmount(), MathConstants.CONTEXT);
+    }
+
+    public BigDecimal getTaxPercent() {
+        return this.getTaxes().getAmount()
+                .divide(this.getCurrentAmount().getAmount(), MathConstants.CONTEXT);
+    }
+
     public MoneyAmount getTaxes() {
         return this.getBuyFeeTax()
                 .add(this.getBuyFxFeeTax())
@@ -173,6 +194,55 @@ public class InvestmentDetails {
                 .add(this.getSellFeeTax())
                 .add(this.getSellFxFeeTax());
 
+    }
+
+    public MoneyAmount getNetCapitalGains() {
+        return this.getCurrentAmount()
+                .subtract(this.getSellCclFee())
+                .subtract(this.getSellFee())
+                .subtract(this.getSellFeeTax())
+                .subtract(this.getSellFxFee())
+                .subtract(this.getSellFxFeeTax())
+                .subtract(this.getCapitalGainsTax())
+                .subtract(this.getInvestedAmount());
+    }
+
+    public BigDecimal getNetCapitalGainsPercent() {
+        return this.getNetCapitalGains().getAmount()
+                .divide(this.getInvestedAmount().getAmount(), MathConstants.CONTEXT);
+
+    }
+
+    public MoneyAmount getGrossCapitalGains() {
+        return this.getCurrentAmount().subtract(this.getInvestedAmount());
+    }
+
+    public BigDecimal getGrossCapitalGainsPercent() {
+        return this.getGrossCapitalGains().getAmount()
+                .divide(this.getInvestedAmount().getAmount(), MathConstants.CONTEXT);
+
+    }
+
+    public BigDecimal getCAGR() {
+        final var days = days(this.inventmentDate);
+
+        if (days.signum() <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        final var cumulativeProfit = this.getNetCapitalGainsPercent();
+
+        final double x = Math.pow(
+                BigDecimal.ONE.add(cumulativeProfit).doubleValue(),
+                365.0d / days.doubleValue()) - 1.0d;
+
+        return BigDecimal.valueOf(x);
+
+    }
+
+    private static BigDecimal days(LocalDate date) {
+
+        return BigDecimal.valueOf(ChronoUnit.DAYS.between(date, LocalDate.now()) + 1);
     }
 
 }

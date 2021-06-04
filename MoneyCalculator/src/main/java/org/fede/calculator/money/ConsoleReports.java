@@ -2372,6 +2372,10 @@ public class ConsoleReports {
         return String.format("%" + width + "s", format("{0} {1,number,currency}", value.getCurrency(), value.getAmount()));
     }
 
+    private static String percent(BigDecimal pct, int width) {
+        return String.format("%" + width + "s", format("{0}", PERCENT_FORMAT.format(pct)));
+    }
+
     private static String pctBar(BigDecimal value, BigDecimal total) {
         return Optional.of(total)
                 .filter(t -> t.signum() != 0)
@@ -2410,32 +2414,118 @@ public class ConsoleReports {
 
     private void inv2() {
 
-        // agregar profit neto y bruto
-        // monto invertido neto y bruto
-        // 
-        
+        this.inv(x -> true);
+
+    }
+
+    private void inv(Predicate<Investment> everyone) {
+
         final var ics = new InvestmentCostStrategy("USD", TRADING_FEE, TRADING_FX_FEE, new BigDecimal("0.21"), CAPITAL_GAINS_TAX_RATE);
+
+        final var mw = 13;
+
+        this.appendLine(
+                text(" ETF", 5),
+                text("  Fecha", 11),
+                text("   Investment", mw),
+                text("    Current", mw),
+                text("     Profit", mw),
+                text("     %", 9),
+                text("  Net Profit", mw),
+                text("   %", 8),
+                text("  CAGR", 10),
+                text("     Fee", 12),
+                text("   %", 8),
+                text("    Tax", 12),
+                text("   %", 8));
 
         this.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(i -> i.getType().equals(InvestmentType.ETF))
-                .filter(i -> i.getCurrency().equals("MEUD"))
+                .filter(everyone)
                 .map(ics::details)
                 .forEach(this::print);
+
+        final var benchmarks = SeriesReader.read("index/benchmarks.json", BENCHMARK_TR)
+                .entrySet()
+                .stream()
+                .collect(toMap(
+                        Map.Entry::getKey,
+                        e -> e.getValue()));
+
+        final var totalGrossGains = this.total(ics, everyone, InvestmentDetails::getGrossCapitalGains);
+        final var totalNetGains = this.total(ics, everyone, InvestmentDetails::getNetCapitalGains);
+        final var totalCurrent = this.total(ics, everyone, InvestmentDetails::getCurrentAmount);
+        final var totalTax = this.total(ics, everyone, InvestmentDetails::getTaxes);
+        final var totalFee = this.total(ics, everyone, InvestmentDetails::getFees);
+        final var totalInvested = this.total(ics, everyone, InvestmentDetails::getInvestedAmount);
+
+        this.subtitle("Total");
+
+        this.appendLine(
+                text("   Investment", mw),
+                text("    Current", mw),
+                text("     Profit", mw),
+                text("     %", 9),
+                text("  Net Profit", mw),
+                text("   %", 8),
+                text("     Fee", 12),
+                text("   %", 8),
+                text("    Tax", 12),
+                text("   %", 8));
+
+        this.appendLine(
+                currency(totalInvested, mw),
+                currency(totalCurrent, mw),
+                currency(totalGrossGains, mw),
+                percent(totalGrossGains.divide(totalInvested, CONTEXT), 9),
+                currency(totalNetGains, mw),
+                percent(totalNetGains.divide(totalInvested, CONTEXT), 8),
+                currency(totalFee, 12),
+                percent(totalFee.divide(totalCurrent, CONTEXT), 8),
+                currency(totalTax, 12),
+                percent(totalTax.divide(totalCurrent, CONTEXT), 8));
+
+        this.subtitle("Benchmark");
+
+        Stream.concat(
+                benchmarks.entrySet().stream()
+                        .map(e -> of(e.getKey(), e.getValue().getCurrent().divide(e.getValue().getInitial(), CONTEXT).subtract(ONE, CONTEXT))),
+                Stream.of(of("Portfolio", totalGrossGains.divide(totalInvested, CONTEXT))))
+                .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
+                .map(p -> format("{0} {1}", text(p.getFirst(), 10), pctBar(p.getSecond())))
+                .forEach(this::appendLine);
+    }
+
+    private BigDecimal total(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, MoneyAmount> f) {
+        return this.getInvestments()
+                .stream()
+                .filter(Investment::isCurrent)
+                .filter(i -> i.getType().equals(InvestmentType.ETF))
+                .filter(predicate)
+                .map(ics::details)
+                .map(f)
+                .map(MoneyAmount::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private void print(InvestmentDetails d) {
-        var df = DateTimeFormatter.ISO_LOCAL_DATE;
-
-        this.appendLine(text(df.format(d.getInventmentDate()), 11),
-                " ",
-                text(d.getInvestmentCurrency(), 6),
-                "CG ",
-                currency(d.getCapitalGainsTax(), 11),
-                "Fees ",
-                currency(d.getFees(), 11),
-                "Taxes ",
-                currency(d.getTaxes(), 11));
+        
+        final var mw = 13;
+        this.appendLine(
+                text(d.getInvestmentCurrency(), 5),
+                text(DateTimeFormatter.ISO_LOCAL_DATE.format(d.getInventmentDate()), 11),
+                currency(d.getInvestedAmount().getAmount(), mw),
+                currency(d.getCurrentAmount().getAmount(), mw),
+                currency(d.getGrossCapitalGains().getAmount(), mw),
+                percent(d.getGrossCapitalGainsPercent(), 9),
+                currency(d.getNetCapitalGains().getAmount(), mw),
+                percent(d.getNetCapitalGainsPercent(), 8),
+                percent(d.getCAGR(), 10),
+                currency(d.getFees().getAmount(), 12),
+                percent(d.getFeePercent(), 8),
+                currency(d.getTaxes().getAmount(), 12),
+                percent(d.getTaxPercent(), 8));
     }
 }
