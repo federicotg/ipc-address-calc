@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.time.LocalDate;
 import org.fede.calculator.money.series.YearMonth;
 import java.time.temporal.ChronoUnit;
@@ -31,6 +32,9 @@ public class InvestmentDetails {
 
     private String investmentCurrency;
 
+    private BigDecimal investmentQuantity;
+
+    
     private LocalDate inventmentDate;
     private YearMonth investmentYM;
 
@@ -300,4 +304,11 @@ public class InvestmentDetails {
                 Inflation.USD_INFLATION.getTo().getYear(), Inflation.USD_INFLATION.getTo().getMonth());
     }
 
+    public void setInvestmentQuantity(BigDecimal investmentQuantity) {
+        this.investmentQuantity = investmentQuantity;
+    }
+
+    public BigDecimal getInvestmentPrice(){
+        return this.investedAmount.getAmount().divide(this.investmentQuantity, MathConstants.CONTEXT);
+    }
 }

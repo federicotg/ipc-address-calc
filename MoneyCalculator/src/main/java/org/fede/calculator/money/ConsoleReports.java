@@ -136,9 +136,6 @@ public class ConsoleReports {
 
     private static final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
 
-    static {
-        PERCENT_FORMAT.setMinimumFractionDigits(2);
-    }
     private List<Investment> investments;
 
     private List<BigDecimal> sp500TotalReturns;
@@ -755,6 +752,7 @@ public class ConsoleReports {
     public static void main(String[] args) {
         try {
 
+            PERCENT_FORMAT.setMinimumFractionDigits(2);
             final var me = new ConsoleReports(new StringBuilder(1024));
 
             final Map<String, Runnable> actions = Map.ofEntries(
@@ -2385,6 +2383,7 @@ public class ConsoleReports {
     }
 
     private static String percent(BigDecimal pct, int width) {
+  
         return String.format("%" + width + "s", format("{0}", PERCENT_FORMAT.format(pct)));
     }
 
@@ -2433,30 +2432,32 @@ public class ConsoleReports {
         final var ics = new InvestmentCostStrategy("USD", TRADING_FEE, TRADING_FX_FEE, new BigDecimal("0.21"), CAPITAL_GAINS_TAX_RATE);
 
         final var mw = 13;
-
+        final var colWidths = new int[]{5,11,10,mw,mw,mw,9,mw,9,9,11,8,11,8};
+        var i = 0;
         this.appendLine(
-                text(" ETF", 5),
-                text("  Fecha", 11),
-                text("   Investment", mw),
-                text("    Current", mw),
-                text("     Profit", mw),
-                text("     %", 9),
-                text("  Net Profit", mw),
-                text("   %", 8),
-                text("  CAGR", 10),
-                text("     Fee", 12),
-                text("   %", 8),
-                text("    Tax", 12),
-                text("   %", 8));
+                text(" ETF", colWidths[i++]),
+                text("  Date", colWidths[i++]),
+                text("  Price", colWidths[i++]),
+                text("   Investment", colWidths[i++]),
+                text("    Current", colWidths[i++]),
+                text("     Profit", colWidths[i++]),
+                text("     %", colWidths[i++]),
+                text("  Net Profit", colWidths[i++]),
+                text("   %", colWidths[i++]),
+                text("  CAGR", colWidths[i++]),
+                text("     Fee", colWidths[i++]),
+                text("   %", colWidths[i++]),
+                text("    Tax", colWidths[i++]),
+                text("   %", colWidths[i++]));
 
         this.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
-                .filter(i -> i.getType().equals(InvestmentType.ETF))
+                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
                 .filter(everyone)
                 .map(ics::details)
                 .map(d -> nominal ? d : d.asReal())
-                .forEach(this::print);
+                .forEach(d -> this.print(d, colWidths));
 
         final var benchmarks = SeriesReader.read("index/benchmarks.json", BENCHMARK_TR)
                 .entrySet()
@@ -2480,7 +2481,7 @@ public class ConsoleReports {
                 text("     Profit", mw),
                 text("     %", 9),
                 text("  Net Profit", mw),
-                text("   %", 8),
+                text("   %", 9),
                 text("     Fee", 12),
                 text("   %", 8),
                 text("    Tax", 12),
@@ -2492,7 +2493,7 @@ public class ConsoleReports {
                 currency(totalGrossGains, mw),
                 percent(totalGrossGains.divide(totalInvested, CONTEXT), 9),
                 currency(totalNetGains, mw),
-                percent(totalNetGains.divide(totalInvested, CONTEXT), 8),
+                percent(totalNetGains.divide(totalInvested, CONTEXT), 9),
                 currency(totalFee, 12),
                 percent(totalFee.divide(totalCurrent, CONTEXT), 8),
                 currency(totalTax, 12),
@@ -2522,22 +2523,23 @@ public class ConsoleReports {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private void print(InvestmentDetails d) {
+    private void print(InvestmentDetails d, int[] colWidths) {
 
-        final var mw = 13;
+        var i = 0;
         this.appendLine(
-                text(d.getInvestmentCurrency(), 5),
-                text(DateTimeFormatter.ISO_LOCAL_DATE.format(d.getInventmentDate()), 11),
-                currency(d.getInvestedAmount().getAmount(), mw),
-                currency(d.getCurrentAmount().getAmount(), mw),
-                currency(d.getGrossCapitalGains().getAmount(), mw),
-                percent(d.getGrossCapitalGainsPercent(), 9),
-                currency(d.getNetCapitalGains().getAmount(), mw),
-                percent(d.getNetCapitalGainsPercent(), 8),
-                percent(d.getCAGR(), 10),
-                currency(d.getFees().getAmount(), 12),
-                percent(d.getFeePercent(), 8),
-                currency(d.getTaxes().getAmount(), 12),
-                percent(d.getTaxPercent(), 8));
+                text(d.getInvestmentCurrency(), colWidths[i++]),
+                text(DateTimeFormatter.ISO_LOCAL_DATE.format(d.getInventmentDate()), colWidths[i++]),
+                currency(d.getInvestmentPrice(), colWidths[i++]),
+                currency(d.getInvestedAmount().getAmount(), colWidths[i++]),
+                currency(d.getCurrentAmount().getAmount(), colWidths[i++]),
+                currency(d.getGrossCapitalGains().getAmount(), colWidths[i++]),
+                percent(d.getGrossCapitalGainsPercent(), colWidths[i++]),
+                currency(d.getNetCapitalGains().getAmount(), colWidths[i++]),
+                percent(d.getNetCapitalGainsPercent(), colWidths[i++]),
+                percent(d.getCAGR(), colWidths[i++]),
+                currency(d.getFees().getAmount(), colWidths[i++]),
+                percent(d.getFeePercent(), colWidths[i++]),
+                currency(d.getTaxes().getAmount(), colWidths[i++]),
+                percent(d.getTaxPercent(), colWidths[i++]));
     }
 }

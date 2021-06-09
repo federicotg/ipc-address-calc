@@ -130,6 +130,7 @@ public class InvestmentCostStrategy {
         d.setSellFxFeeTax(new MoneyAmount(sellFxFeeTax, this.currency));
         d.setInvestmentCurrency(inv.getInvestment().getCurrency());
         d.setCurrentAmount(new MoneyAmount(presentValue, this.currency));
+        d.setInvestmentQuantity(investment.getInvestment().getAmount());
         return d;
     }
 }
