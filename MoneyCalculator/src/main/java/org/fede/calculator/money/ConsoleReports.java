@@ -58,6 +58,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -69,6 +70,7 @@ import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.BBPPItem;
@@ -2383,7 +2385,7 @@ public class ConsoleReports {
     }
 
     private static String percent(BigDecimal pct, int width) {
-  
+
         return String.format("%" + width + "s", format("{0}", PERCENT_FORMAT.format(pct)));
     }
 
@@ -2423,6 +2425,28 @@ public class ConsoleReports {
                         .collect(joining()));
     }
 
+    private static String smallPctBar(BigDecimal value) {
+        final var symbol = value.signum() < 0
+                ? "-"
+                : "+";
+
+        final var steps = value.movePointRight(2)
+                .abs()
+                .divide(BigDecimal.TEN, CONTEXT)
+                .setScale(0, RoundingMode.HALF_UP)
+                .intValue();
+
+        final var stream = steps < 15
+                ? IntStream.range(0, steps).mapToObj(x -> symbol)
+                : Stream.concat(
+                        Stream.concat(
+                                IntStream.range(0, 6).mapToObj(x -> symbol),
+                                Stream.of("/-/")),
+                        IntStream.range(0, 6).mapToObj(x -> symbol));
+
+        return String.format("%-15s", stream.collect(joining()));
+    }
+
     private void inv(final Predicate<Investment> everyone, boolean nominal) {
 
         appendLine();
@@ -2432,7 +2456,7 @@ public class ConsoleReports {
         final var ics = new InvestmentCostStrategy("USD", TRADING_FEE, TRADING_FX_FEE, new BigDecimal("0.21"), CAPITAL_GAINS_TAX_RATE);
 
         final var mw = 13;
-        final var colWidths = new int[]{5,11,10,mw,mw,mw,9,mw,9,9,11,8,11,8};
+        final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, mw, 9, 10, 1, 15, 10, 7, 11, 7};
         var i = 0;
         this.appendLine(
                 text(" ETF", colWidths[i++]),
@@ -2445,10 +2469,12 @@ public class ConsoleReports {
                 text("  Net Profit", colWidths[i++]),
                 text("   %", colWidths[i++]),
                 text("  CAGR", colWidths[i++]),
+                text(" ", colWidths[i++]),
+                text("", colWidths[i++]),
                 text("     Fee", colWidths[i++]),
-                text("   %", colWidths[i++]),
+                text("  %", colWidths[i++]),
                 text("    Tax", colWidths[i++]),
-                text("   %", colWidths[i++]));
+                text("  %", colWidths[i++]));
 
         this.getInvestments()
                 .stream()
@@ -2537,6 +2563,8 @@ public class ConsoleReports {
                 currency(d.getNetCapitalGains().getAmount(), colWidths[i++]),
                 percent(d.getNetCapitalGainsPercent(), colWidths[i++]),
                 percent(d.getCAGR(), colWidths[i++]),
+                text(" ", colWidths[i++]),
+                text(smallPctBar(d.getCAGR()), colWidths[i++]),
                 currency(d.getFees().getAmount(), colWidths[i++]),
                 percent(d.getFeePercent(), colWidths[i++]),
                 currency(d.getTaxes().getAmount(), colWidths[i++]),

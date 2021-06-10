@@ -286,6 +286,7 @@ public class InvestmentDetails {
             real.setSellFeeTax(this.getSellFeeTax());
             real.setSellFxFee(this.getSellFxFee());
             real.setSellFxFeeTax(this.getSellFxFeeTax());
+            real.setInvestmentQuantity(this.investmentQuantity);
 
             return real;
         }
