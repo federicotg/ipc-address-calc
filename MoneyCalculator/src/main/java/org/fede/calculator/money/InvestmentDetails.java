@@ -313,9 +313,4 @@ public class InvestmentDetails {
         return this.investedAmount.getAmount().divide(this.investmentQuantity, MathConstants.CONTEXT);
     }
     
-    public BigDecimal getWeight(){
-        return BigDecimal.valueOf(this.investmentDate.until(LocalDate.now()).getDays())
-                .multiply(this.getInvestedAmount().getAmount(), MathConstants.CONTEXT)
-                .sqrt(MathConstants.CONTEXT);
-    }
 }

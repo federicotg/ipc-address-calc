@@ -2497,11 +2497,7 @@ public class ConsoleReports {
         final var totalFee = this.total(ics, everyone, InvestmentDetails::getFees, nominal);
         final var totalInvested = this.total(ics, everyone, InvestmentDetails::getInvestedAmount, nominal);
 
-        final var totalDays = BigDecimal.valueOf(this.minDate(ics, everyone, InvestmentDetails::getInvestmentDate).until(LocalDate.now()).getDays());
-        
-        final var totalCAGRDenominator = totalInvested.multiply(totalDays, CONTEXT).sqrt(CONTEXT);
-        
-        final var totalCAGR = this.details(ics, everyone, InvestmentDetails::getWeight, nominal)
+        final var totalCAGR = this.details(ics, everyone, id -> id.getCAGR().multiply(id.getInvestedAmount().getAmount(), CONTEXT), nominal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         this.subtitle("Total");
@@ -2526,7 +2522,7 @@ public class ConsoleReports {
                 percent(totalGrossGains.divide(totalInvested, CONTEXT), 9),
                 currency(totalNetGains, mw),
                 percent(totalNetGains.divide(totalInvested, CONTEXT), 9),
-                percent(totalCAGR.divide(totalCAGRDenominator, CONTEXT), 9),
+                percent(totalCAGR.divide(totalInvested, CONTEXT), 9),
                 currency(totalFee, 12),
                 percent(totalFee.divide(totalCurrent, CONTEXT), 8),
                 currency(totalTax, 12),
@@ -2554,12 +2550,7 @@ public class ConsoleReports {
                 .map(f);
     }
     
-    private LocalDate minDate(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, LocalDate> f){
-        return this.details(ics, predicate, f, false)
-                .min(LocalDate::compareTo)
-                .orElseGet(LocalDate::now);
-    }
-    
+        
     private BigDecimal total(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, MoneyAmount> f, boolean nominal) {
         
         return this.details(ics, predicate, f, nominal)
