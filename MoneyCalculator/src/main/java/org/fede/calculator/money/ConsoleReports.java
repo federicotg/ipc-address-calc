@@ -687,8 +687,9 @@ public class ConsoleReports {
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
 
         final var type = params.getOrDefault("type", "all");
+        final var currency = params.getOrDefault("currency", "USD");
 
-        this.inv("all".equalsIgnoreCase(type) ? x -> true : x -> x.getCurrency().equalsIgnoreCase(type), nominal);
+        this.inv("all".equalsIgnoreCase(type) ? x -> true : x -> x.getCurrency().equalsIgnoreCase(type), nominal, currency);
 
     }
 
@@ -2445,13 +2446,13 @@ public class ConsoleReports {
         return String.format("%-15s", stream.collect(joining()));
     }
 
-    private void inv(final Predicate<Investment> everyone, boolean nominal) {
+    private void inv(final Predicate<Investment> everyone, boolean nominal, String currency) {
 
         appendLine();
         appendLine(format("{0} Investment Results", nominal ? "Nominal" : "Real"));
         appendLine();
 
-        final var ics = new InvestmentCostStrategy("USD", TRADING_FEE, TRADING_FX_FEE, new BigDecimal("0.21"), CAPITAL_GAINS_TAX_RATE);
+        final var ics = new InvestmentCostStrategy(currency, TRADING_FEE, TRADING_FX_FEE, new BigDecimal("0.21"), CAPITAL_GAINS_TAX_RATE);
 
         final var mw = 13;
         final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, mw, 9, 10, 1, 15, 10, 7, 11, 7};
@@ -2509,7 +2510,7 @@ public class ConsoleReports {
                 text("     %", 9),
                 text("  Net Profit", mw),
                 text("   %", 9),
-                text(" CAGR", 9),
+                text("   CAGR", 9),
                 text("     Fee", 12),
                 text("   %", 8),
                 text("    Tax", 12),
@@ -2556,17 +2557,6 @@ public class ConsoleReports {
         return this.details(ics, predicate, f, nominal)
                 .map(MoneyAmount::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
-//        return this.getInvestments()
-//                .stream()
-//                .filter(Investment::isCurrent)
-//                .filter(i -> i.getType().equals(InvestmentType.ETF))
-//                .filter(predicate)
-//                .map(ics::details)
-//                .map(d -> nominal ? d : d.asReal())
-//                .map(f)
-//                .map(MoneyAmount::getAmount)
-//                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private void print(InvestmentDetails d, int[] colWidths) {
