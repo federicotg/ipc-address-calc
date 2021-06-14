@@ -693,62 +693,6 @@ public class ConsoleReports {
 
     }
 
-    private void invReportOld(String[] args, String paranName) {
-
-        //this.inv2();
-        final var params = this.paramsValue(args, paranName);
-
-        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
-
-        final var ref = Boolean.parseBoolean(params.getOrDefault("ref", "false"));
-
-        final var type = params.getOrDefault("type", "current");
-
-        final var subtype = params.getOrDefault("subtype", "all");
-
-        final Runnable defaultAction = () -> this.appendLine(format("Unknown type: \"{0}\" subtype: \"{1}\".", type, subtype));
-
-        if (type.equals("current")) {
-
-            final Map<String, Runnable> actions = Map.ofEntries(
-                    entry("on", () -> this.currentInvestmentsProfit("USD", BONO, nominal, ref)),
-                    entry("pf", () -> this.currentInvestmentsProfit("USD", PF, nominal, ref)),
-                    entry("gold", () -> this.currentInvestmentsProfit("XAU", XAU, nominal, ref)),
-                    entry("all", () -> this.currentInvestmentsProfit((String) null, (InvestmentType) null, nominal, ref)),
-                    entry("etf", () -> this.currentInvestmentsProfit((String) null, ETF, nominal, ref)),
-                    entry("cspx", () -> this.currentInvestmentsProfit("CSPX", ETF, nominal, ref)),
-                    entry("eimi", () -> this.currentInvestmentsProfit("EIMI", ETF, nominal, ref)),
-                    entry("meud", () -> this.currentInvestmentsProfit("MEUD", ETF, nominal, ref)),
-                    entry("xrsu", () -> this.currentInvestmentsProfit("XRSU", ETF, nominal, ref)));
-
-            actions.getOrDefault(subtype, defaultAction).run();
-        } else if (type.equals("past")) {
-
-            final Map<String, Runnable> actions = Map.of(
-                    "conbala", () -> this.pastInvestmentsProfit("CONBALA", FCI, nominal),
-                    "caplusa", () -> this.pastInvestmentsProfit("CAPLUSA", FCI, nominal),
-                    "conaafa", () -> this.pastInvestmentsProfit("CONAAFA", FCI, nominal),
-                    "usd", () -> {
-                        this.pastInvestmentsProfit("USD", PF, nominal);
-                        this.pastInvestmentsProfit("USD", BONO, nominal);
-                    },
-                    "uva", () -> this.pastInvestmentsProfit("UVA", PF, nominal),
-                    "ars", () -> this.pastInvestmentsProfit("ARS", PF, nominal),
-                    "lecap", () -> this.pastInvestmentsProfit("LECAP", BONO, nominal),
-                    "lete", () -> this.pastInvestmentsProfit("LETE", BONO, nominal),
-                    "all", () -> this.pastInvestmentsProfit(null, null, nominal),
-                    "ay24", () -> this.pastInvestmentsProfit("AY24", BONO, nominal));
-
-            actions.getOrDefault(subtype, defaultAction).run();
-
-        } else if (type.equals("global")) {
-            this.globalInvestmentsProfit(nominal);
-        } else {
-            defaultAction.run();
-        }
-
-    }
-
     public static void main(String[] args) {
         try {
 
@@ -759,7 +703,6 @@ public class ConsoleReports {
                     entry("i", me::investments),
                     entry("gi", me::groupedInvestments),
                     entry("ti", me::listStockByTpe),
-                    //entry("inv2", () -> me.invReportOld(args, "inv2")),
                     entry("inv", () -> me.invReport(args, "inv")),
                     //savings
                     entry("savings", me::savings),
@@ -814,7 +757,7 @@ public class ConsoleReports {
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                        entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
+                        entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false currency=USD"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
                         entry("bbpp", "year=2020"),
@@ -2500,7 +2443,9 @@ public class ConsoleReports {
 
         final var totalCAGR = this.details(ics, everyone, id -> id.getCAGR().multiply(id.getInvestedAmount().getAmount(), CONTEXT), nominal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
+
+        final var weightedCAGR = totalCAGR.divide(totalInvested, CONTEXT);
+
         this.subtitle("Total");
 
         this.appendLine(
@@ -2523,7 +2468,7 @@ public class ConsoleReports {
                 percent(totalGrossGains.divide(totalInvested, CONTEXT), 9),
                 currency(totalNetGains, mw),
                 percent(totalNetGains.divide(totalInvested, CONTEXT), 9),
-                percent(totalCAGR.divide(totalInvested, CONTEXT), 9),
+                percent(weightedCAGR, 9),
                 currency(totalFee, 12),
                 percent(totalFee.divide(totalCurrent, CONTEXT), 8),
                 currency(totalTax, 12),
@@ -2532,16 +2477,31 @@ public class ConsoleReports {
         this.subtitle("Benchmark");
 
         Stream.concat(
-                benchmarks.entrySet().stream()
-                        .map(e -> of(e.getKey(), e.getValue().getCurrent().divide(e.getValue().getInitial(), CONTEXT).subtract(ONE, CONTEXT))),
-                Stream.of(of("Portfolio", totalGrossGains.divide(totalInvested, CONTEXT))))
+                benchmarks.entrySet()
+                        .stream()
+                        .map(e -> of(e.getKey(), this.benchmarkCAGR(e.getValue()))),
+                Stream.of(of("Portfolio", weightedCAGR)))
                 .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
                 .map(p -> format("{0} {1}", text(p.getFirst(), 10), pctBar(p.getSecond())))
                 .forEach(this::appendLine);
     }
 
-    private <T> Stream<T> details(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, T> f, boolean nominal){
-            return this.getInvestments()
+    private BigDecimal benchmarkCAGR(BenchmarkItem item) {
+
+        final var days = (double) ChronoUnit.DAYS.between(LocalDate.of(2019, Month.JULY, 24), LocalDate.now());
+        
+        final var profit = item.getCurrent().divide(item.getInitial(), CONTEXT).subtract(ONE, CONTEXT);
+
+        final double x = Math.pow(
+                BigDecimal.ONE.add(profit).doubleValue(),
+                365.0d / days) - 1.0d;
+
+        return BigDecimal.valueOf(x);
+
+    }
+
+    private <T> Stream<T> details(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, T> f, boolean nominal) {
+        return this.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(i -> i.getType().equals(InvestmentType.ETF))
@@ -2550,10 +2510,9 @@ public class ConsoleReports {
                 .map(d -> nominal ? d : d.asReal())
                 .map(f);
     }
-    
-        
+
     private BigDecimal total(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, MoneyAmount> f, boolean nominal) {
-        
+
         return this.details(ics, predicate, f, nominal)
                 .map(MoneyAmount::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
