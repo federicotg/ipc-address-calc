@@ -24,7 +24,6 @@ import static java.math.BigDecimal.ONE;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import java.math.RoundingMode;
 import static java.math.RoundingMode.HALF_UP;
-import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -34,7 +33,6 @@ import java.util.stream.Collector;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.text.MessageFormat.format;
@@ -70,7 +68,6 @@ import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.BBPPItem;
@@ -2499,6 +2496,13 @@ public class ConsoleReports {
         final var totalFee = this.total(ics, everyone, InvestmentDetails::getFees, nominal);
         final var totalInvested = this.total(ics, everyone, InvestmentDetails::getInvestedAmount, nominal);
 
+        final var totalDays = BigDecimal.valueOf(this.minDate(ics, everyone, InvestmentDetails::getInvestmentDate).until(LocalDate.now()).getDays());
+        
+        final var totalCAGRDenominator = totalInvested.multiply(totalDays, CONTEXT).sqrt(CONTEXT);
+        
+        final var totalCAGR = this.details(ics, everyone, InvestmentDetails::getWeight, nominal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
         this.subtitle("Total");
 
         this.appendLine(
@@ -2508,6 +2512,7 @@ public class ConsoleReports {
                 text("     %", 9),
                 text("  Net Profit", mw),
                 text("   %", 9),
+                text(" CAGR", 9),
                 text("     Fee", 12),
                 text("   %", 8),
                 text("    Tax", 12),
@@ -2520,6 +2525,7 @@ public class ConsoleReports {
                 percent(totalGrossGains.divide(totalInvested, CONTEXT), 9),
                 currency(totalNetGains, mw),
                 percent(totalNetGains.divide(totalInvested, CONTEXT), 9),
+                percent(totalCAGR.divide(totalCAGRDenominator, CONTEXT), 9),
                 currency(totalFee, 12),
                 percent(totalFee.divide(totalCurrent, CONTEXT), 8),
                 currency(totalTax, 12),
@@ -2536,17 +2542,39 @@ public class ConsoleReports {
                 .forEach(this::appendLine);
     }
 
-    private BigDecimal total(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, MoneyAmount> f, boolean nominal) {
-        return this.getInvestments()
+    private <T> Stream<T> details(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, T> f, boolean nominal){
+            return this.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(i -> i.getType().equals(InvestmentType.ETF))
                 .filter(predicate)
                 .map(ics::details)
                 .map(d -> nominal ? d : d.asReal())
-                .map(f)
+                .map(f);
+    }
+    
+    private LocalDate minDate(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, LocalDate> f){
+        return this.details(ics, predicate, f, false)
+                .min(LocalDate::compareTo)
+                .orElseGet(LocalDate::now);
+    }
+    
+    private BigDecimal total(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, MoneyAmount> f, boolean nominal) {
+        
+        return this.details(ics, predicate, f, nominal)
                 .map(MoneyAmount::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+//        return this.getInvestments()
+//                .stream()
+//                .filter(Investment::isCurrent)
+//                .filter(i -> i.getType().equals(InvestmentType.ETF))
+//                .filter(predicate)
+//                .map(ics::details)
+//                .map(d -> nominal ? d : d.asReal())
+//                .map(f)
+//                .map(MoneyAmount::getAmount)
+//                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private void print(InvestmentDetails d, int[] colWidths) {
@@ -2554,7 +2582,7 @@ public class ConsoleReports {
         var i = 0;
         this.appendLine(
                 text(d.getInvestmentCurrency(), colWidths[i++]),
-                text(DateTimeFormatter.ISO_LOCAL_DATE.format(d.getInventmentDate()), colWidths[i++]),
+                text(DateTimeFormatter.ISO_LOCAL_DATE.format(d.getInvestmentDate()), colWidths[i++]),
                 currency(d.getInvestmentPrice(), colWidths[i++]),
                 currency(d.getInvestedAmount().getAmount(), colWidths[i++]),
                 currency(d.getCurrentAmount().getAmount(), colWidths[i++]),

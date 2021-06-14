@@ -121,7 +121,7 @@ public class InvestmentCostStrategy {
         d.setBuyFxFeeTax(new MoneyAmount(buyFxFeeTax, this.currency));
         d.setCapitalGainsTax(new MoneyAmount(capitalGains, this.currency));
         d.setBuyCclFee(new MoneyAmount(firstCclFee.add(secondCclFee, CONTEXT), this.currency));
-        d.setInventmentDate(LocalDate.ofInstant(inv.getInitialDate().toInstant(), ZoneId.systemDefault()));
+        d.setInvestmentDate(LocalDate.ofInstant(inv.getInitialDate().toInstant(), ZoneId.systemDefault()));
         d.setInvestedAmount(new MoneyAmount(investedAmount, this.currency));
         d.setSellCclFee(new MoneyAmount(firstSellCclFee.add(secondSellCclFee, CONTEXT), this.currency));
         d.setSellFee(new MoneyAmount(sellFee, this.currency));

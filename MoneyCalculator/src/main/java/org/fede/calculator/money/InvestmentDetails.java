@@ -17,7 +17,6 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.time.LocalDate;
 import org.fede.calculator.money.series.YearMonth;
 import java.time.temporal.ChronoUnit;
@@ -35,7 +34,7 @@ public class InvestmentDetails {
     private BigDecimal investmentQuantity;
 
     
-    private LocalDate inventmentDate;
+    private LocalDate investmentDate;
     private YearMonth investmentYM;
 
     private MoneyAmount buyCclFee;
@@ -63,14 +62,15 @@ public class InvestmentDetails {
         this(true);
     }
 
-    public LocalDate getInventmentDate() {
-        return inventmentDate;
+    public LocalDate getInvestmentDate() {
+        return investmentDate;
     }
 
-    public void setInventmentDate(LocalDate inventmentDate) {
-        this.inventmentDate = inventmentDate;
+    public void setInvestmentDate(LocalDate investmentDate) {
+        this.investmentDate = investmentDate;
     }
 
+    
     public MoneyAmount getBuyCclFee() {
         return buyCclFee;
     }
@@ -240,7 +240,7 @@ public class InvestmentDetails {
     }
 
     public BigDecimal getCAGR() {
-        final var days = days(this.inventmentDate);
+        final var days = days(this.investmentDate);
 
         if (days.signum() <= 0) {
             return BigDecimal.ZERO;
@@ -279,7 +279,7 @@ public class InvestmentDetails {
 
             real.setCapitalGainsTax(this.getCapitalGainsTax());
             real.setCurrentAmount(this.getCurrentAmount());
-            real.setInventmentDate(this.getInventmentDate());
+            real.setInvestmentDate(this.getInvestmentDate());
             real.setInvestmentCurrency(this.getInvestmentCurrency());
             real.setSellCclFee(this.getSellCclFee());
             real.setSellFee(this.getSellFee());
@@ -297,7 +297,7 @@ public class InvestmentDetails {
     private MoneyAmount real(MoneyAmount nominal) {
 
         if (this.investmentYM == null) {
-            this.investmentYM = YearMonth.of(this.getInventmentDate().getYear(), this.getInventmentDate().getMonthValue());
+            this.investmentYM = YearMonth.of(this.getInvestmentDate().getYear(), this.getInvestmentDate().getMonthValue());
         }
 
         return Inflation.USD_INFLATION.adjust(
@@ -311,5 +311,11 @@ public class InvestmentDetails {
 
     public BigDecimal getInvestmentPrice(){
         return this.investedAmount.getAmount().divide(this.investmentQuantity, MathConstants.CONTEXT);
+    }
+    
+    public BigDecimal getWeight(){
+        return BigDecimal.valueOf(this.investmentDate.until(LocalDate.now()).getDays())
+                .multiply(this.getInvestedAmount().getAmount(), MathConstants.CONTEXT)
+                .sqrt(MathConstants.CONTEXT);
     }
 }
