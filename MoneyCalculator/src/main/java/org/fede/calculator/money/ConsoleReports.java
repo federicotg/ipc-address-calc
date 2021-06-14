@@ -761,7 +761,7 @@ public class ConsoleReports {
                     entry("i", me::investments),
                     entry("gi", me::groupedInvestments),
                     entry("ti", me::listStockByTpe),
-                    entry("inv2", () -> me.invReportOld(args, "inv2")),
+                    //entry("inv2", () -> me.invReportOld(args, "inv2")),
                     entry("inv", () -> me.invReport(args, "inv")),
                     //savings
                     entry("savings", me::savings),
@@ -811,12 +811,12 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", "trials=20000 period=20 retirement=65 age=100 w=1000 d=850 inflation=3 cash=0 sp500=true tax=true bbpp=2.25"),
+                        entry("goal", "trials=100000 period=20 retirement=63 age=97 w=1000 d=850 inflation=3 cash=-50000 sp500=true tax=true bbpp=2.25 pension=0"),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                        entry("inv", "type=(current*|past|global) subtype=(all*|etf|cspx|meud|xrsu|eimi|ay24|ars|usd|lete|lecap|gold|on|uva|conbala|conaafa|caplusa|pf) nominal=false ref=false"),
+                        entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
                         entry("bbpp", "year=2020"),
@@ -1429,6 +1429,7 @@ public class ConsoleReports {
 
     private void goal(String[] args, String paramName) {
 
+        // trials=100000 period=20 retirement=63 age=97 w=1000 d=850 inflation=3 cash=-50000 sp500=true tax=true bbpp=2.25
         appendLine("===< Goals >===");
 
         final var params = this.paramsValue(args, paramName);
@@ -1438,9 +1439,9 @@ public class ConsoleReports {
         final var deposit = Integer.parseInt(params.getOrDefault("d", "850"));
         final var withdraw = Integer.parseInt(params.getOrDefault("w", "1000"));
         final var inflation = Integer.parseInt(params.getOrDefault("inflation", "3"));
-        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "65"));
-        final var age = Integer.parseInt(params.getOrDefault("age", "94"));
-        final var extraCash = Integer.parseInt(params.getOrDefault("cash", "0"));
+        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "63"));
+        final var age = Integer.parseInt(params.getOrDefault("age", "97"));
+        final var extraCash = Integer.parseInt(params.getOrDefault("cash", "-50000"));
         final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", "true"));
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "true"));
         final var pension = Integer.parseInt(params.getOrDefault("pension", "0"));
