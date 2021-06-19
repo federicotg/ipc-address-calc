@@ -2399,7 +2399,9 @@ public class ConsoleReports {
 
         final var mw = 13;
         final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, mw, 9, 10, 1, 15, 10, 7, 11, 7};
+        var separator = IntStream.rangeClosed(0, Arrays.stream(colWidths).sum()).mapToObj(n -> "=").collect(Collectors.joining());
         var i = 0;
+        this.appendLine(separator);
         this.appendLine(
                 text(" ETF", colWidths[i++]),
                 text("  Date", colWidths[i++]),
@@ -2407,17 +2409,17 @@ public class ConsoleReports {
                 text("   Investment", colWidths[i++]),
                 text("    Current", colWidths[i++]),
                 text("     Profit", colWidths[i++]),
-                text("     %", colWidths[i++]),
+                text("    %", colWidths[i++]),
                 text("  Net Profit", colWidths[i++]),
-                text("   %", colWidths[i++]),
-                text("  CAGR", colWidths[i++]),
+                text("    %", colWidths[i++]),
                 text(" ", colWidths[i++]),
+                text("CAGR", colWidths[i++]),
                 text("", colWidths[i++]),
-                text("     Fee", colWidths[i++]),
-                text("  %", colWidths[i++]),
-                text("    Tax", colWidths[i++]),
-                text("  %", colWidths[i++]));
-
+                text("   Fee", colWidths[i++]),
+                text("%", colWidths[i++]),
+                text("   Tax", colWidths[i++]),
+                text("%", colWidths[i++]));
+        this.appendLine(separator);
         this.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
@@ -2454,11 +2456,11 @@ public class ConsoleReports {
                 text("     Profit", mw),
                 text("     %", 9),
                 text("  Net Profit", mw),
-                text("   %", 9),
-                text("   CAGR", 9),
+                text("    %", 9),
+                text("    CAGR", 9),
                 text("     Fee", 12),
                 text("   %", 8),
-                text("    Tax", 12),
+                text("     Tax", 12),
                 text("   %", 8));
 
         this.appendLine(
