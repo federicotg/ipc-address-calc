@@ -111,7 +111,7 @@ public class ConsoleReports {
     private static final int RETIREMENT_AGE_STD = 3;
     private static final int END_AGE_STD = 6;
 
-    private static final double BBPP_FX_GAP_PERCENT = 0.85d;
+    private static final double BBPP_FX_GAP_PERCENT = 0.9d;
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = new BigDecimal("1.15");
 
     private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO, "USD");
@@ -1109,7 +1109,7 @@ public class ConsoleReports {
                 : 0.0d;
 
         this.bbppMean = bbppTax * BBPP_FX_GAP_PERCENT;
-        this.bbppVar = bbppTax / 5.0d;
+        this.bbppVar = bbppTax / 10.0d;
         this.bbppMinFactor = 1.0d - bbppTax;
 
         final var buySellFee = ONE.setScale(6)
