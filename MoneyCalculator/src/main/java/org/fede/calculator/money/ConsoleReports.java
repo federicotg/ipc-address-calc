@@ -23,7 +23,6 @@ import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import java.math.RoundingMode;
-import static java.math.RoundingMode.HALF_UP;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -48,7 +47,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import static java.util.Map.entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -73,7 +71,6 @@ import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.BBPPItem;
 import org.fede.calculator.money.series.BBPPTaxBraket;
 import org.fede.calculator.money.series.BBPPYear;
-import org.fede.calculator.money.series.IndexSeriesSupport;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
@@ -237,7 +234,7 @@ public class ConsoleReports {
                 .map(e -> of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
                 .map(p -> of(p.getFirst(), this.fx(p, reportCurrency)))
                 .sorted((p, q) -> q.getSecond().getAmount().compareTo(p.getSecond().getAmount()))
-                .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst(), pair.getFirst().getSecond()))
+                .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst()))
                 .forEach(this::appendLine);
 
         total.map(t -> format("-----------------------------\n{0}{1}", text("Total", 5), currency(t, 16)))
@@ -282,7 +279,7 @@ public class ConsoleReports {
                                 REDUCER)))
                 .entrySet()
                 .stream()
-                .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), reportCurrency), entry.getKey(), reportCurrency))
+                .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), reportCurrency), entry.getKey()))
                 .forEach(this::appendLine);
 
         total.map(t -> format("-----------------------------\n{0}{1}", text("Total", 5), currency(t, 16)))
@@ -296,7 +293,7 @@ public class ConsoleReports {
         return ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, limit.getYear(), limit.getMonth());
     }
 
-    private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type, String currency) {
+    private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type) {
 
         return format("{0}{1}{2}",
                 text(type, 5),
@@ -304,29 +301,6 @@ public class ConsoleReports {
                 pctBar(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), CONTEXT)).orElse(ZERO)));
     }
 
-    private void globalInvestmentsProfit(boolean nominal) {
-        appendLine("===< Past and Current Investments Profit in ", nominal ? "nominal" : "real", " USD >===");
-        this.investmentsProfit(null, null, (inv) -> true, true, nominal);
-    }
-
-    private void currentInvestmentsProfit(String currency, InvestmentType type, boolean nominal, boolean ref) {
-        this.investmentsProfit(currency, type, Investment::isCurrent, false, nominal);
-
-        if (ref) {
-            appendLine("");
-            appendLine("Investment: invested amount fees and taxes.");
-            appendLine("Current: today's value.");
-            appendLine("Profit: gains ignoring fees and taxes.");
-            appendLine("Net Profit: gains after fees and taxes.");
-            appendLine("CAGR: annualized ", nominal ? "nominal" : "real", " return after fees and taxes. Target > 2.25 %.");
-            appendLine("Fee: buy and sell fees.");
-            appendLine("Tax: capital gains tax.");
-        }
-    }
-
-    private void pastInvestmentsProfit(String currency, InvestmentType type, boolean nominal) {
-        this.investmentsProfit(currency, type, Investment::isPast, false, nominal);
-    }
 
     private BenchmarkItem real(BenchmarkItem item) {
 
@@ -353,263 +327,6 @@ public class ConsoleReports {
         appendLine("\t<", line, ">");
     }
 
-    private void investmentsProfit(final String currency, final InvestmentType type, final Predicate<Investment> predicate, final boolean totalOnly, boolean nominal) {
-
-        final var currencyText = Optional.ofNullable(currency)
-                .map(c -> format(" {0}", c))
-                .orElse("");
-
-        if (!totalOnly) {
-            if (type == null) {
-                appendLine("===< Ganancia en Inversiones", currencyText, " en USD ", nominal ? "nominales" : "reales", " >===");
-            } else {
-                appendLine("===< Ganancia en Inversiones en ", type.toString(), " ", currencyText, " en USD ", nominal ? "nominales" : "reales", " >===");
-            }
-        }
-
-        final var inflation = nominal
-                ? new CPIInflation(IndexSeriesSupport.CONSTANT_SERIES, "USD")
-                : USD_INFLATION;
-
-        final var realProfits = this.getInvestments().stream()
-                .filter(predicate)
-                .filter(i -> type == null || i.getType().equals(type))
-                .filter(i -> currency == null || i.getCurrency().equals(currency))
-                .sorted(comparing(Investment::getInitialDate))
-                .map(i -> this.asReport(i, inflation))
-                .collect(toList());
-
-        if (!totalOnly) {
-            appendLine("\n   Date       Investment   Current      Profit     %        Net Profit    %      CAGR                        Fee     %     % p.a.     Tax       %");
-        }
-
-        realProfits
-                .stream()
-                .filter(i -> !totalOnly)
-                .map(InvestmentReport::toString)
-                .forEach(this::appendLine);
-
-        final var totalTax = realProfits.stream()
-                .map(InvestmentReport::capitalGainsTax)
-                .map(MoneyAmount::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-
-        appendLine("\nAfter fee investment  Before fee/tax current     Profit     %");
-        final var pct = this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getNetRealInvestment, InvestmentReport::getGrossRealProfit);
-
-        final var benchmarks = SeriesReader.read("index/benchmarks.json", BENCHMARK_TR)
-                .entrySet()
-                .stream()
-                .collect(toMap(
-                        Map.Entry::getKey,
-                        e -> nominal ? e.getValue() : this.real(e.getValue())));
-
-        this.subtitle("Benchmark");
-
-        Stream.concat(
-                benchmarks.entrySet().stream()
-                        .map(e -> of(e.getKey(), e.getValue().getCurrent().divide(e.getValue().getInitial(), CONTEXT).subtract(ONE, CONTEXT))),
-                Stream.of(of("Portfolio", pct)))
-                .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
-                .map(p -> format("{0} {1}", text(p.getFirst(), 10), pctBar(p.getSecond())))
-                .forEach(this::appendLine);
-
-        appendLine("\nTotal investment      After fee/tax current      Profit     %");
-        this.totalRealProfitReportLine(realProfits, type, totalOnly, currencyText, InvestmentReport::getGrossRealInvestment, InvestmentReport::getNetRealProfit);
-
-        final var inFee = realProfits.stream()
-                .map(InvestmentReport::inFeeAmount)
-                .map(MoneyAmount::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-
-        final var outFee = realProfits.stream()
-                .map(InvestmentReport::outFeeAmount)
-                .map(MoneyAmount::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-
-        final var investment = realProfits.stream()
-                .map(InvestmentReport::getNetRealInvestment)
-                .map(MoneyAmount::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-
-        final var grossProfit = realProfits.stream()
-                .map(InvestmentReport::getGrossRealProfit)
-                .map(MoneyAmount::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-
-        final var profit = grossProfit
-                .subtract(outFee, CONTEXT)
-                .subtract(totalTax, CONTEXT);
-
-        final var totalAmount = inFee
-                .add(outFee, CONTEXT)
-                .add(investment, CONTEXT)
-                .add(profit, CONTEXT)
-                .add(totalTax, CONTEXT);
-
-        this.subtitle("Details");
-
-        final var textWidth = 9;
-        final var numberWidth = 11;
-        appendLine("");
-        appendLine(format("{0}{1}{2}",
-                text("Buy fee", textWidth),
-                currency(inFee, numberWidth),
-                pctBar(inFee, totalAmount)));
-
-        appendLine("");
-        appendLine(format("{0}{1}{2}",
-                text("Invested", textWidth),
-                currency(investment, numberWidth),
-                pctBar(investment, totalAmount)));
-
-        Comparator<Map.Entry<String, BigDecimal>> descendingByAmount = comparing((Map.Entry<String, BigDecimal> e) -> e.getValue()).reversed();
-
-        // detail
-        realProfits.stream()
-                .collect(groupingBy(InvestmentReport::currency,
-                        mapping(InvestmentReport::getNetRealInvestment,
-                                mapping(MoneyAmount::getAmount,
-                                        reducing(ZERO, BigDecimal::add)))))
-                .entrySet()
-                .stream()
-                .sorted(descendingByAmount)
-                .map(e -> format("\t{0}{1}{2}", text(e.getKey(), 8), currency(e.getValue(), numberWidth + 1), pctBar(e.getValue(), investment)))
-                .forEach(this::appendLine);
-
-        appendLine("");
-        appendLine(format("{0}{1}{2}",
-                text("Profit", textWidth),
-                currency(profit, numberWidth),
-                pctBar(profit, totalAmount)));
-
-        // detail
-        realProfits.stream()
-                .collect(groupingBy(InvestmentReport::currency,
-                        mapping((InvestmentReport r) -> r.getGrossRealProfit().subtract(r.outFeeAmount()).subtract(r.capitalGainsTax()),
-                                mapping(MoneyAmount::getAmount,
-                                        reducing(ZERO, BigDecimal::add)))))
-                .entrySet()
-                .stream()
-                .sorted(descendingByAmount)
-                .map(e -> format("\t{0}{1}{2}", text(e.getKey(), 8), currency(e.getValue(), numberWidth + 1), pctBar(e.getValue(), profit)))
-                .forEach(this::appendLine);
-
-        appendLine("");
-        appendLine(format("{0}{1}{2}",
-                text("Sell fee", textWidth),
-                currency(outFee, numberWidth),
-                pctBar(outFee, totalAmount)));
-
-        appendLine(format("{0}{1}{2}",
-                text("Tax", textWidth),
-                currency(totalTax, numberWidth),
-                pctBar(totalTax, totalAmount)));
-
-        this.subtitle("Cuenta");
-
-        final var width = 13;
-
-        appendLine(format("{0}{1}{2}",
-                text("Initial", textWidth),
-                text("", width),
-                currency(inFee.add(investment, CONTEXT), width)));
-
-        appendLine(format("{0}{1}{2}",
-                text("Buy fee", textWidth),
-                currency(inFee.negate(CONTEXT), width),
-                currency(investment, width)));
-
-        appendLine(format("{0}{1}{2}",
-                text("Profit", textWidth),
-                currency(grossProfit, width),
-                currency(investment.add(grossProfit, CONTEXT), width)));
-
-        appendLine(format("{0}{1}",
-                text("Sell fee", textWidth),
-                currency(outFee.negate(CONTEXT), width)));
-
-        appendLine(format("{0}{1}",
-                text("Tax", textWidth),
-                currency(totalTax.negate(CONTEXT), width)));
-
-        appendLine(format("{0}{1}{2}",
-                text("Result", textWidth),
-                text("", width),
-                currency(investment
-                        .add(grossProfit, CONTEXT)
-                        .subtract(outFee, CONTEXT)
-                        .subtract(totalTax, CONTEXT), width)));
-
-        appendLine(format("{0}{1}",
-                text("Neto", textWidth),
-                currency(investment
-                        .add(grossProfit, CONTEXT)
-                        .subtract(outFee, CONTEXT)
-                        .subtract(totalTax, CONTEXT)
-                        .subtract(inFee, CONTEXT)
-                        .subtract(investment, CONTEXT),
-                        width)));
-
-    }
-
-    private InvestmentReport asReport(Investment i, Inflation inflation) {
-        if (i.getType().equals(ETF) && i.getOut() == null) {
-            return new InvestmentReport(inflation, i, CAPITAL_GAINS_TAX_RATE, TRADING_FEE, IVA, TRADING_FX_FEE);
-        }
-        return new InvestmentReport(inflation, i, ZERO, ZERO, ONE, ZERO);
-    }
-
-    private static String plusMinus(BigDecimal pct) {
-
-        final var sign = pct.signum() >= 0
-                ? "+"
-                : "-";
-
-        return IntStream.range(0, pct.abs().movePointRight(2).setScale(0, HALF_UP).intValue())
-                .mapToObj(index -> sign)
-                .collect(joining());
-    }
-
-    private BigDecimal totalRealProfitReportLine(
-            List<InvestmentReport> realProfits,
-            InvestmentType type,
-            boolean totalOnly,
-            String currencyText,
-            Function<InvestmentReport, MoneyAmount> initialFunction,
-            Function<InvestmentReport, MoneyAmount> totalFunction) {
-
-        final BigDecimal total = this.totalSum(realProfits, initialFunction);
-        final BigDecimal profit = this.totalSum(realProfits, totalFunction);
-
-        final BigDecimal pct = total.compareTo(ZERO) > 0
-                ? profit.divide(total, CONTEXT)
-                : ZERO;
-
-        final var totalPlusProfit = total.add(profit);
-
-        this.appendLine(format("{4} {0,number,currency}            {5,number,currency}          {1,number,currency}  {2}  {3}",
-                total,
-                profit,
-                PERCENT_FORMAT.format(pct),
-                plusMinus(pct),
-                Stream.of(type, currencyText)
-                        .filter(t -> totalOnly)
-                        .filter(Objects::nonNull)
-                        .map(Object::toString)
-                        .collect(joining("", "", " ")),
-                totalPlusProfit));
-        return pct;
-    }
-
-    private BigDecimal totalSum(List<InvestmentReport> realProfits, Function<InvestmentReport, MoneyAmount> totalFunction) {
-
-        return realProfits
-                .stream()
-                .map(totalFunction)
-                .map(MoneyAmount::getAmount)
-                .collect(reducing(ZERO, BigDecimal::add));
-    }
 
     private void printReport(PrintStream out) {
         out.println(this.out.toString());
