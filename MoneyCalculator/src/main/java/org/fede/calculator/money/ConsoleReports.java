@@ -301,7 +301,6 @@ public class ConsoleReports {
                 pctBar(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), CONTEXT)).orElse(ZERO)));
     }
 
-
     private BenchmarkItem real(BenchmarkItem item) {
 
         BenchmarkItem answer = new BenchmarkItem();
@@ -326,7 +325,6 @@ public class ConsoleReports {
         appendLine("\t<- ", title, " ->");
         appendLine("\t<", line, ">");
     }
-
 
     private void printReport(PrintStream out) {
         out.println(this.out.toString());
@@ -1385,14 +1383,42 @@ public class ConsoleReports {
                 .findAny()
                 .get();
 
+        final Map<String, Function<MoneyAmount, BigDecimal>> arsFunction = Map.of(
+                "ARS", (MoneyAmount item) -> item.getAmount(),
+                "LECAP", (MoneyAmount item) -> item.getAmount(),
+                "EUR", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getEur(), CONTEXT),
+                "USD", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getUsd(), CONTEXT),
+                "LETE", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getUsd(), CONTEXT),
+                "XRSU", (MoneyAmount item)
+                -> ForeignExchanges.getForeignExchange(item.getCurrency(), "USD")
+                        .exchange(item, "USD", year, 12)
+                        .getAmount()
+                        .multiply(bbpp.getUsd(), CONTEXT),
+                "CSPX", (MoneyAmount item)
+                -> ForeignExchanges.getForeignExchange(item.getCurrency(), "USD")
+                        .exchange(item, "USD", year, 12)
+                        .getAmount()
+                        .multiply(bbpp.getUsd(), CONTEXT),
+                "EIMI", (MoneyAmount item)
+                -> ForeignExchanges.getForeignExchange(item.getCurrency(), "USD")
+                        .exchange(item, "USD", year, 12)
+                        .getAmount()
+                        .multiply(bbpp.getUsd(), CONTEXT),
+                "MEUD", (MoneyAmount item)
+                -> ForeignExchanges.getForeignExchange(item.getCurrency(), "EUR")
+                        .exchange(item, "EUR", year, 12)
+                        .getAmount()
+                        .multiply(bbpp.getEur(), CONTEXT)
+        );
+
         final var etfs = this.getInvestments()
                 .stream()
                 .filter(i -> i.isCurrent(date))
                 .filter(i -> ETF.equals(i.getType()))
                 .map(Investment::getInvestment)
                 .map(i -> i.getMoneyAmount())
-                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", year, 12))
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         final var ons = this.getInvestments()
                 .stream()
@@ -1400,27 +1426,37 @@ public class ConsoleReports {
                 .filter(i -> BONO.equals(i.getType()))
                 .map(Investment::getInvestment)
                 .map(i -> i.getMoneyAmount())
-                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", year, 12))
-                .reduce(ZERO_USD, MoneyAmount::add);
+                //.peek(ma -> System.out.println(ma.getCurrency()))
+                .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         final var etfsItem = new BBPPItem();
-        etfsItem.setCurrency(etfs.getCurrency());
+        etfsItem.setCurrency("ARS");
         etfsItem.setDomestic(false);
         etfsItem.setExempt(false);
         etfsItem.setHolding(ONE);
         etfsItem.setName("ETFs");
-        etfsItem.setValue(etfs.getAmount());
+        etfsItem.setValue(etfs);
 
         final var onsItem = new BBPPItem();
-        onsItem.setCurrency(ons.getCurrency());
+        onsItem.setCurrency("ARS");
         onsItem.setDomestic(true);
         onsItem.setExempt(false);
         onsItem.setHolding(ONE);
         onsItem.setName("ONs");
-        onsItem.setValue(ons.getAmount());
+        onsItem.setValue(ons);
+
+        final var homeCashItem = new BBPPItem();
+        homeCashItem.setCurrency("ARS");
+        homeCashItem.setDomestic(true);
+        homeCashItem.setExempt(false);
+        homeCashItem.setHolding(ONE);
+        homeCashItem.setName("Home Cash");
+        homeCashItem.setValue(BigDecimal.valueOf(5000l));
 
         bbpp.getItems().add(etfsItem);
         bbpp.getItems().add(onsItem);
+        bbpp.getItems().add(homeCashItem);
 
         final var allArs = bbpp.getItems()
                 .stream()
@@ -1498,6 +1534,18 @@ public class ConsoleReports {
                 PERCENT_FORMAT.format(taxAmount.divide(totalAmount, CONTEXT)),
                 PERCENT_FORMAT.format(usdTaxAmount.getAmount().divide(allInvested.getAmount(), CONTEXT)),
                 PERCENT_FORMAT.format(usdTaxAmount.getAmount().divide(yearRealIncome.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add), CONTEXT))));
+
+        this.subtitle("Detail");
+
+        appendLine(format("{0}{1}{2}{3}", text("", 16), text("      Value", 16), text("    %", 10), text("      Taxed", 16)));
+        allArs.stream()
+                .map(i -> format("{0}{1}{2}{3}",
+                text(i.getName(), 16),
+                currency(i.getValue(), 16),
+                percent(i.getHolding(), 10),
+                currency(i.getValue().multiply(i.isExempt() ? ZERO : i.getHolding(), CONTEXT), 16)))
+                .forEach(this::appendLine);
+
     }
 
     private BBPPItem toARS(BBPPItem item, BigDecimal usdValue, BigDecimal eurValue) {
@@ -2195,28 +2243,67 @@ public class ConsoleReports {
 
         this.subtitle("Benchmark");
 
-        Stream.concat(
-                benchmarks.entrySet()
-                        .stream()
-                        .map(e -> of(e.getKey(), this.benchmarkCAGR(e.getValue()))),
-                Stream.of(of("Portfolio", weightedCAGR)))
+        final var benchmarksStream = benchmarks.entrySet()
+                .stream()
+                .map(e -> of(e.getKey(), this.benchmarkCAGR(e.getValue())));
+
+        final var portfolioStream = Stream.of(of("Portfolio", weightedCAGR));
+        final var modelPortfolioStream = Stream.of(of("Model", this.modelPortfolioCAGR(nominal)));
+
+        Stream.concat(Stream.concat(benchmarksStream, portfolioStream), modelPortfolioStream)
                 .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
                 .map(p -> format("{0} {1}", text(p.getFirst(), 10), pctBar(p.getSecond())))
                 .forEach(this::appendLine);
     }
 
-    private BigDecimal benchmarkCAGR(BenchmarkItem item) {
-
-        final var days = (double) ChronoUnit.DAYS.between(LocalDate.of(2019, Month.JULY, 24), LocalDate.now());
-        
-        final var profit = item.getCurrent().divide(item.getInitial(), CONTEXT).subtract(ONE, CONTEXT);
-
+    private static BigDecimal CAGR(BigDecimal initial, BigDecimal current, LocalDate since) {
+        final var days = (double) ChronoUnit.DAYS.between(since, LocalDate.now());
+        final var profit = current.divide(initial, CONTEXT).subtract(ONE, CONTEXT);
         final double x = Math.pow(
                 BigDecimal.ONE.add(profit).doubleValue(),
                 365.0d / days) - 1.0d;
-
         return BigDecimal.valueOf(x);
+    }
 
+    private BigDecimal modelPortfolioCAGR(boolean nominal) {
+
+        final var initialValues = Map.of(
+                "XRSU", new BigDecimal("217.51"),
+                "MEUD", new BigDecimal("159.19"),
+                "CSPX", new BigDecimal("296.40"),
+                "EIMI", new BigDecimal("28.32")
+        );
+
+        final var portfolio
+                = List.of(
+                        new MoneyAmount(BigDecimal.valueOf(70l), "CSPX"),
+                        new MoneyAmount(BigDecimal.valueOf(10l), "MEUD"),
+                        new MoneyAmount(BigDecimal.valueOf(10l), "XRSU"),
+                        new MoneyAmount(BigDecimal.valueOf(10l), "EIMI"));
+
+        final var initial = portfolio.stream()
+                .map(ma -> new MoneyAmount(ma.getAmount().multiply(initialValues.get(ma.getCurrency()), CONTEXT), ma.getCurrency().equals("MEUD") ? "EUR" : "USD"))
+                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", 2019, 7))
+                .map(MoneyAmount::getAmount)
+                .reduce(ZERO, BigDecimal::add);
+
+        final var current = portfolio.stream()
+                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", Inflation.USD_INFLATION.getTo().getYear(), Inflation.USD_INFLATION.getTo().getMonth()))
+                .map(MoneyAmount::getAmount)
+                .reduce(ZERO, BigDecimal::add);
+
+        var i = new BenchmarkItem();
+        i.setInitial(initial);
+        i.setCurrent(current);
+        if (!nominal) {
+            i = this.real(i);
+        }
+        return this.benchmarkCAGR(i);
+
+    }
+
+    private BigDecimal benchmarkCAGR(BenchmarkItem item) {
+        return CAGR(item.getInitial(), item.getCurrent(), LocalDate.of(2019, Month.JULY, 24));
     }
 
     private <T> Stream<T> details(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, T> f, boolean nominal) {
