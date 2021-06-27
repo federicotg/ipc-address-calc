@@ -467,7 +467,7 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", "trials=100000 period=20 retirement=63 age=97 w=1000 d=850 inflation=3 cash=-50000 sp500=true tax=true bbpp=2.25 pension=0"),
+                        entry("goal", "trials=100000 period=20 retirement=63 age=97 w=1000 d=850 inflation=3 cash=0 sp500=true tax=true bbpp=2.25 pension=50"),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
@@ -1097,10 +1097,10 @@ public class ConsoleReports {
         final var inflation = Integer.parseInt(params.getOrDefault("inflation", "3"));
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "63"));
         final var age = Integer.parseInt(params.getOrDefault("age", "97"));
-        final var extraCash = Integer.parseInt(params.getOrDefault("cash", "-50000"));
+        final var extraCash = Integer.parseInt(params.getOrDefault("cash", "0"));
         final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", "true"));
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "true"));
-        final var pension = Integer.parseInt(params.getOrDefault("pension", "0"));
+        final var pension = Integer.parseInt(params.getOrDefault("pension", "50"));
 
         final var bbppTax = afterTax
                 ? Double.parseDouble(params.getOrDefault("bbpp", "2.25")) / 100.0d
@@ -1210,8 +1210,8 @@ public class ConsoleReports {
                 .map(f -> f * withdraw)
                 .toArray();
 
-        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, -1.0d);
-        final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, -1.0d);
+        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.9d);
+        final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 0.9d);
         final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.75d);
         final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.70d);
 
@@ -1375,7 +1375,7 @@ public class ConsoleReports {
         List<BBPPYear> bbppYears = SeriesReader.read("bbpp.json", new TypeReference<List<BBPPYear>>() {
         });
 
-        var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        final var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
         final var bbpp = bbppYears
                 .stream()
