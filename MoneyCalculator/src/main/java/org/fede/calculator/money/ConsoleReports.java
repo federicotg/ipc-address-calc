@@ -443,7 +443,7 @@ public class ConsoleReports {
                     entry("income-half", me::halfIncome),
                     entry("income-quarter", me::quarterIncome),
                     entry("p", () -> me.portfolio(args, "p")),
-                    entry("pa", () -> me.portfolioAllocation(args, "pa")),
+                    entry("pa", () -> me.portfolioAllocation()),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
                     entry("house-evo", () -> me.houseCostsEvolution()),
@@ -812,7 +812,7 @@ public class ConsoleReports {
         this.appendLine(
                 format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
                 " ",
-                currency(mo.getAmount(), 14),
+                format(format, mo.getAmount(), 14),
                 " ",
                 this.bar(mo.getAmount(), scale));
     }
@@ -821,7 +821,7 @@ public class ConsoleReports {
         this.appendLine(
                 format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
                 " ",
-                percent(mo, 8),//String.format("%8s", PERCENT_FORMAT.format(mo)),
+                percent(mo, 8),
                 " ",
                 this.bar(mo.movePointRight(2), 1));
     }
@@ -829,7 +829,7 @@ public class ConsoleReports {
     private void numericEvolution(String name, MoneyAmountSeries s, int scale) {
         var limit = USD_INFLATION.getTo();
 
-        s.forEach((ym, ma) -> this.evolutionReport(ym, ma, scale, "{0}"));
+        s.forEach((ym, ma) -> this.evolutionReport(ym, ma, scale, "{0} "));
 
         appendLine("\n", name, " ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
     }
@@ -1982,7 +1982,7 @@ public class ConsoleReports {
         return SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
     }
 
-    private void portfolioAllocation(String[] args, String name) {
+    private void portfolioAllocation() {
 
         Map<String, Map<String, Optional<DayDollars>>> dayDollarsByYear = this.getInvestments()
                 .stream()
