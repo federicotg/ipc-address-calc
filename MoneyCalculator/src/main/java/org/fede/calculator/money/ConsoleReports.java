@@ -340,7 +340,7 @@ public class ConsoleReports {
                 .orElse(ZERO_USD)
                 .getAmount();
 
-        this.appendLine(format("Total income: {0,number,currency}", totalIncome));
+        this.appendLine(format("Total income: {0}", currency(totalIncome)));
 
     }
 
@@ -530,11 +530,11 @@ public class ConsoleReports {
 
         final var avgSalary = totalIncome.getAmount().divide(BigDecimal.valueOf(months), CONTEXT);
 
-        appendLine(format("Income USD {0,number,currency}\nSavings USD {1,number,currency} {2}\nAverage salary {3,number,currency}\nSaved salaries {4}",
-                totalIncome.getAmount(),
-                totalSavings.getAmount(),
-                PERCENT_FORMAT.format(totalSavings.getAmount().divide(totalIncome.getAmount(), CONTEXT)),
-                avgSalary,
+        appendLine(format("Income USD {0}\nSavings USD {1} {2}\nAverage salary {3}\nSaved salaries {4}",
+                currency(totalIncome.getAmount()),
+                currency(totalSavings.getAmount()),
+                percent(totalSavings.getAmount().divide(totalIncome.getAmount(), CONTEXT)),
+                currency(avgSalary),
                 totalSavings.getAmount().divide(avgSalary, CONTEXT)));
 
         //ingreso promedio de N meses
@@ -553,7 +553,7 @@ public class ConsoleReports {
                 "Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
                 yearAndMonth[0],
                 yearAndMonth[1].setScale(0, MathConstants.ROUNDING_MODE),
-                PERCENT_FORMAT.format(ONE.subtract(averagNetSavings.getAmount().divide(averagIncome.getAmount(), CONTEXT), CONTEXT)),
+                percent(ONE.subtract(averagNetSavings.getAmount().divide(averagIncome.getAmount(), CONTEXT), CONTEXT)),
                 averagIncome.subtract(averagNetSavings).getAmount()));
 
     }
@@ -667,25 +667,25 @@ public class ConsoleReports {
                 String.valueOf(start.getYear()),
                 timeLimit.getMonth(),
                 String.valueOf(timeLimit.getYear()),
-                PERCENT_FORMAT.format(rate)));
+                percent(rate)));
 
         this.appendLine(format("USD reales {0}/{1}", limit.getMonth(), String.valueOf(limit.getYear())));
-        this.appendLine(format("\tTotal USD {0,number,currency} {1}",
-                totalRealExpense.getAmount(),
-                PERCENT_FORMAT.format(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), CONTEXT))));
+        this.appendLine(format("\tTotal USD {0} {1}",
+                currency(totalRealExpense.getAmount()),
+                percent(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), CONTEXT))));
 
         final var monthlyCost = totalRealExpense.getAmount().divide(months, CONTEXT);
-        this.appendLine(format("\tMensual USD {0,number,currency} {1} - ARS {2,number,currency}",
-                monthlyCost,
-                PERCENT_FORMAT.format(monthlyCost.divide(realInitialCost.getAmount(), CONTEXT)),
-                ForeignExchanges.getForeignExchange("USD", "ARS")
+        this.appendLine(format("\tMensual USD {0} {1} - ARS {2}",
+                currency(monthlyCost),
+                percent(monthlyCost.divide(realInitialCost.getAmount(), CONTEXT)),
+                currency(ForeignExchanges.getForeignExchange("USD", "ARS")
                         .exchange(new MoneyAmount(monthlyCost, "USD"), "ARS", limit.getYear(), limit.getMonth())
-                        .getAmount()));
+                        .getAmount())));
 
         final var yearlyCost = totalRealExpense.getAmount().divide(years, CONTEXT);
-        this.appendLine(format("\tAnual USD {0,number,currency} {1}\n",
-                yearlyCost,
-                PERCENT_FORMAT.format(yearlyCost.divide(realInitialCost.getAmount(), CONTEXT))));
+        this.appendLine(format("\tAnual USD {0} {1}\n",
+                currency(yearlyCost),
+                percent(yearlyCost.divide(realInitialCost.getAmount(), CONTEXT))));
 
     }
 
@@ -821,7 +821,7 @@ public class ConsoleReports {
         this.appendLine(
                 format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
                 " ",
-                String.format("%8s", PERCENT_FORMAT.format(mo)),
+                percent(mo, 8),//String.format("%8s", PERCENT_FORMAT.format(mo)),
                 " ",
                 this.bar(mo.movePointRight(2), 1));
     }
@@ -1221,7 +1221,6 @@ public class ConsoleReports {
                 .filter(randomReturns
                         -> this.goals(
                         startingYear,
-                        //1978 + gauss(retirementAge, RETIREMENT_AGE_STD),
                         1978 + retirementAge,
                         gauss(end, END_AGE_STD),
                         cash,
@@ -1234,7 +1233,7 @@ public class ConsoleReports {
         appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
 
         appendLine(format("{0}/{1} ", successes, trials),
-                PERCENT_FORMAT.format((double) successes / (double) trials));
+                percent(BigDecimal.valueOf((double) successes / (double) trials)));
 
     }
 
@@ -1468,7 +1467,7 @@ public class ConsoleReports {
                 .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
                 .reduce(ZERO, BigDecimal::add);
 
-        appendLine(format("Total amount {0,number,currency}", totalAmount));
+        appendLine(format("Total amount {0}", currency(totalAmount)));
 
         final var taxedDomesticAmount = allArs
                 .stream()
@@ -1478,7 +1477,7 @@ public class ConsoleReports {
                 .reduce(ZERO, BigDecimal::add)
                 .multiply(new BigDecimal("1.05"), CONTEXT);
 
-        appendLine(format("Taxed domestic amount {0,number,currency}", taxedDomesticAmount));
+        appendLine(format("Taxed domestic amount {0}", currency(taxedDomesticAmount)));
 
         final var taxedForeignAmount = allArs
                 .stream()
@@ -1487,14 +1486,14 @@ public class ConsoleReports {
                 .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
                 .reduce(ZERO, BigDecimal::add);
 
-        appendLine(format("Taxed foreign amount {0,number,currency}", taxedForeignAmount));
+        appendLine(format("Taxed foreign amount {0}", currency(taxedForeignAmount)));
 
         final var taxedTotal = bbpp.getMinimum()
                 .negate()
                 .add(taxedDomesticAmount, CONTEXT)
                 .add(taxedForeignAmount, CONTEXT);
 
-        appendLine(format("Taxed total {0,number,currency}", taxedTotal));
+        appendLine(format("Taxed total {0}", currency(taxedTotal)));
 
         final var taxRate = bbpp.getBrakets()
                 .stream()
@@ -1504,18 +1503,18 @@ public class ConsoleReports {
                 .get()
                 .getTax();
 
-        appendLine(format("Tax rate {0}", PERCENT_FORMAT.format(taxRate)));
+        appendLine(format("Tax rate {0}", percent(taxRate)));
 
         final var taxAmount = taxedTotal.multiply(taxRate, CONTEXT);
 
         final var usdTaxAmount = ForeignExchanges.getForeignExchange("ARS", "USD")
                 .exchange(new MoneyAmount(taxAmount, "ARS"), "USD", year, 12);
 
-        appendLine(format("Tax amount {0,number,currency} / USD {1,number,currency}",
-                taxAmount,
-                usdTaxAmount.getAmount()));
+        appendLine(format("Tax amount {0} / USD {1}",
+                currency(taxAmount),
+                currency(usdTaxAmount.getAmount())));
 
-        appendLine(format("Monthly tax amount USD {0,number,currency}", usdTaxAmount.adjust(BigDecimal.valueOf(12), ONE).getAmount()));
+        appendLine(format("Monthly tax amount USD {0}", currency(usdTaxAmount.adjust(BigDecimal.valueOf(12), ONE).getAmount())));
 
         final var allInvested = this.getInvestments()
                 .stream()
@@ -1531,9 +1530,9 @@ public class ConsoleReports {
                 .forEachNonZero((ym, ma) -> Optional.of(ma).filter(m -> ym.getYear() == year).ifPresent(yearRealIncome::add));
 
         appendLine(format("Effective tax rate is {0}. Tax is {1} of investments. Tax is {2} of income.",
-                PERCENT_FORMAT.format(taxAmount.divide(totalAmount, CONTEXT)),
-                PERCENT_FORMAT.format(usdTaxAmount.getAmount().divide(allInvested.getAmount(), CONTEXT)),
-                PERCENT_FORMAT.format(usdTaxAmount.getAmount().divide(yearRealIncome.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add), CONTEXT))));
+                percent(taxAmount.divide(totalAmount, CONTEXT)),
+                percent(usdTaxAmount.getAmount().divide(allInvested.getAmount(), CONTEXT)),
+                percent(usdTaxAmount.getAmount().divide(yearRealIncome.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add), CONTEXT))));
 
         this.subtitle("Detail");
 
@@ -1816,7 +1815,7 @@ public class ConsoleReports {
                                 Stream.of("Saving %"),
                                 IntStream.of(years)
                                         .mapToObj(y -> savings.get(y).getAmount().divide(incomes.get(y).getAmount().subtract(ONE, CONTEXT), CONTEXT))
-                                        .map(a -> format("{0}", PERCENT_FORMAT.format(a))))));
+                                        .map(a -> format("{0}", percent(a))))));
     }
 
     private void yearSavingsIncomeTable() {
@@ -1841,7 +1840,7 @@ public class ConsoleReports {
                 currency(incomes.get(y).getAmount()),
                 currency(savings.get(y).getAmount()),
                 currency(incomes.get(y).subtract(savings.get(y)).getAmount()),
-                format("{0}", PERCENT_FORMAT.format(
+                format("{0}", percent(
                         savings.get(y).getAmount()
                                 .divide(incomes.get(y).getAmount()
                                         .subtract(ONE, CONTEXT), CONTEXT))))))
@@ -1966,7 +1965,7 @@ public class ConsoleReports {
 
         if (!pct) {
             this.appendLine("--------------------------------------");
-            this.appendLine(format("Total {0,number,currency}", total.getAmount()));
+            this.appendLine(format("Total {0}", currency(total.getAmount())));
         }
     }
 
@@ -2084,16 +2083,21 @@ public class ConsoleReports {
     }
 
     private static String currency(BigDecimal value, int width) {
-        return String.format("%" + width + "s", format("{0,number,currency}", value));
+        return String.format("%" + width + "s", currency(value));
     }
 
     private static String currency(MoneyAmount value, int width) {
-        return String.format("%" + width + "s", format("{0} {1,number,currency}", value.getCurrency(), value.getAmount()));
+        return String.format("%" + width + "s", format("{0} {1}", value.getCurrency(), currency(value.getAmount())));
     }
 
     private static String percent(BigDecimal pct, int width) {
 
-        return String.format("%" + width + "s", format("{0}", PERCENT_FORMAT.format(pct)));
+        return String.format("%" + width + "s", percent(pct));
+    }
+    
+    private static String percent(BigDecimal pct) {
+
+        return format("{0}", PERCENT_FORMAT.format(pct));
     }
 
     private static String pctBar(BigDecimal value, BigDecimal total) {
@@ -2120,13 +2124,13 @@ public class ConsoleReports {
                     .collect(joining());
 
             return format("{0} {1}",
-                    String.format("%10s", PERCENT_FORMAT.format(value)),
+                    percent(value, 10),
                     part + "/-/" + part);
 
         }
 
         return format("{0} {1}",
-                String.format("%10s", PERCENT_FORMAT.format(value)),
+                percent(value, 10),
                 IntStream.range(0, end)
                         .mapToObj(i -> symbol)
                         .collect(joining()));
@@ -2256,7 +2260,7 @@ public class ConsoleReports {
                 .forEach(this::appendLine);
     }
 
-    private static BigDecimal CAGR(BigDecimal initial, BigDecimal current, LocalDate since) {
+    private static BigDecimal cagr(BigDecimal initial, BigDecimal current, LocalDate since) {
         final var days = (double) ChronoUnit.DAYS.between(since, LocalDate.now());
         final var profit = current.divide(initial, CONTEXT).subtract(ONE, CONTEXT);
         final double x = Math.pow(
@@ -2303,7 +2307,7 @@ public class ConsoleReports {
     }
 
     private BigDecimal benchmarkCAGR(BenchmarkItem item) {
-        return CAGR(item.getInitial(), item.getCurrent(), LocalDate.of(2019, Month.JULY, 24));
+        return cagr(item.getInitial(), item.getCurrent(), LocalDate.of(2019, Month.JULY, 24));
     }
 
     private <T> Stream<T> details(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, T> f, boolean nominal) {
