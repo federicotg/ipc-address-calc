@@ -805,14 +805,10 @@ public class ConsoleReports {
     }
 
     private void evolutionReport(YearMonth ym, MoneyAmount mo, int scale) {
-        this.evolutionReport(ym, mo, scale, "{0,number,currency} ");
-    }
-
-    private void evolutionReport(YearMonth ym, MoneyAmount mo, int scale, String format) {
         this.appendLine(
                 format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
                 " ",
-                format(format, mo.getAmount(), 14),
+                currency(mo, 14),
                 " ",
                 this.bar(mo.getAmount(), scale));
     }
@@ -829,7 +825,7 @@ public class ConsoleReports {
     private void numericEvolution(String name, MoneyAmountSeries s, int scale) {
         var limit = USD_INFLATION.getTo();
 
-        s.forEach((ym, ma) -> this.evolutionReport(ym, ma, scale, "{0} "));
+        s.forEach((ym, ma) -> this.evolutionReport(ym, ma, scale));
 
         appendLine("\n", name, " ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
     }
