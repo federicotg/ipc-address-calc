@@ -2,6 +2,7 @@ package org.fede.calculator.money.series;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Optional;
@@ -35,6 +36,15 @@ public class InvestmentEvent {
     private BigDecimal amount;
     private BigDecimal fee;
     private String currency;
+    private BigDecimal transferFee;
+
+    public BigDecimal getTransferFee() {
+        return this.transferFee;
+    }
+
+    public void setTransferFee(BigDecimal transferFee) {
+        this.transferFee = transferFee;
+    }
     
 
     public Date getDate() {

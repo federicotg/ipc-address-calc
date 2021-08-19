@@ -18,6 +18,7 @@ package org.fede.calculator.money;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.fede.calculator.money.series.IndexSeriesSupport;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
@@ -216,6 +217,11 @@ public class ForeignExchanges {
         answer.setCurrency(ma.getCurrency());
         answer.setDate(in.getDate());
         answer.setFee(fx.exchange(fee, currency, in.getDate()).getAmount());
+        answer.setTransferFee(
+                Optional.ofNullable(in.getTransferFee())
+                        .map(trfee -> fx.exchange(new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).getAmount())
+                        .orElse(null));
+        
         return answer;
     }
 

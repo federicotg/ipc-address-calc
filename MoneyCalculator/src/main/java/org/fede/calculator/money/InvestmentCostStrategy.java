@@ -19,6 +19,7 @@ package org.fede.calculator.money;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Optional;
 import org.fede.calculator.money.series.Investment;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 
@@ -42,7 +43,6 @@ public class InvestmentCostStrategy {
     public InvestmentCostStrategy(String currency, BigDecimal brokerFeeRate, BigDecimal fxFeeRate, BigDecimal ivaRate, BigDecimal capitalGainsTaxRate) {
         this.currency = currency;
         this.cclFeeRate = brokerFeeRate;
-        //this.buyFeeRate = brokerFeeRate;
         this.buyFeeTaxRate = ivaRate;
         this.buyFxFeeRate = fxFeeRate;
         this.buyFxFeeTaxRate = ivaRate;
@@ -61,9 +61,7 @@ public class InvestmentCostStrategy {
 
         final var buyFeeTax = buyFee.multiply(this.buyFeeTaxRate, CONTEXT);
 
-        final var buyFxFee = "MEUD".equals(inv.getCurrency())
-                ? investedAmount.multiply(buyFxFeeRate, CONTEXT)
-                : BigDecimal.ZERO;
+        final var buyFxFee = BigDecimal.ZERO;
         final var buyFxFeeTax = buyFxFee.multiply(this.buyFxFeeTaxRate, CONTEXT);
 
         // pre investment charges
@@ -120,10 +118,16 @@ public class InvestmentCostStrategy {
         d.setBuyFxFee(new MoneyAmount(buyFxFee, this.currency));
         d.setBuyFxFeeTax(new MoneyAmount(buyFxFeeTax, this.currency));
         d.setCapitalGainsTax(new MoneyAmount(capitalGains, this.currency));
-        d.setBuyCclFee(new MoneyAmount(firstCclFee.add(secondCclFee, CONTEXT), this.currency));
+
+        d.setBuyCclFee(Optional.ofNullable(inv.getIn().getTransferFee())
+                .map(fee -> new MoneyAmount(fee, inv.getIn().getCurrency()))
+                .orElseGet(() -> new MoneyAmount(firstCclFee.add(secondCclFee, CONTEXT), this.currency)));
+
         d.setInvestmentDate(LocalDate.ofInstant(inv.getInitialDate().toInstant(), ZoneId.systemDefault()));
         d.setInvestedAmount(new MoneyAmount(investedAmount, this.currency));
+
         d.setSellCclFee(new MoneyAmount(firstSellCclFee.add(secondSellCclFee, CONTEXT), this.currency));
+
         d.setSellFee(new MoneyAmount(sellFee, this.currency));
         d.setSellFeeTax(new MoneyAmount(sellFeeTax, this.currency));
         d.setSellFxFee(new MoneyAmount(sellFxFee, this.currency));
