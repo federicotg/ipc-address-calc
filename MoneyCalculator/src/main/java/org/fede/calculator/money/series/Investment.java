@@ -43,6 +43,7 @@ public class Investment {
 
     private BigDecimal interest;
     private String comment;
+    private String broker;
 
     public InvestmentType getType() {
         return type;
@@ -211,6 +212,15 @@ public class Investment {
 
         return (buyDate.isBefore(reference) || buyDate.isEqual(reference))
                 && sellDate.isAfter(reference);
+    }
+
+    public String getBroker() {
+        return Optional.ofNullable(this.broker)
+                .orElse("PPI Global");
+    }
+
+    public void setBroker(String broker) {
+        this.broker = broker;
     }
 
 }
