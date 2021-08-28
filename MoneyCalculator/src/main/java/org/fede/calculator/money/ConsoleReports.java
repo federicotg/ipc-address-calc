@@ -47,6 +47,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import static java.util.Map.entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -2090,7 +2091,7 @@ public class ConsoleReports {
 
         return String.format("%" + width + "s", percent(pct));
     }
-    
+
     private static String percent(BigDecimal pct) {
 
         return format("{0}", PERCENT_FORMAT.format(pct));
@@ -2241,18 +2242,22 @@ public class ConsoleReports {
                 currency(totalTax, 12),
                 percent(totalTax.divide(totalCurrent, CONTEXT), 8));
 
-        this.subtitle("Benchmark");
+        final var twCAGR = this.twr(currency, nominal, inv -> inv.getType().equals(InvestmentType.ETF) && everyone.test(inv));
+
+        this.subtitle("Benchmark (Before Fees & Taxes)");
 
         final var benchmarksStream = benchmarks.entrySet()
                 .stream()
                 .map(e -> of(e.getKey(), this.benchmarkCAGR(e.getValue())));
 
-        final var portfolioStream = Stream.of(of("Portfolio", weightedCAGR));
+        //final var portfolioStream = Stream.of(of("Portfolio", weightedCAGR));
+        final var portfolioTWCAGRStream = Stream.of(of("Portfolio", twCAGR));
         final var modelPortfolioStream = Stream.of(of("Model", this.modelPortfolioCAGR(nominal)));
 
-        Stream.concat(Stream.concat(benchmarksStream, portfolioStream), modelPortfolioStream)
+        Stream.of(benchmarksStream, modelPortfolioStream, portfolioTWCAGRStream)
+                .reduce(Stream.empty(), Stream::concat)
                 .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
-                .map(p -> format("{0} {1}", text(p.getFirst(), 10), pctBar(p.getSecond())))
+                .map(p -> format("{0} {1}", text(p.getFirst(), 9), pctBar(p.getSecond())))
                 .forEach(this::appendLine);
     }
 
@@ -2344,5 +2349,92 @@ public class ConsoleReports {
                 percent(d.getFeePercent(), colWidths[i++]),
                 currency(d.getTaxes().getAmount(), colWidths[i++]),
                 percent(d.getTaxPercent(), colWidths[i++]));
+    }
+
+    private MoneyAmount endOfMonthPortfolioValue(YearMonth ym, boolean nominal, String currency, Predicate<Investment> predicate) {
+        return this.portfolioValue(ym, nominal, currency, predicate);
+    }
+
+    private MoneyAmount portfolioValue(YearMonth ym, boolean nominal, String currency, Predicate<Investment> predicate) {
+
+        final var limit = Inflation.USD_INFLATION.getTo();
+
+        return this.getInvestments().stream()
+                .filter(predicate)
+                .filter(i -> i.isCurrent(ym.asToDate()))
+                .map(Investment::getInvestment)
+                .map(asset -> ForeignExchanges.getForeignExchange(asset.getCurrency(), currency).exchange(asset.getMoneyAmount(), currency, ym.getYear(), ym.getMonth()))
+                .map(ma -> nominal ? ma : Inflation.USD_INFLATION.adjust(ma, ym.getYear(), ym.getMonth(), limit.getYear(), limit.getMonth()))
+                .reduce(new MoneyAmount(ZERO, currency), MoneyAmount::add);
+    }
+
+    private Pair<YearMonth, MoneyAmount> cashFlowAmount(InvestmentEvent ie, String currency, boolean nominal) {
+
+        final var ym = YearMonth.of(ie.getDate());
+        final var fx = Pair.of(
+                ym,
+                ForeignExchanges.getForeignExchange(ie.getCurrency(), currency)
+                        .exchange(ie.getMoneyAmount(), currency, ym.getYear(), ym.getMonth()));
+
+        if (nominal) {
+            return fx;
+        }
+
+        final var limit = Inflation.USD_INFLATION.getTo();
+        return Pair.of(ym, Inflation.USD_INFLATION.adjust(fx.getSecond(), ym.getYear(), ym.getMonth(), limit.getYear(), limit.getMonth()));
+    }
+
+    private Map<YearMonth, MoneyAmount> cashFlows(boolean nominal, String currency, Predicate<Investment> predicate) {
+
+        final Map<YearMonth, MoneyAmount> cashFlows = Stream.concat(
+                this.getInvestments().stream()
+                        .filter(predicate)
+                        .map(Investment::getIn)
+                        .map(ie -> this.cashFlowAmount(ie, currency, nominal)),
+                this.getInvestments().stream()
+                        .filter(predicate)
+                        .map(Investment::getOut).filter(Objects::nonNull)
+                        .map(ie -> this.cashFlowAmount(ie, currency, nominal))
+                        .map(p -> Pair.of(p.getFirst(), new MoneyAmount(p.getSecond().getAmount().negate(), p.getSecond().getCurrency()))))
+                .collect(groupingBy(
+                        Pair::getFirst,
+                        mapping(Pair::getSecond,
+                                reducing(new MoneyAmount(ZERO, currency), MoneyAmount::add))));
+
+        return cashFlows;
+    }
+
+    private BigDecimal hpr(MoneyAmount flow, MoneyAmount end, MoneyAmount previousEnd) {
+
+        return (end.getAmount()
+                .divide(previousEnd.add(flow).getAmount(), CONTEXT))
+                .subtract(ONE, CONTEXT);
+
+    }
+
+    private BigDecimal twr(String currency, boolean nominal, Predicate<Investment> predicate) {
+
+        final var table
+                = Stream.concat(
+                        Stream.of(Pair.of(new MoneyAmount(ZERO, currency), new MoneyAmount(ZERO, currency))),
+                        this.cashFlows(nominal, currency, predicate).entrySet()
+                                .stream()
+                                .sorted(Comparator.comparing(Map.Entry::getKey, Comparator.naturalOrder()))
+                                .map(e -> Pair.of(e.getValue(), this.endOfMonthPortfolioValue(e.getKey(), nominal, currency, predicate))))
+                        .collect(toList());
+
+        final var twr = IntStream.range(1, table.size())
+                .mapToObj(i -> this.hpr(table.get(i).getFirst(), table.get(i).getSecond(), table.get(i - 1).getSecond()))
+                .map(v -> ONE.add(v, CONTEXT))
+                .reduce(ONE, (left, right) -> left.multiply(right, CONTEXT))
+                .subtract(ONE, CONTEXT);
+
+        final var days = (double) ChronoUnit.DAYS.between(LocalDate.of(2019, Month.JULY, 24), LocalDate.now());
+
+        final double x = Math.pow(
+                BigDecimal.ONE.add(twr).doubleValue(),
+                365.0d / days) - 1.0d;
+        return BigDecimal.valueOf(x);
+
     }
 }
