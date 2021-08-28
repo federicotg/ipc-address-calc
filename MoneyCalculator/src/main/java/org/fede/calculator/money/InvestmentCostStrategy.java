@@ -87,19 +87,14 @@ public class InvestmentCostStrategy {
                 .exchange(inv.getMoneyAmount(), this.currency, limit.getYear(), limit.getMonth())
                 .getAmount();
 
-        final var ppiGlobal = "PPI Global".equals(investment.getBroker());
+        final var sellFee = presentValue.multiply(this.sellFeeRate, CONTEXT).max(BigDecimal.ZERO);
 
-        final var sellFee = ppiGlobal
-                ? presentValue.multiply(this.sellFeeRate, CONTEXT).max(BigDecimal.ZERO)
-                : presentValue.multiply(new BigDecimal("0.0005"), CONTEXT).max(BigDecimal.valueOf(4l));
+        final var sellFeeTax = sellFee.multiply(sellFeeTaxRate, CONTEXT).max(BigDecimal.ZERO);
 
-        final var sellFeeTax = ppiGlobal
-                ? sellFee.multiply(sellFeeTaxRate, CONTEXT).max(BigDecimal.ZERO)
-                : BigDecimal.ZERO;
-
-        final var sellFxFee = ppiGlobal && "MEUD".equals(inv.getCurrency())
+        final var sellFxFee = "MEUD".equals(inv.getCurrency())
                 ? investedAmount.multiply(sellFxFeeRate, CONTEXT).max(BigDecimal.ZERO)
                 : BigDecimal.ZERO;
+
         final var sellFxFeeTax = sellFxFee
                 .multiply(this.sellFxFeeTaxRate, CONTEXT)
                 .max(BigDecimal.ZERO);
@@ -128,7 +123,7 @@ public class InvestmentCostStrategy {
         d.setCapitalGainsTax(new MoneyAmount(capitalGains, this.currency));
 
         d.setBuyCclFee(Optional.ofNullable(inv.getIn().getTransferFee())
-                .map(fee -> new MoneyAmount(fee, inv.getIn().getCurrency()))
+                .map(transferFee -> new MoneyAmount(transferFee, inv.getIn().getCurrency()))
                 .orElseGet(() -> new MoneyAmount(firstCclFee.add(secondCclFee, CONTEXT), this.currency)));
 
         d.setInvestmentDate(LocalDate.ofInstant(inv.getInitialDate().toInstant(), ZoneId.systemDefault()));
@@ -136,6 +131,7 @@ public class InvestmentCostStrategy {
 
         //d.setSellCclFee(new MoneyAmount(firstSellCclFee.add(secondSellCclFee, CONTEXT), this.currency));
         d.setSellCclFee(new MoneyAmount(BigDecimal.ZERO, this.currency));
+        
         d.setSellFee(new MoneyAmount(sellFee, this.currency));
         d.setSellFeeTax(new MoneyAmount(sellFeeTax, this.currency));
         d.setSellFxFee(new MoneyAmount(sellFxFee, this.currency));
