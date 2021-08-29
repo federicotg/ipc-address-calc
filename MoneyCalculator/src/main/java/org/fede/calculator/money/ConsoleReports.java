@@ -133,6 +133,8 @@ public class ConsoleReports {
 
     private static final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
 
+    private static final LocalDate ETF_START_DATE = LocalDate.of(2019, Month.JULY, 24);
+    
     private List<Investment> investments;
 
     private List<BigDecimal> sp500TotalReturns;
@@ -2242,7 +2244,7 @@ public class ConsoleReports {
                 currency(totalTax, 12),
                 percent(totalTax.divide(totalCurrent, CONTEXT), 8));
 
-        final var twCAGR = this.twr(currency, nominal, inv -> inv.getType().equals(InvestmentType.ETF) && everyone.test(inv));
+        final var twCAGR = this.twr(currency, nominal, inv -> inv.getType().equals(InvestmentType.ETF));
 
         this.subtitle("Benchmark (Before Fees & Taxes)");
 
@@ -2308,7 +2310,7 @@ public class ConsoleReports {
     }
 
     private BigDecimal benchmarkCAGR(BenchmarkItem item) {
-        return cagr(item.getInitial(), item.getCurrent(), LocalDate.of(2019, Month.JULY, 24));
+        return cagr(item.getInitial(), item.getCurrent(), ETF_START_DATE);
     }
 
     private <T> Stream<T> details(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, T> f, boolean nominal) {
@@ -2401,6 +2403,17 @@ public class ConsoleReports {
                         mapping(Pair::getSecond,
                                 reducing(new MoneyAmount(ZERO, currency), MoneyAmount::add))));
 
+        
+        final var limit = Inflation.USD_INFLATION.getTo();
+        
+        if(!cashFlows.containsKey(limit)){
+            
+            final var maxYearMonth = cashFlows.keySet().stream().reduce(YearMonth::max).get();
+            final var lastValue = cashFlows.get(maxYearMonth);
+            cashFlows.remove(maxYearMonth);
+            cashFlows.put(limit, lastValue);
+        }
+        
         return cashFlows;
     }
 
@@ -2414,8 +2427,7 @@ public class ConsoleReports {
 
     private BigDecimal twr(String currency, boolean nominal, Predicate<Investment> predicate) {
 
-        final var table
-                = Stream.concat(
+        final var table = Stream.concat(
                         Stream.of(Pair.of(new MoneyAmount(ZERO, currency), new MoneyAmount(ZERO, currency))),
                         this.cashFlows(nominal, currency, predicate).entrySet()
                                 .stream()
@@ -2429,7 +2441,7 @@ public class ConsoleReports {
                 .reduce(ONE, (left, right) -> left.multiply(right, CONTEXT))
                 .subtract(ONE, CONTEXT);
 
-        final var days = (double) ChronoUnit.DAYS.between(LocalDate.of(2019, Month.JULY, 24), LocalDate.now());
+        final var days = (double) ChronoUnit.DAYS.between(ETF_START_DATE, LocalDate.now());
 
         final double x = Math.pow(
                 BigDecimal.ONE.add(twr).doubleValue(),
