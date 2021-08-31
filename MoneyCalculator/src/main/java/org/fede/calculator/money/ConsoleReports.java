@@ -2256,23 +2256,28 @@ public class ConsoleReports {
         final var portfolioTWCAGRStream = Stream.of(of("Portfolio", twCAGR));
         final var modelPortfolioStream = Stream.of(of("Model", this.modelPortfolioCAGR(nominal)));
 
+        
+        Comparator<Pair<String, Pair<BigDecimal, BigDecimal>>> cmp = comparing((Pair<String, Pair<BigDecimal, BigDecimal>> p) -> p.getSecond().getSecond()).reversed();
+        
+        appendLine(text(" ", 10), text(" Retorno", 8), text("    Anualizado",16));
+        
         Stream.of(benchmarksStream, modelPortfolioStream, portfolioTWCAGRStream)
                 .reduce(Stream.empty(), Stream::concat)
-                .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
-                .map(p -> format("{0} {1}", text(p.getFirst(), 9), pctBar(p.getSecond())))
+                .sorted(cmp)
+                .map(p -> format("{0} {1} {2}", text(p.getFirst(), 10), percent(p.getSecond().getFirst(), 8), pctBar(p.getSecond().getSecond())))
                 .forEach(this::appendLine);
     }
 
-    private static BigDecimal cagr(BigDecimal initial, BigDecimal current, LocalDate since) {
+    private static Pair<BigDecimal, BigDecimal> cagr(BigDecimal initial, BigDecimal current, LocalDate since) {
         final var days = (double) ChronoUnit.DAYS.between(since, LocalDate.now());
         final var profit = current.divide(initial, CONTEXT).subtract(ONE, CONTEXT);
         final double x = Math.pow(
                 BigDecimal.ONE.add(profit).doubleValue(),
                 365.0d / days) - 1.0d;
-        return BigDecimal.valueOf(x);
+        return Pair.of(profit, BigDecimal.valueOf(x));
     }
 
-    private BigDecimal modelPortfolioCAGR(boolean nominal) {
+    private Pair<BigDecimal, BigDecimal> modelPortfolioCAGR(boolean nominal) {
 
         final var initialValues = Map.of(
                 "XRSU", new BigDecimal("217.51"),
@@ -2309,7 +2314,7 @@ public class ConsoleReports {
 
     }
 
-    private BigDecimal benchmarkCAGR(BenchmarkItem item) {
+    private Pair<BigDecimal, BigDecimal> benchmarkCAGR(BenchmarkItem item) {
         return cagr(item.getInitial(), item.getCurrent(), ETF_START_DATE);
     }
 
@@ -2425,7 +2430,7 @@ public class ConsoleReports {
 
     }
 
-    private BigDecimal twr(String currency, boolean nominal, Predicate<Investment> predicate) {
+    private Pair<BigDecimal, BigDecimal> twr(String currency, boolean nominal, Predicate<Investment> predicate) {
 
         final var table = Stream.concat(
                         Stream.of(Pair.of(new MoneyAmount(ZERO, currency), new MoneyAmount(ZERO, currency))),
@@ -2446,7 +2451,8 @@ public class ConsoleReports {
         final double x = Math.pow(
                 BigDecimal.ONE.add(twr).doubleValue(),
                 365.0d / days) - 1.0d;
-        return BigDecimal.valueOf(x);
+        
+        return Pair.of(twr, BigDecimal.valueOf(x));
 
     }
 }
