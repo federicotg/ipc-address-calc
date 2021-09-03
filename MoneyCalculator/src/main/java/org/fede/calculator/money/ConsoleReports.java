@@ -1960,9 +1960,10 @@ public class ConsoleReports {
                                                 Pair::getSecond,
                                                 reducing(MoneyAmount::add)))));
 
+       
         final var items = grouped.entrySet().stream()
                 .flatMap(e -> this.item(e.getKey(), e.getValue(), ym))
-                .sorted(comparing((PortfolioItem pi) -> pi.getDollarAmount().getAmount()).reversed())
+                .sorted(comparing((PortfolioItem::getDollarAmount), comparing(MoneyAmount::getAmount)).reversed())
                 .collect(toList());
 
         final var total = items.stream()
@@ -2022,7 +2023,7 @@ public class ConsoleReports {
         byType.values()
                 .stream()
                 .flatMap(Optional::stream)
-                .sorted(comparing((DayDollars d) -> d.getAmount()).reversed())
+                .sorted(comparing(DayDollars::getAmount).reversed())
                 .map(d -> format("\t{0} {1}",
                 String.format("%-11s", d.getType()),
                 pctBar(d.getAmount(), total)))
