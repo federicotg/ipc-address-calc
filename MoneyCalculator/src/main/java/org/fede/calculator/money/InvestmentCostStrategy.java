@@ -33,12 +33,10 @@ public class InvestmentCostStrategy {
 
     private final BigDecimal cclFeeRate;
     private final BigDecimal buyFeeTaxRate;
-    private final BigDecimal sellFeeRate;
-    private final BigDecimal sellFeeTaxRate;
     private final BigDecimal capitalGainsTaxRate;
     private final String currency;
 
-    private static final Function<BigDecimal, BigDecimal> PPI_GLOBAL_USD_FEE_STRATEGY = new PPIGlobalUSDFeeStrategy();
+    private static final Function<BigDecimal, BigDecimal> PPIGLOBAL_USD_FEE_STRATEGY = new PPIGlobalUSDFeeStrategy();
     private static final Function<BigDecimal, BigDecimal> PPIGLOBAL_EUR_FEE_STRATEGY = new PPIGlobalEURFeeStrategy();
 
     private static final Map<String, Function<BigDecimal, BigDecimal>> IBKR = Map.of(
@@ -51,8 +49,6 @@ public class InvestmentCostStrategy {
         this.currency = currency;
         this.cclFeeRate = brokerFeeRate;
         this.buyFeeTaxRate = ivaRate;
-        this.sellFeeRate = brokerFeeRate;
-        this.sellFeeTaxRate = ivaRate;
         this.capitalGainsTaxRate = capitalGainsTaxRate;
     }
 
@@ -64,10 +60,10 @@ public class InvestmentCostStrategy {
                 return PPIGLOBAL_EUR_FEE_STRATEGY;
             }
 
-            return PPI_GLOBAL_USD_FEE_STRATEGY;
+            return PPIGLOBAL_USD_FEE_STRATEGY;
         }
 
-        return IBKR.getOrDefault(investment.getComment(), PPI_GLOBAL_USD_FEE_STRATEGY);
+        return IBKR.getOrDefault(investment.getComment(), PPIGLOBAL_USD_FEE_STRATEGY);
 
     }
 
@@ -82,8 +78,6 @@ public class InvestmentCostStrategy {
                 ? BigDecimal.ZERO
                 : buyFee.multiply(this.buyFeeTaxRate, CONTEXT);
 
-        //final var buyFxFee = BigDecimal.ZERO;
-        //final var buyFxFeeTax = BigDecimal.ZERO;
         // pre investment charges
         final var afterCclAmount = investedAmount
                 .add(buyFee, CONTEXT)
@@ -106,9 +100,7 @@ public class InvestmentCostStrategy {
                 .getAmount();
 
         final var sellFee = this.getFeeStrategy(investment).apply(presentValue);
-        //presentValue.multiply(this.sellFeeRate, CONTEXT).max(BigDecimal.ZERO);
 
-        //final var sellFeeTax = sellFee.multiply(sellFeeTaxRate, CONTEXT).max(BigDecimal.ZERO);
         final var beforeCclAmount = presentValue
                 .subtract(sellFee, CONTEXT);
 
@@ -120,10 +112,6 @@ public class InvestmentCostStrategy {
         final var zero = new MoneyAmount(BigDecimal.ZERO, this.currency);
 
         // ccl
-        //final var firstSellCclFee = beforeCclAmount.multiply(this.cclFeeRate, CONTEXT).max(BigDecimal.ZERO);
-        //final var secondSellCclFee = beforeCclAmount
-        //        .subtract(firstSellCclFee, CONTEXT)
-        //        .multiply(this.cclFeeRate, CONTEXT).max(BigDecimal.ZERO);
         final var d = new InvestmentDetails();
         d.setBuyFee(new MoneyAmount(buyFee, this.currency));
         d.setBuyFeeTax(new MoneyAmount(buyFeeTax, this.currency));
@@ -138,7 +126,6 @@ public class InvestmentCostStrategy {
         d.setInvestmentDate(LocalDate.ofInstant(inv.getInitialDate().toInstant(), ZoneId.systemDefault()));
         d.setInvestedAmount(new MoneyAmount(investedAmount, this.currency));
 
-        //d.setSellCclFee(new MoneyAmount(firstSellCclFee.add(secondSellCclFee, CONTEXT), this.currency));
         d.setSellCclFee(zero);
 
         d.setSellFee(new MoneyAmount(sellFee, this.currency));

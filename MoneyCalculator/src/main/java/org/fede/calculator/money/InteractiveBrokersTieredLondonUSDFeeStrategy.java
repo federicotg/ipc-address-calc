@@ -25,22 +25,23 @@ import java.util.function.Function;
  */
 public class InteractiveBrokersTieredLondonUSDFeeStrategy implements Function<BigDecimal, BigDecimal> {
 
+    private static final BigDecimal GBPUSD = new BigDecimal("1.3845");
+
+    private static final BigDecimal IBKR_TIERED_USD_FEE = new BigDecimal("0.0005");
+    private static final BigDecimal IBKR_TIERED_USD_MIN_FEE = new BigDecimal("1.7");
+    private static final BigDecimal IBKR_TIERED_USD_MAX_FEE = new BigDecimal("39");
+
+    private static final BigDecimal EXCHANGE_FEE = new BigDecimal("0.000045");
+    private static final BigDecimal MIN_EXCHANGE_FEE = new BigDecimal("0.1").multiply(GBPUSD, MathConstants.CONTEXT);
+    private static final BigDecimal CLEARING_FEE = new BigDecimal("0.06").multiply(GBPUSD, MathConstants.CONTEXT);
+
     @Override
     public BigDecimal apply(BigDecimal t) {
 
-        final var ibkrTieredUSDFee = new BigDecimal("0.0005");
-        final var ibkrTieredUSDMinFee = new BigDecimal("1.7");
-        final var ibkrTieredUSDMaxFee = new BigDecimal("39");
-
-        final var exchangeFee = new BigDecimal("0.000045");
-        final var minFee = new BigDecimal("0.13836");
-        final var clearingFee = new BigDecimal("0.083016");
-
         return t
-                .multiply(ibkrTieredUSDFee, MathConstants.CONTEXT)
-                .max(ibkrTieredUSDMinFee)
-                .min(ibkrTieredUSDMaxFee)
-                .add(t.multiply(exchangeFee, MathConstants.CONTEXT).max(minFee).add(clearingFee));
+                .multiply(IBKR_TIERED_USD_FEE, MathConstants.CONTEXT).max(IBKR_TIERED_USD_MIN_FEE).min(IBKR_TIERED_USD_MAX_FEE)
+                .add(t.multiply(EXCHANGE_FEE, MathConstants.CONTEXT).max(MIN_EXCHANGE_FEE))
+                .add(CLEARING_FEE);
 
     }
 
