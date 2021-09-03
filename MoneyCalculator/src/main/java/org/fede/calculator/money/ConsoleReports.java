@@ -83,6 +83,19 @@ import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
  */
 public class ConsoleReports {
 
+    private static final List<MoneyAmount> PORTFOLIO = List.of(
+            new MoneyAmount(BigDecimal.valueOf(70l), "CSPX"),
+            new MoneyAmount(BigDecimal.valueOf(10l), "MEUD"),
+            new MoneyAmount(BigDecimal.valueOf(10l), "XRSU"),
+            new MoneyAmount(BigDecimal.valueOf(10l), "EIMI"));
+
+    private static final Map<String, BigDecimal> INITIAL_VALUES = Map.of(
+            "XRSU", new BigDecimal("217.51"),
+            "MEUD", new BigDecimal("159.19"),
+            "CSPX", new BigDecimal("296.40"),
+            "EIMI", new BigDecimal("28.32")
+    );
+
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
     private static final BigDecimal ONE_PERCENT = BigDecimal.ONE.movePointLeft(2);
 
@@ -134,7 +147,7 @@ public class ConsoleReports {
     private static final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
 
     private static final LocalDate ETF_START_DATE = LocalDate.of(2019, Month.JULY, 24);
-    
+
     private List<Investment> investments;
 
     private List<BigDecimal> sp500TotalReturns;
@@ -2157,16 +2170,7 @@ public class ConsoleReports {
         return String.format("%-15s", stream.collect(joining()));
     }
 
-    private void inv(final Predicate<Investment> everyone, boolean nominal, String currency) {
-
-        appendLine();
-        appendLine(format("{0} Investment Results", nominal ? "Nominal" : "Real"));
-        appendLine();
-
-        final var ics = new InvestmentCostStrategy(currency, TRADING_FEE, new BigDecimal("0.21"), CAPITAL_GAINS_TAX_RATE);
-
-        final var mw = 13;
-        final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, mw, 9, 10, 1, 15, 10, 7, 11, 7};
+    private void invHeader(int[] colWidths){
         var separator = IntStream.rangeClosed(0, Arrays.stream(colWidths).sum()).mapToObj(n -> "=").collect(Collectors.joining());
         var i = 0;
         this.appendLine(separator);
@@ -2188,6 +2192,21 @@ public class ConsoleReports {
                 text("   Tax", colWidths[i++]),
                 text("%", colWidths[i++]));
         this.appendLine(separator);
+    }
+    
+    private void inv(final Predicate<Investment> everyone, boolean nominal, String currency) {
+
+        appendLine();
+        appendLine(format("{0} Investment Results", nominal ? "Nominal" : "Real"));
+        appendLine();
+
+        final var ics = new InvestmentCostStrategy(currency, TRADING_FEE, IVA.subtract(ONE, CONTEXT), CAPITAL_GAINS_TAX_RATE);
+
+        final var mw = 13;
+        final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, mw, 9, 10, 1, 15, 10, 7, 11, 7};
+        
+        this.invHeader(colWidths);
+        
         this.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
@@ -2197,6 +2216,8 @@ public class ConsoleReports {
                 .map(d -> nominal ? d : d.asReal())
                 .forEach(d -> this.print(d, colWidths));
 
+        this.invHeader(colWidths);
+        
         final var benchmarks = SeriesReader.read("index/benchmarks.json", BENCHMARK_TR)
                 .entrySet()
                 .stream()
@@ -2252,15 +2273,13 @@ public class ConsoleReports {
                 .stream()
                 .map(e -> of(e.getKey(), this.benchmarkCAGR(e.getValue())));
 
-        //final var portfolioStream = Stream.of(of("Portfolio", weightedCAGR));
         final var portfolioTWCAGRStream = Stream.of(of("Portfolio", twCAGR));
         final var modelPortfolioStream = Stream.of(of("Model", this.modelPortfolioCAGR(nominal)));
 
-        
         Comparator<Pair<String, Pair<BigDecimal, BigDecimal>>> cmp = comparing((Pair<String, Pair<BigDecimal, BigDecimal>> p) -> p.getSecond().getSecond()).reversed();
-        
-        appendLine(text(" ", 10), text(" Retorno", 8), text("    Anualizado",16));
-        
+
+        appendLine(text(" ", 10), text(" Return", 8), text("    Annualized", 16));
+
         Stream.of(benchmarksStream, modelPortfolioStream, portfolioTWCAGRStream)
                 .reduce(Stream.empty(), Stream::concat)
                 .sorted(cmp)
@@ -2279,27 +2298,13 @@ public class ConsoleReports {
 
     private Pair<BigDecimal, BigDecimal> modelPortfolioCAGR(boolean nominal) {
 
-        final var initialValues = Map.of(
-                "XRSU", new BigDecimal("217.51"),
-                "MEUD", new BigDecimal("159.19"),
-                "CSPX", new BigDecimal("296.40"),
-                "EIMI", new BigDecimal("28.32")
-        );
-
-        final var portfolio
-                = List.of(
-                        new MoneyAmount(BigDecimal.valueOf(70l), "CSPX"),
-                        new MoneyAmount(BigDecimal.valueOf(10l), "MEUD"),
-                        new MoneyAmount(BigDecimal.valueOf(10l), "XRSU"),
-                        new MoneyAmount(BigDecimal.valueOf(10l), "EIMI"));
-
-        final var initial = portfolio.stream()
-                .map(ma -> new MoneyAmount(ma.getAmount().multiply(initialValues.get(ma.getCurrency()), CONTEXT), ma.getCurrency().equals("MEUD") ? "EUR" : "USD"))
+        final var initial = PORTFOLIO.stream()
+                .map(ma -> new MoneyAmount(ma.getAmount().multiply(INITIAL_VALUES.get(ma.getCurrency()), CONTEXT), ma.getCurrency().equals("MEUD") ? "EUR" : "USD"))
                 .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", 2019, 7))
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
-        final var current = portfolio.stream()
+        final var current = PORTFOLIO.stream()
                 .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", Inflation.USD_INFLATION.getTo().getYear(), Inflation.USD_INFLATION.getTo().getMonth()))
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
@@ -2394,11 +2399,13 @@ public class ConsoleReports {
     private Map<YearMonth, MoneyAmount> cashFlows(boolean nominal, String currency, Predicate<Investment> predicate) {
 
         final Map<YearMonth, MoneyAmount> cashFlows = Stream.concat(
-                this.getInvestments().stream()
+                this.getInvestments()
+                        .stream()
                         .filter(predicate)
                         .map(Investment::getIn)
                         .map(ie -> this.cashFlowAmount(ie, currency, nominal)),
-                this.getInvestments().stream()
+                this.getInvestments()
+                        .stream()
                         .filter(predicate)
                         .map(Investment::getOut).filter(Objects::nonNull)
                         .map(ie -> this.cashFlowAmount(ie, currency, nominal))
@@ -2408,17 +2415,16 @@ public class ConsoleReports {
                         mapping(Pair::getSecond,
                                 reducing(new MoneyAmount(ZERO, currency), MoneyAmount::add))));
 
-        
         final var limit = Inflation.USD_INFLATION.getTo();
-        
-        if(!cashFlows.containsKey(limit)){
-            
+
+        if (!cashFlows.containsKey(limit)) {
+
             final var maxYearMonth = cashFlows.keySet().stream().reduce(YearMonth::max).get();
             final var lastValue = cashFlows.get(maxYearMonth);
             cashFlows.remove(maxYearMonth);
             cashFlows.put(limit, lastValue);
         }
-        
+
         return cashFlows;
     }
 
@@ -2433,12 +2439,12 @@ public class ConsoleReports {
     private Pair<BigDecimal, BigDecimal> twr(String currency, boolean nominal, Predicate<Investment> predicate) {
 
         final var table = Stream.concat(
-                        Stream.of(Pair.of(new MoneyAmount(ZERO, currency), new MoneyAmount(ZERO, currency))),
-                        this.cashFlows(nominal, currency, predicate).entrySet()
-                                .stream()
-                                .sorted(Comparator.comparing(Map.Entry::getKey, Comparator.naturalOrder()))
-                                .map(e -> Pair.of(e.getValue(), this.endOfMonthPortfolioValue(e.getKey(), nominal, currency, predicate))))
-                        .collect(toList());
+                Stream.of(Pair.of(new MoneyAmount(ZERO, currency), new MoneyAmount(ZERO, currency))),
+                this.cashFlows(nominal, currency, predicate).entrySet()
+                        .stream()
+                        .sorted(Comparator.comparing(Map.Entry::getKey, Comparator.naturalOrder()))
+                        .map(e -> Pair.of(e.getValue(), this.endOfMonthPortfolioValue(e.getKey(), nominal, currency, predicate))))
+                .collect(toList());
 
         final var twr = IntStream.range(1, table.size())
                 .mapToObj(i -> this.hpr(table.get(i).getFirst(), table.get(i).getSecond(), table.get(i - 1).getSecond()))
@@ -2451,7 +2457,7 @@ public class ConsoleReports {
         final double x = Math.pow(
                 BigDecimal.ONE.add(twr).doubleValue(),
                 365.0d / days) - 1.0d;
-        
+
         return Pair.of(twr, BigDecimal.valueOf(x));
 
     }
