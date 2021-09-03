@@ -26,20 +26,16 @@ import static org.fede.calculator.money.MathConstants.CONTEXT;
  */
 public class PPIGlobalUSDFeeStrategy implements Function<BigDecimal, BigDecimal> {
 
-    private final BigDecimal feeRate;
-    private final BigDecimal feeTaxRate;
+    private static final BigDecimal FEE_RATE = new BigDecimal("0.006");
+    private static final BigDecimal FEE_TAX_RATE = new BigDecimal("0.21");
 
-    public PPIGlobalUSDFeeStrategy(BigDecimal feeRate, BigDecimal feeTaxRate) {
-        this.feeRate = feeRate;
-        this.feeTaxRate = feeTaxRate;
-    }
     
     @Override
     public BigDecimal apply(BigDecimal presentValue) {
         
-        final var sellFee = presentValue.multiply(this.feeRate, CONTEXT).max(BigDecimal.TEN);
+        final var sellFee = presentValue.multiply(FEE_RATE, CONTEXT).max(BigDecimal.TEN);
 
-        final var sellFeeTax = sellFee.multiply(this.feeTaxRate, CONTEXT);
+        final var sellFeeTax = sellFee.multiply(FEE_TAX_RATE, CONTEXT);
 
         return sellFee.add(sellFeeTax, CONTEXT);
         

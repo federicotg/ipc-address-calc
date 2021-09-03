@@ -96,7 +96,7 @@ public class ConsoleReports {
             .multiply(IVA, CONTEXT);
 
     private static final BigDecimal TRADING_FEE = new BigDecimal("0.006");
-    private static final BigDecimal TRADING_FX_FEE = new BigDecimal("0.0025");
+    //private static final BigDecimal TRADING_FX_FEE = new BigDecimal("0.0025");
 
     private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
     private static final double RUSSELL2000_PCT = new BigDecimal("0.1").doubleValue();
@@ -2163,7 +2163,7 @@ public class ConsoleReports {
         appendLine(format("{0} Investment Results", nominal ? "Nominal" : "Real"));
         appendLine();
 
-        final var ics = new InvestmentCostStrategy(currency, TRADING_FEE, TRADING_FX_FEE, new BigDecimal("0.21"), CAPITAL_GAINS_TAX_RATE);
+        final var ics = new InvestmentCostStrategy(currency, TRADING_FEE, new BigDecimal("0.21"), CAPITAL_GAINS_TAX_RATE);
 
         final var mw = 13;
         final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, mw, 9, 10, 1, 15, 10, 7, 11, 7};
