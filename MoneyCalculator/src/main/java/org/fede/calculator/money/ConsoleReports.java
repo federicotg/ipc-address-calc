@@ -47,7 +47,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import static java.util.Map.entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -1960,7 +1959,6 @@ public class ConsoleReports {
                                                 Pair::getSecond,
                                                 reducing(MoneyAmount::add)))));
 
-       
         final var items = grouped.entrySet().stream()
                 .flatMap(e -> this.item(e.getKey(), e.getValue(), ym))
                 .sorted(comparing((PortfolioItem::getDollarAmount), comparing(MoneyAmount::getAmount)).reversed())
@@ -2171,7 +2169,7 @@ public class ConsoleReports {
         return String.format("%-15s", stream.collect(joining()));
     }
 
-    private void invHeader(int[] colWidths){
+    private void invHeader(int[] colWidths) {
         var separator = IntStream.rangeClosed(0, Arrays.stream(colWidths).sum()).mapToObj(n -> "=").collect(Collectors.joining());
         var i = 0;
         this.appendLine(separator);
@@ -2194,7 +2192,7 @@ public class ConsoleReports {
                 text("%", colWidths[i++]));
         this.appendLine(separator);
     }
-    
+
     private void inv(final Predicate<Investment> everyone, boolean nominal, String currency) {
 
         appendLine();
@@ -2205,9 +2203,9 @@ public class ConsoleReports {
 
         final var mw = 13;
         final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, mw, 9, 10, 1, 15, 10, 7, 11, 7};
-        
+
         this.invHeader(colWidths);
-        
+
         this.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
@@ -2218,7 +2216,7 @@ public class ConsoleReports {
                 .forEach(d -> this.print(d, colWidths));
 
         this.invHeader(colWidths);
-        
+
         final var benchmarks = SeriesReader.read("index/benchmarks.json", BENCHMARK_TR)
                 .entrySet()
                 .stream()
@@ -2266,7 +2264,7 @@ public class ConsoleReports {
                 currency(totalTax, 12),
                 percent(totalTax.divide(totalCurrent, CONTEXT), 8));
 
-        final var twCAGR = this.twr(currency, nominal, inv -> inv.getType().equals(InvestmentType.ETF));
+        final var modifiedDietzReturn = new ModifiedDietzReturn(this.getInvestments().stream().filter(inv -> inv.getType().equals(InvestmentType.ETF)).collect(toList()), currency, nominal).get();
 
         this.subtitle("Benchmark (Before Fees & Taxes)");
 
@@ -2274,7 +2272,7 @@ public class ConsoleReports {
                 .stream()
                 .map(e -> of(e.getKey(), this.benchmarkCAGR(e.getValue())));
 
-        final var portfolioTWCAGRStream = Stream.of(of("Portfolio", twCAGR));
+        final var portfolioTWCAGRStream = Stream.of(of("Portfolio", modifiedDietzReturn));
         final var modelPortfolioStream = Stream.of(of("Model", this.modelPortfolioCAGR(nominal)));
 
         Comparator<Pair<String, Pair<BigDecimal, BigDecimal>>> cmp = comparing((Pair<String, Pair<BigDecimal, BigDecimal>> p) -> p.getSecond().getSecond()).reversed();
@@ -2363,103 +2361,101 @@ public class ConsoleReports {
                 currency(d.getTaxes().getAmount(), colWidths[i++]),
                 percent(d.getTaxPercent(), colWidths[i++]));
     }
+//
+//    private MoneyAmount endOfMonthPortfolioValue(YearMonth ym, boolean nominal, String currency, Predicate<Investment> predicate) {
+//        return this.portfolioValue(ym, nominal, currency, predicate);
+//    }
+//
+//    private MoneyAmount portfolioValue(YearMonth ym, boolean nominal, String currency, Predicate<Investment> predicate) {
+//
+//        final var limit = Inflation.USD_INFLATION.getTo();
+//
+//        return this.getInvestments().stream()
+//                .filter(predicate)
+//                .filter(i -> i.isCurrent(ym.asToDate()))
+//                .map(Investment::getInvestment)
+//                .map(asset -> ForeignExchanges.getForeignExchange(asset.getCurrency(), currency).exchange(asset.getMoneyAmount(), currency, ym.getYear(), ym.getMonth()))
+//                .map(ma -> nominal ? ma : Inflation.USD_INFLATION.adjust(ma, ym.getYear(), ym.getMonth(), limit.getYear(), limit.getMonth()))
+//                .reduce(new MoneyAmount(ZERO, currency), MoneyAmount::add);
+//    }
 
-    private MoneyAmount endOfMonthPortfolioValue(YearMonth ym, boolean nominal, String currency, Predicate<Investment> predicate) {
-        return this.portfolioValue(ym, nominal, currency, predicate);
-    }
-
-    private MoneyAmount portfolioValue(YearMonth ym, boolean nominal, String currency, Predicate<Investment> predicate) {
-
-        final var limit = Inflation.USD_INFLATION.getTo();
-
-        return this.getInvestments().stream()
-                .filter(predicate)
-                .filter(i -> i.isCurrent(ym.asToDate()))
-                .map(Investment::getInvestment)
-                .map(asset -> ForeignExchanges.getForeignExchange(asset.getCurrency(), currency).exchange(asset.getMoneyAmount(), currency, ym.getYear(), ym.getMonth()))
-                .map(ma -> nominal ? ma : Inflation.USD_INFLATION.adjust(ma, ym.getYear(), ym.getMonth(), limit.getYear(), limit.getMonth()))
-                .reduce(new MoneyAmount(ZERO, currency), MoneyAmount::add);
-    }
-
-    private Pair<YearMonth, MoneyAmount> cashFlowAmount(InvestmentEvent ie, String currency, boolean nominal) {
-
-        final var ym = YearMonth.of(ie.getDate());
-        final var fx = Pair.of(
-                ym,
-                ForeignExchanges.getForeignExchange(ie.getCurrency(), currency)
-                        .exchange(ie.getMoneyAmount(), currency, ym.getYear(), ym.getMonth()));
-
-        if (nominal) {
-            return fx;
-        }
-
-        final var limit = Inflation.USD_INFLATION.getTo();
-        return Pair.of(ym, Inflation.USD_INFLATION.adjust(fx.getSecond(), ym.getYear(), ym.getMonth(), limit.getYear(), limit.getMonth()));
-    }
-
-    private Map<YearMonth, MoneyAmount> cashFlows(boolean nominal, String currency, Predicate<Investment> predicate) {
-
-        final Map<YearMonth, MoneyAmount> cashFlows = Stream.concat(
-                this.getInvestments()
-                        .stream()
-                        .filter(predicate)
-                        .map(Investment::getIn)
-                        .map(ie -> this.cashFlowAmount(ie, currency, nominal)),
-                this.getInvestments()
-                        .stream()
-                        .filter(predicate)
-                        .map(Investment::getOut).filter(Objects::nonNull)
-                        .map(ie -> this.cashFlowAmount(ie, currency, nominal))
-                        .map(p -> Pair.of(p.getFirst(), new MoneyAmount(p.getSecond().getAmount().negate(), p.getSecond().getCurrency()))))
-                .collect(groupingBy(
-                        Pair::getFirst,
-                        mapping(Pair::getSecond,
-                                reducing(new MoneyAmount(ZERO, currency), MoneyAmount::add))));
-
-        final var limit = Inflation.USD_INFLATION.getTo();
-
-        if (!cashFlows.containsKey(limit)) {
-
-            final var maxYearMonth = cashFlows.keySet().stream().reduce(YearMonth::max).get();
-            final var lastValue = cashFlows.get(maxYearMonth);
-            cashFlows.remove(maxYearMonth);
-            cashFlows.put(limit, lastValue);
-        }
-
-        return cashFlows;
-    }
-
-    private BigDecimal hpr(MoneyAmount flow, MoneyAmount end, MoneyAmount previousEnd) {
-
-        return (end.getAmount()
-                .divide(previousEnd.add(flow).getAmount(), CONTEXT))
-                .subtract(ONE, CONTEXT);
-
-    }
-
-    private Pair<BigDecimal, BigDecimal> twr(String currency, boolean nominal, Predicate<Investment> predicate) {
-
-        final var table = Stream.concat(
-                Stream.of(Pair.of(new MoneyAmount(ZERO, currency), new MoneyAmount(ZERO, currency))),
-                this.cashFlows(nominal, currency, predicate).entrySet()
-                        .stream()
-                        .sorted(Comparator.comparing(Map.Entry::getKey, Comparator.naturalOrder()))
-                        .map(e -> Pair.of(e.getValue(), this.endOfMonthPortfolioValue(e.getKey(), nominal, currency, predicate))))
-                .collect(toList());
-
-        final var twr = IntStream.range(1, table.size())
-                .mapToObj(i -> this.hpr(table.get(i).getFirst(), table.get(i).getSecond(), table.get(i - 1).getSecond()))
-                .map(v -> ONE.add(v, CONTEXT))
-                .reduce(ONE, (left, right) -> left.multiply(right, CONTEXT))
-                .subtract(ONE, CONTEXT);
-
-        final var days = (double) ChronoUnit.DAYS.between(ETF_START_DATE, LocalDate.now());
-
-        final double x = Math.pow(
-                BigDecimal.ONE.add(twr).doubleValue(),
-                365.0d / days) - 1.0d;
-
-        return Pair.of(twr, BigDecimal.valueOf(x));
-
-    }
+//    private Pair<YearMonth, MoneyAmount> cashFlowAmount(InvestmentEvent ie, String currency, boolean nominal) {
+//
+//        final var ym = YearMonth.of(ie.getDate());
+//        final var fx = Pair.of(
+//                ym,
+//                ForeignExchanges.getForeignExchange(ie.getCurrency(), currency)
+//                        .exchange(ie.getMoneyAmount(), currency, ym.getYear(), ym.getMonth()));
+//
+//        if (nominal) {
+//            return fx;
+//        }
+//
+//        final var limit = Inflation.USD_INFLATION.getTo();
+//        return Pair.of(ym, Inflation.USD_INFLATION.adjust(fx.getSecond(), ym.getYear(), ym.getMonth(), limit.getYear(), limit.getMonth()));
+//    }
+//    private Map<YearMonth, MoneyAmount> cashFlows(boolean nominal, String currency, Predicate<Investment> predicate) {
+//
+//        final Map<YearMonth, MoneyAmount> cashFlows = Stream.concat(
+//                this.getInvestments()
+//                        .stream()
+//                        .filter(predicate)
+//                        .map(Investment::getIn)
+//                        .map(ie -> this.cashFlowAmount(ie, currency, nominal)),
+//                this.getInvestments()
+//                        .stream()
+//                        .filter(predicate)
+//                        .map(Investment::getOut).filter(Objects::nonNull)
+//                        .map(ie -> this.cashFlowAmount(ie, currency, nominal))
+//                        .map(p -> Pair.of(p.getFirst(), new MoneyAmount(p.getSecond().getAmount().negate(), p.getSecond().getCurrency()))))
+//                .collect(groupingBy(
+//                        Pair::getFirst,
+//                        mapping(Pair::getSecond,
+//                                reducing(new MoneyAmount(ZERO, currency), MoneyAmount::add))));
+//
+//        final var limit = Inflation.USD_INFLATION.getTo();
+//
+//        if (!cashFlows.containsKey(limit)) {
+//
+//            final var maxYearMonth = cashFlows.keySet().stream().reduce(YearMonth::max).get();
+//            final var lastValue = cashFlows.get(maxYearMonth);
+//            cashFlows.remove(maxYearMonth);
+//            cashFlows.put(limit, lastValue);
+//        }
+//
+//        return cashFlows;
+//    }
+//    private BigDecimal hpr(MoneyAmount flow, MoneyAmount end, MoneyAmount previousEnd) {
+//
+//        return (end.getAmount()
+//                .divide(previousEnd.add(flow).getAmount(), CONTEXT))
+//                .subtract(ONE, CONTEXT);
+//
+//    }
+//
+//    private Pair<BigDecimal, BigDecimal> twr(String currency, boolean nominal, Predicate<Investment> predicate) {
+//
+//        final var table = Stream.concat(
+//                Stream.of(Pair.of(new MoneyAmount(ZERO, currency), new MoneyAmount(ZERO, currency))),
+//                this.cashFlows(nominal, currency, predicate).entrySet()
+//                        .stream()
+//                        .sorted(Comparator.comparing(Map.Entry::getKey, Comparator.naturalOrder()))
+//                        .map(e -> Pair.of(e.getValue(), this.endOfMonthPortfolioValue(e.getKey(), nominal, currency, predicate))))
+//                .collect(toList());
+//
+//        final var twr = IntStream.range(1, table.size())
+//                .mapToObj(i -> this.hpr(table.get(i).getFirst(), table.get(i).getSecond(), table.get(i - 1).getSecond()))
+//                .map(v -> ONE.add(v, CONTEXT))
+//                .reduce(ONE, (left, right) -> left.multiply(right, CONTEXT))
+//                .subtract(ONE, CONTEXT);
+//
+//        final var days = (double) ChronoUnit.DAYS.between(ETF_START_DATE, LocalDate.now());
+//
+//        final double x = Math.pow(
+//                BigDecimal.ONE.add(twr).doubleValue(),
+//                365.0d / days) - 1.0d;
+//
+//        return Pair.of(twr, BigDecimal.valueOf(x));
+//
+//    }
 }
