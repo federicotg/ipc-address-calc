@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
-import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -133,15 +132,6 @@ public class ModifiedDietzReturn {
                 .map(asset -> ForeignExchanges.getForeignExchange(asset.getCurrency(), currency).exchange(asset.getMoneyAmount(), currency, ym.getYear(), ym.getMonth()))
                 .map(ma -> nominal ? ma : Inflation.USD_INFLATION.adjust(ma, ym.getYear(), ym.getMonth(), limit.getYear(), limit.getMonth()))
                 .reduce(new MoneyAmount(ZERO, currency), MoneyAmount::add);
-    }
-
-    private String line(YearMonth ym, MoneyAmount start, MoneyAmount cashFlow, MoneyAmount end) {
-        return MessageFormat.format("{0}-{1};{2};{3};{4}",
-                String.valueOf(ym.getYear()),
-                ym.getMonth(),
-                start.getAmount(),
-                cashFlow.getAmount(),
-                end.getAmount());
     }
 
     public Pair<BigDecimal, BigDecimal> get() {
