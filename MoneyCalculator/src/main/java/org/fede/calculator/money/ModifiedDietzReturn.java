@@ -18,10 +18,12 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -44,6 +46,46 @@ public class ModifiedDietzReturn {
     private final LocalDate initialMoment;
     private final LocalDate finalMoment;
 
+    private static Instant min(Instant i1, Instant i2) {
+        return i1.compareTo(i2) <= 0
+                ? i1
+                : i2;
+    }
+
+    private static Instant max(Instant i1, Instant i2) {
+        return i1.compareTo(i2) >= 0
+                ? i1
+                : i2;
+    }
+
+    private static LocalDate min(LocalDate l1, LocalDate l2) {
+        return l1.compareTo(l2) <= 0
+                ? l1
+                : l2;
+    }
+    
+    private static LocalDate max(LocalDate l1, LocalDate l2) {
+        return l1.compareTo(l2) >= 0
+                ? l1
+                : l2;
+    }
+
+    private static LocalDate finalMoment(List<Investment> investments) {
+
+        if (investments.stream().map(Investment::getOut).anyMatch(Objects::isNull)) {
+            return LocalDate.ofInstant(min(Instant.now(), Inflation.USD_INFLATION.getTo().asToDate().toInstant()), ZoneId.systemDefault());
+        }
+
+        return investments
+                .stream()
+                .map(Investment::getOut)
+                .map(InvestmentEvent::getDate)
+                .map(d -> d.toInstant())
+                .reduce(ModifiedDietzReturn::max)
+                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault())).get();
+
+    }
+
     public ModifiedDietzReturn(List<Investment> investments, String currency, boolean nominal) {
         this(
                 investments,
@@ -54,17 +96,27 @@ public class ModifiedDietzReturn {
                         .map(Investment::getIn)
                         .map(InvestmentEvent::getDate)
                         .map(d -> d.toInstant())
-                        .reduce((i1, i2) -> i1.compareTo(i2) <= 0 ? i1 : i2)
+                        .reduce(ModifiedDietzReturn::min)
                         .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault())).get(),
-                LocalDate.ofInstant(Inflation.USD_INFLATION.getTo().asToDate().toInstant(), ZoneId.systemDefault()));
+                finalMoment(investments));
+
     }
 
     public ModifiedDietzReturn(List<Investment> investments, String currency, boolean nominal, LocalDate initialMoment, LocalDate finalMoment) {
         this.investments = investments;
         this.currency = currency;
         this.nominal = nominal;
-        this.initialMoment = initialMoment;
-        this.finalMoment = finalMoment;
+        this.initialMoment = max(initialMoment,
+                investments
+                        .stream()
+                        .map(Investment::getIn)
+                        .map(InvestmentEvent::getDate)
+                        .map(d -> d.toInstant()).reduce(ModifiedDietzReturn::min)
+                        .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault())).get());
+        
+        final var maxTo = LocalDate.ofInstant(Inflation.USD_INFLATION.getTo().asToDate().toInstant(), ZoneId.systemDefault());
+        
+        this.finalMoment = min(maxTo, min(finalMoment, LocalDate.now()));
     }
 
     private List<Investment> getInvestments() {
@@ -81,16 +133,28 @@ public class ModifiedDietzReturn {
 
     }
 
+    private static boolean between(Date d, LocalDate initialMoment, LocalDate finalMoment){
+    
+        final var ld = LocalDate.ofInstant(d.toInstant(), ZoneId.systemDefault());
+        
+        return (ld.isEqual(initialMoment) || ld.isAfter(initialMoment))
+                && (ld.isEqual(finalMoment) || ld.isBefore(finalMoment));
+        
+        
+}
+    
     private List<BigDecimal> cashFlows(Function<InvestmentEvent, BigDecimal> cashFlowFunction) {
 
         return Stream.concat(
                 this.getInvestments()
                         .stream()
                         .map(Investment::getIn)
+                        .filter(ie -> between(ie.getDate(), this.initialMoment, this.finalMoment))
                         .map(cashFlowFunction),
                 this.getInvestments()
                         .stream()
                         .map(Investment::getOut).filter(Objects::nonNull)
+                        .filter(ie -> between(ie.getDate(), this.initialMoment, this.finalMoment))
                         .map(cashFlowFunction)
                         .map(BigDecimal::negate))
                 .collect(Collectors.toList());
@@ -137,7 +201,7 @@ public class ModifiedDietzReturn {
     public Pair<BigDecimal, BigDecimal> get() {
 
         final var v1 = this.portfolioValue(YearMonth.of(this.finalMoment.getYear(), this.finalMoment.getMonthValue()));
-        final var v0 = this.portfolioValue(YearMonth.of(this.initialMoment.getYear(), this.finalMoment.getMonthValue()).prev());
+        final var v0 = this.portfolioValue(YearMonth.of(this.initialMoment.getYear(), this.initialMoment.getMonthValue()).prev());
         final var cashFlowSum = this.cashFlows().stream().reduce(ZERO, BigDecimal::add);
         final var adjustedCashFlowSum = this.adjustedCashFlows().stream().reduce(ZERO, BigDecimal::add);
 

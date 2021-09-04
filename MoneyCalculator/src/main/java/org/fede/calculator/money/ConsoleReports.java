@@ -2264,7 +2264,9 @@ public class ConsoleReports {
                 currency(totalTax, 12),
                 percent(totalTax.divide(totalCurrent, CONTEXT), 8));
 
-        final var modifiedDietzReturn = new ModifiedDietzReturn(this.getInvestments().stream().filter(inv -> inv.getType().equals(InvestmentType.ETF)).collect(toList()), currency, nominal).get();
+        final var etfs = this.getInvestments().stream().filter(inv -> inv.getType().equals(InvestmentType.ETF)).collect(toList());
+        
+        final var modifiedDietzReturn = new ModifiedDietzReturn(etfs, currency, nominal).get();
 
         this.subtitle("Benchmark (Before Fees & Taxes)");
 
@@ -2284,6 +2286,25 @@ public class ConsoleReports {
                 .sorted(cmp)
                 .map(p -> format("{0} {1} {2}", text(p.getFirst(), 10), percent(p.getSecond().getFirst(), 8), pctBar(p.getSecond().getSecond())))
                 .forEach(this::appendLine);
+        
+//        this.subtitle("Other Investments");
+//        
+//        final var fci = new ModifiedDietzReturn(investments.stream().filter(i -> i.getType().equals(InvestmentType.FCI)).collect(toList()), currency, nominal).get();
+//        final var gold = new ModifiedDietzReturn(investments.stream().filter(i -> i.getType().equals(InvestmentType.XAU)).collect(toList()), currency, nominal).get();
+//        
+//        appendLine(text(" ", 10), text(" Return", 8), text("    Annualized", 16));
+//        appendLine(format("{0} {1} {2}", text("FCI", 11), percent(fci.getFirst(), 8), pctBar(fci.getSecond())));
+//        appendLine(format("{0} {1} {2}", text("Gold", 11), percent(gold.getFirst(), 8), pctBar(gold.getSecond())));
+        
+        this.subtitle("Modified Dietz Return");
+        
+        Stream.of(
+                Pair.of("2019", new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(2019, Month.JANUARY, 1), LocalDate.of(2019, Month.DECEMBER, 31)).get()),
+                Pair.of("2020", new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(2020, Month.JANUARY, 1), LocalDate.of(2020, Month.DECEMBER, 31)).get()),
+                Pair.of("2021", new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(2021, Month.JANUARY, 1), LocalDate.of(2021, Month.DECEMBER, 31)).get()))
+                .map(p -> format("{0} {1} {2}", text(p.getFirst(), 10), percent(p.getSecond().getFirst(), 8), pctBar(p.getSecond().getSecond())))
+                .forEach(this::appendLine);
+
     }
 
     private static Pair<BigDecimal, BigDecimal> cagr(BigDecimal initial, BigDecimal current, LocalDate since) {
