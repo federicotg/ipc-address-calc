@@ -73,7 +73,7 @@ public class ModifiedDietzReturn {
     private static LocalDate finalMoment(List<Investment> investments) {
 
         if (investments.stream().map(Investment::getOut).anyMatch(Objects::isNull)) {
-            return LocalDate.ofInstant(min(Instant.now(), Inflation.USD_INFLATION.getTo().asToDate().toInstant()), ZoneId.systemDefault());
+            return LocalDate.now();
         }
 
         return investments
@@ -114,9 +114,7 @@ public class ModifiedDietzReturn {
                         .map(d -> d.toInstant()).reduce(ModifiedDietzReturn::min)
                         .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault())).get());
         
-        final var maxTo = LocalDate.ofInstant(Inflation.USD_INFLATION.getTo().asToDate().toInstant(), ZoneId.systemDefault());
-        
-        this.finalMoment = min(maxTo, min(finalMoment, LocalDate.now()));
+        this.finalMoment = min(finalMoment, LocalDate.now());
     }
 
     private List<Investment> getInvestments() {

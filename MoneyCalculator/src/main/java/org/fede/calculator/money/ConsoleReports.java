@@ -2281,10 +2281,12 @@ public class ConsoleReports {
 
         appendLine(text(" ", 10), text(" Return", 8), text("    Annualized", 16));
 
+        final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction = (p) -> format("{0} {1} {2}", text(p.getFirst(), 10), percent(p.getSecond().getFirst(), 8), pctBar(p.getSecond().getSecond()));
+        
         Stream.of(benchmarksStream, modelPortfolioStream, portfolioTWCAGRStream)
                 .reduce(Stream.empty(), Stream::concat)
                 .sorted(cmp)
-                .map(p -> format("{0} {1} {2}", text(p.getFirst(), 10), percent(p.getSecond().getFirst(), 8), pctBar(p.getSecond().getSecond())))
+                .map(lineFunction)
                 .forEach(this::appendLine);
         
 //        this.subtitle("Other Investments");
@@ -2298,11 +2300,9 @@ public class ConsoleReports {
         
         this.subtitle("Modified Dietz Return");
         
-        Stream.of(
-                Pair.of("2019", new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(2019, Month.JANUARY, 1), LocalDate.of(2019, Month.DECEMBER, 31)).get()),
-                Pair.of("2020", new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(2020, Month.JANUARY, 1), LocalDate.of(2020, Month.DECEMBER, 31)).get()),
-                Pair.of("2021", new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(2021, Month.JANUARY, 1), LocalDate.of(2021, Month.DECEMBER, 31)).get()))
-                .map(p -> format("{0} {1} {2}", text(p.getFirst(), 10), percent(p.getSecond().getFirst(), 8), pctBar(p.getSecond().getSecond())))
+        IntStream.rangeClosed(2019, LocalDate.now().getYear())
+                .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                .map(lineFunction)
                 .forEach(this::appendLine);
 
     }
