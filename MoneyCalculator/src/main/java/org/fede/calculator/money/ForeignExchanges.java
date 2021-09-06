@@ -120,7 +120,6 @@ public class ForeignExchanges {
         map(USD, "EUR", USD_EUR);
         map(USD, "DAI", USD_DAI);
         map("XAU", USD, USD_XAU);
-        map("ARS", USD, USD_ARS);
         map("ARS", "CONAAFA", ARS_CONAAFA);
         map("ARS", "CONBALA", ARS_CONBALA);
         map("ARS", "CAPLUSA", ARS_CAPLUSA);
