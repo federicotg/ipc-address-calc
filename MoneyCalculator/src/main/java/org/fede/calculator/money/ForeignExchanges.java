@@ -177,7 +177,8 @@ public class ForeignExchanges {
         Investment answer = new Investment();
 
         answer.setId(investment.getId());
-
+        answer.setComment(investment.getComment());
+        
         if (investment.getType().equals(InvestmentType.USD)) {
             InvestmentEvent usdIn = new InvestmentEvent();
             usdIn.setCurrency(targetCurrency);
