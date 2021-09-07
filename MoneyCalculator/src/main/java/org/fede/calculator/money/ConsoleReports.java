@@ -95,6 +95,16 @@ public class ConsoleReports {
             "EIMI", new BigDecimal("28.32")
     );
 
+    private static Map<String, String> ETF_NAME = Map.of(
+            "CSPX", "iShares Core S&P 500",
+            "EIMI", "iShares Core MSCI EM IMI",
+            "XRSU", "Xtrackers Russell 2000",
+            "IWDA", "iShares Core MSCI World",
+            "VWRA", "Vanguard FTSE All-World",
+            "ISAC", "iShares MSCI ACWI",
+            "MEUD", "Lyxor Core STOXX Eurpe 600"
+    );
+
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
     private static final BigDecimal ONE_PERCENT = BigDecimal.ONE.movePointLeft(2);
 
@@ -2284,9 +2294,13 @@ public class ConsoleReports {
 
         Comparator<Pair<String, Pair<BigDecimal, BigDecimal>>> cmp = comparing((Pair<String, Pair<BigDecimal, BigDecimal>> p) -> p.getSecond().getSecond()).reversed();
 
-        appendLine(text(" ", 10), text(" Return", 8), text("    Annualized", 16));
+        appendLine(text(" ", 26), text(" Return", 8), text("    Annualized", 16));
 
-        final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction = (p) -> format("{0} {1} {2}", text(p.getFirst(), 10), percent(p.getSecond().getFirst(), 8), pctBar(p.getSecond().getSecond()));
+        final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction
+                = (p) -> format("{0} {1} {2}",
+                        text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), 26),
+                        percent(p.getSecond().getFirst(), 8),
+                        pctBar(p.getSecond().getSecond()));
 
         Stream.of(benchmarksStream, modelPortfolioStream, portfolioTWCAGRStream)
                 .reduce(Stream.empty(), Stream::concat)
