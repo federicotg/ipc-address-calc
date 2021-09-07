@@ -2217,13 +2217,6 @@ public class ConsoleReports {
 
         this.invHeader(colWidths);
 
-        final var benchmarks = SeriesReader.read("index/benchmarks.json", BENCHMARK_TR)
-                .entrySet()
-                .stream()
-                .collect(toMap(
-                        Map.Entry::getKey,
-                        e -> nominal ? e.getValue() : real(e.getValue())));
-
         final var totalGrossGains = this.total(ics, everyone, InvestmentDetails::getGrossCapitalGains, nominal);
         final var totalNetGains = this.total(ics, everyone, InvestmentDetails::getNetCapitalGains, nominal);
         final var totalCurrent = this.total(ics, everyone, InvestmentDetails::getCurrentAmount, nominal);
@@ -2265,10 +2258,22 @@ public class ConsoleReports {
                 percent(totalTax.divide(totalCurrent, CONTEXT), 8));
 
         final var etfs = this.getInvestments().stream().filter(inv -> inv.getType().equals(InvestmentType.ETF)).collect(toList());
-        
+
         final var modifiedDietzReturn = new ModifiedDietzReturn(etfs, currency, nominal).get();
 
         this.subtitle("Benchmark (Before Fees & Taxes)");
+
+        final var benchmarks = SeriesReader.read("index/benchmarks.json", BENCHMARK_TR)
+                .entrySet()
+                .stream()
+                .collect(toMap(
+                        Map.Entry::getKey,
+                        e -> nominal ? e.getValue() : real(e.getValue())));
+
+        INITIAL_VALUES.entrySet()
+                .stream()
+                .map(e -> Pair.of(e.getKey(), this.benchmarkItem(nominal, e)))
+                .forEach(pair -> benchmarks.put(pair.getFirst(), pair.getSecond()));
 
         final var benchmarksStream = benchmarks.entrySet()
                 .stream()
@@ -2282,29 +2287,31 @@ public class ConsoleReports {
         appendLine(text(" ", 10), text(" Return", 8), text("    Annualized", 16));
 
         final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction = (p) -> format("{0} {1} {2}", text(p.getFirst(), 10), percent(p.getSecond().getFirst(), 8), pctBar(p.getSecond().getSecond()));
-        
+
         Stream.of(benchmarksStream, modelPortfolioStream, portfolioTWCAGRStream)
                 .reduce(Stream.empty(), Stream::concat)
                 .sorted(cmp)
                 .map(lineFunction)
                 .forEach(this::appendLine);
-        
-//        this.subtitle("Other Investments");
-//        
-//        final var fci = new ModifiedDietzReturn(investments.stream().filter(i -> i.getType().equals(InvestmentType.FCI)).collect(toList()), currency, nominal).get();
-//        final var gold = new ModifiedDietzReturn(investments.stream().filter(i -> i.getType().equals(InvestmentType.XAU)).collect(toList()), currency, nominal).get();
-//        
-//        appendLine(text(" ", 10), text(" Return", 8), text("    Annualized", 16));
-//        appendLine(format("{0} {1} {2}", text("FCI", 11), percent(fci.getFirst(), 8), pctBar(fci.getSecond())));
-//        appendLine(format("{0} {1} {2}", text("Gold", 11), percent(gold.getFirst(), 8), pctBar(gold.getSecond())));
-        
+
         this.subtitle("Modified Dietz Return");
-        
+
         IntStream.rangeClosed(2019, LocalDate.now().getYear())
                 .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
                 .map(lineFunction)
                 .forEach(this::appendLine);
 
+    }
+
+    private BenchmarkItem benchmarkItem(boolean nominal, Map.Entry<String, BigDecimal> e) {
+
+        final var oneNominal = new MoneyAmount(ONE, e.getKey());
+        final var limit = Inflation.USD_INFLATION.getTo();
+        final var usd = ForeignExchanges.getForeignExchange(e.getKey(), "USD").exchange(oneNominal, "USD", limit.getYear(), limit.getMonth());
+        final var item = new BenchmarkItem(e.getValue(), usd.getAmount());
+        return nominal
+                ? item
+                : real(item);
     }
 
     private static Pair<BigDecimal, BigDecimal> cagr(BigDecimal initial, BigDecimal current, LocalDate since) {

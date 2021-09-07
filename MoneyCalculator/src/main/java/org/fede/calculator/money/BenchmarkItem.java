@@ -27,6 +27,14 @@ public class BenchmarkItem {
     private BigDecimal initial;
     private BigDecimal current;
 
+    public BenchmarkItem() {
+    }
+
+    public BenchmarkItem(BigDecimal initial, BigDecimal current) {
+        this.initial = initial;
+        this.current = current;
+    }
+
     public BigDecimal getInitial() {
         return initial;
     }
@@ -42,7 +50,5 @@ public class BenchmarkItem {
     public void setCurrent(BigDecimal current) {
         this.current = current;
     }
-    
-    
 
 }
