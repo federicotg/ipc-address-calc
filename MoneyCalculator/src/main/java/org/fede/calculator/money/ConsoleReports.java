@@ -812,7 +812,7 @@ public class ConsoleReports {
 
         return this.realUSDSavingsByType.entrySet().stream()
                 .filter(e -> type == null || e.getKey().equals(type))
-                .map(e -> e.getValue())
+                .map(Map.Entry::getValue)
                 .flatMap(Collection::stream)
                 .reduce(MoneyAmountSeries::add)
                 .get();
@@ -823,7 +823,7 @@ public class ConsoleReports {
         return this.getRealUSDExpensesByType().entrySet()
                 .stream()
                 .filter(e -> type == null || e.getKey().equals(type))
-                .map(e -> e.getValue())
+                .map(Map.Entry::getValue)
                 .flatMap(Collection::stream)
                 .reduce(MoneyAmountSeries::add)
                 .get();
@@ -2147,7 +2147,6 @@ public class ConsoleReports {
             return format("{0} {1}",
                     percent(value, 10),
                     part + "/-/" + part);
-
         }
 
         return format("{0} {1}",
@@ -2314,7 +2313,6 @@ public class ConsoleReports {
                 .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
                 .map(lineFunction)
                 .forEach(this::appendLine);
-
     }
 
     private BenchmarkItem benchmarkItem(boolean nominal, Map.Entry<String, BigDecimal> e) {
