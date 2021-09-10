@@ -147,8 +147,8 @@ public class ConsoleReports {
     private static final TypeReference<Map<String, BenchmarkItem>> BENCHMARK_TR = new TypeReference<Map<String, BenchmarkItem>>() {
     };
 
-    private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(6, MathConstants.ROUNDING_MODE), BigDecimal::add);
-    private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(6, MathConstants.ROUNDING_MODE), REDUCER);
+    private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE), BigDecimal::add);
+    private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE), REDUCER);
 
     private static final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
             .thenComparing(comparing(pair -> pair.getFirst().getSecond()));
@@ -300,7 +300,7 @@ public class ConsoleReports {
                         mapping(inv -> ForeignExchanges.getForeignExchange(inv.getInvestment().getCurrency(), reportCurrency)
                         .exchange(inv.getInvestment().getMoneyAmount(), reportCurrency, limit)
                         .getAmount()
-                        .setScale(6, MathConstants.ROUNDING_MODE),
+                        .setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE),
                                 REDUCER)))
                 .entrySet()
                 .stream()
@@ -1129,7 +1129,7 @@ public class ConsoleReports {
         this.bbppVar = bbppTax / 10.0d;
         this.bbppMinFactor = 1.0d - bbppTax;
 
-        final var buySellFee = ONE.setScale(6)
+        final var buySellFee = ONE.setScale(MathConstants.SCALE)
                 .add(TRADING_FEE.multiply(IVA, CONTEXT), CONTEXT)
                 .add(TRADING_FEE, CONTEXT)
                 .add(TRADING_FEE, CONTEXT);
@@ -1170,14 +1170,14 @@ public class ConsoleReports {
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(6, MathConstants.ROUNDING_MODE).add(r.setScale(6, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT))
+                .map(r -> ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).add(r.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT))
                 .collect(toList());
 
         this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", tr)
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(6, MathConstants.ROUNDING_MODE).add(r.setScale(6, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT))
+                .map(r -> ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).add(r.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT))
                 .collect(toList());
 
         final var to = USD_INFLATION.getTo();
@@ -1190,8 +1190,8 @@ public class ConsoleReports {
                 .subtract(invested.getAmount(), CONTEXT)
                 .add(extraCash, CONTEXT).doubleValue();
 
-        final var inflationRate = ONE.setScale(6, MathConstants.ROUNDING_MODE)
-                .add(BigDecimal.valueOf(inflation).setScale(6, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT).doubleValue();
+        final var inflationRate = ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE)
+                .add(BigDecimal.valueOf(inflation).setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT).doubleValue();
 
         final var deposit = BigDecimal.valueOf(monthlyDeposit * 12).divide(buySellFee, CONTEXT).doubleValue();
         final var withdraw = BigDecimal.valueOf((monthlyWithdraw - pension) * 12)
