@@ -93,10 +93,9 @@ public class InvestmentCostStrategy {
                 .subtract(afterCclAmount.add(firstCclFee, CONTEXT), CONTEXT);
 
         //post sell fee
-        final var limit = Inflation.USD_INFLATION.getTo();
 
         final var presentValue = ForeignExchanges.getForeignExchange(inv.getMoneyAmount().getCurrency(), this.currency)
-                .exchange(inv.getMoneyAmount(), this.currency, limit.getYear(), limit.getMonth())
+                .exchange(inv.getMoneyAmount(), this.currency, Inflation.USD_INFLATION.getTo())
                 .getAmount();
 
         final var sellFee = this.getFeeStrategy(investment).apply(presentValue);

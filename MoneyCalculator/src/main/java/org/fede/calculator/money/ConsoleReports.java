@@ -240,7 +240,7 @@ public class ConsoleReports {
         return getInvestments().stream()
                 .filter(predicate)
                 .map(i -> i.getInvestment().getMoneyAmount())
-                .map(investedAmount -> ForeignExchanges.getForeignExchange(investedAmount.getCurrency(), reportCurrency).exchange(investedAmount, reportCurrency, limit.getYear(), limit.getMonth()))
+                .map(investedAmount -> ForeignExchanges.getForeignExchange(investedAmount.getCurrency(), reportCurrency).exchange(investedAmount, reportCurrency, limit))
                 .reduce(MoneyAmount::add);
     }
 
@@ -298,7 +298,7 @@ public class ConsoleReports {
                 .collect(groupingBy(
                         this::assetAllocation,
                         mapping(inv -> ForeignExchanges.getForeignExchange(inv.getInvestment().getCurrency(), reportCurrency)
-                        .exchange(inv.getInvestment().getMoneyAmount(), reportCurrency, limit.getYear(), limit.getMonth())
+                        .exchange(inv.getInvestment().getMoneyAmount(), reportCurrency, limit)
                         .getAmount()
                         .setScale(6, MathConstants.ROUNDING_MODE),
                                 REDUCER)))
@@ -313,9 +313,7 @@ public class ConsoleReports {
 
     private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency) {
 
-        final var limit = USD_INFLATION.getTo();
-
-        return ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, limit.getYear(), limit.getMonth());
+        return ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, USD_INFLATION.getTo());
     }
 
     private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type) {
@@ -412,7 +410,7 @@ public class ConsoleReports {
                 " ",
                 currency(savingPct.getAmount()),
                 " / ",
-                currency(ForeignExchanges.getForeignExchange(savingPct.getCurrency(), "ARS").exchange(savingPct, "ARS", limit.getYear(), limit.getMonth()).getAmount()));
+                currency(ForeignExchanges.getForeignExchange(savingPct.getCurrency(), "ARS").exchange(savingPct, "ARS", limit).getAmount()));
 
         appendLine(format("Saved salaries {0}",
                 this.realSavings(null).getAmount(limit).getAmount()
@@ -596,8 +594,8 @@ public class ConsoleReports {
 
         final var start = YearMonth.of(2010, 8);
         final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalTransactionCost, "USD"),
-                start.getYear(), start.getMonth(),
-                limit.getYear(), limit.getMonth());
+                start,
+                limit);
 
         final var initialCostSeries = new SortedMapMoneyAmountSeries(
                 "USD",
@@ -672,8 +670,8 @@ public class ConsoleReports {
 
         final var start = YearMonth.of(2010, 8);
         final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalInitialCost, "USD"),
-                start.getYear(), start.getMonth(),
-                limit.getYear(), limit.getMonth());
+                start,
+                limit);
 
         final var months = BigDecimal.valueOf(start.monthsUntil(timeLimit));
         final var years = months.divide(BigDecimal.valueOf(12), CONTEXT);
@@ -704,7 +702,7 @@ public class ConsoleReports {
                 currency(monthlyCost),
                 percent(monthlyCost.divide(realInitialCost.getAmount(), CONTEXT)),
                 currency(ForeignExchanges.getForeignExchange("USD", "ARS")
-                        .exchange(new MoneyAmount(monthlyCost, "USD"), "ARS", limit.getYear(), limit.getMonth())
+                        .exchange(new MoneyAmount(monthlyCost, "USD"), "ARS", limit)
                         .getAmount())));
 
         final var yearlyCost = totalRealExpense.getAmount().divide(years, CONTEXT);
@@ -2318,8 +2316,7 @@ public class ConsoleReports {
     private BenchmarkItem benchmarkItem(boolean nominal, Map.Entry<String, BigDecimal> e) {
 
         final var oneNominal = new MoneyAmount(ONE, e.getKey());
-        final var limit = Inflation.USD_INFLATION.getTo();
-        final var usd = ForeignExchanges.getForeignExchange(e.getKey(), "USD").exchange(oneNominal, "USD", limit.getYear(), limit.getMonth());
+        final var usd = ForeignExchanges.getForeignExchange(e.getKey(), "USD").exchange(oneNominal, "USD", USD_INFLATION.getTo());
         final var item = new BenchmarkItem(e.getValue(), usd.getAmount());
         return nominal
                 ? item
@@ -2344,7 +2341,7 @@ public class ConsoleReports {
                 .reduce(ZERO, BigDecimal::add);
 
         final var current = PORTFOLIO.stream()
-                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", Inflation.USD_INFLATION.getTo().getYear(), Inflation.USD_INFLATION.getTo().getMonth()))
+                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", Inflation.USD_INFLATION.getTo()))
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 

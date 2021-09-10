@@ -174,25 +174,21 @@ public class ModifiedDietzReturn {
 
         final var ym = YearMonth.of(ie.getDate());
         final var fx = ForeignExchanges.getForeignExchange(ie.getCurrency(), currency)
-                .exchange(ie.getMoneyAmount(), currency, ym.getYear(), ym.getMonth());
-
-        final var limit = Inflation.USD_INFLATION.getTo();
+                .exchange(ie.getMoneyAmount(), currency, ym);
 
         return nominal
                 ? fx.getAmount()
-                : Inflation.USD_INFLATION.adjust(fx, ym.getYear(), ym.getMonth(), limit.getYear(), limit.getMonth()).getAmount();
+                : Inflation.USD_INFLATION.adjust(fx, ym, Inflation.USD_INFLATION.getTo()).getAmount();
 
     }
 
     private MoneyAmount portfolioValue(YearMonth ym) {
 
-        final var limit = Inflation.USD_INFLATION.getTo();
-
         return this.getInvestments().stream()
                 .filter(i -> i.isCurrent(ym.asToDate()))
                 .map(Investment::getInvestment)
-                .map(asset -> ForeignExchanges.getForeignExchange(asset.getCurrency(), currency).exchange(asset.getMoneyAmount(), currency, ym.getYear(), ym.getMonth()))
-                .map(ma -> nominal ? ma : Inflation.USD_INFLATION.adjust(ma, ym.getYear(), ym.getMonth(), limit.getYear(), limit.getMonth()))
+                .map(asset -> ForeignExchanges.getForeignExchange(asset.getCurrency(), currency).exchange(asset.getMoneyAmount(), currency, ym))
+                .map(ma -> nominal ? ma : Inflation.USD_INFLATION.adjust(ma, ym, Inflation.USD_INFLATION.getTo()))
                 .reduce(new MoneyAmount(ZERO, currency), MoneyAmount::add);
     }
 

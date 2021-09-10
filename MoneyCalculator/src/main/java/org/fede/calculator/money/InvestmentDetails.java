@@ -33,7 +33,6 @@ public class InvestmentDetails {
 
     private BigDecimal investmentQuantity;
 
-    
     private LocalDate investmentDate;
     private YearMonth investmentYM;
 
@@ -70,7 +69,6 @@ public class InvestmentDetails {
         this.investmentDate = investmentDate;
     }
 
-    
     public MoneyAmount getBuyCclFee() {
         return buyCclFee;
     }
@@ -300,17 +298,15 @@ public class InvestmentDetails {
             this.investmentYM = YearMonth.of(this.getInvestmentDate().getYear(), this.getInvestmentDate().getMonthValue());
         }
 
-        return Inflation.USD_INFLATION.adjust(
-                nominal, this.investmentYM.getYear(), this.investmentYM.getMonth(),
-                Inflation.USD_INFLATION.getTo().getYear(), Inflation.USD_INFLATION.getTo().getMonth());
+        return Inflation.USD_INFLATION.adjust(nominal, this.investmentYM, Inflation.USD_INFLATION.getTo());
     }
 
     public void setInvestmentQuantity(BigDecimal investmentQuantity) {
         this.investmentQuantity = investmentQuantity;
     }
 
-    public BigDecimal getInvestmentPrice(){
+    public BigDecimal getInvestmentPrice() {
         return this.investedAmount.getAmount().divide(this.investmentQuantity, MathConstants.CONTEXT);
     }
-    
+
 }

@@ -45,6 +45,10 @@ public interface Inflation extends Series {
      * @throws NoSeriesDataFoundException
      */
     MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth);
+    
+    default MoneyAmount adjust(MoneyAmount amount, YearMonth from, YearMonth to){
+        return this.adjust(amount, from.getYear(), from.getMonth(), to.getYear(), to.getMonth());
+    }
 
     MoneyAmount adjust(MoneyAmount amount, Date from, Date to);
 
@@ -100,17 +104,15 @@ public interface Inflation extends Series {
 
         InvestmentEvent answer = new InvestmentEvent();
         YearMonth start = YearMonth.of(in.getDate());
-        MoneyAmount adjusted = this.adjust(in.getMoneyAmount(), start.getYear(), start.getMonth(), moment.getYear(), moment.getMonth());
+        MoneyAmount adjusted = this.adjust(in.getMoneyAmount(), start, moment);
         answer.setCurrency(adjusted.getCurrency());
         answer.setAmount(adjusted.getAmount());
         answer.setDate(in.getDate());
         answer.setFee(
                 this.adjust(
                         new MoneyAmount(in.getFee(), in.getCurrency()),
-                        start.getYear(),
-                        start.getMonth(),
-                        moment.getYear(),
-                        moment.getMonth()).getAmount());
+                        start,
+                        moment).getAmount());
         return answer;
     }
 

@@ -19,6 +19,7 @@ package org.fede.calculator.money;
 import java.util.Date;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.Series;
+import org.fede.calculator.money.series.YearMonth;
 
 /**
  *
@@ -26,6 +27,10 @@ import org.fede.calculator.money.series.Series;
  */
 public interface ForeignExchange extends Series {
 
+    default MoneyAmount exchange(MoneyAmount amount, String targetCurrency, YearMonth ym){
+        return this.exchange(amount, targetCurrency, ym.getYear(), ym.getMonth());
+    }
+    
     MoneyAmount exchange(MoneyAmount amount, String targetCurrency, int referenceYear, int referenceMonth);
 
     MoneyAmount exchange(MoneyAmount amount, String targetCurrency, Date moment);

@@ -54,10 +54,9 @@ public enum InterpolationStrategy {
     protected MoneyAmount inflationInterpolation(Inflation inflation, MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
         YearMonth nextYm = lastValueYearMonth.next();
         return inflation.adjust(
-                lastValue, lastValueYearMonth.getYear(),
-                lastValueYearMonth.getMonth(),
-                nextYm.getYear(),
-                nextYm.getMonth());
+                lastValue, 
+                lastValueYearMonth,
+                nextYm);
     }
 
 }
