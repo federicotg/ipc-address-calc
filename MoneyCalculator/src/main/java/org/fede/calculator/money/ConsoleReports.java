@@ -504,7 +504,7 @@ public class ConsoleReports {
                         entry("savings-avg-spent-pct", "months=12"),
                         entry("expenses", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("expenses-change", "months=12"),
-                        entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment)"),
+                        entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)")
                 );
 
@@ -989,12 +989,15 @@ public class ConsoleReports {
 
     private void expenseEvolution(String[] args, String paramName) {
         appendLine("===< Expenses Evolution >===");
-        this.expenseEvolution(this.paramsValue(args, paramName).get("type"));
+        
+        final var params = this.paramsValue(args, paramName);
+        
+        this.expenseEvolution(params.get("type"), Integer.parseInt(params.getOrDefault("months", "1")));
     }
 
-    private void expenseEvolution(String type) {
+    private void expenseEvolution(String type, int months) {
 
-        this.evolution("Expenses", this.realExpenses(type), 15);
+        this.evolution(format("Average {0}-month expenses.", months), new SimpleAggregation(months).average(this.realExpenses(type)), 15);
     }
 
     private void savingChange(String[] args, String paramName) {
@@ -1129,10 +1132,12 @@ public class ConsoleReports {
         this.bbppVar = bbppTax / 10.0d;
         this.bbppMinFactor = 1.0d - bbppTax;
 
-        final var buySellFee = ONE.setScale(MathConstants.SCALE)
-                .add(TRADING_FEE.multiply(IVA, CONTEXT), CONTEXT)
-                .add(TRADING_FEE, CONTEXT)
-                .add(TRADING_FEE, CONTEXT);
+        final var buySellFee = new BigDecimal("1.00193");
+//                
+//                ONE.setScale(MathConstants.SCALE)
+//                .add(TRADING_FEE.multiply(IVA, CONTEXT), CONTEXT)
+//                .add(TRADING_FEE, CONTEXT)
+//                .add(TRADING_FEE, CONTEXT);
 
         this.goal(
                 trials,
