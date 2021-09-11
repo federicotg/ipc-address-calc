@@ -2205,6 +2205,41 @@ public class ConsoleReports {
         this.appendLine(separator);
     }
 
+//        private <T> Stream<T> details(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, T> f, boolean nominal) {
+//        return this.getInvestments()
+//                .stream()
+//                .filter(Investment::isCurrent)
+//                .filter(i -> i.getType().equals(InvestmentType.ETF))
+//                .filter(predicate)
+//                .map(ics::details)
+//                .map(d -> nominal ? d : d.asReal())
+//                .map(f);
+//    }
+//
+    private BigDecimal total(List<InvestmentDetails> details, Function<InvestmentDetails, MoneyAmount> f) {
+
+        return details.stream()
+                .map(f)
+                .map(MoneyAmount::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    
+    private BigDecimal moneyWeightedGrossReturn(InvestmentDetails details, BigDecimal totalInvested){
+        return  details.getGrossCapitalGains()
+                .getAmount()
+                .divide(details.getInvestedAmount().getAmount(), CONTEXT)
+                .multiply(details.getInvestedAmount().getAmount().divide(totalInvested, CONTEXT), CONTEXT);
+    }
+    
+    private BigDecimal moneyWeightedNetReturn(InvestmentDetails details, BigDecimal totalInvested){
+        return  details.getNetCapitalGains()
+                .getAmount()
+                .divide(details.getInvestedAmount().getAmount(), CONTEXT)
+                .multiply(details.getInvestedAmount().getAmount().divide(totalInvested, CONTEXT), CONTEXT);
+    }
+    
+    
     private void inv(final Predicate<Investment> everyone, boolean nominal, String currency) {
 
         appendLine();
@@ -2218,39 +2253,47 @@ public class ConsoleReports {
 
         this.invHeader(colWidths);
 
-        this.getInvestments()
+        final var details = this.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
                 .filter(everyone)
                 .map(ics::details)
                 .map(d -> nominal ? d : d.asReal())
+                .collect(toList());
+
+        details.stream()
                 .forEach(d -> this.print(d, colWidths));
 
         this.invHeader(colWidths);
 
-        final var totalGrossGains = this.total(ics, everyone, InvestmentDetails::getGrossCapitalGains, nominal);
-        final var totalNetGains = this.total(ics, everyone, InvestmentDetails::getNetCapitalGains, nominal);
-        final var totalCurrent = this.total(ics, everyone, InvestmentDetails::getCurrentAmount, nominal);
-        final var totalTax = this.total(ics, everyone, InvestmentDetails::getTaxes, nominal);
-        final var totalFee = this.total(ics, everyone, InvestmentDetails::getFees, nominal);
-        final var totalInvested = this.total(ics, everyone, InvestmentDetails::getInvestedAmount, nominal);
+        final var totalGrossGains = this.total(details, InvestmentDetails::getGrossCapitalGains);
+        final var totalNetGains = this.total(details, InvestmentDetails::getNetCapitalGains);
+        final var totalCurrent = this.total(details, InvestmentDetails::getCurrentAmount);
+        final var totalTax = this.total(details, InvestmentDetails::getTaxes);
+        final var totalFee = this.total(details, InvestmentDetails::getFees);
+        final var totalInvested = this.total(details, InvestmentDetails::getInvestedAmount);
 
-        final var totalCAGR = this.details(ics, everyone, id -> id.getCAGR().multiply(id.getInvestedAmount().getAmount(), CONTEXT), nominal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        final var weightedCAGR = totalCAGR.divide(totalInvested, CONTEXT);
-
+        final var grossMoneyWeightedReturn = details.stream()
+                .map(d -> this.moneyWeightedGrossReturn(d, totalInvested))
+                .reduce(ZERO, BigDecimal::add);
+        
+        final var netMoneyWeightedReturn = details.stream()
+                .map(d -> this.moneyWeightedNetReturn(d, totalInvested))
+                .reduce(ZERO, BigDecimal::add);
+        
         this.subtitle("Total");
 
         this.appendLine(
                 text("   Investment", mw),
                 text("    Current", mw),
                 text("     Profit", mw),
-                text("     %", 9),
+                text("   %", 8),
+                
                 text("  Net Profit", mw),
-                text("    %", 9),
-                text("    CAGR", 9),
+                text("   %", 8),
+                
+                
                 text("     Fee", 12),
                 text("   %", 8),
                 text("     Tax", 12),
@@ -2260,10 +2303,11 @@ public class ConsoleReports {
                 currency(totalInvested, mw),
                 currency(totalCurrent, mw),
                 currency(totalGrossGains, mw),
-                percent(totalGrossGains.divide(totalInvested, CONTEXT), 9),
+                percent(grossMoneyWeightedReturn, 8),
+                
                 currency(totalNetGains, mw),
-                percent(totalNetGains.divide(totalInvested, CONTEXT), 9),
-                percent(weightedCAGR, 9),
+                percent(netMoneyWeightedReturn, 8),
+                
                 currency(totalFee, 12),
                 percent(totalFee.divide(totalCurrent, CONTEXT), 8),
                 currency(totalTax, 12),
@@ -2364,23 +2408,6 @@ public class ConsoleReports {
         return cagr(item.getInitial(), item.getCurrent(), ETF_START_DATE);
     }
 
-    private <T> Stream<T> details(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, T> f, boolean nominal) {
-        return this.getInvestments()
-                .stream()
-                .filter(Investment::isCurrent)
-                .filter(i -> i.getType().equals(InvestmentType.ETF))
-                .filter(predicate)
-                .map(ics::details)
-                .map(d -> nominal ? d : d.asReal())
-                .map(f);
-    }
-
-    private BigDecimal total(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, MoneyAmount> f, boolean nominal) {
-
-        return this.details(ics, predicate, f, nominal)
-                .map(MoneyAmount::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
 
     private void print(InvestmentDetails d, int[] colWidths) {
 
