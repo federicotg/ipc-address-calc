@@ -1061,7 +1061,7 @@ public class ConsoleReports {
 
         var months = Integer.parseInt(params.getOrDefault("months", "12"));
 
-        appendLine(format("===< Income average {0}-month evolution >===", months));
+        appendLine(format("===< Average {0}-month income evolution >===", months));
 
         this.incomeAverageEvolution(months);
 
@@ -1069,7 +1069,7 @@ public class ConsoleReports {
 
     private void incomeAverageEvolution(int months) {
 
-        this.evolution("Income " + String.valueOf(months) + "-month average",
+        this.evolution(format("Average {0}-month income", months),
                 new SimpleAggregation(months)
                         .average(this.realIncome()),
                 100);
