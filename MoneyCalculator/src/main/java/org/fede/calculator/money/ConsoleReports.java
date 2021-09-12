@@ -2461,18 +2461,30 @@ public class ConsoleReports {
                 .map(Date::toInstant)
                 .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
                 .reduce(ConsoleReports::min)
-                .map(DateTimeFormatter.ISO_LOCAL_DATE::format)
+                //.map(DateTimeFormatter.ISO_LOCAL_DATE::format)
                 .get();
 
         final var to = inv.stream()
                 .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate).map(Date::toInstant).orElseGet(Instant::now))
                 .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
                 .reduce(ConsoleReports::max)
-                .map(DateTimeFormatter.ISO_LOCAL_DATE::format)
+                //.map(DateTimeFormatter.ISO_LOCAL_DATE::format)
                 .get();
 
-        appendLine(format("From {0} to {1}: {2}. Annualized: {3}", from, to, percent(modifiedDietzReturn.getFirst()), percent(modifiedDietzReturn.getSecond())));
+        appendLine("");
+        appendLine(format("From {0} to {1}: {2}. Annualized: {3}", DateTimeFormatter.ISO_LOCAL_DATE.format(from), DateTimeFormatter.ISO_LOCAL_DATE.format(to), percent(modifiedDietzReturn.getFirst()), percent(modifiedDietzReturn.getSecond())));
 
+        final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction
+                = (p) -> format("{0} {1} {2}",
+                        text(p.getFirst(), 10),
+                        percent(p.getSecond().getFirst(), 8),
+                        pctBar(p.getSecond().getSecond()));
+
+        
+        IntStream.rangeClosed(from.getYear(), to.getYear())
+                .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(inv, "USD", false, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                .map(lineFunction)
+                .forEach(this::appendLine);
     }
 
 }
