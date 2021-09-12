@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.text.MessageFormat.format;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
@@ -480,7 +481,8 @@ public class ConsoleReports {
                     entry("expenses-change", () -> me.expensesChange(args, "expenses-change")),
                     //goal
                     entry("goal", () -> me.goal(args, "goal")),
-                    entry("bbpp", () -> me.bbpp(args, "bbpp"))
+                    entry("bbpp", () -> me.bbpp(args, "bbpp")),
+                    entry("mdr", () -> me.returns())
             );
 
             final var params = Arrays.stream(args)
@@ -989,9 +991,9 @@ public class ConsoleReports {
 
     private void expenseEvolution(String[] args, String paramName) {
         appendLine("===< Expenses Evolution >===");
-        
+
         final var params = this.paramsValue(args, paramName);
-        
+
         this.expenseEvolution(params.get("type"), Integer.parseInt(params.getOrDefault("months", "1")));
     }
 
@@ -2205,17 +2207,6 @@ public class ConsoleReports {
         this.appendLine(separator);
     }
 
-//        private <T> Stream<T> details(InvestmentCostStrategy ics, Predicate<Investment> predicate, Function<InvestmentDetails, T> f, boolean nominal) {
-//        return this.getInvestments()
-//                .stream()
-//                .filter(Investment::isCurrent)
-//                .filter(i -> i.getType().equals(InvestmentType.ETF))
-//                .filter(predicate)
-//                .map(ics::details)
-//                .map(d -> nominal ? d : d.asReal())
-//                .map(f);
-//    }
-//
     private BigDecimal total(List<InvestmentDetails> details, Function<InvestmentDetails, MoneyAmount> f) {
 
         return details.stream()
@@ -2224,22 +2215,20 @@ public class ConsoleReports {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    
-    private BigDecimal moneyWeightedGrossReturn(InvestmentDetails details, BigDecimal totalInvested){
-        return  details.getGrossCapitalGains()
+    private BigDecimal moneyWeightedGrossReturn(InvestmentDetails details, BigDecimal totalInvested) {
+        return details.getGrossCapitalGains()
                 .getAmount()
                 .divide(details.getInvestedAmount().getAmount(), CONTEXT)
                 .multiply(details.getInvestedAmount().getAmount().divide(totalInvested, CONTEXT), CONTEXT);
     }
-    
-    private BigDecimal moneyWeightedNetReturn(InvestmentDetails details, BigDecimal totalInvested){
-        return  details.getNetCapitalGains()
+
+    private BigDecimal moneyWeightedNetReturn(InvestmentDetails details, BigDecimal totalInvested) {
+        return details.getNetCapitalGains()
                 .getAmount()
                 .divide(details.getInvestedAmount().getAmount(), CONTEXT)
                 .multiply(details.getInvestedAmount().getAmount().divide(totalInvested, CONTEXT), CONTEXT);
     }
-    
-    
+
     private void inv(final Predicate<Investment> everyone, boolean nominal, String currency) {
 
         appendLine();
@@ -2277,11 +2266,11 @@ public class ConsoleReports {
         final var grossMoneyWeightedReturn = details.stream()
                 .map(d -> this.moneyWeightedGrossReturn(d, totalInvested))
                 .reduce(ZERO, BigDecimal::add);
-        
+
         final var netMoneyWeightedReturn = details.stream()
                 .map(d -> this.moneyWeightedNetReturn(d, totalInvested))
                 .reduce(ZERO, BigDecimal::add);
-        
+
         this.subtitle("Total");
 
         this.appendLine(
@@ -2289,11 +2278,8 @@ public class ConsoleReports {
                 text("    Current", mw),
                 text("     Profit", mw),
                 text("   %", 8),
-                
                 text("  Net Profit", mw),
                 text("   %", 8),
-                
-                
                 text("     Fee", 12),
                 text("   %", 8),
                 text("     Tax", 12),
@@ -2304,10 +2290,8 @@ public class ConsoleReports {
                 currency(totalCurrent, mw),
                 currency(totalGrossGains, mw),
                 percent(grossMoneyWeightedReturn, 8),
-                
                 currency(totalNetGains, mw),
                 percent(netMoneyWeightedReturn, 8),
-                
                 currency(totalFee, 12),
                 percent(totalFee.divide(totalCurrent, CONTEXT), 8),
                 currency(totalTax, 12),
@@ -2408,7 +2392,6 @@ public class ConsoleReports {
         return cagr(item.getInitial(), item.getCurrent(), ETF_START_DATE);
     }
 
-
     private void print(InvestmentDetails d, int[] colWidths) {
 
         var i = 0;
@@ -2429,6 +2412,67 @@ public class ConsoleReports {
                 percent(d.getFeePercent(), colWidths[i++]),
                 currency(d.getTaxes().getAmount(), colWidths[i++]),
                 percent(d.getTaxPercent(), colWidths[i++]));
+    }
+
+    private boolean after(Date d, int year, Month m, int day) {
+        return LocalDate.ofInstant(d.toInstant(), ZoneId.systemDefault()).isAfter(LocalDate.of(year, m, day));
+    }
+
+    private boolean before(Date d, int year, Month m, int day) {
+        return LocalDate.ofInstant(d.toInstant(), ZoneId.systemDefault()).isBefore(LocalDate.of(year, m, day));
+
+    }
+
+    private boolean between(Date d1, Date d2, int year1, Month m1, int day1, int year2, Month m2, int day2) {
+        return this.after(d1, year1, m1, day1)
+                && this.before(d2, year2, m2, day2);
+    }
+
+    private void returns() {
+
+        final Predicate<Investment> cds2004To2011
+                = i -> i.getType().equals(InvestmentType.PF)
+                && between(i.getInitialDate(), i.getOut().getDate(), 2004, Month.DECEMBER, 20, 2011, Month.DECEMBER, 31);
+
+        final Predicate<Investment> after2015
+                = i -> (after(i.getInitialDate(), 2015, Month.JANUARY, 1) && i.getOut() == null)
+                || (after(i.getInitialDate(), 2015, Month.JANUARY, 1) && before(i.getOut().getDate(), 2050, Month.DECEMBER, 31));
+
+        this.modifiedDietzReturn(cds2004To2011);
+
+        this.modifiedDietzReturn(after2015);
+    }
+
+    private void modifiedDietzReturn(Predicate<Investment> criteria) {
+
+        final var inv = this.getInvestments()
+                .stream()
+                .filter(criteria)
+                .collect(toList());
+
+        final var modifiedDietzReturn = new ModifiedDietzReturn(
+                inv,
+                "USD",
+                false)
+                .get();
+
+        final var from = inv.stream()
+                .map(Investment::getInitialDate)
+                .map(Date::toInstant)
+                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
+                .reduce(ConsoleReports::min)
+                .map(DateTimeFormatter.ISO_LOCAL_DATE::format)
+                .get();
+
+        final var to = inv.stream()
+                .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate).map(Date::toInstant).orElseGet(Instant::now))
+                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
+                .reduce(ConsoleReports::max)
+                .map(DateTimeFormatter.ISO_LOCAL_DATE::format)
+                .get();
+
+        appendLine(format("From {0} to {1}: {2}. Annualized: {3}", from, to, percent(modifiedDietzReturn.getFirst()), percent(modifiedDietzReturn.getSecond())));
+
     }
 
 }
