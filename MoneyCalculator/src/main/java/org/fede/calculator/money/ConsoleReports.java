@@ -2461,14 +2461,12 @@ public class ConsoleReports {
                 .map(Date::toInstant)
                 .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
                 .reduce(ConsoleReports::min)
-                //.map(DateTimeFormatter.ISO_LOCAL_DATE::format)
                 .get();
 
         final var to = inv.stream()
                 .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate).map(Date::toInstant).orElseGet(Instant::now))
                 .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
                 .reduce(ConsoleReports::max)
-                //.map(DateTimeFormatter.ISO_LOCAL_DATE::format)
                 .get();
 
         appendLine("");
