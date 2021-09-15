@@ -119,7 +119,6 @@ public class ConsoleReports {
             .multiply(IVA, CONTEXT);
 
     private static final BigDecimal TRADING_FEE = new BigDecimal("0.006");
-    //private static final BigDecimal TRADING_FX_FEE = new BigDecimal("0.0025");
 
     private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
     private static final double RUSSELL2000_PCT = new BigDecimal("0.1").doubleValue();
@@ -482,7 +481,7 @@ public class ConsoleReports {
                     //goal
                     entry("goal", () -> me.goal(args, "goal")),
                     entry("bbpp", () -> me.bbpp(args, "bbpp")),
-                    entry("mdr", () -> me.returns())
+                    entry("mdr", () -> me.returns(args, "mdr"))
             );
 
             final var params = Arrays.stream(args)
@@ -2418,32 +2417,19 @@ public class ConsoleReports {
         return LocalDate.ofInstant(d.toInstant(), ZoneId.systemDefault()).isAfter(LocalDate.of(year, m, day));
     }
 
-    private boolean before(Date d, int year, Month m, int day) {
-        return LocalDate.ofInstant(d.toInstant(), ZoneId.systemDefault()).isBefore(LocalDate.of(year, m, day));
+    private void returns(String[] args, String paranName) {
 
+        final var params = this.paramsValue(args, paranName);
+
+        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+
+        final Predicate<Investment> since2002 = i -> after(i.getInitialDate(), 2002, Month.JANUARY, 1);
+
+        this.modifiedDietzReturn(since2002, nominal);
+        
     }
 
-    private boolean between(Date d1, Date d2, int year1, Month m1, int day1, int year2, Month m2, int day2) {
-        return this.after(d1, year1, m1, day1)
-                && this.before(d2, year2, m2, day2);
-    }
-
-    private void returns() {
-
-        final Predicate<Investment> cds2004To2011
-                = i -> i.getType().equals(InvestmentType.PF)
-                && between(i.getInitialDate(), i.getOut().getDate(), 2004, Month.DECEMBER, 20, 2011, Month.DECEMBER, 31);
-
-        final Predicate<Investment> after2015
-                = i -> (after(i.getInitialDate(), 2015, Month.JANUARY, 1) && i.getOut() == null)
-                || (after(i.getInitialDate(), 2015, Month.JANUARY, 1) && before(i.getOut().getDate(), 2050, Month.DECEMBER, 31));
-
-        this.modifiedDietzReturn(cds2004To2011);
-
-        this.modifiedDietzReturn(after2015);
-    }
-
-    private void modifiedDietzReturn(Predicate<Investment> criteria) {
+    private void modifiedDietzReturn(Predicate<Investment> criteria, boolean nominal) {
 
         final var inv = this.getInvestments()
                 .stream()
@@ -2453,7 +2439,7 @@ public class ConsoleReports {
         final var modifiedDietzReturn = new ModifiedDietzReturn(
                 inv,
                 "USD",
-                false)
+                nominal)
                 .get();
 
         final var from = inv.stream()
@@ -2480,7 +2466,7 @@ public class ConsoleReports {
 
         
         IntStream.rangeClosed(from.getYear(), to.getYear())
-                .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(inv, "USD", false, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(inv, "USD", nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
                 .map(lineFunction)
                 .forEach(this::appendLine);
     }
