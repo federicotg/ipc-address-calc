@@ -96,7 +96,7 @@ public class ConsoleReports {
             "EIMI", new BigDecimal("28.32")
     );
 
-    private static Map<String, String> ETF_NAME = Map.of(
+    private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
             "EIMI", "iShares Core MSCI EM IMI",
             "XRSU", "Xtrackers Russell 2000",
@@ -2464,7 +2464,6 @@ public class ConsoleReports {
                         percent(p.getSecond().getFirst(), 8),
                         pctBar(p.getSecond().getSecond()));
 
-        
         IntStream.rangeClosed(from.getYear(), to.getYear())
                 .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(inv, "USD", nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
                 .map(lineFunction)
