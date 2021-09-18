@@ -27,18 +27,14 @@ import static org.fede.calculator.money.MathConstants.CONTEXT;
 public class PPIGlobalUSDFeeStrategy implements Function<BigDecimal, BigDecimal> {
 
     private static final BigDecimal FEE_RATE = new BigDecimal("0.006");
-    private static final BigDecimal FEE_TAX_RATE = new BigDecimal("0.21");
+    private static final BigDecimal FEE_TAX_RATE = new BigDecimal("1.21");
 
     
     @Override
     public BigDecimal apply(BigDecimal presentValue) {
         
-        final var sellFee = presentValue.multiply(FEE_RATE, CONTEXT).max(BigDecimal.TEN);
+        return presentValue.multiply(FEE_RATE.multiply(FEE_TAX_RATE, CONTEXT), CONTEXT).max(BigDecimal.TEN);
 
-        final var sellFeeTax = sellFee.multiply(FEE_TAX_RATE, CONTEXT);
-
-        return sellFee.add(sellFeeTax, CONTEXT);
-        
     }
 
     
