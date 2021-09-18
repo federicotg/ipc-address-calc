@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -33,6 +32,7 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
+import static org.fede.calculator.money.MathConstants.CONTEXT;
 
 /**
  *
@@ -45,6 +45,7 @@ public class ModifiedDietzReturn {
     private final boolean nominal;
     private final LocalDate initialMoment;
     private final LocalDate finalMoment;
+    private final long daysBetween;
 
     private static Instant min(Instant i1, Instant i2) {
         return i1.compareTo(i2) <= 0
@@ -63,11 +64,19 @@ public class ModifiedDietzReturn {
                 ? l1
                 : l2;
     }
-    
+
     private static LocalDate max(LocalDate l1, LocalDate l2) {
         return l1.compareTo(l2) >= 0
                 ? l1
                 : l2;
+    }
+
+    private static LocalDate asLocalDate(Instant i) {
+        return LocalDate.ofInstant(i, ZoneId.systemDefault());
+    }
+
+    private static LocalDate asLocalDate(Date d) {
+        return asLocalDate(d.toInstant());
     }
 
     private static LocalDate finalMoment(List<Investment> investments) {
@@ -82,13 +91,12 @@ public class ModifiedDietzReturn {
                 .map(InvestmentEvent::getDate)
                 .map(d -> d.toInstant())
                 .reduce(ModifiedDietzReturn::max)
-                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault())).get();
-
+                .map(ModifiedDietzReturn::asLocalDate)
+                .get();
     }
 
     public ModifiedDietzReturn(List<Investment> investments, String currency, boolean nominal) {
-        this(
-                investments,
+        this(investments,
                 currency,
                 nominal,
                 investments
@@ -97,9 +105,9 @@ public class ModifiedDietzReturn {
                         .map(InvestmentEvent::getDate)
                         .map(d -> d.toInstant())
                         .reduce(ModifiedDietzReturn::min)
-                        .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault())).get(),
+                        .map(ModifiedDietzReturn::asLocalDate)
+                        .get(),
                 finalMoment(investments));
-
     }
 
     public ModifiedDietzReturn(List<Investment> investments, String currency, boolean nominal, LocalDate initialMoment, LocalDate finalMoment) {
@@ -111,10 +119,13 @@ public class ModifiedDietzReturn {
                         .stream()
                         .map(Investment::getIn)
                         .map(InvestmentEvent::getDate)
-                        .map(d -> d.toInstant()).reduce(ModifiedDietzReturn::min)
-                        .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault())).get());
-        
+                        .map(d -> d.toInstant())
+                        .reduce(ModifiedDietzReturn::min)
+                        .map(ModifiedDietzReturn::asLocalDate)
+                        .get());
+
         this.finalMoment = min(finalMoment, LocalDate.now());
+        this.daysBetween = ChronoUnit.DAYS.between(this.initialMoment, this.finalMoment);
     }
 
     private List<Investment> getInvestments() {
@@ -126,21 +137,15 @@ public class ModifiedDietzReturn {
     }
 
     private List<BigDecimal> adjustedCashFlows() {
-
         return this.cashFlows(this::adjustedCashFlowAmount);
-
     }
 
-    private static boolean between(Date d, LocalDate initialMoment, LocalDate finalMoment){
-    
-        final var ld = LocalDate.ofInstant(d.toInstant(), ZoneId.systemDefault());
-        
+    private static boolean between(Date d, LocalDate initialMoment, LocalDate finalMoment) {
+        final var ld = asLocalDate(d);
         return (ld.isEqual(initialMoment) || ld.isAfter(initialMoment))
                 && (ld.isEqual(finalMoment) || ld.isBefore(finalMoment));
-        
-        
-}
-    
+    }
+
     private List<BigDecimal> cashFlows(Function<InvestmentEvent, BigDecimal> cashFlowFunction) {
 
         return Stream.concat(
@@ -160,14 +165,12 @@ public class ModifiedDietzReturn {
 
     private BigDecimal adjustedCashFlowAmount(InvestmentEvent ie) {
 
-        final var cashFlowDate = LocalDateTime.ofInstant(ie.getDate().toInstant(), ZoneId.systemDefault());
-
-        final var timeLength = ChronoUnit.DAYS.between(this.initialMoment, this.finalMoment);
+        final var cashFlowDate = asLocalDate(ie.getDate());
 
         final var cashFlowTime = ChronoUnit.DAYS.between(this.initialMoment, cashFlowDate);
 
         return this.cashFlowAmount(ie)
-                .multiply(BigDecimal.valueOf(timeLength - cashFlowTime).divide(BigDecimal.valueOf(timeLength), MathConstants.CONTEXT), MathConstants.CONTEXT);
+                .multiply(BigDecimal.valueOf(this.daysBetween - cashFlowTime).divide(BigDecimal.valueOf(this.daysBetween), CONTEXT), CONTEXT);
     }
 
     private BigDecimal cashFlowAmount(InvestmentEvent ie) {
@@ -196,15 +199,23 @@ public class ModifiedDietzReturn {
 
         final var v1 = this.portfolioValue(YearMonth.of(this.finalMoment.getYear(), this.finalMoment.getMonthValue()));
         final var v0 = this.portfolioValue(YearMonth.of(this.initialMoment.getYear(), this.initialMoment.getMonthValue()).prev());
-        final var cashFlowSum = this.cashFlows().stream().reduce(ZERO, BigDecimal::add);
-        final var adjustedCashFlowSum = this.adjustedCashFlows().stream().reduce(ZERO, BigDecimal::add);
+
+        final var cashFlowSum = this.cashFlows()
+                .stream()
+                .reduce(ZERO, BigDecimal::add);
+
+        final var adjustedCashFlowSum = this.adjustedCashFlows()
+                .stream()
+                .reduce(ZERO, BigDecimal::add);
 
         final var result = v1.getAmount()
-                .subtract(v0.getAmount(), MathConstants.CONTEXT)
-                .subtract(cashFlowSum, MathConstants.CONTEXT)
-                .divide(v0.getAmount().add(adjustedCashFlowSum, MathConstants.CONTEXT), MathConstants.CONTEXT);
+                .subtract(v0.getAmount(), CONTEXT)
+                .subtract(cashFlowSum, CONTEXT)
+                .divide(v0.getAmount().add(adjustedCashFlowSum, CONTEXT), CONTEXT);
 
-        return Pair.of(result, BigDecimal.valueOf(Math.pow(1.0d + result.doubleValue(), 365.0d / (double) ChronoUnit.DAYS.between(this.initialMoment, this.finalMoment)) - 1.0d));
+        return Pair.of(
+                result,
+                BigDecimal.valueOf(Math.pow(1.0d + result.doubleValue(), 365.0d / (double) this.daysBetween) - 1.0d));
 
     }
 
