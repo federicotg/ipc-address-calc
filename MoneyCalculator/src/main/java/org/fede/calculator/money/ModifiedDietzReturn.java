@@ -89,7 +89,7 @@ public class ModifiedDietzReturn {
                 .stream()
                 .map(Investment::getOut)
                 .map(InvestmentEvent::getDate)
-                .map(d -> d.toInstant())
+                .map(Date::toInstant)
                 .reduce(ModifiedDietzReturn::max)
                 .map(ModifiedDietzReturn::asLocalDate)
                 .get();
@@ -103,7 +103,7 @@ public class ModifiedDietzReturn {
                         .stream()
                         .map(Investment::getIn)
                         .map(InvestmentEvent::getDate)
-                        .map(d -> d.toInstant())
+                        .map(Date::toInstant)
                         .reduce(ModifiedDietzReturn::min)
                         .map(ModifiedDietzReturn::asLocalDate)
                         .get(),
@@ -119,7 +119,7 @@ public class ModifiedDietzReturn {
                         .stream()
                         .map(Investment::getIn)
                         .map(InvestmentEvent::getDate)
-                        .map(d -> d.toInstant())
+                        .map(Date::toInstant)
                         .reduce(ModifiedDietzReturn::min)
                         .map(ModifiedDietzReturn::asLocalDate)
                         .get());
