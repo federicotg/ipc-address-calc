@@ -196,14 +196,11 @@ public class LazyDigitalContentService implements DigitalContentService {
         repo.findById("17-11").setSize(23792469478l);
         repo.findById("17-12").setSize(23699495719l);
 
-        repo.findById("18-01").setSize(23809270814l);
-        
+        repo.findById("18-01").setSize(23809270814l);      
         repo.findById("18-02").setSize(23790014924l);
         repo.findById("18-03").setSize(0l);
-        repo.findById("18-04").setSize(0l);
-        repo.findById("18-05").setSize(0l);
-        
-        
+        repo.findById("18-04").setSize(23878172955l);
+        repo.findById("18-05").setSize(23211021771l);
         repo.findById("18-06").setSize(23873717071l);
         repo.findById("18-07").setSize(22683178310l);
         repo.findById("18-08").setSize(21108708017l);
