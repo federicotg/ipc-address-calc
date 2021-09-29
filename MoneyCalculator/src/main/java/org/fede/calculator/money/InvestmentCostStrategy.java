@@ -42,7 +42,8 @@ public class InvestmentCostStrategy {
     private static final Map<String, Function<BigDecimal, BigDecimal>> IBKR = Map.of(
             "lse", new InteractiveBrokersTieredLondonUSDFeeStrategy(),
             "xetra", new InteractiveBrokersTieredXETRAFeeStrategy(),
-            "euronext", new InteractiveBrokersTieredEuronextEURFeeStrategy()
+            "euronext", new InteractiveBrokersTieredEuronextEURFeeStrategy(),
+            "gettex", new InteractiveBrokersTieredGETTEXFeeStrategy()
     );
 
     public InvestmentCostStrategy(String currency, BigDecimal brokerFeeRate, BigDecimal ivaRate, BigDecimal capitalGainsTaxRate) {
