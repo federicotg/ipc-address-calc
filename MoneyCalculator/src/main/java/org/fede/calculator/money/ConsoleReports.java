@@ -16,6 +16,9 @@
  */
 package org.fede.calculator.money;
 
+import com.diogonunes.jcolor.Ansi;
+import com.diogonunes.jcolor.AnsiFormat;
+import com.diogonunes.jcolor.Attribute;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.PrintStream;
 import java.math.BigDecimal;
@@ -343,10 +346,11 @@ public class ConsoleReports {
                 .mapToObj(i -> "-")
                 .collect(joining());
 
-        appendLine("");
-        appendLine("\t<", line, ">");
-        appendLine("\t<- ", title, " ->");
-        appendLine("\t<", line, ">");
+        AnsiFormat bold = new AnsiFormat(Attribute.BRIGHT_YELLOW_TEXT(), Attribute.BOLD());
+        appendLine(Ansi.colorize("", bold));
+        appendLine(Ansi.colorize("\t<" + line + ">", bold));
+        appendLine(Ansi.colorize("\t<- " + title + " ->", bold));
+        appendLine(Ansi.colorize("\t<" + line + ">", bold));
     }
 
     private void printReport(PrintStream out) {
@@ -2099,6 +2103,10 @@ public class ConsoleReports {
                 : d2;
     }
 
+    private static String text(String value, int width, AnsiFormat fmt) {
+        return Ansi.colorize(text(value, width), fmt);
+    }
+    
     private static String text(String value, int width) {
         return String.format("%-" + width + "s", value);
     }
