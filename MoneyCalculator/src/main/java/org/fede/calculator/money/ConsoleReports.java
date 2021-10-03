@@ -26,6 +26,7 @@ import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import java.math.RoundingMode;
+import java.nio.file.attribute.AttributeView;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -836,7 +837,7 @@ public class ConsoleReports {
         this.appendLine(
                 format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
                 " ",
-                currency(mo, 14),
+                currency(mo, 16),
                 " ",
                 this.bar(mo.getAmount(), scale));
     }
@@ -1081,17 +1082,18 @@ public class ConsoleReports {
     }
 
     private String bar(BigDecimal value, int scale) {
-
-        final var symbol = value.signum() < 0 ? "-" : "+";
-
-        return this.bar(value, scale, symbol);
+        return this.bar(value, scale, " ");
     }
 
     private String bar(BigDecimal value, int scale, String symbol) {
 
-        return IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue())
-                .mapToObj(x -> symbol)
-                .collect(joining());
+        final AnsiFormat format = value.signum() < 0
+                ? new AnsiFormat(Attribute.RED_BACK(), Attribute.WHITE_TEXT())
+                : new AnsiFormat(Attribute.GREEN_BACK(), Attribute.WHITE_TEXT());
+
+        return Ansi.colorize(IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue())
+                .mapToObj(x -> " ")
+                .collect(joining()), format);
     }
 
     private double[] randomPeriods(List<double[]> allReturns, int periods, double fee) {
@@ -2106,7 +2108,7 @@ public class ConsoleReports {
     private static String text(String value, int width, AnsiFormat fmt) {
         return Ansi.colorize(text(value, width), fmt);
     }
-    
+
     private static String text(String value, int width) {
         return String.format("%-" + width + "s", value);
     }
@@ -2150,22 +2152,24 @@ public class ConsoleReports {
 
         final var end = value.abs().movePointRight(2).intValue();
 
+        final Attribute attr = value.signum() < 0 ? Attribute.RED_TEXT() : Attribute.GREEN_TEXT();
+
         if (end > 100) {
 
             final var part = IntStream.range(0, 48)
                     .mapToObj(i -> symbol)
                     .collect(joining());
 
-            return format("{0} {1}",
+            return Ansi.colorize(format("{0} {1}",
                     percent(value, 10),
-                    part + "/-/" + part);
+                    part + "/-/" + part), attr);
         }
 
-        return format("{0} {1}",
+        return Ansi.colorize(format("{0} {1}",
                 percent(value, 10),
                 IntStream.range(0, end)
                         .mapToObj(i -> symbol)
-                        .collect(joining()));
+                        .collect(joining())), attr);
     }
 
     private static String smallPctBar(BigDecimal value) {
@@ -2187,7 +2191,9 @@ public class ConsoleReports {
                                 Stream.of("/-/")),
                         IntStream.range(0, 6).mapToObj(x -> symbol));
 
-        return String.format("%-15s", stream.collect(joining()));
+        Attribute attr = value.signum() < 0 ? Attribute.RED_TEXT() : Attribute.GREEN_TEXT();
+
+        return Ansi.colorize(String.format("%-15s", stream.collect(joining())), attr);
     }
 
     private void invHeader(int[] colWidths) {
@@ -2434,7 +2440,7 @@ public class ConsoleReports {
         final Predicate<Investment> since2002 = i -> after(i.getInitialDate(), 2002, Month.JANUARY, 1);
 
         this.modifiedDietzReturn(since2002, nominal);
-        
+
     }
 
     private void modifiedDietzReturn(Predicate<Investment> criteria, boolean nominal) {
