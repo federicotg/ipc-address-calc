@@ -2144,38 +2144,33 @@ public class ConsoleReports {
 
     private static String pctBar(BigDecimal value) {
 
-        final var symbol = value.signum() >= 0 ? "#" : "%";
-
         if (value.abs().compareTo(ONE_PERCENT) < 0) {
             return String.format("%10s", "<1 %");
         }
 
         final var end = value.abs().movePointRight(2).intValue();
 
-        final Attribute attr = value.signum() < 0 ? Attribute.RED_TEXT() : Attribute.GREEN_TEXT();
+        final Attribute attr = value.signum() < 0 ? Attribute.RED_BACK() : Attribute.GREEN_BACK();
 
         if (end > 100) {
 
             final var part = IntStream.range(0, 48)
-                    .mapToObj(i -> symbol)
+                    .mapToObj(i -> " ")
                     .collect(joining());
 
-            return Ansi.colorize(format("{0} {1}",
+            return format("{0} {1}",
                     percent(value, 10),
-                    part + "/-/" + part), attr);
+                    Ansi.colorize(part + "/-/" + part, attr));
         }
 
-        return Ansi.colorize(format("{0} {1}",
+        return format("{0} {1}",
                 percent(value, 10),
-                IntStream.range(0, end)
-                        .mapToObj(i -> symbol)
-                        .collect(joining())), attr);
+                Ansi.colorize(IntStream.range(0, end)
+                        .mapToObj(i -> " ")
+                        .collect(joining()), attr));
     }
 
     private static String smallPctBar(BigDecimal value) {
-        final var symbol = value.signum() < 0
-                ? "-"
-                : "+";
 
         final var steps = value.movePointRight(2)
                 .abs()
@@ -2184,16 +2179,16 @@ public class ConsoleReports {
                 .intValue();
 
         final var stream = steps < 15
-                ? IntStream.range(0, steps).mapToObj(x -> symbol)
+                ? IntStream.range(0, steps).mapToObj(x -> " ")
                 : Stream.concat(
                         Stream.concat(
-                                IntStream.range(0, 6).mapToObj(x -> symbol),
+                                IntStream.range(0, 6).mapToObj(x -> " "),
                                 Stream.of("/-/")),
-                        IntStream.range(0, 6).mapToObj(x -> symbol));
+                        IntStream.range(0, 6).mapToObj(x -> " "));
 
-        Attribute attr = value.signum() < 0 ? Attribute.RED_TEXT() : Attribute.GREEN_TEXT();
+        Attribute attr = value.signum() < 0 ? Attribute.RED_BACK() : Attribute.GREEN_BACK();
 
-        return Ansi.colorize(String.format("%-15s", stream.collect(joining())), attr);
+        return String.format("%-15s", Ansi.colorize(stream.collect(joining()), attr));
     }
 
     private void invHeader(int[] colWidths) {
