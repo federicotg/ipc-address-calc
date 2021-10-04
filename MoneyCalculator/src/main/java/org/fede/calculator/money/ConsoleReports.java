@@ -110,6 +110,16 @@ public class ConsoleReports {
             "MEUD", "Lyxor Core STOXX Eurpe 600"
     );
 
+    private static final Map<String, AnsiFormat> ETF_COLOR = Map.of(
+            "CSPX", new AnsiFormat(Attribute.DIM()),
+            "EIMI", new AnsiFormat(Attribute.DIM()),
+            "XRSU", new AnsiFormat(Attribute.DIM()),
+            "IWDA", new AnsiFormat(Attribute.RED_TEXT()),
+            "VWRA", new AnsiFormat(Attribute.RED_TEXT()),
+            "ISAC", new AnsiFormat(Attribute.RED_TEXT()),
+            "MEUD", new AnsiFormat(Attribute.DIM())
+    );
+
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
     private static final BigDecimal ONE_PERCENT = BigDecimal.ONE.movePointLeft(2);
 
@@ -2336,7 +2346,7 @@ public class ConsoleReports {
 
         final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction
                 = (p) -> format("{0} {1} {2}",
-                        text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), 26),
+                        text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), 26, ETF_COLOR.getOrDefault(p.getFirst(), new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT()))),
                         percent(p.getSecond().getFirst(), 8),
                         pctBar(p.getSecond().getSecond()));
 
