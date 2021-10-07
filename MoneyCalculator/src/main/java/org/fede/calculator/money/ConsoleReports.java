@@ -900,8 +900,18 @@ public class ConsoleReports {
         appendLine("===< Savings Distribution Evolution >===");
         appendLine("");
         appendLine("References:");
-        appendLine("#: cash, +: equity, %: bonds.");
 
+        this.reference();
+
+    }
+
+    private void reference() {
+        appendLine(Ansi.colorize(" ", Attribute.BLUE_BACK()),
+                ": cash, ",
+                Ansi.colorize(" ", Attribute.RED_BACK()),
+                ": equity, ",
+                Ansi.colorize(" ", Attribute.YELLOW_BACK()),
+                ": bonds.");
     }
 
     private void savingsDistributionPercentEvolution() {
@@ -919,8 +929,8 @@ public class ConsoleReports {
         appendLine("===< Savings Distribution Percent Evolution >===");
         appendLine("");
         appendLine("References:");
-        appendLine("#: cash, +: equity, %: bonds.");
 
+        this.reference();
     }
 
     private BigDecimal asPct(MoneyAmount ma, MoneyAmount total) {
@@ -981,9 +991,9 @@ public class ConsoleReports {
                 String.valueOf(ym.getYear()),
                 String.format("%02d", ym.getMonth()),
                 format.apply(one),
-                this.bar(one, scale, "#"),
+                this.bar(one, scale, Attribute.BLUE_BACK()),
                 format.apply(two),
-                this.bar(two, scale, "+"));
+                this.bar(two, scale, Attribute.RED_BACK()));
     }
 
     private String bar(YearMonth ym, BigDecimal one, BigDecimal two, BigDecimal three, int scale, Function<BigDecimal, String> format) {
@@ -991,11 +1001,11 @@ public class ConsoleReports {
                 String.valueOf(ym.getYear()),
                 String.format("%02d", ym.getMonth()),
                 format.apply(one),
-                this.bar(one, scale, "#"),
+                this.bar(one, scale, Attribute.BLUE_BACK()),
                 format.apply(two),
-                this.bar(two, scale, "+"),
+                this.bar(two, scale, Attribute.RED_BACK()),
                 format.apply(three),
-                this.bar(three, scale, "%"));
+                this.bar(three, scale, Attribute.YELLOW_BACK()));
     }
 
     private void savingEvolution(String[] args, String paramName) {
@@ -1095,6 +1105,15 @@ public class ConsoleReports {
         return this.bar(value, scale, " ");
     }
 
+    private String bar(BigDecimal value, int scale, Attribute color) {
+
+        final AnsiFormat format = new AnsiFormat(color);
+
+        return Ansi.colorize(IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue())
+                .mapToObj(x -> " ")
+                .collect(joining()), format);
+    }
+
     private String bar(BigDecimal value, int scale, String symbol) {
 
         final AnsiFormat format = value.signum() < 0
@@ -1102,7 +1121,7 @@ public class ConsoleReports {
                 : new AnsiFormat(Attribute.GREEN_BACK(), Attribute.WHITE_TEXT());
 
         return Ansi.colorize(IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue())
-                .mapToObj(x -> " ")
+                .mapToObj(x -> symbol)
                 .collect(joining()), format);
     }
 
