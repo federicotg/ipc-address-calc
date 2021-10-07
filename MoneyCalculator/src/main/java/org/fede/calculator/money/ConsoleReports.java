@@ -1790,7 +1790,12 @@ public class ConsoleReports {
         appendLine(title);
         appendLine("");
         appendLine("References:");
-        appendLine("#: saved, +: spent.");
+        //appendLine("#: saved, +: spent.");
+
+        appendLine(Ansi.colorize(" ", Attribute.BLUE_BACK()),
+                ": saved, ",
+                Ansi.colorize(" ", Attribute.RED_BACK()),
+                ": spent. ");
 
     }
 
@@ -1821,7 +1826,14 @@ public class ConsoleReports {
         appendLine(title);
         appendLine("");
         appendLine("References:");
-        appendLine("#: saved, +: spent, %: other spending.");
+        //appendLine("#: saved, +: spent, %: other spending.");
+
+        appendLine(Ansi.colorize(" ", Attribute.BLUE_BACK()),
+                ": saved, ",
+                Ansi.colorize(" ", Attribute.RED_BACK()),
+                ": spent, ",
+                Ansi.colorize(" ", Attribute.YELLOW_BACK()),
+                ": other spending.");
 
     }
 
