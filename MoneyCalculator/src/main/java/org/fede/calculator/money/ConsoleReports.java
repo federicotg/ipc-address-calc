@@ -26,7 +26,6 @@ import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import java.math.RoundingMode;
-import java.nio.file.attribute.AttributeView;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -170,6 +169,9 @@ public class ConsoleReports {
     private static final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
 
     private static final LocalDate ETF_START_DATE = LocalDate.of(2019, Month.JULY, 24);
+
+    private static final AnsiFormat PROFIT_FORMAT = new AnsiFormat(Attribute.GREEN_TEXT());
+    private static final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
 
     private List<Investment> investments;
 
@@ -353,15 +355,11 @@ public class ConsoleReports {
 
     private void subtitle(String title) {
 
-        final var line = IntStream.range(0, title.length() + 4)
-                .mapToObj(i -> "-")
-                .collect(joining());
-
-        AnsiFormat bold = new AnsiFormat(Attribute.BRIGHT_YELLOW_TEXT(), Attribute.BOLD());
+        AnsiFormat bold = new AnsiFormat(Attribute.BRIGHT_BLACK_TEXT(), Attribute.BOLD(), Attribute.BRIGHT_WHITE_BACK());
         appendLine(Ansi.colorize("", bold));
-        appendLine(Ansi.colorize("\t<" + line + ">", bold));
+        //appendLine(Ansi.colorize("\t<" + line + ">", bold));
         appendLine(Ansi.colorize("\t<- " + title + " ->", bold));
-        appendLine(Ansi.colorize("\t<" + line + ">", bold));
+        appendLine("");
     }
 
     private void printReport(PrintStream out) {
@@ -2162,6 +2160,11 @@ public class ConsoleReports {
         return String.format("%" + width + "s", currency(value));
     }
 
+    private static String currencyPL(BigDecimal value, int width) {
+
+        return Ansi.colorize(String.format("%" + width + "s", currency(value)), value.signum() >= 0 ? PROFIT_FORMAT : LOSS_FORMAT);
+    }
+
     private static String currency(MoneyAmount value, int width) {
         return String.format("%" + width + "s", format("{0} {1}", value.getCurrency(), currency(value.getAmount())));
     }
@@ -2278,16 +2281,20 @@ public class ConsoleReports {
                 .multiply(details.getInvestedAmount().getAmount().divide(totalInvested, CONTEXT), CONTEXT);
     }
 
+    private void title(String text) {
+        appendLine();
+        appendLine(Ansi.colorize(text, Attribute.BRIGHT_WHITE_TEXT(), Attribute.BOLD()));
+        appendLine();
+    }
+
     private void inv(final Predicate<Investment> everyone, boolean nominal, String currency) {
 
-        appendLine();
-        appendLine(format("{0} Investment Results", nominal ? "Nominal" : "Real"));
-        appendLine();
+        this.title(format("{0} Investment Results", nominal ? "Nominal" : "Real"));
 
         final var ics = new InvestmentCostStrategy(currency, TRADING_FEE, IVA.subtract(ONE, CONTEXT), CAPITAL_GAINS_TAX_RATE);
 
         final var mw = 13;
-        final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, mw, 9, 10, 1, 15, 10, 7, 11, 7};
+        final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, mw, 9, 10, 1, 8, 10, 7, 10, 7};
 
         this.invHeader(colWidths);
 
@@ -2337,9 +2344,9 @@ public class ConsoleReports {
         this.appendLine(
                 currency(totalInvested, mw),
                 currency(totalCurrent, mw),
-                currency(totalGrossGains, mw),
+                currencyPL(totalGrossGains, mw),
                 percent(grossMoneyWeightedReturn, 8),
-                currency(totalNetGains, mw),
+                currencyPL(totalNetGains, mw),
                 percent(netMoneyWeightedReturn, 8),
                 currency(totalFee, 12),
                 percent(totalFee.divide(totalCurrent, CONTEXT), 8),
@@ -2390,7 +2397,7 @@ public class ConsoleReports {
         this.subtitle("Modified Dietz Return");
 
         IntStream.rangeClosed(2019, LocalDate.now().getYear())
-                .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                .mapToObj(  year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
                 .map(lineFunction)
                 .forEach(this::appendLine);
     }
@@ -2450,9 +2457,9 @@ public class ConsoleReports {
                 currency(d.getInvestmentPrice(), colWidths[i++]),
                 currency(d.getInvestedAmount().getAmount(), colWidths[i++]),
                 currency(d.getCurrentAmount().getAmount(), colWidths[i++]),
-                currency(d.getGrossCapitalGains().getAmount(), colWidths[i++]),
+                currencyPL(d.getGrossCapitalGains().getAmount(), colWidths[i++]),
                 percent(d.getGrossCapitalGainsPercent(), colWidths[i++]),
-                currency(d.getNetCapitalGains().getAmount(), colWidths[i++]),
+                currencyPL(d.getNetCapitalGains().getAmount(), colWidths[i++]),
                 percent(d.getNetCapitalGainsPercent(), colWidths[i++]),
                 percent(d.getCAGR(), colWidths[i++]),
                 text(" ", colWidths[i++]),
