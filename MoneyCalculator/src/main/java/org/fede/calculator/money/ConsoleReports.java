@@ -2236,7 +2236,7 @@ public class ConsoleReports {
     }
 
     private void invHeader(int[] colWidths) {
-        var separator = IntStream.rangeClosed(0, Arrays.stream(colWidths).sum()).mapToObj(n -> "=").collect(Collectors.joining());
+        var separator = IntStream.rangeClosed(0, Arrays.stream(colWidths).sum()-10).mapToObj(n -> "=").collect(Collectors.joining());
         var i = 0;
         this.appendLine(separator);
         this.appendLine(
