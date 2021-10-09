@@ -2249,12 +2249,12 @@ public class ConsoleReports {
                 text("    %", colWidths[i++]),
                 text("  Net Profit", colWidths[i++]),
                 text("    %", colWidths[i++]),
-                text(" ", colWidths[i++]),
-                text("CAGR", colWidths[i++]),
                 text("", colWidths[i++]),
-                text("   Fee", colWidths[i++]),
+                text("", colWidths[i++]),
+                text("CAGR", colWidths[i++]-2),
+                text("Fee", colWidths[i++]-3),
                 text("%", colWidths[i++]),
-                text("   Tax", colWidths[i++]),
+                text("Tax", colWidths[i++]-3),
                 text("%", colWidths[i++]));
         this.appendLine(separator);
     }
@@ -2294,7 +2294,7 @@ public class ConsoleReports {
         final var ics = new InvestmentCostStrategy(currency, TRADING_FEE, IVA.subtract(ONE, CONTEXT), CAPITAL_GAINS_TAX_RATE);
 
         final var mw = 13;
-        final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, mw, 9, 10, 1, 8, 10, 7, 10, 7};
+        final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, mw, 9, 10, 1, 24, 10, 7, 10, 7};
 
         this.invHeader(colWidths);
 
