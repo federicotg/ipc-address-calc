@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.money;
 
+import com.diogonunes.jcolor.Ansi;
+import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
@@ -83,14 +85,14 @@ public class PortfolioItem {
                 String.format("%-7s", this.amount.getCurrency()),
                 String.format("%11s", MessageFormat.format("{0,number,currency}", this.getDollarAmount().getAmount())),
                 String.format("%7s", this.pct(pct)),
-                pctBar(pct)
+                Ansi.colorize(pctBar(pct), Attribute.BRIGHT_WHITE_BACK())
         );
     }
 
     private static String pctBar(BigDecimal value) {
 
         return IntStream.range(0, value.movePointRight(2).intValue())
-                .mapToObj(i -> "#")
+                .mapToObj(i -> " ")
                 .collect(Collectors.joining());
 
     }
