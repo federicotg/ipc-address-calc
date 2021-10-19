@@ -1008,7 +1008,7 @@ public class ConsoleReports {
 
     private void savingEvolution(String[] args, String paramName) {
         appendLine("===< Savings Evolution >===");
-        this.evolution("Savings", this.realSavings(this.paramsValue(args, paramName).get("type")), 2500);
+        this.evolution("Savings", this.realSavings(this.paramsValue(args, paramName).get("type")), 2000);
     }
 
     private void expenseEvolution(String[] args, String paramName) {
@@ -1021,7 +1021,7 @@ public class ConsoleReports {
 
     private void expenseEvolution(String type, int months) {
 
-        this.evolution(format("Average {0}-month expenses.", months), new SimpleAggregation(months).average(this.realExpenses(type)), 15);
+        this.evolution(format("Average {0}-month expenses.", months), new SimpleAggregation(months).average(this.realExpenses(type)), 25);
     }
 
     private void savingChange(String[] args, String paramName) {
@@ -1077,7 +1077,7 @@ public class ConsoleReports {
     private void incomeEvolution() {
 
         appendLine("===< Income evolution >===");
-        this.evolution("Income", this.realIncome(), 100);
+        this.evolution("Income", this.realIncome(), 30);
     }
 
     private void incomeAverageEvolution(String[] args, String paramName) {
@@ -1096,7 +1096,7 @@ public class ConsoleReports {
         this.evolution(format("Average {0}-month income", months),
                 new SimpleAggregation(months)
                         .average(this.realIncome()),
-                100);
+                30);
     }
 
     private String bar(BigDecimal value, int scale) {
@@ -1766,7 +1766,7 @@ public class ConsoleReports {
 
         this.evolution(title,
                 new SimpleAggregation(months).average(this.realNetSavings()),
-                50);
+                40);
     }
 
     private void netAvgSavingPct(String[] args, String name) {
