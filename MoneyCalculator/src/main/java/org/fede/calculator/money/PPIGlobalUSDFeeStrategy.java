@@ -33,7 +33,8 @@ public class PPIGlobalUSDFeeStrategy implements Function<BigDecimal, BigDecimal>
     @Override
     public BigDecimal apply(BigDecimal presentValue) {
         
-        return presentValue.multiply(FEE_RATE.multiply(FEE_TAX_RATE, CONTEXT), CONTEXT).max(BigDecimal.TEN);
+        return presentValue.multiply(FEE_RATE.multiply(FEE_TAX_RATE, CONTEXT), CONTEXT)
+                .max(BigDecimal.TEN.multiply(FEE_TAX_RATE, CONTEXT));
 
     }
 
