@@ -106,7 +106,7 @@ public class ConsoleReports {
             "IWDA", "iShares Core MSCI World",
             "VWRA", "Vanguard FTSE All-World",
             "ISAC", "iShares MSCI ACWI",
-            "MEUD", "Lyxor Core STOXX Europe 600"
+            "MEUD", "Lyxor Core STOXX Europe 600 DR"
     );
 
     private static final Map<String, AnsiFormat> ETF_COLOR = Map.of(
@@ -2380,11 +2380,12 @@ public class ConsoleReports {
 
         Comparator<Pair<String, Pair<BigDecimal, BigDecimal>>> cmp = comparing((Pair<String, Pair<BigDecimal, BigDecimal>> p) -> p.getSecond().getSecond()).reversed();
 
-        appendLine(text(" ", 26), text(" Return", 8), text("    Annualized", 16));
+        final var textColWidth = 30;
+        appendLine(text(" ", textColWidth), text(" Return", 8), text("    Annualized", 16));
 
         final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction
                 = (p) -> format("{0} {1} {2}",
-                        text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), 26, ETF_COLOR.getOrDefault(p.getFirst(), new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT()))),
+                        text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), textColWidth, ETF_COLOR.getOrDefault(p.getFirst(), new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT()))),
                         percent(p.getSecond().getFirst(), 8),
                         pctBar(p.getSecond().getSecond()));
 
