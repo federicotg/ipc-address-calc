@@ -106,7 +106,7 @@ public class ConsoleReports {
             "IWDA", "iShares Core MSCI World",
             "VWRA", "Vanguard FTSE All-World",
             "ISAC", "iShares MSCI ACWI",
-            "MEUD", "Lyxor Core STOXX Eurpe 600"
+            "MEUD", "Lyxor Core STOXX Europe 600"
     );
 
     private static final Map<String, AnsiFormat> ETF_COLOR = Map.of(
