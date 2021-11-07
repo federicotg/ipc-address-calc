@@ -416,9 +416,9 @@ public class ConsoleReports {
                 " ",
                 currency(averageRealUSDIncome.getAmount()));
 
-        final var savingPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.3"), CONTEXT), averageRealUSDIncome.getCurrency());
+        final var savingPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.5"), CONTEXT), averageRealUSDIncome.getCurrency());
 
-        this.appendLine("30% saving: ",
+        this.appendLine("50% saving: ",
                 averageRealUSDIncome.getCurrency(),
                 " ",
                 currency(savingPct.getAmount()),
@@ -518,6 +518,7 @@ public class ConsoleReports {
                         entry("savings-avg-spent-pct", "months=12"),
                         entry("expenses", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("expenses-change", "months=12"),
+                        entry("mdr", "nominal=false"),
                         entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)")
                 );
