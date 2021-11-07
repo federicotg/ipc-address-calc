@@ -358,7 +358,7 @@ public class ConsoleReports {
         AnsiFormat bold = new AnsiFormat(Attribute.BRIGHT_BLACK_TEXT(), Attribute.BOLD(), Attribute.BRIGHT_WHITE_BACK());
         appendLine(Ansi.colorize("", bold));
         //appendLine(Ansi.colorize("\t<" + line + ">", bold));
-        appendLine(Ansi.colorize("\t<- " + title + " ->", bold));
+        appendLine("\t", Ansi.colorize(format(" {0} ", title), bold));
         appendLine("");
     }
 
