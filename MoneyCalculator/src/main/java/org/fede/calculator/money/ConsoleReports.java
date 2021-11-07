@@ -494,6 +494,7 @@ public class ConsoleReports {
                     //goal
                     entry("goal", () -> me.goal(args, "goal")),
                     entry("bbpp", () -> me.bbpp(args, "bbpp")),
+                    entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
                     entry("mdr", () -> me.returns(args, "mdr"))
             );
 
@@ -2527,6 +2528,25 @@ public class ConsoleReports {
                 .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(inv, "USD", nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
                 .map(lineFunction)
                 .forEach(this::appendLine);
+    }
+    
+    
+    // increase in real USD -  rolling N months
+    private void incomeDelta(String[] args, String paramName){
+        
+        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "12"));
+        
+        final var allIncomeSeries = this.getIncomeSeries().stream().reduce(MoneyAmountSeries::add).get();
+        
+        final var agg = new SimpleAggregation(months);
+        
+        final var average = agg.average(allIncomeSeries);
+        
+        final var change = agg.change(average);
+        
+        average.forEachNonZero((ym , ch) -> percentEvolutionReport(ym, change.getAmount(ym).getAmount().divide(average.getAmount(ym).getAmount(), CONTEXT)));
+                
+                
     }
 
 }
