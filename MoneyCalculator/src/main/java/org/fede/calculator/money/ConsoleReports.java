@@ -173,6 +173,9 @@ public class ConsoleReports {
     private static final AnsiFormat PROFIT_FORMAT = new AnsiFormat(Attribute.GREEN_TEXT());
     private static final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
 
+    private static final AnsiFormat BOLD = new AnsiFormat(Attribute.BRIGHT_BLACK_TEXT(), Attribute.BOLD(), Attribute.BRIGHT_WHITE_BACK());
+        
+    
     private List<Investment> investments;
 
     private List<BigDecimal> sp500TotalReturns;
@@ -355,10 +358,9 @@ public class ConsoleReports {
 
     private void subtitle(String title) {
 
-        AnsiFormat bold = new AnsiFormat(Attribute.BRIGHT_BLACK_TEXT(), Attribute.BOLD(), Attribute.BRIGHT_WHITE_BACK());
-        appendLine(Ansi.colorize("", bold));
+        appendLine("");
         //appendLine(Ansi.colorize("\t<" + line + ">", bold));
-        appendLine("\t", Ansi.colorize(format(" {0} ", title), bold));
+        appendLine("\t", Ansi.colorize(format(" {0} ", title), BOLD));
         appendLine("");
     }
 
@@ -2238,7 +2240,7 @@ public class ConsoleReports {
     }
 
     private void invHeader(int[] colWidths) {
-        var separator = IntStream.rangeClosed(0, Arrays.stream(colWidths).sum()-10).mapToObj(n -> "=").collect(Collectors.joining());
+        var separator = IntStream.rangeClosed(0, Arrays.stream(colWidths).sum() - 10).mapToObj(n -> "=").collect(Collectors.joining());
         var i = 0;
         this.appendLine(separator);
         this.appendLine(
@@ -2253,10 +2255,10 @@ public class ConsoleReports {
                 text("    %", colWidths[i++]),
                 text("", colWidths[i++]),
                 text("", colWidths[i++]),
-                text("CAGR", colWidths[i++]-2),
-                text("Fee", colWidths[i++]-3),
+                text("CAGR", colWidths[i++] - 2),
+                text("Fee", colWidths[i++] - 3),
                 text("%", colWidths[i++]),
-                text("Tax", colWidths[i++]-3),
+                text("Tax", colWidths[i++] - 3),
                 text("%", colWidths[i++]));
         this.appendLine(separator);
     }
@@ -2400,7 +2402,7 @@ public class ConsoleReports {
         this.subtitle("Modified Dietz Return");
 
         IntStream.rangeClosed(2019, LocalDate.now().getYear())
-                .mapToObj(  year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
                 .map(lineFunction)
                 .forEach(this::appendLine);
     }
@@ -2529,24 +2531,27 @@ public class ConsoleReports {
                 .map(lineFunction)
                 .forEach(this::appendLine);
     }
-    
-    
+
     // increase in real USD -  rolling N months
-    private void incomeDelta(String[] args, String paramName){
-        
+    private void incomeDelta(String[] args, String paramName) {
+
         final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "12"));
-        
+
+        final var title = format("{0}-month real USD income change over {0}-month real income average.", months);
+        this.title(title);
+
         final var allIncomeSeries = this.getIncomeSeries().stream().reduce(MoneyAmountSeries::add).get();
-        
+
         final var agg = new SimpleAggregation(months);
-        
+
         final var average = agg.average(allIncomeSeries);
-        
+
         final var change = agg.change(average);
-        
-        average.forEachNonZero((ym , ch) -> percentEvolutionReport(ym, change.getAmount(ym).getAmount().divide(average.getAmount(ym).getAmount(), CONTEXT)));
-                
-                
+
+        average.forEachNonZero((ym, ch) -> percentEvolutionReport(ym, change.getAmount(ym).getAmount().divide(average.getAmount(ym).getAmount(), CONTEXT)));
+
+        this.title(title);
+
     }
 
 }
