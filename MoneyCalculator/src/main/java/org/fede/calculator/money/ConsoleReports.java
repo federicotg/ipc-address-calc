@@ -174,8 +174,7 @@ public class ConsoleReports {
     private static final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
 
     private static final AnsiFormat BOLD = new AnsiFormat(Attribute.BRIGHT_BLACK_TEXT(), Attribute.BOLD(), Attribute.BRIGHT_WHITE_BACK());
-        
-    
+
     private List<Investment> investments;
 
     private List<BigDecimal> sp500TotalReturns;
@@ -2065,14 +2064,16 @@ public class ConsoleReports {
                         DayDollars::getYear,
                         groupingBy(DayDollars::getType, reducing(DayDollars::combine))));
 
+        final var mdrByYear = this.mdrByYear();
+
         dayDollarsByYear.entrySet()
                 .stream()
                 .sorted(comparing(Map.Entry::getKey))
-                .forEach(e -> this.allocationYear(e.getKey(), e.getValue()));
+                .forEach(e -> this.allocationYear(e.getKey(), e.getValue(), mdrByYear));
 
     }
 
-    private void allocationYear(String year, Map<String, Optional<DayDollars>> byType) {
+    private void allocationYear(String year, Map<String, Optional<DayDollars>> byType, Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear) {
         this.appendLine("Year: ", year);
 
         final var total = byType.values()
@@ -2089,7 +2090,12 @@ public class ConsoleReports {
                 String.format("%-11s", d.getType()),
                 pctBar(d.getAmount(), total)))
                 .forEach(this::appendLine);
-        this.appendLine("");
+
+        Optional.ofNullable(mdrByYear.get(Integer.parseInt(year)))
+                .map(Pair::getFirst)
+                .map(ConsoleReports::percent)
+                .map(pct -> format("Modified Dietz Return {0}\n", pct))
+                .ifPresent(this::appendLine);
 
     }
 
@@ -2491,6 +2497,30 @@ public class ConsoleReports {
 
     }
 
+    private Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear() {
+
+        final Predicate<Investment> since2002 = i -> after(i.getInitialDate(), 2002, Month.JANUARY, 1);
+        final var inv = this.getInvestments()
+                .stream()
+                .filter(since2002)
+                .collect(toList());
+
+        final var from = inv.stream()
+                .map(Investment::getInitialDate)
+                .map(Date::toInstant)
+                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
+                .reduce(ConsoleReports::min)
+                .get();
+
+        final var to = inv.stream()
+                .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate).map(Date::toInstant).orElseGet(Instant::now))
+                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
+                .reduce(ConsoleReports::max)
+                .get();
+
+        return this.mdrByYear(inv, from, to, false);
+    }
+
     private void modifiedDietzReturn(Predicate<Investment> criteria, boolean nominal) {
 
         final var inv = this.getInvestments()
@@ -2520,16 +2550,28 @@ public class ConsoleReports {
         appendLine("");
         appendLine(format("From {0} to {1}: {2}. Annualized: {3}", DateTimeFormatter.ISO_LOCAL_DATE.format(from), DateTimeFormatter.ISO_LOCAL_DATE.format(to), percent(modifiedDietzReturn.getFirst()), percent(modifiedDietzReturn.getSecond())));
 
-        final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction
+        final Function<Map.Entry<Integer, Pair<BigDecimal, BigDecimal>>, String> lineFunction
                 = (p) -> format("{0} {1} {2}",
-                        text(p.getFirst(), 10),
-                        percent(p.getSecond().getFirst(), 8),
-                        pctBar(p.getSecond().getSecond()));
+                        text(String.valueOf(p.getKey()), 10),
+                        percent(p.getValue().getFirst(), 8),
+                        pctBar(p.getValue().getSecond()));
 
-        IntStream.rangeClosed(from.getYear(), to.getYear())
-                .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(inv, "USD", nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+        this.mdrByYear(inv, from, to, nominal)
+                .entrySet()
+                .stream()
+                .sorted(comparing(Map.Entry::getKey))
                 .map(lineFunction)
                 .forEach(this::appendLine);
+
+    }
+
+    private Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear(List<Investment> inv, LocalDate from, LocalDate to, boolean nominal) {
+
+        return IntStream.rangeClosed(from.getYear(), to.getYear())
+                .boxed()
+                .collect(Collectors.toMap(
+                        year -> year,
+                        year -> new ModifiedDietzReturn(inv, "USD", nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()));
     }
 
     // increase in real USD -  rolling N months
