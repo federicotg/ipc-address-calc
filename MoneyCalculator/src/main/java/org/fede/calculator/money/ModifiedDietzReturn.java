@@ -45,7 +45,8 @@ public class ModifiedDietzReturn {
     private final boolean nominal;
     private final LocalDate initialMoment;
     private final LocalDate finalMoment;
-    private final long daysBetween;
+    private final long daysBetween;    
+    private final MoneyAmount zeroAmount;
 
     private static Instant min(Instant i1, Instant i2) {
         return i1.compareTo(i2) <= 0
@@ -113,6 +114,7 @@ public class ModifiedDietzReturn {
     public ModifiedDietzReturn(List<Investment> investments, String currency, boolean nominal, LocalDate initialMoment, LocalDate finalMoment) {
         this.investments = investments;
         this.currency = currency;
+        this.zeroAmount = new MoneyAmount(ZERO, this.currency);
         this.nominal = nominal;
         this.initialMoment = max(initialMoment,
                 investments
@@ -192,7 +194,7 @@ public class ModifiedDietzReturn {
                 .map(Investment::getInvestment)
                 .map(asset -> ForeignExchanges.getForeignExchange(asset.getCurrency(), currency).exchange(asset.getMoneyAmount(), currency, ym))
                 .map(ma -> nominal ? ma : Inflation.USD_INFLATION.adjust(ma, ym, Inflation.USD_INFLATION.getTo()))
-                .reduce(new MoneyAmount(ZERO, currency), MoneyAmount::add);
+                .reduce(this.zeroAmount, MoneyAmount::add);
     }
 
     public Pair<BigDecimal, BigDecimal> get() {
