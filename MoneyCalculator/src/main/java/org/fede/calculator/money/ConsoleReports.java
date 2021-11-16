@@ -40,6 +40,7 @@ import static java.util.stream.Collectors.toSet;
 import static java.text.MessageFormat.format;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -49,11 +50,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -496,6 +499,7 @@ public class ConsoleReports {
                     entry("goal", () -> me.goal(args, "goal")),
                     entry("bbpp", () -> me.bbpp(args, "bbpp")),
                     entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
+                    entry("ibkr", () -> me.ibkrCSV()),
                     entry("mdr", () -> me.returns(args, "mdr"))
             );
 
@@ -2594,6 +2598,87 @@ public class ConsoleReports {
 
         this.title(title);
 
+    }
+
+    private void ibkrCSV() {
+
+        this.getInvestments().stream()
+                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(inv -> inv.getComment() == null)
+                .map(this::assetRow)
+                .forEach(this::appendLine);
+
+        final var eur = this.getInvestments().stream()
+                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(inv -> inv.getComment() == null)
+                .filter(inv -> "MEUD".equals(inv.getInvestment().getCurrency()))
+                .map(inv -> inv.getIn().getAmount().add(inv.getIn().getFee(), CONTEXT))
+                .reduce(ZERO, BigDecimal::add);
+
+        final var usd = this.getInvestments().stream()
+                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(inv -> inv.getComment() == null)
+                .filter(inv -> !"MEUD".equals(inv.getInvestment().getCurrency()))
+                .map(inv -> inv.getIn().getAmount().add(inv.getIn().getFee(), CONTEXT))
+                .reduce(ZERO, BigDecimal::add);
+
+        this.appendLine(format("€ {0} - USD {1}", eur, usd));
+    }
+
+    private String assetRow(Investment inv) {
+
+        final var isins = Map.of(
+                "EIMI", "IE00BKM4GZ66",
+                "XRSU", "IE00BJZ2DD79",
+                "CSPX", "IE00B5BMR087",
+                "MEUD", "LU0908500753");
+        final var currencies = Map.of("MEUD", "EUR");
+
+        final Map<String, BiFunction<MoneyAmount, YearMonth, BigDecimal>> currencyConverter = Map.of(
+                "MEUD", (ma, ym) -> ForeignExchanges.USD_EUR.exchange(ma, "EUR", ym).getAmount(),
+                "XRSU", (ma, ym) -> ma.getAmount(),
+                "EIMI", (ma, ym) -> ma.getAmount(),
+                "CSPX", (ma, ym) -> ma.getAmount()
+        );
+
+        final var cusips = Map.of(
+                "EIMI", "BKM4GZ6",
+                "XRSU", "BWBXSH4",
+                "CSPX", "B50YWZ5",
+                "MEUD", "LU0908500753");
+
+        final var codes = Map.of(
+                "CSPX", "CSSPXz",
+                "EIMI", "EIMIz",
+                "XRSU", "XRS2z",
+                "MEUD", "MEUD");
+
+        //final DateTimeFormatter dmy = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        final DateTimeFormatter mdy = DateTimeFormatter.ofPattern("M/d/yyyy").withZone(ZoneId.systemDefault());
+
+        final var numberFormat = NumberFormat.getInstance(Locale.US);
+        numberFormat.setGroupingUsed(false);
+        numberFormat.setMaximumFractionDigits(2);
+        numberFormat.setMinimumFractionDigits(2);
+
+        return List.of(
+                "A",
+                codes.get(inv.getInvestment().getCurrency()),
+                isins.get(inv.getInvestment().getCurrency()),
+                currencies.getOrDefault(inv.getInvestment().getCurrency(), "USD"),
+                mdy.format(inv.getIn().getDate().toInstant()),
+                "BUY",
+                "Investment",
+                "ETF",
+                numberFormat.format(inv.getInvestment().getAmount()),
+                numberFormat.format(
+                        currencyConverter.get(inv.getInvestment().getCurrency())
+                                .apply(new MoneyAmount(inv.getIn().getAmount().divide(inv.getInvestment().getAmount(), CONTEXT), inv.getInvestment().getCurrency()), YearMonth.of(inv.getIn().getDate()))),
+                numberFormat.format(
+                        currencyConverter.get(inv.getInvestment().getCurrency())
+                                .apply(inv.getIn().getFeeMoneyAmount(), YearMonth.of(inv.getIn().getDate()))))
+                .stream()
+                .collect(Collectors.joining(","));
     }
 
 }
