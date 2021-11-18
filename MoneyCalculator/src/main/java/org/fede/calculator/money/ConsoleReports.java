@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import static java.util.Map.entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -849,22 +850,19 @@ public class ConsoleReports {
                 .get();
     }
 
-    private void evolutionReport(YearMonth ym, MoneyAmount mo, int scale) {
-        this.appendLine(
-                format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
-                " ",
-                currency(mo, 16),
-                " ",
-                this.bar(mo.getAmount(), scale));
+    private void evolutionReport(YearMonth ym, MoneyAmount ma, int scale) {
+
+        this.appendLine(this.currencyBar(ym, List.of(Pair.of(ma, Attribute.WHITE_BACK())), scale));
     }
 
-    private void percentEvolutionReport(YearMonth ym, BigDecimal mo) {
+    private void percentEvolutionReport(YearMonth ym, BigDecimal ma) {
+
         this.appendLine(
                 format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
                 " ",
-                percent(mo, 8),
+                percent(ma, 8),
                 " ",
-                this.bar(mo.movePointRight(2), 1));
+                this.bar(ma.movePointRight(2), 1));
     }
 
     private void numericEvolution(String name, MoneyAmountSeries s, int scale) {
@@ -2175,6 +2173,14 @@ public class ConsoleReports {
         return String.format("%" + width + "s", currency(value));
     }
 
+    private static String number(BigDecimal value) {
+        return format("{0,number,#.00}", value);
+    }
+
+    private static String number(BigDecimal value, int width) {
+        return String.format("%" + width + "s", number(value));
+    }
+
     private static String currencyPL(BigDecimal value, int width) {
 
         return Ansi.colorize(String.format("%" + width + "s", currency(value)), value.signum() >= 0 ? PROFIT_FORMAT : LOSS_FORMAT);
@@ -2684,11 +2690,12 @@ public class ConsoleReports {
 
     private void invEvoPct(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+
+        final var currency = params.get("currency");
 
         appendLine("===< Investment Evolution Percent >===");
 
-        final var m = this.investmentEvolution(nominal);
+        final var m = this.investmentEvolution(currency);
 
         final var inv = m.get("invested");
         final var fee = m.get("fees");
@@ -2700,8 +2707,7 @@ public class ConsoleReports {
                         List.of(Pair.of(inv.getAmount(ym), Attribute.WHITE_BACK()),
                                 Pair.of(fee.getAmount(ym), Attribute.YELLOW_BACK()),
                                 Pair.of(total.getAmount(ym)
-                                        .subtract(inv.getAmount(ym).add(fee.getAmount(ym))), Attribute.GREEN_BACK()))
-                )));
+                                        .subtract(inv.getAmount(ym).add(fee.getAmount(ym))), Attribute.GREEN_BACK())))));
 
         appendLine("===< Investment Evolution Percent  >===");
         appendLine("");
@@ -2720,11 +2726,12 @@ public class ConsoleReports {
 
     private void invEvo(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+
+        final var currency = params.get("currency");
 
         appendLine("===< Investment Evolution >===");
 
-        final var m = this.investmentEvolution(nominal);
+        final var m = this.investmentEvolution(currency);
 
         final var inv = m.get("invested");
         final var fee = m.get("fees");
@@ -2755,7 +2762,7 @@ public class ConsoleReports {
     }
 
     private String currencyBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
-        return this.genericBar(ym, amounts, width, a -> currency(a, 11));
+        return this.genericBar(ym, amounts, width, a -> number(a, 9));
     }
 
     private String percentBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts) {
@@ -2793,24 +2800,21 @@ public class ConsoleReports {
 
     private String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width, Function<BigDecimal, String> format) {
 
-        final var values = IntStream.range(0, amounts.size()).map(i -> i + 2).mapToObj(i -> format("'{'{0}'}'", i)).collect(joining(",", "[", "]"));
+        final var values = IntStream.range(0, amounts.size()).map(i -> i + 2).mapToObj(i -> format("'{'{0}'}'", i)).collect(joining(" "));
         final var bars = IntStream.range(0, amounts.size()).map(i -> i + 2 + amounts.size()).mapToObj(i -> format("'{'{0}'}'", i)).collect(joining(""));
-
-        Stream<String> amountsStream = amounts.stream().map(Pair::getFirst).map(MoneyAmount::getAmount).map(format);
-
-        Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.getFirst().getAmount(), width, p.getFirst().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.getSecond()));
-
-        Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth()));
+        final Stream<String> amountsStream = amounts.stream().map(Pair::getFirst).map(MoneyAmount::getAmount).map(format);
+        final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.getFirst().getAmount(), width, p.getFirst().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.getSecond()));
+        final Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth()));
 
         return format("{0}/{1} " + values + " " + bars,
                 (Object[]) Stream.of(ymStream, amountsStream, barsStream).flatMap(Function.identity()).toArray(String[]::new));
-
     }
 
-    private Map<String, MoneyAmountSeries> investmentEvolution(boolean nominal) {
+    private Map<String, MoneyAmountSeries> investmentEvolution(String currency) {
 
         final var inv = this.getInvestments().stream()
                 .filter(i -> i.getType().equals(InvestmentType.ETF))
+                .filter(i -> Objects.isNull(currency) || Objects.equals(currency, i.getCurrency()))
                 .sorted(Comparator.comparing(Investment::getInitialDate, Comparator.naturalOrder()))
                 .collect(toList());
 
@@ -2831,16 +2835,10 @@ public class ConsoleReports {
 
             final var moment = ym;
 
-            investmentSeries.putAmount(ym, accum(inv, ym, i -> i.getIn().getMoneyAmount(), nominal));
+            investmentSeries.putAmount(ym, accum(inv, ym, i -> i.getIn().getMoneyAmount()));
 
-            feeSeries.putAmount(ym, accum(inv, ym, i -> i.getIn().getFeeMoneyAmount(), nominal));
-            totalValuesSeries.putAmount(
-                    ym,
-                    accum(
-                            inv,
-                            ym,
-                            i -> asUSD(i.getInvestment().getMoneyAmount(), moment),
-                            true));
+            feeSeries.putAmount(ym, accum(inv, ym, i -> i.getIn().getFeeMoneyAmount()));
+            totalValuesSeries.putAmount(ym, accum(inv, ym, i -> asUSD(i.getInvestment().getMoneyAmount(), moment)));
 
             ym = ym.next();
         }
@@ -2851,21 +2849,16 @@ public class ConsoleReports {
                 "total", totalValuesSeries);
     }
 
-    private MoneyAmount asReal(MoneyAmount ma, YearMonth ym) {
-        return Inflation.USD_INFLATION.adjust(ma, ym, Inflation.USD_INFLATION.getTo());
-    }
-
     private MoneyAmount asUSD(MoneyAmount ma, YearMonth ym) {
         return ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", ym);
     }
 
-    private MoneyAmount accum(List<Investment> investments, YearMonth yearMonth, Function<Investment, MoneyAmount> extractor, boolean nominal) {
+    private MoneyAmount accum(List<Investment> investments, YearMonth yearMonth, Function<Investment, MoneyAmount> extractor) {
 
         return investments.stream()
                 .filter(i -> YearMonth.of(i.getIn().getDate()).compareTo(yearMonth) <= 0)
                 .map(i -> Pair.of(extractor.apply(i), YearMonth.of(i.getInitialDate())))
-                .map(p -> Pair.of(this.asUSD(p.getFirst(), p.getSecond()), p.getSecond()))
-                .map(p -> nominal ? p.getFirst() : this.asReal(p.getFirst(), p.getSecond()))
+                .map(p -> this.asUSD(p.getFirst(), p.getSecond()))
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
 
