@@ -2174,7 +2174,7 @@ public class ConsoleReports {
     }
 
     private static String number(BigDecimal value) {
-        return format("{0,number,#.00}", value);
+        return format("{0,number,0.00}", value);
     }
 
     private static String number(BigDecimal value, int width) {
@@ -2709,7 +2709,7 @@ public class ConsoleReports {
                                 Pair.of(total.getAmount(ym)
                                         .subtract(inv.getAmount(ym).add(fee.getAmount(ym))), Attribute.GREEN_BACK())))));
 
-        appendLine("===< Investment Evolution Percent  >===");
+        appendLine("===< Investment Evolution Percent >===");
         appendLine("");
         appendLine("References:");
 
@@ -2737,14 +2737,28 @@ public class ConsoleReports {
         final var fee = m.get("fees");
         final var total = m.get("total");
 
-        total.forEach((ym, cashMa) -> appendLine(
-                this.currencyBar(
-                        ym,
-                        List.of(Pair.of(inv.getAmount(ym), Attribute.WHITE_BACK()),
-                                Pair.of(fee.getAmount(ym), Attribute.YELLOW_BACK()),
-                                Pair.of(total.getAmount(ym)
-                                        .subtract(inv.getAmount(ym).add(fee.getAmount(ym))), Attribute.GREEN_BACK())),
-                        800)));
+        total.forEach((ym, cashMa) -> {
+
+            final var investment = inv.getAmount(ym);
+            final var feeAmount = fee.getAmount(ym);
+            final var totalAmount = total.getAmount(ym);
+            final var capitalGains = totalAmount.subtract(investment).subtract(feeAmount);
+            final var netCapitalGains = capitalGains.getAmount().signum() > 0
+                    ? capitalGains.adjust(ONE, ONE.subtract(CAPITAL_GAINS_TAX_RATE, CONTEXT))
+                    : capitalGains;
+            final var taxAmount = capitalGains.getAmount().signum() > 0
+                    ? capitalGains.adjust(ONE, CAPITAL_GAINS_TAX_RATE)
+                    : ZERO_USD;
+
+            appendLine(
+                    this.currencyBar(
+                            ym,
+                            List.of(Pair.of(investment, Attribute.WHITE_BACK()),
+                                    Pair.of(feeAmount, Attribute.YELLOW_BACK()),
+                                    Pair.of(netCapitalGains, Attribute.GREEN_BACK()),
+                                    Pair.of(taxAmount, Attribute.CYAN_BACK())),
+                            800));
+        });
 
         appendLine("===< Investment Evolution >===");
         appendLine("");
@@ -2757,7 +2771,9 @@ public class ConsoleReports {
                 Ansi.colorize(" ", Attribute.GREEN_BACK()),
                 ": profits, ",
                 Ansi.colorize(" ", Attribute.RED_BACK()),
-                ": losses.");
+                ": losses, ",
+                Ansi.colorize(" ", Attribute.CYAN_BACK()),
+                ": taxes.");
 
     }
 
