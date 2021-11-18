@@ -2840,7 +2840,7 @@ public class ConsoleReports {
                             inv,
                             ym,
                             i -> asUSD(i.getInvestment().getMoneyAmount(), moment),
-                            nominal));
+                            true));
 
             ym = ym.next();
         }
