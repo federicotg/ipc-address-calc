@@ -361,7 +361,6 @@ public class ConsoleReports {
     private void subtitle(String title) {
 
         appendLine("");
-        //appendLine(Ansi.colorize("\t<" + line + ">", bold));
         appendLine("\t", Ansi.colorize(format(" {0} ", title), BOLD));
         appendLine("");
     }
@@ -850,11 +849,6 @@ public class ConsoleReports {
                 .get();
     }
 
-    private void evolutionReport(YearMonth ym, MoneyAmount ma, int scale) {
-
-        this.appendLine(this.currencyBar(ym, List.of(Pair.of(ma, Attribute.WHITE_BACK())), scale));
-    }
-
     private void percentEvolutionReport(YearMonth ym, BigDecimal ma) {
 
         this.appendLine(
@@ -865,18 +859,10 @@ public class ConsoleReports {
                 this.bar(ma.movePointRight(2), 1));
     }
 
-    private void numericEvolution(String name, MoneyAmountSeries s, int scale) {
-        var limit = USD_INFLATION.getTo();
-
-        s.forEach((ym, ma) -> this.evolutionReport(ym, ma, scale));
-
-        appendLine("\n", name, " ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
-    }
-
     private void evolution(String name, MoneyAmountSeries s, int scale) {
         var limit = USD_INFLATION.getTo();
 
-        s.forEach((ym, ma) -> this.evolutionReport(ym, ma, scale));
+        s.forEach((ym, ma) -> this.appendLine(this.currencyBar(ym, List.of(Pair.of(ma, Attribute.WHITE_BACK())), scale)));
 
         appendLine("\n", name, " real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
 
@@ -1058,7 +1044,6 @@ public class ConsoleReports {
             ym = ym.next();
         }
 
-        //appendLine("\n", name, " real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
     }
 
     private void expensesChange(String[] args, String name) {
@@ -1386,9 +1371,6 @@ public class ConsoleReports {
             final double[] deposit,
             final double[] withdraw) {
 
-//        if(retirement - 1978 < 50 || end - 1978 < 50){
-//            System.out.println("ret: " + (retirement - 1978) + " end: " + (end - 1978));
-//        }
         double cashAmount = cash;
         double amount = investedAmount;
         // depositing
@@ -1647,7 +1629,7 @@ public class ConsoleReports {
         final var savings = new SimpleAggregation(months).average(this.realSavings(null));
         final var income = new SimpleAggregation(months).average(this.realIncome());
 
-        this.numericEvolution(
+        this.evolution(
                 title,
                 income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).getAmount().divide(ONE.max(ma.getAmount()), CONTEXT), ma.getCurrency())),
                 2);
@@ -1794,8 +1776,6 @@ public class ConsoleReports {
         appendLine(title);
         appendLine("");
         appendLine("References:");
-        //appendLine("#: saved, +: spent.");
-
         appendLine(Ansi.colorize(" ", Attribute.BLUE_BACK()),
                 ": saved, ",
                 Ansi.colorize(" ", Attribute.RED_BACK()),
@@ -1830,7 +1810,6 @@ public class ConsoleReports {
         appendLine(title);
         appendLine("");
         appendLine("References:");
-        //appendLine("#: saved, +: spent, %: other spending.");
 
         appendLine(Ansi.colorize(" ", Attribute.BLUE_BACK()),
                 ": saved, ",
@@ -2660,7 +2639,6 @@ public class ConsoleReports {
                 "XRSU", "XRS2z",
                 "MEUD", "MEUD");
 
-        //final DateTimeFormatter dmy = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         final DateTimeFormatter mdy = DateTimeFormatter.ofPattern("M/d/yyyy").withZone(ZoneId.systemDefault());
 
         final var numberFormat = NumberFormat.getInstance(Locale.US);
