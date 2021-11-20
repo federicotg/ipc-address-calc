@@ -47,8 +47,8 @@ public class PortfolioItem {
         this.amount = amount;
         this.type = type;
 
-        this.dollarAmount = ForeignExchanges.getForeignExchange(this.amount.getCurrency(), "USD")
-                .exchange(this.amount, "USD", ym);
+        this.dollarAmount = ForeignExchanges.getMoneyAmountForeignExchange(this.amount.getCurrency(), "USD")
+                .apply(this.amount, ym);
 
     }
 

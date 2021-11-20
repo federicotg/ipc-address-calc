@@ -178,13 +178,11 @@ public class ModifiedDietzReturn {
     private BigDecimal cashFlowAmount(InvestmentEvent ie) {
 
         final var ym = YearMonth.of(ie.getDate());
-        final var fx = ForeignExchanges.getForeignExchange(ie.getCurrency(), currency)
-                .exchange(ie.getMoneyAmount(), currency, ym);
+        final var fx = ForeignExchanges.getMoneyAmountForeignExchange(ie.getCurrency(), currency).apply(ie.getMoneyAmount(), ym);
 
         return nominal
                 ? fx.getAmount()
                 : Inflation.USD_INFLATION.adjust(fx, ym, Inflation.USD_INFLATION.getTo()).getAmount();
-
     }
 
     private MoneyAmount portfolioValue(YearMonth ym) {
@@ -192,7 +190,7 @@ public class ModifiedDietzReturn {
         return this.getInvestments().stream()
                 .filter(i -> i.isCurrent(ym.asToDate()))
                 .map(Investment::getInvestment)
-                .map(asset -> ForeignExchanges.getForeignExchange(asset.getCurrency(), currency).exchange(asset.getMoneyAmount(), currency, ym))
+                .map(asset -> ForeignExchanges.getMoneyAmountForeignExchange(asset.getCurrency(), currency).apply(asset.getMoneyAmount(), ym))
                 .map(ma -> nominal ? ma : Inflation.USD_INFLATION.adjust(ma, ym, Inflation.USD_INFLATION.getTo()))
                 .reduce(this.zeroAmount, MoneyAmount::add);
     }

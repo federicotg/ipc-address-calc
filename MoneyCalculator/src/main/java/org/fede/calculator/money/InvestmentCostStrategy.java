@@ -95,8 +95,8 @@ public class InvestmentCostStrategy {
 
         //post sell fee
 
-        final var presentValue = ForeignExchanges.getForeignExchange(inv.getMoneyAmount().getCurrency(), this.currency)
-                .exchange(inv.getMoneyAmount(), this.currency, Inflation.USD_INFLATION.getTo())
+        final var presentValue = ForeignExchanges.getMoneyAmountForeignExchange(inv.getMoneyAmount().getCurrency(), this.currency)
+                .apply(inv.getMoneyAmount(), Inflation.USD_INFLATION.getTo())
                 .getAmount();
 
         final var sellFee = this.getFeeStrategy(investment).apply(presentValue);

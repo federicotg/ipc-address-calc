@@ -19,12 +19,14 @@ package org.fede.calculator.money;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import org.fede.calculator.money.series.IndexSeriesSupport;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
+import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 
 /**
@@ -142,6 +144,10 @@ public class ForeignExchanges {
         INTERMEDIATE_FOREIGN_EXCHANGES.put("ARS", "USD");
     }
 
+    public static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(String from, String to) {
+        return (amount, ym) -> getForeignExchange(from, to).exchange(amount, to, ym);
+    }
+    
     public static ForeignExchange getForeignExchange(String from, String to) {
         if (from.equals(to)) {
             return getIdentityForeignExchange(from);

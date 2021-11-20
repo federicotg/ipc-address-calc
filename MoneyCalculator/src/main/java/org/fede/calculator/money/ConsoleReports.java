@@ -82,6 +82,7 @@ import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
+import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 
 /**
  *
@@ -261,7 +262,7 @@ public class ConsoleReports {
         return getInvestments().stream()
                 .filter(predicate)
                 .map(i -> i.getInvestment().getMoneyAmount())
-                .map(investedAmount -> ForeignExchanges.getForeignExchange(investedAmount.getCurrency(), reportCurrency).exchange(investedAmount, reportCurrency, limit))
+                .map(investedAmount -> getMoneyAmountForeignExchange(investedAmount.getCurrency(), reportCurrency).apply(investedAmount, limit))
                 .reduce(MoneyAmount::add);
     }
 
@@ -318,8 +319,7 @@ public class ConsoleReports {
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(
                         this::assetAllocation,
-                        mapping(inv -> ForeignExchanges.getForeignExchange(inv.getInvestment().getCurrency(), reportCurrency)
-                        .exchange(inv.getInvestment().getMoneyAmount(), reportCurrency, limit)
+                        mapping(inv -> getMoneyAmountForeignExchange(inv.getInvestment().getCurrency(), reportCurrency).apply(inv.getInvestment().getMoneyAmount(), limit)
                         .getAmount()
                         .setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE),
                                 REDUCER)))
@@ -334,7 +334,7 @@ public class ConsoleReports {
 
     private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency) {
 
-        return ForeignExchanges.getForeignExchange(p.getSecond().getCurrency(), reportCurrency).exchange(p.getSecond(), reportCurrency, USD_INFLATION.getTo());
+        return getMoneyAmountForeignExchange(p.getSecond().getCurrency(), reportCurrency).apply(p.getSecond(), USD_INFLATION.getTo());
     }
 
     private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type) {
@@ -426,7 +426,7 @@ public class ConsoleReports {
                 " ",
                 currency(savingPct.getAmount()),
                 " / ",
-                currency(ForeignExchanges.getForeignExchange(savingPct.getCurrency(), "ARS").exchange(savingPct, "ARS", limit).getAmount()));
+                currency(ForeignExchanges.getMoneyAmountForeignExchange(savingPct.getCurrency(), "ARS").apply(savingPct, limit).getAmount()));
 
         appendLine(format("Saved salaries {0}",
                 this.realSavings(null).getAmount(limit).getAmount()
@@ -723,8 +723,8 @@ public class ConsoleReports {
         this.appendLine(format("\tMensual USD {0} {1} - ARS {2}",
                 currency(monthlyCost),
                 percent(monthlyCost.divide(realInitialCost.getAmount(), CONTEXT)),
-                currency(ForeignExchanges.getForeignExchange("USD", "ARS")
-                        .exchange(new MoneyAmount(monthlyCost, "USD"), "ARS", limit)
+                currency(getMoneyAmountForeignExchange("USD", "ARS")
+                        .apply(new MoneyAmount(monthlyCost, "USD"), limit)
                         .getAmount())));
 
         final var yearlyCost = totalRealExpense.getAmount().divide(years, CONTEXT);
@@ -2406,7 +2406,7 @@ public class ConsoleReports {
     private BenchmarkItem benchmarkItem(boolean nominal, Map.Entry<String, BigDecimal> e) {
 
         final var oneNominal = new MoneyAmount(ONE, e.getKey());
-        final var usd = ForeignExchanges.getForeignExchange(e.getKey(), "USD").exchange(oneNominal, "USD", USD_INFLATION.getTo());
+        final var usd = ForeignExchanges.getMoneyAmountForeignExchange(e.getKey(), "USD").apply(oneNominal, USD_INFLATION.getTo());
         final var item = new BenchmarkItem(e.getValue(), usd.getAmount());
         return nominal
                 ? item
@@ -2426,12 +2426,12 @@ public class ConsoleReports {
 
         final var initial = PORTFOLIO.stream()
                 .map(ma -> new MoneyAmount(ma.getAmount().multiply(INITIAL_VALUES.get(ma.getCurrency()), CONTEXT), ma.getCurrency().equals("MEUD") ? "EUR" : "USD"))
-                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", 2019, 7))
+                .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, YearMonth.of(2019, 7)))
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
         final var current = PORTFOLIO.stream()
-                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", Inflation.USD_INFLATION.getTo()))
+                .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, Inflation.USD_INFLATION.getTo()))
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
@@ -2844,7 +2844,7 @@ public class ConsoleReports {
     }
 
     private MoneyAmount asUSD(MoneyAmount ma, YearMonth ym) {
-        return ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", ym);
+        return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, ym);
     }
 
     private MoneyAmount accum(List<Investment> investments, YearMonth yearMonth, Function<Investment, MoneyAmount> extractor) {
