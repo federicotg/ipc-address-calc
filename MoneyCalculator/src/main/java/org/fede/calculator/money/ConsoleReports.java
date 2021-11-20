@@ -1428,33 +1428,30 @@ public class ConsoleReports {
                 .findAny()
                 .get();
 
+        final var ym = YearMonth.of(year, 12);
+
         final Map<String, Function<MoneyAmount, BigDecimal>> arsFunction = Map.of(
                 "ARS", (MoneyAmount item) -> item.getAmount(),
                 "LECAP", (MoneyAmount item) -> item.getAmount(),
                 "EUR", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getEur(), CONTEXT),
                 "USD", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getUsd(), CONTEXT),
                 "LETE", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getUsd(), CONTEXT),
-                "XRSU", (MoneyAmount item)
-                -> ForeignExchanges.getForeignExchange(item.getCurrency(), "USD")
-                        .exchange(item, "USD", year, 12)
+                "XRSU", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "USD")
+                        .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.getUsd(), CONTEXT),
-                "CSPX", (MoneyAmount item)
-                -> ForeignExchanges.getForeignExchange(item.getCurrency(), "USD")
-                        .exchange(item, "USD", year, 12)
+                "CSPX", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "USD")
+                        .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.getUsd(), CONTEXT),
-                "EIMI", (MoneyAmount item)
-                -> ForeignExchanges.getForeignExchange(item.getCurrency(), "USD")
-                        .exchange(item, "USD", year, 12)
+                "EIMI", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "USD")
+                        .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.getUsd(), CONTEXT),
-                "MEUD", (MoneyAmount item)
-                -> ForeignExchanges.getForeignExchange(item.getCurrency(), "EUR")
-                        .exchange(item, "EUR", year, 12)
+                "MEUD", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "EUR")
+                        .apply(item, ym)
                         .getAmount()
-                        .multiply(bbpp.getEur(), CONTEXT)
-        );
+                        .multiply(bbpp.getEur(), CONTEXT));
 
         final var etfs = this.getInvestments()
                 .stream()
@@ -1553,8 +1550,7 @@ public class ConsoleReports {
 
         final var taxAmount = taxedTotal.multiply(taxRate, CONTEXT);
 
-        final var usdTaxAmount = ForeignExchanges.getForeignExchange("ARS", "USD")
-                .exchange(new MoneyAmount(taxAmount, "ARS"), "USD", year, 12);
+        final var usdTaxAmount = getMoneyAmountForeignExchange("ARS", "USD").apply(new MoneyAmount(taxAmount, "ARS"), ym);
 
         appendLine(format("Tax amount {0} / USD {1}",
                 currency(taxAmount),
@@ -1567,13 +1563,13 @@ public class ConsoleReports {
                 .filter(i -> i.isCurrent(date))
                 .map(Investment::getInvestment)
                 .map(i -> i.getMoneyAmount())
-                .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), "USD").exchange(ma, "USD", year, 12))
+                .map(ma -> getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, ym))
                 .reduce(ZERO_USD, MoneyAmount::add);
 
         final var yearRealIncome = new ArrayList<MoneyAmount>(12);
 
         this.realIncome()
-                .forEachNonZero((ym, ma) -> Optional.of(ma).filter(m -> ym.getYear() == year).ifPresent(yearRealIncome::add));
+                .forEachNonZero((yearMonth, ma) -> Optional.of(ma).filter(m -> yearMonth.getYear() == year).ifPresent(yearRealIncome::add));
 
         appendLine(format("Effective tax rate is {0}. Tax is {1} of investments. Tax is {2} of income.",
                 percent(taxAmount.divide(totalAmount, CONTEXT)),
@@ -2113,8 +2109,8 @@ public class ConsoleReports {
                 max(yearStart, investmentStart),
                 to.plusDays(1));
 
-        final var usdInvested = ForeignExchanges.getForeignExchange(i.getCurrency(), "USD")
-                .exchange(i.getMoneyAmount(), "USD", to.getYear(), to.getMonthValue());
+        final var usdInvested = getMoneyAmountForeignExchange(i.getCurrency(), "USD")
+                .apply(i.getMoneyAmount(), YearMonth.of(to.getYear(), to.getMonthValue()));
 
         return new DayDollars(
                 year,
