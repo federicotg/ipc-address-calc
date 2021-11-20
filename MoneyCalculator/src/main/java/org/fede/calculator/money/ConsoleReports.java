@@ -83,6 +83,7 @@ import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
+import org.fede.calculator.money.series.InvestmentAsset;
 
 /**
  *
@@ -1562,7 +1563,7 @@ public class ConsoleReports {
                 .stream()
                 .filter(i -> i.isCurrent(date))
                 .map(Investment::getInvestment)
-                .map(i -> i.getMoneyAmount())
+                .map(InvestmentAsset::getMoneyAmount)
                 .map(ma -> getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, ym))
                 .reduce(ZERO_USD, MoneyAmount::add);
 
