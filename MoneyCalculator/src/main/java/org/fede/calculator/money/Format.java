@@ -32,8 +32,12 @@ public class Format {
     private static final AnsiFormat PROFIT_FORMAT = new AnsiFormat(Attribute.GREEN_TEXT());
     private static final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
     private static final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
-    
+
     public static final Format FORMAT = new Format();
+
+    public Format() {
+        PERCENT_FORMAT.setMinimumFractionDigits(2);
+    }
 
     public String text(String value, int width, AnsiFormat fmt) {
         return Ansi.colorize(text(value, width), fmt);
@@ -76,5 +80,10 @@ public class Format {
     public String percent(BigDecimal pct) {
 
         return format("{0}", PERCENT_FORMAT.format(pct));
+    }
+
+    public String pctNumber(BigDecimal value) {
+        return String.format("%3d", value.intValue()).concat("%");
+
     }
 }

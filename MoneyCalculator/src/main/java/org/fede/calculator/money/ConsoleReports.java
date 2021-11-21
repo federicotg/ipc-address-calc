@@ -25,7 +25,6 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
-import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -83,6 +82,7 @@ import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import org.fede.calculator.money.series.InvestmentAsset;
 import static org.fede.calculator.money.Format.FORMAT;
+import static org.fede.calculator.money.Bar.BAR;
 
 /**
  *
@@ -124,7 +124,6 @@ public class ConsoleReports {
     );
 
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
-    private static final BigDecimal ONE_PERCENT = BigDecimal.ONE.movePointLeft(2);
 
     private static final double BBPP_FX_GAP_PERCENT = 0.9d;
 
@@ -320,7 +319,7 @@ public class ConsoleReports {
         return format("{0}{1}{2}",
                 FORMAT.text(type, 5),
                 FORMAT.currency(subtotal, 16),
-                pctBar(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), CONTEXT)).orElse(ZERO)));
+                BAR.pctBar(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), CONTEXT)).orElse(ZERO)));
     }
 
     private BenchmarkItem real(BenchmarkItem item) {
@@ -738,7 +737,7 @@ public class ConsoleReports {
                 FORMAT.text(e.getFirst(), 13),
                 FORMAT.text(" USD ", 4),
                 FORMAT.currency(e.getSecond(), 10),
-                pctBar(e.getSecond(), total)))
+                BAR.pctBar(e.getSecond(), total)))
                 .forEach(this::appendLine);
 
         this.appendLine(format("-----------------------------\n{0} USD {1}",
@@ -834,13 +833,13 @@ public class ConsoleReports {
                 " ",
                 FORMAT.percent(ma, 8),
                 " ",
-                this.bar(ma.movePointRight(2), 1));
+                BAR.bar(ma.movePointRight(2), 1));
     }
 
     private void evolution(String name, MoneyAmountSeries s, int scale) {
         var limit = USD_INFLATION.getTo();
 
-        s.forEach((ym, ma) -> this.appendLine(this.currencyBar(ym, List.of(Pair.of(ma, Attribute.WHITE_BACK())), scale)));
+        s.forEach((ym, ma) -> this.appendLine(BAR.currencyBar(ym, List.of(Pair.of(ma, Attribute.WHITE_BACK())), scale)));
 
         appendLine("\n", name, " real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
 
@@ -857,7 +856,7 @@ public class ConsoleReports {
         final var nf = NumberFormat.getCurrencyInstance();
 
         cash.forEach((ym, cashMa) -> appendLine(
-                this.bar(
+                BAR.bar(
                         ym,
                         cashMa.getAmount(),
                         eq.getAmountOrElseZero(ym).getAmount(),
@@ -891,7 +890,7 @@ public class ConsoleReports {
         final var bo = this.realSavings("BO");
 
         cash.forEach((ym, cashMa) -> appendLine(
-                this.percentBar(ym, cashMa, eq.getAmountOrElseZero(ym), bo.getAmountOrElseZero(ym))
+                BAR.percentBar(ym, cashMa, eq.getAmountOrElseZero(ym), bo.getAmountOrElseZero(ym))
         ));
 
         appendLine("===< Savings Distribution Percent Evolution >===");
@@ -899,81 +898,6 @@ public class ConsoleReports {
         appendLine("References:");
 
         this.reference();
-    }
-
-    private BigDecimal asPct(MoneyAmount ma, MoneyAmount total) {
-        return ma.getAmount()
-                .divide(total.getAmount(), CONTEXT)
-                .movePointRight(2)
-                .setScale(0, RoundingMode.HALF_UP);
-    }
-
-    private String percentBar(YearMonth ym, MoneyAmount one, MoneyAmount two) {
-        final var total = one.add(two);
-
-        if (total.getAmount().signum() == 0) {
-            return "";
-        }
-
-        var bar1 = this.asPct(one, total);
-        var bar2 = this.asPct(two, total);
-
-        if (bar1.add(bar2, CONTEXT).compareTo(HUNDRED) != 0) {
-
-            bar1 = HUNDRED.subtract(bar2, CONTEXT);
-
-        }
-
-        return this.bar(ym, bar1, bar2, 1, this::pctNumber);
-    }
-
-    private String percentBar(YearMonth ym, MoneyAmount one, MoneyAmount two, MoneyAmount three) {
-
-        final var total = one.add(two).add(three);
-
-        if (total.getAmount().signum() == 0) {
-            return "";
-        }
-
-        var bar1 = this.asPct(one, total);
-        var bar2 = this.asPct(two, total);
-        var bar3 = this.asPct(three, total);
-
-        if (bar1.add(bar2, CONTEXT).add(bar3, CONTEXT).compareTo(HUNDRED) != 0) {
-
-            bar1 = HUNDRED.subtract(bar2.add(bar3, CONTEXT), CONTEXT);
-
-        }
-
-        return this.bar(ym, bar1, bar2, bar3, 1, this::pctNumber);
-
-    }
-
-    private String pctNumber(BigDecimal value) {
-        return String.format("%3d", value.intValue()).concat("%");
-
-    }
-
-    private String bar(YearMonth ym, BigDecimal one, BigDecimal two, int scale, Function<BigDecimal, String> format) {
-        return format("{0}/{1} [{2},{4}] {3}{5}",
-                String.valueOf(ym.getYear()),
-                String.format("%02d", ym.getMonth()),
-                format.apply(one),
-                this.bar(one, scale, Attribute.BLUE_BACK()),
-                format.apply(two),
-                this.bar(two, scale, Attribute.RED_BACK()));
-    }
-
-    private String bar(YearMonth ym, BigDecimal one, BigDecimal two, BigDecimal three, int scale, Function<BigDecimal, String> format) {
-        return format("{0}/{1} [{2},{4},{6}] {3}{5}{7}",
-                String.valueOf(ym.getYear()),
-                String.format("%02d", ym.getMonth()),
-                format.apply(one),
-                this.bar(one, scale, Attribute.BLUE_BACK()),
-                format.apply(two),
-                this.bar(two, scale, Attribute.RED_BACK()),
-                format.apply(three),
-                this.bar(three, scale, Attribute.YELLOW_BACK()));
     }
 
     private void savingEvolution(String[] args, String paramName) {
@@ -1066,30 +990,6 @@ public class ConsoleReports {
                 new SimpleAggregation(months)
                         .average(this.realIncome()),
                 30);
-    }
-
-    private String bar(BigDecimal value, int scale) {
-        return this.bar(value, scale, " ");
-    }
-
-    private String bar(BigDecimal value, int scale, Attribute color) {
-
-        final AnsiFormat format = new AnsiFormat(color);
-
-        return Ansi.colorize(IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue())
-                .mapToObj(x -> " ")
-                .collect(joining()), format);
-    }
-
-    private String bar(BigDecimal value, int scale, String symbol) {
-
-        final AnsiFormat format = value.signum() < 0
-                ? new AnsiFormat(Attribute.RED_BACK(), Attribute.WHITE_TEXT())
-                : new AnsiFormat(Attribute.GREEN_BACK(), Attribute.WHITE_TEXT());
-
-        return Ansi.colorize(IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue())
-                .mapToObj(x -> symbol)
-                .collect(joining()), format);
     }
 
     private Map<String, String> paramsValue(String[] args, String paramName) {
@@ -1468,9 +1368,9 @@ public class ConsoleReports {
                 e.getKey(),
                 FORMAT.currency(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), CONTEXT), 11),
                 Optional.ofNullable(comparisonByYear.get(e.getKey()))
-                        .map(comp -> this.pctNumber(e.getValue().getAmount().divide(comp.getAmount(), CONTEXT).movePointRight(2)))
+                        .map(comp -> FORMAT.pctNumber(e.getValue().getAmount().divide(comp.getAmount(), CONTEXT).movePointRight(2)))
                         .orElse(""),
-                this.bar(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), CONTEXT), 50))));
+                BAR.bar(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), CONTEXT), 50))));
     }
 
     private MoneyAmountSeries realNetSavings() {
@@ -1517,7 +1417,7 @@ public class ConsoleReports {
 
         netSaving.map((ym, ma) -> this.positiveOrZero(ma))
                 .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
-                .forEach((ym, savingMa) -> appendLine(this.percentBar(ym, savingMa, income.getAmountOrElseZero(ym).subtract(savingMa))));
+                .forEach((ym, savingMa) -> appendLine(BAR.percentBar(ym, savingMa, income.getAmountOrElseZero(ym).subtract(savingMa))));
 
         appendLine(title);
         appendLine("");
@@ -1545,7 +1445,7 @@ public class ConsoleReports {
         netSaving.map((ym, ma) -> this.positiveOrZero(ma))
                 .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
                 .forEach((ym, savingMa) -> appendLine(
-                this.percentBar(ym,
+                BAR.percentBar(ym,
                         savingMa,
                         spending.getAmountOrElseZero(ym),
                         this.positiveOrZero(
@@ -1816,7 +1716,7 @@ public class ConsoleReports {
                 .sorted(comparing(DayDollars::getAmount).reversed())
                 .map(d -> format("\t{0} {1}",
                 String.format("%-11s", d.getType()),
-                pctBar(d.getAmount(), total)))
+                BAR.pctBar(d.getAmount(), total)))
                 .forEach(this::appendLine);
 
         Optional.ofNullable(mdrByYear.get(Integer.parseInt(year)))
@@ -1880,62 +1780,6 @@ public class ConsoleReports {
         return d1.compareTo(d2) >= 0
                 ? d1
                 : d2;
-    }
-
-    private static String pctBar(BigDecimal value, BigDecimal total) {
-        return Optional.of(total)
-                .filter(t -> t.signum() != 0)
-                .map(t -> pctBar(value.divide(t, CONTEXT)))
-                .orElse("");
-    }
-
-    private static String pctBar(BigDecimal value) {
-
-        if (value.abs().compareTo(ONE_PERCENT) < 0) {
-            return String.format("%10s", "<1 %");
-        }
-
-        final var end = value.abs().movePointRight(2).intValue();
-
-        final Attribute attr = value.signum() < 0 ? Attribute.RED_BACK() : Attribute.GREEN_BACK();
-
-        if (end > 100) {
-
-            final var part = IntStream.range(0, 48)
-                    .mapToObj(i -> " ")
-                    .collect(joining());
-
-            return format("{0} {1}",
-                    FORMAT.percent(value, 10),
-                    Ansi.colorize(part + "/-/" + part, attr));
-        }
-
-        return format("{0} {1}",
-                FORMAT.percent(value, 10),
-                Ansi.colorize(IntStream.range(0, end)
-                        .mapToObj(i -> " ")
-                        .collect(joining()), attr));
-    }
-
-    private static String smallPctBar(BigDecimal value) {
-
-        final var steps = value.movePointRight(2)
-                .abs()
-                .divide(BigDecimal.TEN, CONTEXT)
-                .setScale(0, RoundingMode.HALF_UP)
-                .intValue();
-
-        final var stream = steps < 15
-                ? IntStream.range(0, steps).mapToObj(x -> " ")
-                : Stream.concat(
-                        Stream.concat(
-                                IntStream.range(0, 6).mapToObj(x -> " "),
-                                Stream.of("/-/")),
-                        IntStream.range(0, 6).mapToObj(x -> " "));
-
-        Attribute attr = value.signum() < 0 ? Attribute.RED_BACK() : Attribute.GREEN_BACK();
-
-        return String.format("%-15s", Ansi.colorize(stream.collect(joining()), attr));
     }
 
     private void invHeader(int[] colWidths) {
@@ -2090,7 +1934,7 @@ public class ConsoleReports {
                 = (p) -> format("{0} {1} {2}",
                         FORMAT.text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), textColWidth, ETF_COLOR.getOrDefault(p.getFirst(), new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT()))),
                         FORMAT.percent(p.getSecond().getFirst(), 8),
-                        pctBar(p.getSecond().getSecond()));
+                        BAR.pctBar(p.getSecond().getSecond()));
 
         Stream.of(benchmarksStream, modelPortfolioStream, portfolioTWCAGRStream)
                 .reduce(Stream.empty(), Stream::concat)
@@ -2167,7 +2011,7 @@ public class ConsoleReports {
                 FORMAT.percent(d.getNetCapitalGainsPercent(), colWidths[i++]),
                 FORMAT.percent(d.getCAGR(), colWidths[i++]),
                 FORMAT.text(" ", colWidths[i++]),
-                FORMAT.text(smallPctBar(d.getCAGR()), colWidths[i++]),
+                FORMAT.text(BAR.smallPctBar(d.getCAGR()), colWidths[i++]),
                 FORMAT.currency(d.getFees().getAmount(), colWidths[i++]),
                 FORMAT.percent(d.getFeePercent(), colWidths[i++]),
                 FORMAT.currency(d.getTaxes().getAmount(), colWidths[i++]),
@@ -2247,7 +2091,7 @@ public class ConsoleReports {
                 = (p) -> format("{0} {1} {2}",
                         FORMAT.text(String.valueOf(p.getKey()), 10),
                         FORMAT.percent(p.getValue().getFirst(), 8),
-                        pctBar(p.getValue().getSecond()));
+                        BAR.pctBar(p.getValue().getSecond()));
 
         this.mdrByYear(inv, from, to, nominal)
                 .entrySet()
@@ -2383,7 +2227,7 @@ public class ConsoleReports {
         final var total = m.get("total");
 
         total.forEach((ym, cashMa) -> appendLine(
-                this.percentBar(
+                BAR.percentBar(
                         ym,
                         List.of(Pair.of(inv.getAmount(ym), Attribute.WHITE_BACK()),
                                 Pair.of(fee.getAmount(ym), Attribute.YELLOW_BACK()),
@@ -2432,7 +2276,7 @@ public class ConsoleReports {
                     : ZERO_USD;
 
             appendLine(
-                    this.currencyBar(
+                    BAR.currencyBar(
                             ym,
                             List.of(Pair.of(investment, Attribute.WHITE_BACK()),
                                     Pair.of(feeAmount, Attribute.YELLOW_BACK()),
@@ -2456,55 +2300,6 @@ public class ConsoleReports {
                 Ansi.colorize(" ", Attribute.CYAN_BACK()),
                 ": taxes.");
 
-    }
-
-    private String currencyBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
-        return this.genericBar(ym, amounts, width, a -> FORMAT.number(a, 9));
-    }
-
-    private String percentBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts) {
-
-        final var total = amounts
-                .stream()
-                .map(Pair::getFirst)
-                .map(MoneyAmount::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-
-        final var relativeAmounts = amounts.stream()
-                .map(p -> Pair.of(new MoneyAmount(p.getFirst().getAmount().divide(total, CONTEXT).movePointRight(2).setScale(0, RoundingMode.HALF_UP), p.getFirst().getCurrency()), p.getSecond())).collect(toList());
-
-        final var relativeTotal = relativeAmounts
-                .stream()
-                .map(Pair::getFirst)
-                .map(MoneyAmount::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-
-        if (relativeTotal.compareTo(HUNDRED) != 0) {
-            final var last = relativeAmounts.get(relativeAmounts.size() - 1);
-
-            final var lastAmount = last.getFirst().getAmount();
-
-            var difference = relativeTotal.subtract(HUNDRED, CONTEXT).negate(CONTEXT);
-
-            relativeAmounts.set(
-                    relativeAmounts.size() - 1,
-                    Pair.of(new MoneyAmount(lastAmount.add(difference, CONTEXT), last.getFirst().getCurrency()), last.getSecond()));
-
-        }
-
-        return this.genericBar(ym, relativeAmounts, 1, a -> FORMAT.percent(a.movePointLeft(2), 8));
-    }
-
-    private String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width, Function<BigDecimal, String> format) {
-
-        final var values = IntStream.range(0, amounts.size()).map(i -> i + 2).mapToObj(i -> format("'{'{0}'}'", i)).collect(joining(" "));
-        final var bars = IntStream.range(0, amounts.size()).map(i -> i + 2 + amounts.size()).mapToObj(i -> format("'{'{0}'}'", i)).collect(joining(""));
-        final Stream<String> amountsStream = amounts.stream().map(Pair::getFirst).map(MoneyAmount::getAmount).map(format);
-        final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.getFirst().getAmount(), width, p.getFirst().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.getSecond()));
-        final Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth()));
-
-        return format("{0}/{1} " + values + " " + bars,
-                (Object[]) Stream.of(ymStream, amountsStream, barsStream).flatMap(Function.identity()).toArray(String[]::new));
     }
 
     private Map<String, MoneyAmountSeries> investmentEvolution(String currency) {
