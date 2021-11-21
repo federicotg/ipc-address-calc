@@ -123,8 +123,6 @@ public class ConsoleReports {
             "MEUD", new AnsiFormat(Attribute.DIM())
     );
 
-    private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
-
     private static final double BBPP_FX_GAP_PERCENT = 0.9d;
 
     private static final BigDecimal COEFFICIENT = new BigDecimal("0.1223");
