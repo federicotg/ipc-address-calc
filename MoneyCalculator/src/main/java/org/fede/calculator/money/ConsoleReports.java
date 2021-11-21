@@ -55,7 +55,6 @@ import static java.util.Map.entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -74,7 +73,6 @@ import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.BBPPItem;
 import org.fede.calculator.money.series.BBPPTaxBraket;
 import org.fede.calculator.money.series.BBPPYear;
@@ -84,6 +82,7 @@ import static org.fede.calculator.money.series.SeriesReader.readSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import org.fede.calculator.money.series.InvestmentAsset;
+import static org.fede.calculator.money.Format.FORMAT;
 
 /**
  *
@@ -127,6 +126,8 @@ public class ConsoleReports {
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
     private static final BigDecimal ONE_PERCENT = BigDecimal.ONE.movePointLeft(2);
 
+    private static final double BBPP_FX_GAP_PERCENT = 0.9d;
+
     private static final BigDecimal COEFFICIENT = new BigDecimal("0.1223");
 
     private static final BigDecimal REALTOR_FEE = new BigDecimal("0.045");
@@ -139,21 +140,6 @@ public class ConsoleReports {
     private static final BigDecimal TRADING_FEE = new BigDecimal("0.006");
 
     private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
-    private static final double RUSSELL2000_PCT = new BigDecimal("0.1").doubleValue();
-    private static final double SP500_PCT = 0.7d;
-    private static final double EIMI_PCT = 0.1d;
-    private static final double MEUD_PCT = 0.1d;
-
-    private static final double CSPX_FEE = 0.0007d;
-    private static final double XRSU_FEE = 0.003d;
-    private static final double EIMI_FEE = 0.0018d;
-    private static final double MEUD_FEE = 0.0007d;
-
-    private static final int RETIREMENT_AGE_STD = 3;
-    private static final int END_AGE_STD = 6;
-
-    private static final double BBPP_FX_GAP_PERCENT = 0.9d;
-    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = new BigDecimal("1.15");
 
     private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO, "USD");
 
@@ -175,15 +161,10 @@ public class ConsoleReports {
 
     private static final LocalDate ETF_START_DATE = LocalDate.of(2019, Month.JULY, 24);
 
-    private static final AnsiFormat PROFIT_FORMAT = new AnsiFormat(Attribute.GREEN_TEXT());
-    private static final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
-
     private static final AnsiFormat BOLD = new AnsiFormat(Attribute.BRIGHT_BLACK_TEXT(), Attribute.BOLD(), Attribute.BRIGHT_WHITE_BACK());
 
     private List<Investment> investments;
 
-    private List<BigDecimal> sp500TotalReturns;
-    private List<BigDecimal> russell2000TotalReturns;
     private Map<String, List<MoneyAmountSeries>> realUSDSavingsByType;
     private Map<String, List<MoneyAmountSeries>> realUSDExpensesByType;
 
@@ -192,10 +173,6 @@ public class ConsoleReports {
     private MoneyAmountSeries realNetSavings;
 
     private final StringBuilder out;
-
-    private double bbppMean;
-    private double bbppVar;
-    private double bbppMinFactor;
 
     private ConsoleReports(StringBuilder out) {
         this.out = out;
@@ -285,7 +262,7 @@ public class ConsoleReports {
                 .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst()))
                 .forEach(this::appendLine);
 
-        total.map(t -> format("-----------------------------\n{0}{1}", text("Total", 5), currency(t, 16)))
+        total.map(t -> format("-----------------------------\n{0}{1}", FORMAT.text("Total", 5), FORMAT.currency(t, 16)))
                 .ifPresent(this::appendLine);
     }
 
@@ -329,7 +306,7 @@ public class ConsoleReports {
                 .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), reportCurrency), entry.getKey()))
                 .forEach(this::appendLine);
 
-        total.map(t -> format("-----------------------------\n{0}{1}", text("Total", 5), currency(t, 16)))
+        total.map(t -> format("-----------------------------\n{0}{1}", FORMAT.text("Total", 5), FORMAT.currency(t, 16)))
                 .ifPresent(this::appendLine);
     }
 
@@ -341,8 +318,8 @@ public class ConsoleReports {
     private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type) {
 
         return format("{0}{1}{2}",
-                text(type, 5),
-                currency(subtotal, 16),
+                FORMAT.text(type, 5),
+                FORMAT.currency(subtotal, 16),
                 pctBar(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), CONTEXT)).orElse(ZERO)));
     }
 
@@ -380,7 +357,7 @@ public class ConsoleReports {
                 .orElse(ZERO_USD)
                 .getAmount();
 
-        this.appendLine(format("Total income: {0}", currency(totalIncome)));
+        this.appendLine(format("Total income: {0}", FORMAT.currency(totalIncome)));
 
     }
 
@@ -418,16 +395,16 @@ public class ConsoleReports {
         this.appendLine("\tIncome: ",
                 averageRealUSDIncome.getCurrency(),
                 " ",
-                currency(averageRealUSDIncome.getAmount()));
+                FORMAT.currency(averageRealUSDIncome.getAmount()));
 
         final var savingPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.5"), CONTEXT), averageRealUSDIncome.getCurrency());
 
         this.appendLine("50% saving: ",
                 averageRealUSDIncome.getCurrency(),
                 " ",
-                currency(savingPct.getAmount()),
+                FORMAT.currency(savingPct.getAmount()),
                 " / ",
-                currency(ForeignExchanges.getMoneyAmountForeignExchange(savingPct.getCurrency(), "ARS").apply(savingPct, limit).getAmount()));
+                FORMAT.currency(ForeignExchanges.getMoneyAmountForeignExchange(savingPct.getCurrency(), "ARS").apply(savingPct, limit).getAmount()));
 
         appendLine(format("Saved salaries {0}",
                 this.realSavings(null).getAmount(limit).getAmount()
@@ -577,10 +554,10 @@ public class ConsoleReports {
         final var avgSalary = totalIncome.getAmount().divide(BigDecimal.valueOf(months), CONTEXT);
 
         appendLine(format("Income USD {0}\nSavings USD {1} {2}\nAverage salary {3}\nSaved salaries {4}",
-                currency(totalIncome.getAmount()),
-                currency(totalSavings.getAmount()),
-                percent(totalSavings.getAmount().divide(totalIncome.getAmount(), CONTEXT)),
-                currency(avgSalary),
+                FORMAT.currency(totalIncome.getAmount()),
+                FORMAT.currency(totalSavings.getAmount()),
+                FORMAT.percent(totalSavings.getAmount().divide(totalIncome.getAmount(), CONTEXT)),
+                FORMAT.currency(avgSalary),
                 totalSavings.getAmount().divide(avgSalary, CONTEXT)));
 
         //ingreso promedio de N meses
@@ -599,7 +576,7 @@ public class ConsoleReports {
                 "Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
                 yearAndMonth[0],
                 yearAndMonth[1].setScale(0, MathConstants.ROUNDING_MODE),
-                percent(ONE.subtract(averagNetSavings.getAmount().divide(averagIncome.getAmount(), CONTEXT), CONTEXT)),
+                FORMAT.percent(ONE.subtract(averagNetSavings.getAmount().divide(averagIncome.getAmount(), CONTEXT), CONTEXT)),
                 averagIncome.subtract(averagNetSavings).getAmount()));
 
     }
@@ -713,25 +690,25 @@ public class ConsoleReports {
                 String.valueOf(start.getYear()),
                 timeLimit.getMonth(),
                 String.valueOf(timeLimit.getYear()),
-                percent(rate)));
+                FORMAT.percent(rate)));
 
         this.appendLine(format("USD reales {0}/{1}", limit.getMonth(), String.valueOf(limit.getYear())));
         this.appendLine(format("\tTotal USD {0} {1}",
-                currency(totalRealExpense.getAmount()),
-                percent(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), CONTEXT))));
+                FORMAT.currency(totalRealExpense.getAmount()),
+                FORMAT.percent(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), CONTEXT))));
 
         final var monthlyCost = totalRealExpense.getAmount().divide(months, CONTEXT);
         this.appendLine(format("\tMensual USD {0} {1} - ARS {2}",
-                currency(monthlyCost),
-                percent(monthlyCost.divide(realInitialCost.getAmount(), CONTEXT)),
-                currency(getMoneyAmountForeignExchange("USD", "ARS")
+                FORMAT.currency(monthlyCost),
+                FORMAT.percent(monthlyCost.divide(realInitialCost.getAmount(), CONTEXT)),
+                FORMAT.currency(getMoneyAmountForeignExchange("USD", "ARS")
                         .apply(new MoneyAmount(monthlyCost, "USD"), limit)
                         .getAmount())));
 
         final var yearlyCost = totalRealExpense.getAmount().divide(years, CONTEXT);
         this.appendLine(format("\tAnual USD {0} {1}\n",
-                currency(yearlyCost),
-                percent(yearlyCost.divide(realInitialCost.getAmount(), CONTEXT))));
+                FORMAT.currency(yearlyCost),
+                FORMAT.percent(yearlyCost.divide(realInitialCost.getAmount(), CONTEXT))));
 
     }
 
@@ -758,15 +735,15 @@ public class ConsoleReports {
         list.stream()
                 .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
                 .map(e -> format("{0}{1}{2}{3}",
-                text(e.getFirst(), 13),
-                text(" USD ", 4),
-                currency(e.getSecond(), 10),
+                FORMAT.text(e.getFirst(), 13),
+                FORMAT.text(" USD ", 4),
+                FORMAT.currency(e.getSecond(), 10),
                 pctBar(e.getSecond(), total)))
                 .forEach(this::appendLine);
 
         this.appendLine(format("-----------------------------\n{0} USD {1}",
-                text("Total", 5),
-                currency(total, 10)));
+                FORMAT.text("Total", 5),
+                FORMAT.currency(total, 10)));
 
     }
 
@@ -855,7 +832,7 @@ public class ConsoleReports {
         this.appendLine(
                 format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
                 " ",
-                percent(ma, 8),
+                FORMAT.percent(ma, 8),
                 " ",
                 this.bar(ma.movePointRight(2), 1));
     }
@@ -1115,14 +1092,6 @@ public class ConsoleReports {
                 .collect(joining()), format);
     }
 
-    private double[] randomPeriods(List<double[]> allReturns, int periods, double fee) {
-        return ThreadLocalRandom.current().ints(periods, 0, allReturns.size())
-                .mapToObj(allReturns::get)
-                .flatMapToDouble(Arrays::stream)
-                .map(value -> value - fee)
-                .toArray();
-    }
-
     private Map<String, String> paramsValue(String[] args, String paramName) {
         return Arrays.stream(args)
                 .dropWhile(p -> paramName.equals(p))
@@ -1154,9 +1123,7 @@ public class ConsoleReports {
                 ? Double.parseDouble(params.getOrDefault("bbpp", "2.25")) / 100.0d
                 : 0.0d;
 
-        this.bbppMean = bbppTax * BBPP_FX_GAP_PERCENT;
-        this.bbppVar = bbppTax / 10.0d;
-        this.bbppMinFactor = 1.0d - bbppTax;
+        final var goal = new Goal(bbppTax * BBPP_FX_GAP_PERCENT, bbppTax / 10.0d, 1.0d - bbppTax, (t -> this.appendLine(t)));
 
         final var buySellFee = new BigDecimal("1.00193");
 //                
@@ -1165,7 +1132,11 @@ public class ConsoleReports {
 //                .add(TRADING_FEE, CONTEXT)
 //                .add(TRADING_FEE, CONTEXT);
 
-        this.goal(
+        final var todaySavings = this.realSavings(null).getAmount(Inflation.USD_INFLATION.getTo());
+
+        final var invested = this.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
+
+        goal.goal(
                 trials,
                 periodYears,
                 deposit,
@@ -1177,231 +1148,9 @@ public class ConsoleReports {
                 onlySP500,
                 afterTax,
                 age,
-                pension);
-    }
-
-    private void goal(
-            final int trials,
-            final int periodYears,
-            final int monthlyDeposit,
-            final int monthlyWithdraw,
-            final int inflation,
-            final int retirementAge,
-            final BigDecimal buySellFee,
-            final BigDecimal extraCash,
-            final boolean onlySP500,
-            final boolean afterTax,
-            final int age,
-            final int pension) {
-
-        final var tr = new TypeReference<List<AnnualHistoricalReturn>>() {
-        };
-
-        this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", tr)
-                .stream()
-                .sorted(comparing(AnnualHistoricalReturn::getYear))
-                .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).add(r.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT))
-                .collect(toList());
-
-        this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", tr)
-                .stream()
-                .sorted(comparing(AnnualHistoricalReturn::getYear))
-                .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).add(r.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT))
-                .collect(toList());
-
-        final var to = USD_INFLATION.getTo();
-
-        final var todaySavings = this.realSavings(null).getAmount(to);
-
-        final var invested = this.realSavings("EQ").getAmount(to);
-
-        final var cash = todaySavings.getAmount()
-                .subtract(invested.getAmount(), CONTEXT)
-                .add(extraCash, CONTEXT).doubleValue();
-
-        final var inflationRate = ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE)
-                .add(BigDecimal.valueOf(inflation).setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT).doubleValue();
-
-        final var deposit = BigDecimal.valueOf(monthlyDeposit * 12).divide(buySellFee, CONTEXT).doubleValue();
-        final var withdraw = BigDecimal.valueOf((monthlyWithdraw - pension) * 12)
-                .multiply(buySellFee, CONTEXT)
-                .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, CONTEXT).doubleValue();
-
-        final var investedAmount = invested.getAmount().doubleValue();
-
-        appendLine(format("Cash: {0,number,currency}, invested: {1,number,currency}", cash, investedAmount));
-        appendLine(format(
-                "Saving {0,number,currency}, spending {1,number,currency}",
-                monthlyDeposit,
-                monthlyWithdraw),
-                afterTax ? " after tax." : ".");
-        if (pension > 0) {
-            appendLine(format("Considering {0,number,currency} pension.", pension));
-        }
-        appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2} +/-{4}.", inflation, retirementAge, age, RETIREMENT_AGE_STD, END_AGE_STD));
-
-        final int startingYear = to.getYear();
-        final var end = 1978 + age;
-        final var yearsLeft = 100;
-
-        final var periods = (int) Math.ceil((float) yearsLeft / periodYears);
-
-        final var inflationFactors = IntStream.range(0, 180)
-                .mapToDouble(year -> Math.pow(inflationRate, year))
-                .toArray();
-
-        final var realDeposits = Arrays.stream(inflationFactors)
-                .map(f -> f * deposit)
-                .toArray();
-
-        final var realWithdrawals = Arrays.stream(inflationFactors)
-                .map(f -> f * withdraw)
-                .toArray();
-
-        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.9d);
-        final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 0.9d);
-        final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.75d);
-        final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.70d);
-
-        final var successes = IntStream.range(0, trials)
-                .parallel()
-                .mapToObj(i -> this.balanceProportions(periods, allSP500Periods, allRussell2000Periods, allEIMIPeriods, allMEUDPeriods, onlySP500, CSPX_FEE, XRSU_FEE, EIMI_FEE, MEUD_FEE))
-                .filter(randomReturns
-                        -> this.goals(
-                        startingYear,
-                        1978 + retirementAge,
-                        gauss(end, END_AGE_STD),
-                        cash,
-                        investedAmount,
-                        randomReturns,
-                        realDeposits,
-                        realWithdrawals))
-                .count();
-
-        appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
-
-        appendLine(format("{0}/{1} ", successes, trials),
-                percent(BigDecimal.valueOf((double) successes / (double) trials)));
-
-    }
-
-    private double[] balanceProportions(int periods,
-            List<double[]> allSP500Periods,
-            List<double[]> allRussell2000Periods,
-            List<double[]> allEIMIPeriods,
-            List<double[]> allMEUDPeriods,
-            boolean onlySP500,
-            double sp500Fee,
-            double russellFee,
-            double eimiFee,
-            double meudFee) {
-
-        final var sp500Periods = this.randomPeriods(allSP500Periods, periods, sp500Fee);
-
-        final var russell2000Periods = onlySP500
-                ? sp500Periods
-                : this.randomPeriods(allRussell2000Periods, periods, russellFee);
-
-        final var eimiPeriods = onlySP500
-                ? sp500Periods
-                : this.randomPeriods(allEIMIPeriods, periods, eimiFee);
-
-        final var meudPeriods = onlySP500
-                ? sp500Periods
-                : this.randomPeriods(allMEUDPeriods, periods, meudFee);
-
-        return IntStream.range(0, sp500Periods.length)
-                .mapToDouble(i -> sp500Periods[i] * SP500_PCT
-                + russell2000Periods[i] * RUSSELL2000_PCT
-                + meudPeriods[i] * MEUD_PCT
-                + eimiPeriods[i] * EIMI_PCT)
-                .toArray();
-    }
-
-    /**
-     * Me quedo con el keepWorsePct % peor.
-     */
-    private List<double[]> periods(List<BigDecimal> returns, final int years, double keepWorsePct) {
-
-        var periods = IntStream.range(0, returns.size() - years + 1)
-                .mapToObj(start -> returns.stream().skip(start).limit(years).mapToDouble(BigDecimal::doubleValue).toArray())
-                .sorted(comparing(this::sum))
-                .collect(toList());
-
-        if (keepWorsePct > 0.0d) {
-            periods = periods.stream()
-                    .limit(Math.round(periods.size() * keepWorsePct))
-                    .collect(toList());
-        }
-        return periods;
-
-    }
-
-    private double sum(double[] l) {
-        return Arrays.stream(l).sum();
-    }
-
-    private static double gauss(double mean, double std) {
-        return mean + ThreadLocalRandom.current().nextGaussian() * std;
-    }
-
-    private static int gauss(int mean, int std) {
-
-        return (int) Math.round(gauss((double) mean, (double) std));
-    }
-
-    private double bbppFactor() {
-
-        return Math.max(
-                this.bbppMinFactor,
-                Math.min(
-                        1.0d,
-                        1.0d - gauss(this.bbppMean, this.bbppVar)));
-
-    }
-
-    private boolean goals(
-            final int startingYear,
-            final int retirement,
-            final int end,
-            final double cash,
-            final double investedAmount,
-            final double[] returns,
-            final double[] deposit,
-            final double[] withdraw) {
-
-        double cashAmount = cash;
-        double amount = investedAmount;
-        // depositing
-        for (var i = startingYear; i < retirement; i++) {
-
-            // BB.PP.
-            amount *= bbppFactor();
-
-            amount = amount * returns[i - startingYear] + deposit[i - startingYear];
-        }
-        // withdrawing
-        for (var i = retirement; i <= end; i++) {
-
-            // BB.PP.
-            amount *= bbppFactor();
-
-            amount -= withdraw[i - startingYear];
-
-            if (amount > 0.0d) {
-                amount *= returns[i - startingYear];
-            } else {
-                cashAmount += amount;
-                amount = 0.0d;
-            }
-            if (cashAmount <= 0.0d) {
-                return false;
-            }
-        }
-
-        return amount + cashAmount > 0.0d;
+                pension,
+                todaySavings,
+                invested);
     }
 
     public List<Investment> getInvestments() {
@@ -1511,7 +1260,7 @@ public class ConsoleReports {
                 .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
                 .reduce(ZERO, BigDecimal::add);
 
-        appendLine(format("Total amount {0}", currency(totalAmount)));
+        appendLine(format("Total amount {0}", FORMAT.currency(totalAmount)));
 
         final var taxedDomesticAmount = allArs
                 .stream()
@@ -1521,7 +1270,7 @@ public class ConsoleReports {
                 .reduce(ZERO, BigDecimal::add)
                 .multiply(new BigDecimal("1.05"), CONTEXT);
 
-        appendLine(format("Taxed domestic amount {0}", currency(taxedDomesticAmount)));
+        appendLine(format("Taxed domestic amount {0}", FORMAT.currency(taxedDomesticAmount)));
 
         final var taxedForeignAmount = allArs
                 .stream()
@@ -1530,14 +1279,14 @@ public class ConsoleReports {
                 .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
                 .reduce(ZERO, BigDecimal::add);
 
-        appendLine(format("Taxed foreign amount {0}", currency(taxedForeignAmount)));
+        appendLine(format("Taxed foreign amount {0}", FORMAT.currency(taxedForeignAmount)));
 
         final var taxedTotal = bbpp.getMinimum()
                 .negate()
                 .add(taxedDomesticAmount, CONTEXT)
                 .add(taxedForeignAmount, CONTEXT);
 
-        appendLine(format("Taxed total {0}", currency(taxedTotal)));
+        appendLine(format("Taxed total {0}", FORMAT.currency(taxedTotal)));
 
         final var taxRate = bbpp.getBrakets()
                 .stream()
@@ -1547,17 +1296,17 @@ public class ConsoleReports {
                 .get()
                 .getTax();
 
-        appendLine(format("Tax rate {0}", percent(taxRate)));
+        appendLine(format("Tax rate {0}", FORMAT.percent(taxRate)));
 
         final var taxAmount = taxedTotal.multiply(taxRate, CONTEXT);
 
         final var usdTaxAmount = getMoneyAmountForeignExchange("ARS", "USD").apply(new MoneyAmount(taxAmount, "ARS"), ym);
 
         appendLine(format("Tax amount {0} / USD {1}",
-                currency(taxAmount),
-                currency(usdTaxAmount.getAmount())));
+                FORMAT.currency(taxAmount),
+                FORMAT.currency(usdTaxAmount.getAmount())));
 
-        appendLine(format("Monthly tax amount USD {0}", currency(usdTaxAmount.adjust(BigDecimal.valueOf(12), ONE).getAmount())));
+        appendLine(format("Monthly tax amount USD {0}", FORMAT.currency(usdTaxAmount.adjust(BigDecimal.valueOf(12), ONE).getAmount())));
 
         final var allInvested = this.getInvestments()
                 .stream()
@@ -1573,19 +1322,19 @@ public class ConsoleReports {
                 .forEachNonZero((yearMonth, ma) -> Optional.of(ma).filter(m -> yearMonth.getYear() == year).ifPresent(yearRealIncome::add));
 
         appendLine(format("Effective tax rate is {0}. Tax is {1} of investments. Tax is {2} of income.",
-                percent(taxAmount.divide(totalAmount, CONTEXT)),
-                percent(usdTaxAmount.getAmount().divide(allInvested.getAmount(), CONTEXT)),
-                percent(usdTaxAmount.getAmount().divide(yearRealIncome.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add), CONTEXT))));
+                FORMAT.percent(taxAmount.divide(totalAmount, CONTEXT)),
+                FORMAT.percent(usdTaxAmount.getAmount().divide(allInvested.getAmount(), CONTEXT)),
+                FORMAT.percent(usdTaxAmount.getAmount().divide(yearRealIncome.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add), CONTEXT))));
 
         this.subtitle("Detail");
 
-        appendLine(format("{0}{1}{2}{3}", text("", 16), text("      Value", 16), text("    %", 10), text("      Taxed", 16)));
+        appendLine(format("{0}{1}{2}{3}", FORMAT.text("", 16), FORMAT.text("      Value", 16), FORMAT.text("    %", 10), FORMAT.text("      Taxed", 16)));
         allArs.stream()
                 .map(i -> format("{0}{1}{2}{3}",
-                text(i.getName(), 16),
-                currency(i.getValue(), 16),
-                percent(i.getHolding(), 10),
-                currency(i.getValue().multiply(i.isExempt() ? ZERO : i.getHolding(), CONTEXT), 16)))
+                FORMAT.text(i.getName(), 16),
+                FORMAT.currency(i.getValue(), 16),
+                FORMAT.percent(i.getHolding(), 10),
+                FORMAT.currency(i.getValue().multiply(i.isExempt() ? ZERO : i.getHolding(), CONTEXT), 16)))
                 .forEach(this::appendLine);
 
     }
@@ -1717,7 +1466,7 @@ public class ConsoleReports {
                 .sorted(Comparator.comparing(Map.Entry::getKey))
                 .forEach(e -> this.appendLine(format("{0} {1} {2} {3}",
                 e.getKey(),
-                currency(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), CONTEXT), 11),
+                FORMAT.currency(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), CONTEXT), 11),
                 Optional.ofNullable(comparisonByYear.get(e.getKey()))
                         .map(comp -> this.pctNumber(e.getValue().getAmount().divide(comp.getAmount(), CONTEXT).movePointRight(2)))
                         .orElse(""),
@@ -1844,7 +1593,7 @@ public class ConsoleReports {
                         IntStream.of(years)
                                 .mapToObj(incomes::get)
                                 .map(MoneyAmount::getAmount)
-                                .map(ConsoleReports::currency))));
+                                .map(FORMAT::currency))));
         this.appendLine(
                 this.row(
                         Stream.concat(
@@ -1852,7 +1601,7 @@ public class ConsoleReports {
                                 IntStream.of(years)
                                         .mapToObj(savings::get)
                                         .map(MoneyAmount::getAmount)
-                                        .map(ConsoleReports::currency))));
+                                        .map(FORMAT::currency))));
         this.appendLine(
                 this.row(
                         Stream.concat(
@@ -1860,14 +1609,14 @@ public class ConsoleReports {
                                 IntStream.of(years)
                                         .mapToObj(y -> incomes.get(y).subtract(savings.get(y)))
                                         .map(MoneyAmount::getAmount)
-                                        .map(ConsoleReports::currency))));
+                                        .map(FORMAT::currency))));
         this.appendLine(
                 this.row(
                         Stream.concat(
                                 Stream.of("Saving %"),
                                 IntStream.of(years)
                                         .mapToObj(y -> savings.get(y).getAmount().divide(incomes.get(y).getAmount().subtract(ONE, CONTEXT), CONTEXT))
-                                        .map(a -> format("{0}", percent(a))))));
+                                        .map(a -> format("{0}", FORMAT.percent(a))))));
     }
 
     private void yearSavingsIncomeTable() {
@@ -1889,10 +1638,10 @@ public class ConsoleReports {
         IntStream.of(years)
                 .mapToObj(y -> this.row(Stream.of(
                 format("-= {0} =-", String.valueOf(y) + (y == USD_INFLATION.getTo().getYear() ? "*" : "")),
-                currency(incomes.get(y).getAmount()),
-                currency(savings.get(y).getAmount()),
-                currency(incomes.get(y).subtract(savings.get(y)).getAmount()),
-                format("{0}", percent(
+                FORMAT.currency(incomes.get(y).getAmount()),
+                FORMAT.currency(savings.get(y).getAmount()),
+                FORMAT.currency(incomes.get(y).subtract(savings.get(y)).getAmount()),
+                format("{0}", FORMAT.percent(
                         savings.get(y).getAmount()
                                 .divide(incomes.get(y).getAmount()
                                         .subtract(ONE, CONTEXT), CONTEXT))))))
@@ -2017,7 +1766,7 @@ public class ConsoleReports {
 
         if (!pct) {
             this.appendLine("--------------------------------------");
-            this.appendLine(format("Total {0}", currency(total.getAmount())));
+            this.appendLine(format("Total {0}", FORMAT.currency(total.getAmount())));
         }
     }
 
@@ -2072,7 +1821,7 @@ public class ConsoleReports {
 
         Optional.ofNullable(mdrByYear.get(Integer.parseInt(year)))
                 .map(Pair::getFirst)
-                .map(ConsoleReports::percent)
+                .map(FORMAT::percent)
                 .map(pct -> format("Modified Dietz Return {0}\n", pct))
                 .ifPresent(this::appendLine);
 
@@ -2133,49 +1882,6 @@ public class ConsoleReports {
                 : d2;
     }
 
-    private static String text(String value, int width, AnsiFormat fmt) {
-        return Ansi.colorize(text(value, width), fmt);
-    }
-
-    private static String text(String value, int width) {
-        return String.format("%-" + width + "s", value);
-    }
-
-    private static String currency(BigDecimal value) {
-        return format("{0,number,currency}", value);
-    }
-
-    private static String currency(BigDecimal value, int width) {
-        return String.format("%" + width + "s", currency(value));
-    }
-
-    private static String number(BigDecimal value) {
-        return format("{0,number,0.00}", value);
-    }
-
-    private static String number(BigDecimal value, int width) {
-        return String.format("%" + width + "s", number(value));
-    }
-
-    private static String currencyPL(BigDecimal value, int width) {
-
-        return Ansi.colorize(String.format("%" + width + "s", currency(value)), value.signum() >= 0 ? PROFIT_FORMAT : LOSS_FORMAT);
-    }
-
-    private static String currency(MoneyAmount value, int width) {
-        return String.format("%" + width + "s", format("{0} {1}", value.getCurrency(), currency(value.getAmount())));
-    }
-
-    private static String percent(BigDecimal pct, int width) {
-
-        return String.format("%" + width + "s", percent(pct));
-    }
-
-    private static String percent(BigDecimal pct) {
-
-        return format("{0}", PERCENT_FORMAT.format(pct));
-    }
-
     private static String pctBar(BigDecimal value, BigDecimal total) {
         return Optional.of(total)
                 .filter(t -> t.signum() != 0)
@@ -2200,12 +1906,12 @@ public class ConsoleReports {
                     .collect(joining());
 
             return format("{0} {1}",
-                    percent(value, 10),
+                    FORMAT.percent(value, 10),
                     Ansi.colorize(part + "/-/" + part, attr));
         }
 
         return format("{0} {1}",
-                percent(value, 10),
+                FORMAT.percent(value, 10),
                 Ansi.colorize(IntStream.range(0, end)
                         .mapToObj(i -> " ")
                         .collect(joining()), attr));
@@ -2237,22 +1943,22 @@ public class ConsoleReports {
         var i = 0;
         this.appendLine(separator);
         this.appendLine(
-                text(" ETF", colWidths[i++]),
-                text("  Date", colWidths[i++]),
-                text("  Price", colWidths[i++]),
-                text("   Investment", colWidths[i++]),
-                text("    Current", colWidths[i++]),
-                text("     Profit", colWidths[i++]),
-                text("    %", colWidths[i++]),
-                text("  Net Profit", colWidths[i++]),
-                text("    %", colWidths[i++]),
-                text("", colWidths[i++]),
-                text("", colWidths[i++]),
-                text("CAGR", colWidths[i++] - 2),
-                text("Fee", colWidths[i++] - 3),
-                text("%", colWidths[i++]),
-                text("Tax", colWidths[i++] - 3),
-                text("%", colWidths[i++]));
+                FORMAT.text(" ETF", colWidths[i++]),
+                FORMAT.text("  Date", colWidths[i++]),
+                FORMAT.text("  Price", colWidths[i++]),
+                FORMAT.text("   Investment", colWidths[i++]),
+                FORMAT.text("    Current", colWidths[i++]),
+                FORMAT.text("     Profit", colWidths[i++]),
+                FORMAT.text("    %", colWidths[i++]),
+                FORMAT.text("  Net Profit", colWidths[i++]),
+                FORMAT.text("    %", colWidths[i++]),
+                FORMAT.text("", colWidths[i++]),
+                FORMAT.text("", colWidths[i++]),
+                FORMAT.text("CAGR", colWidths[i++] - 2),
+                FORMAT.text("Fee", colWidths[i++] - 3),
+                FORMAT.text("%", colWidths[i++]),
+                FORMAT.text("Tax", colWidths[i++] - 3),
+                FORMAT.text("%", colWidths[i++]));
         this.appendLine(separator);
     }
 
@@ -2327,28 +2033,28 @@ public class ConsoleReports {
         this.subtitle("Total");
 
         this.appendLine(
-                text("   Investment", mw),
-                text("    Current", mw),
-                text("     Profit", mw),
-                text("   %", 8),
-                text("  Net Profit", mw),
-                text("   %", 8),
-                text("     Fee", 12),
-                text("   %", 8),
-                text("     Tax", 12),
-                text("   %", 8));
+                FORMAT.text("   Investment", mw),
+                FORMAT.text("    Current", mw),
+                FORMAT.text("     Profit", mw),
+                FORMAT.text("   %", 8),
+                FORMAT.text("  Net Profit", mw),
+                FORMAT.text("   %", 8),
+                FORMAT.text("     Fee", 12),
+                FORMAT.text("   %", 8),
+                FORMAT.text("     Tax", 12),
+                FORMAT.text("   %", 8));
 
         this.appendLine(
-                currency(totalInvested, mw),
-                currency(totalCurrent, mw),
-                currencyPL(totalGrossGains, mw),
-                percent(grossMoneyWeightedReturn, 8),
-                currencyPL(totalNetGains, mw),
-                percent(netMoneyWeightedReturn, 8),
-                currency(totalFee, 12),
-                percent(totalFee.divide(totalCurrent, CONTEXT), 8),
-                currency(totalTax, 12),
-                percent(totalTax.divide(totalCurrent, CONTEXT), 8));
+                FORMAT.currency(totalInvested, mw),
+                FORMAT.currency(totalCurrent, mw),
+                FORMAT.currencyPL(totalGrossGains, mw),
+                FORMAT.percent(grossMoneyWeightedReturn, 8),
+                FORMAT.currencyPL(totalNetGains, mw),
+                FORMAT.percent(netMoneyWeightedReturn, 8),
+                FORMAT.currency(totalFee, 12),
+                FORMAT.percent(totalFee.divide(totalCurrent, CONTEXT), 8),
+                FORMAT.currency(totalTax, 12),
+                FORMAT.percent(totalTax.divide(totalCurrent, CONTEXT), 8));
 
         final var etfs = this.getInvestments().stream().filter(inv -> inv.getType().equals(InvestmentType.ETF)).collect(toList());
 
@@ -2378,12 +2084,12 @@ public class ConsoleReports {
         Comparator<Pair<String, Pair<BigDecimal, BigDecimal>>> cmp = comparing((Pair<String, Pair<BigDecimal, BigDecimal>> p) -> p.getSecond().getSecond()).reversed();
 
         final var textColWidth = 30;
-        appendLine(text(" ", textColWidth), text(" Return", 8), text("    Annualized", 16));
+        appendLine(FORMAT.text(" ", textColWidth), FORMAT.text(" Return", 8), FORMAT.text("    Annualized", 16));
 
         final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction
                 = (p) -> format("{0} {1} {2}",
-                        text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), textColWidth, ETF_COLOR.getOrDefault(p.getFirst(), new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT()))),
-                        percent(p.getSecond().getFirst(), 8),
+                        FORMAT.text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), textColWidth, ETF_COLOR.getOrDefault(p.getFirst(), new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT()))),
+                        FORMAT.percent(p.getSecond().getFirst(), 8),
                         pctBar(p.getSecond().getSecond()));
 
         Stream.of(benchmarksStream, modelPortfolioStream, portfolioTWCAGRStream)
@@ -2450,22 +2156,22 @@ public class ConsoleReports {
 
         var i = 0;
         this.appendLine(
-                text(d.getInvestmentCurrency(), colWidths[i++]),
-                text(DateTimeFormatter.ISO_LOCAL_DATE.format(d.getInvestmentDate()), colWidths[i++]),
-                currency(d.getInvestmentPrice(), colWidths[i++]),
-                currency(d.getInvestedAmount().getAmount(), colWidths[i++]),
-                currency(d.getCurrentAmount().getAmount(), colWidths[i++]),
-                currencyPL(d.getGrossCapitalGains().getAmount(), colWidths[i++]),
-                percent(d.getGrossCapitalGainsPercent(), colWidths[i++]),
-                currencyPL(d.getNetCapitalGains().getAmount(), colWidths[i++]),
-                percent(d.getNetCapitalGainsPercent(), colWidths[i++]),
-                percent(d.getCAGR(), colWidths[i++]),
-                text(" ", colWidths[i++]),
-                text(smallPctBar(d.getCAGR()), colWidths[i++]),
-                currency(d.getFees().getAmount(), colWidths[i++]),
-                percent(d.getFeePercent(), colWidths[i++]),
-                currency(d.getTaxes().getAmount(), colWidths[i++]),
-                percent(d.getTaxPercent(), colWidths[i++]));
+                FORMAT.text(d.getInvestmentCurrency(), colWidths[i++]),
+                FORMAT.text(DateTimeFormatter.ISO_LOCAL_DATE.format(d.getInvestmentDate()), colWidths[i++]),
+                FORMAT.currency(d.getInvestmentPrice(), colWidths[i++]),
+                FORMAT.currency(d.getInvestedAmount().getAmount(), colWidths[i++]),
+                FORMAT.currency(d.getCurrentAmount().getAmount(), colWidths[i++]),
+                FORMAT.currencyPL(d.getGrossCapitalGains().getAmount(), colWidths[i++]),
+                FORMAT.percent(d.getGrossCapitalGainsPercent(), colWidths[i++]),
+                FORMAT.currencyPL(d.getNetCapitalGains().getAmount(), colWidths[i++]),
+                FORMAT.percent(d.getNetCapitalGainsPercent(), colWidths[i++]),
+                FORMAT.percent(d.getCAGR(), colWidths[i++]),
+                FORMAT.text(" ", colWidths[i++]),
+                FORMAT.text(smallPctBar(d.getCAGR()), colWidths[i++]),
+                FORMAT.currency(d.getFees().getAmount(), colWidths[i++]),
+                FORMAT.percent(d.getFeePercent(), colWidths[i++]),
+                FORMAT.currency(d.getTaxes().getAmount(), colWidths[i++]),
+                FORMAT.percent(d.getTaxPercent(), colWidths[i++]));
     }
 
     private boolean after(Date d, int year, Month m, int day) {
@@ -2535,12 +2241,12 @@ public class ConsoleReports {
                 .get();
 
         appendLine("");
-        appendLine(format("From {0} to {1}: {2}. Annualized: {3}", DateTimeFormatter.ISO_LOCAL_DATE.format(from), DateTimeFormatter.ISO_LOCAL_DATE.format(to), percent(modifiedDietzReturn.getFirst()), percent(modifiedDietzReturn.getSecond())));
+        appendLine(format("From {0} to {1}: {2}. Annualized: {3}", DateTimeFormatter.ISO_LOCAL_DATE.format(from), DateTimeFormatter.ISO_LOCAL_DATE.format(to), FORMAT.percent(modifiedDietzReturn.getFirst()), FORMAT.percent(modifiedDietzReturn.getSecond())));
 
         final Function<Map.Entry<Integer, Pair<BigDecimal, BigDecimal>>, String> lineFunction
                 = (p) -> format("{0} {1} {2}",
-                        text(String.valueOf(p.getKey()), 10),
-                        percent(p.getValue().getFirst(), 8),
+                        FORMAT.text(String.valueOf(p.getKey()), 10),
+                        FORMAT.percent(p.getValue().getFirst(), 8),
                         pctBar(p.getValue().getSecond()));
 
         this.mdrByYear(inv, from, to, nominal)
@@ -2753,7 +2459,7 @@ public class ConsoleReports {
     }
 
     private String currencyBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
-        return this.genericBar(ym, amounts, width, a -> number(a, 9));
+        return this.genericBar(ym, amounts, width, a -> FORMAT.number(a, 9));
     }
 
     private String percentBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts) {
@@ -2786,7 +2492,7 @@ public class ConsoleReports {
 
         }
 
-        return this.genericBar(ym, relativeAmounts, 1, a -> percent(a.movePointLeft(2), 8));
+        return this.genericBar(ym, relativeAmounts, 1, a -> FORMAT.percent(a.movePointLeft(2), 8));
     }
 
     private String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width, Function<BigDecimal, String> format) {
