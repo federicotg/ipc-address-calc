@@ -24,10 +24,8 @@ import java.util.Arrays;
 import static java.util.Comparator.comparing;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Consumer;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
-import static org.fede.calculator.money.Format.FORMAT;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.AnnualHistoricalReturn;
@@ -60,13 +58,17 @@ public class Goal {
 
     private List<BigDecimal> sp500TotalReturns;
     private List<BigDecimal> russell2000TotalReturns;
-    private final Consumer<String> appendLine;
 
-    public Goal(double bbppMean, double bbppVar, double bbppMinFactor, Consumer<String> appendLine) {
+    private final Console console;
+    private final Format format;
+
+    public Goal(Console console, Format format, double bbppMean, double bbppVar, double bbppMinFactor) {
         this.bbppMean = bbppMean;
         this.bbppVar = bbppVar;
         this.bbppMinFactor = bbppMinFactor;
-        this.appendLine = appendLine;
+        this.console = console;
+        this.format = format;
+
     }
 
     private boolean goals(
@@ -182,16 +184,16 @@ public class Goal {
 
         final var investedAmount = invested.getAmount().doubleValue();
 
-        appendLine.accept(format("Cash: {0,number,currency}, invested: {1,number,currency}", cash, investedAmount));
-        appendLine.accept(format(
+        this.console.appendLine(format("Cash: {0,number,currency}, invested: {1,number,currency}", cash, investedAmount));
+        this.console.appendLine(format(
                 "Saving {0,number,currency}, spending {1,number,currency} {2}",
                 monthlyDeposit,
                 monthlyWithdraw,
                 afterTax ? " after tax." : "."));
         if (pension > 0) {
-            appendLine.accept(format("Considering {0,number,currency} pension.", pension));
+            this.console.appendLine(format("Considering {0,number,currency} pension.", pension));
         }
-        appendLine.accept(format("Expected {0}% inflation, retiring at {1}, until age {2} +/-{4}.", inflation, retirementAge, age, RETIREMENT_AGE_STD, END_AGE_STD));
+        this.console.appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2} +/-{4}.", inflation, retirementAge, age, RETIREMENT_AGE_STD, END_AGE_STD));
 
         final int startingYear = to.getYear();
         final var end = 1978 + age;
@@ -231,9 +233,9 @@ public class Goal {
                         realWithdrawals))
                 .count();
 
-        appendLine.accept(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
+        this.console.appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
 
-        appendLine.accept(format("{0}/{1} {2}", successes, trials, FORMAT.percent(BigDecimal.valueOf((double) successes / (double) trials))));
+        this.console.appendLine(format("{0}/{1} {2}", successes, trials, this.format.percent(BigDecimal.valueOf((double) successes / (double) trials))));
 
     }
 

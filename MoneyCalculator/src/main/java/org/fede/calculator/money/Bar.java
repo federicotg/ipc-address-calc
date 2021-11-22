@@ -30,8 +30,9 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import static org.fede.calculator.money.Format.FORMAT;
+import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 
@@ -44,10 +45,17 @@ public class Bar {
     private static final BigDecimal ONE_PERCENT = BigDecimal.ONE.movePointLeft(2);
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
-    public static final Bar BAR = new Bar();
+    private final Console console;
+    private final Format format;
 
+    public Bar(Console console, Format format) {
+        this.console = console;
+        this.format = format;
+    }
+    
+   
     public String currencyBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
-        return this.genericBar(ym, amounts, width, a -> FORMAT.number(a, 9));
+        return this.genericBar(ym, amounts, width, a -> this.format.number(a, 9));
     }
 
     public String percentBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts) {
@@ -80,7 +88,7 @@ public class Bar {
 
         }
 
-        return this.genericBar(ym, relativeAmounts, 1, a -> FORMAT.percent(a.movePointLeft(2), 8));
+        return this.genericBar(ym, relativeAmounts, 1, a -> this.format.percent(a.movePointLeft(2), 8));
     }
 
     private String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width, Function<BigDecimal, String> format) {
@@ -119,12 +127,12 @@ public class Bar {
                     .collect(joining());
 
             return format("{0} {1}",
-                    FORMAT.percent(value, 10),
+                    this.format.percent(value, 10),
                     Ansi.colorize(part + "/-/" + part, attr));
         }
 
         return format("{0} {1}",
-                FORMAT.percent(value, 10),
+                this.format.percent(value, 10),
                 Ansi.colorize(IntStream.range(0, end)
                         .mapToObj(i -> " ")
                         .collect(joining()), attr));
@@ -157,11 +165,9 @@ public class Bar {
 
     private String bar(BigDecimal value, int scale, Attribute color) {
 
-        final AnsiFormat format = new AnsiFormat(color);
-
         return Ansi.colorize(IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue())
                 .mapToObj(x -> " ")
-                .collect(joining()), format);
+                .collect(joining()), new AnsiFormat(color));
     }
 
     private String bar(BigDecimal value, int scale, String symbol) {
@@ -193,7 +199,7 @@ public class Bar {
 
         }
 
-        return this.bar(ym, bar1, bar2, bar3, 1, Format.FORMAT::pctNumber);
+        return this.bar(ym, bar1, bar2, bar3, 1, this.format::pctNumber);
 
     }
 
@@ -242,7 +248,15 @@ public class Bar {
 
         }
 
-        return this.bar(ym, bar1, bar2, 1, Format.FORMAT::pctNumber);
+        return this.bar(ym, bar1, bar2, 1, this.format::pctNumber);
     }
 
+    public void evolution(String name, MoneyAmountSeries s, int scale) {
+        var limit = USD_INFLATION.getTo();
+
+        s.forEach((ym, ma) -> this.console.appendLine(this.currencyBar(ym, List.of(Pair.of(ma, Attribute.WHITE_BACK())), scale)));
+
+        this.console.appendLine("\n", name, " real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
+
+    }
 }

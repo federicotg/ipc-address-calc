@@ -33,8 +33,6 @@ public class Format {
     private static final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
     private static final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
 
-    public static final Format FORMAT = new Format();
-
     public Format() {
         PERCENT_FORMAT.setMinimumFractionDigits(2);
     }
