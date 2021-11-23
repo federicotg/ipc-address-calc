@@ -30,6 +30,7 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.SeriesReader;
+import static org.fede.calculator.money.series.SeriesReader.readSeries;
 import org.fede.calculator.money.series.YearMonth;
 
 /**
@@ -51,7 +52,9 @@ public class Goal {
     private static final int RETIREMENT_AGE_STD = 3;
     private static final int END_AGE_STD = 6;
 
-    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = new BigDecimal("1.15");
+    private static final BigDecimal BUY_SELL_FEE = new BigDecimal("1.00193");
+
+    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), CONTEXT), CONTEXT);
 
     private final double bbppMean;
     private final double bbppVar;
@@ -139,7 +142,7 @@ public class Goal {
                 Inflation.USD_INFLATION.adjust(
                         new MoneyAmount(nominal.getTotalReturn(), "USD"),
                         YearMonth.of(nominal.getYear(), 12),
-                        YearMonth.of(nominal.getYear()-1, 12)).getAmount());
+                        YearMonth.of(nominal.getYear() - 1, 12)).getAmount());
     }
 
     public void goal(
@@ -149,7 +152,6 @@ public class Goal {
             final int monthlyWithdraw,
             final int inflation,
             final int retirementAge,
-            final BigDecimal buySellFee,
             final BigDecimal extraCash,
             final boolean onlySP500,
             final boolean afterTax,
@@ -189,9 +191,9 @@ public class Goal {
         final var inflationRate = ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE)
                 .add(BigDecimal.valueOf(inflation).setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT).doubleValue();
 
-        final var deposit = BigDecimal.valueOf(monthlyDeposit * 12).divide(buySellFee, CONTEXT).doubleValue();
+        final var deposit = BigDecimal.valueOf(monthlyDeposit * 12).divide(BUY_SELL_FEE, CONTEXT).doubleValue();
         final var withdraw = BigDecimal.valueOf((monthlyWithdraw - pension) * 12)
-                .multiply(buySellFee, CONTEXT)
+                .multiply(BUY_SELL_FEE, CONTEXT)
                 .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, CONTEXT).doubleValue();
 
         final var investedAmount = invested.getAmount().doubleValue();
@@ -249,7 +251,17 @@ public class Goal {
 
         this.console.appendLine(format("{0}/{1} {2}", successes, trials, this.format.percent(BigDecimal.valueOf((double) successes / (double) trials))));
 
+//        SeriesReader.readSeries("income/unlp.json")
+//                .map(this::withoutSAC)
+//                .forEach((ym, ma) -> this.console.appendLine(format("{0}/{1}/01 {2}", String.valueOf(ym.getYear()), ym.getMonth(), this.format.currency(ma.getAmount()))));
     }
+
+//    private MoneyAmount withoutSAC(YearMonth ym, MoneyAmount ma) {
+//        if (ym.getMonth() == 7 || ym.getMonth() == 1) {
+//            return ma.adjust(new BigDecimal("1.5"), ONE);
+//        }
+//        return ma;
+//    }
 
     private double[] randomPeriods(List<double[]> allReturns, int periods, double fee) {
         return ThreadLocalRandom.current().ints(periods, 0, allReturns.size())

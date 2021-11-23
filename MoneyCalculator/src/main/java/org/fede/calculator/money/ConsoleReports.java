@@ -745,7 +745,7 @@ public class ConsoleReports {
 
         final var goal = new Goal(this.console, this.format, bbppTax * BBPP_FX_GAP_PERCENT, bbppTax / 10.0d, 1.0d - bbppTax);
 
-        final var buySellFee = new BigDecimal("1.00193");
+        
 //                
 //                ONE.setScale(MathConstants.SCALE)
 //                .add(TRADING_FEE.multiply(IVA, CONTEXT), CONTEXT)
@@ -763,7 +763,6 @@ public class ConsoleReports {
                 withdraw,
                 inflation,
                 retirementAge,
-                buySellFee,
                 BigDecimal.valueOf(extraCash),
                 onlySP500,
                 afterTax,
