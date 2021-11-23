@@ -30,6 +30,7 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.SeriesReader;
+import org.fede.calculator.money.series.YearMonth;
 
 /**
  *
@@ -132,6 +133,15 @@ public class Goal {
         return (int) Math.round(gauss((double) mean, (double) std));
     }
 
+    private AnnualHistoricalReturn real(AnnualHistoricalReturn nominal) {
+        return new AnnualHistoricalReturn(
+                nominal.getYear(),
+                Inflation.USD_INFLATION.adjust(
+                        new MoneyAmount(nominal.getTotalReturn(), "USD"),
+                        YearMonth.of(nominal.getYear(), 12),
+                        YearMonth.of(nominal.getYear()-1, 12)).getAmount());
+    }
+
     public void goal(
             final int trials,
             final int periodYears,
@@ -154,6 +164,7 @@ public class Goal {
         this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", tr)
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
+                .map(this::real)
                 .map(AnnualHistoricalReturn::getTotalReturn)
                 .map(r -> ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).add(r.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT))
                 .collect(toList());
@@ -161,6 +172,7 @@ public class Goal {
         this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", tr)
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
+                .map(this::real)
                 .map(AnnualHistoricalReturn::getTotalReturn)
                 .map(r -> ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).add(r.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT))
                 .collect(toList());

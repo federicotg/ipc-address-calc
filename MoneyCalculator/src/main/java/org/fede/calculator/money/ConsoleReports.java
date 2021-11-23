@@ -77,6 +77,7 @@ import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import org.fede.calculator.money.series.InvestmentAsset;
+import static org.fede.calculator.money.series.SeriesReader.readSeries;
 
 /**
  *
@@ -1969,7 +1970,7 @@ public class ConsoleReports {
                 ": losses, ",
                 Ansi.colorize(" ", Attribute.CYAN_BACK()),
                 ": taxes.");
-
+        
     }
 
     private Map<String, MoneyAmountSeries> investmentEvolution(String currency) {
@@ -2023,5 +2024,5 @@ public class ConsoleReports {
                 .map(p -> this.asUSD(p.getFirst(), p.getSecond()))
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
-
+    
 }

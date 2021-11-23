@@ -27,6 +27,16 @@ public class AnnualHistoricalReturn {
     private int year;
     private BigDecimal totalReturn;
 
+    public AnnualHistoricalReturn(int year, BigDecimal totalReturn) {
+        this.year = year;
+        this.totalReturn = totalReturn;
+    }
+
+    public AnnualHistoricalReturn() {
+    }
+    
+    
+
     public int getYear() {
         return year;
     }
