@@ -30,7 +30,6 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.SeriesReader;
-import static org.fede.calculator.money.series.SeriesReader.readSeries;
 import org.fede.calculator.money.series.YearMonth;
 
 /**

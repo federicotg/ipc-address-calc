@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
@@ -35,15 +34,9 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.text.MessageFormat.format;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -61,19 +54,13 @@ import java.util.stream.Stream;
 
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentType;
-import static org.fede.calculator.money.series.InvestmentType.*;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.BBPPItem;
-import org.fede.calculator.money.series.BBPPTaxBraket;
-import org.fede.calculator.money.series.BBPPYear;
-import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
-import org.fede.calculator.money.series.InvestmentAsset;
 
 /**
  *
@@ -106,17 +93,16 @@ public class ConsoleReports {
     private static final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
             .thenComparing(comparing(pair -> pair.getFirst().getSecond()));
 
-    private static final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
-
-    private final Series series = new Series();
+    private final Series series;
     private final Console console;
     private final Bar bar;
     private final Format format;
 
-    public ConsoleReports(Console console, Format format, Bar bar, House house) {
+    public ConsoleReports(Console console, Format format, Bar bar, House house, Series series) {
         this.console = console;
         this.bar = bar;
         this.format = format;
+        this.series = series;
     }
 
     private void appendLine(String... texts) {
@@ -293,13 +279,14 @@ public class ConsoleReports {
     public static void main(String[] args) {
         try {
 
-            PERCENT_FORMAT.setMinimumFractionDigits(2);
-
             final var console = new Console();
             final var format = new Format();
             final var bar = new Bar(console, format);
             final var house = new House(console, format, bar);
-            final var me = new ConsoleReports(console, format, bar, house);
+            final var series = new Series();
+            final var me = new ConsoleReports(console, format, bar, house, series);
+
+            final var portfolioReturns = new PortfolioReturns(series, console, format, bar);
 
             final Map<String, Runnable> actions = Map.ofEntries(
                     entry("i", me::investments),
@@ -330,7 +317,7 @@ public class ConsoleReports {
                     entry("income-half", me::halfIncome),
                     entry("income-quarter", me::quarterIncome),
                     entry("p", () -> me.portfolio(args, "p")),
-                    entry("pa", () -> me.portfolioAllocation()),
+                    entry("pa", portfolioReturns::portfolioAllocation),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
                     entry("house-evo", () -> house.houseCostsEvolution()),
@@ -347,7 +334,7 @@ public class ConsoleReports {
                     entry("bbpp", () -> me.bbpp(args, "bbpp")),
                     entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
                     entry("ibkr", () -> me.ibkrCSV()),
-                    entry("mdr", () -> me.returns(args, "mdr")),
+                    entry("mdr", () -> me.returns(args, "mdr", portfolioReturns)),
                     entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
                     entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct"))
             );
@@ -727,207 +714,8 @@ public class ConsoleReports {
     }
 
     private void bbpp(String[] args, String paramName) {
-
-        final var year = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("year", "2020"));
-
-        appendLine("===< ", format("BB.PP. {0}", String.valueOf(year)), " >===");
-
-        List<BBPPYear> bbppYears = SeriesReader.read("bbpp.json", new TypeReference<List<BBPPYear>>() {
-        });
-
-        final var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-        final var bbpp = bbppYears
-                .stream()
-                .filter(y -> y.getYear() == year)
-                .findAny()
-                .get();
-
-        final var ym = YearMonth.of(year, 12);
-
-        final Map<String, Function<MoneyAmount, BigDecimal>> arsFunction = Map.of(
-                "ARS", (MoneyAmount item) -> item.getAmount(),
-                "LECAP", (MoneyAmount item) -> item.getAmount(),
-                "EUR", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getEur(), CONTEXT),
-                "USD", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getUsd(), CONTEXT),
-                "LETE", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getUsd(), CONTEXT),
-                "XRSU", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "USD")
-                        .apply(item, ym)
-                        .getAmount()
-                        .multiply(bbpp.getUsd(), CONTEXT),
-                "CSPX", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "USD")
-                        .apply(item, ym)
-                        .getAmount()
-                        .multiply(bbpp.getUsd(), CONTEXT),
-                "EIMI", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "USD")
-                        .apply(item, ym)
-                        .getAmount()
-                        .multiply(bbpp.getUsd(), CONTEXT),
-                "MEUD", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "EUR")
-                        .apply(item, ym)
-                        .getAmount()
-                        .multiply(bbpp.getEur(), CONTEXT));
-
-        final var etfs = this.series.getInvestments()
-                .stream()
-                .filter(i -> i.isCurrent(date))
-                .filter(i -> ETF.equals(i.getType()))
-                .map(Investment::getInvestment)
-                .map(i -> i.getMoneyAmount())
-                .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        final var ons = this.series.getInvestments()
-                .stream()
-                .filter(i -> i.isCurrent(date))
-                .filter(i -> BONO.equals(i.getType()))
-                .map(Investment::getInvestment)
-                .map(i -> i.getMoneyAmount())
-                //.peek(ma -> System.out.println(ma.getCurrency()))
-                .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        final var etfsItem = new BBPPItem();
-        etfsItem.setCurrency("ARS");
-        etfsItem.setDomestic(false);
-        etfsItem.setExempt(false);
-        etfsItem.setHolding(ONE);
-        etfsItem.setName("ETFs");
-        etfsItem.setValue(etfs);
-
-        final var onsItem = new BBPPItem();
-        onsItem.setCurrency("ARS");
-        onsItem.setDomestic(true);
-        onsItem.setExempt(false);
-        onsItem.setHolding(ONE);
-        onsItem.setName("ONs");
-        onsItem.setValue(ons);
-
-        final var homeCashItem = new BBPPItem();
-        homeCashItem.setCurrency("ARS");
-        homeCashItem.setDomestic(true);
-        homeCashItem.setExempt(false);
-        homeCashItem.setHolding(ONE);
-        homeCashItem.setName("Home Cash");
-        homeCashItem.setValue(BigDecimal.valueOf(5000l));
-
-        bbpp.getItems().add(etfsItem);
-        bbpp.getItems().add(onsItem);
-        bbpp.getItems().add(homeCashItem);
-
-        final var allArs = bbpp.getItems()
-                .stream()
-                .map(i -> this.toARS(i, bbpp.getUsd(), bbpp.getEur()))
-                .collect(toList());
-
-        final var totalAmount = allArs
-                .stream()
-                .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
-                .reduce(ZERO, BigDecimal::add);
-
-        appendLine(format("Total amount {0}", this.format.currency(totalAmount)));
-
-        final var taxedDomesticAmount = allArs
-                .stream()
-                .filter(BBPPItem::isDomestic)
-                .filter(i -> !i.isExempt())
-                .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
-                .reduce(ZERO, BigDecimal::add)
-                .multiply(new BigDecimal("1.05"), CONTEXT);
-
-        appendLine(format("Taxed domestic amount {0}", this.format.currency(taxedDomesticAmount)));
-
-        final var taxedForeignAmount = allArs
-                .stream()
-                .filter(i -> !i.isDomestic())
-                .filter(i -> !i.isExempt())
-                .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
-                .reduce(ZERO, BigDecimal::add);
-
-        appendLine(format("Taxed foreign amount {0}", this.format.currency(taxedForeignAmount)));
-
-        final var taxedTotal = bbpp.getMinimum()
-                .negate()
-                .add(taxedDomesticAmount, CONTEXT)
-                .add(taxedForeignAmount, CONTEXT);
-
-        appendLine(format("Taxed total {0}", this.format.currency(taxedTotal)));
-
-        final var taxRate = bbpp.getBrakets()
-                .stream()
-                .sorted(comparing(BBPPTaxBraket::getFrom))
-                .filter(b -> b.getFrom().compareTo(totalAmount) <= 0)
-                .reduce((left, right) -> right)
-                .get()
-                .getTax();
-
-        appendLine(format("Tax rate {0}", this.format.percent(taxRate)));
-
-        final var taxAmount = taxedTotal.multiply(taxRate, CONTEXT);
-
-        final var usdTaxAmount = getMoneyAmountForeignExchange("ARS", "USD").apply(new MoneyAmount(taxAmount, "ARS"), ym);
-
-        appendLine(format("Tax amount {0} / USD {1}",
-                this.format.currency(taxAmount),
-                this.format.currency(usdTaxAmount.getAmount())));
-
-        appendLine(format("Monthly tax amount USD {0}", this.format.currency(usdTaxAmount.adjust(BigDecimal.valueOf(12), ONE).getAmount())));
-
-        final var allInvested = this.series.getInvestments()
-                .stream()
-                .filter(i -> i.isCurrent(date))
-                .map(Investment::getInvestment)
-                .map(InvestmentAsset::getMoneyAmount)
-                .map(ma -> getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, ym))
-                .reduce(ZERO_USD, MoneyAmount::add);
-
-        final var yearRealIncome = new ArrayList<MoneyAmount>(12);
-
-        this.series.realIncome()
-                .forEachNonZero((yearMonth, ma) -> Optional.of(ma).filter(m -> yearMonth.getYear() == year).ifPresent(yearRealIncome::add));
-
-        appendLine(format("Effective tax rate is {0}. Tax is {1} of investments. Tax is {2} of income.",
-                this.format.percent(taxAmount.divide(totalAmount, CONTEXT)),
-                this.format.percent(usdTaxAmount.getAmount().divide(allInvested.getAmount(), CONTEXT)),
-                this.format.percent(usdTaxAmount.getAmount().divide(yearRealIncome.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add), CONTEXT))));
-
-        this.console.appendLine(this.format.subtitle("Detail"));
-
-        appendLine(format("{0}{1}{2}{3}", this.format.text("", 16), this.format.text("      Value", 16), this.format.text("    %", 10), this.format.text("      Taxed", 16)));
-        allArs.stream()
-                .map(i -> format("{0}{1}{2}{3}",
-                this.format.text(i.getName(), 16),
-                this.format.currency(i.getValue(), 16),
-                this.format.percent(i.getHolding(), 10),
-                this.format.currency(i.getValue().multiply(i.isExempt() ? ZERO : i.getHolding(), CONTEXT), 16)))
-                .forEach(this::appendLine);
-
-    }
-
-    private BBPPItem toARS(BBPPItem item, BigDecimal usdValue, BigDecimal eurValue) {
-        if (item.getCurrency().equals("ARS")) {
-            return item;
-        }
-
-        final var newItem = new BBPPItem();
-        newItem.setCurrency("ARS");
-        newItem.setDomestic(item.isDomestic());
-        newItem.setExempt(item.isExempt());
-        newItem.setHolding(item.getHolding());
-        newItem.setName(item.getName());
-
-        if (item.getCurrency().equals("USD")) {
-
-            newItem.setValue(item.getValue().multiply(usdValue, CONTEXT));
-
-        }
-        if (item.getCurrency().equals("EUR")) {
-
-            newItem.setValue(item.getValue().multiply(eurValue, CONTEXT));
-
-        }
-        return newItem;
-
+        new BBPP(format, series, console)
+                .bbpp(Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("year", "2020")));
     }
 
     private void averageSavedSalaries(String[] args, String name) {
@@ -1307,196 +1095,14 @@ public class ConsoleReports {
         return SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
     }
 
-    private void portfolioAllocation() {
-
-        Map<String, Map<String, Optional<DayDollars>>> dayDollarsByYear = this.series.getInvestments()
-                .stream()
-                .flatMap(this::asDayDollarsByYear)
-                .collect(groupingBy(
-                        DayDollars::getYear,
-                        groupingBy(DayDollars::getType, reducing(DayDollars::combine))));
-
-        final var mdrByYear = this.mdrByYear();
-
-        dayDollarsByYear.entrySet()
-                .stream()
-                .sorted(comparing(Map.Entry::getKey))
-                .forEach(e -> this.allocationYear(e.getKey(), e.getValue(), mdrByYear));
-
-    }
-
-    private void allocationYear(String year, Map<String, Optional<DayDollars>> byType, Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear) {
-        this.appendLine("Year: ", year);
-
-        final var total = byType.values()
-                .stream()
-                .flatMap(Optional::stream)
-                .map(DayDollars::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-
-        byType.values()
-                .stream()
-                .flatMap(Optional::stream)
-                .sorted(comparing(DayDollars::getAmount).reversed())
-                .map(d -> format("\t{0} {1}",
-                String.format("%-11s", d.getType()),
-                this.bar.pctBar(d.getAmount(), total)))
-                .forEach(this::appendLine);
-
-        Optional.ofNullable(mdrByYear.get(Integer.parseInt(year)))
-                .map(Pair::getFirst)
-                .map(this.format::percent)
-                .map(pct -> format("Modified Dietz Return {0}\n", pct))
-                .ifPresent(this::appendLine);
-
-    }
-
-    private Stream<DayDollars> asDayDollarsByYear(Investment i) {
-
-        return IntStream.rangeClosed(
-                YearMonth.of(i.getIn().getDate()).getYear(),
-                Optional.ofNullable(i.getOut())
-                        .map(InvestmentEvent::getDate)
-                        .map(YearMonth::of)
-                        .map(YearMonth::getYear)
-                        .orElse(USD_INFLATION.getTo().getYear()))
-                .mapToObj(year -> this.dayDollarsInYear(year, i));
-
-    }
-
-    private DayDollars dayDollarsInYear(int year, Investment i) {
-
-        final var yearStart = LocalDate.of(year, Month.JANUARY, 1);
-        final var yearEnd = LocalDate.of(year, Month.DECEMBER, 31);
-
-        final var investmentStart = LocalDate.ofInstant(i.getIn().getDate().toInstant(), ZoneId.systemDefault());
-
-        final var investmentEnd = Optional.ofNullable(i.getOut())
-                .map(InvestmentEvent::getDate)
-                .map(Date::toInstant)
-                .map(instant -> LocalDate.ofInstant(instant, ZoneId.systemDefault()))
-                .orElse(LocalDate.now());
-
-        final var to = min(yearEnd, investmentEnd);
-
-        final var daysInvestedInYear = ChronoUnit.DAYS.between(
-                max(yearStart, investmentStart),
-                to.plusDays(1));
-
-        final var usdInvested = getMoneyAmountForeignExchange(i.getCurrency(), "USD")
-                .apply(i.getMoneyAmount(), YearMonth.of(to.getYear(), to.getMonthValue()));
-
-        return new DayDollars(
-                year,
-                i.getType(),
-                i.getCurrency(),
-                usdInvested.getAmount().multiply(BigDecimal.valueOf(daysInvestedInYear), CONTEXT));
-
-    }
-
-    private static LocalDate min(LocalDate d1, LocalDate d2) {
-        return d1.compareTo(d2) <= 0
-                ? d1
-                : d2;
-    }
-
-    private static LocalDate max(LocalDate d1, LocalDate d2) {
-        return d1.compareTo(d2) >= 0
-                ? d1
-                : d2;
-    }
-
-    private boolean after(Date d, int year, Month m, int day) {
-        return LocalDate.ofInstant(d.toInstant(), ZoneId.systemDefault()).isAfter(LocalDate.of(year, m, day));
-    }
-
-    private void returns(String[] args, String paranName) {
+    private void returns(String[] args, String paranName, PortfolioReturns pr) {
 
         final var params = this.paramsValue(args, paranName);
 
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
 
-        final Predicate<Investment> since2002 = i -> after(i.getInitialDate(), 2002, Month.JANUARY, 1);
+        pr.returns(nominal);
 
-        this.modifiedDietzReturn(since2002, nominal);
-
-    }
-
-    private Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear() {
-
-        final Predicate<Investment> since2002 = i -> after(i.getInitialDate(), 2002, Month.JANUARY, 1);
-        final var inv = this.series.getInvestments()
-                .stream()
-                .filter(since2002)
-                .collect(toList());
-
-        final var from = inv.stream()
-                .map(Investment::getInitialDate)
-                .map(Date::toInstant)
-                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
-                .reduce(ConsoleReports::min)
-                .get();
-
-        final var to = inv.stream()
-                .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate).map(Date::toInstant).orElseGet(Instant::now))
-                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
-                .reduce(ConsoleReports::max)
-                .get();
-
-        return this.mdrByYear(inv, from, to, false);
-    }
-
-    private void modifiedDietzReturn(Predicate<Investment> criteria, boolean nominal) {
-
-        final var inv = this.series.getInvestments()
-                .stream()
-                .filter(criteria)
-                .collect(toList());
-
-        final var modifiedDietzReturn = new ModifiedDietzReturn(
-                inv,
-                "USD",
-                nominal)
-                .get();
-
-        final var from = inv.stream()
-                .map(Investment::getInitialDate)
-                .map(Date::toInstant)
-                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
-                .reduce(ConsoleReports::min)
-                .get();
-
-        final var to = inv.stream()
-                .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate).map(Date::toInstant).orElseGet(Instant::now))
-                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
-                .reduce(ConsoleReports::max)
-                .get();
-
-        appendLine("");
-        appendLine(format("From {0} to {1}: {2}. Annualized: {3}", DateTimeFormatter.ISO_LOCAL_DATE.format(from), DateTimeFormatter.ISO_LOCAL_DATE.format(to), this.format.percent(modifiedDietzReturn.getFirst()), this.format.percent(modifiedDietzReturn.getSecond())));
-
-        final Function<Map.Entry<Integer, Pair<BigDecimal, BigDecimal>>, String> lineFunction
-                = (p) -> format("{0} {1} {2}",
-                        this.format.text(String.valueOf(p.getKey()), 10),
-                        this.format.percent(p.getValue().getFirst(), 8),
-                        this.bar.pctBar(p.getValue().getSecond()));
-
-        this.mdrByYear(inv, from, to, nominal)
-                .entrySet()
-                .stream()
-                .sorted(comparing(Map.Entry::getKey))
-                .map(lineFunction)
-                .forEach(this::appendLine);
-
-    }
-
-    private Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear(List<Investment> inv, LocalDate from, LocalDate to, boolean nominal) {
-
-        return IntStream.rangeClosed(from.getYear(), to.getYear())
-                .boxed()
-                .collect(Collectors.toMap(
-                        year -> year,
-                        year -> new ModifiedDietzReturn(inv, "USD", nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()));
     }
 
     // increase in real USD -  rolling N months
