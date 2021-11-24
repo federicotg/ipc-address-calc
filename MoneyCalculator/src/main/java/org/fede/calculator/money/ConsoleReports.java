@@ -130,6 +130,19 @@ public class ConsoleReports {
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 
+    private static final String TRIALS = "100000";
+    private static final String PERIODS = "20";
+    private static final String RETIREMENT = "65";
+    private static final String AGE = "97";
+    private static final String DEPOSIT = "1000";
+    private static final String WITHDRAW = "1000";
+    private static final String INFLATION = "3";
+    private static final String CASH = "0";
+    private static final String SP500 = "true";
+    private static final String TAX = "true";
+    private static final String BBPP = "2.25";
+    private static final String PENSION = "50";
+
     private static final TypeReference<Map<String, BenchmarkItem>> BENCHMARK_TR = new TypeReference<Map<String, BenchmarkItem>>() {
     };
 
@@ -415,7 +428,19 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", "trials=100000 period=20 retirement=63 age=97 w=1000 d=850 inflation=3 cash=0 sp500=true tax=true bbpp=2.25 pension=50"),
+                        entry("goal", format("trials={0} period={1} retirement={2} age={3} w={4} d={5} inflation={6} cash={7} sp500={8} tax={9} bbpp=10 pension={11}",
+                                TRIALS,
+                                PERIODS,
+                                RETIREMENT,
+                                AGE,
+                                WITHDRAW,
+                                DEPOSIT,
+                                INFLATION,
+                                CASH,
+                                SP500,
+                                TAX,
+                                BBPP,
+                                PENSION)),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
@@ -727,31 +752,29 @@ public class ConsoleReports {
 
         final var params = this.paramsValue(args, paramName);
 
-        final var trials = Integer.parseInt(params.getOrDefault("trials", "100000"));
-        final var periodYears = Integer.parseInt(params.getOrDefault("period", "20"));
-        final var deposit = Integer.parseInt(params.getOrDefault("d", "850"));
-        final var withdraw = Integer.parseInt(params.getOrDefault("w", "1000"));
-        final var inflation = Integer.parseInt(params.getOrDefault("inflation", "3"));
-        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", "63"));
-        final var age = Integer.parseInt(params.getOrDefault("age", "97"));
-        final var extraCash = Integer.parseInt(params.getOrDefault("cash", "0"));
-        final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", "true"));
-        final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", "true"));
-        final var pension = Integer.parseInt(params.getOrDefault("pension", "50"));
+        final var trials = Integer.parseInt(params.getOrDefault("trials", TRIALS));
+        final var periodYears = Integer.parseInt(params.getOrDefault("period", PERIODS));
+        final var deposit = Integer.parseInt(params.getOrDefault("d", DEPOSIT));
+        final var withdraw = Integer.parseInt(params.getOrDefault("w", WITHDRAW));
+        final var inflation = Integer.parseInt(params.getOrDefault("inflation", INFLATION));
+        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", RETIREMENT));
+        final var age = Integer.parseInt(params.getOrDefault("age", AGE));
+        final var extraCash = Integer.parseInt(params.getOrDefault("cash", CASH));
+        final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", SP500));
+        final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", TAX));
+        final var pension = Integer.parseInt(params.getOrDefault("pension", PENSION));
 
         final var bbppTax = afterTax
-                ? Double.parseDouble(params.getOrDefault("bbpp", "2.25")) / 100.0d
+                ? Double.parseDouble(params.getOrDefault("bbpp", BBPP)) / 100.0d
                 : 0.0d;
 
         final var goal = new Goal(this.console, this.format, bbppTax * BBPP_FX_GAP_PERCENT, bbppTax / 10.0d, 1.0d - bbppTax);
 
-        
 //                
 //                ONE.setScale(MathConstants.SCALE)
 //                .add(TRADING_FEE.multiply(IVA, CONTEXT), CONTEXT)
 //                .add(TRADING_FEE, CONTEXT)
 //                .add(TRADING_FEE, CONTEXT);
-
         final var todaySavings = this.series.realSavings(null).getAmount(Inflation.USD_INFLATION.getTo());
 
         final var invested = this.series.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
@@ -1888,7 +1911,7 @@ public class ConsoleReports {
 
         final var currency = params.get("currency");
 
-        appendLine("===< Investment Evolution Percent >===");
+        appendLine("===< Nominal Investment Evolution Percent >===");
 
         final var m = this.investmentEvolution(currency);
 
@@ -1904,7 +1927,7 @@ public class ConsoleReports {
                                 Pair.of(total.getAmount(ym)
                                         .subtract(inv.getAmount(ym).add(fee.getAmount(ym))), Attribute.GREEN_BACK())))));
 
-        appendLine("===< Investment Evolution Percent >===");
+        appendLine("===< Nominal Investment Evolution Percent >===");
         appendLine("");
         appendLine("References:");
 
@@ -1924,7 +1947,7 @@ public class ConsoleReports {
 
         final var currency = params.get("currency");
 
-        appendLine("===< Investment Evolution >===");
+        appendLine("===< Nominal Investment Evolution >===");
 
         final var m = this.investmentEvolution(currency);
 
@@ -1955,7 +1978,7 @@ public class ConsoleReports {
                             800));
         });
 
-        appendLine("===< Investment Evolution >===");
+        appendLine("===< Nominal Investment Evolution >===");
         appendLine("");
         appendLine("References:");
 
@@ -1969,7 +1992,7 @@ public class ConsoleReports {
                 ": losses, ",
                 Ansi.colorize(" ", Attribute.CYAN_BACK()),
                 ": taxes.");
-        
+
     }
 
     private Map<String, MoneyAmountSeries> investmentEvolution(String currency) {
@@ -2023,5 +2046,5 @@ public class ConsoleReports {
                 .map(p -> this.asUSD(p.getFirst(), p.getSecond()))
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
-    
+
 }
