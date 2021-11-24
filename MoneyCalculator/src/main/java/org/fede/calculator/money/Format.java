@@ -84,4 +84,16 @@ public class Format {
         return String.format("%3d", value.intValue()).concat("%");
 
     }
+
+    public String title(String text) {
+
+        return "\n" + Ansi.colorize(text, Attribute.BRIGHT_WHITE_TEXT(), Attribute.BOLD()) + "\n";
+
+    }
+
+    public String subtitle(String title) {
+
+        return "\n\t" + Ansi.colorize(format(" {0} ", title), Attribute.BOLD()) + "\n";
+
+    }
 }
