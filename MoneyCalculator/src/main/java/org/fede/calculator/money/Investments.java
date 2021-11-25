@@ -381,7 +381,8 @@ public class Investments {
             final var taxAmount = taxes.getAmount(ym);
             final var netCapitalGains = capitalGains.subtract(taxAmount);
 
-            final var elements = List.of(Pair.of(investment, Attribute.WHITE_BACK()),
+            final var elements = List.of(
+                    Pair.of(investment, Attribute.WHITE_BACK()),
                     Pair.of(feeAmount, Attribute.YELLOW_BACK()),
                     Pair.of(netCapitalGains, Attribute.GREEN_BACK()),
                     Pair.of(taxAmount, Attribute.CYAN_BACK()));
@@ -389,10 +390,10 @@ public class Investments {
             this.console.appendLine(
                     pct
                             ? this.pctBar(ym, elements)
-                            : this.bar(ym, elements, 800));
+                            : this.bar(ym, elements, 950));
         });
 
-        this.console.appendLine(format("===< {0} Investment Evolution >===", nominal ? "Nominal" : "Real"));
+        this.console.appendLine(format(title, nominal ? "Nominal" : "Real"));
 
         this.ref();
 
