@@ -364,6 +364,9 @@ public class ConsoleReports {
                         entry("income", "months=12"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
                         entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false currency=USD"),
+                        entry("inv-evo", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
+                        entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
+                        entry("mdr", "nominal=false"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
                         entry("bbpp", "year=2020"),
@@ -372,7 +375,6 @@ public class ConsoleReports {
                         entry("savings-avg-spent-pct", "months=12"),
                         entry("expenses", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("expenses-change", "months=12"),
-                        entry("mdr", "nominal=false"),
                         entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)")
                 );
@@ -1211,16 +1213,18 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         final var currency = params.get("currency");
+        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
 
-        new Investments(console, format, bar, series).invEvoPct(currency);
+        new Investments(console, format, bar, series).invEvoPct(currency, nominal);
     }
 
     private void invEvo(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
 
         final var currency = params.get("currency");
+        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
 
-        new Investments(console, format, bar, series).invEvo(currency);
+        new Investments(console, format, bar, series).invEvo(currency, nominal);
 
     }
 }

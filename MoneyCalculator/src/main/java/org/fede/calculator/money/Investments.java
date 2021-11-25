@@ -31,6 +31,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -360,15 +361,16 @@ public class Investments {
         return answer;
     }
 
-    public void invEvo(String currency) {
+    private void invEvo(String title, String currency, boolean nominal, boolean pct) {
 
-        this.console.appendLine("===< Nominal Investment Evolution >===");
+        this.console.appendLine(format(title, nominal ? "Nominal" : "Real"));
 
-        final var m = this.investmentEvolution(currency);
+        final var m = this.investmentEvolution(currency, nominal);
 
         final var inv = m.get("invested");
         final var fee = m.get("fees");
         final var total = m.get("total");
+        final var taxes = m.get("taxes");
 
         total.forEach((ym, cashMa) -> {
 
@@ -376,27 +378,48 @@ public class Investments {
             final var feeAmount = fee.getAmount(ym);
             final var totalAmount = total.getAmount(ym);
             final var capitalGains = totalAmount.subtract(investment).subtract(feeAmount);
-            final var netCapitalGains = capitalGains.getAmount().signum() > 0
-                    ? capitalGains.adjust(ONE, ONE.subtract(CAPITAL_GAINS_TAX_RATE, CONTEXT))
-                    : capitalGains;
-            final var taxAmount = capitalGains.getAmount().signum() > 0
-                    ? capitalGains.adjust(ONE, CAPITAL_GAINS_TAX_RATE)
-                    : ZERO_USD;
+            final var taxAmount = taxes.getAmount(ym);
+            final var netCapitalGains = capitalGains.subtract(taxAmount);
+
+            final var elements = List.of(Pair.of(investment, Attribute.WHITE_BACK()),
+                    Pair.of(feeAmount, Attribute.YELLOW_BACK()),
+                    Pair.of(netCapitalGains, Attribute.GREEN_BACK()),
+                    Pair.of(taxAmount, Attribute.CYAN_BACK()));
 
             this.console.appendLine(
-                    this.bar.currencyBar(
-                            ym,
-                            List.of(Pair.of(investment, Attribute.WHITE_BACK()),
-                                    Pair.of(feeAmount, Attribute.YELLOW_BACK()),
-                                    Pair.of(netCapitalGains, Attribute.GREEN_BACK()),
-                                    Pair.of(taxAmount, Attribute.CYAN_BACK())),
-                            800));
+                    pct
+                            ? this.pctBar(ym, elements)
+                            : this.bar(ym, elements, 800));
         });
 
-        this.console.appendLine("===< Nominal Investment Evolution >===");
+        this.console.appendLine(format("===< {0} Investment Evolution >===", nominal ? "Nominal" : "Real"));
+
+        this.ref();
+
+    }
+
+    private String bar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> elements, int scale) {
+        return this.bar.currencyBar(ym, elements, scale);
+    }
+
+    private String pctBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> elements) {
+        return this.bar.percentBar(ym, elements);
+    }
+
+    public void invEvo(String currency, boolean nominal) {
+
+        this.invEvo("===< {0} Investment Evolution >===", currency, nominal, false);
+
+    }
+
+    public void invEvoPct(String currency, boolean nominal) {
+
+        this.invEvo("===< {0} Investment Evolution Percent >===", currency, nominal, true);
+    }
+
+    private void ref() {
         this.console.appendLine("");
         this.console.appendLine("References:");
-
         this.console.appendLine(Ansi.colorize(" ", Attribute.WHITE_BACK()),
                 ": investment, ",
                 Ansi.colorize(" ", Attribute.YELLOW_BACK()),
@@ -410,7 +433,7 @@ public class Investments {
 
     }
 
-    private Map<String, MoneyAmountSeries> investmentEvolution(String currency) {
+    private Map<String, MoneyAmountSeries> investmentEvolution(String currency, boolean nominal) {
 
         final var inv = this.series.getInvestments().stream()
                 .filter(i -> i.getType().equals(InvestmentType.ETF))
@@ -429,16 +452,29 @@ public class Investments {
         final var investmentSeries = new SortedMapMoneyAmountSeries("USD");
         final var feeSeries = new SortedMapMoneyAmountSeries("USD");
         final var totalValuesSeries = new SortedMapMoneyAmountSeries("USD");
+        final var taxesValuesSeries = new SortedMapMoneyAmountSeries("USD");
 
         var ym = start;
         while (ym.compareTo(Inflation.USD_INFLATION.getTo()) <= 0) {
 
             final var moment = ym;
 
-            investmentSeries.putAmount(ym, accum(inv, ym, i -> i.getIn().getMoneyAmount()));
+            final Function<Investment, MoneyAmount> invested = i -> this.asUSD(i.getIn().getMoneyAmount(), i.getInitialDate());
+            final Function<Investment, MoneyAmount> realInvested = i -> this.real(i, moment, invested);
 
-            feeSeries.putAmount(ym, accum(inv, ym, i -> i.getIn().getFeeMoneyAmount()));
-            totalValuesSeries.putAmount(ym, accum(inv, ym, i -> asUSD(i.getInvestment().getMoneyAmount(), moment)));
+            investmentSeries.putAmount(ym, accum(inv, ym, nominal ? invested : realInvested));
+
+            final Function<Investment, MoneyAmount> fee = i -> this.asUSD(i.getIn().getFeeMoneyAmount(), i.getInitialDate());
+            final Function<Investment, MoneyAmount> realFee = i -> this.real(i, moment, fee);
+
+            feeSeries.putAmount(ym, accum(inv, ym, nominal ? fee : realFee));
+
+            final Function<Investment, MoneyAmount> total = i -> this.asUSD(i.getInvestment().getMoneyAmount(), moment);
+            totalValuesSeries.putAmount(ym, accum(inv, ym, total));
+
+            final Function<Investment, MoneyAmount> taxes = i -> this.tax(i, invested, total);
+
+            taxesValuesSeries.putAmount(ym, accum(inv, ym, taxes));
 
             ym = ym.next();
         }
@@ -446,7 +482,29 @@ public class Investments {
         return Map.of(
                 "invested", investmentSeries,
                 "fees", feeSeries,
-                "total", totalValuesSeries);
+                "total", totalValuesSeries,
+                "taxes", taxesValuesSeries);
+    }
+
+    private MoneyAmount real(Investment i, YearMonth moment, Function<Investment, MoneyAmount> extrator) {
+        return Inflation.USD_INFLATION
+                .adjust(extrator.apply(i), YearMonth.of(i.getInitialDate()), moment);
+    }
+
+    private MoneyAmount tax(Investment i, Function<Investment, MoneyAmount> invested, Function<Investment, MoneyAmount> total) {
+
+        final var capitalGains = total.apply(i)
+                .subtract(invested.apply(i));
+
+        if (capitalGains.getAmount().signum() > 0) {
+            return capitalGains.adjust(ONE, CAPITAL_GAINS_TAX_RATE);
+        }
+
+        return ZERO_USD;
+    }
+
+    private MoneyAmount asUSD(MoneyAmount ma, Date d) {
+        return this.asUSD(ma, YearMonth.of(d));
     }
 
     private MoneyAmount asUSD(MoneyAmount ma, YearMonth ym) {
@@ -457,42 +515,8 @@ public class Investments {
 
         return investments.stream()
                 .filter(i -> YearMonth.of(i.getIn().getDate()).compareTo(yearMonth) <= 0)
-                .map(i -> Pair.of(extractor.apply(i), YearMonth.of(i.getInitialDate())))
-                .map(p -> this.asUSD(p.getFirst(), p.getSecond()))
+                .map(extractor)
                 .reduce(ZERO_USD, MoneyAmount::add);
-    }
-
-    public void invEvoPct(String currency) {
-
-        this.console.appendLine("===< Nominal Investment Evolution Percent >===");
-
-        final var m = this.investmentEvolution(currency);
-
-        final var inv = m.get("invested");
-        final var fee = m.get("fees");
-        final var total = m.get("total");
-
-        total.forEach((ym, cashMa) -> this.console.appendLine(
-                this.bar.percentBar(
-                        ym,
-                        List.of(Pair.of(inv.getAmount(ym), Attribute.WHITE_BACK()),
-                                Pair.of(fee.getAmount(ym), Attribute.YELLOW_BACK()),
-                                Pair.of(total.getAmount(ym)
-                                        .subtract(inv.getAmount(ym).add(fee.getAmount(ym))), Attribute.GREEN_BACK())))));
-
-        this.console.appendLine("===< Nominal Investment Evolution Percent >===");
-        this.console.appendLine("");
-        this.console.appendLine("References:");
-
-        this.console.appendLine(Ansi.colorize(" ", Attribute.WHITE_BACK()),
-                ": investment, ",
-                Ansi.colorize(" ", Attribute.YELLOW_BACK()),
-                ": fees, ",
-                Ansi.colorize(" ", Attribute.GREEN_BACK()),
-                ": profits, ",
-                Ansi.colorize(" ", Attribute.RED_BACK()),
-                ": losses.");
-
     }
 
 }
