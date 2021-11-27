@@ -69,8 +69,6 @@ import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignEx
  */
 public class ConsoleReports {
 
-    private static final double BBPP_FX_GAP_PERCENT = 0.9d;
-
     private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO, "USD");
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
@@ -86,6 +84,7 @@ public class ConsoleReports {
     private static final String SP500 = "true";
     private static final String TAX = "true";
     private static final String BBPP = "2.25";
+    private static final String BBPP_MIN = "20000";
     private static final String PENSION = "50";
 
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE), BigDecimal::add);
@@ -347,7 +346,7 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", format("trials={0} period={1} retirement={2} age={3} w={4} d={5} inflation={6} cash={7} sp500={8} tax={9} bbpp=10 pension={11}",
+                        entry("goal", format("trials={0} period={1} retirement={2} age={3} w={4} d={5} inflation={6} cash={7} sp500={8} tax={9} bbpp={10} bbppmin={11} pension={12}",
                                 TRIALS,
                                 PERIODS,
                                 RETIREMENT,
@@ -359,6 +358,7 @@ public class ConsoleReports {
                                 SP500,
                                 TAX,
                                 BBPP,
+                                BBPP_MIN,
                                 PENSION)),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
@@ -688,14 +688,13 @@ public class ConsoleReports {
         final var bbppTax = afterTax
                 ? Double.parseDouble(params.getOrDefault("bbpp", BBPP)) / 100.0d
                 : 0.0d;
+        
+        final var bbppTaxMin = afterTax
+                ? Double.parseDouble(params.getOrDefault("bbppmin", BBPP_MIN))
+                : 0.0d;
 
-        final var goal = new Goal(this.console, this.format, bbppTax * BBPP_FX_GAP_PERCENT, bbppTax / 10.0d, 1.0d - bbppTax);
+        final var goal = new Goal(this.console, this.format, bbppTax, bbppTaxMin);
 
-//                
-//                ONE.setScale(MathConstants.SCALE)
-//                .add(TRADING_FEE.multiply(IVA, CONTEXT), CONTEXT)
-//                .add(TRADING_FEE, CONTEXT)
-//                .add(TRADING_FEE, CONTEXT);
         final var todaySavings = this.series.realSavings(null).getAmount(Inflation.USD_INFLATION.getTo());
 
         final var invested = this.series.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());

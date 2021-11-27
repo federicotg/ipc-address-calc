@@ -55,9 +55,8 @@ public class Goal {
 
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), CONTEXT), CONTEXT);
 
-    private final double bbppMean;
-    private final double bbppVar;
-    private final double bbppMinFactor;
+    private final double bbppTaxRate;
+    private final double bbppMin;
 
     private List<BigDecimal> sp500TotalReturns;
     private List<BigDecimal> russell2000TotalReturns;
@@ -65,10 +64,9 @@ public class Goal {
     private final Console console;
     private final Format format;
 
-    public Goal(Console console, Format format, double bbppMean, double bbppVar, double bbppMinFactor) {
-        this.bbppMean = bbppMean;
-        this.bbppVar = bbppVar;
-        this.bbppMinFactor = bbppMinFactor;
+    public Goal(Console console, Format format, double bbppTaxRate, double bbppMin) {
+        this.bbppTaxRate = bbppTaxRate;
+        this.bbppMin = bbppMin;
         this.console = console;
         this.format = format;
 
@@ -90,7 +88,7 @@ public class Goal {
         for (var i = startingYear; i < retirement; i++) {
 
             // BB.PP.
-            amount *= bbppFactor();
+            amount = amount - Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
 
             amount = amount * returns[i - startingYear] + deposit[i - startingYear];
         }
@@ -98,7 +96,7 @@ public class Goal {
         for (var i = retirement; i <= end; i++) {
 
             // BB.PP.
-            amount *= bbppFactor();
+            amount = amount - Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
 
             amount -= withdraw[i - startingYear];
 
@@ -114,16 +112,6 @@ public class Goal {
         }
 
         return amount + cashAmount > 0.0d;
-    }
-
-    private double bbppFactor() {
-
-        return Math.max(
-                this.bbppMinFactor,
-                Math.min(
-                        1.0d,
-                        1.0d - gauss(this.bbppMean, this.bbppVar)));
-
     }
 
     private double gauss(double mean, double std) {
