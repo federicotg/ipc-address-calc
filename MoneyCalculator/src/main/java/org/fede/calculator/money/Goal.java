@@ -88,18 +88,19 @@ public class Goal {
         for (var i = startingYear; i < retirement; i++) {
 
             // BB.PP.
-            amount = amount - Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
+            amount -=  Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
 
             amount = amount * returns[i - startingYear] + deposit[i - startingYear];
         }
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
-            // BB.PP.
-            amount = amount - Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
-
             amount -= withdraw[i - startingYear];
+            
+            // BB.PP.
+            amount -= Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
 
+            
             if (amount > 0.0d) {
                 amount *= returns[i - startingYear];
             } else {
