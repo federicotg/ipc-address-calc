@@ -118,7 +118,8 @@ public class Series {
 
     public MoneyAmountSeries realIncome() {
 
-        return this.getIncomeSeries().stream()
+        return this.getIncomeSeries()
+                .stream()
                 .reduce(MoneyAmountSeries::add)
                 .get();
     }
@@ -133,7 +134,7 @@ public class Series {
                     .stream()
                     .map(new SimpleAggregation(2)::change)
                     .map(series -> series.exchangeInto("USD"))
-                    .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
+                    .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
                     .reduce(MoneyAmountSeries::add)
                     .get();
         }
@@ -151,7 +152,7 @@ public class Series {
                     readSeries("income/despegar.json"),
                     readSeries("income/despegar-split.json"))
                     .map(is -> is.exchangeInto("USD"))
-                    .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit.getYear(), limit.getMonth()))
+                    .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
                     .collect(toList());
         }
         return this.incomeSeries;
@@ -213,8 +214,7 @@ public class Series {
         var limit = USD_INFLATION.getTo();
         return USD_INFLATION.adjust(
                 SeriesReader.readSeries(prefix + fileName + ".json").exchangeInto("USD"),
-                limit.getYear(),
-                limit.getMonth());
+                limit);
     }
 
 }

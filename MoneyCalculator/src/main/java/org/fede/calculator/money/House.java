@@ -95,7 +95,7 @@ public class House {
                 Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
-                .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
+                .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit))
                 .get();
 
         final var allExpenses = new SimpleAggregation(1200).sum(ongoingExpenses.add(initialCostSeries));
@@ -119,7 +119,7 @@ public class House {
                 Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto("USD"))
-                .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit.getYear(), limit.getMonth()))
+                .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit))
                 .map(s -> s.map((ym, amount) -> this.limit(timeLimit, ym, amount)))
                 .map(MoneyAmountSeries::moneyAmountStream)
                 .orElseGet(Stream::empty)

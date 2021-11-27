@@ -65,6 +65,10 @@ public interface Inflation extends Series {
      */
     MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth);
 
+    default MoneyAmountSeries adjust(MoneyAmountSeries series, YearMonth ym){
+        return this.adjust(series, ym.getYear(), ym.getMonth());
+    }
+    
     MoneyAmountSeries adjust(MoneyAmountSeries series, Date moment);
 
     /**

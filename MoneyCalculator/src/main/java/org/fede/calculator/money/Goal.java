@@ -51,7 +51,7 @@ public class Goal {
     private static final int RETIREMENT_AGE_STD = 3;
     private static final int END_AGE_STD = 6;
 
-    private static final BigDecimal BUY_SELL_FEE = new BigDecimal("1.00193");
+    private static final BigDecimal BUY_SELL_FEE = new BigDecimal("0.0193");
 
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), CONTEXT), CONTEXT);
 
@@ -180,9 +180,6 @@ public class Goal {
 
         final var to = USD_INFLATION.getTo();
 
-//        final var todaySavings = this.realSavings(null).getAmount(to);
-//
-//        final var invested = this.realSavings("EQ").getAmount(to);
         final var cash = todaySavings.getAmount()
                 .subtract(invested.getAmount(), CONTEXT)
                 .add(extraCash, CONTEXT).doubleValue();
@@ -190,9 +187,9 @@ public class Goal {
         final var inflationRate = ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE)
                 .add(BigDecimal.valueOf(inflation).setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT).doubleValue();
 
-        final var deposit = BigDecimal.valueOf(monthlyDeposit * 12).divide(BUY_SELL_FEE, CONTEXT).doubleValue();
+        final var deposit = BigDecimal.valueOf(monthlyDeposit * 12).divide(ONE.add(BUY_SELL_FEE, CONTEXT), CONTEXT).doubleValue();
         final var withdraw = BigDecimal.valueOf((monthlyWithdraw - pension) * 12)
-                .multiply(BUY_SELL_FEE, CONTEXT)
+                .multiply(ONE.divide(ONE.subtract(BUY_SELL_FEE, CONTEXT), CONTEXT), CONTEXT)
                 .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, CONTEXT).doubleValue();
 
         final var investedAmount = invested.getAmount().doubleValue();
@@ -250,17 +247,7 @@ public class Goal {
 
         this.console.appendLine(format("{0}/{1} {2}", successes, trials, this.format.percent(BigDecimal.valueOf((double) successes / (double) trials))));
 
-//        SeriesReader.readSeries("income/unlp.json")
-//                .map(this::withoutSAC)
-//                .forEach((ym, ma) -> this.console.appendLine(format("{0}/{1}/01 {2}", String.valueOf(ym.getYear()), ym.getMonth(), this.format.currency(ma.getAmount()))));
     }
-
-//    private MoneyAmount withoutSAC(YearMonth ym, MoneyAmount ma) {
-//        if (ym.getMonth() == 7 || ym.getMonth() == 1) {
-//            return ma.adjust(new BigDecimal("1.5"), ONE);
-//        }
-//        return ma;
-//    }
 
     private double[] randomPeriods(List<double[]> allReturns, int periods, double fee) {
         return ThreadLocalRandom.current().ints(periods, 0, allReturns.size())

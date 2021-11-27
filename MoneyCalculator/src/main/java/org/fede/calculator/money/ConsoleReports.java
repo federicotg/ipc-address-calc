@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
@@ -930,7 +931,7 @@ public class ConsoleReports {
                                 Stream.of("Saving %"),
                                 IntStream.of(years)
                                         .mapToObj(y -> savings.get(y).getAmount().divide(incomes.get(y).getAmount().subtract(ONE, CONTEXT), CONTEXT))
-                                        .map(a -> format("{0}", this.format.percent(a))))));
+                                        .map(this.format::percent))));
     }
 
     private void yearSavingsIncomeTable() {
@@ -960,7 +961,6 @@ public class ConsoleReports {
                                 .divide(incomes.get(y).getAmount()
                                         .subtract(ONE, CONTEXT), CONTEXT))))))
                 .forEach(this::appendLine);
-
     }
 
     private MoneyAmount incomeAverage(int years) {
@@ -971,7 +971,6 @@ public class ConsoleReports {
                 .map(new SimpleAggregation(years * 12)::average)
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(USD_INFLATION.getTo()))
                 .orElse(ZERO_USD);
-
     }
 
     private MoneyAmount savingsAverage(int years) {
@@ -1003,7 +1002,6 @@ public class ConsoleReports {
         return this.series.realNetSavings().filter((ym, ma) -> ym.getYear() == year)
                 .reduce(ZERO_USD, MoneyAmount::add)
                 .adjust(BigDecimal.valueOf(months), ONE);
-
     }
 
     private String row(Stream<String> values) {
@@ -1058,12 +1056,14 @@ public class ConsoleReports {
                         .collect(groupingBy(
                                 Pair::getFirst,
                                 groupingBy(
-                                        p -> p.getSecond().getCurrency(),
+                                        p -> p.getSecond().get().getCurrency(),
                                         mapping(
-                                                Pair::getSecond,
+                                                p -> p.getSecond().get(),
                                                 reducing(MoneyAmount::add)))));
 
-        final var items = grouped.entrySet().stream()
+        final var items = grouped
+                .entrySet()
+                .stream()
                 .flatMap(e -> this.item(e.getKey(), e.getValue(), ym))
                 .sorted(comparing((PortfolioItem::getDollarAmount), comparing(MoneyAmount::getAmount)).reversed())
                 .collect(toList());
@@ -1093,8 +1093,8 @@ public class ConsoleReports {
                 .map(amount -> new PortfolioItem(amount, type, ym));
     }
 
-    private MoneyAmount lastAmount(String seriesName, YearMonth ym) {
-        return SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
+    private Supplier<MoneyAmount> lastAmount(String seriesName, YearMonth ym) {
+        return () -> SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
     }
 
     private void returns(String[] args, String paranName, PortfolioReturns pr) {
