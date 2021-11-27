@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import static java.util.Map.entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -62,6 +63,7 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
+import org.fede.calculator.money.series.InvestmentEvent;
 
 /**
  *
@@ -1248,5 +1250,5 @@ public class ConsoleReports {
         new Investments(console, format, bar, series).portfolioEvo(type, true);
 
     }
-
+   
 }

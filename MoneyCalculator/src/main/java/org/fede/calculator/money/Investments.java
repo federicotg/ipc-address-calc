@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -533,82 +534,25 @@ public class Investments {
     }
 
     public void portfolioEvo(String type, boolean pct) {
-
-        final var inv = this.series.getInvestments().stream()
-                .filter(i -> Objects.isNull(type) || i.getType().toString().equals(type))
-                .sorted(Comparator.comparing(Investment::getInitialDate, Comparator.naturalOrder()))
-                .collect(toList());
-
-        final var start = inv
-                .stream()
-                .map(Investment::getIn)
+        
+        final BiFunction<Investment, YearMonth, MoneyAmount> totalFunction = (i, moment) -> this.asUSD(i.getInvestment().getMoneyAmount(), moment);
+        
+        Function<Investment, YearMonth> startFunction = i -> YearMonth.of(i.getIn().getDate());
+        Function<Investment, YearMonth> endFunction = i -> Optional.ofNullable(i.getOut())
                 .map(InvestmentEvent::getDate)
                 .map(YearMonth::of)
-                .reduce((left, right) -> left.min(right))
-                .get();
-
-        final var end = inv
-                .stream()
-                .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate).map(YearMonth::of).orElse(Inflation.USD_INFLATION.getTo()))
-                .reduce((left, right) -> left.max(right))
-                .get();
-
-        final var refs = new HashSet<String>();
-
-        var ym = start;
-        while (ym.compareTo(end) <= 0) {
-
-            final var moment = ym;
-
-            final Function<Investment, MoneyAmount> total = i -> this.asUSD(i.getInvestment().getMoneyAmount(), moment);
-
-            final Map<Pair<String, String>, List<Investment>> grouped = inv
-                    .stream()
-                    .collect(Collectors.groupingBy(i -> Pair.of(i.getType().toString(), i.getCurrency())));
-
-            final Map<Pair<String, String>, MoneyAmount> totals = grouped.entrySet()
-                    .stream()
-                    .collect(toMap(Map.Entry::getKey, e -> this.accum(e.getValue(), moment, total)));
-
-            final var colorList = List.of(
-                    Attribute.WHITE_BACK(),
-                    Attribute.BLUE_BACK(),
-                    Attribute.CYAN_BACK(),
-                    Attribute.GREEN_BACK(),
-                    Attribute.MAGENTA_BACK(),
-                    Attribute.RED_BACK(),
-                    Attribute.BLACK_BACK(),
-                    Attribute.YELLOW_BACK(),
-                    Attribute.BRIGHT_MAGENTA_BACK(),
-                    Attribute.BRIGHT_RED_BACK(),
-                    Attribute.BRIGHT_BLUE_BACK(),
-                    Attribute.BRIGHT_YELLOW_BACK(),
-                    Attribute.BRIGHT_GREEN_BACK(),
-                    Attribute.BRIGHT_WHITE_BACK(),
-                    Attribute.BRIGHT_CYAN_BACK(),
-                    Attribute.BRIGHT_BLACK_BACK());
-
-            final var typeList = totals.keySet().stream().sorted(TYPE_CURRENCY_COMPARATOR).collect(toList());
-
-            final var elements = IntStream.range(0, typeList.size())
-                    .mapToObj(i -> Pair.of(totals.get(typeList.get(i)), colorList.get(i)))
-                    .collect(toList());
-
-            this.console.appendLine(
-                    pct
-                            ? this.pctBar(ym, elements)
-                            : this.bar(ym, elements, 950));
-
-            refs.addAll(IntStream.range(0, typeList.size())
-                    .mapToObj(i -> Ansi.colorize(" ", colorList.get(i)) + typeList.get(i).getFirst() + " " + typeList.get(i).getSecond())
-                    .collect(toList()));
-
-            ym = ym.next();
-        }
-        this.console.appendLine("");
-        this.console.appendLine("References:");
-
-        this.console.appendLine(refs.stream().collect(Collectors.joining(" ")));
+                .orElse(Inflation.USD_INFLATION.getTo());
+        
+        Function<Investment, String> classifier = i -> i.getType().toString()+" "+ i.getCurrency();
+        
+        Predicate<Investment> filterPredicate = i -> Objects.isNull(type) || i.getType().toString().equals(type);
+        Comparator<Investment> comparator = Comparator.comparing(Investment::getInitialDate, Comparator.naturalOrder());
+        
+        final var list = this.series.getInvestments();
+        
+        new Evolution<Investment>(this.console, this.bar)
+                .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, comparator, list, pct);
+        
 
     }
 

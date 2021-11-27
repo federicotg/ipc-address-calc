@@ -52,8 +52,7 @@ public class Bar {
         this.console = console;
         this.format = format;
     }
-    
-   
+
     public String currencyBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
         return this.genericBar(ym, amounts, width, a -> this.format.number(a, 9));
     }
@@ -66,7 +65,7 @@ public class Bar {
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
-        if(total.signum() == 0){
+        if (total.signum() == 0) {
             return "";
         }
         final var relativeAmounts = amounts.stream()
@@ -96,11 +95,23 @@ public class Bar {
 
     private String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width, Function<BigDecimal, String> format) {
 
-        final var values = IntStream.range(0, amounts.size()).map(i -> i + 2).mapToObj(i -> format("'{'{0}'}'", i)).collect(joining(" "));
-        final var bars = IntStream.range(0, amounts.size()).map(i -> i + 2 + amounts.size()).mapToObj(i -> format("'{'{0}'}'", i)).collect(joining(""));
-        final Stream<String> amountsStream = amounts.stream().map(Pair::getFirst).map(MoneyAmount::getAmount).map(format);
+        final var bars = IntStream.range(0, amounts.size())
+                .map(i -> i + 2 + (amounts.size() > 4 ? 0 : amounts.size()))
+                .mapToObj(i -> format("'{'{0}'}'", i))
+                .collect(joining(""));
         final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.getFirst().getAmount(), width, p.getFirst().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.getSecond()));
         final Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth()));
+
+        if (amounts.size() > 4) {
+            return format("{0}/{1} " + bars,
+                    (Object[]) Stream.of(ymStream, barsStream).flatMap(Function.identity()).toArray(String[]::new));
+        }
+
+        final var values = IntStream.range(0, amounts.size())
+                .map(i -> i + 2)
+                .mapToObj(i -> format("'{'{0}'}'", i))
+                .collect(joining(" "));
+        final Stream<String> amountsStream = amounts.stream().map(Pair::getFirst).map(MoneyAmount::getAmount).map(format);
 
         return format("{0}/{1} " + values + " " + bars,
                 (Object[]) Stream.of(ymStream, amountsStream, barsStream).flatMap(Function.identity()).toArray(String[]::new));
