@@ -366,8 +366,8 @@ public class ConsoleReports {
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                        entry("p-evo", "type=(all|ETF|BONO|PF|FCI) nominal=false"),
-                        entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI) nominal=false"),
+                        entry("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
+                        entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false currency=USD"),
                         entry("inv-evo", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
@@ -1235,9 +1235,8 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         final var type = params.get("type");
-        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
 
-        new Investments(console, format, bar, series).portfolioEvo(type, nominal, false);
+        new Investments(console, format, bar, series).portfolioEvo(type, false);
 
     }
     
@@ -1245,9 +1244,8 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         final var type = params.get("type");
-        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
 
-        new Investments(console, format, bar, series).portfolioEvo(type, nominal, true);
+        new Investments(console, format, bar, series).portfolioEvo(type, true);
 
     }
 

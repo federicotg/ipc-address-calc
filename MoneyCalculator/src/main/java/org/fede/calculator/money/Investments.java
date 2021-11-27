@@ -532,7 +532,7 @@ public class Investments {
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
 
-    public void portfolioEvo(String type, boolean nominal, boolean pct) {
+    public void portfolioEvo(String type, boolean pct) {
 
         final var inv = this.series.getInvestments().stream()
                 .filter(i -> Objects.isNull(type) || i.getType().toString().equals(type))
