@@ -107,7 +107,7 @@ public class BBPP {
                 .filter(i -> i.isCurrent(date))
                 .filter(i -> ETF.equals(i.getType()))
                 .map(Investment::getInvestment)
-                .map(i -> i.getMoneyAmount())
+                .map(InvestmentAsset::getMoneyAmount)
                 .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -199,7 +199,8 @@ public class BBPP {
 
         final var taxAmount = taxedTotal.multiply(taxRate, CONTEXT);
 
-        final var usdTaxAmount = getMoneyAmountForeignExchange("ARS", "USD").apply(new MoneyAmount(taxAmount, "ARS"), ym);
+        final var usdTaxAmount = getMoneyAmountForeignExchange("ARS", "USD")
+                .apply(new MoneyAmount(taxAmount, "ARS"), ym);
 
         this.console.appendLine(format("Tax amount {0} / USD {1}",
                 this.format.currency(taxAmount),
