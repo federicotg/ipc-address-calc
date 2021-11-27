@@ -317,6 +317,8 @@ public class ConsoleReports {
                     entry("income-half", me::halfIncome),
                     entry("income-quarter", me::quarterIncome),
                     entry("p", () -> me.portfolio(args, "p")),
+                    entry("p-evo", () -> me.portfolioEvo(args, "p-evo")),
+                    entry("p-evo-pct", () -> me.portfolioEvoPct(args, "p-evo-pct")),
                     entry("pa", portfolioReturns::portfolioAllocation),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
@@ -364,6 +366,8 @@ public class ConsoleReports {
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
+                        entry("p-evo", "type=(all|ETF|BONO|PF|FCI) nominal=false"),
+                        entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI) nominal=false"),
                         entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false currency=USD"),
                         entry("inv-evo", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
@@ -688,7 +692,7 @@ public class ConsoleReports {
         final var bbppTax = afterTax
                 ? Double.parseDouble(params.getOrDefault("bbpp", BBPP)) / 100.0d
                 : 0.0d;
-        
+
         final var bbppTaxMin = afterTax
                 ? Double.parseDouble(params.getOrDefault("bbppmin", BBPP_MIN))
                 : 0.0d;
@@ -1226,4 +1230,25 @@ public class ConsoleReports {
         new Investments(console, format, bar, series).invEvo(currency, nominal);
 
     }
+
+    private void portfolioEvo(String[] args, String paramName) {
+        final var params = this.paramsValue(args, paramName);
+
+        final var type = params.get("type");
+        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+
+        new Investments(console, format, bar, series).portfolioEvo(type, nominal, false);
+
+    }
+    
+    private void portfolioEvoPct(String[] args, String paramName) {
+        final var params = this.paramsValue(args, paramName);
+
+        final var type = params.get("type");
+        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+
+        new Investments(console, format, bar, series).portfolioEvo(type, nominal, true);
+
+    }
+
 }

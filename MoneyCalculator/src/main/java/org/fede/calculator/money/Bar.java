@@ -66,6 +66,9 @@ public class Bar {
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
+        if(total.signum() == 0){
+            return "";
+        }
         final var relativeAmounts = amounts.stream()
                 .map(p -> Pair.of(new MoneyAmount(p.getFirst().getAmount().divide(total, CONTEXT).movePointRight(2).setScale(0, RoundingMode.HALF_UP), p.getFirst().getCurrency()), p.getSecond())).collect(toList());
 
