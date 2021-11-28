@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import static java.util.Map.entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -63,7 +62,6 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
-import org.fede.calculator.money.series.InvestmentEvent;
 
 /**
  *
@@ -100,7 +98,7 @@ public class ConsoleReports {
     private final Bar bar;
     private final Format format;
 
-    public ConsoleReports(Console console, Format format, Bar bar, House house, Series series) {
+    public ConsoleReports(Console console, Format format, Bar bar, Series series) {
         this.console = console;
         this.bar = bar;
         this.format = format;
@@ -284,11 +282,8 @@ public class ConsoleReports {
             final var console = new Console();
             final var format = new Format();
             final var bar = new Bar(console, format);
-            final var house = new House(console, format, bar);
             final var series = new Series();
-            final var me = new ConsoleReports(console, format, bar, house, series);
-
-            final var portfolioReturns = new PortfolioReturns(series, console, format, bar);
+            final var me = new ConsoleReports(console, format, bar, series);
 
             final Map<String, Runnable> actions = Map.ofEntries(
                     entry("i", me::investments),
@@ -321,14 +316,18 @@ public class ConsoleReports {
                     entry("p", () -> me.portfolio(args, "p")),
                     entry("p-evo", () -> me.portfolioEvo(args, "p-evo")),
                     entry("p-evo-pct", () -> me.portfolioEvoPct(args, "p-evo-pct")),
-                    entry("pa", portfolioReturns::portfolioAllocation),
+                    
+                    entry("p-type-evo", () -> new Investments(console, format, bar, series).portfolioTypeEvo(false)),
+                    entry("p-type-evo-pct", () -> new Investments(console, format, bar, series).portfolioTypeEvo(true)),
+                    
+                    entry("pa", new PortfolioReturns(series, console, format, bar)::portfolioAllocation),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
-                    entry("house-evo", () -> house.houseCostsEvolution()),
-                    entry("house", () -> house.houseIrrecoverableCosts(USD_INFLATION.getTo())),
-                    entry("house1", () -> house.houseIrrecoverableCosts(YearMonth.of(2011, 8))),
-                    entry("house3", () -> house.houseIrrecoverableCosts(YearMonth.of(2013, 8))),
-                    entry("house5", () -> house.houseIrrecoverableCosts(YearMonth.of(2015, 8))),
+                    entry("house-evo", () -> new House(console, format, bar).houseCostsEvolution()),
+                    entry("house", () -> new House(console, format, bar).houseIrrecoverableCosts(USD_INFLATION.getTo())),
+                    entry("house1", () -> new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2011, 8))),
+                    entry("house3", () -> new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2013, 8))),
+                    entry("house5", () -> new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2015, 8))),
                     //expenses
                     entry("expenses", () -> me.expenses(args, "expenses")),
                     entry("expenses-evo", () -> me.expenseEvolution(args, "expenses-evo")),
@@ -338,7 +337,7 @@ public class ConsoleReports {
                     entry("bbpp", () -> me.bbpp(args, "bbpp")),
                     entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
                     entry("ibkr", () -> me.ibkrCSV()),
-                    entry("mdr", () -> me.returns(args, "mdr", portfolioReturns)),
+                    entry("mdr", () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar))),
                     entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
                     entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct"))
             );

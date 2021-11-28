@@ -63,9 +63,6 @@ import static org.fede.util.Pair.of;
  */
 public class Investments {
 
-    private static final Comparator<Pair<String, String>> TYPE_CURRENCY_COMPARATOR = comparing((Pair<String, String> pair) -> pair.getFirst())
-            .thenComparing(comparing(pair -> pair.getSecond()));
-
     private static final BigDecimal IVA = new BigDecimal("1.21");
 
     private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
@@ -534,25 +531,61 @@ public class Investments {
     }
 
     public void portfolioEvo(String type, boolean pct) {
-        
+
         final BiFunction<Investment, YearMonth, MoneyAmount> totalFunction = (i, moment) -> this.asUSD(i.getInvestment().getMoneyAmount(), moment);
-        
+
         Function<Investment, YearMonth> startFunction = i -> YearMonth.of(i.getIn().getDate());
         Function<Investment, YearMonth> endFunction = i -> Optional.ofNullable(i.getOut())
                 .map(InvestmentEvent::getDate)
                 .map(YearMonth::of)
                 .orElse(Inflation.USD_INFLATION.getTo());
-        
-        Function<Investment, String> classifier = i -> i.getType().toString()+" "+ i.getCurrency();
-        
+
+        Function<Investment, String> classifier = i -> i.getType().toString() + " " + i.getCurrency();
+
         Predicate<Investment> filterPredicate = i -> Objects.isNull(type) || i.getType().toString().equals(type);
         Comparator<Investment> comparator = Comparator.comparing(Investment::getInitialDate, Comparator.naturalOrder());
-        
+
         final var list = this.series.getInvestments();
-        
+
         new Evolution<Investment>(this.console, this.bar)
                 .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, comparator, list, pct);
-        
+
+    }
+
+    public void portfolioTypeEvo(boolean pct) {
+
+        final BiFunction<Investment, YearMonth, MoneyAmount> totalFunction = (i, moment) -> this.asUSD(i.getInvestment().getMoneyAmount(), moment);
+
+        Function<Investment, YearMonth> startFunction = i -> YearMonth.of(i.getIn().getDate());
+        Function<Investment, YearMonth> endFunction = i -> Optional.ofNullable(i.getOut())
+                .map(InvestmentEvent::getDate)
+                .map(YearMonth::of)
+                .orElse(Inflation.USD_INFLATION.getTo());
+
+        final var categories = Map.ofEntries(
+                Map.entry("CSPX", "Global Eq."),
+                Map.entry("EIMI", "Global Eq."),
+                Map.entry("MEUD", "Global Eq."),
+                Map.entry("XRSU", "Global Eq."),
+                Map.entry("XAU", "Com."),
+                Map.entry("CONAAFA", "Dom. Eq."),
+                Map.entry("CONBALA", "Dom. Bonds"),
+                Map.entry("CAPLUSA", "Dom. Bonds"),
+                Map.entry("LECAP", "Dom. Bonds"),
+                Map.entry("LETE", "Dom. Bonds"),
+                Map.entry("UVA", "Dom. Bonds"),
+                Map.entry("USD", "Cash"),
+                Map.entry("ARS", "Cash"));
+
+        Function<Investment, String> classifier = i -> categories.getOrDefault(i.getCurrency(), "unknown");
+
+        Predicate<Investment> filterPredicate = i -> true;
+        Comparator<Investment> comparator = Comparator.comparing(Investment::getInitialDate, Comparator.naturalOrder());
+
+        final var list = this.series.getInvestments();
+
+        new Evolution<Investment>(this.console, this.bar)
+                .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, comparator, list, pct);
 
     }
 
