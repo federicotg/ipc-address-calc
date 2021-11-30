@@ -573,6 +573,7 @@ public class Investments {
                 Map.entry("CAPLUSA", "Dom. Bonds"),
                 Map.entry("LECAP", "Dom. Bonds"),
                 Map.entry("LETE", "Dom. Bonds"),
+                Map.entry("AY24", "Dom. Bonds"),
                 Map.entry("UVA", "Dom. Bonds"),
                 Map.entry("USD", "Cash"),
                 Map.entry("ARS", "Cash"));
