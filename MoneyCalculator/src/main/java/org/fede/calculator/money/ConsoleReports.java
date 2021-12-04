@@ -721,8 +721,10 @@ public class ConsoleReports {
     }
 
     private void bbpp(String[] args, String paramName) {
+        final var params = this.paramsValue(args, paramName);
+        
         new BBPP(format, series, console)
-                .bbpp(Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("year", "2020")));
+                .bbpp(Integer.parseInt(params.getOrDefault("year", "2020")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
     }
 
     private void averageSavedSalaries(String[] args, String name) {
@@ -1003,7 +1005,8 @@ public class ConsoleReports {
                 ? 12
                 : USD_INFLATION.getTo().getMonth();
 
-        return this.series.realNetSavings().filter((ym, ma) -> ym.getYear() == year)
+        return this.series.realNetSavings()
+                .filter((ym, ma) -> ym.getYear() == year)
                 .reduce(ZERO_USD, MoneyAmount::add)
                 .adjust(BigDecimal.valueOf(months), ONE);
     }

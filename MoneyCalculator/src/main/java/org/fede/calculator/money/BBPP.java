@@ -29,6 +29,7 @@ import static java.util.Comparator.comparing;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import static java.util.stream.Collectors.toList;
@@ -62,7 +63,7 @@ public class BBPP {
         this.console = console;
     }
 
-    public void bbpp(int year) {
+    public void bbpp(int year, boolean ibkr) {
 
         this.console.appendLine("===< ", format("BB.PP. {0}", String.valueOf(year)), " >===");
 
@@ -104,6 +105,7 @@ public class BBPP {
 
         final var etfs = this.series.getInvestments()
                 .stream()
+                .filter(i -> ibkr || i.getComment() == null)
                 .filter(i -> i.isCurrent(date))
                 .filter(i -> ETF.equals(i.getType()))
                 .map(Investment::getInvestment)
