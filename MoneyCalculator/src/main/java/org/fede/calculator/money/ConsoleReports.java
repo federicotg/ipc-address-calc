@@ -440,12 +440,12 @@ public class ConsoleReports {
         //ingreso promedio de N meses
         final var agg = new SimpleAggregation(YearMonth.of(2012, 1).monthsUntil(USD_INFLATION.getTo()));
 
-        final var averagIncome = agg.average(this.series.realIncome()).getAmount(USD_INFLATION.getTo());
+        final var averageIncome = agg.average(this.series.realIncome()).getAmount(USD_INFLATION.getTo());
 
         // ahorro promedio de N meses
         final var averagNetSavings = agg.average(this.series.realNetSavings()).getAmount(USD_INFLATION.getTo());
 
-        final var m = totalSavings.getAmount().divide(averagIncome.subtract(averagNetSavings).getAmount(), CONTEXT);
+        final var m = totalSavings.getAmount().divide(averageIncome.subtract(averagNetSavings).getAmount(), CONTEXT);
 
         final var yearAndMonth = m.divideAndRemainder(BigDecimal.valueOf(12), CONTEXT);
 
@@ -453,8 +453,8 @@ public class ConsoleReports {
                 "Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
                 yearAndMonth[0],
                 yearAndMonth[1].setScale(0, MathConstants.ROUNDING_MODE),
-                this.format.percent(ONE.subtract(averagNetSavings.getAmount().divide(averagIncome.getAmount(), CONTEXT), CONTEXT)),
-                averagIncome.subtract(averagNetSavings).getAmount()));
+                this.format.percent(ONE.subtract(averagNetSavings.getAmount().divide(averageIncome.getAmount(), CONTEXT), CONTEXT)),
+                averageIncome.subtract(averagNetSavings).getAmount()));
 
     }
 
