@@ -375,7 +375,7 @@ public class ConsoleReports {
                         entry("mdr", "nominal=false"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
-                        entry("bbpp", "year=2020"),
+                        entry("bbpp", "year=2020 ibkr=false"),
                         entry("savings-avg-net-change", "months=12"),
                         entry("savings-avg-net-pct", "months=12"),
                         entry("savings-avg-spent-pct", "months=12"),

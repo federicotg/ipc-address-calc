@@ -118,7 +118,7 @@ public class BBPP {
                 .filter(i -> i.isCurrent(date))
                 .filter(i -> BONO.equals(i.getType()))
                 .map(Investment::getInvestment)
-                .map(i -> i.getMoneyAmount())
+                .map(InvestmentAsset::getMoneyAmount)
                 //.peek(ma -> System.out.println(ma.getCurrency()))
                 .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -145,7 +145,7 @@ public class BBPP {
         homeCashItem.setExempt(false);
         homeCashItem.setHolding(ONE);
         homeCashItem.setName("Home Cash");
-        homeCashItem.setValue(BigDecimal.valueOf(5000l));
+        homeCashItem.setValue(BigDecimal.valueOf(15000l));
 
         bbpp.getItems().add(etfsItem);
         bbpp.getItems().add(onsItem);
