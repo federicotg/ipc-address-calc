@@ -204,9 +204,10 @@ public class BBPP {
         final var usdTaxAmount = getMoneyAmountForeignExchange("ARS", "USD")
                 .apply(new MoneyAmount(taxAmount, "ARS"), ym);
 
-        this.console.appendLine(format("Tax amount {0} / USD {1}",
+        this.console.appendLine(format("Tax amount {0} / USD {1}. Advances {2}",
                 this.format.currency(taxAmount),
-                this.format.currency(usdTaxAmount.getAmount())));
+                this.format.currency(usdTaxAmount.getAmount()),
+                this.format.currency(taxAmount.divide(BigDecimal.valueOf(5), CONTEXT))));
 
         this.console.appendLine(format("Monthly tax amount USD {0}", this.format.currency(usdTaxAmount.adjust(BigDecimal.valueOf(12), ONE).getAmount())));
 
