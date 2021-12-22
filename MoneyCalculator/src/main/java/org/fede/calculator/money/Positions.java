@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import static java.math.BigDecimal.ZERO;
 import java.text.MessageFormat;
 import java.util.Comparator;
 import java.util.Date;
@@ -35,6 +36,8 @@ import static org.fede.calculator.money.MathConstants.CONTEXT;
  * @author federicogentile
  */
 public class Positions {
+
+    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO, "USD");
 
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
@@ -71,7 +74,7 @@ public class Positions {
 
         this.console.appendLine(separator);
 
-        this.series.getInvestments()
+        final var positions = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
@@ -82,6 +85,10 @@ public class Positions {
                 .values()
                 .stream()
                 .map(this::position)
+                .collect(Collectors.toList());
+
+        positions
+                .stream()
                 .sorted(Comparator.comparing((Position p) -> p.getMarketValue().getAmount(), Comparator.reverseOrder()))
                 .map(p -> MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}",
                 this.format.text(p.getFundName(), 32),
@@ -93,6 +100,31 @@ public class Positions {
                 this.format.currency(p.getUnrealizedPnL(), 17)))
                 .forEach(this.console::appendLine);
 
+        final var totalMarketValue = positions
+                .stream()
+                .map(Position::getMarketValue)
+                .reduce(ZERO_USD, MoneyAmount::add);
+
+        final var totalCostBasis = positions
+                .stream()
+                .map(Position::getCostBasis)
+                .reduce(ZERO_USD, MoneyAmount::add);
+
+        final var totalPnL = positions
+                .stream()
+                .map(Position::getUnrealizedPnL)
+                .reduce(ZERO_USD, MoneyAmount::add);
+
+        this.console.appendLine(separator);
+        this.console.appendLine(
+                MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}",
+                        this.format.text("Total", 32),
+                        this.format.text("", 6),
+                        this.format.text("", 14),
+                        this.format.currency(totalCostBasis, 17),
+                        this.format.currency(totalMarketValue, 17),
+                        this.format.text("", 15),
+                        this.format.currency(totalPnL, 17)));
     }
 
     private Position position(List<Investment> investments) {
