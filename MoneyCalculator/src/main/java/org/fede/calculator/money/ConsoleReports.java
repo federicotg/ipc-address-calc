@@ -339,6 +339,7 @@ public class ConsoleReports {
                     entry("ibkr", () -> me.ibkrCSV()),
                     entry("mdr", () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar))),
                     entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
+                    entry("pos", () -> me.positions(args, "pos")),
                     entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct"))
             );
 
@@ -1225,6 +1226,15 @@ public class ConsoleReports {
         new Investments(console, format, bar, series).invEvoPct(currency, nominal);
     }
 
+    private void positions(String[] args, String paramName) {
+        final var params = this.paramsValue(args, paramName);
+        
+        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+        final var symbol = params.get("symbol");
+        new Positions(this.console, this.format, this.series).positions(symbol, nominal);
+        
+    }
+    
     private void invEvo(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
 
