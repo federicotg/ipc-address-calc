@@ -375,7 +375,7 @@ public class ConsoleReports {
                         entry("mdr", "nominal=false"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
-                        entry("bbpp", "year=2020 ibkr=false"),
+                        entry("bbpp", "year=2021 ibkr=true"),
                         entry("savings-avg-net-change", "months=12"),
                         entry("savings-avg-net-pct", "months=12"),
                         entry("savings-avg-spent-pct", "months=12"),
@@ -724,7 +724,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
         
         new BBPP(format, series, console)
-                .bbpp(Integer.parseInt(params.getOrDefault("year", "2020")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
+                .bbpp(Integer.parseInt(params.getOrDefault("year", "2021")), Boolean.parseBoolean(params.getOrDefault("ibkr", "true")));
     }
 
     private void averageSavedSalaries(String[] args, String name) {
