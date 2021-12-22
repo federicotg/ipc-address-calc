@@ -18,6 +18,7 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
+import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
 import java.util.Comparator;
 import java.util.Date;
@@ -133,31 +134,31 @@ public class Positions {
         final var position = investments.stream()
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(ZERO, BigDecimal::add);
 
         return new Position(
                 symbol,
                 ETF_NAME.get(symbol),
                 position,
-                ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD").apply(new MoneyAmount(BigDecimal.ONE, symbol), YearMonth.of(new Date())),
+                ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD").apply(new MoneyAmount(ONE, symbol), YearMonth.of(new Date())),
                 new MoneyAmount(
                         investments.stream()
                                 .map(Investment::getIn)
                                 .map(ie -> ie.getAmount().add(ie.getFee(), CONTEXT).add(ie.getTransferFee(), CONTEXT))
-                                .reduce(BigDecimal.ZERO, BigDecimal::add),
+                                .reduce(ZERO, BigDecimal::add),
                         "USD"),
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD")
                         .apply(new MoneyAmount(
                                 investments.stream()
                                         .map(Investment::getInvestment)
                                         .map(InvestmentAsset::getAmount)
-                                        .reduce(BigDecimal.ZERO, BigDecimal::add),
+                                        .reduce(ZERO, BigDecimal::add),
                                 symbol),
                                 YearMonth.of(new Date())),
                 new MoneyAmount(
                         investments.stream()
                                 .map(i -> this.price(i).multiply(i.getInvestment().getAmount(), CONTEXT).divide(position, CONTEXT))
-                                .reduce(BigDecimal.ZERO, BigDecimal::add),
+                                .reduce(ZERO, BigDecimal::add),
                         "USD"));
 
     }
