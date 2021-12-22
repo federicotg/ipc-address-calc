@@ -70,7 +70,7 @@ public class Positions {
                 this.format.text("      Cost Basis", 17),
                 this.format.text("    Market Value", 17),
                 this.format.text("     Avg. Price", 15),
-                this.format.text("        P&L", 17)
+                this.format.text("        P & L", 17)
         ));
 
         this.console.appendLine(separator);
@@ -91,7 +91,7 @@ public class Positions {
         positions
                 .stream()
                 .sorted(Comparator.comparing((Position p) -> p.getMarketValue().getAmount(), Comparator.reverseOrder()))
-                .map(p -> MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}",
+                .map(p -> MessageFormat.format(" {0}{1}{2}{3}{4}{5}{6}",
                 this.format.text(p.getFundName(), 32),
                 this.format.number(p.getPosition(), 6),
                 this.format.currency(p.getLast(), 14),
