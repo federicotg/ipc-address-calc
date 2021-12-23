@@ -32,6 +32,7 @@ public class Position {
     private final MoneyAmount marketValue;
     private final MoneyAmount averagePrice;
     private final MoneyAmount unrealizedPnL;
+    private final BigDecimal unrealizedPnLPct;
 
     public Position(String symbol, String fundName, BigDecimal position, MoneyAmount last, MoneyAmount costBasis, MoneyAmount marketValue, MoneyAmount averagePrice) {
         this.symbol = symbol;
@@ -42,6 +43,8 @@ public class Position {
         this.marketValue = marketValue;
         this.averagePrice = averagePrice;
         this.unrealizedPnL = new MoneyAmount(marketValue.getAmount().subtract(costBasis.getAmount(), MathConstants.CONTEXT), marketValue.getCurrency());
+        this.unrealizedPnLPct = this.unrealizedPnL.getAmount()
+                .divide(this.costBasis.getAmount(), MathConstants.CONTEXT);
     }
 
     public String getSymbol() {
@@ -74,6 +77,10 @@ public class Position {
 
     public MoneyAmount getUnrealizedPnL() {
         return unrealizedPnL;
+    }
+
+    public BigDecimal getUnrealizedPnLPct() {
+        return unrealizedPnLPct;
     }
 
 }

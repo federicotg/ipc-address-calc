@@ -59,19 +59,30 @@ public class Positions {
 
     public void positions(String symbol, boolean nominal) {
 
-        var separator = IntStream.rangeClosed(0, 118).mapToObj(n -> "=").collect(Collectors.joining());
+        final var descWidth = 32;
+        final var posWidth = 6;
+        final var lastWidth = 14;
+        final var costWidth = 17;
+        final var mkvWidth = 17;
+        final var avgWidth = 15;
+        final var pnlWidth = 17;
+        final var pnlPctWidth = 10;
+        
+        var separator = IntStream.rangeClosed(0, IntStream.of(descWidth, posWidth, lastWidth, costWidth, mkvWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
+                .mapToObj(n -> "=")
+                .collect(Collectors.joining());
 
         this.console.appendLine(separator);
-
-        this.console.appendLine(MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}",
-                this.format.text("        Fund", 32),
-                this.format.text(" Pos.", 6),
-                this.format.text("      Last", 14),
-                this.format.text("      Cost Basis", 17),
-                this.format.text("    Market Value", 17),
-                this.format.text("     Avg. Price", 15),
-                this.format.text("        P & L", 17)
-        ));
+       
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}{7}",
+                this.format.text("        Fund", descWidth),
+                this.format.text(" Pos.", posWidth),
+                this.format.text("      Last", lastWidth),
+                this.format.text("      Cost Basis", costWidth),
+                this.format.text("    Market Value", mkvWidth),
+                this.format.text("     Avg. Price", avgWidth),
+                this.format.text("        P&L", pnlWidth),
+                this.format.text("    P&L %", pnlPctWidth)));
 
         this.console.appendLine(separator);
 
@@ -91,14 +102,15 @@ public class Positions {
         positions
                 .stream()
                 .sorted(Comparator.comparing((Position p) -> p.getMarketValue().getAmount(), Comparator.reverseOrder()))
-                .map(p -> MessageFormat.format(" {0}{1}{2}{3}{4}{5}{6}",
-                this.format.text(p.getFundName(), 32),
-                this.format.number(p.getPosition(), 6),
-                this.format.currency(p.getLast(), 14),
-                this.format.currency(p.getCostBasis(), 17),
-                this.format.currency(p.getMarketValue(), 17),
-                this.format.currency(p.getAveragePrice(), 15),
-                this.format.currency(p.getUnrealizedPnL(), 17)))
+                .map(p -> MessageFormat.format(" {0}{1}{2}{3}{4}{5}{6}{7}",
+                this.format.text(p.getFundName(), descWidth),
+                this.format.number(p.getPosition(), posWidth),
+                this.format.currency(p.getLast(), lastWidth),
+                this.format.currency(p.getCostBasis(), costWidth),
+                this.format.currency(p.getMarketValue(), mkvWidth),
+                this.format.currency(p.getAveragePrice(), avgWidth),
+                this.format.currency(p.getUnrealizedPnL(), pnlWidth),
+                this.format.percent(p.getUnrealizedPnLPct(), pnlPctWidth)))
                 .forEach(this.console::appendLine);
 
         final var totalMarketValue = positions
@@ -118,14 +130,15 @@ public class Positions {
 
         this.console.appendLine(separator);
         this.console.appendLine(
-                MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}",
-                        this.format.text("Total", 32),
-                        this.format.text("", 6),
-                        this.format.text("", 14),
-                        this.format.currency(totalCostBasis, 17),
-                        this.format.currency(totalMarketValue, 17),
-                        this.format.text("", 15),
-                        this.format.currency(totalPnL, 17)));
+                MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}{7}",
+                        this.format.text("Total", descWidth),
+                        this.format.text("", posWidth),
+                        this.format.text("", lastWidth),
+                        this.format.currency(totalCostBasis, costWidth),
+                        this.format.currency(totalMarketValue, mkvWidth),
+                        this.format.text("", avgWidth),
+                        this.format.currency(totalPnL, pnlWidth),
+                        this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), CONTEXT), pnlPctWidth)));
     }
 
     private Position position(List<Investment> investments) {
