@@ -72,6 +72,8 @@ public class Investments {
 
     private static final TypeReference<Map<String, BenchmarkItem>> BENCHMARK_TR = new TypeReference<Map<String, BenchmarkItem>>() {
     };
+    
+    private static final Comparator<Pair<String, Pair<BigDecimal, BigDecimal>>> CMP = comparing((Pair<String, Pair<BigDecimal, BigDecimal>> p) -> p.getSecond().getSecond()).reversed();
 
     private static final List<MoneyAmount> PORTFOLIO = List.of(
             new MoneyAmount(BigDecimal.valueOf(70l), "CSPX"),
@@ -211,8 +213,7 @@ public class Investments {
         final var portfolioTWCAGRStream = Stream.of(of("Portfolio", modifiedDietzReturn));
         final var modelPortfolioStream = Stream.of(of("Model", this.modelPortfolioCAGR(nominal)));
 
-        Comparator<Pair<String, Pair<BigDecimal, BigDecimal>>> cmp = comparing((Pair<String, Pair<BigDecimal, BigDecimal>> p) -> p.getSecond().getSecond()).reversed();
-
+        
         final var textColWidth = 30;
         this.console.appendLine(this.format.text(" ", textColWidth), this.format.text(" Return", 8), this.format.text("    Annualized", 16));
 
@@ -224,7 +225,7 @@ public class Investments {
 
         Stream.of(benchmarksStream, modelPortfolioStream, portfolioTWCAGRStream)
                 .reduce(Stream.empty(), Stream::concat)
-                .sorted(cmp)
+                .sorted(CMP)
                 .map(lineFunction)
                 .forEach(this.console::appendLine);
 
