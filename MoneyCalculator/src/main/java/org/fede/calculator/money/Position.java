@@ -24,7 +24,6 @@ import java.math.BigDecimal;
  */
 public class Position {
 
-    private final String symbol;
     private final String fundName;
     private final BigDecimal position;
     private final MoneyAmount last;
@@ -34,8 +33,7 @@ public class Position {
     private final MoneyAmount unrealizedPnL;
     private final BigDecimal unrealizedPnLPct;
 
-    public Position(String symbol, String fundName, BigDecimal position, MoneyAmount last, MoneyAmount costBasis, MoneyAmount marketValue, MoneyAmount averagePrice) {
-        this.symbol = symbol;
+    public Position(String fundName, BigDecimal position, MoneyAmount last, MoneyAmount costBasis, MoneyAmount marketValue, MoneyAmount averagePrice) {
         this.fundName = fundName;
         this.position = position;
         this.last = last;
@@ -45,10 +43,6 @@ public class Position {
         this.unrealizedPnL = new MoneyAmount(marketValue.getAmount().subtract(costBasis.getAmount(), MathConstants.CONTEXT), marketValue.getCurrency());
         this.unrealizedPnLPct = this.unrealizedPnL.getAmount()
                 .divide(this.costBasis.getAmount(), MathConstants.CONTEXT);
-    }
-
-    public String getSymbol() {
-        return symbol;
     }
 
     public String getFundName() {

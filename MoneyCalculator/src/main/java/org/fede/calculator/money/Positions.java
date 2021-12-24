@@ -150,7 +150,6 @@ public class Positions {
                 .reduce(ZERO, BigDecimal::add);
 
         return new Position(
-                symbol,
                 ETF_NAME.get(symbol),
                 position,
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD").apply(new MoneyAmount(ONE, symbol), YearMonth.of(new Date())),
