@@ -74,8 +74,10 @@ public class Positions {
 
         this.console.appendLine(separator);
        
-        this.console.appendLine(MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}{7}",
-                this.format.text("        Fund", descWidth),
+        final var fmt = " {0}{1}{2}{3}{4}{5}{6}{7}";
+        
+        this.console.appendLine(MessageFormat.format(fmt,
+                this.format.text("       Fund", descWidth),
                 this.format.text(" Pos.", posWidth),
                 this.format.text("      Last", lastWidth),
                 this.format.text("      Cost Basis", costWidth),
@@ -102,7 +104,7 @@ public class Positions {
         positions
                 .stream()
                 .sorted(Comparator.comparing((Position p) -> p.getMarketValue().getAmount(), Comparator.reverseOrder()))
-                .map(p -> MessageFormat.format(" {0}{1}{2}{3}{4}{5}{6}{7}",
+                .map(p -> MessageFormat.format(fmt,
                 this.format.text(p.getFundName(), descWidth),
                 this.format.number(p.getPosition(), posWidth),
                 this.format.currency(p.getLast(), lastWidth),
@@ -130,7 +132,7 @@ public class Positions {
 
         this.console.appendLine(separator);
         this.console.appendLine(
-                MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}{7}",
+                MessageFormat.format(fmt,
                         this.format.text("Total", descWidth),
                         this.format.text("", posWidth),
                         this.format.text("", lastWidth),
@@ -149,10 +151,12 @@ public class Positions {
                 .map(InvestmentAsset::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
+        final var now = YearMonth.of(new Date());
+        
         return new Position(
                 ETF_NAME.get(symbol),
                 position,
-                ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD").apply(new MoneyAmount(ONE, symbol), YearMonth.of(new Date())),
+                ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD").apply(new MoneyAmount(ONE, symbol), now),
                 new MoneyAmount(
                         investments.stream()
                                 .map(Investment::getIn)
@@ -166,7 +170,7 @@ public class Positions {
                                         .map(InvestmentAsset::getAmount)
                                         .reduce(ZERO, BigDecimal::add),
                                 symbol),
-                                YearMonth.of(new Date())),
+                                now),
                 new MoneyAmount(
                         investments.stream()
                                 .map(i -> this.price(i).multiply(i.getInvestment().getAmount(), CONTEXT).divide(position, CONTEXT))
