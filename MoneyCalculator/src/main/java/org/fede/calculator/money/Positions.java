@@ -176,7 +176,6 @@ public class Positions {
                                 .map(i -> this.price(i).multiply(i.getInvestment().getAmount(), CONTEXT).divide(position, CONTEXT))
                                 .reduce(ZERO, BigDecimal::add),
                         "USD"));
-
     }
 
     private BigDecimal price(Investment i) {
