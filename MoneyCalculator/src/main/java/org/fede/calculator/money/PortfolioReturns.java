@@ -141,7 +141,6 @@ public class PortfolioReturns {
                 .reduce(PortfolioReturns::max)
                 .get();
 
-        this.console.appendLine("");
         this.console.appendLine(format("From {0} to {1}: {2}. Annualized: {3}", DateTimeFormatter.ISO_LOCAL_DATE.format(from), DateTimeFormatter.ISO_LOCAL_DATE.format(to), this.format.percent(modifiedDietzReturn.getFirst()), this.format.percent(modifiedDietzReturn.getSecond())));
 
         final Function<Map.Entry<Integer, Pair<BigDecimal, BigDecimal>>, String> lineFunction
@@ -170,6 +169,8 @@ public class PortfolioReturns {
 
     public void returns(boolean nominal, boolean withCash) {
 
+        this.console.appendLine(this.format.title((nominal?"Nominal ":"Real ") + "returns" + (withCash ? "": " without cash")));
+        
         final Predicate<Investment> since2000 = i -> after(i.getInitialDate(), 2000, Month.JANUARY, 1);
 
         this.modifiedDietzReturn(since2000, nominal, withCash);
@@ -266,7 +267,7 @@ public class PortfolioReturns {
 
     
     
-    public List<Investment> cashInvestments() {
+    private List<Investment> cashInvestments() {
 
         final List<Investment> investments = new ArrayList<>(100);
 
