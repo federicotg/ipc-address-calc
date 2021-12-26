@@ -373,7 +373,7 @@ public class ConsoleReports {
                         entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false currency=USD"),
                         entry("inv-evo", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                        entry("mdr", "nominal=false"),
+                        entry("mdr", "nominal=false cash=true"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
                         entry("bbpp", "year=2021 ibkr=true"),
@@ -1110,8 +1110,9 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paranName);
 
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+        final var withCash = Boolean.parseBoolean(params.getOrDefault("cash", "true"));
 
-        pr.returns(nominal);
+        pr.returns(nominal, withCash);
 
     }
 
