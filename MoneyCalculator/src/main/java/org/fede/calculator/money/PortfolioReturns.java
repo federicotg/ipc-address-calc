@@ -25,7 +25,6 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import static java.util.Comparator.comparing;
 import java.util.Date;
 import java.util.List;
@@ -43,10 +42,7 @@ import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignEx
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.Investment;
-import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
-import org.fede.calculator.money.series.InvestmentType;
-import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
@@ -61,14 +57,14 @@ public class PortfolioReturns {
     private final Console console;
     private final Format format;
     private final Bar bar;
-    private final MoneyAmountSeries cash;
+    private final CashInvestmentBuilder cashInvestments;
 
     public PortfolioReturns(Series series, Console console, Format format, Bar bar) {
         this.series = series;
         this.console = console;
         this.format = format;
         this.bar = bar;
-        this.cash = SeriesReader.readSeries("/saving/ahorros-dolar-liq.json");
+        this.cashInvestments = new CashInvestmentBuilder(SeriesReader.readSeries("/saving/ahorros-dolar-liq.json"));
     }
 
     private static LocalDate min(LocalDate d1, LocalDate d2) {
@@ -91,7 +87,7 @@ public class PortfolioReturns {
 
         final Predicate<Investment> since2000 = i -> after(i.getInitialDate(), 2000, Month.JANUARY, 1);
         final var inv = Stream.concat(
-                this.cashInvestments().stream(),
+                this.cashInvestments.cashInvestments().stream(),
                 this.series.getInvestments().stream())
                 .filter(since2000)
                 .collect(toList());
@@ -115,7 +111,7 @@ public class PortfolioReturns {
     public void modifiedDietzReturn(Predicate<Investment> criteria, boolean nominal, boolean withCash) {
 
         final var inv = Stream.concat(
-                withCash ? this.cashInvestments().stream() : Stream.empty(),
+                withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
                 this.series.getInvestments()
                         .stream()
                         .filter(criteria))
@@ -168,8 +164,8 @@ public class PortfolioReturns {
 
     public void returns(boolean nominal, boolean withCash) {
 
-        this.console.appendLine(this.format.title((nominal?"Nominal ":"Real ") + "returns" + (withCash ? "": " without cash")));
-        
+        this.console.appendLine(this.format.title((nominal ? "Nominal " : "Real ") + "returns" + (withCash ? "" : " without cash")));
+
         final Predicate<Investment> since2000 = i -> after(i.getInitialDate(), 2000, Month.JANUARY, 1);
 
         this.modifiedDietzReturn(since2000, nominal, withCash);
@@ -222,7 +218,7 @@ public class PortfolioReturns {
     public void portfolioAllocation() {
 
         Map<String, Map<String, Optional<DayDollars>>> dayDollarsByYear = Stream.concat(
-                this.cashInvestments().stream(),
+                this.cashInvestments.cashInvestments().stream(),
                 this.series.getInvestments().stream().filter(i -> !i.getInvestment().getCurrency().equals("XAU")))
                 .flatMap(this::asDayDollarsByYear)
                 .collect(groupingBy(
@@ -262,77 +258,6 @@ public class PortfolioReturns {
                 .map(pct -> format("Modified Dietz Return {0}\n", pct))
                 .ifPresent(this.console::appendLine);
 
-    }
-    
-    
-    private List<Investment> cashInvestments() {
-
-        final List<Investment> investments = new ArrayList<>(100);
-
-        for (var ym = this.cash.getFrom(); ym.compareTo(this.cash.getTo()) <= 0; ym = ym.next()) {
-
-            var currentSavedUSD = this.cash.getAmountOrElseZero(ym).getAmount();
-            var total = this.total(investments);
-            if (currentSavedUSD.compareTo(total) > 0) {
-                investments.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.CONTEXT), ym));
-            } else if (currentSavedUSD.compareTo(total) < 0) {
-
-                this.sellUntilBelow(currentSavedUSD, investments, ym);
-                total = this.total(investments);
-                if (currentSavedUSD.compareTo(total) > 0) {
-                    investments.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.CONTEXT), ym));
-                }
-            }
-        }
-
-        return investments;
-
-    }
-
-    private void sellUntilBelow(BigDecimal amount, List<Investment> investments, YearMonth ym) {
-        while (total(investments).compareTo(amount) > 0) {
-            investments.stream()
-                    .filter(i -> i.getOut() == null)
-                    .findAny()
-                    .ifPresent(i -> this.sellInvestment(i, ym));
-        }
-    }
-
-    private void sellInvestment(Investment inv, YearMonth ym) {
-        final var out = new InvestmentEvent();
-        out.setAmount(inv.getInvestment().getAmount());
-        out.setCurrency("USD");
-        out.setDate(ym.asDate());
-        out.setFee(BigDecimal.ZERO);
-        out.setTransferFee(BigDecimal.ZERO);
-        inv.setOut(out);
-    }
-
-    private Investment newInvestment(BigDecimal amount, YearMonth ym) {
-        final var in = new InvestmentEvent();
-        in.setAmount(amount);
-        in.setCurrency("USD");
-        in.setDate(ym.asDate());
-        in.setFee(BigDecimal.ZERO);
-        in.setTransferFee(BigDecimal.ZERO);
-
-        final var asset = new InvestmentAsset();
-        asset.setAmount(amount);
-        asset.setCurrency("USD");
-
-        final var inv = new Investment();
-        inv.setIn(in);
-        inv.setInvestment(asset);
-        inv.setType(InvestmentType.USD);
-        return inv;
-    }
-
-    private BigDecimal total(List<Investment> investments) {
-        return investments.stream()
-                .filter(i -> i.getOut() == null)
-                .map(Investment::getInvestment)
-                .map(InvestmentAsset::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
 }

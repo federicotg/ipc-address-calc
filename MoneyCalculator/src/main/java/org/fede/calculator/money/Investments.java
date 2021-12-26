@@ -72,7 +72,7 @@ public class Investments {
 
     private static final TypeReference<Map<String, BenchmarkItem>> BENCHMARK_TR = new TypeReference<Map<String, BenchmarkItem>>() {
     };
-    
+
     private static final Comparator<Pair<String, Pair<BigDecimal, BigDecimal>>> CMP = comparing((Pair<String, Pair<BigDecimal, BigDecimal>> p) -> p.getSecond().getSecond()).reversed();
 
     private static final List<MoneyAmount> PORTFOLIO = List.of(
@@ -114,12 +114,14 @@ public class Investments {
     private final Format format;
     private final Bar bar;
     private final Series series;
+    private final CashInvestmentBuilder cashInvestments;
 
     public Investments(Console console, Format format, Bar bar, Series series) {
         this.console = console;
         this.format = format;
         this.bar = bar;
         this.series = series;
+        this.cashInvestments = new CashInvestmentBuilder(SeriesReader.readSeries("/saving/ahorros-dolar-liq.json"));
     }
 
     public void inv(final Predicate<Investment> everyone, boolean nominal, String currency) {
@@ -133,7 +135,7 @@ public class Investments {
 
         this.invHeader(colWidths);
 
-        final var details = this.series.getInvestments()
+        final var details = this.getAllInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
@@ -188,7 +190,7 @@ public class Investments {
                 this.format.currency(totalTax, 12),
                 this.format.percent(totalTax.divide(totalCurrent, CONTEXT), 8));
 
-        final var etfs = this.series.getInvestments().stream().filter(inv -> inv.getType().equals(InvestmentType.ETF)).collect(toList());
+        final var etfs = this.getAllInvestments().stream().filter(inv -> inv.getType().equals(InvestmentType.ETF)).collect(toList());
 
         final var modifiedDietzReturn = new ModifiedDietzReturn(etfs, currency, nominal).get();
 
@@ -213,7 +215,6 @@ public class Investments {
         final var portfolioTWCAGRStream = Stream.of(of("Portfolio", modifiedDietzReturn));
         final var modelPortfolioStream = Stream.of(of("Model", this.modelPortfolioCAGR(nominal)));
 
-        
         final var textColWidth = 30;
         this.console.appendLine(this.format.text(" ", textColWidth), this.format.text(" Return", 8), this.format.text("    Annualized", 16));
 
@@ -439,7 +440,8 @@ public class Investments {
 
     private Map<String, MoneyAmountSeries> investmentEvolution(String currency, boolean nominal) {
 
-        final var inv = this.series.getInvestments().stream()
+        final var inv = this.getAllInvestments()
+                .stream()
                 .filter(i -> i.getType().equals(InvestmentType.ETF))
                 .filter(i -> Objects.isNull(currency) || Objects.equals(currency, i.getCurrency()))
                 .sorted(Comparator.comparing(Investment::getInitialDate, Comparator.naturalOrder()))
@@ -545,12 +547,20 @@ public class Investments {
         Predicate<Investment> filterPredicate = i -> Objects.isNull(type) || i.getType().toString().equals(type);
         Comparator<Investment> comparator = Comparator.comparing(Investment::getInitialDate, Comparator.naturalOrder());
 
-        final var list = this.series.getInvestments();
+        final var list = this.getAllInvestments();
 
         new Evolution<Investment>(this.console, this.bar)
                 .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, comparator, list, pct);
 
     }
+    
+    private List<Investment> getAllInvestments(){
+        return Stream.concat(
+                this.series.getInvestments().stream(),
+                this.cashInvestments.cashInvestments().stream())
+                .collect(toList());
+    }
+    
 
     public void portfolioTypeEvo(boolean pct) {
 
@@ -583,7 +593,7 @@ public class Investments {
         Predicate<Investment> filterPredicate = i -> true;
         Comparator<Investment> comparator = Comparator.comparing(Investment::getInitialDate, Comparator.naturalOrder());
 
-        final var list = this.series.getInvestments();
+        final var list = this.getAllInvestments();
 
         new Evolution<Investment>(this.console, this.bar)
                 .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, comparator, list, pct);
