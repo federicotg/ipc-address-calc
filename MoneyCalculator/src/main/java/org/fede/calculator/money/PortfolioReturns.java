@@ -87,12 +87,12 @@ public class PortfolioReturns {
         return LocalDate.ofInstant(d.toInstant(), ZoneId.systemDefault()).isAfter(LocalDate.of(year, m, day));
     }
 
-    public Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear() {
+    private Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear() {
 
         final Predicate<Investment> since2000 = i -> after(i.getInitialDate(), 2000, Month.JANUARY, 1);
         final var inv = Stream.concat(
                 this.cashInvestments().stream(),
-                this.series.getInvestments().stream().filter(i -> !i.getInvestment().getCurrency().equals("XAU")))
+                this.series.getInvestments().stream())
                 .filter(since2000)
                 .collect(toList());
 
@@ -118,7 +118,6 @@ public class PortfolioReturns {
                 withCash ? this.cashInvestments().stream() : Stream.empty(),
                 this.series.getInvestments()
                         .stream()
-                        .filter(i -> !i.getInvestment().getCurrency().equals("XAU"))
                         .filter(criteria))
                 .collect(toList());
 
