@@ -240,7 +240,7 @@ public class PortfolioReturns {
     }
 
     private void allocationYear(String year, Map<String, Optional<DayDollars>> byType, Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear) {
-        this.console.appendLine("Year: ", year);
+        this.console.appendLine("     ~=", year, "=~");
 
         final var total = byType.values()
                 .stream()
@@ -264,7 +264,6 @@ public class PortfolioReturns {
                 .ifPresent(this.console::appendLine);
 
     }
-
     
     
     private List<Investment> cashInvestments() {
