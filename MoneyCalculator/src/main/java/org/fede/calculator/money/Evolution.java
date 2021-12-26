@@ -84,7 +84,6 @@ public class Evolution<T> {
 
             final var moment = ym;
 
-            //final Function<Investment, MoneyAmount> total = i -> this.asUSD(i.getInvestment().getMoneyAmount(), moment);
             final Map<String, List<T>> grouped = inv
                     .stream()
                     .collect(Collectors.groupingBy(classifier));
@@ -154,7 +153,7 @@ public class Evolution<T> {
     }
 
     private String pctBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> elements) {
-        return this.bar.percentBar(ym, elements);
+        return this.bar.percentBar(ym, elements, false);
     }
 
 }

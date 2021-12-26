@@ -408,7 +408,7 @@ public class Investments {
     }
 
     private String pctBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> elements) {
-        return this.bar.percentBar(ym, elements);
+        return this.bar.percentBar(ym, elements, false);
     }
 
     public void invEvo(String currency, boolean nominal) {
@@ -540,6 +540,7 @@ public class Investments {
         Function<Investment, YearMonth> endFunction = i -> Optional.ofNullable(i.getOut())
                 .map(InvestmentEvent::getDate)
                 .map(YearMonth::of)
+                .map(YearMonth::prev)
                 .orElse(Inflation.USD_INFLATION.getTo());
 
         Function<Investment, String> classifier = i -> i.getType().toString() + " " + i.getCurrency();
@@ -551,7 +552,6 @@ public class Investments {
 
         new Evolution<Investment>(this.console, this.bar)
                 .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, comparator, list, pct);
-
     }
     
     private List<Investment> getAllInvestments(){
@@ -560,7 +560,6 @@ public class Investments {
                 this.cashInvestments.cashInvestments().stream())
                 .collect(toList());
     }
-    
 
     public void portfolioTypeEvo(boolean pct) {
 
@@ -570,6 +569,7 @@ public class Investments {
         Function<Investment, YearMonth> endFunction = i -> Optional.ofNullable(i.getOut())
                 .map(InvestmentEvent::getDate)
                 .map(YearMonth::of)
+                .map(YearMonth::prev)
                 .orElse(Inflation.USD_INFLATION.getTo());
 
         final var categories = Map.ofEntries(
@@ -577,7 +577,6 @@ public class Investments {
                 Map.entry("EIMI", "Global Eq."),
                 Map.entry("MEUD", "Global Eq."),
                 Map.entry("XRSU", "Global Eq."),
-                Map.entry("XAU", "Com."),
                 Map.entry("CONAAFA", "Dom. Eq."),
                 Map.entry("CONBALA", "Dom. Bonds"),
                 Map.entry("CAPLUSA", "Dom. Bonds"),

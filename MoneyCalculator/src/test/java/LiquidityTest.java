@@ -16,8 +16,14 @@
  */
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.fede.calculator.money.CashInvestmentBuilder;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
@@ -39,81 +45,24 @@ public class LiquidityTest {
 
         final var liq = SeriesReader.readSeries("/saving/ahorros-dolar-liq.json");
 
-        final List<Investment> investments = new ArrayList<>();
-
-        for (var ym = liq.getFrom(); ym.compareTo(liq.getTo()) <= 0; ym = ym.next()) {
-
-            var currentSavedUSD = liq.getAmountOrElseZero(ym).getAmount();
-            var total = this.total(investments);
-            if (currentSavedUSD.compareTo(total) > 0) {
-                investments.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.CONTEXT), ym));
-            } else if (currentSavedUSD.compareTo(total) < 0) {
-
-                this.sellUntilBelow(currentSavedUSD, investments, ym);
-                total = this.total(investments);
-                if (currentSavedUSD.compareTo(total) > 0) {
-                    investments.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.CONTEXT), ym));
-                }
-            }
-        }
+        final List<Investment> investments = new CashInvestmentBuilder(liq).cashInvestments();
 
         for (var ym = liq.getFrom(); ym.compareTo(liq.getTo()) <= 0; ym = ym.next()) {
             var currentSavedUSD = liq.getAmountOrElseZero(ym).getAmount();
             var invested = this.total(investments, ym);
-            //System.out.println(currentSavedUSD+" "+invested);
+            //System.out.println(ym+" "+currentSavedUSD+" "+invested);
             assertEquals("Saved and invested must be the same.", 0, currentSavedUSD.compareTo(invested));
         }
 
         //investments.stream().map(Investment::toString).forEach(System.out::println);
         
+                
+                
+        //System.out.println(total(investments, YearMonth.of(2019, 3)));
+        
     }
 
-    private void sellUntilBelow(BigDecimal amount, List<Investment> investments, YearMonth ym) {
-        while (total(investments).compareTo(amount) > 0) {
-            investments.stream()
-                    .filter(i -> i.getOut() == null)
-                    .findAny()
-                    .ifPresent(i -> this.sellInvestment(i, ym));
-        }
-    }
-
-    private void sellInvestment(Investment inv, YearMonth ym) {
-        final var out = new InvestmentEvent();
-        out.setAmount(inv.getInvestment().getAmount());
-        out.setCurrency("USD");
-        out.setDate(ym.asDate());
-        out.setFee(BigDecimal.ZERO);
-        out.setTransferFee(BigDecimal.ZERO);
-        inv.setOut(out);
-    }
-
-    private Investment newInvestment(BigDecimal amount, YearMonth ym) {
-        final var in = new InvestmentEvent();
-        in.setAmount(amount);
-        in.setCurrency("USD");
-        in.setDate(ym.asDate());
-        in.setFee(BigDecimal.ZERO);
-        in.setTransferFee(BigDecimal.ZERO);
-
-        final var asset = new InvestmentAsset();
-        asset.setAmount(amount);
-        asset.setCurrency("USD");
-
-        final var inv = new Investment();
-        inv.setIn(in);
-        inv.setInvestment(asset);
-        inv.setType(InvestmentType.USD);
-        return inv;
-    }
-
-    private BigDecimal total(List<Investment> investments) {
-        return investments.stream()
-                .filter(i -> i.getOut() == null)
-                .map(Investment::getInvestment)
-                .map(InvestmentAsset::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
+ 
     private BigDecimal total(List<Investment> investments, YearMonth ym) {
         return investments.stream()
                 .filter(i -> i.isCurrent(ym.asToDate()))

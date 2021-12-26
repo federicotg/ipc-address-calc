@@ -54,10 +54,10 @@ public class Bar {
     }
 
     public String currencyBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
-        return this.genericBar(ym, amounts, width, a -> this.format.number(a, 9));
+        return this.genericBar(ym, amounts, width, a -> this.format.number(a, 9), amounts.size() > 4);
     }
 
-    public String percentBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts) {
+    public String percentBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, boolean showNumbers) {
 
         final var total = amounts
                 .stream()
@@ -68,8 +68,11 @@ public class Bar {
         if (total.signum() == 0) {
             return "";
         }
-        final var relativeAmounts = amounts.stream()
-                .map(p -> Pair.of(new MoneyAmount(p.getFirst().getAmount().divide(total, CONTEXT).movePointRight(2).setScale(0, RoundingMode.HALF_UP), p.getFirst().getCurrency()), p.getSecond())).collect(toList());
+        final var relativeAmounts = amounts
+                .stream()
+                .map(p -> Pair.of(new MoneyAmount(p.getFirst().getAmount().divide(total, CONTEXT).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.getFirst().getCurrency()), p.getSecond()))
+                .filter(p -> !p.getFirst().isZero())
+                .collect(toList());
 
         final var relativeTotal = relativeAmounts
                 .stream()
@@ -78,31 +81,31 @@ public class Bar {
                 .reduce(ZERO, BigDecimal::add);
 
         if (relativeTotal.compareTo(HUNDRED) != 0) {
-            final var last = relativeAmounts.get(relativeAmounts.size() - 1);
+            final var first = relativeAmounts.get(0);
 
-            final var lastAmount = last.getFirst().getAmount();
+            final var firstAmount = first.getFirst().getAmount();
 
             var difference = relativeTotal.subtract(HUNDRED, CONTEXT).negate(CONTEXT);
 
             relativeAmounts.set(
-                    relativeAmounts.size() - 1,
-                    Pair.of(new MoneyAmount(lastAmount.add(difference, CONTEXT), last.getFirst().getCurrency()), last.getSecond()));
+                    0,
+                    Pair.of(new MoneyAmount(firstAmount.add(difference, CONTEXT), first.getFirst().getCurrency()), first.getSecond()));
 
         }
 
-        return this.genericBar(ym, relativeAmounts, 1, a -> this.format.percent(a.movePointLeft(2), 8));
+        return this.genericBar(ym, relativeAmounts, 1, a -> this.format.percent(a.movePointLeft(2), 8), showNumbers);
     }
 
-    private String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width, Function<BigDecimal, String> format) {
+    private String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width, Function<BigDecimal, String> format, boolean showNumbers) {
 
         final var bars = IntStream.range(0, amounts.size())
-                .map(i -> i + 2 + (amounts.size() > 4 ? 0 : amounts.size()))
+                .map(i -> i + 2 + (!showNumbers ? 0 : amounts.size()))
                 .mapToObj(i -> format("'{'{0}'}'", i))
                 .collect(joining(""));
         final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.getFirst().getAmount(), width, p.getFirst().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.getSecond()));
         final Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth()));
 
-        if (amounts.size() > 4) {
+        if (!showNumbers) {
             return format("{0}/{1} " + bars,
                     (Object[]) Stream.of(ymStream, barsStream).flatMap(Function.identity()).toArray(String[]::new));
         }
@@ -111,7 +114,11 @@ public class Bar {
                 .map(i -> i + 2)
                 .mapToObj(i -> format("'{'{0}'}'", i))
                 .collect(joining(" "));
-        final Stream<String> amountsStream = amounts.stream().map(Pair::getFirst).map(MoneyAmount::getAmount).map(format);
+        final Stream<String> amountsStream = amounts
+                .stream()
+                .map(Pair::getFirst)
+                .map(MoneyAmount::getAmount)
+                .map(format);
 
         return format("{0}/{1} " + values + " " + bars,
                 (Object[]) Stream.of(ymStream, amountsStream, barsStream).flatMap(Function.identity()).toArray(String[]::new));

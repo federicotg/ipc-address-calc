@@ -17,7 +17,12 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneOffset;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
@@ -38,7 +43,6 @@ public class CashInvestmentBuilder {
         this.cash = cash;
     }
 
-    
     public List<Investment> cashInvestments() {
 
         final List<Investment> investments = new ArrayList<>(100);
@@ -86,7 +90,13 @@ public class CashInvestmentBuilder {
         final var in = new InvestmentEvent();
         in.setAmount(amount);
         in.setCurrency("USD");
-        in.setDate(ym.asDate());
+        in.setDate(Date.from(
+                LocalDate.of(ym.getYear(), ym.getMonth(), 1)
+                        .with(TemporalAdjusters.lastDayOfMonth())
+                        .minusDays(1)
+                        .atTime(12, 00)
+                        .toInstant(ZoneOffset.UTC))
+        );
         in.setFee(BigDecimal.ZERO);
         in.setTransferFee(BigDecimal.ZERO);
 
