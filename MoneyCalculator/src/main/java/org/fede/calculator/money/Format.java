@@ -56,6 +56,10 @@ public class Format {
     public String number(BigDecimal value) {
         return format("{0,number,0.00}", value);
     }
+    
+    public String number2(BigDecimal value) {
+        return format("{0,number,0.##}", value);
+    }
 
     public String number(BigDecimal value, int width) {
         return String.format("%" + width + "s", number(value));

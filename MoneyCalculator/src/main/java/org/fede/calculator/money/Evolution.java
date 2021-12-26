@@ -153,7 +153,7 @@ public class Evolution<T> {
     }
 
     private String pctBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> elements) {
-        return this.bar.percentBar(ym, elements, false);
+        return this.bar.percentBar(ym, elements);
     }
 
 }

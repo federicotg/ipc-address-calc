@@ -408,7 +408,7 @@ public class Investments {
     }
 
     private String pctBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> elements) {
-        return this.bar.percentBar(ym, elements, false);
+        return this.bar.percentBar(ym, elements);
     }
 
     public void invEvo(String currency, boolean nominal) {

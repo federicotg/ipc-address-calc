@@ -54,10 +54,10 @@ public class Bar {
     }
 
     public String currencyBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
-        return this.genericBar(ym, amounts, width, a -> this.format.number(a, 9), amounts.size() > 4);
+        return this.genericBar(ym, amounts, width);
     }
 
-    public String percentBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, boolean showNumbers) {
+    public String percentBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts) {
 
         final var total = amounts
                 .stream()
@@ -93,35 +93,20 @@ public class Bar {
 
         }
 
-        return this.genericBar(ym, relativeAmounts, 1, a -> this.format.percent(a.movePointLeft(2), 8), showNumbers);
+        return this.genericBar(ym, relativeAmounts, 1);
     }
 
-    private String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width, Function<BigDecimal, String> format, boolean showNumbers) {
-
+    private String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
+        
         final var bars = IntStream.range(0, amounts.size())
-                .map(i -> i + 2 + (!showNumbers ? 0 : amounts.size()))
+                .map(i -> i + 2)
                 .mapToObj(i -> format("'{'{0}'}'", i))
                 .collect(joining(""));
         final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.getFirst().getAmount(), width, p.getFirst().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.getSecond()));
         final Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth()));
 
-        if (!showNumbers) {
             return format("{0}/{1} " + bars,
                     (Object[]) Stream.of(ymStream, barsStream).flatMap(Function.identity()).toArray(String[]::new));
-        }
-
-        final var values = IntStream.range(0, amounts.size())
-                .map(i -> i + 2)
-                .mapToObj(i -> format("'{'{0}'}'", i))
-                .collect(joining(" "));
-        final Stream<String> amountsStream = amounts
-                .stream()
-                .map(Pair::getFirst)
-                .map(MoneyAmount::getAmount)
-                .map(format);
-
-        return format("{0}/{1} " + values + " " + bars,
-                (Object[]) Stream.of(ymStream, amountsStream, barsStream).flatMap(Function.identity()).toArray(String[]::new));
     }
 
     public String pctBar(BigDecimal value, BigDecimal total) {
@@ -185,21 +170,37 @@ public class Bar {
     }
 
     private String bar(BigDecimal value, int scale, Attribute color) {
+        return this.bar(value, scale, color, this.format::number2);
+    }
+    
+    private String bar(BigDecimal value, int scale, Attribute color, Function<BigDecimal, String> valueFormat) {
 
-        return Ansi.colorize(IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue())
+        final var valueStr = valueFormat.apply(value).trim();
+
+        final var end = value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue();
+
+        if (end > valueStr.length()) {
+
+            return Ansi.colorize(Stream.concat(
+                    Stream.of(valueStr),
+                    IntStream.range(0, end - valueStr.length()).mapToObj(x -> " "))
+                    .collect(joining()), color, Attribute.BLACK_TEXT());
+        }
+
+        return Ansi.colorize(IntStream.range(0, end)
                 .mapToObj(x -> " ")
                 .collect(joining()), new AnsiFormat(color));
     }
 
     private String bar(BigDecimal value, int scale, String symbol) {
 
-        final AnsiFormat format = value.signum() < 0
+        final AnsiFormat fmt = value.signum() < 0
                 ? new AnsiFormat(Attribute.RED_BACK(), Attribute.WHITE_TEXT())
                 : new AnsiFormat(Attribute.GREEN_BACK(), Attribute.WHITE_TEXT());
 
         return Ansi.colorize(IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue())
                 .mapToObj(x -> symbol)
-                .collect(joining()), format);
+                .collect(joining()), fmt);
     }
 
     public String percentBar(YearMonth ym, MoneyAmount one, MoneyAmount two, MoneyAmount three) {
@@ -225,24 +226,19 @@ public class Bar {
     }
 
     public String bar(YearMonth ym, BigDecimal one, BigDecimal two, int scale, Function<BigDecimal, String> format) {
-        return format("{0}/{1} [{2},{4}] {3}{5}",
+        return format("{0}/{1} {2}{3}",
                 String.valueOf(ym.getYear()),
                 String.format("%02d", ym.getMonth()),
-                format.apply(one),
                 this.bar(one, scale, Attribute.BLUE_BACK()),
-                format.apply(two),
                 this.bar(two, scale, Attribute.RED_BACK()));
     }
 
     public String bar(YearMonth ym, BigDecimal one, BigDecimal two, BigDecimal three, int scale, Function<BigDecimal, String> format) {
-        return format("{0}/{1} [{2},{4},{6}] {3}{5}{7}",
+        return format("{0}/{1} {2}{3}{4}",
                 String.valueOf(ym.getYear()),
                 String.format("%02d", ym.getMonth()),
-                format.apply(one),
                 this.bar(one, scale, Attribute.BLUE_BACK()),
-                format.apply(two),
                 this.bar(two, scale, Attribute.RED_BACK()),
-                format.apply(three),
                 this.bar(three, scale, Attribute.YELLOW_BACK()));
     }
 
