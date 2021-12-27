@@ -250,6 +250,10 @@ public class InvestmentDetails {
                 BigDecimal.ONE.add(cumulativeProfit).doubleValue(),
                 365.0d / days.doubleValue()) - 1.0d;
 
+        if(Double.isNaN(x)){
+            return BigDecimal.ZERO;
+        }
+        
         return BigDecimal.valueOf(x);
 
     }

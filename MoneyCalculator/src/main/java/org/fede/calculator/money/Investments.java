@@ -145,6 +145,7 @@ public class Investments {
                 .collect(toList());
 
         details.stream()
+                .sorted(Comparator.comparing(InvestmentDetails::getInvestmentDate))
                 .forEach(d -> this.print(d, colWidths));
 
         this.invHeader(colWidths);
@@ -190,7 +191,10 @@ public class Investments {
                 this.format.currency(totalTax, 12),
                 this.format.percent(totalTax.divide(totalCurrent, CONTEXT), 8));
 
-        final var etfs = this.getAllInvestments().stream().filter(inv -> inv.getType().equals(InvestmentType.ETF)).collect(toList());
+        final var etfs = this.getAllInvestments()
+                .stream()
+                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .collect(toList());
 
         final var modifiedDietzReturn = new ModifiedDietzReturn(etfs, currency, nominal).get();
 
