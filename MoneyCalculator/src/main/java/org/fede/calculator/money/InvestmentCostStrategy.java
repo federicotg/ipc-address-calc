@@ -84,14 +84,10 @@ public class InvestmentCostStrategy {
                 .add(buyFee, CONTEXT)
                 .add(buyFeeTax, CONTEXT);
         //1st ccl
-        final var firstCclFee = afterCclAmount
+        final var cclFee = afterCclAmount
+                .divide(BigDecimal.ONE.subtract(this.cclFeeRate, CONTEXT), CONTEXT)
                 .divide(BigDecimal.ONE.subtract(this.cclFeeRate, CONTEXT), CONTEXT)
                 .subtract(afterCclAmount, CONTEXT);
-
-        final var secondCclFee = afterCclAmount
-                .add(firstCclFee, CONTEXT)
-                .divide(BigDecimal.ONE.subtract(this.cclFeeRate, CONTEXT), CONTEXT)
-                .subtract(afterCclAmount.add(firstCclFee, CONTEXT), CONTEXT);
 
         //post sell fee
 
@@ -121,7 +117,7 @@ public class InvestmentCostStrategy {
 
         d.setBuyCclFee(Optional.ofNullable(inv.getIn().getTransferFee())
                 .map(transferFee -> new MoneyAmount(transferFee, inv.getIn().getCurrency()))
-                .orElseGet(() -> new MoneyAmount(firstCclFee.add(secondCclFee, CONTEXT), this.currency)));
+                .orElseGet(() -> new MoneyAmount(cclFee, this.currency)));
 
         d.setInvestmentDate(LocalDate.ofInstant(inv.getInitialDate().toInstant(), ZoneId.systemDefault()));
         d.setInvestedAmount(new MoneyAmount(investedAmount, this.currency));
