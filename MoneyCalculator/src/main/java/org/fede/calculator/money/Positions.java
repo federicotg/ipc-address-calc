@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.fede.calculator.money.series.Investment;
@@ -39,7 +40,9 @@ import static org.fede.calculator.money.MathConstants.CONTEXT;
 public class Positions {
 
     private static final BigDecimal IVA = new BigDecimal("1.21");
-    
+
+    private static final BigDecimal FEE_FACTOR = BigDecimal.ONE.subtract(new BigDecimal("0.006"), CONTEXT);
+
     private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO, "USD");
 
     private static final Map<String, String> ETF_NAME = Map.of(
@@ -69,15 +72,15 @@ public class Positions {
         final var avgWidth = 12;
         final var pnlWidth = 14;
         final var pnlPctWidth = 10;
-        
+
         final var separator = IntStream.rangeClosed(0, IntStream.of(descWidth, posWidth, lastWidth, costWidth, mkvWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
                 .mapToObj(n -> "=")
                 .collect(Collectors.joining());
 
         this.console.appendLine(separator);
-       
+
         final var fmt = " {0}{1}{2}{3}{4}{5}{6}{7}";
-        
+
         this.console.appendLine(MessageFormat.format(fmt,
                 this.format.text("       Fund", descWidth),
                 this.format.text(" Pos.", posWidth),
@@ -145,6 +148,26 @@ public class Positions {
                         this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), CONTEXT), pnlPctWidth)));
     }
 
+    private BigDecimal getCostBasis(Investment i) {
+        return i.getIn()
+                .getAmount()
+                .add(i.getIn().getFee().multiply(i.getComment() == null ? IVA : ONE, CONTEXT), CONTEXT)
+                .add(this.getTransferFee(i), CONTEXT);
+    }
+
+    private BigDecimal getTransferFee(Investment i) {
+        return Optional.ofNullable(i.getIn().getTransferFee())
+                .orElseGet(() -> this.getCclFee(i));
+    }
+
+    private BigDecimal getCclFee(Investment i) {
+
+        return i.getIn().getAmount()
+                .divide(FEE_FACTOR, CONTEXT)
+                .divide(FEE_FACTOR, CONTEXT)
+                .subtract(i.getIn().getAmount(), CONTEXT);
+    }
+
     private Position position(List<Investment> investments) {
         final var symbol = investments.stream().findAny().get().getCurrency();
 
@@ -154,14 +177,14 @@ public class Positions {
                 .reduce(ZERO, BigDecimal::add);
 
         final var now = YearMonth.of(new Date());
-        
+
         return new Position(
                 ETF_NAME.get(symbol),
                 position,
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD").apply(new MoneyAmount(ONE, symbol), now),
                 new MoneyAmount(
                         investments.stream()
-                                .map(i -> i.getIn().getAmount().add(i.getIn().getFee().multiply(i.getComment() == null ? IVA : ONE , CONTEXT), CONTEXT).add(i.getIn().getTransferFee(), CONTEXT))
+                                .map(this::getCostBasis)
                                 .reduce(ZERO, BigDecimal::add),
                         "USD"),
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD")
@@ -180,10 +203,7 @@ public class Positions {
     }
 
     private BigDecimal price(Investment i) {
-        return i.getIn()
-                .getAmount()
-                .add(i.getIn().getFee(), CONTEXT)
-                .add(i.getIn().getTransferFee(), CONTEXT)
+        return this.getCostBasis(i)
                 .divide(i.getInvestment().getAmount(), CONTEXT);
     }
 }

@@ -38,8 +38,7 @@ public class InvestmentEvent {
     private BigDecimal transferFee;
 
     public BigDecimal getTransferFee() {
-        return Optional.ofNullable(this.transferFee)
-                .orElse(BigDecimal.ZERO);
+        return this.transferFee;
     }
 
     public void setTransferFee(BigDecimal transferFee) {
