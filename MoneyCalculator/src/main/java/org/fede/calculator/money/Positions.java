@@ -38,6 +38,8 @@ import static org.fede.calculator.money.MathConstants.CONTEXT;
  */
 public class Positions {
 
+    private static final BigDecimal IVA = new BigDecimal("1.21");
+    
     private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO, "USD");
 
     private static final Map<String, String> ETF_NAME = Map.of(
@@ -61,14 +63,14 @@ public class Positions {
 
         final var descWidth = 32;
         final var posWidth = 6;
-        final var lastWidth = 14;
-        final var costWidth = 17;
-        final var mkvWidth = 17;
-        final var avgWidth = 15;
-        final var pnlWidth = 17;
+        final var lastWidth = 11;
+        final var costWidth = 14;
+        final var mkvWidth = 14;
+        final var avgWidth = 12;
+        final var pnlWidth = 14;
         final var pnlPctWidth = 10;
         
-        var separator = IntStream.rangeClosed(0, IntStream.of(descWidth, posWidth, lastWidth, costWidth, mkvWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
+        final var separator = IntStream.rangeClosed(0, IntStream.of(descWidth, posWidth, lastWidth, costWidth, mkvWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
                 .mapToObj(n -> "=")
                 .collect(Collectors.joining());
 
@@ -79,11 +81,11 @@ public class Positions {
         this.console.appendLine(MessageFormat.format(fmt,
                 this.format.text("       Fund", descWidth),
                 this.format.text(" Pos.", posWidth),
-                this.format.text("      Last", lastWidth),
-                this.format.text("      Cost Basis", costWidth),
-                this.format.text("    Market Value", mkvWidth),
-                this.format.text("     Avg. Price", avgWidth),
-                this.format.text("        P&L", pnlWidth),
+                this.format.text("   Last", lastWidth),
+                this.format.text("   Cost Basis", costWidth),
+                this.format.text(" Market Value", mkvWidth),
+                this.format.text("  Avg. Price", avgWidth),
+                this.format.text("     P&L", pnlWidth),
                 this.format.text("    P&L %", pnlPctWidth)));
 
         this.console.appendLine(separator);
@@ -107,11 +109,11 @@ public class Positions {
                 .map(p -> MessageFormat.format(fmt,
                 this.format.text(p.getFundName(), descWidth),
                 this.format.number(p.getPosition(), posWidth),
-                this.format.currency(p.getLast(), lastWidth),
-                this.format.currency(p.getCostBasis(), costWidth),
-                this.format.currency(p.getMarketValue(), mkvWidth),
-                this.format.currency(p.getAveragePrice(), avgWidth),
-                this.format.currency(p.getUnrealizedPnL(), pnlWidth),
+                this.format.currency(p.getLast().getAmount(), lastWidth),
+                this.format.currency(p.getCostBasis().getAmount(), costWidth),
+                this.format.currency(p.getMarketValue().getAmount(), mkvWidth),
+                this.format.currency(p.getAveragePrice().getAmount(), avgWidth),
+                this.format.currency(p.getUnrealizedPnL().getAmount(), pnlWidth),
                 this.format.percent(p.getUnrealizedPnLPct(), pnlPctWidth)))
                 .forEach(this.console::appendLine);
 
@@ -136,10 +138,10 @@ public class Positions {
                         this.format.text("Total", descWidth),
                         this.format.text("", posWidth),
                         this.format.text("", lastWidth),
-                        this.format.currency(totalCostBasis, costWidth),
-                        this.format.currency(totalMarketValue, mkvWidth),
+                        this.format.currency(totalCostBasis.getAmount(), costWidth),
+                        this.format.currency(totalMarketValue.getAmount(), mkvWidth),
                         this.format.text("", avgWidth),
-                        this.format.currency(totalPnL, pnlWidth),
+                        this.format.currency(totalPnL.getAmount(), pnlWidth),
                         this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), CONTEXT), pnlPctWidth)));
     }
 
@@ -159,8 +161,7 @@ public class Positions {
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD").apply(new MoneyAmount(ONE, symbol), now),
                 new MoneyAmount(
                         investments.stream()
-                                .map(Investment::getIn)
-                                .map(ie -> ie.getAmount().add(ie.getFee(), CONTEXT).add(ie.getTransferFee(), CONTEXT))
+                                .map(i -> i.getIn().getAmount().add(i.getIn().getFee().multiply(i.getComment() == null ? IVA : ONE , CONTEXT), CONTEXT).add(i.getIn().getTransferFee(), CONTEXT))
                                 .reduce(ZERO, BigDecimal::add),
                         "USD"),
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD")
