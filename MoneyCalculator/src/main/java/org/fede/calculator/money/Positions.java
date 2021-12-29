@@ -159,8 +159,8 @@ public class Positions {
         final var ppiCosts = this.costPct(ppi, costFunc, totalInvestedFunc);
         final var ibkrCosts = this.costPct(ibkr, costFunc, totalInvestedFunc);
 
-        final var ppiCostsAmount = this.cost(ppi, costFunc);
-        final var ibkrCostsAmount = this.cost(ibkr, costFunc);
+        final var ppiCostsAmount = this.cost(ppi, costFunc, nominal);
+        final var ibkrCostsAmount = this.cost(ibkr, costFunc, nominal);
         final var allCostsAmount = ppiCostsAmount.add(ibkrCostsAmount);
 
         this.console.appendLine(this.format.subtitle("Costs"));
@@ -171,14 +171,15 @@ public class Positions {
 
     private MoneyAmount cost(
             Predicate<Investment> filter,
-            Function<Investment, MoneyAmount> costFunc) {
+            Function<Investment, MoneyAmount> costFunc,
+            boolean nominal) {
         return this.series.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
                 .filter(filter)
                 .map(inv -> ForeignExchanges.exchange(inv, "USD"))
-                .map(inv -> costFunc.apply(inv))
+                .map(inv -> nominal ? costFunc.apply(inv) : this.real(costFunc.apply(inv), inv.getInitialDate()))
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
 
@@ -208,7 +209,7 @@ public class Positions {
     }
 
     private MoneyAmount real(MoneyAmount ma, Date from) {
-        return Inflation.USD_INFLATION.adjust(ma, from, new Date());
+        return Inflation.USD_INFLATION.adjust(ma, YearMonth.of(from), Inflation.USD_INFLATION.getTo());
     }
 
     private Position position(List<Investment> investments) {
