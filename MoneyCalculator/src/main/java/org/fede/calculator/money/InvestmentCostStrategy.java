@@ -116,9 +116,10 @@ public class InvestmentCostStrategy {
 
         if (investment.getComment() == null) {
             // PPI
-            d.setBuyCclFee(new MoneyAmount(
-                    Optional.ofNullable(inv.getIn().getTransferFee()).orElse(cclFee),
-                    this.currency));
+            d.setBuyCclFee(
+                    new MoneyAmount(
+                            Optional.ofNullable(inv.getIn().getTransferFee()).orElse(cclFee),
+                            this.currency));
 
         } else {
             // IBKR
