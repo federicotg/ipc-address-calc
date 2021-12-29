@@ -224,21 +224,22 @@ public class Investment {
                         .orElseGet(this::ppiCost), this.getIn().getCurrency());
     }
 
-    private BigDecimal ppiCost() {
-        
+    private BigDecimal ccl() {
         final var totalInvestment = this.getIn().getFee()
                 .multiply(IVA, CONTEXT)
                 .add(this.getIn().getAmount());
 
-        final var cclFees = totalInvestment
+        return totalInvestment
                 .divide(CCL_FEE_FACTOR, CONTEXT)
                 .divide(CCL_FEE_FACTOR, CONTEXT)
                 .subtract(totalInvestment, CONTEXT);
+    }
+
+    private BigDecimal ppiCost() {
 
         return this.getIn().getFee()
                 .multiply(IVA, CONTEXT)
-                .add(cclFees, CONTEXT)
-                .add(Optional.ofNullable(this.getIn().getTransferFee()).orElse(BigDecimal.ZERO));
+                .add(Optional.ofNullable(this.getIn().getTransferFee()).orElseGet(this::ccl));
     }
 
     private BigDecimal ibkrCost() {
