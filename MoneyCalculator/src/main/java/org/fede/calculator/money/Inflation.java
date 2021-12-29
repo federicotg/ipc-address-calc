@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.util.Date;
+import java.util.Optional;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -45,8 +46,8 @@ public interface Inflation extends Series {
      * @throws NoSeriesDataFoundException
      */
     MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth);
-    
-    default MoneyAmount adjust(MoneyAmount amount, YearMonth from, YearMonth to){
+
+    default MoneyAmount adjust(MoneyAmount amount, YearMonth from, YearMonth to) {
         return this.adjust(amount, from.getYear(), from.getMonth(), to.getYear(), to.getMonth());
     }
 
@@ -65,10 +66,10 @@ public interface Inflation extends Series {
      */
     MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth);
 
-    default MoneyAmountSeries adjust(MoneyAmountSeries series, YearMonth ym){
+    default MoneyAmountSeries adjust(MoneyAmountSeries series, YearMonth ym) {
         return this.adjust(series, ym.getYear(), ym.getMonth());
     }
-    
+
     MoneyAmountSeries adjust(MoneyAmountSeries series, Date moment);
 
     /**
@@ -112,6 +113,11 @@ public interface Inflation extends Series {
         answer.setCurrency(adjusted.getCurrency());
         answer.setAmount(adjusted.getAmount());
         answer.setDate(in.getDate());
+        answer.setTransferFee(Optional.ofNullable(in.getTransferFee())
+                .map(f -> new MoneyAmount(f, in.getCurrency()))
+                .map(ma -> this.adjust(ma, start, moment))
+                .map(MoneyAmount::getAmount)
+                .orElse(null));
         answer.setFee(
                 this.adjust(
                         new MoneyAmount(in.getFee(), in.getCurrency()),

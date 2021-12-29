@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
+import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
 
 /**
@@ -34,6 +35,10 @@ import org.fede.calculator.money.MoneyAmount;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class Investment {
+
+    private static final BigDecimal IVA = new BigDecimal("1.21");
+
+    private static final BigDecimal CCL_FEE_FACTOR = BigDecimal.ONE.subtract(new BigDecimal("0.006"), CONTEXT);
 
     private String id;
     private InvestmentType type;
@@ -132,7 +137,6 @@ public class Investment {
                 );*/
     }
 
-    
     public MoneyAmount initialAmount(String targetCurrency) {
 
         MoneyAmount amount;
@@ -162,7 +166,6 @@ public class Investment {
         return this.getIn().getDate().before(now) && (this.getOut() == null || this.getOut().getDate().after(now));
     }
 
-    
     @JsonIgnore
     public boolean isPast() {
         final Date now = new Date();
@@ -178,6 +181,7 @@ public class Investment {
                 .add("\n\tout: " + Objects.toString(this.out, "null"))
                 .toString();
     }
+
     @JsonIgnore
     public String getId() {
         return id;
@@ -211,6 +215,35 @@ public class Investment {
 
         return (buyDate.isBefore(reference) || buyDate.isEqual(reference))
                 && sellDate.isAfter(reference);
+    }
+
+    public MoneyAmount getCost() {
+        return new MoneyAmount(
+                Optional.ofNullable(this.getComment())
+                        .map(c -> this.ibkrCost())
+                        .orElseGet(this::ppiCost), this.getIn().getCurrency());
+    }
+
+    private BigDecimal ppiCost() {
+        
+        final var totalInvestment = this.getIn().getFee()
+                .multiply(IVA, CONTEXT)
+                .add(this.getIn().getAmount());
+
+        final var cclFees = totalInvestment
+                .divide(CCL_FEE_FACTOR, CONTEXT)
+                .divide(CCL_FEE_FACTOR, CONTEXT)
+                .subtract(totalInvestment, CONTEXT);
+
+        return this.getIn().getFee()
+                .multiply(IVA, CONTEXT)
+                .add(cclFees, CONTEXT)
+                .add(Optional.ofNullable(this.getIn().getTransferFee()).orElse(BigDecimal.ZERO));
+    }
+
+    private BigDecimal ibkrCost() {
+        return this.getIn().getFee()
+                .add(this.getIn().getTransferFee(), CONTEXT);
     }
 
 }

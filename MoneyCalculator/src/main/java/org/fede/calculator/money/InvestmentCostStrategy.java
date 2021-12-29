@@ -90,7 +90,6 @@ public class InvestmentCostStrategy {
                 .subtract(afterCclAmount, CONTEXT);
 
         //post sell fee
-
         final var presentValue = ForeignExchanges.getMoneyAmountForeignExchange(inv.getMoneyAmount().getCurrency(), this.currency)
                 .apply(inv.getMoneyAmount(), Inflation.USD_INFLATION.getTo())
                 .getAmount();
@@ -115,9 +114,21 @@ public class InvestmentCostStrategy {
         d.setBuyFxFeeTax(zero);
         d.setCapitalGainsTax(new MoneyAmount(capitalGains, this.currency));
 
-        d.setBuyCclFee(Optional.ofNullable(inv.getIn().getTransferFee())
-                .map(transferFee -> new MoneyAmount(transferFee, inv.getIn().getCurrency()))
-                .orElseGet(() -> new MoneyAmount(cclFee, this.currency)));
+        if (investment.getComment() == null) {
+            // PPI
+            d.setBuyCclFee(
+                    Optional.ofNullable(inv.getIn().getTransferFee())
+                            .map(transferFee -> new MoneyAmount(transferFee, inv.getIn().getCurrency()))
+                            .orElse(zero)
+                            .add(new MoneyAmount(cclFee, this.currency)));
+
+        } else {
+            // IBKR
+            d.setBuyCclFee(
+                    Optional.ofNullable(inv.getIn().getTransferFee())
+                            .map(transferFee -> new MoneyAmount(transferFee, inv.getIn().getCurrency()))
+                            .orElse(zero));
+        }
 
         d.setInvestmentDate(LocalDate.ofInstant(inv.getInitialDate().toInstant(), ZoneId.systemDefault()));
         d.setInvestedAmount(new MoneyAmount(investedAmount, this.currency));
