@@ -94,8 +94,7 @@ public class CashInvestmentBuilder {
                         .with(TemporalAdjusters.lastDayOfMonth())
                         .minusDays(1)
                         .atTime(12, 00)
-                        .toInstant(ZoneOffset.UTC))
-        );
+                        .toInstant(ZoneOffset.UTC)));
         in.setFee(BigDecimal.ZERO);
         in.setTransferFee(BigDecimal.ZERO);
 
