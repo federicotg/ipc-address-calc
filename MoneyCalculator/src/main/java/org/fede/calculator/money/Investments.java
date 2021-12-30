@@ -363,11 +363,11 @@ public class Investments {
                 Ansi.colorize(" ", Attribute.YELLOW_BACK()),
                 ": cost, ",
                 Ansi.colorize(" ", Attribute.GREEN_BACK()),
-                ": profits, ",
+                ": profit, ",
                 Ansi.colorize(" ", Attribute.RED_BACK()),
-                ": losses, ",
+                ": loss, ",
                 Ansi.colorize(" ", Attribute.CYAN_BACK()),
-                ": taxes.");
+                ": tax.");
 
     }
 
