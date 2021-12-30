@@ -127,14 +127,6 @@ public class Investment {
 
         return changeCurrency(investment.getMoneyAmount(), targetCurrency, date);
 
-        // while still invested, add interest rate if any
-        /*return changeCurrency(this.getMoneyAmount(), targetCurrency, date)
-                .add(
-                        changeCurrency(
-                                interest(this.getMoneyAmount(), this.getInterest(), this.getInitialDate(), date),
-                                targetCurrency,
-                                date)
-                );*/
     }
 
     public MoneyAmount initialAmount(String targetCurrency) {

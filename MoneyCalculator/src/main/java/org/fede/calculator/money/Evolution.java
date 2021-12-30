@@ -35,7 +35,7 @@ import org.fede.util.Pair;
 
 /**
  *
- * @author federicogentile
+ * @author fede
  * @param <T>
  */
 public class Evolution<T> {

@@ -33,7 +33,7 @@ import org.fede.calculator.money.series.YearMonth;
 
 /**
  *
- * @author federicogentile
+ * @author fede
  */
 public class House {
 

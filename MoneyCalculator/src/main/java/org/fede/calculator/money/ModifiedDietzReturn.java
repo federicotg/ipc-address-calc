@@ -36,7 +36,7 @@ import static org.fede.calculator.money.MathConstants.CONTEXT;
 
 /**
  *
- * @author federicogentile
+ * @author fede
  */
 public class ModifiedDietzReturn {
 

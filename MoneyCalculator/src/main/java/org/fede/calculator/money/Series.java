@@ -34,7 +34,7 @@ import static org.fede.util.Pair.of;
 
 /**
  *
- * @author federicogentile
+ * @author fede
  */
 public class Series {
 

@@ -70,7 +70,7 @@ public class MoneyAmount {
 
     public void assertCurrency(String currency) {
         if (!this.currency.equals(currency)) {
-            throw new IllegalArgumentException("Unexpected currency.");
+            throw new IllegalArgumentException("Unexpected currency.  " + this.currency + " is not " + currency);
         }
     }
 

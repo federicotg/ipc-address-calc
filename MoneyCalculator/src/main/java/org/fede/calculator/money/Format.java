@@ -25,7 +25,7 @@ import java.text.NumberFormat;
 
 /**
  *
- * @author federicogentile
+ * @author fede
  */
 public class Format {
 

@@ -28,29 +28,12 @@ import java.time.temporal.ChronoUnit;
 public class InvestmentDetails {
 
     private final boolean nominal;
-
     private String investmentCurrency;
-
     private BigDecimal investmentQuantity;
-
     private LocalDate investmentDate;
     private YearMonth investmentYM;
-
-    private MoneyAmount buyCclFee;
-    private MoneyAmount buyFee;
-    private MoneyAmount buyFeeTax;
-    private MoneyAmount buyFxFee;
-    private MoneyAmount buyFxFeeTax;
-
     private MoneyAmount investedAmount;
-
-    private MoneyAmount sellCclFee;
-    private MoneyAmount sellFee;
-    private MoneyAmount sellFeeTax;
-    private MoneyAmount sellFxFee;
-    private MoneyAmount sellFxFeeTax;
-    private MoneyAmount capitalGainsTax;
-
+    private MoneyAmount costBasis;
     private MoneyAmount currentAmount;
 
     public InvestmentDetails(boolean nominal) {
@@ -69,100 +52,12 @@ public class InvestmentDetails {
         this.investmentDate = investmentDate;
     }
 
-    public MoneyAmount getBuyCclFee() {
-        return buyCclFee;
-    }
-
-    public void setBuyCclFee(MoneyAmount buyCclFee) {
-        this.buyCclFee = buyCclFee;
-    }
-
-    public MoneyAmount getSellCclFee() {
-        return sellCclFee;
-    }
-
-    public void setSellCclFee(MoneyAmount sellCclFee) {
-        this.sellCclFee = sellCclFee;
-    }
-
-    public MoneyAmount getBuyFee() {
-        return buyFee;
-    }
-
-    public void setBuyFee(MoneyAmount buyFee) {
-        this.buyFee = buyFee;
-    }
-
-    public MoneyAmount getBuyFeeTax() {
-        return buyFeeTax;
-    }
-
-    public void setBuyFeeTax(MoneyAmount buyFeeTax) {
-        this.buyFeeTax = buyFeeTax;
-    }
-
-    public MoneyAmount getBuyFxFee() {
-        return buyFxFee;
-    }
-
-    public void setBuyFxFee(MoneyAmount buyFxFee) {
-        this.buyFxFee = buyFxFee;
-    }
-
-    public MoneyAmount getBuyFxFeeTax() {
-        return buyFxFeeTax;
-    }
-
-    public void setBuyFxFeeTax(MoneyAmount buyFxFeeTax) {
-        this.buyFxFeeTax = buyFxFeeTax;
-    }
-
     public MoneyAmount getInvestedAmount() {
         return investedAmount;
     }
 
     public void setInvestedAmount(MoneyAmount investedAmount) {
         this.investedAmount = investedAmount;
-    }
-
-    public MoneyAmount getSellFee() {
-        return sellFee;
-    }
-
-    public void setSellFee(MoneyAmount sellFee) {
-        this.sellFee = sellFee;
-    }
-
-    public MoneyAmount getSellFeeTax() {
-        return sellFeeTax;
-    }
-
-    public void setSellFeeTax(MoneyAmount sellFeeTax) {
-        this.sellFeeTax = sellFeeTax;
-    }
-
-    public MoneyAmount getSellFxFee() {
-        return sellFxFee;
-    }
-
-    public void setSellFxFee(MoneyAmount sellFxFee) {
-        this.sellFxFee = sellFxFee;
-    }
-
-    public MoneyAmount getSellFxFeeTax() {
-        return sellFxFeeTax;
-    }
-
-    public void setSellFxFeeTax(MoneyAmount sellFxFeeTax) {
-        this.sellFxFeeTax = sellFxFeeTax;
-    }
-
-    public MoneyAmount getCapitalGainsTax() {
-        return capitalGainsTax;
-    }
-
-    public void setCapitalGainsTax(MoneyAmount capitalGainsTax) {
-        this.capitalGainsTax = capitalGainsTax;
     }
 
     public String getInvestmentCurrency() {
@@ -181,51 +76,8 @@ public class InvestmentDetails {
         this.currentAmount = currentAmount;
     }
 
-    public MoneyAmount getFees() {
-        return this.getBuyCclFee()
-                .add(this.getBuyFee())
-                .add(this.getBuyFxFee())
-                .add(this.getSellCclFee())
-                .add(this.getSellFee())
-                .add(this.getSellFxFee());
 
-    }
 
-    public BigDecimal getFeePercent() {
-        return this.getFees().getAmount()
-                .divide(this.getCurrentAmount().getAmount(), MathConstants.CONTEXT);
-    }
-
-    public BigDecimal getTaxPercent() {
-        return this.getTaxes().getAmount()
-                .divide(this.getCurrentAmount().getAmount(), MathConstants.CONTEXT);
-    }
-
-    public MoneyAmount getTaxes() {
-        return this.getBuyFeeTax()
-                .add(this.getBuyFxFeeTax())
-                .add(this.getCapitalGainsTax())
-                .add(this.getSellFeeTax())
-                .add(this.getSellFxFeeTax());
-
-    }
-
-    public MoneyAmount getNetCapitalGains() {
-        return this.getCurrentAmount()
-                .subtract(this.getSellCclFee())
-                .subtract(this.getSellFee())
-                .subtract(this.getSellFeeTax())
-                .subtract(this.getSellFxFee())
-                .subtract(this.getSellFxFeeTax())
-                .subtract(this.getCapitalGainsTax())
-                .subtract(this.getInvestedAmount());
-    }
-
-    public BigDecimal getNetCapitalGainsPercent() {
-        return this.getNetCapitalGains().getAmount()
-                .divide(this.getInvestedAmount().getAmount(), MathConstants.CONTEXT);
-
-    }
 
     public MoneyAmount getGrossCapitalGains() {
         return this.getCurrentAmount().subtract(this.getInvestedAmount());
@@ -244,16 +96,16 @@ public class InvestmentDetails {
             return BigDecimal.ZERO;
         }
 
-        final var cumulativeProfit = this.getNetCapitalGainsPercent();
+        final var cumulativeProfit = this.getGrossCapitalGainsPercent();
 
         final double x = Math.pow(
                 BigDecimal.ONE.add(cumulativeProfit).doubleValue(),
                 365.0d / days.doubleValue()) - 1.0d;
 
-        if(Double.isNaN(x)){
+        if (Double.isNaN(x)) {
             return BigDecimal.ZERO;
         }
-        
+
         return BigDecimal.valueOf(x);
 
     }
@@ -272,22 +124,11 @@ public class InvestmentDetails {
 
             final var real = new InvestmentDetails(false);
 
-            real.setBuyCclFee(this.real(this.getBuyCclFee()));
-            real.setBuyFee(this.real(this.getBuyFee()));
-            real.setBuyFeeTax(this.real(this.getBuyFeeTax()));
-            real.setBuyFxFee(this.real(this.getBuyFxFee()));
-            real.setBuyFxFeeTax(this.real(this.getBuyFxFeeTax()));
             real.setInvestedAmount(this.real(this.getInvestedAmount()));
-
-            real.setCapitalGainsTax(this.getCapitalGainsTax());
+            real.setCostBasis(this.real(this.getCostBasis()));
             real.setCurrentAmount(this.getCurrentAmount());
             real.setInvestmentDate(this.getInvestmentDate());
             real.setInvestmentCurrency(this.getInvestmentCurrency());
-            real.setSellCclFee(this.getSellCclFee());
-            real.setSellFee(this.getSellFee());
-            real.setSellFeeTax(this.getSellFeeTax());
-            real.setSellFxFee(this.getSellFxFee());
-            real.setSellFxFeeTax(this.getSellFxFeeTax());
             real.setInvestmentQuantity(this.investmentQuantity);
 
             return real;
@@ -311,6 +152,14 @@ public class InvestmentDetails {
 
     public BigDecimal getInvestmentPrice() {
         return this.investedAmount.getAmount().divide(this.investmentQuantity, MathConstants.CONTEXT);
+    }
+
+    public MoneyAmount getCostBasis() {
+        return costBasis;
+    }
+
+    public void setCostBasis(MoneyAmount costBasis) {
+        this.costBasis = costBasis;
     }
 
 }

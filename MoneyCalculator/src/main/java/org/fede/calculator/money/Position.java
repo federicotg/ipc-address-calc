@@ -20,7 +20,7 @@ import java.math.BigDecimal;
 
 /**
  *
- * @author federicogentile
+ * @author fede
  */
 public class Position {
 

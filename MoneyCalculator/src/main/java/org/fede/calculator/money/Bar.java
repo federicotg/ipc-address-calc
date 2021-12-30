@@ -38,7 +38,7 @@ import org.fede.util.Pair;
 
 /**
  *
- * @author federicogentile
+ * @author fede
  */
 public class Bar {
 

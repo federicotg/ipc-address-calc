@@ -36,7 +36,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author federicogentile
+ * @author fede
  */
 public class LiquidityTest {
 

@@ -37,7 +37,7 @@ import static org.fede.calculator.money.MathConstants.CONTEXT;
 
 /**
  *
- * @author federicogentile
+ * @author fede
  */
 public class Positions {
 
@@ -74,8 +74,6 @@ public class Positions {
         final var separator = IntStream.rangeClosed(0, IntStream.of(descWidth, posWidth, lastWidth, costWidth, mkvWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
                 .mapToObj(n -> "=")
                 .collect(Collectors.joining());
-
-        this.console.appendLine(separator);
 
         final var fmt = " {0}{1}{2}{3}{4}{5}{6}{7}";
 

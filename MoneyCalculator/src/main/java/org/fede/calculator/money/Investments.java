@@ -58,15 +58,11 @@ import static org.fede.util.Pair.of;
 
 /**
  *
- * @author federicogentile
+ * @author fede
  */
 public class Investments {
 
-    private static final BigDecimal IVA = new BigDecimal("1.21");
-
     private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
-
-    private static final BigDecimal TRADING_FEE = new BigDecimal("0.006");
 
     private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO, "USD");
 
@@ -128,12 +124,12 @@ public class Investments {
 
         this.console.appendLine(this.format.title(format("{0} Investment Results", nominal ? "Nominal" : "Real")));
 
-        final var ics = new InvestmentCostStrategy(currency, TRADING_FEE, IVA.subtract(ONE, CONTEXT), CAPITAL_GAINS_TAX_RATE);
+        final var ics = new InvestmentCostStrategy(currency);
 
         final var mw = 13;
-        final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, mw, 9, 10, 1, 24, 10, 7, 10, 7};
+        final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, 10, 1, 24};
 
-        this.invHeader(colWidths);
+        this.invHeader(colWidths, true);
 
         final var details = this.getAllInvestments()
                 .stream()
@@ -148,48 +144,11 @@ public class Investments {
                 .sorted(Comparator.comparing(InvestmentDetails::getInvestmentDate))
                 .forEach(d -> this.print(d, colWidths));
 
-        this.invHeader(colWidths);
+        this.invHeader(colWidths, false);
 
-        final var totalGrossGains = this.total(details, InvestmentDetails::getGrossCapitalGains);
-        final var totalNetGains = this.total(details, InvestmentDetails::getNetCapitalGains);
-        final var totalCurrent = this.total(details, InvestmentDetails::getCurrentAmount);
-        final var totalTax = this.total(details, InvestmentDetails::getTaxes);
-        final var totalFee = this.total(details, InvestmentDetails::getFees);
-        final var totalInvested = this.total(details, InvestmentDetails::getInvestedAmount);
+        this.console.appendLine("");
 
-        final var grossMoneyWeightedReturn = details.stream()
-                .map(d -> this.moneyWeightedGrossReturn(d, totalInvested))
-                .reduce(ZERO, BigDecimal::add);
-
-        final var netMoneyWeightedReturn = details.stream()
-                .map(d -> this.moneyWeightedNetReturn(d, totalInvested))
-                .reduce(ZERO, BigDecimal::add);
-
-        this.console.appendLine(this.format.subtitle("Total"));
-
-        this.console.appendLine(
-                this.format.text("   Investment", mw),
-                this.format.text("    Current", mw),
-                this.format.text("     Profit", mw),
-                this.format.text("   %", 8),
-                this.format.text("  Net Profit", mw),
-                this.format.text("   %", 8),
-                this.format.text("     Fee", 12),
-                this.format.text("   %", 8),
-                this.format.text("     Tax", 12),
-                this.format.text("   %", 8));
-
-        this.console.appendLine(
-                this.format.currency(totalInvested, mw),
-                this.format.currency(totalCurrent, mw),
-                this.format.currencyPL(totalGrossGains, mw),
-                this.format.percent(grossMoneyWeightedReturn, 8),
-                this.format.currencyPL(totalNetGains, mw),
-                this.format.percent(netMoneyWeightedReturn, 8),
-                this.format.currency(totalFee, 12),
-                this.format.percent(totalFee.divide(totalCurrent, CONTEXT), 8),
-                this.format.currency(totalTax, 12),
-                this.format.percent(totalTax.divide(totalCurrent, CONTEXT), 8));
+        new Positions(this.console, this.format, this.series).positions(null, nominal);
 
         final var etfs = this.getAllInvestments()
                 .stream()
@@ -290,15 +249,9 @@ public class Investments {
                 this.format.currency(d.getCurrentAmount().getAmount(), colWidths[i++]),
                 this.format.currencyPL(d.getGrossCapitalGains().getAmount(), colWidths[i++]),
                 this.format.percent(d.getGrossCapitalGainsPercent(), colWidths[i++]),
-                this.format.currencyPL(d.getNetCapitalGains().getAmount(), colWidths[i++]),
-                this.format.percent(d.getNetCapitalGainsPercent(), colWidths[i++]),
                 this.format.percent(d.getCAGR(), colWidths[i++]),
                 this.format.text(" ", colWidths[i++]),
-                this.format.text(this.bar.smallPctBar(d.getCAGR()), colWidths[i++]),
-                this.format.currency(d.getFees().getAmount(), colWidths[i++]),
-                this.format.percent(d.getFeePercent(), colWidths[i++]),
-                this.format.currency(d.getTaxes().getAmount(), colWidths[i++]),
-                this.format.percent(d.getTaxPercent(), colWidths[i++]));
+                this.format.text(this.bar.smallPctBar(d.getCAGR()), colWidths[i++]));
     }
 
     private static Pair<BigDecimal, BigDecimal> cagr(BigDecimal initial, BigDecimal current, LocalDate since) {
@@ -310,10 +263,12 @@ public class Investments {
         return Pair.of(profit, BigDecimal.valueOf(x));
     }
 
-    private void invHeader(int[] colWidths) {
+    private void invHeader(int[] colWidths, boolean top) {
         var separator = IntStream.rangeClosed(0, Arrays.stream(colWidths).sum() - 10).mapToObj(n -> "=").collect(Collectors.joining());
         var i = 0;
-        this.console.appendLine(separator);
+        if (!top) {
+            this.console.appendLine(separator);
+        }
         this.console.appendLine(
                 this.format.text(" ETF", colWidths[i++]),
                 this.format.text("  Date", colWidths[i++]),
@@ -322,16 +277,12 @@ public class Investments {
                 this.format.text("    Current", colWidths[i++]),
                 this.format.text("     Profit", colWidths[i++]),
                 this.format.text("    %", colWidths[i++]),
-                this.format.text("  Net Profit", colWidths[i++]),
-                this.format.text("    %", colWidths[i++]),
+                this.format.text("    CAGR", colWidths[i++]),
                 this.format.text("", colWidths[i++]),
-                this.format.text("", colWidths[i++]),
-                this.format.text("CAGR", colWidths[i++] - 2),
-                this.format.text("Fee", colWidths[i++] - 3),
-                this.format.text("%", colWidths[i++]),
-                this.format.text("Tax", colWidths[i++] - 3),
-                this.format.text("%", colWidths[i++]));
-        this.console.appendLine(separator);
+                this.format.text("", colWidths[i++] - 2));
+        if (top) {
+            this.console.appendLine(separator);
+        }
     }
 
     private BigDecimal total(List<InvestmentDetails> details, Function<InvestmentDetails, MoneyAmount> f) {
@@ -344,13 +295,6 @@ public class Investments {
 
     private BigDecimal moneyWeightedGrossReturn(InvestmentDetails details, BigDecimal totalInvested) {
         return details.getGrossCapitalGains()
-                .getAmount()
-                .divide(details.getInvestedAmount().getAmount(), CONTEXT)
-                .multiply(details.getInvestedAmount().getAmount().divide(totalInvested, CONTEXT), CONTEXT);
-    }
-
-    private BigDecimal moneyWeightedNetReturn(InvestmentDetails details, BigDecimal totalInvested) {
-        return details.getNetCapitalGains()
                 .getAmount()
                 .divide(details.getInvestedAmount().getAmount(), CONTEXT)
                 .multiply(details.getInvestedAmount().getAmount().divide(totalInvested, CONTEXT), CONTEXT);
@@ -557,8 +501,8 @@ public class Investments {
         new Evolution<Investment>(this.console, this.bar)
                 .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, comparator, list, pct);
     }
-    
-    private List<Investment> getAllInvestments(){
+
+    private List<Investment> getAllInvestments() {
         return Stream.concat(
                 this.series.getInvestments().stream(),
                 this.cashInvestments.cashInvestments().stream())
