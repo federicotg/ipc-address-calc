@@ -285,21 +285,6 @@ public class Investments {
         }
     }
 
-    private BigDecimal total(List<InvestmentDetails> details, Function<InvestmentDetails, MoneyAmount> f) {
-
-        return details.stream()
-                .map(f)
-                .map(MoneyAmount::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private BigDecimal moneyWeightedGrossReturn(InvestmentDetails details, BigDecimal totalInvested) {
-        return details.getGrossCapitalGains()
-                .getAmount()
-                .divide(details.getInvestedAmount().getAmount(), CONTEXT)
-                .multiply(details.getInvestedAmount().getAmount().divide(totalInvested, CONTEXT), CONTEXT);
-    }
-
     private BenchmarkItem real(BenchmarkItem item) {
 
         BenchmarkItem answer = new BenchmarkItem();
@@ -320,22 +305,22 @@ public class Investments {
         final var m = this.investmentEvolution(currency, nominal);
 
         final var inv = m.get("invested");
-        final var fee = m.get("fees");
+        final var cost = m.get("cost");
         final var total = m.get("total");
         final var taxes = m.get("taxes");
 
         total.forEach((ym, cashMa) -> {
 
             final var investment = inv.getAmount(ym);
-            final var feeAmount = fee.getAmount(ym);
+            final var costAmount = cost.getAmount(ym);
             final var totalAmount = total.getAmount(ym);
-            final var capitalGains = totalAmount.subtract(investment).subtract(feeAmount);
+            final var capitalGains = totalAmount.subtract(investment).subtract(costAmount);
             final var taxAmount = taxes.getAmount(ym);
             final var netCapitalGains = capitalGains.subtract(taxAmount);
 
             final var elements = List.of(
                     Pair.of(investment, Attribute.WHITE_BACK()),
-                    Pair.of(feeAmount, Attribute.YELLOW_BACK()),
+                    Pair.of(costAmount, Attribute.YELLOW_BACK()),
                     Pair.of(netCapitalGains, Attribute.GREEN_BACK()),
                     Pair.of(taxAmount, Attribute.CYAN_BACK()));
 
@@ -376,7 +361,7 @@ public class Investments {
         this.console.appendLine(Ansi.colorize(" ", Attribute.WHITE_BACK()),
                 ": investment, ",
                 Ansi.colorize(" ", Attribute.YELLOW_BACK()),
-                ": fees, ",
+                ": cost, ",
                 Ansi.colorize(" ", Attribute.GREEN_BACK()),
                 ": profits, ",
                 Ansi.colorize(" ", Attribute.RED_BACK()),
@@ -410,7 +395,7 @@ public class Investments {
                 .get();
 
         final var investmentSeries = new SortedMapMoneyAmountSeries("USD");
-        final var feeSeries = new SortedMapMoneyAmountSeries("USD");
+        final var costSeries = new SortedMapMoneyAmountSeries("USD");
         final var totalValuesSeries = new SortedMapMoneyAmountSeries("USD");
         final var taxesValuesSeries = new SortedMapMoneyAmountSeries("USD");
 
@@ -424,15 +409,15 @@ public class Investments {
 
             investmentSeries.putAmount(ym, accum(inv, ym, nominal ? invested : realInvested));
 
-            final Function<Investment, MoneyAmount> fee = i -> this.asUSD(i.getIn().getFeeMoneyAmount(), i.getInitialDate());
-            final Function<Investment, MoneyAmount> realFee = i -> this.real(i, moment, fee);
+            final Function<Investment, MoneyAmount> cost = i -> this.asUSD(i.getCost(), i.getInitialDate());
+            final Function<Investment, MoneyAmount> realCost = i -> this.real(i, moment, cost);
 
-            feeSeries.putAmount(ym, accum(inv, ym, nominal ? fee : realFee));
+            costSeries.putAmount(ym, accum(inv, ym, nominal ? cost : realCost));
 
             final Function<Investment, MoneyAmount> total = i -> this.asUSD(i.getInvestment().getMoneyAmount(), moment);
             totalValuesSeries.putAmount(ym, accum(inv, ym, total));
 
-            final Function<Investment, MoneyAmount> taxes = i -> this.tax(i, invested, total);
+            final Function<Investment, MoneyAmount> taxes =  i -> this.tax(i, invested, total);
 
             taxesValuesSeries.putAmount(ym, accum(inv, ym, taxes));
 
@@ -441,7 +426,7 @@ public class Investments {
 
         return Map.of(
                 "invested", investmentSeries,
-                "fees", feeSeries,
+                "cost", costSeries,
                 "total", totalValuesSeries,
                 "taxes", taxesValuesSeries);
     }
