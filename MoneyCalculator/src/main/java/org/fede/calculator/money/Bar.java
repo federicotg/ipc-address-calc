@@ -25,6 +25,7 @@ import java.math.RoundingMode;
 import static java.text.MessageFormat.format;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -44,6 +45,11 @@ public class Bar {
 
     private static final BigDecimal ONE_PERCENT = BigDecimal.ONE.movePointLeft(2);
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
+
+    private static final Set<String> DARK_COLORS = Set.of(
+            Attribute.BLACK_BACK().toString(),
+            Attribute.BRIGHT_BLACK_BACK().toString(),
+            Attribute.RED_BACK().toString());
 
     private final Console console;
     private final Format format;
@@ -97,7 +103,7 @@ public class Bar {
     }
 
     private String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
-        
+
         final var bars = IntStream.range(0, amounts.size())
                 .map(i -> i + 2)
                 .mapToObj(i -> format("'{'{0}'}'", i))
@@ -105,8 +111,8 @@ public class Bar {
         final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.getFirst().getAmount(), width, p.getFirst().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.getSecond()));
         final Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth()));
 
-            return format("{0}/{1} " + bars,
-                    (Object[]) Stream.of(ymStream, barsStream).flatMap(Function.identity()).toArray(String[]::new));
+        return format("{0}/{1} " + bars,
+                (Object[]) Stream.of(ymStream, barsStream).flatMap(Function.identity()).toArray(String[]::new));
     }
 
     public String pctBar(BigDecimal value, BigDecimal total) {
@@ -172,7 +178,7 @@ public class Bar {
     private String bar(BigDecimal value, int scale, Attribute color) {
         return this.bar(value, scale, color, this.format::number2);
     }
-    
+
     private String bar(BigDecimal value, int scale, Attribute color, Function<BigDecimal, String> valueFormat) {
 
         final var valueStr = valueFormat.apply(value).trim();
@@ -184,7 +190,7 @@ public class Bar {
             return Ansi.colorize(Stream.concat(
                     Stream.of(valueStr),
                     IntStream.range(0, end - valueStr.length()).mapToObj(x -> " "))
-                    .collect(joining()), color, Attribute.BLACK_TEXT());
+                    .collect(joining()), color, DARK_COLORS.contains(color.toString()) ? Attribute.WHITE_TEXT() : Attribute.BLACK_TEXT());
         }
 
         return Ansi.colorize(IntStream.range(0, end)
@@ -216,13 +222,9 @@ public class Bar {
         var bar3 = this.asPct(three, total);
 
         if (bar1.add(bar2, CONTEXT).add(bar3, CONTEXT).compareTo(HUNDRED) != 0) {
-
             bar1 = HUNDRED.subtract(bar2.add(bar3, CONTEXT), CONTEXT);
-
         }
-
         return this.bar(ym, bar1, bar2, bar3, 1, this.format::pctNumber);
-
     }
 
     public String bar(YearMonth ym, BigDecimal one, BigDecimal two, int scale, Function<BigDecimal, String> format) {
