@@ -50,7 +50,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class BBPP {
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO, "USD");
+    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.ROUNDING_MODE), "USD");
 
     private final Format format;
     private final Series series;
@@ -152,6 +152,7 @@ public class BBPP {
 
         final var allArs = bbpp.getItems()
                 .stream()
+                .filter(i -> ibkr || !i.getName().equals("IBKR USD"))
                 .map(i -> this.toARS(i, bbpp.getUsd(), bbpp.getEur()))
                 .collect(toList());
 

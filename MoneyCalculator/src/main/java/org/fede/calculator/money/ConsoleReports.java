@@ -69,7 +69,7 @@ import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignEx
  */
 public class ConsoleReports {
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO, "USD");
+    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.ROUNDING_MODE), "USD");
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 
@@ -725,7 +725,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
         
         new BBPP(format, series, console)
-                .bbpp(Integer.parseInt(params.getOrDefault("year", "2021")), Boolean.parseBoolean(params.getOrDefault("ibkr", "true")));
+                .bbpp(Integer.parseInt(params.getOrDefault("year", "2021")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
     }
 
     private void averageSavedSalaries(String[] args, String name) {

@@ -41,7 +41,7 @@ import static org.fede.calculator.money.MathConstants.CONTEXT;
  */
 public class Positions {
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO, "USD");
+    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.ROUNDING_MODE), "USD");
 
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
@@ -63,7 +63,7 @@ public class Positions {
     public void positions(String symbol, boolean nominal) {
 
         final var descWidth = 32;
-        final var posWidth = 6;
+        final var posWidth = 4;
         final var lastWidth = 11;
         final var costWidth = 14;
         final var mkvWidth = 14;
@@ -107,7 +107,7 @@ public class Positions {
                 .sorted(Comparator.comparing((Position p) -> p.getMarketValue().getAmount(), Comparator.reverseOrder()))
                 .map(p -> MessageFormat.format(fmt,
                 this.format.text(p.getFundName(), descWidth),
-                this.format.number(p.getPosition(), posWidth),
+                String.format("%"+posWidth+"d", p.getPosition().intValue()),
                 this.format.currency(p.getLast().getAmount(), lastWidth),
                 this.format.currency(p.getCostBasis().getAmount(), costWidth),
                 this.format.currency(p.getMarketValue().getAmount(), mkvWidth),

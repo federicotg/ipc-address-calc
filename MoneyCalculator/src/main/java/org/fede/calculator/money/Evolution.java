@@ -40,7 +40,7 @@ import org.fede.util.Pair;
  */
 public class Evolution<T> {
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO, "USD");
+    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.ROUNDING_MODE), "USD");
 
     private final Console console;
     private final Bar bar;
