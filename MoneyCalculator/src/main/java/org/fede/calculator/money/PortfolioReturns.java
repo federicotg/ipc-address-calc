@@ -64,7 +64,10 @@ public class PortfolioReturns {
         this.console = console;
         this.format = format;
         this.bar = bar;
-        this.cashInvestments = new CashInvestmentBuilder(SeriesReader.readSeries("/saving/ahorros-dolar-liq.json"));
+        this.cashInvestments = new CashInvestmentBuilder(
+                SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
+                .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
+                .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
     }
 
     private static LocalDate min(LocalDate d1, LocalDate d2) {

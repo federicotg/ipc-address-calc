@@ -117,7 +117,10 @@ public class Investments {
         this.format = format;
         this.bar = bar;
         this.series = series;
-        this.cashInvestments = new CashInvestmentBuilder(SeriesReader.readSeries("/saving/ahorros-dolar-liq.json"));
+        this.cashInvestments = new CashInvestmentBuilder(
+                SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
+                .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
+                .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
     }
 
     public void inv(final Predicate<Investment> everyone, boolean nominal, String currency) {
