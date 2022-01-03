@@ -208,6 +208,10 @@ public class ModifiedDietzReturn {
                 .stream()
                 .reduce(ZERO, BigDecimal::add);
 
+        if(v0.isZero() && adjustedCashFlowSum.signum() == 0){
+            return Pair.of(ZERO, BigDecimal.ZERO);
+        }
+        
         final var result = v1.getAmount()
                 .subtract(v0.getAmount(), CONTEXT)
                 .subtract(cashFlowSum, CONTEXT)
