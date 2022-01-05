@@ -89,14 +89,14 @@ public class BigDecimalAverageCollector implements Collector<BigDecimal, BigDeci
 
         BigDecimalAccumulator combine(BigDecimalAccumulator another) {
             return new BigDecimalAccumulator(
-                    sum.add(another.getSum(), MathConstants.CONTEXT),
-                    count.add(another.getCount(), MathConstants.CONTEXT)
+                    sum.add(another.getSum(), MathConstants.C),
+                    count.add(another.getCount(), MathConstants.C)
             );
         }
 
         void add(BigDecimal successRate) {
-            count = count.add(BigDecimal.ONE, MathConstants.CONTEXT);
-            sum = sum.add(successRate, MathConstants.CONTEXT);
+            count = count.add(BigDecimal.ONE, MathConstants.C);
+            sum = sum.add(successRate, MathConstants.C);
         }
     }
 

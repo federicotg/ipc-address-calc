@@ -27,8 +27,8 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.MoneyAmount;
+import static org.fede.calculator.money.MathConstants.C;
 
 /**
  *
@@ -38,7 +38,7 @@ public class Investment {
 
     private static final BigDecimal IVA = new BigDecimal("1.21");
 
-    private static final BigDecimal CCL_FEE_FACTOR = BigDecimal.ONE.subtract(new BigDecimal("0.006"), CONTEXT);
+    private static final BigDecimal CCL_FEE_FACTOR = BigDecimal.ONE.subtract(new BigDecimal("0.006"), C);
 
     private String id;
     private InvestmentType type;
@@ -218,25 +218,25 @@ public class Investment {
 
     private BigDecimal ccl() {
         final var totalInvestment = this.getIn().getFee()
-                .multiply(IVA, CONTEXT)
+                .multiply(IVA, C)
                 .add(this.getIn().getAmount());
 
         return totalInvestment
-                .divide(CCL_FEE_FACTOR, CONTEXT)
-                .divide(CCL_FEE_FACTOR, CONTEXT)
-                .subtract(totalInvestment, CONTEXT);
+                .divide(CCL_FEE_FACTOR, C)
+                .divide(CCL_FEE_FACTOR, C)
+                .subtract(totalInvestment, C);
     }
 
     private BigDecimal ppiCost() {
 
         return this.getIn().getFee()
-                .multiply(IVA, CONTEXT)
+                .multiply(IVA, C)
                 .add(Optional.ofNullable(this.getIn().getTransferFee()).orElseGet(this::ccl));
     }
 
     private BigDecimal ibkrCost() {
         return this.getIn().getFee()
-                .add(this.getIn().getTransferFee(), CONTEXT);
+                .add(this.getIn().getTransferFee(), C);
     }
 
 }

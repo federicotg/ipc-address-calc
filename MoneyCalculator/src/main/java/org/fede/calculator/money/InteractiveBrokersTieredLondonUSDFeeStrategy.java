@@ -32,15 +32,15 @@ public class InteractiveBrokersTieredLondonUSDFeeStrategy implements Function<Bi
     private static final BigDecimal IBKR_TIERED_USD_MAX_FEE = new BigDecimal("39");
 
     private static final BigDecimal EXCHANGE_FEE = new BigDecimal("0.000045");
-    private static final BigDecimal MIN_EXCHANGE_FEE = new BigDecimal("0.1").multiply(GBPUSD, MathConstants.CONTEXT);
-    private static final BigDecimal CLEARING_FEE = new BigDecimal("0.06").multiply(GBPUSD, MathConstants.CONTEXT);
+    private static final BigDecimal MIN_EXCHANGE_FEE = new BigDecimal("0.1").multiply(GBPUSD, MathConstants.C);
+    private static final BigDecimal CLEARING_FEE = new BigDecimal("0.06").multiply(GBPUSD, MathConstants.C);
 
     @Override
     public BigDecimal apply(BigDecimal t) {
 
         return t
-                .multiply(IBKR_TIERED_USD_FEE, MathConstants.CONTEXT).max(IBKR_TIERED_USD_MIN_FEE).min(IBKR_TIERED_USD_MAX_FEE)
-                .add(t.multiply(EXCHANGE_FEE, MathConstants.CONTEXT).max(MIN_EXCHANGE_FEE))
+                .multiply(IBKR_TIERED_USD_FEE, MathConstants.C).max(IBKR_TIERED_USD_MIN_FEE).min(IBKR_TIERED_USD_MAX_FEE)
+                .add(t.multiply(EXCHANGE_FEE, MathConstants.C).max(MIN_EXCHANGE_FEE))
                 .add(CLEARING_FEE);
 
     }

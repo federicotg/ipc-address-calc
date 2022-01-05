@@ -33,7 +33,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import static java.util.stream.Collectors.toList;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.BBPPItem;
 import org.fede.calculator.money.series.BBPPTaxBraket;
 import org.fede.calculator.money.series.BBPPYear;
@@ -43,6 +42,7 @@ import static org.fede.calculator.money.series.InvestmentType.BONO;
 import static org.fede.calculator.money.series.InvestmentType.ETF;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
+import static org.fede.calculator.money.MathConstants.C;
 
 /**
  *
@@ -79,28 +79,27 @@ public class BBPP {
 
         final var ym = YearMonth.of(year, 12);
 
-        final Map<String, Function<MoneyAmount, BigDecimal>> arsFunction = Map.of(
-                "ARS", (MoneyAmount item) -> item.getAmount(),
+        final Map<String, Function<MoneyAmount, BigDecimal>> arsFunction = Map.of("ARS", (MoneyAmount item) -> item.getAmount(),
                 "LECAP", (MoneyAmount item) -> item.getAmount(),
-                "EUR", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getEur(), CONTEXT),
-                "USD", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getUsd(), CONTEXT),
-                "LETE", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getUsd(), CONTEXT),
+                "EUR", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getEur(), C),
+                "USD", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getUsd(), C),
+                "LETE", (MoneyAmount item) -> item.getAmount().multiply(bbpp.getUsd(), C),
                 "XRSU", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "USD")
                         .apply(item, ym)
                         .getAmount()
-                        .multiply(bbpp.getUsd(), CONTEXT),
+                        .multiply(bbpp.getUsd(), C),
                 "CSPX", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "USD")
                         .apply(item, ym)
                         .getAmount()
-                        .multiply(bbpp.getUsd(), CONTEXT),
+                        .multiply(bbpp.getUsd(), C),
                 "EIMI", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "USD")
                         .apply(item, ym)
                         .getAmount()
-                        .multiply(bbpp.getUsd(), CONTEXT),
+                        .multiply(bbpp.getUsd(), C),
                 "MEUD", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "EUR")
                         .apply(item, ym)
                         .getAmount()
-                        .multiply(bbpp.getEur(), CONTEXT));
+                        .multiply(bbpp.getEur(), C));
 
         final var etfs = this.series.getInvestments()
                 .stream()
@@ -158,7 +157,7 @@ public class BBPP {
 
         final var totalAmount = allArs
                 .stream()
-                .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
+                .map(i -> i.getValue().multiply(i.getHolding(), C))
                 .reduce(ZERO, BigDecimal::add);
 
         this.console.appendLine(format("Total amount {0}", this.format.currency(totalAmount)));
@@ -167,9 +166,9 @@ public class BBPP {
                 .stream()
                 .filter(BBPPItem::isDomestic)
                 .filter(i -> !i.isExempt())
-                .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
+                .map(i -> i.getValue().multiply(i.getHolding(), C))
                 .reduce(ZERO, BigDecimal::add)
-                .multiply(new BigDecimal("1.05"), CONTEXT);
+                .multiply(new BigDecimal("1.05"), C);
 
         this.console.appendLine(format("Taxed domestic amount {0}", this.format.currency(taxedDomesticAmount)));
 
@@ -177,15 +176,15 @@ public class BBPP {
                 .stream()
                 .filter(i -> !i.isDomestic())
                 .filter(i -> !i.isExempt())
-                .map(i -> i.getValue().multiply(i.getHolding(), CONTEXT))
+                .map(i -> i.getValue().multiply(i.getHolding(), C))
                 .reduce(ZERO, BigDecimal::add);
 
         this.console.appendLine(format("Taxed foreign amount {0}", this.format.currency(taxedForeignAmount)));
 
         final var taxedTotal = bbpp.getMinimum()
                 .negate()
-                .add(taxedDomesticAmount, CONTEXT)
-                .add(taxedForeignAmount, CONTEXT);
+                .add(taxedDomesticAmount, C)
+                .add(taxedForeignAmount, C);
 
         this.console.appendLine(format("Taxed total {0}", this.format.currency(taxedTotal)));
 
@@ -199,7 +198,7 @@ public class BBPP {
 
         this.console.appendLine(format("Tax rate {0}", this.format.percent(taxRate)));
 
-        final var taxAmount = taxedTotal.multiply(taxRate, CONTEXT);
+        final var taxAmount = taxedTotal.multiply(taxRate, C);
 
         final var usdTaxAmount = getMoneyAmountForeignExchange("ARS", "USD")
                 .apply(new MoneyAmount(taxAmount, "ARS"), ym);
@@ -207,7 +206,7 @@ public class BBPP {
         this.console.appendLine(format("Tax amount {0} / USD {1}. Advances {2}",
                 this.format.currency(taxAmount),
                 this.format.currency(usdTaxAmount.getAmount()),
-                this.format.currency(taxAmount.divide(BigDecimal.valueOf(5), CONTEXT))));
+                this.format.currency(taxAmount.divide(BigDecimal.valueOf(5), C))));
 
         this.console.appendLine(format("Monthly tax amount USD {0}", this.format.currency(usdTaxAmount.adjust(BigDecimal.valueOf(12), ONE).getAmount())));
 
@@ -225,9 +224,9 @@ public class BBPP {
                 .forEachNonZero((yearMonth, ma) -> Optional.of(ma).filter(m -> yearMonth.getYear() == year).ifPresent(yearRealIncome::add));
 
         this.console.appendLine(format("Effective tax rate is {0}. Tax is {1} of investments. Tax is {2} of income.",
-                this.format.percent(taxAmount.divide(totalAmount, CONTEXT)),
-                this.format.percent(usdTaxAmount.getAmount().divide(allInvested.getAmount(), CONTEXT)),
-                this.format.percent(usdTaxAmount.getAmount().divide(yearRealIncome.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add), CONTEXT))));
+                this.format.percent(taxAmount.divide(totalAmount, C)),
+                this.format.percent(usdTaxAmount.getAmount().divide(allInvested.getAmount(), C)),
+                this.format.percent(usdTaxAmount.getAmount().divide(yearRealIncome.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add), C))));
 
         this.console.appendLine(this.format.subtitle("Detail"));
 
@@ -237,7 +236,7 @@ public class BBPP {
                 this.format.text(i.getName(), 16),
                 this.format.currency(i.getValue(), 16),
                 this.format.percent(i.getHolding(), 10),
-                this.format.currency(i.getValue().multiply(i.isExempt() ? ZERO : i.getHolding(), CONTEXT), 16)))
+                this.format.currency(i.getValue().multiply(i.isExempt() ? ZERO : i.getHolding(), C), 16)))
                 .forEach(this.console::appendLine);
 
     }
@@ -256,12 +255,12 @@ public class BBPP {
 
         if (item.getCurrency().equals("USD")) {
 
-            newItem.setValue(item.getValue().multiply(usdValue, CONTEXT));
+            newItem.setValue(item.getValue().multiply(usdValue, C));
 
         }
         if (item.getCurrency().equals("EUR")) {
 
-            newItem.setValue(item.getValue().multiply(eurValue, CONTEXT));
+            newItem.setValue(item.getValue().multiply(eurValue, C));
 
         }
         return newItem;

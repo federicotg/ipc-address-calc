@@ -66,7 +66,7 @@ public class PortfolioItem {
 
     public String asPercentReport(MoneyAmount total) {
 
-        final var pct = this.getDollarAmount().getAmount().divide(total.getAmount(), MathConstants.CONTEXT);
+        final var pct = this.getDollarAmount().getAmount().divide(total.getAmount(), MathConstants.C);
 
         return MessageFormat.format("{0} {1} {2} {3}",
                 String.format("%-9s", this.type),
@@ -79,7 +79,7 @@ public class PortfolioItem {
 
     public String asReport(MoneyAmount total) {
 
-        final var pct = this.getDollarAmount().getAmount().divide(total.getAmount(), MathConstants.CONTEXT);
+        final var pct = this.getDollarAmount().getAmount().divide(total.getAmount(), MathConstants.C);
         return MessageFormat.format("{0} {1} {2} {3} {4}",
                 String.format("%-9s", this.type),
                 String.format("%-7s", this.amount.getCurrency()),

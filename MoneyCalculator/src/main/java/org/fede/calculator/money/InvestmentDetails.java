@@ -85,8 +85,7 @@ public class InvestmentDetails {
 
     public BigDecimal getGrossCapitalGainsPercent() {
         return this.getGrossCapitalGains().getAmount()
-                .divide(this.getInvestedAmount().getAmount(), MathConstants.CONTEXT);
-
+                .divide(this.getInvestedAmount().getAmount(), MathConstants.C);
     }
 
     public BigDecimal getCAGR() {
@@ -151,7 +150,7 @@ public class InvestmentDetails {
     }
 
     public BigDecimal getInvestmentPrice() {
-        return this.investedAmount.getAmount().divide(this.investmentQuantity, MathConstants.CONTEXT);
+        return this.investedAmount.getAmount().divide(this.investmentQuantity, MathConstants.C);
     }
 
     public MoneyAmount getCostBasis() {

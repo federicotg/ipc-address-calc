@@ -32,7 +32,7 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
+import static org.fede.calculator.money.MathConstants.C;
 
 /**
  *
@@ -172,7 +172,7 @@ public class ModifiedDietzReturn {
         final var cashFlowTime = ChronoUnit.DAYS.between(this.initialMoment, cashFlowDate);
 
         return this.cashFlowAmount(ie)
-                .multiply(BigDecimal.valueOf(this.daysBetween - cashFlowTime).divide(BigDecimal.valueOf(this.daysBetween), CONTEXT), CONTEXT);
+                .multiply(BigDecimal.valueOf(this.daysBetween - cashFlowTime).divide(BigDecimal.valueOf(this.daysBetween), C), C);
     }
 
     private BigDecimal cashFlowAmount(InvestmentEvent ie) {
@@ -213,9 +213,9 @@ public class ModifiedDietzReturn {
         }
         
         final var result = v1.getAmount()
-                .subtract(v0.getAmount(), CONTEXT)
-                .subtract(cashFlowSum, CONTEXT)
-                .divide(v0.getAmount().add(adjustedCashFlowSum, CONTEXT), CONTEXT)
+                .subtract(v0.getAmount(), C)
+                .subtract(cashFlowSum, C)
+                .divide(v0.getAmount().add(adjustedCashFlowSum, C), C)
                 .max(BigDecimal.ONE.negate());
 
         return Pair.of(

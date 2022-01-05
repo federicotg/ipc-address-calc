@@ -38,9 +38,9 @@ public class InteractiveBrokersTieredXETRAFeeStrategy implements Function<BigDec
     @Override
     public BigDecimal apply(BigDecimal t) {
 
-        return t.multiply(IBKR_TIERED_EUR_FEE, MathConstants.CONTEXT).max(IBKR_TIERED_EUR_MIN_FEE).min(IBKR_TIERED_EUR_MAX_FEE)
-                .add(t.multiply(EXCHANGE_FEE, MathConstants.CONTEXT).max(MIN_EXCHANGE_FEE).min(MAX_EXCHANGE_FEE))
-                .add(t.multiply(VARIABLE_CLEARING_FEE, MathConstants.CONTEXT).min(MAX_VARIABLE_CLEARING_FEE))
+        return t.multiply(IBKR_TIERED_EUR_FEE, MathConstants.C).max(IBKR_TIERED_EUR_MIN_FEE).min(IBKR_TIERED_EUR_MAX_FEE)
+                .add(t.multiply(EXCHANGE_FEE, MathConstants.C).max(MIN_EXCHANGE_FEE).min(MAX_EXCHANGE_FEE))
+                .add(t.multiply(VARIABLE_CLEARING_FEE, MathConstants.C).min(MAX_VARIABLE_CLEARING_FEE))
                 .add(CLEARING_FEE);
 
     }

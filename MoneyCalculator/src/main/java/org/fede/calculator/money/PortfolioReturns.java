@@ -40,12 +40,12 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
+import static org.fede.calculator.money.MathConstants.C;
 
 /**
  *
@@ -201,7 +201,7 @@ public class PortfolioReturns {
                 year,
                 i.getType(),
                 i.getCurrency(),
-                usdInvested.getAmount().multiply(BigDecimal.valueOf(daysInvestedInYear), CONTEXT));
+                usdInvested.getAmount().multiply(BigDecimal.valueOf(daysInvestedInYear), C));
 
     }
 

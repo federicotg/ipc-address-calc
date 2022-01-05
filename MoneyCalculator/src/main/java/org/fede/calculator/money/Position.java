@@ -40,9 +40,9 @@ public class Position {
         this.costBasis = costBasis;
         this.marketValue = marketValue;
         this.averagePrice = averagePrice;
-        this.unrealizedPnL = new MoneyAmount(marketValue.getAmount().subtract(costBasis.getAmount(), MathConstants.CONTEXT), marketValue.getCurrency());
+        this.unrealizedPnL = new MoneyAmount(marketValue.getAmount().subtract(costBasis.getAmount(), MathConstants.C), marketValue.getCurrency());
         this.unrealizedPnLPct = this.unrealizedPnL.getAmount()
-                .divide(this.costBasis.getAmount(), MathConstants.CONTEXT);
+                .divide(this.costBasis.getAmount(), MathConstants.C);
     }
 
     public String getFundName() {

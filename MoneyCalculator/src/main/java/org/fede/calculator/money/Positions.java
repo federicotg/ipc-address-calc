@@ -40,7 +40,7 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.YearMonth;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
+import static org.fede.calculator.money.MathConstants.C;
 
 /**
  *
@@ -139,8 +139,7 @@ public class Positions {
                 .reduce(ZERO_USD, MoneyAmount::add);
 
         this.console.appendLine(separator);
-        this.console.appendLine(
-                MessageFormat.format(fmt,
+        this.console.appendLine(MessageFormat.format(fmt,
                         this.format.text("Total", descWidth),
                         this.format.text("", posWidth),
                         this.format.text("", lastWidth),
@@ -148,7 +147,7 @@ public class Positions {
                         this.format.currency(totalMarketValue.getAmount(), mkvWidth),
                         this.format.text("", avgWidth),
                         this.format.currency(totalPnL.getAmount(), pnlWidth),
-                        this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), CONTEXT), pnlPctWidth)));
+                        this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
         this.costs(symbol, nominal);
 
@@ -199,11 +198,10 @@ public class Positions {
     }
 
     private void costReport(String label, Map<String, MoneyAmount> m1, Map<String, MoneyAmount> m2) {
-        this.console.appendLine(
-                label,
+        this.console.appendLine(label,
                 this.format.currency(m1.get(label).getAmount(), 13),
                 this.format.currency(m2.get(label).getAmount(), 13),
-                this.format.percent(m2.get(label).getAmount().divide(m1.get(label).getAmount(), CONTEXT), 8));
+                this.format.percent(m2.get(label).getAmount().divide(m1.get(label).getAmount(), C), 8));
     }
 
     private Map<String, MoneyAmount> by(String symbol, boolean nominal, Function<Investment, String> classifier, Function<Investment, MoneyAmount> func) {
@@ -242,13 +240,13 @@ public class Positions {
                                 now),
                 new MoneyAmount(
                         investments.stream()
-                                .map(i -> this.price(i).multiply(i.getInvestment().getAmount(), CONTEXT).divide(position, CONTEXT))
+                                .map(i -> this.price(i).multiply(i.getInvestment().getAmount(), C).divide(position, C))
                                 .reduce(ZERO, BigDecimal::add),
                         "USD"));
     }
 
     private BigDecimal price(Investment i) {
         return i.getIn().getMoneyAmount().add(i.getCost()).getAmount()
-                .divide(i.getInvestment().getAmount(), CONTEXT);
+                .divide(i.getInvestment().getAmount(), C);
     }
 }

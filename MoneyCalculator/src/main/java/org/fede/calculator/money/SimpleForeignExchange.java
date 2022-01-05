@@ -78,7 +78,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         }
 
         if (this.fromCurrency.equals(targetCurrency)) {
-            return amount.exchange(targetCurrency, ONE.divide(getSeries().getIndex(year, month), MathConstants.CONTEXT));
+            return amount.exchange(targetCurrency, ONE.divide(getSeries().getIndex(year, month), MathConstants.C));
         }
 
         throw new IllegalArgumentException("Unknown currency.");

@@ -51,13 +51,13 @@ public class CashInvestmentBuilder {
             var currentSavedUSD = this.cash.getAmountOrElseZero(ym).getAmount();
             var total = this.total(investments);
             if (currentSavedUSD.compareTo(total) > 0) {
-                investments.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.CONTEXT), ym));
+                investments.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.C), ym));
             } else if (currentSavedUSD.compareTo(total) < 0) {
 
                 this.sellUntilBelow(currentSavedUSD, investments, ym);
                 total = this.total(investments);
                 if (currentSavedUSD.compareTo(total) > 0) {
-                    investments.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.CONTEXT), ym));
+                    investments.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.C), ym));
                 }
             }
         }

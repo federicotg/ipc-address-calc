@@ -32,7 +32,7 @@ public class InteractiveBrokersTieredGETTEXFeeStrategy implements Function<BigDe
     @Override
     public BigDecimal apply(BigDecimal t) {
 
-        return t.multiply(IBKR_TIERED_EUR_FEE, MathConstants.CONTEXT)
+        return t.multiply(IBKR_TIERED_EUR_FEE, MathConstants.C)
                 .max(IBKR_TIERED_EUR_MIN_FEE)
                 .min(IBKR_TIERED_EUR_MAX_FEE);
 

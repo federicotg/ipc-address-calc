@@ -39,7 +39,7 @@ public class DayDollars {
     }
     
     public DayDollars combine(DayDollars other){
-        return new DayDollars(year, type, currency, amount.add(other.amount, MathConstants.CONTEXT));
+        return new DayDollars(year, type, currency, amount.add(other.amount, MathConstants.C));
     }
     
     public String getType(){

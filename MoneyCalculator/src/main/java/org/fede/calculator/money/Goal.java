@@ -27,10 +27,10 @@ import java.util.concurrent.ThreadLocalRandom;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
+import static org.fede.calculator.money.MathConstants.C;
 
 /**
  *
@@ -50,14 +50,14 @@ public class Goal {
 
     private static final int END_AGE_STD = 6;
 
-    private static final BigDecimal BUY_FEE = new BigDecimal("0.0095");
+    private static final BigDecimal BUY_FEE = new BigDecimal("225.00");
     
     private static final BigDecimal SELL_FEE = new BigDecimal("0.01926")
-            .multiply(new BigDecimal("0.5"), CONTEXT)
+            .multiply(new BigDecimal("0.5"), C)
             .add(new BigDecimal("0.00096")
-            .multiply(new BigDecimal("0.5"), CONTEXT),CONTEXT);
+            .multiply(new BigDecimal("0.5"), C),C);
 
-    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), CONTEXT), CONTEXT);
+    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), C), C);
 
     private final double bbppTaxRate;
     private final double bbppMin;
@@ -160,7 +160,7 @@ public class Goal {
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(this::real)
                 .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).add(r.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT))
+                .map(r -> ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).add(r.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), C))
                 .collect(toList());
 
         this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", tr)
@@ -168,22 +168,22 @@ public class Goal {
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(this::real)
                 .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).add(r.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT))
+                .map(r -> ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).add(r.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), C))
                 .collect(toList());
 
         final var to = USD_INFLATION.getTo();
 
         final var cash = todaySavings.getAmount()
-                .subtract(invested.getAmount(), CONTEXT)
-                .add(extraCash, CONTEXT).doubleValue();
+                .subtract(invested.getAmount(), C)
+                .add(extraCash, C).doubleValue();
 
         final var inflationRate = ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE)
-                .add(BigDecimal.valueOf(inflation).setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT).doubleValue();
+                .add(BigDecimal.valueOf(inflation).setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), C).doubleValue();
 
-        final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).divide(ONE.add(BUY_FEE, CONTEXT), CONTEXT).doubleValue();
-        final var withdraw = BigDecimal.valueOf((monthlyWithdraw - pension) * 12)
-                .multiply(ONE.divide(ONE.subtract(SELL_FEE, CONTEXT), CONTEXT), CONTEXT)
-                .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, CONTEXT).doubleValue();
+        final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).subtract(BUY_FEE, C).doubleValue();
+        final var withdraw = BigDecimal.valueOf((monthlyWithdraw * 12) - (pension * 13))
+                .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
+                .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, C).doubleValue();
 
         final var investedAmount = invested.getAmount().doubleValue();
 

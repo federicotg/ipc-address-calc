@@ -45,7 +45,6 @@ import static java.util.stream.Collectors.toMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
@@ -55,6 +54,7 @@ import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
+import static org.fede.calculator.money.MathConstants.C;
 
 /**
  *
@@ -217,7 +217,7 @@ public class Investments {
     private Pair<BigDecimal, BigDecimal> modelPortfolioCAGR(boolean nominal) {
 
         final var initial = PORTFOLIO.stream()
-                .map(ma -> new MoneyAmount(ma.getAmount().multiply(INITIAL_VALUES.get(ma.getCurrency()), CONTEXT), ma.getCurrency().equals("MEUD") ? "EUR" : "USD"))
+                .map(ma -> new MoneyAmount(ma.getAmount().multiply(INITIAL_VALUES.get(ma.getCurrency()), C), ma.getCurrency().equals("MEUD") ? "EUR" : "USD"))
                 .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, YearMonth.of(2019, 7)))
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
@@ -259,7 +259,7 @@ public class Investments {
 
     private static Pair<BigDecimal, BigDecimal> cagr(BigDecimal initial, BigDecimal current, LocalDate since) {
         final var days = (double) ChronoUnit.DAYS.between(since, LocalDate.now());
-        final var profit = current.divide(initial, CONTEXT).subtract(ONE, CONTEXT);
+        final var profit = current.divide(initial, C).subtract(ONE, C);
         final double x = Math.pow(
                 BigDecimal.ONE.add(profit).doubleValue(),
                 365.0d / days) - 1.0d;

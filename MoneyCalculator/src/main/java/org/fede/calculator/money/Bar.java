@@ -32,10 +32,10 @@ import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
+import static org.fede.calculator.money.MathConstants.C;
 
 /**
  *
@@ -76,7 +76,7 @@ public class Bar {
         }
         final var relativeAmounts = amounts
                 .stream()
-                .map(p -> Pair.of(new MoneyAmount(p.getFirst().getAmount().divide(total, CONTEXT).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.getFirst().getCurrency()), p.getSecond()))
+                .map(p -> Pair.of(new MoneyAmount(p.getFirst().getAmount().divide(total, C).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.getFirst().getCurrency()), p.getSecond()))
                 .filter(p -> !p.getFirst().isZero())
                 .collect(toList());
 
@@ -91,11 +91,10 @@ public class Bar {
 
             final var firstAmount = first.getFirst().getAmount();
 
-            var difference = relativeTotal.subtract(HUNDRED, CONTEXT).negate(CONTEXT);
+            var difference = relativeTotal.subtract(HUNDRED, C).negate(C);
 
-            relativeAmounts.set(
-                    0,
-                    Pair.of(new MoneyAmount(firstAmount.add(difference, CONTEXT), first.getFirst().getCurrency()), first.getSecond()));
+            relativeAmounts.set(0,
+                    Pair.of(new MoneyAmount(firstAmount.add(difference, C), first.getFirst().getCurrency()), first.getSecond()));
 
         }
 
@@ -118,7 +117,7 @@ public class Bar {
     public String pctBar(BigDecimal value, BigDecimal total) {
         return Optional.of(total)
                 .filter(t -> t.signum() != 0)
-                .map(t -> pctBar(value.divide(t, CONTEXT)))
+                .map(t -> pctBar(value.divide(t, C)))
                 .orElse("");
     }
 
@@ -154,7 +153,7 @@ public class Bar {
 
         final var steps = value.movePointRight(2)
                 .abs()
-                .divide(BigDecimal.TEN, CONTEXT)
+                .divide(BigDecimal.TEN, C)
                 .setScale(0, RoundingMode.HALF_UP)
                 .intValue();
 
@@ -183,7 +182,7 @@ public class Bar {
 
         final var valueStr = valueFormat.apply(value).trim();
 
-        final var end = value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue();
+        final var end = value.abs().divide(BigDecimal.valueOf(scale), C).setScale(0, RoundingMode.HALF_UP).intValue();
 
         if (end > valueStr.length()) {
 
@@ -204,7 +203,7 @@ public class Bar {
                 ? new AnsiFormat(Attribute.RED_BACK(), Attribute.WHITE_TEXT())
                 : new AnsiFormat(Attribute.GREEN_BACK(), Attribute.WHITE_TEXT());
 
-        return Ansi.colorize(IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue())
+        return Ansi.colorize(IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), C).setScale(0, RoundingMode.HALF_UP).intValue())
                 .mapToObj(x -> symbol)
                 .collect(joining()), fmt);
     }
@@ -221,8 +220,8 @@ public class Bar {
         var bar2 = this.asPct(two, total);
         var bar3 = this.asPct(three, total);
 
-        if (bar1.add(bar2, CONTEXT).add(bar3, CONTEXT).compareTo(HUNDRED) != 0) {
-            bar1 = HUNDRED.subtract(bar2.add(bar3, CONTEXT), CONTEXT);
+        if (bar1.add(bar2, C).add(bar3, C).compareTo(HUNDRED) != 0) {
+            bar1 = HUNDRED.subtract(bar2.add(bar3, C), C);
         }
         return this.bar(ym, bar1, bar2, bar3, 1, this.format::pctNumber);
     }
@@ -246,7 +245,7 @@ public class Bar {
 
     private BigDecimal asPct(MoneyAmount ma, MoneyAmount total) {
         return ma.getAmount()
-                .divide(total.getAmount(), CONTEXT)
+                .divide(total.getAmount(), C)
                 .movePointRight(2)
                 .setScale(0, RoundingMode.HALF_UP);
     }
@@ -261,9 +260,9 @@ public class Bar {
         var bar1 = this.asPct(one, total);
         var bar2 = this.asPct(two, total);
 
-        if (bar1.add(bar2, CONTEXT).compareTo(HUNDRED) != 0) {
+        if (bar1.add(bar2, C).compareTo(HUNDRED) != 0) {
 
-            bar1 = HUNDRED.subtract(bar2, CONTEXT);
+            bar1 = HUNDRED.subtract(bar2, C);
 
         }
 

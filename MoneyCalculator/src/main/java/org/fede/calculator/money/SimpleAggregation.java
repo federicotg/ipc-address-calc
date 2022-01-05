@@ -49,7 +49,7 @@ public class SimpleAggregation implements Aggregation {
     private MoneyAmount avg(List<MoneyAmount> lastValues) {
         return new MoneyAmount(
                 lastValues.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add)
-                        .divide(new BigDecimal(lastValues.size()), MathConstants.CONTEXT), lastValues.get(0).getCurrency());
+                        .divide(new BigDecimal(lastValues.size()), MathConstants.C), lastValues.get(0).getCurrency());
     }
 
     private MoneyAmount sum(List<MoneyAmount> lastValues) {
@@ -71,7 +71,7 @@ public class SimpleAggregation implements Aggregation {
         return lastValues.get(0)
                 .getAmount()
                 .subtract(last)
-                .divide(last, MathConstants.CONTEXT);
+                .divide(last, MathConstants.C);
 
     }
 

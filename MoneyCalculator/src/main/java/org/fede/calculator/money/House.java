@@ -25,11 +25,11 @@ import java.util.TreeMap;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
+import static org.fede.calculator.money.MathConstants.C;
 
 /**
  *
@@ -39,7 +39,7 @@ public class House {
 
     private static final BigDecimal IVA = new BigDecimal("1.21");
     private static final BigDecimal NOTARY_FEE = new BigDecimal("0.02")
-            .multiply(IVA, CONTEXT);
+            .multiply(IVA, C);
     private static final BigDecimal COEFFICIENT = new BigDecimal("0.1223");
 
     private static final BigDecimal REALTOR_FEE = new BigDecimal("0.045");
@@ -63,11 +63,10 @@ public class House {
         final var limit = USD_INFLATION.getTo();
 
         final var nominalInitialCost = new BigDecimal("96000");
-        final var nominalTransactionCost = nominalInitialCost.multiply(
-                REALTOR_FEE.add(STAMP_TAX, CONTEXT)
-                        .add(REGISTER_TAX, CONTEXT)
-                        .add(NOTARY_FEE, CONTEXT),
-                CONTEXT);
+        final var nominalTransactionCost = nominalInitialCost.multiply(REALTOR_FEE.add(STAMP_TAX, C)
+                        .add(REGISTER_TAX, C)
+                        .add(NOTARY_FEE, C),
+                C);
 
         final var start = YearMonth.of(2010, 8);
         final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalTransactionCost, "USD"),
@@ -139,11 +138,10 @@ public class House {
         final var limit = USD_INFLATION.getTo();
 
         final var nominalInitialCost = new BigDecimal("96000");
-        final var nominalTransactionCost = nominalInitialCost.multiply(
-                REALTOR_FEE.add(STAMP_TAX, CONTEXT)
-                        .add(REGISTER_TAX, CONTEXT)
-                        .add(NOTARY_FEE, CONTEXT),
-                CONTEXT);
+        final var nominalTransactionCost = nominalInitialCost.multiply(REALTOR_FEE.add(STAMP_TAX, C)
+                        .add(REGISTER_TAX, C)
+                        .add(NOTARY_FEE, C),
+                C);
 
         final var start = YearMonth.of(2010, 8);
         final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalInitialCost, "USD"),
@@ -151,14 +149,14 @@ public class House {
                 limit);
 
         final var months = BigDecimal.valueOf(start.monthsUntil(timeLimit));
-        final var years = months.divide(BigDecimal.valueOf(12), CONTEXT);
+        final var years = months.divide(BigDecimal.valueOf(12), C);
 
         // interest rate cost
         final var opportunityCost = new MoneyAmount(
                 nominalInitialCost
-                        .add(nominalTransactionCost, CONTEXT)
-                        .multiply(ONE.add(rate, CONTEXT).pow(years.intValue(), CONTEXT), CONTEXT)
-                        .subtract(nominalInitialCost, CONTEXT), "USD");
+                        .add(nominalTransactionCost, C)
+                        .multiply(ONE.add(rate, C).pow(years.intValue(), C), C)
+                        .subtract(nominalInitialCost, C), "USD");
 
         final var totalRealExpense = realExpensesInUSD.add(opportunityCost);
 
@@ -172,20 +170,20 @@ public class House {
         this.console.appendLine(format("USD reales {0}/{1}", limit.getMonth(), String.valueOf(limit.getYear())));
         this.console.appendLine(format("\tTotal USD {0} {1}",
                 this.format.currency(totalRealExpense.getAmount()),
-                this.format.percent(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), CONTEXT))));
+                this.format.percent(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), C))));
 
-        final var monthlyCost = totalRealExpense.getAmount().divide(months, CONTEXT);
+        final var monthlyCost = totalRealExpense.getAmount().divide(months, C);
         this.console.appendLine(format("\tMensual USD {0} {1} - ARS {2}",
                 this.format.currency(monthlyCost),
-                this.format.percent(monthlyCost.divide(realInitialCost.getAmount(), CONTEXT)),
+                this.format.percent(monthlyCost.divide(realInitialCost.getAmount(), C)),
                 this.format.currency(getMoneyAmountForeignExchange("USD", "ARS")
                         .apply(new MoneyAmount(monthlyCost, "USD"), limit)
                         .getAmount())));
 
-        final var yearlyCost = totalRealExpense.getAmount().divide(years, CONTEXT);
+        final var yearlyCost = totalRealExpense.getAmount().divide(years, C);
         this.console.appendLine(format("\tAnual USD {0} {1}\n",
                 this.format.currency(yearlyCost),
-                this.format.percent(yearlyCost.divide(realInitialCost.getAmount(), CONTEXT))));
+                this.format.percent(yearlyCost.divide(realInitialCost.getAmount(), C))));
 
     }
 

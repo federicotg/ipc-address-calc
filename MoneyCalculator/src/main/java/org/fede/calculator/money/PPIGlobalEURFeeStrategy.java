@@ -18,7 +18,7 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import java.util.function.Function;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
+import static org.fede.calculator.money.MathConstants.C;
 
 /**
  *
@@ -33,15 +33,15 @@ public class PPIGlobalEURFeeStrategy implements Function<BigDecimal, BigDecimal>
     @Override
     public BigDecimal apply(BigDecimal presentValue) {
 
-        final var fee = presentValue.multiply(FEE_RATE, CONTEXT);
+        final var fee = presentValue.multiply(FEE_RATE, C);
 
-        final var fxFee = presentValue.multiply(FX_FEE_RATE, CONTEXT);
+        final var fxFee = presentValue.multiply(FX_FEE_RATE, C);
 
-        final var totalFee = fee.add(fxFee, CONTEXT).max(BigDecimal.TEN);
+        final var totalFee = fee.add(fxFee, C).max(BigDecimal.TEN);
         
-        final var feeTax = totalFee.multiply(FEE_TAX_RATE, CONTEXT);
+        final var feeTax = totalFee.multiply(FEE_TAX_RATE, C);
 
-        return totalFee.add(feeTax, CONTEXT);
+        return totalFee.add(feeTax, C);
 
     }
 

@@ -18,7 +18,7 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import java.util.function.Function;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
+import static org.fede.calculator.money.MathConstants.C;
 
 /**
  *
@@ -34,9 +34,9 @@ public class PPIGlobalUSDFeeStrategy implements Function<BigDecimal, BigDecimal>
     public BigDecimal apply(BigDecimal presentValue) {
         
         return presentValue
-                .multiply(FEE_RATE, CONTEXT)
+                .multiply(FEE_RATE, C)
                 .max(BigDecimal.TEN)
-                .multiply(FEE_TAX_RATE, CONTEXT);
+                .multiply(FEE_TAX_RATE, C);
 
     }
 

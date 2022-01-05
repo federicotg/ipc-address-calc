@@ -35,8 +35,8 @@ public class InteractiveBrokersTieredEuronextEURFeeStrategy implements Function<
     @Override
     public BigDecimal apply(BigDecimal t) {
 
-        return t.multiply(IBKR_TIERED_EUR_FEE, MathConstants.CONTEXT).max(IBKR_TIERED_EUR_MIN_FEE).min(IBKR_TIERED_EUR_MAX_FEE)
-                .add(t.multiply(EXCHANGE_FEE, MathConstants.CONTEXT).max(MIN_EXCHANGE_FEE))
+        return t.multiply(IBKR_TIERED_EUR_FEE, MathConstants.C).max(IBKR_TIERED_EUR_MIN_FEE).min(IBKR_TIERED_EUR_MAX_FEE)
+                .add(t.multiply(EXCHANGE_FEE, MathConstants.C).max(MIN_EXCHANGE_FEE))
                 .add(CLEARING_FEE);
     }
 
