@@ -151,7 +151,7 @@ public class Investments {
 
         this.console.appendLine("");
 
-        new Positions(this.console, this.format, this.series).positions(null, nominal);
+        //new Positions(this.console, this.format, this.series).positions(null, nominal);
 
         final var etfs = this.getAllInvestments()
                 .stream()
