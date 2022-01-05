@@ -38,7 +38,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class Goal {
 
-    private static final double RUSSELL2000_PCT = new BigDecimal("0.1").doubleValue();
+    private static final double RUSSELL2000_PCT = 0.1d;
     private static final double SP500_PCT = 0.7d;
     private static final double EIMI_PCT = 0.1d;
     private static final double MEUD_PCT = 0.1d;
@@ -48,10 +48,9 @@ public class Goal {
     private static final double EIMI_FEE = 0.0018d;
     private static final double MEUD_FEE = 0.0007d;
 
-    private static final int RETIREMENT_AGE_STD = 3;
     private static final int END_AGE_STD = 6;
 
-    private static final BigDecimal BUY_SELL_FEE = new BigDecimal("0.0193");
+    private static final BigDecimal BUY_SELL_FEE = new BigDecimal("0.01");
 
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), CONTEXT), CONTEXT);
 
@@ -176,7 +175,7 @@ public class Goal {
         final var inflationRate = ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE)
                 .add(BigDecimal.valueOf(inflation).setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT).doubleValue();
 
-        final var deposit = BigDecimal.valueOf(monthlyDeposit * 12).divide(ONE.add(BUY_SELL_FEE, CONTEXT), CONTEXT).doubleValue();
+        final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).divide(ONE.add(BUY_SELL_FEE, CONTEXT), CONTEXT).doubleValue();
         final var withdraw = BigDecimal.valueOf((monthlyWithdraw - pension) * 12)
                 .multiply(ONE.divide(ONE.subtract(BUY_SELL_FEE, CONTEXT), CONTEXT), CONTEXT)
                 .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, CONTEXT).doubleValue();
@@ -192,7 +191,7 @@ public class Goal {
         if (pension > 0) {
             this.console.appendLine(format("Considering {0,number,currency} pension.", pension));
         }
-        this.console.appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2} +/-{4}.", inflation, retirementAge, age, RETIREMENT_AGE_STD, END_AGE_STD));
+        this.console.appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2} +/-{3}.", inflation, retirementAge, age, END_AGE_STD));
 
         final int startingYear = to.getYear();
         final var end = 1978 + age;
@@ -214,8 +213,8 @@ public class Goal {
 
         final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.9d);
         final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 0.9d);
-        final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.75d);
-        final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.70d);
+        final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.9d);
+        final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.9d);
 
         final var successes = IntStream.range(0, trials)
                 .parallel()

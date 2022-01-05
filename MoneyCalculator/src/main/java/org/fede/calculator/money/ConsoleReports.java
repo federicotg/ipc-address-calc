@@ -84,7 +84,7 @@ public class ConsoleReports {
     private static final String SP500 = "true";
     private static final String TAX = "true";
     private static final String BBPP = "2.25";
-    private static final String BBPP_MIN = "20000";
+    private static final String BBPP_MIN = "30000";
     private static final String PENSION = "50";
 
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE), BigDecimal::add);
