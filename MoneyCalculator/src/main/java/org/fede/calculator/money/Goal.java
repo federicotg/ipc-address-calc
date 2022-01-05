@@ -50,7 +50,12 @@ public class Goal {
 
     private static final int END_AGE_STD = 6;
 
-    private static final BigDecimal BUY_SELL_FEE = new BigDecimal("0.01");
+    private static final BigDecimal BUY_FEE = new BigDecimal("0.00096");
+    
+    private static final BigDecimal SELL_FEE = new BigDecimal("0.01926")
+            .multiply(new BigDecimal("0.5"), CONTEXT)
+            .add(new BigDecimal("0.00096")
+            .multiply(new BigDecimal("0.5"), CONTEXT),CONTEXT);
 
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), CONTEXT), CONTEXT);
 
@@ -175,9 +180,9 @@ public class Goal {
         final var inflationRate = ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE)
                 .add(BigDecimal.valueOf(inflation).setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), CONTEXT).doubleValue();
 
-        final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).divide(ONE.add(BUY_SELL_FEE, CONTEXT), CONTEXT).doubleValue();
+        final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).divide(ONE.add(BUY_FEE, CONTEXT), CONTEXT).doubleValue();
         final var withdraw = BigDecimal.valueOf((monthlyWithdraw - pension) * 12)
-                .multiply(ONE.divide(ONE.subtract(BUY_SELL_FEE, CONTEXT), CONTEXT), CONTEXT)
+                .multiply(ONE.divide(ONE.subtract(SELL_FEE, CONTEXT), CONTEXT), CONTEXT)
                 .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, CONTEXT).doubleValue();
 
         final var investedAmount = invested.getAmount().doubleValue();
@@ -211,10 +216,10 @@ public class Goal {
                 .map(f -> f * withdraw)
                 .toArray();
 
-        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.9d);
+        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.85d);
         final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 0.9d);
-        final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.9d);
-        final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.9d);
+        final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.8d);
+        final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.8d);
 
         final var successes = IntStream.range(0, trials)
                 .parallel()
