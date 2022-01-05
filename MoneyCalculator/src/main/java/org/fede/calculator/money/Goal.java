@@ -50,7 +50,7 @@ public class Goal {
 
     private static final int END_AGE_STD = 6;
 
-    private static final BigDecimal BUY_FEE = new BigDecimal("0.00096");
+    private static final BigDecimal BUY_FEE = new BigDecimal("0.0095");
     
     private static final BigDecimal SELL_FEE = new BigDecimal("0.01926")
             .multiply(new BigDecimal("0.5"), CONTEXT)

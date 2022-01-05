@@ -20,14 +20,21 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
-import java.util.Comparator;
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.reverseOrder;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.joining;
 import java.util.stream.IntStream;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
@@ -73,7 +80,7 @@ public class Positions {
 
         final var separator = IntStream.rangeClosed(0, IntStream.of(descWidth, posWidth, lastWidth, costWidth, mkvWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
                 .mapToObj(n -> "=")
-                .collect(Collectors.joining());
+                .collect(joining());
 
         final var fmt = " {0}{1}{2}{3}{4}{5}{6}{7}";
 
@@ -96,18 +103,18 @@ public class Positions {
                 .filter(inv -> symbol == null || inv.getCurrency().equals(symbol))
                 .map(inv -> ForeignExchanges.exchange(inv, "USD"))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
-                .collect(Collectors.groupingBy(Investment::getCurrency))
+                .collect(groupingBy(Investment::getCurrency))
                 .values()
                 .stream()
                 .map(this::position)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         positions
                 .stream()
-                .sorted(Comparator.comparing((Position p) -> p.getMarketValue().getAmount(), Comparator.reverseOrder()))
+                .sorted(comparing((Position p) -> p.getMarketValue().getAmount(), reverseOrder()))
                 .map(p -> MessageFormat.format(fmt,
                 this.format.text(p.getFundName(), descWidth),
-                String.format("%"+posWidth+"d", p.getPosition().intValue()),
+                String.format("%" + posWidth + "d", p.getPosition().intValue()),
                 this.format.currency(p.getLast().getAmount(), lastWidth),
                 this.format.currency(p.getCostBasis().getAmount(), costWidth),
                 this.format.currency(p.getMarketValue().getAmount(), mkvWidth),
@@ -143,69 +150,72 @@ public class Positions {
                         this.format.currency(totalPnL.getAmount(), pnlWidth),
                         this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), CONTEXT), pnlPctWidth)));
 
-        final Function<Investment, MoneyAmount> costFunc = Investment::getCost;
+        this.costs(symbol, nominal);
 
-        final Function<Investment, MoneyAmount> totalInvestedFunc = inv -> inv.getIn().getMoneyAmount();
-
-        final Predicate<Investment> ppi = i -> Objects.isNull(i.getComment());
-        final Predicate<Investment> ibkr = ppi.negate();
-        final Predicate<Investment> all = i -> true;
-
-        final var allCosts = this.costPct(all, costFunc, totalInvestedFunc);
-        final var ppiCosts = this.costPct(ppi, costFunc, totalInvestedFunc);
-        final var ibkrCosts = this.costPct(ibkr, costFunc, totalInvestedFunc);
-
-        final var ppiCostsAmount = this.cost(ppi, costFunc, nominal);
-        final var ibkrCostsAmount = this.cost(ibkr, costFunc, nominal);
-        final var allCostsAmount = ppiCostsAmount.add(ibkrCostsAmount);
-
-        this.console.appendLine(this.format.subtitle("Costs"));
-        this.console.appendLine("PPI:  ", this.format.currency(ppiCostsAmount, 15), " ", this.format.percent(ppiCosts, 8));
-        this.console.appendLine("IBKR: ", this.format.currency(ibkrCostsAmount, 15), " ", this.format.percent(ibkrCosts, 8));
-        this.console.appendLine("All:  ", this.format.currency(allCostsAmount, 15), " ", this.format.percent(allCosts, 8));
     }
 
-    private MoneyAmount cost(
-            Predicate<Investment> filter,
-            Function<Investment, MoneyAmount> costFunc,
-            boolean nominal) {
+    public void costs(String symbol, boolean nominal) {
+        final Function<Investment, MoneyAmount> costFunc = Investment::getCost;
+
+        final Function<Investment, MoneyAmount> totalInvestedFunc = Investment::getInitialMoneyAmount;
+
+        this.console.appendLine(this.format.subtitle("Costs"));
+
+        final Function<Investment, String> yearClassifier = i -> String.valueOf(YearMonth.of(i.getInitialDate()).getYear());
+        final Function<Investment, String> brokerClassifier = i -> i.getComment() == null ? "PPI " : "IBKR";
+
+        final Function<Investment, String> anyClassifier = i -> "All ";
+
+        final var invByYear = this.by(symbol, nominal, yearClassifier, totalInvestedFunc);
+        final var costByYear = this.by(symbol, nominal, yearClassifier, costFunc);
+
+        final var invByBroker = this.by(symbol, nominal, brokerClassifier, totalInvestedFunc);
+        final var costByBroker = this.by(symbol, nominal, brokerClassifier, costFunc);
+
+        final var invByAll = this.by(symbol, nominal, anyClassifier, totalInvestedFunc);
+        final var costByAll = this.by(symbol, nominal, anyClassifier, costFunc);
+
+        invByYear
+                .keySet()
+                .stream()
+                .sorted()
+                .forEach(e -> this.costReport(e, invByYear, costByYear));
+
+        this.console.appendLine();
+
+        invByBroker
+                .keySet()
+                .stream()
+                .sorted()
+                .forEach(e -> this.costReport(e, invByBroker, costByBroker));
+
+        this.console.appendLine();
+        invByAll
+                .keySet()
+                .stream()
+                .sorted()
+                .forEach(e -> this.costReport(e, invByAll, costByAll));
+
+    }
+
+    private void costReport(String label, Map<String, MoneyAmount> m1, Map<String, MoneyAmount> m2) {
+        this.console.appendLine(
+                label,
+                this.format.currency(m1.get(label).getAmount(), 13),
+                this.format.currency(m2.get(label).getAmount(), 13),
+                this.format.percent(m2.get(label).getAmount().divide(m1.get(label).getAmount(), CONTEXT), 8));
+    }
+
+    private Map<String, MoneyAmount> by(String symbol, boolean nominal, Function<Investment, String> classifier, Function<Investment, MoneyAmount> func) {
         return this.series.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
-                .filter(filter)
+                .filter(inv -> symbol == null || inv.getCurrency().equals(symbol))
                 .map(inv -> ForeignExchanges.exchange(inv, "USD"))
-                .map(inv -> nominal ? costFunc.apply(inv) : this.real(costFunc.apply(inv), inv.getInitialDate()))
-                .reduce(ZERO_USD, MoneyAmount::add);
-    }
-
-    private BigDecimal costPct(
-            Predicate<Investment> filter,
-            Function<Investment, MoneyAmount> costFunc,
-            Function<Investment, MoneyAmount> totalFunc) {
-        final var cost = this.series.getInvestments()
-                .stream()
-                .filter(Investment::isCurrent)
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
-                .filter(filter)
-                .map(inv -> ForeignExchanges.exchange(inv, "USD"))
-                .map(inv -> costFunc.apply(inv))
-                .reduce(ZERO_USD, MoneyAmount::add);
-
-        final var invested = this.series.getInvestments()
-                .stream()
-                .filter(Investment::isCurrent)
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
-                .filter(filter)
-                .map(inv -> ForeignExchanges.exchange(inv, "USD"))
-                .map(inv -> totalFunc.apply(inv))
-                .reduce(ZERO_USD, MoneyAmount::add);
-
-        return cost.getAmount().divide(invested.getAmount(), CONTEXT);
-    }
-
-    private MoneyAmount real(MoneyAmount ma, Date from) {
-        return Inflation.USD_INFLATION.adjust(ma, YearMonth.of(from), Inflation.USD_INFLATION.getTo());
+                .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
+                .collect(groupingBy(classifier,
+                        mapping(func, reducing(ZERO_USD, MoneyAmount::add))));
     }
 
     private Position position(List<Investment> investments) {

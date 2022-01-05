@@ -99,6 +99,7 @@ public interface Inflation extends Series {
         answer.setType(in.getType());
         answer.setInvestment(in.getInvestment());
         answer.setInterest(in.getInterest());
+        answer.setComment(in.getComment());
         return answer;
     }
 
