@@ -77,7 +77,7 @@ public class ConsoleReports {
     private static final String PERIODS = "20";
     private static final String RETIREMENT = "65";
     private static final String AGE = "97";
-    private static final String DEPOSIT = "1000";
+    private static final String DEPOSIT = "1050";
     private static final String WITHDRAW = "1000";
     private static final String INFLATION = "3";
     private static final String CASH = "0";
@@ -85,7 +85,7 @@ public class ConsoleReports {
     private static final String TAX = "true";
     private static final String BBPP = "2.25";
     private static final String BBPP_MIN = "30000";
-    private static final String PENSION = "50";
+    private static final String PENSION = "75";
 
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(MathConstants.SCALE, MathConstants.RM), BigDecimal::add);
     private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(MathConstants.SCALE, MathConstants.RM), REDUCER);

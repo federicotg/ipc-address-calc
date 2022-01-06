@@ -52,14 +52,12 @@ public class Goal {
 
     private static final int END_AGE_STD = 6;
 
-    private static final BigDecimal BUY_FEE = new BigDecimal("225.00");
+    private static final BigDecimal BUY_FEE = new BigDecimal("200");
     
-    private static final BigDecimal SELL_FEE = new BigDecimal("0.01926")
-            .multiply(new BigDecimal("0.5"), C)
-            .add(new BigDecimal("0.00096")
-            .multiply(new BigDecimal("0.5"), C),C);
-
-    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), C), C);
+    private static final BigDecimal SELL_FEE = new BigDecimal("0.00726").multiply(new BigDecimal("0.5"), C)
+            .add(new BigDecimal("0.00056").multiply(new BigDecimal("0.5"), C));
+            
+    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.135"), C), C);
 
     private final double bbppTaxRate;
     private final double bbppMin;
@@ -182,7 +180,17 @@ public class Goal {
         final var inflationRate = ONE.setScale(SCALE, RM)
                 .add(BigDecimal.valueOf(inflation).setScale(SCALE, RM).movePointLeft(2), C).doubleValue();
 
-        final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).subtract(BUY_FEE, C).doubleValue();
+        final var yearBuyTransactions = BigDecimal.TEN;
+        
+        final var yearDeposit = BigDecimal.valueOf(monthlyDeposit * 13)
+                .subtract(BUY_FEE, C);
+        
+        final var yearIBKRFee = new InteractiveBrokersTieredLondonUSDFeeStrategy()
+                .apply(yearDeposit.divide(yearBuyTransactions, C))
+                .multiply(yearBuyTransactions, C);
+        
+        final var deposit = yearDeposit.subtract(yearIBKRFee, C).doubleValue();
+        
         final var withdraw = BigDecimal.valueOf((monthlyWithdraw * 12) - (pension * 13))
                 .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
                 .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, C).doubleValue();
@@ -218,7 +226,7 @@ public class Goal {
                 .map(f -> f * withdraw)
                 .toArray();
 
-        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.85d);
+        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.9d);
         final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 0.9d);
         final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.8d);
         final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.8d);
