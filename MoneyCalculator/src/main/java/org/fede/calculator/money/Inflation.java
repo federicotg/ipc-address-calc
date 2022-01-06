@@ -114,11 +114,11 @@ public interface Inflation extends Series {
         answer.setCurrency(adjusted.getCurrency());
         answer.setAmount(adjusted.getAmount());
         answer.setDate(in.getDate());
-        answer.setTransferFee(Optional.ofNullable(in.getTransferFee())
+        Optional.ofNullable(in.getTransferFee())
                 .map(f -> new MoneyAmount(f, in.getCurrency()))
                 .map(ma -> this.adjust(ma, start, moment))
                 .map(MoneyAmount::getAmount)
-                .orElse(null));
+                .ifPresent(answer::setTransferFee);
         answer.setFee(
                 this.adjust(
                         new MoneyAmount(in.getFee(), in.getCurrency()),

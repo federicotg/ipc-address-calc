@@ -45,7 +45,7 @@ public class House {
     private static final BigDecimal REALTOR_FEE = new BigDecimal("0.045");
     private static final BigDecimal STAMP_TAX = new BigDecimal("0.018");
     private static final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.ROUNDING_MODE), "USD");
+    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
 
     private final Console console;
     private final Format format;

@@ -31,6 +31,8 @@ import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
+import static org.fede.calculator.money.MathConstants.RM;
+import static org.fede.calculator.money.MathConstants.SCALE;
 
 /**
  *
@@ -160,7 +162,7 @@ public class Goal {
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(this::real)
                 .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).add(r.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), C))
+                .map(r -> ONE.setScale(MathConstants.SCALE, RM).add(r.setScale(SCALE, RM).movePointLeft(2), C))
                 .collect(toList());
 
         this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", tr)
@@ -168,7 +170,7 @@ public class Goal {
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(this::real)
                 .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).add(r.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), C))
+                .map(r -> ONE.setScale(SCALE, RM).add(r.setScale(SCALE, RM).movePointLeft(2), C))
                 .collect(toList());
 
         final var to = USD_INFLATION.getTo();
@@ -177,8 +179,8 @@ public class Goal {
                 .subtract(invested.getAmount(), C)
                 .add(extraCash, C).doubleValue();
 
-        final var inflationRate = ONE.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE)
-                .add(BigDecimal.valueOf(inflation).setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).movePointLeft(2), C).doubleValue();
+        final var inflationRate = ONE.setScale(SCALE, RM)
+                .add(BigDecimal.valueOf(inflation).setScale(SCALE, RM).movePointLeft(2), C).doubleValue();
 
         final var deposit = BigDecimal.valueOf(monthlyDeposit * 13).subtract(BUY_FEE, C).doubleValue();
         final var withdraw = BigDecimal.valueOf((monthlyWithdraw * 12) - (pension * 13))

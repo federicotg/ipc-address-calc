@@ -32,7 +32,7 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
  */
 public class SimpleAggregation implements Aggregation {
 
-    private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE);
+    private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(MathConstants.SCALE, MathConstants.RM);
 
     private final int months;
 

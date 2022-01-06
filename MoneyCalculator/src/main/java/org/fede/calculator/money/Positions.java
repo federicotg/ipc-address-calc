@@ -48,7 +48,7 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class Positions {
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.ROUNDING_MODE), "USD");
+    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
 
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",

@@ -69,7 +69,7 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class ConsoleReports {
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.ROUNDING_MODE), "USD");
+    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 
@@ -87,8 +87,8 @@ public class ConsoleReports {
     private static final String BBPP_MIN = "30000";
     private static final String PENSION = "50";
 
-    private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE), BigDecimal::add);
-    private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE), REDUCER);
+    private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(MathConstants.SCALE, MathConstants.RM), BigDecimal::add);
+    private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(MathConstants.SCALE, MathConstants.RM), REDUCER);
 
     private static final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
             .thenComparing(comparing(pair -> pair.getFirst().getSecond()));
@@ -190,7 +190,7 @@ public class ConsoleReports {
                         this::assetAllocation,
                         mapping(inv -> getMoneyAmountForeignExchange(inv.getInvestment().getCurrency(), reportCurrency).apply(inv.getInvestment().getMoneyAmount(), limit)
                         .getAmount()
-                        .setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE),
+                        .setScale(MathConstants.SCALE, MathConstants.RM),
                                 REDUCER)))
                 .entrySet()
                 .stream()
@@ -452,7 +452,7 @@ public class ConsoleReports {
 
         appendLine(format("Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
                 yearAndMonth[0],
-                yearAndMonth[1].setScale(0, MathConstants.ROUNDING_MODE),
+                yearAndMonth[1].setScale(0, MathConstants.RM),
                 this.format.percent(ONE.subtract(averagNetSavings.getAmount().divide(averageIncome.getAmount(), C), C)),
                 averageIncome.subtract(averagNetSavings).getAmount()));
 

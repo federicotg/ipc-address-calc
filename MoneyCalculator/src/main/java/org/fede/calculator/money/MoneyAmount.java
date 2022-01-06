@@ -39,7 +39,7 @@ public class MoneyAmount {
         if (this.isZero() || divisor.compareTo(factor) == 0) {
             return this;
         }
-        return new MoneyAmount(this.amount.setScale(MathConstants.SCALE, MathConstants.ROUNDING_MODE).divide(divisor, MathConstants.C)
+        return new MoneyAmount(this.amount.setScale(MathConstants.SCALE, MathConstants.RM).divide(divisor, MathConstants.C)
                 .multiply(factor, MathConstants.C), this.currency);
     }
 

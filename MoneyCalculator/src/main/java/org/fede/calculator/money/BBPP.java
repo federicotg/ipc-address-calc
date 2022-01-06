@@ -50,7 +50,7 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class BBPP {
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.ROUNDING_MODE), "USD");
+    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
 
     private final Format format;
     private final Series series;
