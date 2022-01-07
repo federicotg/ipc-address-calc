@@ -21,15 +21,11 @@ import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
 import static java.util.Comparator.comparing;
-import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
@@ -162,8 +158,8 @@ public class Positions {
 
         final Function<Investment, String> yearClassifier = i -> String.valueOf(YearMonth.of(i.getInitialDate()).getYear());
         final Function<Investment, String> brokerClassifier = i -> i.getComment() == null ? "PPI " : "IBKR";
-
         final Function<Investment, String> anyClassifier = i -> "All ";
+        final Function<Investment, String> etfClassifier = Investment::getCurrency;
 
         final var invByYear = this.by(symbol, nominal, yearClassifier, totalInvestedFunc);
         final var costByYear = this.by(symbol, nominal, yearClassifier, costFunc);
@@ -173,6 +169,9 @@ public class Positions {
 
         final var invByAll = this.by(symbol, nominal, anyClassifier, totalInvestedFunc);
         final var costByAll = this.by(symbol, nominal, anyClassifier, costFunc);
+        
+        final var invByEtf = this.by(symbol, nominal, etfClassifier, totalInvestedFunc);
+        final var costByEtf = this.by(symbol, nominal, etfClassifier, costFunc);
 
         invByYear
                 .keySet()
@@ -187,6 +186,13 @@ public class Positions {
                 .stream()
                 .sorted()
                 .forEach(e -> this.costReport(e, invByBroker, costByBroker));
+        
+        this.console.appendLine();
+        invByEtf
+                .keySet()
+                .stream()
+                .sorted()
+                .forEach(e -> this.costReport(e, invByEtf, costByEtf));
 
         this.console.appendLine();
         invByAll
