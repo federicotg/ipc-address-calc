@@ -66,8 +66,8 @@ public class PortfolioReturns {
         this.bar = bar;
         this.cashInvestments = new CashInvestmentBuilder(
                 SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
-                .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
-                .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
+                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
     }
 
     private static LocalDate min(LocalDate d1, LocalDate d2) {
@@ -219,21 +219,17 @@ public class PortfolioReturns {
 
     public void portfolioAllocation() {
 
-        Map<String, Map<String, Optional<DayDollars>>> dayDollarsByYear = Stream.concat(
-                this.cashInvestments.cashInvestments().stream(),
-                this.series.getInvestments().stream())
+        final var mdrByYear = this.mdrByYear();
+
+        Stream.concat(this.cashInvestments.cashInvestments().stream(), this.series.getInvestments().stream())
                 .flatMap(this::asDayDollarsByYear)
                 .collect(groupingBy(
                         DayDollars::getYear,
-                        groupingBy(DayDollars::getType, reducing(DayDollars::combine))));
-
-        final var mdrByYear = this.mdrByYear();
-
-        dayDollarsByYear.entrySet()
+                        groupingBy(DayDollars::getType, reducing(DayDollars::combine))))
+                .entrySet()
                 .stream()
                 .sorted(comparing(Map.Entry::getKey))
                 .forEach(e -> this.allocationYear(e.getKey(), e.getValue(), mdrByYear));
-
     }
 
     private void allocationYear(String year, Map<String, Optional<DayDollars>> byType, Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear) {
