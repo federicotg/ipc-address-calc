@@ -221,7 +221,7 @@ public class PortfolioReturns {
 
         Map<String, Map<String, Optional<DayDollars>>> dayDollarsByYear = Stream.concat(
                 this.cashInvestments.cashInvestments().stream(),
-                this.series.getInvestments().stream().filter(i -> !i.getInvestment().getCurrency().equals("XAU")))
+                this.series.getInvestments().stream())
                 .flatMap(this::asDayDollarsByYear)
                 .collect(groupingBy(
                         DayDollars::getYear,
