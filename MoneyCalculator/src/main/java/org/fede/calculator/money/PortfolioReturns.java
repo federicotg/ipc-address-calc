@@ -115,9 +115,8 @@ public class PortfolioReturns {
 
         final var inv = Stream.concat(
                 withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
-                this.series.getInvestments()
-                        .stream()
-                        .filter(criteria))
+                this.series.getInvestments().stream())
+                .filter(criteria)
                 .collect(toList());
 
         final var modifiedDietzReturn = new ModifiedDietzReturn(
@@ -165,11 +164,11 @@ public class PortfolioReturns {
                         year -> new ModifiedDietzReturn(inv, "USD", nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()));
     }
 
-    public void returns(boolean nominal, boolean withCash) {
+    public void returns(boolean nominal, boolean withCash, int startYear) {
 
         this.console.appendLine(this.format.title((nominal ? "Nominal " : "Real ") + "returns" + (withCash ? "" : " without cash")));
 
-        final Predicate<Investment> since2000 = i -> after(i.getInitialDate(), 1999, Month.JANUARY, 1);
+        final Predicate<Investment> since2000 = i -> after(i.getInitialDate(), startYear, Month.JANUARY, 1);
 
         this.modifiedDietzReturn(since2000, nominal, withCash);
 

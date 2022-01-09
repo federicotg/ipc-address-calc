@@ -373,10 +373,10 @@ public class ConsoleReports {
                         entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false currency=USD"),
                         entry("inv-evo", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                        entry("mdr", "nominal=false cash=true"),
+                        entry("mdr", "nominal=false cash=true start=1999"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
-                        entry("bbpp", "year=2021 ibkr=true"),
+                        entry("bbpp", "year=2021 ibkr=false"),
                         entry("savings-avg-net-change", "months=12"),
                         entry("savings-avg-net-pct", "months=12"),
                         entry("savings-avg-spent-pct", "months=12"),
@@ -1103,8 +1103,9 @@ public class ConsoleReports {
 
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
         final var withCash = Boolean.parseBoolean(params.getOrDefault("cash", "true"));
+        final var startYear = Integer.parseInt(params.getOrDefault("start", "1999"));
 
-        pr.returns(nominal, withCash);
+        pr.returns(nominal, withCash, startYear);
 
     }
 
