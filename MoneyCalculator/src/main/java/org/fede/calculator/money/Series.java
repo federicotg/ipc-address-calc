@@ -46,6 +46,8 @@ public class Series {
     private Map<String, List<MoneyAmountSeries>> realUSDSavingsByType;
     private Map<String, List<MoneyAmountSeries>> realUSDExpensesByType;
 
+    private MoneyAmountSeries realUSDCondoExpenses;
+
     private List<MoneyAmountSeries> incomeSeries;
 
     private MoneyAmountSeries realNetSavings;
@@ -56,6 +58,26 @@ public class Series {
         }
 
         return investments;
+    }
+
+    public MoneyAmountSeries getRealUSDCondoExpenses() {
+        if (this.realUSDCondoExpenses == null) {
+            this.realUSDCondoExpenses = Stream.of(
+                    "consorcio-administracion",
+                    "consorcio-ascensor",
+                    "consorcio-bomba",
+                    "consorcio-gasto-administrativo",
+                    "consorcio-limpieza",
+                    "consorcio-luz",
+                    "consorcio-matafuegos",
+                    "consorcio-reparaciones",
+                    "consorcio-seguros",
+                    "absa")
+                    .map(p -> this.asRealUSDSeries("expense/", p))
+                    .reduce(MoneyAmountSeries::add)
+                    .get();
+        }
+        return this.realUSDCondoExpenses;
     }
 
     public Map<String, List<MoneyAmountSeries>> getRealUSDExpensesByType() {
