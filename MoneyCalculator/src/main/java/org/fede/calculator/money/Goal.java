@@ -24,6 +24,7 @@ import java.util.Arrays;
 import static java.util.Comparator.comparing;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
@@ -60,6 +61,8 @@ public class Goal {
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.135"), C), C);
 
     private static final TypeReference<List<AnnualHistoricalReturn>> TR = new TypeReference<List<AnnualHistoricalReturn>>() {};
+    
+    private static final Function<BigDecimal, BigDecimal> IBKR_FEE_STRATEGY = new InteractiveBrokersTieredLondonUSDFeeStrategy();
     
     private final double bbppTaxRate;
     private final double bbppMin;
@@ -184,7 +187,7 @@ public class Goal {
         final var yearDeposit = BigDecimal.valueOf(monthlyDeposit * 13)
                 .subtract(BUY_FEE, C);
         
-        final var yearIBKRFee = new InteractiveBrokersTieredLondonUSDFeeStrategy()
+        final var yearIBKRFee = IBKR_FEE_STRATEGY
                 .apply(yearDeposit.divide(yearBuyTransactions, C))
                 .multiply(yearBuyTransactions, C);
         
