@@ -316,10 +316,8 @@ public class ConsoleReports {
                     entry("p", () -> me.portfolio(args, "p")),
                     entry("p-evo", () -> me.portfolioEvo(args, "p-evo")),
                     entry("p-evo-pct", () -> me.portfolioEvoPct(args, "p-evo-pct")),
-                    
                     entry("p-type-evo", () -> new Investments(console, format, bar, series).portfolioTypeEvo(false)),
                     entry("p-type-evo-pct", () -> new Investments(console, format, bar, series).portfolioTypeEvo(true)),
-                    
                     entry("pa", new PortfolioReturns(series, console, format, bar)::portfolioAllocation),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
@@ -330,6 +328,7 @@ public class ConsoleReports {
                     entry("house5", () -> new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2015, 8))),
                     //expenses
                     entry("expenses", () -> me.expenses(args, "expenses")),
+                    entry("condo", () -> me.condo()),
                     entry("expenses-evo", () -> me.expenseEvolution(args, "expenses-evo")),
                     entry("expenses-change", () -> me.expensesChange(args, "expenses-change")),
                     //goal
@@ -456,6 +455,13 @@ public class ConsoleReports {
                 this.format.percent(ONE.subtract(averagNetSavings.getAmount().divide(averageIncome.getAmount(), C), C)),
                 averageIncome.subtract(averagNetSavings).getAmount()));
 
+    }
+
+    private void condo() {
+        this.bar.evolution(
+                format("Average {0}-month condo expenses.", 12),
+                new SimpleAggregation(12).average(this.series.getRealUSDCondoExpenses()),
+                25);
     }
 
     private void expenses(String[] args, String type) {
@@ -722,7 +728,7 @@ public class ConsoleReports {
 
     private void bbpp(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-        
+
         new BBPP(format, series, console)
                 .bbpp(Integer.parseInt(params.getOrDefault("year", "2021")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
     }
@@ -931,9 +937,9 @@ public class ConsoleReports {
                                         .map(MoneyAmount::getAmount)
                                         .map(this.format::currency))));
         this.appendLine(this.row(Stream.concat(Stream.of("Saving %"),
-                                IntStream.of(years)
-                                        .mapToObj(y -> savings.get(y).getAmount().divide(incomes.get(y).getAmount().subtract(ONE, C), C))
-                                        .map(this.format::percent))));
+                IntStream.of(years)
+                        .mapToObj(y -> savings.get(y).getAmount().divide(incomes.get(y).getAmount().subtract(ONE, C), C))
+                        .map(this.format::percent))));
     }
 
     private void yearSavingsIncomeTable() {
@@ -958,8 +964,8 @@ public class ConsoleReports {
                 this.format.currency(savings.get(y).getAmount()),
                 this.format.currency(incomes.get(y).subtract(savings.get(y)).getAmount()),
                 format("{0}", this.format.percent(savings.get(y).getAmount()
-                                .divide(incomes.get(y).getAmount()
-                                        .subtract(ONE, C), C))))))
+                        .divide(incomes.get(y).getAmount()
+                                .subtract(ONE, C), C))))))
                 .forEach(this::appendLine);
     }
 
@@ -1201,7 +1207,7 @@ public class ConsoleReports {
                 "ETF",
                 numberFormat.format(inv.getInvestment().getAmount()),
                 numberFormat.format(currencyConverter.get(inv.getInvestment().getCurrency())
-                                .apply(new MoneyAmount(inv.getIn().getAmount().divide(inv.getInvestment().getAmount(), C), inv.getInvestment().getCurrency()), YearMonth.of(inv.getIn().getDate()))),
+                        .apply(new MoneyAmount(inv.getIn().getAmount().divide(inv.getInvestment().getAmount(), C), inv.getInvestment().getCurrency()), YearMonth.of(inv.getIn().getDate()))),
                 numberFormat.format(
                         currencyConverter.get(inv.getInvestment().getCurrency())
                                 .apply(inv.getIn().getFeeMoneyAmount(), YearMonth.of(inv.getIn().getDate()))))
@@ -1220,13 +1226,13 @@ public class ConsoleReports {
 
     private void positions(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-        
+
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
         final var symbol = params.get("symbol");
         new Positions(this.console, this.format, this.series).positions(symbol, nominal);
-        
+
     }
-    
+
     private void invEvo(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
 
@@ -1245,7 +1251,7 @@ public class ConsoleReports {
         new Investments(console, format, bar, series).portfolioEvo(type, false);
 
     }
-    
+
     private void portfolioEvoPct(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
 
@@ -1254,5 +1260,5 @@ public class ConsoleReports {
         new Investments(console, format, bar, series).portfolioEvo(type, true);
 
     }
-   
+
 }
