@@ -59,6 +59,8 @@ public class Goal {
             
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.135"), C), C);
 
+    private static final TypeReference<List<AnnualHistoricalReturn>> TR = new TypeReference<List<AnnualHistoricalReturn>>() {};
+    
     private final double bbppTaxRate;
     private final double bbppMin;
 
@@ -152,10 +154,7 @@ public class Goal {
             MoneyAmount todaySavings,
             MoneyAmount invested) {
 
-        final var tr = new TypeReference<List<AnnualHistoricalReturn>>() {
-        };
-
-        this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", tr)
+        this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", TR)
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(this::real)
@@ -163,7 +162,7 @@ public class Goal {
                 .map(r -> ONE.setScale(MathConstants.SCALE, RM).add(r.setScale(SCALE, RM).movePointLeft(2), C))
                 .collect(toList());
 
-        this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", tr)
+        this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", TR)
                 .stream()
                 .sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(this::real)
