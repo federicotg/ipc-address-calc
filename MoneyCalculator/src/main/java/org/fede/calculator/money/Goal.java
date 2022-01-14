@@ -232,14 +232,15 @@ public class Goal {
         final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 0.9d);
         final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.8d);
         final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.8d);
-
+        final var retirementYear = 1978 + retirementAge;
+        
         final var successes = IntStream.range(0, trials)
                 .parallel()
                 .mapToObj(i -> this.balanceProportions(periods, allSP500Periods, allRussell2000Periods, allEIMIPeriods, allMEUDPeriods, onlySP500, CSPX_FEE, XRSU_FEE, EIMI_FEE, MEUD_FEE))
                 .filter(randomReturns
                         -> this.goals(
                         startingYear,
-                        1978 + retirementAge,
+                        retirementYear,
                         gauss(end, END_AGE_STD),
                         cash,
                         investedAmount,
