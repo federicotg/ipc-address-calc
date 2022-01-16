@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.text.MessageFormat.format;
+import java.util.ArrayList;
 import java.util.Arrays;
 import static java.util.Comparator.comparing;
 import java.util.List;
@@ -226,15 +227,22 @@ public class Goal {
                 .map(f -> f * withdraw)
                 .toArray();
 
-        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.65d);
-        //final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 0.0d);
-        //final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.0d);
-        //final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.0d);
+        final var fullYearsPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.8d);
+        final var halfYearsPeriods = this.periods(this.sp500TotalReturns, periodYears / 2, 0.8d);
+        final var allPeriods = new ArrayList<double[]>(fullYearsPeriods.size() + halfYearsPeriods.size());
+
+        for (var half : halfYearsPeriods) {
+            for (var full : fullYearsPeriods) {
+
+                allPeriods.add(DoubleStream.concat(Arrays.stream(half), Arrays.stream(full)).toArray());
+            }
+        }
+
         final var retirementYear = 1978 + retirementAge;
 
         final var successes = IntStream.range(0, trials)
                 .parallel()
-                .mapToObj(i -> this.balanceProportions(periods, allSP500Periods, CSPX_FEE))
+                .mapToObj(i -> this.randomPeriods(allPeriods,periods, CSPX_FEE))
                 .filter(randomReturns
                         -> this.goals(
                         startingYear,
@@ -259,14 +267,6 @@ public class Goal {
                 .flatMapToDouble(Arrays::stream)
                 .map(value -> value - fee)
                 .toArray();
-    }
-
-    private double[] balanceProportions(int periods,
-            List<double[]> allSP500Periods,
-            double sp500Fee) {
-
-        return this.randomPeriods(allSP500Periods, periods, sp500Fee);
-
     }
 
     /**
