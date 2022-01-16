@@ -25,8 +25,12 @@ import static java.util.Comparator.comparing;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.AnnualHistoricalReturn;
 import org.fede.calculator.money.series.SeriesReader;
@@ -54,16 +58,14 @@ public class Goal {
     private static final int END_AGE_STD = 6;
 
     private static final BigDecimal BUY_FEE = new BigDecimal("200");
-    
+
     private static final BigDecimal SELL_FEE = new BigDecimal("0.00726").multiply(new BigDecimal("0.5"), C)
             .add(new BigDecimal("0.00056").multiply(new BigDecimal("0.5"), C));
-            
+
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.135"), C), C);
 
-    private static final TypeReference<List<AnnualHistoricalReturn>> TR = new TypeReference<List<AnnualHistoricalReturn>>() {};
-    
     private static final Function<BigDecimal, BigDecimal> IBKR_FEE_STRATEGY = new InteractiveBrokersTieredLondonUSDFeeStrategy();
-    
+
     private final double bbppTaxRate;
     private final double bbppMin;
 
@@ -97,7 +99,7 @@ public class Goal {
         for (var i = startingYear; i < retirement; i++) {
 
             // BB.PP.
-            amount -=  Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
+            amount -= Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
 
             amount = amount * returns[i - startingYear] + deposit[i - startingYear];
         }
@@ -105,11 +107,10 @@ public class Goal {
         for (var i = retirement; i <= end; i++) {
 
             amount -= withdraw[i - startingYear];
-            
+
             // BB.PP.
             amount -= Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
 
-            
             if (amount > 0.0d) {
                 amount *= returns[i - startingYear];
             } else {
@@ -133,14 +134,24 @@ public class Goal {
         return (int) Math.round(gauss((double) mean, (double) std));
     }
 
-    private AnnualHistoricalReturn real(AnnualHistoricalReturn nominal) {
-        return new AnnualHistoricalReturn(
-                nominal.getYear(),
-                Inflation.USD_INFLATION.adjust(
-                        new MoneyAmount(nominal.getTotalReturn(), "USD"),
-                        YearMonth.of(nominal.getYear(), 12),
-                        YearMonth.of(nominal.getYear() - 1, 12)).getAmount());
-    }
+    private static final Collector<Double, double[], Double> VARIANCE_COLLECTOR = Collector.of( // See https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+            () -> new double[3], // {count, mean, M2}
+            (acu, d) -> { // See chapter about Welford's online algorithm and https://math.stackexchange.com/questions/198336/how-to-calculate-standard-deviation-with-streaming-inputs
+                acu[0]++; // Count
+                double delta = d - acu[1];
+                acu[1] += delta / acu[0]; // Mean
+                acu[2] += delta * (d - acu[1]); // M2
+            },
+            (acuA, acuB) -> { // See chapter about "Parallel algorithm" : only called if stream is parallel ...
+                double delta = acuB[1] - acuA[1];
+                double count = acuA[0] + acuB[0];
+                acuA[2] = acuA[2] + acuB[2] + delta * delta * acuA[0] * acuB[0] / count; // M2
+                acuA[1] += delta * acuB[0] / count;  // Mean
+                acuA[0] = count; // Count
+                return acuA;
+            },
+            acu -> acu[2] / (acu[0] - 1.0), // Var = M2 / (count - 1)
+            Collector.Characteristics.UNORDERED);
 
     public void goal(
             final int trials,
@@ -150,28 +161,15 @@ public class Goal {
             final int inflation,
             final int retirementAge,
             final BigDecimal extraCash,
-            final boolean onlySP500,
+            //final boolean onlySP500,
             final boolean afterTax,
             final int age,
             final int pension,
             MoneyAmount todaySavings,
             MoneyAmount invested) {
 
-        this.sp500TotalReturns = SeriesReader.read("index/sp-total-return.json", TR)
-                .stream()
-                .sorted(comparing(AnnualHistoricalReturn::getYear))
-                .map(this::real)
-                .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(MathConstants.SCALE, RM).add(r.setScale(SCALE, RM).movePointLeft(2), C))
-                .collect(toList());
-
-        this.russell2000TotalReturns = SeriesReader.read("index/russell2000.json", TR)
-                .stream()
-                .sorted(comparing(AnnualHistoricalReturn::getYear))
-                .map(this::real)
-                .map(AnnualHistoricalReturn::getTotalReturn)
-                .map(r -> ONE.setScale(SCALE, RM).add(r.setScale(SCALE, RM).movePointLeft(2), C))
-                .collect(toList());
+        //final var gaussReturnSuppier = new GaussReturnSupplier(6.7d, 13.1d);
+        this.sp500TotalReturns = new HistoricalReturnSupplier("index/sp-total-return.json").get();
 
         final var to = USD_INFLATION.getTo();
 
@@ -183,16 +181,16 @@ public class Goal {
                 .add(BigDecimal.valueOf(inflation).setScale(SCALE, RM).movePointLeft(2), C).doubleValue();
 
         final var yearBuyTransactions = BigDecimal.TEN;
-        
+
         final var yearDeposit = BigDecimal.valueOf(monthlyDeposit * 13)
                 .subtract(BUY_FEE, C);
-        
+
         final var yearIBKRFee = IBKR_FEE_STRATEGY
                 .apply(yearDeposit.divide(yearBuyTransactions, C))
                 .multiply(yearBuyTransactions, C);
-        
+
         final var deposit = yearDeposit.subtract(yearIBKRFee, C).doubleValue();
-        
+
         final var withdraw = BigDecimal.valueOf((monthlyWithdraw * 12) - (pension * 13))
                 .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
                 .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, C).doubleValue();
@@ -228,15 +226,15 @@ public class Goal {
                 .map(f -> f * withdraw)
                 .toArray();
 
-        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.9d);
-        final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 0.9d);
-        final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.8d);
-        final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.8d);
+        final var allSP500Periods = this.periods(this.sp500TotalReturns, periodYears, 0.65d);
+        //final var allRussell2000Periods = this.periods(this.russell2000TotalReturns, periodYears, 0.0d);
+        //final var allEIMIPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.0d);
+        //final var allMEUDPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.0d);
         final var retirementYear = 1978 + retirementAge;
-        
+
         final var successes = IntStream.range(0, trials)
                 .parallel()
-                .mapToObj(i -> this.balanceProportions(periods, allSP500Periods, allRussell2000Periods, allEIMIPeriods, allMEUDPeriods, onlySP500, CSPX_FEE, XRSU_FEE, EIMI_FEE, MEUD_FEE))
+                .mapToObj(i -> this.balanceProportions(periods, allSP500Periods, CSPX_FEE))
                 .filter(randomReturns
                         -> this.goals(
                         startingYear,
@@ -265,35 +263,10 @@ public class Goal {
 
     private double[] balanceProportions(int periods,
             List<double[]> allSP500Periods,
-            List<double[]> allRussell2000Periods,
-            List<double[]> allEIMIPeriods,
-            List<double[]> allMEUDPeriods,
-            boolean onlySP500,
-            double sp500Fee,
-            double russellFee,
-            double eimiFee,
-            double meudFee) {
+            double sp500Fee) {
 
-        final var sp500Periods = this.randomPeriods(allSP500Periods, periods, sp500Fee);
+        return this.randomPeriods(allSP500Periods, periods, sp500Fee);
 
-        final var russell2000Periods = onlySP500
-                ? sp500Periods
-                : this.randomPeriods(allRussell2000Periods, periods, russellFee);
-
-        final var eimiPeriods = onlySP500
-                ? sp500Periods
-                : this.randomPeriods(allEIMIPeriods, periods, eimiFee);
-
-        final var meudPeriods = onlySP500
-                ? sp500Periods
-                : this.randomPeriods(allMEUDPeriods, periods, meudFee);
-
-        return IntStream.range(0, sp500Periods.length)
-                .mapToDouble(i -> sp500Periods[i] * SP500_PCT
-                + russell2000Periods[i] * RUSSELL2000_PCT
-                + meudPeriods[i] * MEUD_PCT
-                + eimiPeriods[i] * EIMI_PCT)
-                .toArray();
     }
 
     /**
@@ -301,18 +274,14 @@ public class Goal {
      */
     private List<double[]> periods(List<BigDecimal> returns, final int years, double keepWorsePct) {
 
-        var periods = IntStream.range(0, returns.size() - years + 1)
-                .mapToObj(start -> returns.stream().skip(start).limit(years).mapToDouble(BigDecimal::doubleValue).toArray())
+        final var periodCount = returns.size() - years + 1;
+
+        return IntStream.range(0, periodCount)
+                .mapToObj(start -> returns.stream().skip(start).limit(years))
+                .map(l -> l.mapToDouble(BigDecimal::doubleValue).toArray())
                 .sorted(comparing(this::sum))
+                .limit(Math.round(periodCount * keepWorsePct))
                 .collect(toList());
-
-        if (keepWorsePct > 0.0d) {
-            periods = periods.stream()
-                    .limit(Math.round(periods.size() * keepWorsePct))
-                    .collect(toList());
-        }
-        return periods;
-
     }
 
     private double sum(double[] l) {

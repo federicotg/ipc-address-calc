@@ -718,7 +718,6 @@ public class ConsoleReports {
                 inflation,
                 retirementAge,
                 BigDecimal.valueOf(extraCash),
-                onlySP500,
                 afterTax,
                 age,
                 pension,
