@@ -16,25 +16,21 @@
  */
 package org.fede.calculator.money;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import java.math.RoundingMode;
 import static java.text.MessageFormat.format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import static java.util.Comparator.comparing;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import org.fede.calculator.money.series.AnnualHistoricalReturn;
-import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import static org.fede.calculator.money.MathConstants.RM;
@@ -46,17 +42,9 @@ import static org.fede.calculator.money.MathConstants.SCALE;
  */
 public class Goal {
 
-    private static final double RUSSELL2000_PCT = 0.1d;
-    private static final double SP500_PCT = 0.7d;
-    private static final double EIMI_PCT = 0.1d;
-    private static final double MEUD_PCT = 0.1d;
-
     private static final double CSPX_FEE = 0.0007d;
-    private static final double XRSU_FEE = 0.003d;
-    private static final double EIMI_FEE = 0.0018d;
-    private static final double MEUD_FEE = 0.0007d;
 
-    private static final int END_AGE_STD = 6;
+    private static final int END_AGE_STD = 8;
 
     private static final BigDecimal BUY_FEE = new BigDecimal("200");
 
@@ -71,7 +59,6 @@ public class Goal {
     private final double bbppMin;
 
     private List<BigDecimal> sp500TotalReturns;
-    private List<BigDecimal> russell2000TotalReturns;
 
     private final Console console;
     private final Format format;
@@ -135,34 +122,13 @@ public class Goal {
         return (int) Math.round(gauss((double) mean, (double) std));
     }
 
-    private static final Collector<Double, double[], Double> VARIANCE_COLLECTOR = Collector.of( // See https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-            () -> new double[3], // {count, mean, M2}
-            (acu, d) -> { // See chapter about Welford's online algorithm and https://math.stackexchange.com/questions/198336/how-to-calculate-standard-deviation-with-streaming-inputs
-                acu[0]++; // Count
-                double delta = d - acu[1];
-                acu[1] += delta / acu[0]; // Mean
-                acu[2] += delta * (d - acu[1]); // M2
-            },
-            (acuA, acuB) -> { // See chapter about "Parallel algorithm" : only called if stream is parallel ...
-                double delta = acuB[1] - acuA[1];
-                double count = acuA[0] + acuB[0];
-                acuA[2] = acuA[2] + acuB[2] + delta * delta * acuA[0] * acuB[0] / count; // M2
-                acuA[1] += delta * acuB[0] / count;  // Mean
-                acuA[0] = count; // Count
-                return acuA;
-            },
-            acu -> acu[2] / (acu[0] - 1.0), // Var = M2 / (count - 1)
-            Collector.Characteristics.UNORDERED);
-
     public void goal(
             final int trials,
-            final int periodYears,
             final int monthlyDeposit,
             final int monthlyWithdraw,
             final int inflation,
             final int retirementAge,
             final BigDecimal extraCash,
-            //final boolean onlySP500,
             final boolean afterTax,
             final int age,
             final int pension,
@@ -209,6 +175,11 @@ public class Goal {
         }
         this.console.appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2} +/-{3}.", inflation, retirementAge, age, END_AGE_STD));
 
+        
+        final var retirementYear = 1978 + retirementAge;
+        
+        final var periodYears = retirementYear - YearMonth.of(new Date()).getYear();
+        
         final int startingYear = to.getYear();
         final var end = 1978 + age;
         final var yearsLeft = 100;
@@ -227,8 +198,17 @@ public class Goal {
                 .map(f -> f * withdraw)
                 .toArray();
 
-        final var fullYearsPeriods = this.periods(this.sp500TotalReturns, periodYears, 0.8d);
-        final var halfYearsPeriods = this.periods(this.sp500TotalReturns, periodYears / 2, 0.8d);
+        
+        final var fullYearsPeriods = this.periods(
+                this.sp500TotalReturns, 
+                periodYears, 
+                0.8d);
+        
+        final var halfYearsPeriods = this.periods(
+                this.sp500TotalReturns, 
+                BigDecimal.valueOf(periodYears).divide(BigDecimal.valueOf(2l), RoundingMode.CEILING).intValue(), 
+                0.8d);
+        
         final var allPeriods = new ArrayList<double[]>(fullYearsPeriods.size() + halfYearsPeriods.size());
 
         for (var half : halfYearsPeriods) {
@@ -238,7 +218,7 @@ public class Goal {
             }
         }
 
-        final var retirementYear = 1978 + retirementAge;
+        
 
         final var successes = IntStream.range(0, trials)
                 .parallel()

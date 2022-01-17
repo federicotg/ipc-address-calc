@@ -74,18 +74,16 @@ public class ConsoleReports {
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 
     private static final String TRIALS = "100000";
-    private static final String PERIODS = "20";
     private static final String RETIREMENT = "65";
-    private static final String AGE = "97";
-    private static final String DEPOSIT = "1050";
+    private static final String AGE = "99";
+    private static final String DEPOSIT = "1100";
     private static final String WITHDRAW = "1000";
     private static final String INFLATION = "3";
     private static final String CASH = "0";
-    private static final String SP500 = "true";
     private static final String TAX = "true";
     private static final String BBPP = "2.25";
     private static final String BBPP_MIN = "30000";
-    private static final String PENSION = "75";
+    private static final String PENSION = "100";
 
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(MathConstants.SCALE, MathConstants.RM), BigDecimal::add);
     private static final Collector<Investment, ?, BigDecimal> MAPPER = mapping(inv -> inv.getMoneyAmount().getAmount().setScale(MathConstants.SCALE, MathConstants.RM), REDUCER);
@@ -349,16 +347,14 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", format("trials={0} period={1} retirement={2} age={3} w={4} d={5} inflation={6} cash={7} sp500={8} tax={9} bbpp={10} bbppmin={11} pension={12}",
+                        entry("goal", format("trials={0} retirement={1} age={2} w={3} d={4} inflation={5} cash={6} tax={7} bbpp={8} bbppmin={9} pension={10}",
                                 TRIALS,
-                                PERIODS,
                                 RETIREMENT,
                                 AGE,
                                 WITHDRAW,
                                 DEPOSIT,
                                 INFLATION,
                                 CASH,
-                                SP500,
                                 TAX,
                                 BBPP,
                                 BBPP_MIN,
@@ -685,14 +681,12 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         final var trials = Integer.parseInt(params.getOrDefault("trials", TRIALS));
-        final var periodYears = Integer.parseInt(params.getOrDefault("period", PERIODS));
         final var deposit = Integer.parseInt(params.getOrDefault("d", DEPOSIT));
         final var withdraw = Integer.parseInt(params.getOrDefault("w", WITHDRAW));
         final var inflation = Integer.parseInt(params.getOrDefault("inflation", INFLATION));
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", RETIREMENT));
         final var age = Integer.parseInt(params.getOrDefault("age", AGE));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", CASH));
-        final var onlySP500 = Boolean.parseBoolean(params.getOrDefault("sp500", SP500));
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", TAX));
         final var pension = Integer.parseInt(params.getOrDefault("pension", PENSION));
 
@@ -712,7 +706,6 @@ public class ConsoleReports {
 
         goal.goal(
                 trials,
-                periodYears,
                 deposit,
                 withdraw,
                 inflation,
@@ -1228,7 +1221,7 @@ public class ConsoleReports {
 
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
         final var symbol = params.get("symbol");
-        new Positions(this.console, this.format, this.series).positions(symbol, nominal);
+        new Positions(this.console, this.format, this.series, this.bar).positions(symbol, nominal);
 
     }
 

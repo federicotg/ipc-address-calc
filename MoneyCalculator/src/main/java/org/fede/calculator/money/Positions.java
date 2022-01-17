@@ -56,11 +56,13 @@ public class Positions {
     private final Console console;
     private final Format format;
     private final Series series;
+    private final Bar bar;
 
-    public Positions(Console console, Format format, Series series) {
+    public Positions(Console console, Format format, Series series, Bar bar) {
         this.console = console;
         this.format = format;
         this.series = series;
+        this.bar = bar;
     }
 
     public void positions(String symbol, boolean nominal) {
@@ -69,26 +71,28 @@ public class Positions {
         final var posWidth = 4;
         final var lastWidth = 11;
         final var costWidth = 14;
+        final var costPct = 9;
         final var mkvWidth = 14;
         final var avgWidth = 12;
         final var pnlWidth = 14;
-        final var pnlPctWidth = 10;
+        final var pnlPctWidth = 9;
 
-        final var separator = IntStream.rangeClosed(0, IntStream.of(descWidth, posWidth, lastWidth, costWidth, mkvWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
+        final var separator = IntStream.rangeClosed(0, IntStream.of(costPct,descWidth, posWidth, lastWidth, costWidth, mkvWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
                 .mapToObj(n -> "=")
                 .collect(joining());
 
-        final var fmt = " {0}{1}{2}{3}{4}{5}{6}{7}";
+        final var fmt = " {0}{1}{2}{3}{4}{5}{6}{7}{8}";
 
         this.console.appendLine(MessageFormat.format(fmt,
                 this.format.text("       Fund", descWidth),
                 this.format.text(" Pos.", posWidth),
                 this.format.text("     Last", lastWidth),
                 this.format.text("   Cost Basis", costWidth),
+                this.format.text("    %", costPct),
                 this.format.text(" Market Value", mkvWidth),
                 this.format.text("  Avg. Price", avgWidth),
                 this.format.text("       P&L", pnlWidth),
-                this.format.text("    P&L %", pnlPctWidth)));
+                this.format.text("    %", pnlPctWidth)));
 
         this.console.appendLine(separator);
 
@@ -105,20 +109,6 @@ public class Positions {
                 .map(this::position)
                 .collect(toList());
 
-        positions
-                .stream()
-                .sorted(comparing((Position p) -> p.getMarketValue().getAmount(), reverseOrder()))
-                .map(p -> MessageFormat.format(fmt,
-                this.format.text(p.getFundName(), descWidth),
-                String.format("%" + posWidth + "d", p.getPosition().intValue()),
-                this.format.currency(p.getLast().getAmount(), lastWidth),
-                this.format.currency(p.getCostBasis().getAmount(), costWidth),
-                this.format.currency(p.getMarketValue().getAmount(), mkvWidth),
-                this.format.currency(p.getAveragePrice().getAmount(), avgWidth),
-                this.format.currency(p.getUnrealizedPnL().getAmount(), pnlWidth),
-                this.format.percent(p.getUnrealizedPnLPct(), pnlPctWidth)))
-                .forEach(this.console::appendLine);
-
         final var totalMarketValue = positions
                 .stream()
                 .map(Position::getMarketValue)
@@ -134,16 +124,32 @@ public class Positions {
                 .map(Position::getUnrealizedPnL)
                 .reduce(ZERO_USD, MoneyAmount::add);
 
+        positions
+                .stream()
+                .sorted(comparing((Position p) -> p.getMarketValue().getAmount(), reverseOrder()))
+                .map(p -> MessageFormat.format(fmt,
+                this.format.text(p.getFundName(), descWidth),
+                String.format("%" + posWidth + "d", p.getPosition().intValue()),
+                this.format.currency(p.getLast().getAmount(), lastWidth),
+                this.format.currency(p.getCostBasis().getAmount(), costWidth),
+                this.format.percent(p.getCostBasis().getAmount().divide(totalCostBasis.getAmount(), C), costPct),
+                this.format.currency(p.getMarketValue().getAmount(), mkvWidth),
+                this.format.currency(p.getAveragePrice().getAmount(), avgWidth),
+                this.format.currency(p.getUnrealizedPnL().getAmount(), pnlWidth),
+                this.format.percent(p.getUnrealizedPnL().getAmount().divide(totalPnL.getAmount(), C), pnlPctWidth)))
+                .forEach(this.console::appendLine);
+
         this.console.appendLine(separator);
         this.console.appendLine(MessageFormat.format(fmt,
-                        this.format.text("Total", descWidth),
-                        this.format.text("", posWidth),
-                        this.format.text("", lastWidth),
-                        this.format.currency(totalCostBasis.getAmount(), costWidth),
-                        this.format.currency(totalMarketValue.getAmount(), mkvWidth),
-                        this.format.text("", avgWidth),
-                        this.format.currency(totalPnL.getAmount(), pnlWidth),
-                        this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
+                this.format.text("Total", descWidth),
+                this.format.text("", posWidth),
+                this.format.text("", lastWidth),
+                this.format.currency(totalCostBasis.getAmount(), costWidth),
+                this.format.text("", costPct),
+                this.format.currency(totalMarketValue.getAmount(), mkvWidth),
+                this.format.text("", avgWidth),
+                this.format.currency(totalPnL.getAmount(), pnlWidth),
+                this.format.text("", pnlPctWidth)));
 
         this.costs(symbol, nominal);
 
@@ -169,7 +175,7 @@ public class Positions {
 
         final var invByAll = this.by(symbol, nominal, anyClassifier, totalInvestedFunc);
         final var costByAll = this.by(symbol, nominal, anyClassifier, costFunc);
-        
+
         final var invByEtf = this.by(symbol, nominal, etfClassifier, totalInvestedFunc);
         final var costByEtf = this.by(symbol, nominal, etfClassifier, costFunc);
 
@@ -186,7 +192,7 @@ public class Positions {
                 .stream()
                 .sorted()
                 .forEach(e -> this.costReport(e, invByBroker, costByBroker));
-        
+
         this.console.appendLine();
         invByEtf
                 .keySet()
