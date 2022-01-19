@@ -68,6 +68,8 @@ public class Goal {
     private final Console console;
     private final Format format;
 
+    private final List<Double> topAmount = new ArrayList<>(1000);
+
     public Goal(Console console, Format format, double bbppTaxRate, double bbppMin) {
         this.bbppTaxRate = bbppTaxRate;
         this.bbppMin = bbppMin;
@@ -96,6 +98,9 @@ public class Goal {
 
             amount = amount * returns[i - startingYear] + deposit[i - startingYear];
         }
+
+        this.topAmount.add(amount);
+
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
@@ -233,6 +238,37 @@ public class Goal {
         this.console.appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
 
         this.console.appendLine(format("{0}/{1} {2}", successes, trials, this.format.percent(BigDecimal.valueOf((double) successes / (double) trials))));
+
+        final var stats = this.topAmount.stream().mapToDouble(Double::doubleValue).summaryStatistics();
+
+        final var mean = stats.getAverage();
+
+        this.console.appendLine(this.format.subtitle("Top Amount"));
+
+        this.console.appendLine(
+                "[", 
+                this.format.currency(BigDecimal.valueOf(stats.getMin())),
+                ", ", 
+                this.format.currency(BigDecimal.valueOf(stats.getMax())),
+                "]");
+
+        // Variance
+        final double variance = this.topAmount.stream()
+                .mapToDouble(Double::doubleValue)
+                .map(i -> i - mean)
+                .map(i -> i * i)
+                .average()
+                .getAsDouble();
+
+        //Standard Deviation 
+        final double standardDeviation = Math.sqrt(variance);
+
+        this.console.appendLine(
+                "µ ",
+                this.format.currency(BigDecimal.valueOf(mean)),
+                " σ ",
+                this.format.currency(BigDecimal.valueOf(standardDeviation))
+        );
 
     }
 
