@@ -27,9 +27,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
+import jdk.jfr.Experimental;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
@@ -44,7 +46,7 @@ public class Goal {
 
     private static final double CSPX_FEE = 0.0007d;
 
-    private static final int END_AGE_STD = 8;
+    private static final int END_AGE_STD = 5;
 
     private static final BigDecimal BUY_FEE = new BigDecimal("200");
 
@@ -57,8 +59,6 @@ public class Goal {
 
     private final double bbppTaxRate;
     private final double bbppMin;
-
-    private List<BigDecimal> sp500TotalReturns;
 
     private final Console console;
     private final Format format;
@@ -133,10 +133,8 @@ public class Goal {
             final int age,
             final int pension,
             MoneyAmount todaySavings,
-            MoneyAmount invested) {
-
-        //final var gaussReturnSuppier = new GaussReturnSupplier(6.7d, 13.1d);
-        this.sp500TotalReturns = new HistoricalReturnSupplier("index/sp-total-return.json").get();
+            MoneyAmount invested,
+            boolean expected) {
 
         final var to = USD_INFLATION.getTo();
 
@@ -175,11 +173,10 @@ public class Goal {
         }
         this.console.appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2} +/-{3}.", inflation, retirementAge, age, END_AGE_STD));
 
-        
         final var retirementYear = 1978 + retirementAge;
-        
+
         final var periodYears = retirementYear - YearMonth.of(new Date()).getYear();
-        
+
         final int startingYear = to.getYear();
         final var end = 1978 + age;
         final var yearsLeft = 100;
@@ -198,17 +195,66 @@ public class Goal {
                 .map(f -> f * withdraw)
                 .toArray();
 
+        long successes;
+        if (expected) {
+            successes = this.expectedReturnSuccesses(
+                    new GaussReturnSupplier(6.25d * 0.8d + 6.92d * 0.2d, 13.65d * 0.8d + 13.78d * 0.2d, periodYears * periods),
+                    trials,
+                    startingYear,
+                    retirementYear,
+                    end,
+                    age,
+                    investedAmount,
+                    realDeposits,
+                    realWithdrawals);
+
+        } else {
+            successes = this.historicReturnSuccesses(
+                    new HistoricalReturnSupplier("index/sp-total-return.json"),
+                    periodYears,
+                    trials,
+                    periods,
+                    startingYear,
+                    retirementYear,
+                    end,
+                    age,
+                    investedAmount,
+                    realDeposits,
+                    realWithdrawals);
+        }
+        this.console.appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
+
+        this.console.appendLine(format("{0}/{1} {2}", successes, trials, this.format.percent(BigDecimal.valueOf((double) successes / (double) trials))));
+
+    }
+
+    private long historicReturnSuccesses(
+            Supplier<List<BigDecimal>> returnsSuplier,
+            int periodYears,
+            int trials,
+            int periods,
+            int startingYear,
+            int retirementYear,
+            int end,
+            int cash,
+            double investedAmount,
+            double[] realDeposits,
+            double[] realWithdrawals) {
+
+        final var sp500TotalReturns = returnsSuplier.get();
+
+        final double keepWorsePct = 0.75d;
         
         final var fullYearsPeriods = this.periods(
-                this.sp500TotalReturns, 
-                periodYears, 
-                0.8d);
-        
+                sp500TotalReturns,
+                periodYears,
+                keepWorsePct);
+
         final var halfYearsPeriods = this.periods(
-                this.sp500TotalReturns, 
-                BigDecimal.valueOf(periodYears).divide(BigDecimal.valueOf(2l), RoundingMode.CEILING).intValue(), 
-                0.8d);
-        
+                sp500TotalReturns,
+                BigDecimal.valueOf(periodYears).divide(BigDecimal.valueOf(2l), RoundingMode.CEILING).intValue(),
+                keepWorsePct);
+
         final var allPeriods = new ArrayList<double[]>(fullYearsPeriods.size() + halfYearsPeriods.size());
 
         for (var half : halfYearsPeriods) {
@@ -218,11 +264,9 @@ public class Goal {
             }
         }
 
-        
-
-        final var successes = IntStream.range(0, trials)
+        return IntStream.range(0, trials)
                 .parallel()
-                .mapToObj(i -> this.randomPeriods(allPeriods,periods, CSPX_FEE))
+                .mapToObj(i -> this.randomPeriods(allPeriods, periods, CSPX_FEE))
                 .filter(randomReturns
                         -> this.goals(
                         startingYear,
@@ -234,11 +278,33 @@ public class Goal {
                         realDeposits,
                         realWithdrawals))
                 .count();
+    }
 
-        this.console.appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
+    private long expectedReturnSuccesses(
+            Supplier<double[]> returnsSuplier,
+            int trials,
+            int startingYear,
+            int retirementYear,
+            int end,
+            int cash,
+            double investedAmount,
+            double[] realDeposits,
+            double[] realWithdrawals) {
 
-        this.console.appendLine(format("{0}/{1} {2}", successes, trials, this.format.percent(BigDecimal.valueOf((double) successes / (double) trials))));
-
+        return IntStream.range(0, trials)
+                .parallel()
+                .mapToObj(i -> returnsSuplier.get())
+                .filter(randomReturns
+                        -> this.goals(
+                        startingYear,
+                        retirementYear,
+                        gauss(end, END_AGE_STD),
+                        cash,
+                        investedAmount,
+                        randomReturns,
+                        realDeposits,
+                        realWithdrawals))
+                .count();
     }
 
     private double[] randomPeriods(List<double[]> allReturns, int periods, double fee) {

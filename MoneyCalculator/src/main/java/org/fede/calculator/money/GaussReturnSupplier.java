@@ -27,14 +27,16 @@ import java.util.stream.IntStream;
  *
  * @author fede
  */
-public class GaussReturnSupplier implements Supplier<List<BigDecimal>> {
+public class GaussReturnSupplier implements Supplier<double[]> {
 
     private final double mean;
     private final double std;
+    private final int years;
 
-    public GaussReturnSupplier(double mean, double std) {
+    public GaussReturnSupplier(double mean, double std, int years) {
         this.mean = mean;
         this.std = std;
+        this.years = years;
     }
 
     private double gauss() {
@@ -42,13 +44,12 @@ public class GaussReturnSupplier implements Supplier<List<BigDecimal>> {
     }
 
     @Override
-    public List<BigDecimal> get() {
+    public double[] get() {
         
-        return IntStream.range(0, 1000)
+        return IntStream.range(0, this.years)
                 .mapToDouble(i -> gauss())
                 .map(r -> 1.0d + (r / 100.0d))
-                .mapToObj(BigDecimal::new)
-                .collect(Collectors.toList());
+                .toArray();
     
     }
     

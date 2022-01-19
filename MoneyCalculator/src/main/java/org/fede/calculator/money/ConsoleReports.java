@@ -81,6 +81,7 @@ public class ConsoleReports {
     private static final String INFLATION = "3";
     private static final String CASH = "0";
     private static final String TAX = "true";
+    private static final String EXPECTED_RETRUNS = "false";
     private static final String BBPP = "2.25";
     private static final String BBPP_MIN = "30000";
     private static final String PENSION = "100";
@@ -347,7 +348,7 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", format("trials={0} retirement={1} age={2} w={3} d={4} inflation={5} cash={6} tax={7} bbpp={8} bbppmin={9} pension={10}",
+                        entry("goal", format("trials={0} retirement={1} age={2} w={3} d={4} inflation={5} cash={6} tax={7} bbpp={8} bbppmin={9} pension={10} exp={11}",
                                 TRIALS,
                                 RETIREMENT,
                                 AGE,
@@ -358,7 +359,8 @@ public class ConsoleReports {
                                 TAX,
                                 BBPP,
                                 BBPP_MIN,
-                                PENSION)),
+                                PENSION, 
+                                EXPECTED_RETRUNS)),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "months=12"),
@@ -688,6 +690,7 @@ public class ConsoleReports {
         final var age = Integer.parseInt(params.getOrDefault("age", AGE));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", CASH));
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", TAX));
+        final var expected = Boolean.parseBoolean(params.getOrDefault("exp", EXPECTED_RETRUNS));
         final var pension = Integer.parseInt(params.getOrDefault("pension", PENSION));
 
         final var bbppTax = afterTax
@@ -715,7 +718,8 @@ public class ConsoleReports {
                 age,
                 pension,
                 todaySavings,
-                invested);
+                invested,
+                expected);
     }
 
     private void bbpp(String[] args, String paramName) {
