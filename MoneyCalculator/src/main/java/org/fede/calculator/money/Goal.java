@@ -239,21 +239,21 @@ public class Goal {
 
         this.console.appendLine(format("{0}/{1} {2}", successes, trials, this.format.percent(BigDecimal.valueOf((double) successes / (double) trials))));
 
-        final var stats = this.topAmount.stream().mapToDouble(Double::doubleValue).summaryStatistics();
+        final var stats = this.topAmount.parallelStream().mapToDouble(Double::doubleValue).summaryStatistics();
 
         final var mean = stats.getAverage();
 
         this.console.appendLine(this.format.subtitle("Top Amount"));
 
         this.console.appendLine(
-                "[", 
+                "[ ", 
                 this.format.currency(BigDecimal.valueOf(stats.getMin())),
-                ", ", 
+                " , ", 
                 this.format.currency(BigDecimal.valueOf(stats.getMax())),
-                "]");
+                " ]");
 
         // Variance
-        final double variance = this.topAmount.stream()
+        final double variance = this.topAmount.parallelStream()
                 .mapToDouble(Double::doubleValue)
                 .map(i -> i - mean)
                 .map(i -> i * i)
