@@ -31,7 +31,6 @@ import java.util.function.Supplier;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
-import jdk.jfr.Experimental;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
@@ -43,6 +42,12 @@ import static org.fede.calculator.money.MathConstants.SCALE;
  * @author fede
  */
 public class Goal {
+
+    private static final double US_NOMINAL_EXPECTED_RETURN = 6.25d;
+    private static final double US_EXPECTED_RETURN_STDDEV = 14.21d;
+
+    private static final double EX_US_NOMINAL_EXPECTED_RETURN = 6.92d;
+    private static final double EX_US_EXPECTED_RETURN_STDDEV = 13.12d;
 
     private static final double CSPX_FEE = 0.0007d;
 
@@ -198,7 +203,10 @@ public class Goal {
         long successes;
         if (expected) {
             successes = this.expectedReturnSuccesses(
-                    new GaussReturnSupplier(6.25d * 0.8d + 6.92d * 0.2d, 13.65d * 0.8d + 13.78d * 0.2d, periodYears * periods),
+                    new GaussReturnSupplier(
+                            US_NOMINAL_EXPECTED_RETURN * 0.8d + EX_US_NOMINAL_EXPECTED_RETURN * 0.2d,
+                            US_EXPECTED_RETURN_STDDEV * 0.8d + EX_US_EXPECTED_RETURN_STDDEV * 0.2d,
+                            periodYears * periods),
                     trials,
                     startingYear,
                     retirementYear,
@@ -244,7 +252,7 @@ public class Goal {
         final var sp500TotalReturns = returnsSuplier.get();
 
         final double keepWorsePct = 0.75d;
-        
+
         final var fullYearsPeriods = this.periods(
                 sp500TotalReturns,
                 periodYears,
