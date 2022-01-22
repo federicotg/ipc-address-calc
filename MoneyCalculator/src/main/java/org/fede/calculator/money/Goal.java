@@ -43,6 +43,9 @@ import static org.fede.calculator.money.MathConstants.SCALE;
  */
 public class Goal {
 
+    private static final double OFFICIAL_DOLLAR_MEAN = 0.8d;
+    private static final double OFFICIAL_DOLLAR_STD_DEV = 0.1d;
+    
     private static final double US_NOMINAL_EXPECTED_RETURN = 6.25d;
     private static final double US_EXPECTED_RETURN_STDDEV = 14.21d;
 
@@ -95,7 +98,7 @@ public class Goal {
         for (var i = startingYear; i < retirement; i++) {
 
             // brecha
-            final var officialDollarFactor = Math.min(1.0d, this.gauss(0.8d, 0.05d));
+            final var officialDollarFactor = Math.min(1.0d, this.gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
 
             // BB.PP.
             bbpp = Math.max(amount * officialDollarFactor - this.bbppMin, 0.0d) * this.bbppTaxRate;
@@ -108,17 +111,19 @@ public class Goal {
 
         this.topAmount.add(amount);
 
+        final var cgt = CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT.doubleValue();
+        
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
             amount -= withdraw[i - startingYear];
 
             // brecha
-            final var officialDollarFactor = Math.min(1.0d, this.gauss(0.8d, 0.05d));
+            final var officialDollarFactor = Math.min(1.0d, this.gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
 
             // BB.PP.
             bbpp = Math.max(amount * officialDollarFactor - this.bbppMin, 0.0d) * this.bbppTaxRate;
-            amount -= bbpp;
+            amount -= bbpp * cgt;
 
             if (amount > 0.0d) {
                 amount *= returns[i - startingYear];
