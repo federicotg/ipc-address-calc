@@ -69,7 +69,6 @@ public class Goal {
     private final Format format;
 
     private final List<Double> topAmount = new ArrayList<>(1000);
-    //private final List<Double> bbppAmounts = new ArrayList<>(1000);
 
     public Goal(Console console, Format format, double bbppTaxRate, double bbppMin) {
         this.bbppTaxRate = bbppTaxRate;
@@ -91,19 +90,17 @@ public class Goal {
 
         double cashAmount = cash;
         double amount = investedAmount;
-        double bbpp; 
+        double bbpp;
         // depositing
         for (var i = startingYear; i < retirement; i++) {
 
+            // brecha
+            final var officialDollarFactor = Math.min(1.0d, this.gauss(0.8d, 0.05d));
+
             // BB.PP.
-            bbpp = Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
-            //this.bbppAmounts.add(bbpp);
+            bbpp = Math.max(amount * officialDollarFactor - this.bbppMin, 0.0d) * this.bbppTaxRate;
             final var d = deposit[i - startingYear];
-            
-//            if(bbpp < d * 0.4d){
-//                bbpp = 0.0d;
-//            }
-            
+
             amount -= bbpp;
 
             amount = amount * returns[i - startingYear] + d;
@@ -116,9 +113,11 @@ public class Goal {
 
             amount -= withdraw[i - startingYear];
 
+            // brecha
+            final var officialDollarFactor = Math.min(1.0d, this.gauss(0.8d, 0.05d));
+
             // BB.PP.
-            bbpp = Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
-            //this.bbppAmounts.add(bbpp);
+            bbpp = Math.max(amount * officialDollarFactor - this.bbppMin, 0.0d) * this.bbppTaxRate;
             amount -= bbpp;
 
             if (amount > 0.0d) {
@@ -252,12 +251,9 @@ public class Goal {
         this.console.appendLine(format("{0}/{1} {2}", successes, trials, this.format.percent(BigDecimal.valueOf((double) successes / (double) trials))));
 
         this.stats(this.topAmount, "Top Amount");
-        //this.stats(this.bbppAmounts, "BB.PP.");
-
     }
 
-    
-    private void stats(List<Double> values, String title){
+    private void stats(List<Double> values, String title) {
         final var stats = values.parallelStream().mapToDouble(Double::doubleValue).summaryStatistics();
 
         final var mean = stats.getAverage();
@@ -265,9 +261,9 @@ public class Goal {
         this.console.appendLine(this.format.subtitle(title));
 
         this.console.appendLine(
-                "[ ", 
+                "[ ",
                 this.format.currency(BigDecimal.valueOf(stats.getMin())),
-                " , ", 
+                " , ",
                 this.format.currency(BigDecimal.valueOf(stats.getMax())),
                 " ]");
 
@@ -289,7 +285,7 @@ public class Goal {
                 this.format.currency(BigDecimal.valueOf(standardDeviation))
         );
     }
-    
+
     private long historicReturnSuccesses(
             Supplier<List<BigDecimal>> returnsSuplier,
             int periodYears,
