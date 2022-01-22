@@ -69,6 +69,7 @@ public class Goal {
     private final Format format;
 
     private final List<Double> topAmount = new ArrayList<>(1000);
+    //private final List<Double> bbppAmounts = new ArrayList<>(1000);
 
     public Goal(Console console, Format format, double bbppTaxRate, double bbppMin) {
         this.bbppTaxRate = bbppTaxRate;
@@ -90,13 +91,22 @@ public class Goal {
 
         double cashAmount = cash;
         double amount = investedAmount;
+        double bbpp; 
         // depositing
         for (var i = startingYear; i < retirement; i++) {
 
             // BB.PP.
-            amount -= Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
+            bbpp = Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
+            //this.bbppAmounts.add(bbpp);
+            final var d = deposit[i - startingYear];
+            
+//            if(bbpp < d * 0.4d){
+//                bbpp = 0.0d;
+//            }
+            
+            amount -= bbpp;
 
-            amount = amount * returns[i - startingYear] + deposit[i - startingYear];
+            amount = amount * returns[i - startingYear] + d;
         }
 
         this.topAmount.add(amount);
@@ -107,7 +117,9 @@ public class Goal {
             amount -= withdraw[i - startingYear];
 
             // BB.PP.
-            amount -= Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
+            bbpp = Math.max(amount - this.bbppMin, 0.0d) * this.bbppTaxRate;
+            //this.bbppAmounts.add(bbpp);
+            amount -= bbpp;
 
             if (amount > 0.0d) {
                 amount *= returns[i - startingYear];
@@ -239,11 +251,18 @@ public class Goal {
 
         this.console.appendLine(format("{0}/{1} {2}", successes, trials, this.format.percent(BigDecimal.valueOf((double) successes / (double) trials))));
 
-        final var stats = this.topAmount.parallelStream().mapToDouble(Double::doubleValue).summaryStatistics();
+        this.stats(this.topAmount, "Top Amount");
+        //this.stats(this.bbppAmounts, "BB.PP.");
+
+    }
+
+    
+    private void stats(List<Double> values, String title){
+        final var stats = values.parallelStream().mapToDouble(Double::doubleValue).summaryStatistics();
 
         final var mean = stats.getAverage();
 
-        this.console.appendLine(this.format.subtitle("Top Amount"));
+        this.console.appendLine(this.format.subtitle(title));
 
         this.console.appendLine(
                 "[ ", 
@@ -253,7 +272,7 @@ public class Goal {
                 " ]");
 
         // Variance
-        final double variance = this.topAmount.parallelStream()
+        final double variance = values.parallelStream()
                 .mapToDouble(Double::doubleValue)
                 .map(i -> i - mean)
                 .map(i -> i * i)
@@ -269,9 +288,8 @@ public class Goal {
                 " σ ",
                 this.format.currency(BigDecimal.valueOf(standardDeviation))
         );
-
     }
-
+    
     private long historicReturnSuccesses(
             Supplier<List<BigDecimal>> returnsSuplier,
             int periodYears,

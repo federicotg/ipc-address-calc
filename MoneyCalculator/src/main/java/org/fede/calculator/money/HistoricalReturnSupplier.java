@@ -19,7 +19,6 @@ package org.fede.calculator.money;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
-import static java.util.Comparator.comparing;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -58,7 +57,6 @@ public class HistoricalReturnSupplier implements Supplier<List<BigDecimal>> {
     public List<BigDecimal> get() {
         return SeriesReader.read(this.seriesName, TR)
                 .stream()
-                //.sorted(comparing(AnnualHistoricalReturn::getYear))
                 .map(this::real)
                 .map(AnnualHistoricalReturn::getTotalReturn)
                 .map(r -> ONE.setScale(MathConstants.SCALE, RM).add(r.setScale(SCALE, RM).movePointLeft(2), C))
