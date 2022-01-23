@@ -421,8 +421,7 @@ public class ConsoleReports {
         // total income
         final var totalIncome = this.series.realIncome()
                 .moneyAmountStream()
-                .reduce(MoneyAmount::add)
-                .get();
+                .reduce(ZERO_USD, MoneyAmount::add);
 
         final var months = this.series.realIncome().getFrom().monthsUntil(limit);
 
