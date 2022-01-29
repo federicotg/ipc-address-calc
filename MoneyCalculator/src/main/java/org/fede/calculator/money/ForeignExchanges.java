@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.money;
 
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -147,7 +149,7 @@ public class ForeignExchanges {
     public static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(String from, String to) {
         return (amount, ym) -> getForeignExchange(from, to).exchange(amount, to, ym);
     }
-    
+
     public static ForeignExchange getForeignExchange(String from, String to) {
         if (from.equals(to)) {
             return getIdentityForeignExchange(from);
@@ -184,7 +186,7 @@ public class ForeignExchanges {
 
         answer.setId(investment.getId());
         answer.setComment(investment.getComment());
-        
+
         if (investment.getType().equals(InvestmentType.USD)) {
             InvestmentEvent usdIn = new InvestmentEvent();
             usdIn.setCurrency(targetCurrency);
@@ -218,17 +220,26 @@ public class ForeignExchanges {
         final var fee = new MoneyAmount(in.getFee(), in.getCurrency());
 
         InvestmentEvent answer = new InvestmentEvent();
-        MoneyAmount ma = fx.exchange(in.getMoneyAmount(), currency, in.getDate());
+        //MoneyAmount ma = fx.exchange(in.getMoneyAmount(), currency, in.getDate());
+        MoneyAmount ma = fx(in.getFx(),fx, in.getMoneyAmount(), currency, in.getDate());
         answer.setAmount(ma.getAmount());
         answer.setCurrency(ma.getCurrency());
         answer.setDate(in.getDate());
-        answer.setFee(fx.exchange(fee, currency, in.getDate()).getAmount());
+        //answer.setFee(fx.exchange(fee, currency, in.getDate()).getAmount());
+        answer.setFee(fx(in.getFx(), fx, fee, currency, in.getDate()).getAmount());
         answer.setTransferFee(
                 Optional.ofNullable(in.getTransferFee())
-                        .map(trfee -> fx.exchange(new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).getAmount())
+                        .map(trfee -> fx(in.getFx(), fx, new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).getAmount())
                         .orElse(null));
-        
+
         return answer;
     }
 
+    private static MoneyAmount fx(BigDecimal optionalFxRate, ForeignExchange fx, MoneyAmount ma, String currency, Date date) {
+        if (optionalFxRate == null) {
+
+            return fx.exchange(ma, currency, date);
+        }
+        return new MoneyAmount(ma.getAmount().multiply(optionalFxRate, MathConstants.C), "USD");
+    }
 }

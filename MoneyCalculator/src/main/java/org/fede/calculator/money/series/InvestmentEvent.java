@@ -36,6 +36,7 @@ public class InvestmentEvent {
     private BigDecimal fee;
     private String currency;
     private BigDecimal transferFee;
+    private BigDecimal fx;
 
     public BigDecimal getTransferFee() {
         return this.transferFee;
@@ -96,6 +97,14 @@ public class InvestmentEvent {
                 .add("amount: " + this.amount.toString())
                 .add("date: " + this.date.toString())
                 .toString();
+    }
+
+    public BigDecimal getFx() {
+        return fx;
+    }
+
+    public void setFx(BigDecimal fx) {
+        this.fx = fx;
     }
 
 }

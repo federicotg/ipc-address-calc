@@ -45,7 +45,7 @@ public class Goal {
 
     private static final double OFFICIAL_DOLLAR_MEAN = 0.8d;
     private static final double OFFICIAL_DOLLAR_STD_DEV = 0.1d;
-    
+
     private static final double US_NOMINAL_EXPECTED_RETURN = 6.25d;
     private static final double US_EXPECTED_RETURN_STDDEV = 14.21d;
 
@@ -112,7 +112,7 @@ public class Goal {
         this.topAmount.add(amount);
 
         final var cgt = CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT.doubleValue();
-        
+
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
@@ -259,18 +259,7 @@ public class Goal {
     }
 
     private void stats(List<Double> values, String title) {
-        final var stats = values.parallelStream().mapToDouble(Double::doubleValue).summaryStatistics();
-
-        final var mean = stats.getAverage();
-
-        this.console.appendLine(this.format.subtitle(title));
-
-        this.console.appendLine(
-                "[ ",
-                this.format.currency(BigDecimal.valueOf(stats.getMin())),
-                " , ",
-                this.format.currency(BigDecimal.valueOf(stats.getMax())),
-                " ]");
+        final var mean = values.parallelStream().mapToDouble(Double::doubleValue).average().getAsDouble();
 
         // Variance
         final double variance = values.parallelStream()
@@ -283,12 +272,22 @@ public class Goal {
         //Standard Deviation 
         final double standardDeviation = Math.sqrt(variance);
 
+        this.console.appendLine(this.format.subtitle(title));
+
+        this.console.appendLine(
+                "[ ",
+                this.format.currency(BigDecimal.valueOf(mean - 2 * standardDeviation)),
+                " , ",
+                this.format.currency(BigDecimal.valueOf(mean + 2 * standardDeviation)),
+                " ]");
+
         this.console.appendLine(
                 "µ ",
                 this.format.currency(BigDecimal.valueOf(mean)),
                 " σ ",
                 this.format.currency(BigDecimal.valueOf(standardDeviation))
         );
+
     }
 
     private long historicReturnSuccesses(
