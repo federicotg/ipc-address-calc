@@ -124,6 +124,7 @@ public interface Inflation extends Series {
                         new MoneyAmount(in.getFee(), in.getCurrency()),
                         start,
                         moment).getAmount());
+        answer.setFx(in.getFx());
         return answer;
     }
 

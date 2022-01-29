@@ -206,7 +206,7 @@ public class ForeignExchanges {
         asset.setCurrency(investment.getInvestment().getCurrency());
         asset.setAmount(investment.getInvestment().getAmount());
         answer.setInvestment(asset);
-
+        
         return answer;
 
     }
@@ -231,7 +231,7 @@ public class ForeignExchanges {
                 Optional.ofNullable(in.getTransferFee())
                         .map(trfee -> fx(in.getFx(), fx, new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).getAmount())
                         .orElse(null));
-
+        answer.setFx(in.getFx());
         return answer;
     }
 
