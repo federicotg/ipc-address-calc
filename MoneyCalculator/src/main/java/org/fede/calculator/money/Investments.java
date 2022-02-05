@@ -330,7 +330,7 @@ public class Investments {
             this.console.appendLine(
                     pct
                             ? this.pctBar(ym, elements)
-                            : this.bar(ym, elements, 950));
+                            : this.bar(ym, elements, 800));
         });
 
         this.console.appendLine(format(title, nominal ? "Nominal" : "Real"));

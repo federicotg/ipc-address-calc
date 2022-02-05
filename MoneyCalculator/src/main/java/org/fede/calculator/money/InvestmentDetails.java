@@ -33,7 +33,6 @@ public class InvestmentDetails {
     private LocalDate investmentDate;
     private YearMonth investmentYM;
     private MoneyAmount investedAmount;
-    private MoneyAmount nominalInvestedAmount;
     private MoneyAmount costBasis;
     private MoneyAmount currentAmount;
 
@@ -77,22 +76,13 @@ public class InvestmentDetails {
         this.currentAmount = currentAmount;
     }
 
-    public MoneyAmount getNominalInvestedAmount() {
-        return nominalInvestedAmount;
-    }
-
-    public void setNominalInvestedAmount(MoneyAmount nominalInvestedAmount) {
-        this.nominalInvestedAmount = nominalInvestedAmount;
-    }
-
-
     public MoneyAmount getGrossCapitalGains() {
-        return this.getCurrentAmount().subtract(this.getNominalInvestedAmount());
+        return this.getCurrentAmount().subtract(this.getInvestedAmount());
     }
 
     public BigDecimal getGrossCapitalGainsPercent() {
         return this.getGrossCapitalGains().getAmount()
-                .divide(this.getNominalInvestedAmount().getAmount(), MathConstants.C);
+                .divide(this.getInvestedAmount().getAmount(), MathConstants.C);
     }
 
     public BigDecimal getCAGR() {
@@ -131,7 +121,6 @@ public class InvestmentDetails {
             final var real = new InvestmentDetails(false);
 
             real.setInvestedAmount(this.real(this.getInvestedAmount()));
-            real.setNominalInvestedAmount(this.getInvestedAmount());
             real.setCostBasis(this.real(this.getCostBasis()));
             real.setCurrentAmount(this.getCurrentAmount());
             real.setInvestmentDate(this.getInvestmentDate());
