@@ -1173,11 +1173,11 @@ public class ConsoleReports {
                 "CSPX", (ma, ym) -> ma.getAmount()
         );
 
-        final var cusips = Map.of(
-                "EIMI", "BKM4GZ6",
-                "XRSU", "BWBXSH4",
-                "CSPX", "B50YWZ5",
-                "MEUD", "LU0908500753");
+//        final var cusips = Map.of(
+//                "EIMI", "BKM4GZ6",
+//                "XRSU", "BWBXSH4",
+//                "CSPX", "B50YWZ5",
+//                "MEUD", "LU0908500753");
 
         final var codes = Map.of(
                 "CSPX", "CSSPXz",
@@ -1224,7 +1224,7 @@ public class ConsoleReports {
 
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
         final var symbol = params.get("symbol");
-        new Positions(this.console, this.format, this.series, this.bar).positions(symbol, nominal);
+        new Positions(this.console, this.format, this.series).positions(symbol, nominal);
 
     }
 

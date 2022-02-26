@@ -16,19 +16,10 @@
  */
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.fede.calculator.money.CashInvestmentBuilder;
-import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
-import org.fede.calculator.money.series.InvestmentEvent;
-import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import org.junit.Test;

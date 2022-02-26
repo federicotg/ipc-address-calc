@@ -56,13 +56,11 @@ public class Positions {
     private final Console console;
     private final Format format;
     private final Series series;
-    private final Bar bar;
 
-    public Positions(Console console, Format format, Series series, Bar bar) {
+    public Positions(Console console, Format format, Series series) {
         this.console = console;
         this.format = format;
         this.series = series;
-        this.bar = bar;
     }
 
     public void positions(String symbol, boolean nominal) {
