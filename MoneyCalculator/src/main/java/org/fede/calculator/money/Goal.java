@@ -275,7 +275,7 @@ public class Goal {
         this.console.appendLine(this.format.subtitle(title));
 
         this.console.appendLine(
-                "[ ",
+                "µ+-2σ => [ ",
                 this.format.currency(BigDecimal.valueOf(mean - 2 * standardDeviation)),
                 " , ",
                 this.format.currency(BigDecimal.valueOf(mean + 2 * standardDeviation)),

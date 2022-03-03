@@ -73,15 +73,15 @@ public class ConsoleReports {
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 
-    private static final String TRIALS = "100000";
+    private static final String TRIALS = "150000";
     private static final String RETIREMENT = "65";
     private static final String AGE = "99";
-    private static final String DEPOSIT = "1100";
-    private static final String WITHDRAW = "1000";
+    private static final String DEPOSIT = "1250";
+    private static final String WITHDRAW = "650";
     private static final String INFLATION = "3";
     private static final String CASH = "0";
     private static final String TAX = "true";
-    private static final String EXPECTED_RETRUNS = "false";
+    private static final String EXPECTED_RETRUNS = "true";
     private static final String BBPP = "2.25";
     private static final String BBPP_MIN = "30000";
     private static final String PENSION = "100";
