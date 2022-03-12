@@ -77,11 +77,11 @@ public class Investments {
             new MoneyAmount(BigDecimal.valueOf(10l), "XRSU"),
             new MoneyAmount(BigDecimal.valueOf(10l), "EIMI"));
 
-    private static final Map<String, BigDecimal> INITIAL_VALUES = Map.of(
-            "XRSU", new BigDecimal("217.51"),
-            "MEUD", new BigDecimal("159.19"),
-            "CSPX", new BigDecimal("296.40"),
-            "EIMI", new BigDecimal("28.32")
+    private static final Map<String, MoneyAmount> INITIAL_VALUES = Map.of(
+            "XRSU", new MoneyAmount(new BigDecimal("217.51"), "USD"),
+            "MEUD", new MoneyAmount(new BigDecimal("159.19").multiply(new BigDecimal("1.1139"), C), "USD"),
+            "CSPX", new MoneyAmount(new BigDecimal("296.40"), "USD"),
+            "EIMI", new MoneyAmount(new BigDecimal("28.32"), "USD")
     );
 
     private static final Map<String, String> ETF_NAME = Map.of(
@@ -204,11 +204,11 @@ public class Investments {
                 .forEach(this.console::appendLine);
     }
 
-    private BenchmarkItem benchmarkItem(boolean nominal, Map.Entry<String, BigDecimal> e) {
+    private BenchmarkItem benchmarkItem(boolean nominal, Map.Entry<String, MoneyAmount> e) {
 
         final var oneNominal = new MoneyAmount(ONE, e.getKey());
-        final var usd = ForeignExchanges.getMoneyAmountForeignExchange(e.getKey(), "USD").apply(oneNominal, USD_INFLATION.getTo());
-        final var item = new BenchmarkItem(e.getValue(), usd.getAmount());
+        final var oneNomnalInUSDTotay = ForeignExchanges.getMoneyAmountForeignExchange(e.getKey(), "USD").apply(oneNominal, USD_INFLATION.getTo());
+        final var item = new BenchmarkItem(e.getValue().getAmount(), oneNomnalInUSDTotay.getAmount());
         return nominal
                 ? item
                 : real(item);
@@ -217,8 +217,7 @@ public class Investments {
     private Pair<BigDecimal, BigDecimal> modelPortfolioCAGR(boolean nominal) {
 
         final var initial = PORTFOLIO.stream()
-                .map(ma -> new MoneyAmount(ma.getAmount().multiply(INITIAL_VALUES.get(ma.getCurrency()), C), ma.getCurrency().equals("MEUD") ? "EUR" : "USD"))
-                .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, YearMonth.of(2019, 7)))
+                .map(ma -> new MoneyAmount(ma.getAmount().multiply(INITIAL_VALUES.get(ma.getCurrency()).getAmount(), C), "USD"))
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
