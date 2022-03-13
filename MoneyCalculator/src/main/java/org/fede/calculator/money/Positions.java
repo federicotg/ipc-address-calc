@@ -67,28 +67,30 @@ public class Positions {
 
         final var descWidth = 32;
         final var posWidth = 4;
-        final var lastWidth = 11;
+        final var lastWidth = 10;
         final var costWidth = 14;
         final var costPct = 9;
         final var mkvWidth = 14;
-        final var avgWidth = 12;
+        final var mkvPctWidth = 8;
+        final var avgWidth = 10;
         final var pnlWidth = 14;
         final var pnlPctWidth = 9;
 
-        final var separator = IntStream.rangeClosed(0, IntStream.of(costPct,descWidth, posWidth, lastWidth, costWidth, mkvWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
+        final var separator = IntStream.rangeClosed(0, IntStream.of(costPct,descWidth, posWidth, lastWidth, costWidth, mkvWidth, mkvPctWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
                 .mapToObj(n -> "=")
                 .collect(joining());
 
-        final var fmt = " {0}{1}{2}{3}{4}{5}{6}{7}{8}";
+        final var fmt = " {0}{1}{2}{3}{4}{5}{6}{7}{8}{9}";
 
         this.console.appendLine(MessageFormat.format(fmt,
                 this.format.text("       Fund", descWidth),
                 this.format.text(" Pos.", posWidth),
-                this.format.text("     Last", lastWidth),
+                this.format.text("    Last", lastWidth),
                 this.format.text("   Cost Basis", costWidth),
                 this.format.text("    %", costPct),
                 this.format.text(" Market Value", mkvWidth),
-                this.format.text("  Avg. Price", avgWidth),
+                this.format.text("   % ", mkvPctWidth),
+                this.format.text("Avg. Price", avgWidth),
                 this.format.text("       P&L", pnlWidth),
                 this.format.text("    %", pnlPctWidth)));
 
@@ -132,9 +134,10 @@ public class Positions {
                 this.format.currency(p.getCostBasis().getAmount(), costWidth),
                 this.format.percent(p.getCostBasis().getAmount().divide(totalCostBasis.getAmount(), C), costPct),
                 this.format.currency(p.getMarketValue().getAmount(), mkvWidth),
+                this.format.percent(p.getMarketValue().getAmount().divide(totalMarketValue.getAmount(), C), mkvPctWidth),
                 this.format.currency(p.getAveragePrice().getAmount(), avgWidth),
                 this.format.currency(p.getUnrealizedPnL().getAmount(), pnlWidth),
-                this.format.percent(p.getUnrealizedPnL().getAmount().divide(totalPnL.getAmount(), C), pnlPctWidth)))
+                this.format.percent(p.getUnrealizedPnL().getAmount().divide(p.getCostBasis().getAmount(), C), pnlPctWidth)))
                 .forEach(this.console::appendLine);
 
         this.console.appendLine(separator);
@@ -145,9 +148,10 @@ public class Positions {
                 this.format.currency(totalCostBasis.getAmount(), costWidth),
                 this.format.text("", costPct),
                 this.format.currency(totalMarketValue.getAmount(), mkvWidth),
+                this.format.text("", mkvPctWidth),
                 this.format.text("", avgWidth),
                 this.format.currency(totalPnL.getAmount(), pnlWidth),
-                this.format.text("", pnlPctWidth)));
+                this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
         this.costs(symbol, nominal);
 
