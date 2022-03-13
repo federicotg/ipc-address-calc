@@ -217,8 +217,7 @@ public class Investments {
     private Pair<BigDecimal, BigDecimal> modelPortfolioCAGR(boolean nominal) {
 
         final var initial = PORTFOLIO.stream()
-                .map(ma -> new MoneyAmount(ma.getAmount().multiply(INITIAL_VALUES.get(ma.getCurrency()).getAmount(), C), "USD"))
-                .map(MoneyAmount::getAmount)
+                .map(ma -> ma.getAmount().multiply(INITIAL_VALUES.get(ma.getCurrency()).getAmount(), C))
                 .reduce(ZERO, BigDecimal::add);
 
         final var current = PORTFOLIO.stream()
