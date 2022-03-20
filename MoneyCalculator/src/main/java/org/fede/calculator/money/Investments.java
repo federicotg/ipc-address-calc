@@ -292,10 +292,8 @@ public class Investments {
         answer.setCurrent(item.getCurrent());
         answer.setInitial(USD_INFLATION.adjust(
                 new MoneyAmount(item.getInitial(), "USD"),
-                2019,
-                7,
-                USD_INFLATION.getTo().getYear(),
-                USD_INFLATION.getTo().getYear()).getAmount());
+                YearMonth.of(2019, 7),
+                USD_INFLATION.getTo()).getAmount());
         return answer;
     }
 
@@ -376,7 +374,7 @@ public class Investments {
 
         final var inv = this.getAllInvestments()
                 .stream()
-                .filter(i -> i.getType().equals(InvestmentType.ETF))
+                .filter(i -> Objects.equals(i.getType(), InvestmentType.ETF))
                 .filter(i -> Objects.isNull(currency) || Objects.equals(currency, i.getCurrency()))
                 .sorted(Comparator.comparing(Investment::getInitialDate, Comparator.naturalOrder()))
                 .collect(toList());
