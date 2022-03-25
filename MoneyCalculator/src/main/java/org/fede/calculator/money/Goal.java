@@ -190,7 +190,7 @@ public class Goal {
 
         this.console.appendLine(format("Cash: {0,number,currency}, invested: {1,number,currency}", cash, investedAmount));
         this.console.appendLine(format(
-                "Saving {0,number,currency}, spending {1,number,currency} {2}",
+                "Saving {0,number,currency}, spending {1,number,currency}{2}",
                 monthlyDeposit,
                 monthlyWithdraw,
                 afterTax ? " after tax." : "."));
