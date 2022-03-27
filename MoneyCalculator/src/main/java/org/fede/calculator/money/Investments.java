@@ -73,9 +73,9 @@ public class Investments {
 
     private static final List<MoneyAmount> PORTFOLIO = List.of(
             new MoneyAmount(BigDecimal.valueOf(70l), "CSPX"),
-            new MoneyAmount(BigDecimal.valueOf(10l), "MEUD"),
-            new MoneyAmount(BigDecimal.valueOf(10l), "XRSU"),
-            new MoneyAmount(BigDecimal.valueOf(10l), "EIMI"));
+            new MoneyAmount(BigDecimal.valueOf(11l), "MEUD"),
+            new MoneyAmount(BigDecimal.valueOf(8l), "XRSU"),
+            new MoneyAmount(BigDecimal.valueOf(11l), "EIMI"));
 
     private static final Map<String, MoneyAmount> INITIAL_VALUES = Map.of(
             "XRSU", new MoneyAmount(new BigDecimal("217.51"), "USD"),
