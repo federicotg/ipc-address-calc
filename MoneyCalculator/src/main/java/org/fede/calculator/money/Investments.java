@@ -72,10 +72,10 @@ public class Investments {
     private static final Comparator<Pair<String, Pair<BigDecimal, BigDecimal>>> CMP = comparing((Pair<String, Pair<BigDecimal, BigDecimal>> p) -> p.getSecond().getSecond()).reversed();
 
     private static final List<MoneyAmount> PORTFOLIO = List.of(
-            new MoneyAmount(BigDecimal.valueOf(70l), "CSPX"),
-            new MoneyAmount(BigDecimal.valueOf(11l), "MEUD"),
-            new MoneyAmount(BigDecimal.valueOf(8l), "XRSU"),
-            new MoneyAmount(BigDecimal.valueOf(11l), "EIMI"));
+            new MoneyAmount(new BigDecimal("70000.0000"), "CSPX"),
+            new MoneyAmount(new BigDecimal("11000.0000"), "MEUD"),
+            new MoneyAmount(new BigDecimal("8000.0000"), "XRSU"),
+            new MoneyAmount(new BigDecimal("11000.0000"), "EIMI"));
 
     private static final Map<String, MoneyAmount> INITIAL_VALUES = Map.of(
             "XRSU", new MoneyAmount(new BigDecimal("217.51"), "USD"),
