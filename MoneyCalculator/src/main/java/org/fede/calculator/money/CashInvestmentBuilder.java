@@ -18,14 +18,12 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
@@ -73,28 +71,30 @@ public class CashInvestmentBuilder {
         return investments;
 
     }
-    
-    private String asString(InvestmentEvent i){
-        if(i == null){
-            return "-";
-        }
-        return DateTimeFormatter.BASIC_ISO_DATE.format(LocalDate.ofInstant(i.getDate().toInstant(), ZoneId.systemDefault()))
-                .concat(" ")
-                .concat(i.getMoneyAmount().getAmount().toString());
-    }
-    
-    private String asString(Investment i){
-        
-        return this.asString(i.getIn())
-                .concat(" - ")
-                .concat(this.asString(i.getOut()));
-    }
+
+//    private String asString(InvestmentEvent i) {
+//        if (i == null) {
+//            return "-";
+//        }
+//        return DateTimeFormatter.BASIC_ISO_DATE.format(LocalDate.ofInstant(i.getDate().toInstant(), ZoneId.systemDefault()))
+//                .concat(" ")
+//                .concat(i.getMoneyAmount().getAmount().toString());
+//    }
+//
+//    private String asString(Investment i) {
+//
+//        return this.asString(i.getIn())
+//                .concat(" - ")
+//                .concat(this.asString(i.getOut()));
+//    }
 
     private void sellUntilBelow(BigDecimal amount, List<Investment> investments, YearMonth ym) {
+
         while (total(investments).compareTo(amount) > 0) {
             investments.stream()
-                    .filter(i -> i.getOut() == null)
-                    .findAny()
+                    .filter(i -> Objects.isNull(i.getOut()))
+                    .sorted(Comparator.comparing(Investment::getInitialDate))
+                    .findFirst()
                     .ifPresent(i -> this.sellInvestment(i, ym));
         }
     }
