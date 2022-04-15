@@ -25,8 +25,6 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
-import org.fede.calculator.money.ForeignExchange;
-import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.MathConstants.C;
 
@@ -117,35 +115,6 @@ public class Investment {
 
     public void setInterest(BigDecimal interest) {
         this.interest = interest;
-    }
-
-    public MoneyAmount finalAmount(String targetCurrency, Date date) {
-
-        if (this.getOut() != null) {
-            return changeCurrency(this.getOut().getMoneyAmount(), targetCurrency, date);
-        }
-
-        return changeCurrency(investment.getMoneyAmount(), targetCurrency, date);
-
-    }
-
-    public MoneyAmount initialAmount(String targetCurrency) {
-
-        MoneyAmount amount;
-        if (targetCurrency.equals(this.getInitialCurrency())) {
-            amount = this.getInitialMoneyAmount();
-        } else if (targetCurrency.equals(this.getCurrency())) {
-            amount = this.getMoneyAmount();
-        } else {
-            amount = changeCurrency(this.getInitialMoneyAmount(), targetCurrency, this.getInitialDate());
-        }
-        return amount;
-    }
-
-    private static MoneyAmount changeCurrency(MoneyAmount ma, String targetCurrency, Date date) {
-        ForeignExchange fx = ForeignExchanges.getForeignExchange(ma.getCurrency(), targetCurrency);
-        YearMonth min = YearMonth.of(date).min(fx.getTo());
-        return fx.exchange(ma, targetCurrency, min);
     }
 
     @JsonIgnore

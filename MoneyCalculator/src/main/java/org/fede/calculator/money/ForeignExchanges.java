@@ -236,7 +236,7 @@ public class ForeignExchanges {
     }
 
     private static MoneyAmount fx(BigDecimal optionalFxRate, ForeignExchange fx, MoneyAmount ma, String currency, Date date) {
-        if (optionalFxRate == null) {
+        if (!"USD".equals(currency) || optionalFxRate == null) {
 
             return fx.exchange(ma, currency, date);
         }

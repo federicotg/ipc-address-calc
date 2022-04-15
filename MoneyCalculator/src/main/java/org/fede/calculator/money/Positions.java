@@ -76,7 +76,7 @@ public class Positions {
         final var pnlWidth = 14;
         final var pnlPctWidth = 9;
 
-        final var separator = IntStream.rangeClosed(0, IntStream.of(costPct,descWidth, posWidth, lastWidth, costWidth, mkvWidth, mkvPctWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
+        final var separator = IntStream.rangeClosed(0, IntStream.of(costPct, descWidth, posWidth, lastWidth, costWidth, mkvWidth, mkvPctWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
                 .mapToObj(n -> "=")
                 .collect(joining());
 
@@ -157,10 +157,18 @@ public class Positions {
 
     }
 
-    public void costs(String symbol, boolean nominal) {
-        final Function<Investment, MoneyAmount> costFunc = Investment::getCost;
+    private String exchangeClassifier(Investment i) {
+        if (i.getComment() == null) {
+            return i.getCurrency().equals("MEUD")
+                    ? "Saxo €"
+                    : "Saxo $";
+        }
+        return i.getComment().equals("lse")
+                ? "IBKR $"
+                : "IBKR €";
+    }
 
-        final Function<Investment, MoneyAmount> totalInvestedFunc = Investment::getInitialMoneyAmount;
+    public void costs(String symbol, boolean nominal) {
 
         this.console.appendLine(this.format.subtitle("Costs"));
 
@@ -168,47 +176,28 @@ public class Positions {
         final Function<Investment, String> brokerClassifier = i -> i.getComment() == null ? "PPI " : "IBKR";
         final Function<Investment, String> anyClassifier = i -> "All ";
         final Function<Investment, String> etfClassifier = Investment::getCurrency;
+        final Function<Investment, String> currencyClassifier = i -> "gettex".equals(i.getComment()) ? "EUR" : "USD";
 
-        final var invByYear = this.by(symbol, nominal, yearClassifier, totalInvestedFunc);
-        final var costByYear = this.by(symbol, nominal, yearClassifier, costFunc);
+        this.cost(yearClassifier, symbol, nominal);
+        this.cost(brokerClassifier, symbol, nominal);
+        this.cost(etfClassifier, symbol, nominal);
+        this.cost(currencyClassifier, symbol, nominal);
+        this.cost(this::exchangeClassifier, symbol, nominal);
+        this.cost(anyClassifier, symbol, nominal);
 
-        final var invByBroker = this.by(symbol, nominal, brokerClassifier, totalInvestedFunc);
-        final var costByBroker = this.by(symbol, nominal, brokerClassifier, costFunc);
+    }
 
-        final var invByAll = this.by(symbol, nominal, anyClassifier, totalInvestedFunc);
-        final var costByAll = this.by(symbol, nominal, anyClassifier, costFunc);
+    private void cost(Function<Investment, String> classifier, String symbol, boolean nominal) {
+        final var inv = this.by(symbol, nominal, classifier, Investment::getInitialMoneyAmount);
+        final var cost = this.by(symbol, nominal, classifier, Investment::getCost);
 
-        final var invByEtf = this.by(symbol, nominal, etfClassifier, totalInvestedFunc);
-        final var costByEtf = this.by(symbol, nominal, etfClassifier, costFunc);
-
-        invByYear
+        inv
                 .keySet()
                 .stream()
                 .sorted()
-                .forEach(e -> this.costReport(e, invByYear, costByYear));
+                .forEach(e -> this.costReport(e, inv, cost));
 
-        this.console.appendLine();
-
-        invByBroker
-                .keySet()
-                .stream()
-                .sorted()
-                .forEach(e -> this.costReport(e, invByBroker, costByBroker));
-
-        this.console.appendLine();
-        invByEtf
-                .keySet()
-                .stream()
-                .sorted()
-                .forEach(e -> this.costReport(e, invByEtf, costByEtf));
-
-        this.console.appendLine();
-        invByAll
-                .keySet()
-                .stream()
-                .sorted()
-                .forEach(e -> this.costReport(e, invByAll, costByAll));
-
+        this.console.appendLine("");
     }
 
     private void costReport(String label, Map<String, MoneyAmount> m1, Map<String, MoneyAmount> m2) {
