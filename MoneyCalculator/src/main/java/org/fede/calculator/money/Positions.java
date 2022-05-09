@@ -56,15 +56,23 @@ public class Positions {
     private final Console console;
     private final Format format;
     private final Series series;
+    private boolean withFee;
 
-    public Positions(Console console, Format format, Series series) {
+    public Positions(Console console, Format format, Series series, boolean withFee) {
         this.console = console;
         this.format = format;
         this.series = series;
+        this.withFee = withFee;
     }
 
     public void positions(String symbol, boolean nominal) {
 
+        if (this.withFee) {
+            this.console.appendLine(this.format.title("Positions With Fees"));
+        }else{
+            this.console.appendLine(this.format.title("Positions Without Fees"));
+        }
+                
         final var descWidth = 32;
         final var posWidth = 4;
         final var lastWidth = 10;
@@ -234,7 +242,7 @@ public class Positions {
                 position,
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD").apply(new MoneyAmount(ONE, symbol), now),
                 investments.stream()
-                        .map(i -> i.getIn().getMoneyAmount().add(i.getCost()))
+                        .map(i -> i.getIn().getMoneyAmount().add(this.withFee ? i.getCost() : ZERO_USD))
                         .reduce(ZERO_USD, MoneyAmount::add),
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD")
                         .apply(investments.stream()

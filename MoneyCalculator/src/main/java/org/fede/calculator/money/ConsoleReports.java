@@ -380,7 +380,8 @@ public class ConsoleReports {
                         entry("expenses", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("expenses-change", "months=12"),
                         entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
-                        entry("savings-evo", "type=(BO|LIQ|EQ)")
+                        entry("savings-evo", "type=(BO|LIQ|EQ)"),
+                        entry("pos", "nominal=false fees=true")
                 );
 
                 Stream.concat(
@@ -1223,8 +1224,10 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+        final var withFee = Boolean.parseBoolean(params.getOrDefault("fees", "true"));
         final var symbol = params.get("symbol");
-        new Positions(this.console, this.format, this.series).positions(symbol, nominal);
+        new Positions(this.console, this.format, this.series, withFee)
+                .positions(symbol, nominal);
 
     }
 

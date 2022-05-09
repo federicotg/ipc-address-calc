@@ -158,8 +158,6 @@ public class Investments {
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
                 .collect(toList());
 
-        final var modifiedDietzReturn = new ModifiedDietzReturn(etfs, currency, nominal).get();
-
         this.console.appendLine(this.format.subtitle("Benchmark (Before Fees & Taxes)"));
 
         final var benchmarks = SeriesReader.read("index/benchmarks.json", BENCHMARK_TR)
@@ -178,7 +176,7 @@ public class Investments {
                 .stream()
                 .map(e -> of(e.getKey(), this.benchmarkCAGR(e.getValue())));
 
-        final var portfolioTWCAGRStream = Stream.of(of("Portfolio", modifiedDietzReturn));
+        final var portfolioTWCAGRStream = Stream.of(of("MDR ETFs", new ModifiedDietzReturn(etfs, currency, nominal).get()));
         final var modelPortfolioStream = Stream.of(of("Model", this.modelPortfolioCAGR(nominal)));
 
         final var textColWidth = 30;
