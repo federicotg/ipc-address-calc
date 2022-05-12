@@ -62,31 +62,10 @@ public class CashInvestmentBuilder {
                 }
             }
         }
-
-//        investments.stream()
-//                .sorted(Comparator.comparing(Investment::getInitialDate))
-//                .map(this::asString)
-//                .forEach(System.out::println);
-//        
+     
         return investments;
 
     }
-
-//    private String asString(InvestmentEvent i) {
-//        if (i == null) {
-//            return "-";
-//        }
-//        return DateTimeFormatter.BASIC_ISO_DATE.format(LocalDate.ofInstant(i.getDate().toInstant(), ZoneId.systemDefault()))
-//                .concat(" ")
-//                .concat(i.getMoneyAmount().getAmount().toString());
-//    }
-//
-//    private String asString(Investment i) {
-//
-//        return this.asString(i.getIn())
-//                .concat(" - ")
-//                .concat(this.asString(i.getOut()));
-//    }
 
     private void sellUntilBelow(BigDecimal amount, List<Investment> investments, YearMonth ym) {
 
@@ -115,8 +94,6 @@ public class CashInvestmentBuilder {
         in.setCurrency("USD");
         in.setDate(Date.from(
                 LocalDate.of(ym.getYear(), ym.getMonth(), 1)
-                        //.with(TemporalAdjusters.lastDayOfMonth())
-                        //.minusDays(1)
                         .atTime(12, 01)
                         .toInstant(ZoneOffset.UTC)));
         in.setFee(BigDecimal.ZERO);

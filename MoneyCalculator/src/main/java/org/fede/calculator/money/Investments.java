@@ -26,6 +26,7 @@ import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -137,7 +138,18 @@ public class Investments {
 
         final var portfolioTWCAGRStream = Stream.of(of("Portfolio", new ModifiedDietzReturn(etfs, currency, nominal).get()));
         
-        final var benchEtfs = etfs.stream().map(new BenchmarkInvestmentMapper("CSPX")).collect(toList());
+        
+//        final var mdr = new ModifiedDietzReturn(
+//                Stream.concat(this.cashInvestments.cashInvestments().stream(), etfs.stream()).collect(toList()), 
+//                currency, 
+//                nominal, 
+//                LocalDate.of(2019, Month.JULY, 24), 
+//                LocalDate.now()).get();
+//        final var portfolioWithCash = Stream.of(of("Portfolio + Cash", mdr));
+        
+        final var benchEtfs = etfs.stream()
+                .map(new BenchmarkInvestmentMapper(etfs))
+                .collect(toList());
         
         final var extraBenchmark = Stream.of(of("S&P 500", new ModifiedDietzReturn(benchEtfs, currency, nominal).get()));
         
