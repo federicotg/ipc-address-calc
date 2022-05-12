@@ -96,8 +96,8 @@ public class Investments {
         this.series = series;
         this.cashInvestments = new CashInvestmentBuilder(
                 SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
-                .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
-                .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
+                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
     }
 
     public void inv(final Predicate<Investment> everyone, boolean nominal, String currency) {
@@ -136,23 +136,19 @@ public class Investments {
         this.console.appendLine(this.format.subtitle("Benchmark (Before Fees & Taxes)"));
 
         final var portfolioTWCAGRStream = Stream.of(of("Portfolio", new ModifiedDietzReturn(etfs, currency, nominal).get()));
-        
-        
-//        final var mdr = new ModifiedDietzReturn(
-//                Stream.concat(this.cashInvestments.cashInvestments().stream(), etfs.stream()).collect(toList()), 
-//                currency, 
-//                nominal, 
-//                LocalDate.of(2019, Month.JULY, 24), 
-//                LocalDate.now()).get();
-//        final var portfolioWithCash = Stream.of(of("Portfolio + Cash", mdr));
-        
-        final var benchEtfs = etfs.stream()
-                .map(new BenchmarkInvestmentMapper(etfs))
+
+        final var cspxBenchmarkSeries = etfs.stream()
+                .map(new BenchmarkInvestmentMapper("CSPX", etfs))
                 .collect(toList());
-        
-        final var extraBenchmark = Stream.of(of("S&P 500", new ModifiedDietzReturn(benchEtfs, currency, nominal).get()));
-        
-        final var textColWidth = 18;
+
+        final var iwdaBenchmarkSeries = etfs.stream()
+                .map(new BenchmarkInvestmentMapper("IWDA", etfs))
+                .collect(toList());
+
+        final var cspxBenchmark = Stream.of(of("CSPX", new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal).get()));
+        final var iwdaBenchmark = Stream.of(of("IWDA", new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal).get()));
+
+        final var textColWidth = 25;
         this.console.appendLine(this.format.text(" ", textColWidth), this.format.text(" Return", 8), this.format.text("    Annualized", 16));
 
         final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction
@@ -161,7 +157,7 @@ public class Investments {
                         this.format.percent(p.getSecond().getFirst(), 8),
                         this.bar.pctBar(p.getSecond().getSecond()));
 
-        Stream.of(portfolioTWCAGRStream, extraBenchmark)
+        Stream.of(portfolioTWCAGRStream, cspxBenchmark, iwdaBenchmark)
                 .reduce(Stream.empty(), Stream::concat)
                 .sorted(CMP)
                 .map(lineFunction)
@@ -332,7 +328,7 @@ public class Investments {
             final Function<Investment, MoneyAmount> total = i -> this.asUSD(i.getInvestment().getMoneyAmount(), moment);
             totalValuesSeries.putAmount(ym, accum(inv, ym, total));
 
-            final Function<Investment, MoneyAmount> taxes =  i -> this.tax(i, invested, total);
+            final Function<Investment, MoneyAmount> taxes = i -> this.tax(i, invested, total);
 
             taxesValuesSeries.putAmount(ym, accum(inv, ym, taxes));
 
