@@ -19,7 +19,6 @@ package org.fede.calculator.money;
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
@@ -27,7 +26,6 @@ import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -41,10 +39,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
@@ -54,7 +50,6 @@ import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
-import static org.fede.calculator.money.MathConstants.C;
 
 /**
  *
@@ -66,23 +61,7 @@ public class Investments {
 
     private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
 
-    private static final TypeReference<Map<String, BenchmarkItem>> BENCHMARK_TR = new TypeReference<Map<String, BenchmarkItem>>() {
-    };
-
     private static final Comparator<Pair<String, Pair<BigDecimal, BigDecimal>>> CMP = comparing((Pair<String, Pair<BigDecimal, BigDecimal>> p) -> p.getSecond().getSecond()).reversed();
-
-    private static final List<MoneyAmount> PORTFOLIO = List.of(
-            new MoneyAmount(new BigDecimal("70000.0000"), "CSPX"),
-            new MoneyAmount(new BigDecimal("11000.0000"), "MEUD"),
-            new MoneyAmount(new BigDecimal("8000.0000"), "XRSU"),
-            new MoneyAmount(new BigDecimal("11000.0000"), "EIMI"));
-
-    private static final Map<String, MoneyAmount> INITIAL_VALUES = Map.of(
-            "XRSU", new MoneyAmount(new BigDecimal("217.51"), "USD"),
-            "MEUD", new MoneyAmount(new BigDecimal("159.19").multiply(new BigDecimal("1.1139"), C), "USD"),
-            "CSPX", new MoneyAmount(new BigDecimal("296.40"), "USD"),
-            "EIMI", new MoneyAmount(new BigDecimal("28.32"), "USD")
-    );
 
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
@@ -103,8 +82,6 @@ public class Investments {
             "ISAC", new AnsiFormat(Attribute.RED_TEXT()),
             "MEUD", new AnsiFormat(Attribute.DIM())
     );
-
-    private static final LocalDate ETF_START_DATE = LocalDate.of(2019, Month.JULY, 24);
 
     private final Console console;
     private final Format format;
@@ -151,8 +128,6 @@ public class Investments {
 
         this.console.appendLine("");
 
-        //new Positions(this.console, this.format, this.series).positions(null, nominal);
-
         final var etfs = this.getAllInvestments()
                 .stream()
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
@@ -160,26 +135,13 @@ public class Investments {
 
         this.console.appendLine(this.format.subtitle("Benchmark (Before Fees & Taxes)"));
 
-        final var benchmarks = SeriesReader.read("index/benchmarks.json", BENCHMARK_TR)
-                .entrySet()
-                .stream()
-                .collect(toMap(
-                        Map.Entry::getKey,
-                        e -> nominal ? e.getValue() : real(e.getValue())));
-
-        INITIAL_VALUES.entrySet()
-                .stream()
-                .map(e -> Pair.of(e.getKey(), this.benchmarkItem(nominal, e)))
-                .forEach(pair -> benchmarks.put(pair.getFirst(), pair.getSecond()));
-
-        final var benchmarksStream = benchmarks.entrySet()
-                .stream()
-                .map(e -> of(e.getKey(), this.benchmarkCAGR(e.getValue())));
-
-        final var portfolioTWCAGRStream = Stream.of(of("MDR ETFs", new ModifiedDietzReturn(etfs, currency, nominal).get()));
-        final var modelPortfolioStream = Stream.of(of("Model", this.modelPortfolioCAGR(nominal)));
-
-        final var textColWidth = 30;
+        final var portfolioTWCAGRStream = Stream.of(of("Portfolio", new ModifiedDietzReturn(etfs, currency, nominal).get()));
+        
+        final var benchEtfs = etfs.stream().map(new BenchmarkInvestmentMapper("CSPX")).collect(toList());
+        
+        final var extraBenchmark = Stream.of(of("S&P 500", new ModifiedDietzReturn(benchEtfs, currency, nominal).get()));
+        
+        final var textColWidth = 18;
         this.console.appendLine(this.format.text(" ", textColWidth), this.format.text(" Return", 8), this.format.text("    Annualized", 16));
 
         final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction
@@ -188,7 +150,7 @@ public class Investments {
                         this.format.percent(p.getSecond().getFirst(), 8),
                         this.bar.pctBar(p.getSecond().getSecond()));
 
-        Stream.of(benchmarksStream, modelPortfolioStream, portfolioTWCAGRStream)
+        Stream.of(portfolioTWCAGRStream, extraBenchmark)
                 .reduce(Stream.empty(), Stream::concat)
                 .sorted(CMP)
                 .map(lineFunction)
@@ -200,41 +162,6 @@ public class Investments {
                 .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
                 .map(lineFunction)
                 .forEach(this.console::appendLine);
-    }
-
-    private BenchmarkItem benchmarkItem(boolean nominal, Map.Entry<String, MoneyAmount> e) {
-
-        final var oneNominal = new MoneyAmount(ONE, e.getKey());
-        final var oneNomnalInUSDTotay = ForeignExchanges.getMoneyAmountForeignExchange(e.getKey(), "USD").apply(oneNominal, USD_INFLATION.getTo());
-        final var item = new BenchmarkItem(e.getValue().getAmount(), oneNomnalInUSDTotay.getAmount());
-        return nominal
-                ? item
-                : real(item);
-    }
-
-    private Pair<BigDecimal, BigDecimal> modelPortfolioCAGR(boolean nominal) {
-
-        final var initial = PORTFOLIO.stream()
-                .map(ma -> ma.getAmount().multiply(INITIAL_VALUES.get(ma.getCurrency()).getAmount(), C))
-                .reduce(ZERO, BigDecimal::add);
-
-        final var current = PORTFOLIO.stream()
-                .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, Inflation.USD_INFLATION.getTo()))
-                .map(MoneyAmount::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-
-        var i = new BenchmarkItem();
-        i.setInitial(initial);
-        i.setCurrent(current);
-        if (!nominal) {
-            i = this.real(i);
-        }
-        return this.benchmarkCAGR(i);
-
-    }
-
-    private Pair<BigDecimal, BigDecimal> benchmarkCAGR(BenchmarkItem item) {
-        return cagr(item.getInitial(), item.getCurrent(), ETF_START_DATE);
     }
 
     private void print(InvestmentDetails d, int[] colWidths) {
@@ -251,15 +178,6 @@ public class Investments {
                 this.format.percent(d.getCAGR(), colWidths[i++]),
                 this.format.text(" ", colWidths[i++]),
                 this.format.text(this.bar.smallPctBar(d.getCAGR()), colWidths[i++]));
-    }
-
-    private static Pair<BigDecimal, BigDecimal> cagr(BigDecimal initial, BigDecimal current, LocalDate since) {
-        final var days = (double) ChronoUnit.DAYS.between(since, LocalDate.now());
-        final var profit = current.divide(initial, C).subtract(ONE, C);
-        final double x = Math.pow(
-                BigDecimal.ONE.add(profit).doubleValue(),
-                365.0d / days) - 1.0d;
-        return Pair.of(profit, BigDecimal.valueOf(x));
     }
 
     private void invHeader(int[] colWidths, boolean top) {
@@ -282,17 +200,6 @@ public class Investments {
         if (top) {
             this.console.appendLine(separator);
         }
-    }
-
-    private BenchmarkItem real(BenchmarkItem item) {
-
-        BenchmarkItem answer = new BenchmarkItem();
-        answer.setCurrent(item.getCurrent());
-        answer.setInitial(USD_INFLATION.adjust(
-                new MoneyAmount(item.getInitial(), "USD"),
-                YearMonth.of(2019, 7),
-                USD_INFLATION.getTo()).getAmount());
-        return answer;
     }
 
     private void invEvo(String title, String currency, boolean nominal, boolean pct) {
