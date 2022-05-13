@@ -178,7 +178,9 @@ public class ModifiedDietzReturn {
     private BigDecimal cashFlowAmount(InvestmentEvent ie) {
 
         final var ym = YearMonth.of(ie.getDate());
-        final var fx = ForeignExchanges.getMoneyAmountForeignExchange(ie.getCurrency(), currency).apply(ie.getMoneyAmount(), ym);
+        final var fx = ie.getFx() != null
+                ? new MoneyAmount(ie.getAmount().multiply(ie.getFx(), C), "USD")
+                : ForeignExchanges.getMoneyAmountForeignExchange(ie.getCurrency(), currency).apply(ie.getMoneyAmount(), ym);
 
         return nominal
                 ? fx.getAmount()
@@ -192,7 +194,8 @@ public class ModifiedDietzReturn {
                 .map(Investment::getInvestment)
                 .map(asset -> ForeignExchanges.getMoneyAmountForeignExchange(asset.getCurrency(), currency).apply(asset.getMoneyAmount(), ym))
                 .map(ma -> nominal ? ma : Inflation.USD_INFLATION.adjust(ma, ym, Inflation.USD_INFLATION.getTo()))
-                .reduce(this.zeroAmount, MoneyAmount::add).max(this.zeroAmount);
+                .reduce(this.zeroAmount, MoneyAmount::add)
+                .max(this.zeroAmount);
     }
 
     public Pair<BigDecimal, BigDecimal> get() {
@@ -208,10 +211,10 @@ public class ModifiedDietzReturn {
                 .stream()
                 .reduce(ZERO, BigDecimal::add);
 
-        if(v0.isZero() && adjustedCashFlowSum.signum() == 0){
+        if (v0.isZero() && adjustedCashFlowSum.signum() == 0) {
             return Pair.of(ZERO, BigDecimal.ZERO);
         }
-        
+
         final var result = v1.getAmount()
                 .subtract(v0.getAmount(), C)
                 .subtract(cashFlowSum, C)
