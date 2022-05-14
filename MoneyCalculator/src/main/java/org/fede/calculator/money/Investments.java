@@ -65,22 +65,15 @@ public class Investments {
 
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
-            //"EIMI", "iShares Core MSCI EM IMI",
-            //"XRSU", "Xtrackers Russell 2000",
             "IWDA", "iShares Core MSCI World"
             //"VWRA", "Vanguard FTSE All-World",
-            //"ISAC", "iShares MSCI ACWI",
-            //"MEUD", "Lyxor Core STOXX Europe 600 DR"
+            //"ISAC", "iShares MSCI ACWI"
     );
 
     private static final Map<String, AnsiFormat> ETF_COLOR = Map.of(
             "CSPX", new AnsiFormat(Attribute.DIM()),
-            //"EIMI", new AnsiFormat(Attribute.DIM()),
-            //"XRSU", new AnsiFormat(Attribute.DIM()),
-            "IWDA", new AnsiFormat(Attribute.DIM())
-            //"VWRA", new AnsiFormat(Attribute.RED_TEXT()),
-            //"ISAC", new AnsiFormat(Attribute.RED_TEXT()),
-            //"MEUD", new AnsiFormat(Attribute.DIM())
+            "IWDA", new AnsiFormat(Attribute.DIM()),
+            "Cash", new AnsiFormat(Attribute.DIM())
     );
 
     private final Console console;
@@ -127,26 +120,30 @@ public class Investments {
         this.invHeader(colWidths, false);
 
         this.console.appendLine("");
+        this.console.appendLine(this.format.subtitle("Modified Dietz Returns (Before Fees & Taxes)"));
 
         final var etfs = this.getAllInvestments()
                 .stream()
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
                 .collect(toList());
-
-        this.console.appendLine(this.format.subtitle("Benchmark (Before Fees & Taxes)"));
-
-        final var portfolioTWCAGRStream = Stream.of(of("Portfolio", new ModifiedDietzReturn(etfs, currency, nominal).get()));
+        
+        final var portfolioMDR = Stream.of(of("Portfolio", new ModifiedDietzReturn(etfs, currency, nominal).get()));
 
         final var cspxBenchmarkSeries = etfs.stream()
                 .map(new BenchmarkInvestmentMapper("CSPX", etfs))
                 .collect(toList());
-
+        
         final var iwdaBenchmarkSeries = etfs.stream()
                 .map(new BenchmarkInvestmentMapper("IWDA", etfs))
                 .collect(toList());
-
+        
+        final var cashBenchmarkSeries = etfs.stream()
+                .map(new BenchmarkInvestmentMapper("USD", etfs))
+                .collect(toList());
+        
         final var cspxBenchmark = Stream.of(of("CSPX", new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal).get()));
         final var iwdaBenchmark = Stream.of(of("IWDA", new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal).get()));
+        final var cashBenchmark = Stream.of(of("Cash", new ModifiedDietzReturn(cashBenchmarkSeries, currency, nominal).get()));
 
         final var textColWidth = 25;
         this.console.appendLine(this.format.text(" ", textColWidth), this.format.text(" Return", 8), this.format.text("    Annualized", 16));
@@ -157,7 +154,7 @@ public class Investments {
                         this.format.percent(p.getSecond().getFirst(), 8),
                         this.bar.pctBar(p.getSecond().getSecond()));
 
-        Stream.of(portfolioTWCAGRStream, cspxBenchmark, iwdaBenchmark)
+        Stream.of(portfolioMDR, cspxBenchmark, iwdaBenchmark, cashBenchmark)
                 .reduce(Stream.empty(), Stream::concat)
                 .sorted(CMP)
                 .map(lineFunction)

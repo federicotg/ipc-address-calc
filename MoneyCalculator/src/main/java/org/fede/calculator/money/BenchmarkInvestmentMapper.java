@@ -22,6 +22,7 @@ import static java.math.BigDecimal.ONE;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,8 +41,9 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class BenchmarkInvestmentMapper implements Function<Investment, Investment> {
 
-    private static final TypeReference<Map<String, List<SeenPrice>>> TR = new TypeReference<Map<String, List<SeenPrice>>>(){};
-    
+    private static final TypeReference<Map<String, List<SeenPrice>>> TR = new TypeReference<Map<String, List<SeenPrice>>>() {
+    };
+
     private static final DateTimeFormatter DMY = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private static String dmy(Investment i) {
@@ -66,12 +68,11 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
                 .filter(i -> i.getCurrency().equals(benchmark))
                 .collect(toMap(BenchmarkInvestmentMapper::dmy, BenchmarkInvestmentMapper::price, (x, y) -> x));
 
-       
         this.seenUSDPrices.putAll(
-                SeriesReader.read("index/seen-prices.json", TR).get(benchmark)
+                SeriesReader.read("index/seen-prices.json", TR).getOrDefault(benchmark, Collections.emptyList())
                         .stream()
                         .collect(toMap(SeenPrice::getDmy, SeenPrice::getPrice)));
-        
+
     }
 
     @Override
@@ -90,6 +91,10 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
             final var fxFactor = Optional.ofNullable(t.getIn().getFx()).orElse(ONE);
             var usdInvested = t.getIn().getAmount().multiply(fxFactor, C);
             asset.setAmount(usdInvested.divide(price, C));
+        } else if (this.benchmark.equals("USD")) {
+            final var fxFactor = Optional.ofNullable(t.getIn().getFx()).orElse(ONE);
+            var usdInvested = t.getIn().getAmount().multiply(fxFactor, C);
+            asset.setAmount(usdInvested);
         } else {
             var fx = ForeignExchanges.getMoneyAmountForeignExchange(t.getInitialCurrency(), this.benchmark);
             asset.setAmount(fx.apply(t.getInitialMoneyAmount(), YearMonth.of(t.getInitialDate())).getAmount());
