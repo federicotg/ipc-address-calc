@@ -158,12 +158,50 @@ public class ModifiedDietzReturn {
                         .map(cashFlowFunction),
                 this.getInvestments()
                         .stream()
-                        .map(Investment::getOut).filter(Objects::nonNull)
+                        .map(Investment::getOut)
+                        .filter(Objects::nonNull)
                         .filter(ie -> between(ie.getDate(), this.initialMoment, this.finalMoment))
                         .map(cashFlowFunction)
                         .map(BigDecimal::negate))
                 .collect(Collectors.toList());
     }
+    
+//    private List<Pair<BigDecimal, Long>> cf() {
+//
+//        return Stream.concat(
+//                this.getInvestments()
+//                        .stream()
+//                        .map(Investment::getIn)
+//                        .filter(ie -> between(ie.getDate(), this.initialMoment, this.finalMoment))
+//                        .map(this::flow),
+//                this.getInvestments()
+//                        .stream()
+//                        .map(Investment::getOut)
+//                        .filter(Objects::nonNull)
+//                        .filter(ie -> between(ie.getDate(), this.initialMoment, this.finalMoment))
+//                        .map(this::flow)
+//                        .map(p -> Pair.of(p.getFirst().negate(), p.getSecond())))
+//                .collect(Collectors.toList());
+//    }
+//    
+//    private Pair<BigDecimal, Long> flow(InvestmentEvent ie){
+//        final var ym = YearMonth.of(ie.getDate());
+//        final var fx = ie.getFx() != null
+//                ? new MoneyAmount(ie.getAmount().multiply(ie.getFx(), C), "USD")
+//                : ForeignExchanges.getMoneyAmountForeignExchange(ie.getCurrency(), currency).apply(ie.getMoneyAmount(), ym);
+//
+//        final var cashFlowDate = asLocalDate(ie.getDate());
+//
+//        final var cashFlowTime = ChronoUnit.DAYS.between(this.initialMoment, cashFlowDate);
+//
+//        
+//        return Pair.of(nominal
+//                ? fx.getAmount()
+//                : Inflation.USD_INFLATION.adjust(fx, ym, Inflation.USD_INFLATION.getTo()).getAmount(),
+//                cashFlowTime);
+//        
+//    }
+//    
 
     private BigDecimal adjustedCashFlowAmount(InvestmentEvent ie) {
 
@@ -221,10 +259,74 @@ public class ModifiedDietzReturn {
                 .divide(v0.getAmount().add(adjustedCashFlowSum, C), C)
                 .max(BigDecimal.ONE.negate());
 
+        //final List<Pair<BigDecimal, Long>> cfs = this.cf();
+        
+//        System.out.println(
+//        modifiedDietz(
+//                v1.getAmount().doubleValue(), 
+//                v0.getAmount().doubleValue(), 
+//                cfs.stream().map(Pair::getFirst).mapToDouble(BigDecimal::doubleValue).toArray(), 
+//                (int) this.daysBetween,
+//                cfs.stream().map(Pair::getSecond).mapToInt(Long::intValue).toArray())
+//        );
+//        
         return Pair.of(
                 result,
                 BigDecimal.valueOf(Math.pow(1.0d + result.doubleValue(), 365.0d / (double) this.daysBetween) - 1.0d));
 
     }
+    
+    
+    
+//    private static double modifiedDietz (double emv, double bmv, double cashFlow[], int numCD, int numD[]) {
+//
+//    /* emv:        Ending Market Value
+//     * bmv:        Beginning Market Value
+//     * cashFlow[]: Cash Flow
+//     * numCD:      actual number of days in the period
+//     * numD[]:     number of days between beginning of the period and date of cashFlow[]
+//     */
+//
+//    double md = -99999; // initialize modified dietz with a debugging number
+//
+//    try {
+//        double[] weight = new double[cashFlow.length];
+//
+//        if (numCD <= 0) {
+//            throw new ArithmeticException ("numCD <= 0");
+//        }
+//
+//        for (int i=0; i<cashFlow.length; i++) {
+//            if (numD[i] < 0) {
+//                throw new ArithmeticException ("numD[i]<0 , " + "i=" + i);
+//            }
+//            weight[i] = (double) (numCD - numD[i]) / numCD;
+//        }
+//
+//        double ttwcf = 0;      // total time weighted cash flows
+//        for (int i=0; i<cashFlow.length; i++) {
+//            ttwcf += weight[i] * cashFlow[i];
+//        }
+//
+//        double tncf = 0;      // total net cash flows
+//        for (int i=0; i<cashFlow.length; i++) {
+//            tncf += cashFlow[i];
+//        }
+//
+//        md = (emv - bmv - tncf) / (bmv + ttwcf);
+//    }
+//    catch (ArrayIndexOutOfBoundsException e) {
+//    	e.printStackTrace();
+//    }
+//    catch (ArithmeticException e) {
+//    	e.printStackTrace();
+//    }
+//    catch (Exception e) {
+//    	e.printStackTrace();
+//    }
+//
+//    return md;
+//}
+
 
 }

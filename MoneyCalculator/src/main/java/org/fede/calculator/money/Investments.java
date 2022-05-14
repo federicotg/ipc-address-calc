@@ -65,22 +65,22 @@ public class Investments {
 
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
-            "EIMI", "iShares Core MSCI EM IMI",
-            "XRSU", "Xtrackers Russell 2000",
-            "IWDA", "iShares Core MSCI World",
-            "VWRA", "Vanguard FTSE All-World",
-            "ISAC", "iShares MSCI ACWI",
-            "MEUD", "Lyxor Core STOXX Europe 600 DR"
+            //"EIMI", "iShares Core MSCI EM IMI",
+            //"XRSU", "Xtrackers Russell 2000",
+            "IWDA", "iShares Core MSCI World"
+            //"VWRA", "Vanguard FTSE All-World",
+            //"ISAC", "iShares MSCI ACWI",
+            //"MEUD", "Lyxor Core STOXX Europe 600 DR"
     );
 
     private static final Map<String, AnsiFormat> ETF_COLOR = Map.of(
             "CSPX", new AnsiFormat(Attribute.DIM()),
-            "EIMI", new AnsiFormat(Attribute.DIM()),
-            "XRSU", new AnsiFormat(Attribute.DIM()),
-            "IWDA", new AnsiFormat(Attribute.RED_TEXT()),
-            "VWRA", new AnsiFormat(Attribute.RED_TEXT()),
-            "ISAC", new AnsiFormat(Attribute.RED_TEXT()),
-            "MEUD", new AnsiFormat(Attribute.DIM())
+            //"EIMI", new AnsiFormat(Attribute.DIM()),
+            //"XRSU", new AnsiFormat(Attribute.DIM()),
+            "IWDA", new AnsiFormat(Attribute.DIM())
+            //"VWRA", new AnsiFormat(Attribute.RED_TEXT()),
+            //"ISAC", new AnsiFormat(Attribute.RED_TEXT()),
+            //"MEUD", new AnsiFormat(Attribute.DIM())
     );
 
     private final Console console;
