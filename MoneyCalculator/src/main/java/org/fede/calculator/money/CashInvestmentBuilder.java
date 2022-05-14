@@ -82,7 +82,7 @@ public class CashInvestmentBuilder {
         final var out = new InvestmentEvent();
         out.setAmount(inv.getInvestment().getAmount());
         out.setCurrency("USD");
-        out.setDate(ym.asDate());
+        out.setDate(ym.asToDate());
         out.setFee(BigDecimal.ZERO);
         out.setTransferFee(BigDecimal.ZERO);
         inv.setOut(out);

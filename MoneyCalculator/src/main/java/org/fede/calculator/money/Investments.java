@@ -66,8 +66,8 @@ public class Investments {
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
             "IWDA", "iShares Core MSCI World"
-            //"VWRA", "Vanguard FTSE All-World",
-            //"ISAC", "iShares MSCI ACWI"
+    //"VWRA", "Vanguard FTSE All-World",
+    //"ISAC", "iShares MSCI ACWI"
     );
 
     private static final Map<String, AnsiFormat> ETF_COLOR = Map.of(
@@ -126,21 +126,21 @@ public class Investments {
                 .stream()
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
                 .collect(toList());
-        
+
         final var portfolioMDR = Stream.of(of("Portfolio", new ModifiedDietzReturn(etfs, currency, nominal).get()));
 
         final var cspxBenchmarkSeries = etfs.stream()
                 .map(new BenchmarkInvestmentMapper("CSPX", etfs))
                 .collect(toList());
-        
+
         final var iwdaBenchmarkSeries = etfs.stream()
                 .map(new BenchmarkInvestmentMapper("IWDA", etfs))
                 .collect(toList());
-        
+
         final var cashBenchmarkSeries = etfs.stream()
                 .map(new BenchmarkInvestmentMapper("USD", etfs))
                 .collect(toList());
-        
+
         final var cspxBenchmark = Stream.of(of("CSPX", new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal).get()));
         final var iwdaBenchmark = Stream.of(of("IWDA", new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal).get()));
         final var cashBenchmark = Stream.of(of("Cash", new ModifiedDietzReturn(cashBenchmarkSeries, currency, nominal).get()));
@@ -166,6 +166,51 @@ public class Investments {
                 .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
                 .map(lineFunction)
                 .forEach(this.console::appendLine);
+
+        final var benchmarkMatrix = Map.of(
+                "Portfolio",
+                IntStream.rangeClosed(2019, LocalDate.now().getYear())
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                        .collect(toList()),
+                "CSPX",
+                IntStream.rangeClosed(2019, LocalDate.now().getYear())
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                        .collect(toList()),
+                "IWDA",
+                IntStream.rangeClosed(2019, LocalDate.now().getYear())
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                        .collect(toList()),
+                "Cash",
+                IntStream.rangeClosed(2019, LocalDate.now().getYear())
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(cashBenchmarkSeries, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                        .collect(toList())
+        );
+
+        final var titleRow = benchmarkMatrix.values()
+                .stream()
+                .findFirst()
+                .get()
+                .stream()
+                .map(Pair::getFirst)
+                .map(y -> this.format.text(y, 9)).collect(Collectors.joining());
+        
+        this.console.appendLine("");
+        this.console.appendLine(this.format.text("", 12), titleRow);
+        benchmarkMatrix.entrySet()
+                .stream()
+                .map(e -> this.matrixRow(e.getKey(), e.getValue()))
+                .forEach(this.console::appendLine);
+
+    }
+
+    private String matrixRow(String name, List<Pair<String, Pair<BigDecimal, BigDecimal>>> rowData) {
+
+        return Stream.concat(
+                Stream.of(this.format.text(name, 12)),
+                rowData.stream()
+                        .map(rd -> format.percent(rd.getSecond().getSecond(), 9)))
+                .collect(Collectors.joining());
+
     }
 
     private void print(InvestmentDetails d, int[] colWidths) {
