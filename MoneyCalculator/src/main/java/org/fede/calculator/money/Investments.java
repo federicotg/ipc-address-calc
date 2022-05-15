@@ -125,8 +125,6 @@ public class Investments {
 
     public void inv(final Predicate<Investment> everyone, boolean nominal, String currency) {
 
-        this.investmentReport(everyone, nominal, currency);
-
         final var etfs = this.getAllInvestments()
                 .stream()
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
@@ -144,14 +142,14 @@ public class Investments {
                 .map(new BenchmarkInvestmentMapper("USD", etfs))
                 .collect(toList());
 
-        final var textColWidth = 25;
-
         final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction
                 = (p) -> format("{0} {1} {2}",
-                        this.format.text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), textColWidth, ETF_COLOR.getOrDefault(p.getFirst(), new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT()))),
+                        this.format.text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), 25, ETF_COLOR.getOrDefault(p.getFirst(), new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT()))),
                         this.format.percent(p.getSecond().getFirst(), 8),
                         this.bar.pctBar(p.getSecond().getSecond()));
 
+        this.investmentReport(everyone, nominal, currency);
+        
         this.benchmarkReport(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, lineFunction, currency, nominal);
 
         this.yearMatrix(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, lineFunction, currency, nominal);
