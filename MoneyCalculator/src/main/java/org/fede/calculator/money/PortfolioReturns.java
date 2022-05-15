@@ -158,14 +158,11 @@ public class PortfolioReturns {
 
         }
 
-        
         final var mlmdr = monthyMDR.stream()
                 .map(ONE::add)
                 .reduce(ONE, BigDecimal::multiply)
                 .subtract(ONE);
-        
-        ;
-        
+               
         final var twAnnualized = BigDecimal.valueOf(Math.pow(1.0d + mlmdr.doubleValue(), 365.0d / (double) ChronoUnit.DAYS.between(from, to)) - 1.0d);
 
         this.console.appendLine(
