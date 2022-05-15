@@ -238,9 +238,11 @@ public class ModifiedDietzReturn {
 
     public Pair<BigDecimal, BigDecimal> get() {
 
-        //System.out.println(YearMonth.of(this.initialMoment.getYear(), this.initialMoment.getMonthValue()).prev());
-        //System.out.println(YearMonth.of(this.finalMoment.getYear(), this.finalMoment.getMonthValue()));
-        
+        /*System.out.println(YearMonth.of(
+                this.initialMoment.getYear(), this.initialMoment.getMonthValue()).prev()
+                + " - "
+                + YearMonth.of(this.finalMoment.getYear(), this.finalMoment.getMonthValue()));
+        */
         
         final var v1 = this.portfolioValue(YearMonth.of(this.finalMoment.getYear(), this.finalMoment.getMonthValue()));
         final var v0 = this.portfolioValue(YearMonth.of(this.initialMoment.getYear(), this.initialMoment.getMonthValue()).prev());

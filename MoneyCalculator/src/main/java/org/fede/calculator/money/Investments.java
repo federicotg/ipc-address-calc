@@ -208,10 +208,22 @@ public class Investments {
 
         this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Linked Monthly Modified Dietz Return"));
 
-        this.console.appendLine(this.format.text(ETF_NAME.get("CSPX"), 25), this.format.percent(this.monthlyLinkedMDR(cspxBenchmarkSeries, nominal), 8));
-        this.console.appendLine(this.format.text("Portfolio", 25), this.format.percent(this.monthlyLinkedMDR(etfs, nominal), 8));
-        this.console.appendLine(this.format.text(ETF_NAME.get("IWDA"), 25), this.format.percent(this.monthlyLinkedMDR(iwdaBenchmarkSeries, nominal), 8));
-        this.console.appendLine(this.format.text("Cash", 25), this.format.percent(this.monthlyLinkedMDR(cashBenchmarkSeries, nominal), 8));
+        Stream.of(
+                Pair.of(
+                        this.format.text(ETF_NAME.get("CSPX"), 25),
+                        this.monthlyLinkedMDR(cspxBenchmarkSeries, nominal)),
+                Pair.of(
+                        this.format.text("Portfolio", 25),
+                        this.monthlyLinkedMDR(etfs, nominal)),
+                Pair.of(
+                        this.format.text(ETF_NAME.get("IWDA"), 25),
+                        this.monthlyLinkedMDR(iwdaBenchmarkSeries, nominal)),
+                Pair.of(
+                        this.format.text("Cash", 25),
+                        this.monthlyLinkedMDR(cashBenchmarkSeries, nominal)))
+                .sorted(Comparator.comparing(Pair::getSecond, Comparator.reverseOrder()))
+                .map(p -> format("{0}{1}", p.getFirst(), this.format.percent(p.getSecond(), 8)))
+                .forEach(this.console::appendLine);
 
     }
 
@@ -550,7 +562,6 @@ public class Investments {
             final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), ZoneId.systemDefault());
 
             //System.out.println(st.toString() + " " + fn.toString());
-
             final var portfolio = new ModifiedDietzReturn(
                     etfs,
                     currency,
