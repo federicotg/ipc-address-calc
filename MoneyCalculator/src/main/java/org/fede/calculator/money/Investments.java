@@ -549,7 +549,7 @@ public class Investments {
 
             final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), ZoneId.systemDefault());
 
-            System.out.println(st.toString() + " " + fn.toString());
+            //System.out.println(st.toString() + " " + fn.toString());
 
             final var portfolio = new ModifiedDietzReturn(
                     etfs,

@@ -32,9 +32,13 @@ public class YearMonth implements Comparable<YearMonth> {
 
     private static final Map<Pair<Integer, Integer>, YearMonth> POOL = new ConcurrentHashMap<>(100, 0.75f);
     
+    public static YearMonth of(LocalDate day){
+        return of(day.getYear(), day.getMonthValue());
+    }
+    
     public static YearMonth of(Date day){
         LocalDate date = day.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
-        return of(date.getYear(), date.getMonthValue());
+        return of(date);
     }
     
     public static YearMonth of(int year, int month){

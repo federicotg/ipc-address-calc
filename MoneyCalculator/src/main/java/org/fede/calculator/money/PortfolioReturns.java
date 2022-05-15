@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static java.text.MessageFormat.format;
 import java.time.Instant;
@@ -25,6 +26,7 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import static java.util.Comparator.comparing;
 import java.util.Date;
 import java.util.List;
@@ -138,13 +140,60 @@ public class PortfolioReturns {
                 .reduce(PortfolioReturns::max)
                 .get();
 
-        this.console.appendLine(format("From {0} to {1}: {2}. Annualized: {3}", DateTimeFormatter.ISO_LOCAL_DATE.format(from), DateTimeFormatter.ISO_LOCAL_DATE.format(to), this.format.percent(modifiedDietzReturn.getFirst()), this.format.percent(modifiedDietzReturn.getSecond())));
+        List<BigDecimal> monthyMDR = new ArrayList<>(60);
+        for (var ym = YearMonth.of(from); ym.compareTo(YearMonth.of(to)) < 0; ym = ym.next()) {
+
+            var next = ym.next();
+
+            final var st = LocalDate.ofInstant(ym.asToDate().toInstant(), ZoneId.systemDefault()).plusDays(1);
+
+            final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), ZoneId.systemDefault());
+
+            monthyMDR.add(new ModifiedDietzReturn(
+                    inv,
+                    "USD",
+                    nominal,
+                    st,
+                    fn).get().getFirst());
+
+        }
+
+        
+        final var mlmdr = monthyMDR.stream()
+                .map(ONE::add)
+                .reduce(ONE, BigDecimal::multiply)
+                .subtract(ONE);
+        
+        ;
+        
+        final var twAnnualized = BigDecimal.valueOf(Math.pow(1.0d + mlmdr.doubleValue(), 365.0d / (double) ChronoUnit.DAYS.between(from, to)) - 1.0d);
+
+        this.console.appendLine(
+                format(
+                        "From {0} to {1}.",
+                        DateTimeFormatter.ISO_LOCAL_DATE.format(from),
+                        DateTimeFormatter.ISO_LOCAL_DATE.format(to)));
+        
+        this.console.appendLine(
+                format(
+                        "\tMoney Weighted Return: {0}. Annualized {1}.",
+                        this.format.percent(modifiedDietzReturn.getFirst()),
+                        this.format.percent(modifiedDietzReturn.getSecond())));
+        
+        this.console.appendLine(
+                format(
+                        "\tTime Weighted Return:  {0}. Annualized {1}.",
+                        this.format.percent(mlmdr),
+                        this.format.percent(twAnnualized)));
 
         final Function<Map.Entry<Integer, Pair<BigDecimal, BigDecimal>>, String> lineFunction
                 = (p) -> format("{0} {1} {2}",
                         this.format.text(String.valueOf(p.getKey()), 10),
                         this.format.percent(p.getValue().getFirst(), 8),
                         this.bar.pctBar(p.getValue().getSecond()));
+
+        this.console.appendLine("");
+        this.console.appendLine(this.format.text(" ", 10), this.format.text(" Return", 10), this.format.text("    Annualized", 8));
 
         this.mdrByYear(inv, from, to, nominal)
                 .entrySet()
@@ -168,9 +217,9 @@ public class PortfolioReturns {
 
         this.console.appendLine(this.format.title((nominal ? "Nominal " : "Real ") + "returns" + (withCash ? "" : " without cash")));
 
-        final Predicate<Investment> since2000 = i -> after(i.getInitialDate(), startYear, Month.JANUARY, 1);
+        final Predicate<Investment> sinceYear = i -> after(i.getInitialDate(), startYear, Month.JANUARY, 1);
 
-        this.modifiedDietzReturn(since2000, nominal, withCash);
+        this.modifiedDietzReturn(sinceYear, nominal, withCash);
 
     }
 
