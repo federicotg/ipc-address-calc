@@ -338,7 +338,9 @@ public class ConsoleReports {
                     entry("mdr", () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar))),
                     entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
                     entry("pos", () -> me.positions(args, "pos")),
-                    entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct"))
+                    entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct")),
+                    entry("bench", () -> me.benchmark(args, "bench"))
+                    
             );
 
             final var params = Arrays.stream(args)
@@ -408,6 +410,11 @@ public class ConsoleReports {
             System.err.println(ex.getMessage());
             ex.printStackTrace(System.err);
         }
+    }
+    
+    private void benchmark(String[] args, String param){
+        final var nominal = Boolean.parseBoolean(this.paramsValue(args, param).getOrDefault("nominal", "false"));
+        new Investments(console, format, bar, series).monthly(nominal);
     }
 
     private void savings() {

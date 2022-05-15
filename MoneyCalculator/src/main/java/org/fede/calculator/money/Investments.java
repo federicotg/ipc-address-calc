@@ -25,7 +25,10 @@ import static java.math.BigDecimal.ZERO;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -120,7 +123,7 @@ public class Investments {
         this.invHeader(colWidths, false);
 
         this.console.appendLine("");
-        this.console.appendLine(this.format.subtitle("Modified Dietz Returns (Before Fees & Taxes)"));
+        this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Modified Dietz Returns"));
 
         final var etfs = this.getAllInvestments()
                 .stream()
@@ -160,7 +163,8 @@ public class Investments {
                 .map(lineFunction)
                 .forEach(this.console::appendLine);
 
-        this.console.appendLine(this.format.subtitle("Modified Dietz Return"));
+        this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Yearly Modified Dietz Returns"));
+        this.console.appendLine(this.format.text(" ", textColWidth), this.format.text(" Return", 8), this.format.text("    Annualized", 16));
 
         IntStream.rangeClosed(2019, LocalDate.now().getYear())
                 .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
@@ -192,14 +196,22 @@ public class Investments {
                 .get()
                 .stream()
                 .map(Pair::getFirst)
-                .map(y -> this.format.text(y, 9)).collect(Collectors.joining());
-        
+                .map(y -> this.format.text("    " + y, 9)).collect(Collectors.joining());
+
         this.console.appendLine("");
         this.console.appendLine(this.format.text("", 12), titleRow);
         benchmarkMatrix.entrySet()
                 .stream()
+                .sorted(Comparator.comparing(Map.Entry::getKey, Comparator.naturalOrder()))
                 .map(e -> this.matrixRow(e.getKey(), e.getValue()))
                 .forEach(this.console::appendLine);
+
+        this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Linked Monthly Modified Dietz Return"));
+
+        this.console.appendLine(this.format.text(ETF_NAME.get("CSPX"), 25), this.format.percent(this.monthlyLinkedMDR(cspxBenchmarkSeries, nominal), 8));
+        this.console.appendLine(this.format.text("Portfolio", 25), this.format.percent(this.monthlyLinkedMDR(etfs, nominal), 8));
+        this.console.appendLine(this.format.text(ETF_NAME.get("IWDA"), 25), this.format.percent(this.monthlyLinkedMDR(iwdaBenchmarkSeries, nominal), 8));
+        this.console.appendLine(this.format.text("Cash", 25), this.format.percent(this.monthlyLinkedMDR(cashBenchmarkSeries, nominal), 8));
 
     }
 
@@ -483,6 +495,94 @@ public class Investments {
         new Evolution<Investment>(this.console, this.bar)
                 .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, comparator, list, pct);
 
+    }
+
+    private BigDecimal monthlyLinkedMDR(List<Investment> investments, boolean nominal) {
+        List<BigDecimal> monthyMDR = new ArrayList<>(60);
+        for (var ym = YearMonth.of(2019, 6); ym.compareTo(Inflation.USD_INFLATION.getTo()) < 0; ym = ym.next()) {
+
+            var next = ym.next();
+
+            final var st = LocalDate.ofInstant(ym.asToDate().toInstant(), ZoneId.systemDefault()).plusDays(1);
+
+            final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), ZoneId.systemDefault());
+
+            monthyMDR.add(new ModifiedDietzReturn(
+                    investments,
+                    "USD",
+                    nominal,
+                    st,
+                    fn).get().getFirst());
+
+        }
+        return monthyMDR.stream()
+                .map(ONE::add)
+                .reduce(ONE, BigDecimal::multiply)
+                .subtract(ONE);
+    }
+
+    public void monthly(boolean nominal) {
+
+        final var currency = "USD";
+        final var etfs = this.getAllInvestments()
+                .stream()
+                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .collect(toList());
+
+        final var cspxBenchmarkSeries = etfs.stream()
+                .map(new BenchmarkInvestmentMapper("CSPX", etfs))
+                .collect(toList());
+
+        final var iwdaBenchmarkSeries = etfs.stream()
+                .map(new BenchmarkInvestmentMapper("IWDA", etfs))
+                .collect(toList());
+
+        final var cashBenchmarkSeries = etfs.stream()
+                .map(new BenchmarkInvestmentMapper("USD", etfs))
+                .collect(toList());
+
+        for (var ym = YearMonth.of(2019, 6); ym.compareTo(Inflation.USD_INFLATION.getTo()) < 0; ym = ym.next()) {
+
+            var next = ym.next();
+
+            final var st = LocalDate.ofInstant(ym.asToDate().toInstant(), ZoneId.systemDefault()).plusDays(1);
+
+            final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), ZoneId.systemDefault());
+
+            System.out.println(st.toString() + " " + fn.toString());
+
+            final var portfolio = new ModifiedDietzReturn(
+                    etfs,
+                    currency,
+                    nominal,
+                    st,
+                    fn).get().getFirst();
+
+            final var cspx = new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal, st, fn).get().getFirst();
+
+            final var iwda = new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal, st, fn).get().getFirst();
+
+            final var cash = new ModifiedDietzReturn(cashBenchmarkSeries, currency, nominal, st, fn).get().getFirst();
+
+//            this.console.appendLine(
+//                    format("{0};{1};{2};{3}",
+//                            "Portfolio",
+//                            "CSPX",
+//                            "IWDA",
+//                            "Cash"));
+            final var month = YearMonth.of(Date.from(fn.atStartOfDay().toInstant(ZoneOffset.ofHours(-3))));
+
+            this.console.appendLine(
+                    format("{0}-{1};{2};{3};{4};{5}",
+                            this.format.text(String.valueOf(month.getYear()), 4),
+                            this.format.text(String.valueOf(month.getMonth()), 2),
+                            this.format.text(portfolio.add(ONE).toString(), 10),
+                            this.format.text(cspx.add(ONE).toString(), 10),
+                            this.format.text(iwda.add(ONE).toString(), 10),
+                            this.format.text(cash.add(ONE).toString(), 10)
+                    )
+            );
+        }
     }
 
 }
