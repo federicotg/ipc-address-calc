@@ -90,11 +90,11 @@ public class PortfolioReturns {
 
     private Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear() {
 
-        final Predicate<Investment> since2000 = i -> after(i.getInitialDate(), 1999, Month.JANUARY, 1);
+        final Predicate<Investment> sinceYear = i -> after(i.getInitialDate(), 1999, Month.JANUARY, 1);
         final var inv = Stream.concat(
                 this.cashInvestments.cashInvestments().stream(),
                 this.series.getInvestments().stream())
-                .filter(since2000)
+                .filter(sinceYear)
                 .collect(toList());
 
         final var from = inv.stream()
