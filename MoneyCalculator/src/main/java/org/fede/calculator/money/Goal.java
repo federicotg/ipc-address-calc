@@ -173,7 +173,8 @@ public class Goal {
 
         final var yearBuyTransactions = BigDecimal.TEN;
 
-        final var yearDeposit = BigDecimal.valueOf(monthlyDeposit * 13)
+        final var yearDeposit = BigDecimal.valueOf(monthlyDeposit)
+                .multiply(new BigDecimal("14.8"), C)
                 .subtract(BUY_FEE, C);
 
         final var yearIBKRFee = IBKR_FEE_STRATEGY
@@ -225,8 +226,8 @@ public class Goal {
         if (expected) {
             successes = this.expectedReturnSuccesses(
                     new GaussReturnSupplier(
-                            US_NOMINAL_EXPECTED_RETURN * 0.8d + EX_US_NOMINAL_EXPECTED_RETURN * 0.2d,
-                            US_EXPECTED_RETURN_STDDEV * 0.8d + EX_US_EXPECTED_RETURN_STDDEV * 0.2d,
+                            US_NOMINAL_EXPECTED_RETURN * 0.78d + EX_US_NOMINAL_EXPECTED_RETURN * 0.22d,
+                            US_EXPECTED_RETURN_STDDEV * 0.78d + EX_US_EXPECTED_RETURN_STDDEV * 0.22d,
                             periodYears * periods),
                     trials,
                     startingYear,
