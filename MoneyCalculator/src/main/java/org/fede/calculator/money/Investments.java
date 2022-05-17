@@ -149,7 +149,7 @@ public class Investments {
                         this.bar.pctBar(p.getSecond().getSecond()));
 
         this.investmentReport(everyone, nominal, currency);
-        
+
         this.benchmarkReport(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, lineFunction, currency, nominal);
 
         this.yearMatrix(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, lineFunction, currency, nominal);
@@ -202,7 +202,7 @@ public class Investments {
                 .forEach(this.console::appendLine);
 
         final var thisYear = Inflation.USD_INFLATION.getTo().getYear();
-        
+
         final var benchmarkMatrix = Map.of(
                 "Portfolio",
                 IntStream.rangeClosed(2019, thisYear)
@@ -573,12 +573,39 @@ public class Investments {
                 .subtract(ONE);
     }
 
+    private Investment withCost(Investment i) {
+
+        var answer = new Investment();
+        answer.setInvestment(i.getInvestment());
+        answer.setType(i.getType());
+        answer.setComment(i.getComment());
+        answer.setId(i.getId());
+        answer.setInterest(i.getInterest());
+        answer.setOut(i.getOut());
+
+        final var in = new InvestmentEvent();
+
+        in.setAmount(i.getIn().getAmount()
+                .add(i.getIn().getFee(), MathConstants.C)
+                .add(Optional.ofNullable(i.getIn().getTransferFee()).orElse(ZERO), MathConstants.C));
+        in.setCurrency(i.getIn().getCurrency());
+        in.setDate(i.getIn().getDate());
+        in.setFee(i.getIn().getFee());
+        in.setFx(i.getIn().getFx());
+        in.setTransferFee(i.getIn().getTransferFee());
+        answer.setIn(in);
+        return answer;
+    }
+
     public void monthly(boolean nominal) {
 
         final var currency = "USD";
         final var etfs = this.getAllInvestments()
                 .stream()
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .collect(toList());
+
+        final var etfsWithCosts = etfs.stream().map(this::withCost)
                 .collect(toList());
 
         final var cspxBenchmarkSeries = etfs.stream()
@@ -608,6 +635,13 @@ public class Investments {
                     nominal,
                     st,
                     fn).get().getFirst();
+            
+            final var portfolioWithCost = new ModifiedDietzReturn(
+                    etfsWithCosts,
+                    currency,
+                    nominal,
+                    st,
+                    fn).get().getFirst();
 
             final var cspx = new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal, st, fn).get().getFirst();
 
@@ -624,10 +658,11 @@ public class Investments {
             final var month = YearMonth.of(Date.from(fn.atStartOfDay().toInstant(ZoneOffset.ofHours(-3))));
 
             this.console.appendLine(
-                    format("{0}-{1};{2};{3};{4};{5}",
+                    format("{0}-{1};{2};{3};{4};{5};{6}",
                             this.format.text(String.valueOf(month.getYear()), 4),
                             this.format.text(String.valueOf(month.getMonth()), 2),
                             this.format.text(portfolio.add(ONE).toString(), 10),
+                            this.format.text(portfolioWithCost.add(ONE).toString(), 10),
                             this.format.text(cspx.add(ONE).toString(), 10),
                             this.format.text(iwda.add(ONE).toString(), 10),
                             this.format.text(cash.add(ONE).toString(), 10)
