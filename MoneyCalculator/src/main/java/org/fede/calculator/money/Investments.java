@@ -573,7 +573,7 @@ public class Investments {
                 .subtract(ONE);
     }
 
-    private Investment withCost(Investment i) {
+    private Investment withFees(Investment i) {
 
         var answer = new Investment();
         answer.setInvestment(i.getInvestment());
@@ -586,8 +586,7 @@ public class Investments {
         final var in = new InvestmentEvent();
 
         in.setAmount(i.getIn().getAmount()
-                .add(i.getIn().getFee(), MathConstants.C)
-                .add(Optional.ofNullable(i.getIn().getTransferFee()).orElse(ZERO), MathConstants.C));
+                .add(i.getIn().getFee(), MathConstants.C));
         in.setCurrency(i.getIn().getCurrency());
         in.setDate(i.getIn().getDate());
         in.setFee(i.getIn().getFee());
@@ -605,7 +604,7 @@ public class Investments {
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
                 .collect(toList());
 
-        final var etfsWithCosts = etfs.stream().map(this::withCost)
+        final var etfsWithFees = etfs.stream().map(this::withFees)
                 .collect(toList());
 
         final var cspxBenchmarkSeries = etfs.stream()
@@ -620,6 +619,8 @@ public class Investments {
                 .map(new BenchmarkInvestmentMapper("USD", etfs))
                 .collect(toList());
 
+        this.console.appendLine("Month;Portfolio;Portfolio With Fees;CSPX;IWDA;Cash");
+        this.console.appendLine("2019-6;0;0;0;0;0");
         for (var ym = YearMonth.of(2019, 6); ym.compareTo(Inflation.USD_INFLATION.getTo()) < 0; ym = ym.next()) {
 
             var next = ym.next();
@@ -637,24 +638,15 @@ public class Investments {
                     fn).get().getFirst();
             
             final var portfolioWithCost = new ModifiedDietzReturn(
-                    etfsWithCosts,
+                    etfsWithFees,
                     currency,
                     nominal,
                     st,
                     fn).get().getFirst();
 
             final var cspx = new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal, st, fn).get().getFirst();
-
             final var iwda = new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal, st, fn).get().getFirst();
-
             final var cash = new ModifiedDietzReturn(cashBenchmarkSeries, currency, nominal, st, fn).get().getFirst();
-
-//            this.console.appendLine(
-//                    format("{0};{1};{2};{3}",
-//                            "Portfolio",
-//                            "CSPX",
-//                            "IWDA",
-//                            "Cash"));
             final var month = YearMonth.of(Date.from(fn.atStartOfDay().toInstant(ZoneOffset.ofHours(-3))));
 
             this.console.appendLine(
