@@ -80,6 +80,22 @@ public class ModifiedDietzReturn {
         return asLocalDate(d.toInstant());
     }
 
+    public static long daysBetween(List<Investment> investments) {
+
+        final var from = investments
+                .stream()
+                .map(Investment::getIn)
+                .map(InvestmentEvent::getDate)
+                .map(Date::toInstant)
+                .reduce(ModifiedDietzReturn::min)
+                .map(ModifiedDietzReturn::asLocalDate)
+                .get();
+
+        final var to = min(finalMoment(investments), LocalDate.now());
+
+        return ChronoUnit.DAYS.between(from, to);
+    }
+
     private static LocalDate finalMoment(List<Investment> investments) {
 
         if (investments.stream().map(Investment::getOut).anyMatch(Objects::isNull)) {
@@ -165,7 +181,7 @@ public class ModifiedDietzReturn {
                         .map(BigDecimal::negate))
                 .collect(Collectors.toList());
     }
-    
+
 //    private List<Pair<BigDecimal, Long>> cf() {
 //
 //        return Stream.concat(
@@ -202,7 +218,6 @@ public class ModifiedDietzReturn {
 //        
 //    }
 //    
-
     private BigDecimal adjustedCashFlowAmount(InvestmentEvent ie) {
 
         final var cashFlowDate = asLocalDate(ie.getDate());
@@ -242,8 +257,7 @@ public class ModifiedDietzReturn {
                 this.initialMoment.getYear(), this.initialMoment.getMonthValue()).prev()
                 + " - "
                 + YearMonth.of(this.finalMoment.getYear(), this.finalMoment.getMonthValue()));
-        */
-        
+         */
         final var v1 = this.portfolioValue(YearMonth.of(this.finalMoment.getYear(), this.finalMoment.getMonthValue()));
         final var v0 = this.portfolioValue(YearMonth.of(this.initialMoment.getYear(), this.initialMoment.getMonthValue()).prev());
 
@@ -266,7 +280,6 @@ public class ModifiedDietzReturn {
                 .max(BigDecimal.ONE.negate());
 
         //final List<Pair<BigDecimal, Long>> cfs = this.cf();
-        
 //        System.out.println(
 //        modifiedDietz(
 //                v1.getAmount().doubleValue(), 
@@ -281,9 +294,7 @@ public class ModifiedDietzReturn {
                 BigDecimal.valueOf(Math.pow(1.0d + result.doubleValue(), 365.0d / (double) this.daysBetween) - 1.0d));
 
     }
-    
-    
-    
+
 //    private static double modifiedDietz (double emv, double bmv, double cashFlow[], int numCD, int numD[]) {
 //
 //    /* emv:        Ending Market Value
@@ -333,6 +344,4 @@ public class ModifiedDietzReturn {
 //
 //    return md;
 //}
-
-
 }

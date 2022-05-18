@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -130,6 +131,10 @@ public class Investments {
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
                 .collect(toList());
 
+        final var etfsWithFees = etfs.stream()
+                .map(this::withFees)
+                .collect(toList());
+
         final var cspxBenchmarkSeries = etfs.stream()
                 .map(new BenchmarkInvestmentMapper("CSPX", etfs))
                 .collect(toList());
@@ -150,16 +155,17 @@ public class Investments {
 
         this.investmentReport(everyone, nominal, currency);
 
-        this.benchmarkReport(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, lineFunction, currency, nominal);
+        this.benchmarkReport(etfs, etfsWithFees, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, lineFunction, currency, nominal);
 
-        this.yearMatrix(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, lineFunction, currency, nominal);
+        this.timeWeightedReport(etfs, etfsWithFees, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, lineFunction, nominal);
 
-        this.timeWeightedReport(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, nominal);
+        this.yearMatrix(etfs, etfsWithFees, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, lineFunction, currency, nominal);
 
     }
 
     private void benchmarkReport(
             List<Investment> etfs,
+            List<Investment> etfsWithFees,
             List<Investment> cspxBenchmarkSeries,
             List<Investment> iwdaBenchmarkSeries,
             List<Investment> cashBenchmarkSeries,
@@ -168,14 +174,15 @@ public class Investments {
             boolean nominal) {
         final var textColWidth = 25;
         final var portfolioMDR = Stream.of(of("Portfolio", new ModifiedDietzReturn(etfs, currency, nominal).get()));
+        final var portfolioWithFeesMDR = Stream.of(of("Portfolio With Fees", new ModifiedDietzReturn(etfsWithFees, currency, nominal).get()));
         final var cspxBenchmark = Stream.of(of("CSPX", new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal).get()));
         final var iwdaBenchmark = Stream.of(of("IWDA", new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal).get()));
         final var cashBenchmark = Stream.of(of("Cash", new ModifiedDietzReturn(cashBenchmarkSeries, currency, nominal).get()));
 
         this.console.appendLine("");
-        this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Modified Dietz Returns"));
+        this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Money Weighted MDR"));
         this.console.appendLine(this.format.text(" ", textColWidth), this.format.text(" Return", 8), this.format.text("    Annualized", 16));
-        Stream.of(portfolioMDR, cspxBenchmark, iwdaBenchmark, cashBenchmark)
+        Stream.of(portfolioMDR, cspxBenchmark, iwdaBenchmark, cashBenchmark, portfolioWithFeesMDR)
                 .reduce(Stream.empty(), Stream::concat)
                 .sorted(CMP)
                 .map(lineFunction)
@@ -183,7 +190,9 @@ public class Investments {
 
     }
 
-    private void yearMatrix(List<Investment> etfs,
+    private void yearMatrix(
+            List<Investment> etfs,
+            List<Investment> etfsWithFees,
             List<Investment> cspxBenchmarkSeries,
             List<Investment> iwdaBenchmarkSeries,
             List<Investment> cashBenchmarkSeries,
@@ -208,6 +217,10 @@ public class Investments {
                 IntStream.rangeClosed(2019, thisYear)
                         .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
                         .collect(toList()),
+                "Portfolio With Fees",
+                IntStream.rangeClosed(2019, thisYear)
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfsWithFees, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                        .collect(toList()),
                 "CSPX",
                 IntStream.rangeClosed(2019, thisYear)
                         .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
@@ -228,10 +241,10 @@ public class Investments {
                 .get()
                 .stream()
                 .map(Pair::getFirst)
-                .map(y -> this.format.text("    " + y, 9)).collect(joining());
+                .map(y -> this.format.text(y, 9)).collect(joining());
 
         this.console.appendLine("");
-        this.console.appendLine(this.format.text("", 12), titleRow);
+        this.console.appendLine(this.format.text("", textColWidth), titleRow);
         benchmarkMatrix.entrySet()
                 .stream()
                 .sorted(comparing(Map.Entry::getKey, Comparator.naturalOrder()))
@@ -242,27 +255,33 @@ public class Investments {
 
     private void timeWeightedReport(
             List<Investment> etfs,
+            List<Investment> etfsWithFees,
             List<Investment> cspxBenchmarkSeries,
             List<Investment> iwdaBenchmarkSeries,
             List<Investment> cashBenchmarkSeries,
+            Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction,
             boolean nominal) {
-        this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Linked Monthly Modified Dietz Return"));
+        this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Time Weighted MDR"));
 
+        this.console.appendLine(this.format.text(" ", 25), this.format.text(" Return", 8), this.format.text("    Annualized", 16));
         Stream.of(
                 Pair.of(
-                        this.format.text(ETF_NAME.get("CSPX"), 25),
+                        "CSPX",
                         this.monthlyLinkedMDR(cspxBenchmarkSeries, nominal)),
                 Pair.of(
-                        this.format.text("Portfolio", 25),
+                        "Portfolio",
                         this.monthlyLinkedMDR(etfs, nominal)),
                 Pair.of(
-                        this.format.text(ETF_NAME.get("IWDA"), 25),
+                        "Portfolio With Fees",
+                        this.monthlyLinkedMDR(etfsWithFees, nominal)),
+                Pair.of(
+                        "IWDA",
                         this.monthlyLinkedMDR(iwdaBenchmarkSeries, nominal)),
                 Pair.of(
-                        this.format.text("Cash", 25),
+                        "Cash",
                         this.monthlyLinkedMDR(cashBenchmarkSeries, nominal)))
-                .sorted(comparing(Pair::getSecond, Comparator.reverseOrder()))
-                .map(p -> format("{0}{1}", p.getFirst(), this.format.percent(p.getSecond(), 8)))
+                .sorted(CMP)
+                .map(lineFunction)
                 .forEach(this.console::appendLine);
 
     }
@@ -270,7 +289,7 @@ public class Investments {
     private String matrixRow(String name, List<Pair<String, Pair<BigDecimal, BigDecimal>>> rowData) {
 
         return Stream.concat(
-                Stream.of(this.format.text(name, 12)),
+                Stream.of(this.format.text(name, 20)),
                 rowData.stream()
                         .map(rd -> format.percent(rd.getSecond().getSecond(), 9)))
                 .collect(joining());
@@ -549,7 +568,7 @@ public class Investments {
 
     }
 
-    private BigDecimal monthlyLinkedMDR(List<Investment> investments, boolean nominal) {
+    private Pair<BigDecimal, BigDecimal> monthlyLinkedMDR(List<Investment> investments, boolean nominal) {
         List<BigDecimal> monthyMDR = new ArrayList<>(60);
         for (var ym = YearMonth.of(2019, 6); ym.compareTo(Inflation.USD_INFLATION.getTo()) < 0; ym = ym.next()) {
 
@@ -567,10 +586,15 @@ public class Investments {
                     fn).get().getFirst());
 
         }
-        return monthyMDR.stream()
+        final var value = monthyMDR.stream()
                 .map(ONE::add)
                 .reduce(ONE, BigDecimal::multiply)
                 .subtract(ONE);
+
+        final var annualized = BigDecimal.valueOf(Math.pow(1.0d + value.doubleValue(), 365.0d / (double) ModifiedDietzReturn.daysBetween(investments)) - 1.0d);
+
+        return Pair.of(value, annualized);
+
     }
 
     private Investment withFees(Investment i) {
@@ -620,7 +644,13 @@ public class Investments {
                 .collect(toList());
 
         this.console.appendLine("Month;Portfolio;Portfolio With Fees;CSPX;IWDA;Cash");
-        this.console.appendLine("2019-6;0;0;0;0;0");
+        //this.console.appendLine("2019-6;10000;10000;10000;10000;10000");
+
+        Map<YearMonth, BigDecimal[]> results = new LinkedHashMap<>();
+
+        final var initialInvestment = new BigDecimal("10000");
+        results.put(YearMonth.of(2019, 6), new BigDecimal[]{initialInvestment, initialInvestment, initialInvestment, initialInvestment, initialInvestment});
+
         for (var ym = YearMonth.of(2019, 6); ym.compareTo(Inflation.USD_INFLATION.getTo()) < 0; ym = ym.next()) {
 
             var next = ym.next();
@@ -629,38 +659,47 @@ public class Investments {
 
             final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), ZoneId.systemDefault());
 
-            //System.out.println(st.toString() + " " + fn.toString());
-            final var portfolio = new ModifiedDietzReturn(
+            final var portfolio = ONE.add(new ModifiedDietzReturn(
                     etfs,
                     currency,
                     nominal,
                     st,
-                    fn).get().getFirst();
-            
-            final var portfolioWithCost = new ModifiedDietzReturn(
+                    fn).get().getFirst(), MathConstants.C);
+
+            final var portfolioWithCost = ONE.add(new ModifiedDietzReturn(
                     etfsWithFees,
                     currency,
                     nominal,
                     st,
-                    fn).get().getFirst();
+                    fn).get().getFirst(), MathConstants.C);
 
-            final var cspx = new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal, st, fn).get().getFirst();
-            final var iwda = new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal, st, fn).get().getFirst();
-            final var cash = new ModifiedDietzReturn(cashBenchmarkSeries, currency, nominal, st, fn).get().getFirst();
+            final var cspx = ONE.add(new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal, st, fn).get().getFirst(), MathConstants.C);
+            final var iwda = ONE.add(new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal, st, fn).get().getFirst(), MathConstants.C);
+            final var cash = ONE.add(new ModifiedDietzReturn(cashBenchmarkSeries, currency, nominal, st, fn).get().getFirst(), MathConstants.C);
+
             final var month = YearMonth.of(Date.from(fn.atStartOfDay().toInstant(ZoneOffset.ofHours(-3))));
 
-            this.console.appendLine(
-                    format("{0}-{1};{2};{3};{4};{5};{6}",
-                            this.format.text(String.valueOf(month.getYear()), 4),
-                            this.format.text(String.valueOf(month.getMonth()), 2),
-                            this.format.text(portfolio.add(ONE).toString(), 10),
-                            this.format.text(portfolioWithCost.add(ONE).toString(), 10),
-                            this.format.text(cspx.add(ONE).toString(), 10),
-                            this.format.text(iwda.add(ONE).toString(), 10),
-                            this.format.text(cash.add(ONE).toString(), 10)
-                    )
-            );
+            final var prev = results.get(month.prev());
+
+            results.put(month, new BigDecimal[]{
+                prev[0].multiply(portfolio, MathConstants.C),
+                prev[1].multiply(portfolioWithCost, MathConstants.C),
+                prev[2].multiply(cspx, MathConstants.C),
+                prev[3].multiply(iwda, MathConstants.C),
+                prev[4].multiply(cash, MathConstants.C)});
+
         }
+
+        results.forEach((month, arr)
+                -> this.console.appendLine(
+                        format("{0}-{1};{2};{3};{4};{5};{6}",
+                                this.format.text(String.valueOf(month.getYear()), 4),
+                                this.format.text((month.getMonth() < 10 ? "0" : "") + String.valueOf(month.getMonth()), 2),
+                                this.format.currency(arr[0], 10),
+                                this.format.currency(arr[1], 10),
+                                this.format.currency(arr[2], 10),
+                                this.format.currency(arr[3], 10),
+                                this.format.currency(arr[4], 10))));
     }
 
 }
