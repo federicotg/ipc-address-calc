@@ -317,7 +317,7 @@ public class ConsoleReports {
                     entry("p-evo-pct", () -> me.portfolioEvoPct(args, "p-evo-pct")),
                     entry("p-type-evo", () -> new Investments(console, format, bar, series).portfolioTypeEvo(false)),
                     entry("p-type-evo-pct", () -> new Investments(console, format, bar, series).portfolioTypeEvo(true)),
-                    entry("pa", new PortfolioReturns(series, console, format, bar)::portfolioAllocation),
+                    entry("pa", () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation(true)),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     //house cost
                     entry("house-evo", () -> new House(console, format, bar).houseCostsEvolution()),
@@ -340,7 +340,6 @@ public class ConsoleReports {
                     entry("pos", () -> me.positions(args, "pos")),
                     entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct")),
                     entry("bench", () -> me.benchmark(args, "bench"))
-                    
             );
 
             final var params = Arrays.stream(args)
@@ -361,7 +360,7 @@ public class ConsoleReports {
                                 TAX,
                                 BBPP,
                                 BBPP_MIN,
-                                PENSION, 
+                                PENSION,
                                 EXPECTED_RETRUNS)),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
@@ -372,7 +371,7 @@ public class ConsoleReports {
                         entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false currency=USD"),
                         entry("inv-evo", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                        entry("mdr", "nominal=false cash=true start=1999"),
+                        entry("mdr", "nominal=false cash=true start=1999 tw=false"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("income-avg-evo", "months=12"),
                         entry("bbpp", "year=2021 ibkr=false"),
@@ -411,8 +410,8 @@ public class ConsoleReports {
             ex.printStackTrace(System.err);
         }
     }
-    
-    private void benchmark(String[] args, String param){
+
+    private void benchmark(String[] args, String param) {
         final var nominal = Boolean.parseBoolean(this.paramsValue(args, param).getOrDefault("nominal", "false"));
         new Investments(console, format, bar, series).monthly(nominal);
     }
@@ -1111,10 +1110,11 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paranName);
 
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+        final var timeWeighted = Boolean.parseBoolean(params.getOrDefault("tw", "false"));
         final var withCash = Boolean.parseBoolean(params.getOrDefault("cash", "true"));
         final var startYear = Integer.parseInt(params.getOrDefault("start", "1999"));
 
-        pr.returns(nominal, withCash, startYear);
+        pr.returns(nominal, withCash, startYear, timeWeighted);
 
     }
 
@@ -1186,7 +1186,6 @@ public class ConsoleReports {
 //                "XRSU", "BWBXSH4",
 //                "CSPX", "B50YWZ5",
 //                "MEUD", "LU0908500753");
-
         final var codes = Map.of(
                 "CSPX", "CSSPXz",
                 "EIMI", "EIMIz",

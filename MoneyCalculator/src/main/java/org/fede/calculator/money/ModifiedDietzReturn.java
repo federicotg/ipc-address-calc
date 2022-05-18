@@ -17,11 +17,13 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -292,6 +294,39 @@ public class ModifiedDietzReturn {
         return Pair.of(
                 result,
                 BigDecimal.valueOf(Math.pow(1.0d + result.doubleValue(), 365.0d / (double) this.daysBetween) - 1.0d));
+
+    }
+
+    public Pair<BigDecimal, BigDecimal> monthlyLinked() {
+        List<BigDecimal> monthyMDR = new ArrayList<>(60);
+
+        final var from = YearMonth.of(this.initialMoment).prev();
+        final var to = YearMonth.of(this.finalMoment);
+
+        for (var ym = from; ym.compareTo(to) < 0; ym = ym.next()) {
+
+            var next = ym.next();
+
+            final var st = LocalDate.ofInstant(ym.asToDate().toInstant(), ZoneId.systemDefault()).plusDays(1);
+
+            final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), ZoneId.systemDefault());
+
+            monthyMDR.add(new ModifiedDietzReturn(
+                    this.investments,
+                    this.currency,
+                    this.nominal,
+                    st,
+                    fn).get().getFirst());
+
+        }
+        final var value = monthyMDR.stream()
+                .map(ONE::add)
+                .reduce(ONE, BigDecimal::multiply)
+                .subtract(ONE);
+
+        final var annualized = BigDecimal.valueOf(Math.pow(1.0d + value.doubleValue(), 365.0d / (double) this.daysBetween) - 1.0d);
+
+        return Pair.of(value, annualized);
 
     }
 

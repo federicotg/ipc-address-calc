@@ -28,7 +28,6 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -267,19 +266,19 @@ public class Investments {
         Stream.of(
                 Pair.of(
                         "CSPX",
-                        this.monthlyLinkedMDR(cspxBenchmarkSeries, nominal)),
+                        new ModifiedDietzReturn(cspxBenchmarkSeries, "USD", nominal).monthlyLinked()),
                 Pair.of(
                         "Portfolio",
-                        this.monthlyLinkedMDR(etfs, nominal)),
+                        new ModifiedDietzReturn(etfs, "USD", nominal).monthlyLinked()),
                 Pair.of(
                         "Portfolio With Fees",
-                        this.monthlyLinkedMDR(etfsWithFees, nominal)),
+                        new ModifiedDietzReturn(etfsWithFees, "USD", nominal).monthlyLinked()),
                 Pair.of(
                         "IWDA",
-                        this.monthlyLinkedMDR(iwdaBenchmarkSeries, nominal)),
+                        new ModifiedDietzReturn(iwdaBenchmarkSeries, "USD", nominal).monthlyLinked()),
                 Pair.of(
                         "Cash",
-                        this.monthlyLinkedMDR(cashBenchmarkSeries, nominal)))
+                        new ModifiedDietzReturn(cashBenchmarkSeries, "USD", nominal).monthlyLinked()))
                 .sorted(CMP)
                 .map(lineFunction)
                 .forEach(this.console::appendLine);
@@ -568,7 +567,7 @@ public class Investments {
 
     }
 
-    private Pair<BigDecimal, BigDecimal> monthlyLinkedMDR(List<Investment> investments, boolean nominal) {
+    /* private Pair<BigDecimal, BigDecimal> monthlyLinkedMDR(List<Investment> investments, boolean nominal) {
         List<BigDecimal> monthyMDR = new ArrayList<>(60);
         for (var ym = YearMonth.of(2019, 6); ym.compareTo(Inflation.USD_INFLATION.getTo()) < 0; ym = ym.next()) {
 
@@ -595,8 +594,7 @@ public class Investments {
 
         return Pair.of(value, annualized);
 
-    }
-
+    }*/
     private Investment withFees(Investment i) {
 
         var answer = new Investment();
