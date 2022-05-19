@@ -567,34 +567,6 @@ public class Investments {
 
     }
 
-    /* private Pair<BigDecimal, BigDecimal> monthlyLinkedMDR(List<Investment> investments, boolean nominal) {
-        List<BigDecimal> monthyMDR = new ArrayList<>(60);
-        for (var ym = YearMonth.of(2019, 6); ym.compareTo(Inflation.USD_INFLATION.getTo()) < 0; ym = ym.next()) {
-
-            var next = ym.next();
-
-            final var st = LocalDate.ofInstant(ym.asToDate().toInstant(), ZoneId.systemDefault()).plusDays(1);
-
-            final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), ZoneId.systemDefault());
-
-            monthyMDR.add(new ModifiedDietzReturn(
-                    investments,
-                    "USD",
-                    nominal,
-                    st,
-                    fn).get().getFirst());
-
-        }
-        final var value = monthyMDR.stream()
-                .map(ONE::add)
-                .reduce(ONE, BigDecimal::multiply)
-                .subtract(ONE);
-
-        final var annualized = BigDecimal.valueOf(Math.pow(1.0d + value.doubleValue(), 365.0d / (double) ModifiedDietzReturn.daysBetween(investments)) - 1.0d);
-
-        return Pair.of(value, annualized);
-
-    }*/
     private Investment withFees(Investment i) {
 
         var answer = new Investment();
@@ -642,7 +614,6 @@ public class Investments {
                 .collect(toList());
 
         this.console.appendLine("Month;Portfolio;Portfolio With Fees;CSPX;IWDA;Cash");
-        //this.console.appendLine("2019-6;10000;10000;10000;10000;10000");
 
         Map<YearMonth, BigDecimal[]> results = new LinkedHashMap<>();
 
