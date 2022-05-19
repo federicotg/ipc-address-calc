@@ -247,7 +247,7 @@ public class Investments {
         benchmarkMatrix.entrySet()
                 .stream()
                 .sorted(comparing(Map.Entry::getKey, Comparator.naturalOrder()))
-                .map(e -> this.matrixRow(e.getKey(), e.getValue()))
+                .map(e -> this.matrixRow(e.getKey(), e.getValue(), benchmarkMatrix))
                 .forEach(this.console::appendLine);
 
     }
@@ -285,14 +285,50 @@ public class Investments {
 
     }
 
-    private String matrixRow(String name, List<Pair<String, Pair<BigDecimal, BigDecimal>>> rowData) {
+    private String matrixRow(
+            String name,
+            List<Pair<String, Pair<BigDecimal, BigDecimal>>> rowData,
+            Map<String, List<Pair<String, Pair<BigDecimal, BigDecimal>>>> benchmarkMatrix) {
+
+        final var iwdaList = benchmarkMatrix.get("IWDA");
+        final var cspxList = benchmarkMatrix.get("CSPX");
 
         return Stream.concat(
-                Stream.of(this.format.text(name, 20)),
-                rowData.stream()
-                        .map(rd -> format.percent(rd.getSecond().getSecond(), 9)))
+                Stream.of(this.format.text(name, 20, ETF_COLOR.getOrDefault(name, new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT())))),
+                IntStream.range(0, rowData.size())
+                        .mapToObj(i -> Pair.of(i, rowData.get(i).getSecond().getSecond()))
+                        .map(pair
+                                -> format.text(
+                                format.percent(
+                                        pair.getSecond(), 9),
+                                9,
+                                ETF_COLOR.containsKey(name)
+                                ? new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT())
+                                : color(
+                                        pair.getSecond(),
+                                        iwdaList.get(pair.getFirst()).getSecond().getSecond(),
+                                        cspxList.get(pair.getFirst()).getSecond().getSecond())
+                        )))
                 .collect(joining());
 
+    }
+
+    private AnsiFormat color(BigDecimal value, BigDecimal iwda, BigDecimal cspx) {
+
+        var upper = cspx;
+        var lower = iwda;
+        if (iwda.compareTo(cspx) > 0) {
+            upper = iwda;
+            lower = cspx;
+        }
+
+        if (value.compareTo(lower) <= 0) {
+            return new AnsiFormat(Attribute.RED_TEXT());
+        }
+        if (value.compareTo(upper) <= 0) {
+            return new AnsiFormat(Attribute.YELLOW_TEXT());
+        }
+        return new AnsiFormat(Attribute.GREEN_TEXT());
     }
 
     private void print(InvestmentDetails d, int[] colWidths) {
