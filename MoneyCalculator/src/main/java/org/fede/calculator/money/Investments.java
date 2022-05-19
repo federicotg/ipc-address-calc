@@ -214,23 +214,23 @@ public class Investments {
         final var benchmarkMatrix = Map.of(
                 "Portfolio",
                 IntStream.rangeClosed(2019, thisYear)
-                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get().getFirst()))
                         .collect(toList()),
                 "Portfolio With Fees",
                 IntStream.rangeClosed(2019, thisYear)
-                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfsWithFees, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfsWithFees, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get().getFirst()))
                         .collect(toList()),
                 "CSPX",
                 IntStream.rangeClosed(2019, thisYear)
-                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get().getFirst()))
                         .collect(toList()),
                 "IWDA",
                 IntStream.rangeClosed(2019, thisYear)
-                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get().getFirst()))
                         .collect(toList()),
                 "Cash",
                 IntStream.rangeClosed(2019, thisYear)
-                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(cashBenchmarkSeries, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(cashBenchmarkSeries, currency, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get().getFirst()))
                         .collect(toList())
         );
 
@@ -244,7 +244,8 @@ public class Investments {
 
         this.console.appendLine("");
         this.console.appendLine(this.format.text("", textColWidth), titleRow);
-        benchmarkMatrix.entrySet()
+        benchmarkMatrix
+                .entrySet()
                 .stream()
                 .sorted(comparing(Map.Entry::getKey, Comparator.naturalOrder()))
                 .map(e -> this.matrixRow(e.getKey(), e.getValue(), benchmarkMatrix))
@@ -287,8 +288,8 @@ public class Investments {
 
     private String matrixRow(
             String name,
-            List<Pair<String, Pair<BigDecimal, BigDecimal>>> rowData,
-            Map<String, List<Pair<String, Pair<BigDecimal, BigDecimal>>>> benchmarkMatrix) {
+            List<Pair<String, BigDecimal>> rowData,
+            Map<String, List<Pair<String, BigDecimal>>> benchmarkMatrix) {
 
         final var iwdaList = benchmarkMatrix.get("IWDA");
         final var cspxList = benchmarkMatrix.get("CSPX");
@@ -296,7 +297,7 @@ public class Investments {
         return Stream.concat(
                 Stream.of(this.format.text(name, 20, ETF_COLOR.getOrDefault(name, new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT())))),
                 IntStream.range(0, rowData.size())
-                        .mapToObj(i -> Pair.of(i, rowData.get(i).getSecond().getSecond()))
+                        .mapToObj(i -> Pair.of(i, rowData.get(i).getSecond()))
                         .map(pair -> coloredPercent(pair.getSecond(), color(name, pair.getSecond(), iwdaList.get(pair.getFirst()), cspxList.get(pair.getFirst())))))
                 .collect(joining());
     }
@@ -305,13 +306,13 @@ public class Investments {
         return this.format.text(format.percent(value, 9), 9, color);
     }
 
-    private AnsiFormat color(String name, BigDecimal value, Pair<String, Pair<BigDecimal, BigDecimal>> iwda, Pair<String, Pair<BigDecimal, BigDecimal>> cspx) {
+    private AnsiFormat color(String name, BigDecimal value, Pair<String, BigDecimal> iwda, Pair<String, BigDecimal> cspx) {
         return ETF_COLOR.containsKey(name)
                 ? new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT())
                 : color(
                         value,
-                        iwda.getSecond().getSecond(),
-                        cspx.getSecond().getSecond());
+                        iwda.getSecond(),
+                        cspx.getSecond());
     }
 
     private AnsiFormat color(BigDecimal value, BigDecimal iwda, BigDecimal cspx) {
