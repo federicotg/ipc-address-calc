@@ -297,20 +297,21 @@ public class Investments {
                 Stream.of(this.format.text(name, 20, ETF_COLOR.getOrDefault(name, new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT())))),
                 IntStream.range(0, rowData.size())
                         .mapToObj(i -> Pair.of(i, rowData.get(i).getSecond().getSecond()))
-                        .map(pair
-                                -> format.text(
-                                format.percent(
-                                        pair.getSecond(), 9),
-                                9,
-                                ETF_COLOR.containsKey(name)
-                                ? new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT())
-                                : color(
-                                        pair.getSecond(),
-                                        iwdaList.get(pair.getFirst()).getSecond().getSecond(),
-                                        cspxList.get(pair.getFirst()).getSecond().getSecond())
-                        )))
+                        .map(pair -> coloredPercent(pair.getSecond(), color(name, pair.getSecond(), iwdaList.get(pair.getFirst()), cspxList.get(pair.getFirst())))))
                 .collect(joining());
+    }
 
+    private String coloredPercent(BigDecimal value, AnsiFormat color) {
+        return this.format.text(format.percent(value, 9), 9, color);
+    }
+
+    private AnsiFormat color(String name, BigDecimal value, Pair<String, Pair<BigDecimal, BigDecimal>> iwda, Pair<String, Pair<BigDecimal, BigDecimal>> cspx) {
+        return ETF_COLOR.containsKey(name)
+                ? new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT())
+                : color(
+                        value,
+                        iwda.getSecond().getSecond(),
+                        cspx.getSecond().getSecond());
     }
 
     private AnsiFormat color(BigDecimal value, BigDecimal iwda, BigDecimal cspx) {
