@@ -268,10 +268,9 @@ public class ConsoleReports {
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
 
         final var type = params.getOrDefault("type", "all");
-        final var currency = params.getOrDefault("currency", "USD");
 
         new Investments(this.console, this.format, this.bar, this.series)
-                .inv("all".equalsIgnoreCase(type) ? x -> true : x -> x.getCurrency().equalsIgnoreCase(type), nominal, currency);
+                .inv("all".equalsIgnoreCase(type) ? x -> true : x -> x.getCurrency().equalsIgnoreCase(type), nominal);
 
     }
 
@@ -368,7 +367,7 @@ public class ConsoleReports {
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
                         entry("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
-                        entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false currency=USD"),
+                        entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("inv-evo", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("mdr", "nominal=false cash=true start=1999 tw=false"),

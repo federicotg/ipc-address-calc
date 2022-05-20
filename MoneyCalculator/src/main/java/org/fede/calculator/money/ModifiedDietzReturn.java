@@ -114,6 +114,10 @@ public class ModifiedDietzReturn {
                 .get();
     }
 
+    public ModifiedDietzReturn(List<Investment> investments, boolean nominal) {
+        this(investments, "USD", nominal);
+    }
+
     public ModifiedDietzReturn(List<Investment> investments, String currency, boolean nominal) {
         this(investments,
                 currency,
@@ -127,6 +131,10 @@ public class ModifiedDietzReturn {
                         .map(ModifiedDietzReturn::asLocalDate)
                         .get(),
                 finalMoment(investments));
+    }
+
+    public ModifiedDietzReturn(List<Investment> investments, boolean nominal, LocalDate initialMoment, LocalDate finalMoment) {
+        this(investments, "USD", nominal, initialMoment, finalMoment);
     }
 
     public ModifiedDietzReturn(List<Investment> investments, String currency, boolean nominal, LocalDate initialMoment, LocalDate finalMoment) {
