@@ -246,7 +246,7 @@ public class Investments {
                 .collect(joining());
 
         this.console.appendLine("");
-        this.console.appendLine(this.format.text("", textColWidth), titleRow);
+        this.console.appendLine(this.format.text(" ", 28), titleRow);
         benchmarkMatrix
                 .entrySet()
                 .stream()
@@ -298,7 +298,7 @@ public class Investments {
         final var cspxList = benchmarkMatrix.get("CSPX");
 
         return Stream.concat(
-                Stream.of(this.format.text(name, 20, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
+                Stream.of(this.format.text(ETF_NAME.getOrDefault(name, name), 25, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
                 IntStream.range(0, rowData.size())
                         .mapToObj(i -> Pair.of(i, rowData.get(i).getSecond()))
                         .map(pair -> coloredPercent(pair.getSecond(), color(name, pair.getSecond(), iwdaList.get(pair.getFirst()), cspxList.get(pair.getFirst())))))
