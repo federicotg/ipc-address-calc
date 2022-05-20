@@ -24,7 +24,8 @@ import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
-import java.time.Month;
+import static java.time.Month.DECEMBER;
+import static java.time.Month.JANUARY;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -42,6 +43,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.joining;
+import static org.fede.calculator.money.MathConstants.C;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.fede.calculator.money.series.Investment;
@@ -69,8 +71,6 @@ public class Investments {
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
             "IWDA", "iShares Core MSCI World"
-    //"VWRA", "Vanguard FTSE All-World",
-    //"ISAC", "iShares MSCI ACWI"
     );
 
     private static final Map<String, AnsiFormat> ETF_COLOR = Map.of(
@@ -78,6 +78,11 @@ public class Investments {
             "IWDA", new AnsiFormat(Attribute.DIM()),
             "Cash", new AnsiFormat(Attribute.DIM())
     );
+    
+    private static final AnsiFormat BRIGHT_WHITE_TEXT = new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT());
+    private static final AnsiFormat GREEN_TEXT = new AnsiFormat(Attribute.GREEN_TEXT());
+    private static final AnsiFormat YELLOW_TEXT = new AnsiFormat(Attribute.YELLOW_TEXT());
+    private static final AnsiFormat RED_TEXT = new AnsiFormat(Attribute.RED_TEXT());
 
     private final Console console;
     private final Format format;
@@ -106,8 +111,7 @@ public class Investments {
 
         this.invHeader(colWidths, true);
 
-        final var details = this.getAllInvestments()
-                .stream()
+        final var details = this.getInvestments()
                 .filter(Investment::isCurrent)
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
                 .filter(everyone)
@@ -125,9 +129,9 @@ public class Investments {
 
     public void inv(final Predicate<Investment> everyone, boolean nominal) {
 
-        final var etfs = this.getAllInvestments()
-                .stream()
+        final var etfs = this.getInvestments()
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(everyone)
                 .collect(toList());
 
         final var etfsWithFees = etfs.stream()
@@ -148,7 +152,7 @@ public class Investments {
 
         final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction
                 = (p) -> format("{0} {1} {2}",
-                        this.format.text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), 25, ETF_COLOR.getOrDefault(p.getFirst(), new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT()))),
+                        this.format.text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), 25, ETF_COLOR.getOrDefault(p.getFirst(), BRIGHT_WHITE_TEXT)),
                         this.format.percent(p.getSecond().getFirst(), 8),
                         this.bar.pctBar(p.getSecond().getSecond()));
 
@@ -203,7 +207,7 @@ public class Investments {
         this.console.appendLine(this.format.text(" ", textColWidth), this.format.text(" Return", 8), this.format.text("    Annualized", 16));
 
         IntStream.rangeClosed(2019, LocalDate.now().getYear())
-                .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()))
+                .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, nominal, LocalDate.of(year, JANUARY, 1), LocalDate.of(year, DECEMBER, 31)).get()))
                 .map(lineFunction)
                 .forEach(this.console::appendLine);
 
@@ -212,23 +216,23 @@ public class Investments {
         final var benchmarkMatrix = Map.of(
                 "Portfolio",
                 IntStream.rangeClosed(2019, thisYear)
-                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get().getFirst()))
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfs, nominal, LocalDate.of(year, JANUARY, 1), LocalDate.of(year, DECEMBER, 31)).get().getFirst()))
                         .collect(toList()),
                 "Portfolio With Fees",
                 IntStream.rangeClosed(2019, thisYear)
-                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfsWithFees, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get().getFirst()))
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(etfsWithFees, nominal, LocalDate.of(year, JANUARY, 1), LocalDate.of(year, DECEMBER, 31)).get().getFirst()))
                         .collect(toList()),
                 "CSPX",
                 IntStream.rangeClosed(2019, thisYear)
-                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(cspxBenchmarkSeries, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get().getFirst()))
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(cspxBenchmarkSeries, nominal, LocalDate.of(year, JANUARY, 1), LocalDate.of(year, DECEMBER, 31)).get().getFirst()))
                         .collect(toList()),
                 "IWDA",
                 IntStream.rangeClosed(2019, thisYear)
-                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(iwdaBenchmarkSeries, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get().getFirst()))
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(iwdaBenchmarkSeries, nominal, LocalDate.of(year, JANUARY, 1), LocalDate.of(year, DECEMBER, 31)).get().getFirst()))
                         .collect(toList()),
                 "Cash",
                 IntStream.rangeClosed(2019, thisYear)
-                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(cashBenchmarkSeries, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get().getFirst()))
+                        .mapToObj(year -> Pair.of(String.valueOf(year), new ModifiedDietzReturn(cashBenchmarkSeries, nominal, LocalDate.of(year, JANUARY, 1), LocalDate.of(year, DECEMBER, 31)).get().getFirst()))
                         .collect(toList())
         );
 
@@ -294,7 +298,7 @@ public class Investments {
         final var cspxList = benchmarkMatrix.get("CSPX");
 
         return Stream.concat(
-                Stream.of(this.format.text(name, 20, ETF_COLOR.getOrDefault(name, new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT())))),
+                Stream.of(this.format.text(name, 20, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
                 IntStream.range(0, rowData.size())
                         .mapToObj(i -> Pair.of(i, rowData.get(i).getSecond()))
                         .map(pair -> coloredPercent(pair.getSecond(), color(name, pair.getSecond(), iwdaList.get(pair.getFirst()), cspxList.get(pair.getFirst())))))
@@ -307,7 +311,7 @@ public class Investments {
 
     private AnsiFormat color(String name, BigDecimal value, Pair<String, BigDecimal> iwda, Pair<String, BigDecimal> cspx) {
         return ETF_COLOR.containsKey(name)
-                ? new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT())
+                ? BRIGHT_WHITE_TEXT
                 : color(
                         value,
                         iwda.getSecond(),
@@ -323,13 +327,13 @@ public class Investments {
             lower = cspx;
         }
 
-        if (value.compareTo(lower) <= 0) {
-            return new AnsiFormat(Attribute.RED_TEXT());
+        if (value.compareTo(lower) < 0) {
+            return RED_TEXT;
         }
-        if (value.compareTo(upper) <= 0) {
-            return new AnsiFormat(Attribute.YELLOW_TEXT());
+        if (value.compareTo(upper) < 0) {
+            return YELLOW_TEXT;
         }
-        return new AnsiFormat(Attribute.GREEN_TEXT());
+        return GREEN_TEXT;
     }
 
     private void print(InvestmentDetails d, int[] colWidths) {
@@ -445,8 +449,7 @@ public class Investments {
 
     private Map<String, MoneyAmountSeries> investmentEvolution(String currency, boolean nominal) {
 
-        final var inv = this.getAllInvestments()
-                .stream()
+        final var inv = this.getInvestments()
                 .filter(i -> Objects.equals(i.getType(), InvestmentType.ETF))
                 .filter(i -> Objects.isNull(currency) || Objects.equals(currency, i.getCurrency()))
                 .sorted(comparing(Investment::getInitialDate, Comparator.naturalOrder()))
@@ -559,9 +562,14 @@ public class Investments {
                 .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, comparator, list, pct);
     }
 
+    private Stream<Investment> getInvestments() {
+        
+        return this.series.getInvestments().stream();
+    }
+    
     private List<Investment> getAllInvestments() {
         return Stream.concat(
-                this.series.getInvestments().stream(),
+                this.getInvestments(),
                 this.cashInvestments.cashInvestments().stream())
                 .collect(toList());
     }
@@ -594,13 +602,10 @@ public class Investments {
 
         Function<Investment, String> classifier = i -> categories.getOrDefault(i.getCurrency(), "unknown");
 
-        Predicate<Investment> filterPredicate = i -> true;
         Comparator<Investment> comparator = comparing(Investment::getInitialDate, Comparator.naturalOrder());
 
-        final var list = this.getAllInvestments();
-
         new Evolution<Investment>(this.console, this.bar)
-                .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, comparator, list, pct);
+                .evo(totalFunction, startFunction, endFunction, classifier, i -> true, comparator, this.getAllInvestments(), pct);
 
     }
 
@@ -617,7 +622,7 @@ public class Investments {
         final var in = new InvestmentEvent();
 
         in.setAmount(i.getIn().getAmount()
-                .add(i.getIn().getFee(), MathConstants.C));
+                .add(i.getIn().getFee(), C));
         in.setCurrency(i.getIn().getCurrency());
         in.setDate(i.getIn().getDate());
         in.setFee(i.getIn().getFee());
@@ -630,12 +635,12 @@ public class Investments {
     public void monthly(boolean nominal) {
 
         final var currency = "USD";
-        final var etfs = this.getAllInvestments()
-                .stream()
+        final var etfs = this.getInvestments()
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
                 .collect(toList());
 
-        final var etfsWithFees = etfs.stream().map(this::withFees)
+        final var etfsWithFees = etfs.stream()
+                .map(this::withFees)
                 .collect(toList());
 
         final var cspxBenchmarkSeries = etfs.stream()
@@ -670,29 +675,29 @@ public class Investments {
                     currency,
                     nominal,
                     st,
-                    fn).get().getFirst(), MathConstants.C);
+                    fn).get().getFirst(), C);
 
             final var portfolioWithCost = ONE.add(new ModifiedDietzReturn(
                     etfsWithFees,
                     currency,
                     nominal,
                     st,
-                    fn).get().getFirst(), MathConstants.C);
+                    fn).get().getFirst(), C);
 
-            final var cspx = ONE.add(new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal, st, fn).get().getFirst(), MathConstants.C);
-            final var iwda = ONE.add(new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal, st, fn).get().getFirst(), MathConstants.C);
-            final var cash = ONE.add(new ModifiedDietzReturn(cashBenchmarkSeries, currency, nominal, st, fn).get().getFirst(), MathConstants.C);
+            final var cspx = ONE.add(new ModifiedDietzReturn(cspxBenchmarkSeries, currency, nominal, st, fn).get().getFirst(), C);
+            final var iwda = ONE.add(new ModifiedDietzReturn(iwdaBenchmarkSeries, currency, nominal, st, fn).get().getFirst(), C);
+            final var cash = ONE.add(new ModifiedDietzReturn(cashBenchmarkSeries, currency, nominal, st, fn).get().getFirst(), C);
 
             final var month = YearMonth.of(Date.from(fn.atStartOfDay().toInstant(ZoneOffset.ofHours(-3))));
 
             final var prev = results.get(month.prev());
 
             results.put(month, new BigDecimal[]{
-                prev[0].multiply(portfolio, MathConstants.C),
-                prev[1].multiply(portfolioWithCost, MathConstants.C),
-                prev[2].multiply(cspx, MathConstants.C),
-                prev[3].multiply(iwda, MathConstants.C),
-                prev[4].multiply(cash, MathConstants.C)});
+                prev[0].multiply(portfolio, C),
+                prev[1].multiply(portfolioWithCost, C),
+                prev[2].multiply(cspx, C),
+                prev[3].multiply(iwda, C),
+                prev[4].multiply(cash, C)});
 
         }
 
