@@ -137,17 +137,8 @@ public class BBPP {
         onsItem.setName("ONs");
         onsItem.setValue(ons);
 
-        final var homeCashItem = new BBPPItem();
-        homeCashItem.setCurrency("ARS");
-        homeCashItem.setDomestic(true);
-        homeCashItem.setExempt(false);
-        homeCashItem.setHolding(ONE);
-        homeCashItem.setName("Home Cash");
-        homeCashItem.setValue(BigDecimal.valueOf(15000l));
-
         bbpp.getItems().add(etfsItem);
         bbpp.getItems().add(onsItem);
-        bbpp.getItems().add(homeCashItem);
 
         final var allArs = bbpp.getItems()
                 .stream()
