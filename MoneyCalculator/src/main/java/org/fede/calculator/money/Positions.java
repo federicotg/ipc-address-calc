@@ -56,7 +56,7 @@ public class Positions {
     private final Console console;
     private final Format format;
     private final Series series;
-    private boolean withFee;
+    private final boolean withFee;
 
     public Positions(Console console, Format format, Series series, boolean withFee) {
         this.console = console;
@@ -69,10 +69,10 @@ public class Positions {
 
         if (this.withFee) {
             this.console.appendLine(this.format.title("Positions With Fees"));
-        }else{
+        } else {
             this.console.appendLine(this.format.title("Positions Without Fees"));
         }
-                
+
         final var descWidth = 32;
         final var posWidth = 4;
         final var lastWidth = 10;

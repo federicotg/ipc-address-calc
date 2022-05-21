@@ -1229,7 +1229,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
-        final var withFee = Boolean.parseBoolean(params.getOrDefault("fees", "true"));
+        final var withFee = Boolean.parseBoolean(params.getOrDefault("fees", "false"));
         final var symbol = params.get("symbol");
         new Positions(this.console, this.format, this.series, withFee)
                 .positions(symbol, nominal);
