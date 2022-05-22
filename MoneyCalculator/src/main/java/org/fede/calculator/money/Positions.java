@@ -144,7 +144,7 @@ public class Positions {
                 this.format.currency(p.getMarketValue().getAmount(), mkvWidth),
                 this.format.percent(p.getMarketValue().getAmount().divide(totalMarketValue.getAmount(), C), mkvPctWidth),
                 this.format.currency(p.getAveragePrice().getAmount(), avgWidth),
-                this.format.currency(p.getUnrealizedPnL().getAmount(), pnlWidth),
+                this.format.currencyPL(p.getUnrealizedPnL().getAmount(), pnlWidth),
                 this.format.percent(p.getUnrealizedPnL().getAmount().divide(p.getCostBasis().getAmount(), C), pnlPctWidth)))
                 .forEach(this.console::appendLine);
 
@@ -158,7 +158,7 @@ public class Positions {
                 this.format.currency(totalMarketValue.getAmount(), mkvWidth),
                 this.format.text("", mkvPctWidth),
                 this.format.text("", avgWidth),
-                this.format.currency(totalPnL.getAmount(), pnlWidth),
+                this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
         this.costs(symbol, nominal);
