@@ -25,6 +25,7 @@ import java.util.Arrays;
 import static java.util.Comparator.comparing;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -108,7 +109,7 @@ public class Goal {
 
             amount = amount * returns[i - startingYear] + d;
         }
-
+        
         this.topAmount.add(amount);
 
         final var cgt = CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT.doubleValue();
@@ -260,10 +261,16 @@ public class Goal {
     }
 
     private void stats(List<Double> values, String title) {
-        final var mean = values.parallelStream().mapToDouble(Double::doubleValue).average().getAsDouble();
+        
+        final var mean = values.parallelStream()
+                .filter(Objects::nonNull)
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .getAsDouble();
 
         // Variance
         final double variance = values.parallelStream()
+                .filter(Objects::nonNull)
                 .mapToDouble(Double::doubleValue)
                 .map(i -> i - mean)
                 .map(i -> i * i)

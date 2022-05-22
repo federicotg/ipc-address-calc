@@ -66,7 +66,7 @@ public class SimpleAggregation implements Aggregation {
 
         final var last = lastValues.get(lastValues.size() - 1).getAmount();
         if (last.signum() == 0) {
-            return BigDecimal.ZERO;
+            return ZERO;
         }
         return lastValues.get(0)
                 .getAmount()
