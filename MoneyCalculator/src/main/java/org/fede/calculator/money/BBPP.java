@@ -144,6 +144,7 @@ public class BBPP {
                 .stream()
                 .filter(i -> ibkr || !i.getName().equals("IBKR USD"))
                 .map(i -> this.toARS(i, bbpp.getUsd(), bbpp.getEur()))
+                .filter(bbppItem -> bbppItem.getValue().compareTo(ZERO) != 0)
                 .collect(toList());
 
         final var totalAmount = allArs
