@@ -17,8 +17,6 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -37,6 +35,9 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class CashInvestmentBuilder {
 
+    private static Date min(Date d1, Date d2) {
+        return d1.compareTo(d2) <= 0 ? d1 : d2;
+    }
     private final MoneyAmountSeries cash;
 
     public CashInvestmentBuilder(MoneyAmountSeries cash) {
@@ -62,7 +63,7 @@ public class CashInvestmentBuilder {
                 }
             }
         }
-     
+
         return investments;
 
     }
@@ -92,10 +93,7 @@ public class CashInvestmentBuilder {
         final var in = new InvestmentEvent();
         in.setAmount(amount);
         in.setCurrency("USD");
-        in.setDate(Date.from(
-                LocalDate.of(ym.getYear(), ym.getMonth(), 1)
-                        .atTime(12, 01)
-                        .toInstant(ZoneOffset.UTC)));
+        in.setDate(min(ym.asToDate(), new Date()));
         in.setFee(BigDecimal.ZERO);
         in.setTransferFee(BigDecimal.ZERO);
 
