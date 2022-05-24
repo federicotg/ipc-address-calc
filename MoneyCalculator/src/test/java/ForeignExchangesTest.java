@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Federico Tello Gentile <federico.gentile@despegar.com>
+ * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author Federico Tello Gentile <federico.gentile@despegar.com>
+ * @author fede
  */
 public class ForeignExchangesTest {
 

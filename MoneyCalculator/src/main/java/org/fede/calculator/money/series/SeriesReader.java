@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Federico Tello Gentile <federico.gentile@despegar.com>
+ * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ import org.fede.calculator.money.MoneyAmount;
 
 /**
  *
- * @author Federico Tello Gentile <federico.gentile@despegar.com>
+ * @author fede
  */
 public class SeriesReader {
 
