@@ -17,6 +17,8 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -83,7 +85,7 @@ public class CashInvestmentBuilder {
         final var out = new InvestmentEvent();
         out.setAmount(inv.getInvestment().getAmount());
         out.setCurrency("USD");
-        out.setDate(ym.asToDate());
+        out.setDate(ym.asDate());
         out.setFee(BigDecimal.ZERO);
         out.setTransferFee(BigDecimal.ZERO);
         inv.setOut(out);
@@ -93,7 +95,10 @@ public class CashInvestmentBuilder {
         final var in = new InvestmentEvent();
         in.setAmount(amount);
         in.setCurrency("USD");
-        in.setDate(min(ym.asToDate(), new Date()));
+        in.setDate(Date.from(
+                LocalDate.of(ym.getYear(), ym.getMonth(), 1)
+                        .atTime(12, 01)
+                        .toInstant(ZoneOffset.UTC)));
         in.setFee(BigDecimal.ZERO);
         in.setTransferFee(BigDecimal.ZERO);
 
