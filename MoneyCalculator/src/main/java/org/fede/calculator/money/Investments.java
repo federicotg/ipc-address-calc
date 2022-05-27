@@ -126,6 +126,12 @@ public class Investments {
         this.invHeader(colWidths, false);
 
     }
+    
+    private List<Investment> benchmark(List<Investment> etfs, String benchmark){
+        return etfs.stream()
+                .map(new BenchmarkInvestmentMapper(benchmark, etfs))
+                .collect(toList());
+    }
 
     public void inv(final Predicate<Investment> everyone, boolean nominal) {
 
@@ -134,20 +140,9 @@ public class Investments {
                 .filter(everyone)
                 .collect(toList());
 
-//        final var etfsWithFees = etfs.stream()
-//                .map(this::withFees)
-//                .collect(toList());
-        final var cspxBenchmarkSeries = etfs.stream()
-                .map(new BenchmarkInvestmentMapper("CSPX", etfs))
-                .collect(toList());
-
-        final var iwdaBenchmarkSeries = etfs.stream()
-                .map(new BenchmarkInvestmentMapper("IWDA", etfs))
-                .collect(toList());
-
-        final var cashBenchmarkSeries = etfs.stream()
-                .map(new BenchmarkInvestmentMapper("USD", etfs))
-                .collect(toList());
+        final var cspxBenchmarkSeries = benchmark(etfs, "CSPX");
+        final var iwdaBenchmarkSeries = benchmark(etfs, "IWDA");
+        final var cashBenchmarkSeries = benchmark(etfs, "USD");
 
         final Function<Pair<String, Pair<BigDecimal, BigDecimal>>, String> lineFunction
                 = (p) -> format("{0} {1} {2}",
@@ -156,11 +151,8 @@ public class Investments {
                         this.bar.pctBar(p.getSecond().getSecond()));
 
         this.investmentReport(everyone, nominal);
-
         this.benchmarkReport(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, lineFunction, nominal);
-
         this.timeWeightedReport(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, lineFunction, nominal);
-
         this.yearMatrix(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, lineFunction, nominal);
 
     }
@@ -308,12 +300,8 @@ public class Investments {
 
     private AnsiFormat color(BigDecimal value, BigDecimal iwda, BigDecimal cspx) {
 
-        var upper = cspx;
-        var lower = iwda;
-        if (iwda.compareTo(cspx) > 0) {
-            upper = iwda;
-            lower = cspx;
-        }
+        final var upper = cspx.max(iwda);
+        final var lower = iwda.min(cspx);
 
         if (value.compareTo(lower) < 0) {
             return RED_TEXT;
