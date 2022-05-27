@@ -45,12 +45,6 @@ public enum InvestmentType {
             return true;
         }
     },
-    XAU {
-        @Override
-        public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {
-            return "XAU".equals(asset.getCurrency());
-        }
-    },
     BONO {
         @Override
         public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {

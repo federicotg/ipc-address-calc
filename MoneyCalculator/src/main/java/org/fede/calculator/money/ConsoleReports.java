@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.stream.Collector;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -46,7 +47,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
@@ -92,6 +92,10 @@ public class ConsoleReports {
     private static final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
             .thenComparing(comparing(pair -> pair.getFirst().getSecond()));
 
+    private static boolean nominal(Map<String, String> params){
+        return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+    }
+    
     private final Series series;
     private final Console console;
     private final Bar bar;
@@ -110,7 +114,7 @@ public class ConsoleReports {
 
     private void investments() {
 
-        appendLine("===< Inversiones actuales agrupadas por moneda >===");
+        this.console.appendLine(this.format.title("===< Inversiones actuales agrupadas por moneda >==="));
 
         final NumberFormat sixDigits = NumberFormat.getNumberInstance();
         sixDigits.setMinimumFractionDigits(6);
@@ -173,7 +177,7 @@ public class ConsoleReports {
 
     }
 
-    private void listStockByTpe() {
+    private void listStockByType() {
 
         final var reportCurrency = "USD";
         final var limit = USD_INFLATION.getTo();
@@ -265,12 +269,10 @@ public class ConsoleReports {
 
         final var params = this.paramsValue(args, paramName);
 
-        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
-
         final var type = params.getOrDefault("type", "all");
 
         new Investments(this.console, this.format, this.bar, this.series)
-                .inv("all".equalsIgnoreCase(type) ? x -> true : x -> x.getCurrency().equalsIgnoreCase(type), nominal);
+                .inv("all".equalsIgnoreCase(type) ? x -> true : x -> x.getCurrency().equalsIgnoreCase(type), nominal(params));
 
     }
 
@@ -286,7 +288,7 @@ public class ConsoleReports {
             final Map<String, Runnable> actions = Map.ofEntries(
                     entry("i", me::investments),
                     entry("gi", me::groupedInvestments),
-                    entry("ti", me::listStockByTpe),
+                    entry("ti", me::listStockByType),
                     entry("inv", () -> me.invReport(args, "inv")),
                     //savings
                     entry("savings", me::savings),
@@ -368,7 +370,7 @@ public class ConsoleReports {
                         entry("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                        entry("inv-evo", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
+                        entry("inv-evo", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("mdr", "nominal=false cash=true start=1999 tw=false"),
                         entry("saved-salaries-evo", "months=12"),
@@ -381,7 +383,7 @@ public class ConsoleReports {
                         entry("expenses-change", "months=12"),
                         entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)"),
-                        entry("pos", "nominal=false fees=true")
+                        entry("pos", "nominal=false fees=false")
                 );
 
                 Stream.concat(
@@ -411,8 +413,7 @@ public class ConsoleReports {
     }
 
     private void benchmark(String[] args, String param) {
-        final var nominal = Boolean.parseBoolean(this.paramsValue(args, param).getOrDefault("nominal", "false"));
-        new Investments(console, format, bar, series).monthly(nominal);
+        new Investments(console, format, bar, series).monthly(nominal(this.paramsValue(args, param)));
     }
 
     private void savings() {
@@ -726,7 +727,7 @@ public class ConsoleReports {
                 invested,
                 expected);
     }
-
+    
     private void bbpp(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
 
@@ -798,7 +799,7 @@ public class ConsoleReports {
         series.forEachNonZero((ym, ma) -> byYear.merge(classifier.apply(ym), ma, MoneyAmount::add));
 
         final Map<String, Long> counts = series.yearMonthStream()
-                .collect(Collectors.groupingBy(classifier, Collectors.counting()));
+                .collect(groupingBy(classifier, counting()));
 
         final Map<String, MoneyAmount> comparisonByYear = new HashMap<>(32, 0.75f);
 
@@ -1108,12 +1109,11 @@ public class ConsoleReports {
 
         final var params = this.paramsValue(args, paranName);
 
-        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
         final var timeWeighted = Boolean.parseBoolean(params.getOrDefault("tw", "false"));
         final var withCash = Boolean.parseBoolean(params.getOrDefault("cash", "true"));
         final var startYear = Integer.parseInt(params.getOrDefault("start", "1999"));
 
-        pr.returns(nominal, withCash, startYear, timeWeighted);
+        pr.returns(nominal(params), withCash, startYear, timeWeighted);
 
     }
 
@@ -1213,34 +1213,31 @@ public class ConsoleReports {
                         currencyConverter.get(inv.getInvestment().getCurrency())
                                 .apply(inv.getIn().getFeeMoneyAmount(), YearMonth.of(inv.getIn().getDate()))))
                 .stream()
-                .collect(Collectors.joining(","));
+                .collect(joining(","));
     }
 
     private void invEvoPct(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
 
         final var currency = params.get("currency");
-        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
 
-        new Investments(console, format, bar, series).invEvoPct(currency, nominal);
+        new Investments(console, format, bar, series).invEvoPct(currency, nominal(params));
     }
 
     private void positions(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
 
-        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
         final var withFee = Boolean.parseBoolean(params.getOrDefault("fees", "false"));
         final var symbol = params.get("symbol");
         new Positions(this.console, this.format, this.series, withFee)
-                .positions(symbol, nominal);
-
+                .positions(symbol, nominal(params));
     }
-
+  
     private void invEvo(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
 
-        final var currency = params.get("currency");
-        final var nominal = Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
+        final var currency = params.get("type");
+        final var nominal = nominal(params);
 
         new Investments(console, format, bar, series).invEvo(currency, nominal);
 

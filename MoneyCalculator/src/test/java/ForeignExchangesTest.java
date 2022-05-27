@@ -22,7 +22,6 @@ import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.ForeignExchanges.USD_ARS;
 import static org.fede.calculator.money.ForeignExchanges.USD_EUR;
-import static org.fede.calculator.money.ForeignExchanges.USD_XAU;
 import static org.fede.calculator.money.ForeignExchanges.ARS_CONAAFA;
 import static org.fede.calculator.money.ForeignExchanges.getForeignExchange;
 import org.fede.calculator.money.MoneyAmount;
@@ -50,33 +49,21 @@ public class ForeignExchangesTest {
         this.identity("ARS");
         this.identity("USD");
         this.identity("EUR");
-        this.identity("XAU");
         this.identity("CONBALA");
         this.identity("CONAAFA");
 
         assertEquals(USD_ARS, getForeignExchange("USD", "ARS"));
-        assertEquals(USD_XAU, getForeignExchange("USD", "XAU"));
         assertEquals(USD_EUR, getForeignExchange("USD", "EUR"));
 
         assertEquals(USD_ARS, getForeignExchange("ARS", "USD"));
-        assertEquals(USD_XAU, getForeignExchange("XAU", "USD"));
         assertEquals(USD_EUR, getForeignExchange("EUR", "USD"));
         assertEquals(ARS_CONAAFA, getForeignExchange("ARS", "CONAAFA"));
         assertEquals(ARS_CONAAFA, getForeignExchange("CONAAFA", "ARS"));
 
         assertEquals(new CompoundForeignExchange(USD_ARS, USD_EUR), getForeignExchange("ARS", "EUR"));
-        assertEquals(new CompoundForeignExchange(USD_XAU, USD_EUR), getForeignExchange("XAU", "EUR"));
-        assertEquals(new CompoundForeignExchange(USD_XAU, USD_ARS), getForeignExchange("XAU", "ARS"));
-        assertEquals(new CompoundForeignExchange(USD_ARS, USD_XAU), getForeignExchange("ARS", "XAU"));
 
         assertEquals(new CompoundForeignExchange(ARS_CONAAFA, USD_ARS), getForeignExchange("CONAAFA", "USD"));
 
-        ForeignExchange result = getForeignExchange("CONAAFA", "XAU");
-
-        assertEquals(new CompoundForeignExchange(
-                ARS_CONAAFA,
-                new CompoundForeignExchange(USD_ARS, USD_XAU)),
-                result);
 
     }
     

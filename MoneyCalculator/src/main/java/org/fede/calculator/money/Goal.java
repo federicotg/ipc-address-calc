@@ -66,6 +66,14 @@ public class Goal {
 
     private static final Function<BigDecimal, BigDecimal> IBKR_FEE_STRATEGY = new InteractiveBrokersTieredLondonUSDFeeStrategy();
 
+    private static double gauss(double mean, double std) {
+        return mean + ThreadLocalRandom.current().nextGaussian() * std;
+    }
+
+    private static int gauss(int mean, int std) {
+        return (int) Math.round(gauss((double) mean, (double) std));
+    }
+
     private final double bbppTaxRate;
     private final double bbppMin;
 
@@ -99,7 +107,7 @@ public class Goal {
         for (var i = startingYear; i < retirement; i++) {
 
             // brecha
-            final var officialDollarFactor = Math.min(1.0d, this.gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
+            final var officialDollarFactor = Math.min(1.0d, gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
 
             // BB.PP.
             bbpp = Math.max(amount * officialDollarFactor - this.bbppMin, 0.0d) * this.bbppTaxRate;
@@ -109,7 +117,7 @@ public class Goal {
 
             amount = amount * returns[i - startingYear] + d;
         }
-        
+
         this.topAmount.add(amount);
 
         final var cgt = CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT.doubleValue();
@@ -120,7 +128,7 @@ public class Goal {
             amount -= withdraw[i - startingYear];
 
             // brecha
-            final var officialDollarFactor = Math.min(1.0d, this.gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
+            final var officialDollarFactor = Math.min(1.0d, gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
 
             // BB.PP.
             bbpp = Math.max(amount * officialDollarFactor - this.bbppMin, 0.0d) * this.bbppTaxRate;
@@ -138,15 +146,6 @@ public class Goal {
         }
 
         return amount + cashAmount > 0.0d;
-    }
-
-    private double gauss(double mean, double std) {
-        return mean + ThreadLocalRandom.current().nextGaussian() * std;
-    }
-
-    private int gauss(int mean, int std) {
-
-        return (int) Math.round(gauss((double) mean, (double) std));
     }
 
     public void goal(
@@ -261,7 +260,7 @@ public class Goal {
     }
 
     private void stats(List<Double> values, String title) {
-        
+
         final var mean = values.parallelStream()
                 .filter(Objects::nonNull)
                 .mapToDouble(Double::doubleValue)

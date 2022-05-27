@@ -51,11 +51,6 @@ public class ForeignExchanges {
     public static final ForeignExchange USD_LETE = new SimpleForeignExchange(
             () -> IndexSeriesSupport.CONSTANT_SERIES, "USD", "LETE");
 
-    public static final ForeignExchange USD_XAU = new SimpleForeignExchange(
-            () -> SeriesReader.readIndexSeries("index/gold.json"),
-            "XAU",
-            USD);
-
     public static final ForeignExchange USD_EUR = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/USD-EUR.json"),
             "EUR",
@@ -127,7 +122,6 @@ public class ForeignExchanges {
         map("LETE", USD, USD_LETE);
         map(USD, "EUR", USD_EUR);
         map(USD, "DAI", USD_DAI);
-        map("XAU", USD, USD_XAU);
         map("ARS", "CONAAFA", ARS_CONAAFA);
         map("ARS", "CONBALA", ARS_CONBALA);
         map("ARS", "CAPLUSA", ARS_CAPLUSA);
@@ -149,7 +143,6 @@ public class ForeignExchanges {
         INTERMEDIATE_FOREIGN_EXCHANGES.put("CSPX", "USD");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("IWDA", "USD");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("DAI", "USD");
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("XAU", "USD");
         INTERMEDIATE_FOREIGN_EXCHANGES.put("ARS", "USD");
     }
 
