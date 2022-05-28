@@ -168,13 +168,13 @@ public class PortfolioReturns {
                 format(
                         "\tReturn: {0}. Annualized {1}.",
                         this.format.percent(modifiedDietzReturn.getMoneyWeighted()),
-                        this.format.percent(modifiedDietzReturn.getTimeWeighted())));
+                        this.format.percent(modifiedDietzReturn.getAnnualizedMoneyWeighted())));
 
         final Function<Map.Entry<Integer, ModifiedDietzReturnResult>, String> lineFunction
                 = (p) -> format("{0} {1} {2}",
                         this.format.text(String.valueOf(p.getKey()), 10),
                         this.format.percent(p.getValue().getMoneyWeighted(), 8),
-                        this.bar.pctBar(p.getValue().getTimeWeighted()));
+                        this.bar.pctBar(p.getValue().getAnnualizedMoneyWeighted()));
 
         this.console.appendLine("");
         this.console.appendLine(this.format.text(" ", 10), this.format.text(" Return", 10), this.format.text("    Annualized", 8));

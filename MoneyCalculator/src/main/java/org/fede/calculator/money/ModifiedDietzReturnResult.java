@@ -25,19 +25,19 @@ import java.math.BigDecimal;
 public class ModifiedDietzReturnResult implements Comparable<ModifiedDietzReturnResult> {
 
     private final BigDecimal moneyWeighted;
-    private final BigDecimal timeWeighted;
+    private final BigDecimal annualizedMoneyWeighted;
 
-    public ModifiedDietzReturnResult(BigDecimal moneyWeighted, BigDecimal timeWeighted) {
+    public ModifiedDietzReturnResult(BigDecimal moneyWeighted, BigDecimal annualizedMoneyWeighted) {
         this.moneyWeighted = moneyWeighted;
-        this.timeWeighted = timeWeighted;
+        this.annualizedMoneyWeighted = annualizedMoneyWeighted;
     }
 
     public BigDecimal getMoneyWeighted() {
         return moneyWeighted;
     }
 
-    public BigDecimal getTimeWeighted() {
-        return timeWeighted;
+    public BigDecimal getAnnualizedMoneyWeighted() {
+        return annualizedMoneyWeighted;
     }
 
     @Override
