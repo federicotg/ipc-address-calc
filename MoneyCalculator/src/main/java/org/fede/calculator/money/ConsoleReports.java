@@ -62,6 +62,8 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.series.InvestmentAsset;
+import org.fede.calculator.money.series.InvestmentEvent;
 
 /**
  *
@@ -133,7 +135,8 @@ public class ConsoleReports {
     private Optional<MoneyAmount> total(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
         return this.series.getInvestments().stream()
                 .filter(predicate)
-                .map(i -> i.getInvestment().getMoneyAmount())
+                .map(Investment::getInvestment)
+                .map(InvestmentAsset::getMoneyAmount)
                 .map(investedAmount -> getMoneyAmountForeignExchange(investedAmount.getCurrency(), reportCurrency).apply(investedAmount, limit))
                 .reduce(MoneyAmount::add);
     }
@@ -628,12 +631,9 @@ public class ConsoleReports {
         var limit = s.getTo();
 
         while (ym.compareTo(limit) <= 0) {
-
             this.percentEvolutionReport(ym, s.getIndex(ym.getYear(), ym.getMonth()));
-
             ym = ym.next();
         }
-
     }
 
     private void expensesChange(String[] args, String name) {
@@ -656,11 +656,8 @@ public class ConsoleReports {
 
     private void incomeAverageEvolution(String[] args, String paramName) {
         var params = this.paramsValue(args, paramName);
-
         var months = Integer.parseInt(params.getOrDefault("months", "12"));
-
         appendLine(format("===< Average {0}-month income evolution >===", months));
-
         this.incomeAverageEvolution(months);
 
     }
