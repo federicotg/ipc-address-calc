@@ -17,9 +17,11 @@
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.function.Supplier;
 import org.fede.calculator.money.CashInvestmentBuilder;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import org.junit.Test;
@@ -34,26 +36,23 @@ public class LiquidityTest {
     @Test
     public void liq() {
 
-        final var liq = SeriesReader.readSeries("/saving/ahorros-dolar-liq.json");
+        final Supplier<MoneyAmountSeries> liq = () -> SeriesReader.readSeries("/saving/ahorros-dolar-liq.json");
 
         final List<Investment> investments = new CashInvestmentBuilder(liq).cashInvestments();
 
-        for (var ym = liq.getFrom(); ym.compareTo(liq.getTo()) <= 0; ym = ym.next()) {
-            var currentSavedUSD = liq.getAmountOrElseZero(ym).getAmount();
+        final var l = liq.get();
+
+        for (var ym = l.getFrom(); ym.compareTo(l.getTo()) <= 0; ym = ym.next()) {
+            var currentSavedUSD = l.getAmountOrElseZero(ym).getAmount();
             var invested = this.total(investments, ym);
             //System.out.println(ym+" "+currentSavedUSD+" "+invested);
             assertEquals("Saved and invested must be the same.", 0, currentSavedUSD.compareTo(invested));
         }
 
         //investments.stream().map(Investment::toString).forEach(System.out::println);
-        
-                
-                
         //System.out.println(total(investments, YearMonth.of(2019, 3)));
-        
     }
 
- 
     private BigDecimal total(List<Investment> investments, YearMonth ym) {
         return investments.stream()
                 .filter(i -> i.isCurrent(ym.asToDate()))

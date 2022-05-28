@@ -65,7 +65,7 @@ public class PortfolioReturns {
         this.console = console;
         this.format = format;
         this.bar = bar;
-        this.cashInvestments = new CashInvestmentBuilder(
+        this.cashInvestments = new CashInvestmentBuilder(() ->
                 SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
                         .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
                         .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
@@ -87,7 +87,7 @@ public class PortfolioReturns {
         return LocalDate.ofInstant(d.toInstant(), ZoneId.systemDefault()).isAfter(LocalDate.of(year, m, day));
     }
 
-    private Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear(Function<ModifiedDietzReturn, Pair<BigDecimal, BigDecimal>> returnTypeFunction) {
+    private Map<Integer, ModifiedDietzReturnResult> mdrByYear(Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction) {
 
         final Predicate<Investment> sinceYear = i -> after(i.getInitialDate(), 1999, Month.JANUARY, 1);
         final var inv = Stream.concat(
@@ -112,7 +112,7 @@ public class PortfolioReturns {
         return this.mdrByYear(inv, from, to, false, returnTypeFunction);
     }
 
-    public void modifiedDietzReturn(Predicate<Investment> criteria, boolean nominal, boolean withCash, Function<ModifiedDietzReturn, Pair<BigDecimal, BigDecimal>> returnTypeFunction) {
+    public void modifiedDietzReturn(Predicate<Investment> criteria, boolean nominal, boolean withCash, Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction) {
 
         final var inv = Stream.concat(
                 withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
@@ -154,7 +154,7 @@ public class PortfolioReturns {
                                     "USD",
                                     nominal,
                                     st,
-                                    fn)).getFirst());
+                                    fn)).getMoneyWeighted());
 
         }
 
@@ -167,14 +167,14 @@ public class PortfolioReturns {
         this.console.appendLine(
                 format(
                         "\tReturn: {0}. Annualized {1}.",
-                        this.format.percent(modifiedDietzReturn.getFirst()),
-                        this.format.percent(modifiedDietzReturn.getSecond())));
+                        this.format.percent(modifiedDietzReturn.getMoneyWeighted()),
+                        this.format.percent(modifiedDietzReturn.getTimeWeighted())));
 
-        final Function<Map.Entry<Integer, Pair<BigDecimal, BigDecimal>>, String> lineFunction
+        final Function<Map.Entry<Integer, ModifiedDietzReturnResult>, String> lineFunction
                 = (p) -> format("{0} {1} {2}",
                         this.format.text(String.valueOf(p.getKey()), 10),
-                        this.format.percent(p.getValue().getFirst(), 8),
-                        this.bar.pctBar(p.getValue().getSecond()));
+                        this.format.percent(p.getValue().getMoneyWeighted(), 8),
+                        this.bar.pctBar(p.getValue().getTimeWeighted()));
 
         this.console.appendLine("");
         this.console.appendLine(this.format.text(" ", 10), this.format.text(" Return", 10), this.format.text("    Annualized", 8));
@@ -188,7 +188,7 @@ public class PortfolioReturns {
 
     }
 
-    private Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear(List<Investment> inv, LocalDate from, LocalDate to, boolean nominal, Function<ModifiedDietzReturn, Pair<BigDecimal, BigDecimal>> returnTypeFunction) {
+    private Map<Integer, ModifiedDietzReturnResult> mdrByYear(List<Investment> inv, LocalDate from, LocalDate to, boolean nominal, Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction) {
 
         return IntStream.rangeClosed(from.getYear(), to.getYear())
                 .boxed()
@@ -203,7 +203,9 @@ public class PortfolioReturns {
 
         final Predicate<Investment> sinceYear = i -> after(i.getInitialDate(), startYear, Month.JANUARY, 1);
 
-        this.modifiedDietzReturn(sinceYear, nominal, withCash, timeWeighted ? ModifiedDietzReturn::monthlyLinked : ModifiedDietzReturn::get);
+        this.modifiedDietzReturn(sinceYear, nominal, withCash, timeWeighted 
+                ? ModifiedDietzReturn::monthlyLinked 
+                : ModifiedDietzReturn::get);
 
     }
 
@@ -267,7 +269,7 @@ public class PortfolioReturns {
                 .forEach(e -> this.allocationYear(e.getKey(), e.getValue(), mdrByYear));
     }
 
-    private void allocationYear(String year, Map<String, Optional<DayDollars>> byType, Map<Integer, Pair<BigDecimal, BigDecimal>> mdrByYear) {
+    private void allocationYear(String year, Map<String, Optional<DayDollars>> byType, Map<Integer, ModifiedDietzReturnResult> mdrByYear) {
         this.console.appendLine("     ~=", year, "=~");
 
         final var total = byType.values()
@@ -286,7 +288,7 @@ public class PortfolioReturns {
                 .forEach(this.console::appendLine);
 
         Optional.ofNullable(mdrByYear.get(Integer.parseInt(year)))
-                .map(Pair::getFirst)
+                .map(ModifiedDietzReturnResult::getMoneyWeighted)
                 .map(this.format::percent)
                 .map(pct -> format("Return {0}\n", pct))
                 .ifPresent(this.console::appendLine);

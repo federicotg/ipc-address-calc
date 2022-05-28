@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
@@ -37,12 +38,9 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class CashInvestmentBuilder {
 
-    private static Date min(Date d1, Date d2) {
-        return d1.compareTo(d2) <= 0 ? d1 : d2;
-    }
-    private final MoneyAmountSeries cash;
+    private final Supplier<MoneyAmountSeries> cash;
 
-    public CashInvestmentBuilder(MoneyAmountSeries cash) {
+    public CashInvestmentBuilder(Supplier<MoneyAmountSeries> cash) {
         this.cash = cash;
     }
 
@@ -50,9 +48,11 @@ public class CashInvestmentBuilder {
 
         final List<Investment> investments = new ArrayList<>(100);
 
-        for (var ym = this.cash.getFrom(); ym.compareTo(this.cash.getTo()) <= 0; ym = ym.next()) {
+        final var cashInvesments = this.cash.get();
+        
+        for (var ym = cashInvesments.getFrom(); ym.compareTo(cashInvesments.getTo()) <= 0; ym = ym.next()) {
 
-            var currentSavedUSD = this.cash.getAmountOrElseZero(ym).getAmount();
+            var currentSavedUSD = cashInvesments.getAmountOrElseZero(ym).getAmount();
             var total = this.total(investments);
             if (currentSavedUSD.compareTo(total) > 0) {
                 investments.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.C), ym));

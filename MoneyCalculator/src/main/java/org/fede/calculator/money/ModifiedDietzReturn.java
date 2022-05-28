@@ -33,7 +33,6 @@ import java.util.stream.Stream;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.YearMonth;
-import org.fede.util.Pair;
 import static org.fede.calculator.money.MathConstants.C;
 
 /**
@@ -225,7 +224,7 @@ public class ModifiedDietzReturn {
                 .max(this.zeroAmount);
     }
 
-    public Pair<BigDecimal, BigDecimal> get() {
+    public ModifiedDietzReturnResult get() {
 
         final var v1 = this.portfolioValue(YearMonth.of(this.finalMoment.getYear(), this.finalMoment.getMonthValue()));
         final var v0 = this.portfolioValue(YearMonth.of(this.initialMoment.getYear(), this.initialMoment.getMonthValue()).prev());
@@ -239,7 +238,7 @@ public class ModifiedDietzReturn {
                 .reduce(ZERO, BigDecimal::add);
 
         if (v0.isZero() && adjustedCashFlowSum.signum() == 0) {
-            return Pair.of(ZERO, BigDecimal.ZERO);
+            return new ModifiedDietzReturnResult(ZERO, BigDecimal.ZERO);
         }
 
         final var result = v1.getAmount()
@@ -248,11 +247,11 @@ public class ModifiedDietzReturn {
                 .divide(v0.getAmount().add(adjustedCashFlowSum, C), C)
                 .max(BigDecimal.ONE.negate());
 
-        return Pair.of(result, annualized(result));
+        return new ModifiedDietzReturnResult(result, annualized(result));
 
     }
 
-    public Pair<BigDecimal, BigDecimal> monthlyLinked() {
+    public ModifiedDietzReturnResult monthlyLinked() {
         List<BigDecimal> monthyMDR = new ArrayList<>(60);
 
         final var from = YearMonth.of(this.initialMoment).prev();
@@ -271,7 +270,7 @@ public class ModifiedDietzReturn {
                     this.currency,
                     this.nominal,
                     st,
-                    fn).get().getFirst());
+                    fn).get().getMoneyWeighted());
 
         }
         final var value = monthyMDR.stream()
@@ -279,8 +278,7 @@ public class ModifiedDietzReturn {
                 .reduce(ONE, BigDecimal::multiply)
                 .subtract(ONE);
 
-        return Pair.of(value, annualized(value));
-
+        return new ModifiedDietzReturnResult(value, annualized(value));
     }
 
     private BigDecimal annualized(BigDecimal value) {
