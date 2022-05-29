@@ -96,8 +96,8 @@ public class Investments {
         this.format = format;
         this.bar = bar;
         this.series = series;
-        this.cashInvestments = new CashInvestmentBuilder(() ->
-                SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
+        this.cashInvestments = new CashInvestmentBuilder(()
+                -> SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
                         .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
                         .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
     }
@@ -208,7 +208,7 @@ public class Investments {
                 .entrySet()
                 .stream()
                 .sorted(comparing(m -> m.getValue().stream().skip(m.getValue().size() - 1).findFirst().get().getSecond(), reverseOrder()))
-                .map(e -> this.matrixRow(e.getKey(), e.getValue(), benchmarkMatrix))
+                .map(e -> this.matrixRow(e.getKey(), e.getValue().stream().map(Pair::getSecond).collect(toList()), benchmarkMatrix))
                 .forEach(this.console::appendLine);
 
     }
@@ -250,23 +250,24 @@ public class Investments {
 
     private String matrixRow(
             String name,
-            List<Pair<String, ModifiedDietzReturnResult>> rowData,
+            List<ModifiedDietzReturnResult> rowData,
             Map<String, List<Pair<String, ModifiedDietzReturnResult>>> benchmarkMatrix) {
 
-        final List<Pair<String, ModifiedDietzReturnResult>> iwdaList = benchmarkMatrix.get("IWDA");
-        final List<Pair<String, ModifiedDietzReturnResult>> cspxList = benchmarkMatrix.get("CSPX");
+        final List<ModifiedDietzReturnResult> iwdaList = benchmarkMatrix.get("IWDA")
+                .stream()
+                .map(Pair::getSecond)
+                .collect(toList());
+
+        final List<ModifiedDietzReturnResult> cspxList = benchmarkMatrix.get("CSPX")
+                .stream()
+                .map(Pair::getSecond)
+                .collect(toList());
 
         return Stream.concat(
                 Stream.of(this.format.text(ETF_NAME.getOrDefault(name, name), 25, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
                 IntStream.range(0, rowData.size())
-                        .mapToObj(i -> Pair.of(i, rowData.get(i).getSecond()))
-                        .map(pair -> coloredPercent(
-                        pair.getSecond(),
-                        color(
-                                name,
-                                pair.getSecond(),
-                                iwdaList.get(pair.getFirst()).getSecond(),
-                                cspxList.get(pair.getFirst()).getSecond()))))
+                        .mapToObj(i -> Pair.of(i, rowData.get(i)))
+                        .map(pair -> coloredPercent(pair.getSecond(), color(name, pair.getSecond(), iwdaList.get(pair.getFirst()), cspxList.get(pair.getFirst())))))
                 .collect(joining());
     }
 
@@ -277,10 +278,7 @@ public class Investments {
     private AnsiFormat color(String name, ModifiedDietzReturnResult value, ModifiedDietzReturnResult iwda, ModifiedDietzReturnResult cspx) {
         return ETF_COLOR.containsKey(name)
                 ? BRIGHT_WHITE_TEXT
-                : color(
-                        value.getMoneyWeighted(),
-                        iwda.getMoneyWeighted(),
-                        cspx.getMoneyWeighted());
+                : color(value.getMoneyWeighted(), iwda.getMoneyWeighted(), cspx.getMoneyWeighted());
     }
 
     private AnsiFormat color(BigDecimal value, BigDecimal iwda, BigDecimal cspx) {
