@@ -94,10 +94,10 @@ public class ConsoleReports {
     private static final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
             .thenComparing(comparing(pair -> pair.getFirst().getSecond()));
 
-    private static boolean nominal(Map<String, String> params){
+    private static boolean nominal(Map<String, String> params) {
         return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
     }
-    
+
     private final Series series;
     private final Console console;
     private final Bar bar;
@@ -724,7 +724,7 @@ public class ConsoleReports {
                 invested,
                 expected);
     }
-    
+
     private void bbpp(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
 
@@ -1229,7 +1229,7 @@ public class ConsoleReports {
         new Positions(this.console, this.format, this.series, withFee)
                 .positions(symbol, nominal(params));
     }
-  
+
     private void invEvo(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
 
@@ -1241,6 +1241,7 @@ public class ConsoleReports {
     }
 
     private void portfolioEvo(String[] args, String paramName) {
+        this.console.appendLine(this.format.title("Portfolio Evolution"));
         final var params = this.paramsValue(args, paramName);
 
         final var type = params.get("type");
@@ -1250,6 +1251,9 @@ public class ConsoleReports {
     }
 
     private void portfolioEvoPct(String[] args, String paramName) {
+
+        this.console.appendLine(this.format.title("Portfolio Evolution"));
+
         final var params = this.paramsValue(args, paramName);
 
         final var type = params.get("type");

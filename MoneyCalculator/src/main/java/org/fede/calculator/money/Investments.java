@@ -335,7 +335,7 @@ public class Investments {
 
     private void invEvo(String title, String currency, boolean nominal, boolean pct) {
 
-        this.console.appendLine(format(title, nominal ? "Nominal" : "Real"));
+        this.console.appendLine(this.format.title(format(title , nominal ? "Nominal" : "Real")));
 
         final var m = this.investmentEvolution(currency, nominal);
 
