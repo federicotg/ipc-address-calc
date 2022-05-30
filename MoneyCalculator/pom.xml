@@ -65,13 +65,7 @@
         <dependency>
             <groupId>com.diogonunes</groupId>
             <artifactId>JColor</artifactId>
-            <version>5.4.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.felix</groupId>
-                    <artifactId>maven-bundle-plugin</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>5.5.1</version>
         </dependency>
         
         <dependency>

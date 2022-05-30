@@ -606,7 +606,7 @@ public class ConsoleReports {
 
     private void expenseEvolution(String type, int months) {
 
-        this.bar.evolution(format("Average {0}-month expenses.", months), new SimpleAggregation(months).average(this.series.realExpenses(type)), 25);
+        this.bar.evolution(format("Average {0}-month expenses.", months), new SimpleAggregation(months).average(this.series.realExpenses(type)), 18);
     }
 
     private void savingChange(String[] args, String paramName) {
