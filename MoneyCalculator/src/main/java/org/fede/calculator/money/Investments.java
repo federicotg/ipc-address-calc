@@ -224,7 +224,7 @@ public class Investments {
                 = (p) -> format("{0} {1} {2}",
                         this.format.text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), 25, ETF_COLOR.getOrDefault(p.getFirst(), BRIGHT_WHITE_TEXT)),
                         this.format.percent(p.getSecond().getMoneyWeighted(), 8),
-                        this.bar.pctBar(p.getSecond().getMoneyWeighted()));
+                        this.bar.pctBar(p.getSecond().getAnnualizedMoneyWeighted()));
 
         this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Time Weighted MDR"));
 
