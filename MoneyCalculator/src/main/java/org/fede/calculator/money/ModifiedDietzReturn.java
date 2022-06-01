@@ -282,6 +282,11 @@ public class ModifiedDietzReturn {
     }
 
     private BigDecimal annualized(BigDecimal value) {
+
+        if (this.daysBetween == 0) {
+            return BigDecimal.ZERO;
+        }
+
         return BigDecimal.valueOf(Math.pow(1.0d + value.doubleValue(), 365.0d / (double) this.daysBetween) - 1.0d);
     }
 
