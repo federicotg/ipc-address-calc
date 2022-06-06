@@ -18,6 +18,7 @@ package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
+import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
@@ -63,7 +64,6 @@ import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.InvestmentAsset;
-import org.fede.calculator.money.series.InvestmentEvent;
 
 /**
  *
@@ -343,6 +343,7 @@ public class ConsoleReports {
                     entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
                     entry("pos", () -> me.positions(args, "pos")),
                     entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct")),
+                    entry("prices", () -> me.prices(args, "prices")),
                     entry("bench", () -> me.benchmark(args, "bench"))
             );
 
@@ -1211,6 +1212,15 @@ public class ConsoleReports {
                                 .apply(inv.getIn().getFeeMoneyAmount(), YearMonth.of(inv.getIn().getDate()))))
                 .stream()
                 .collect(joining(","));
+    }
+
+    private void prices(String[] args, String paramName) {
+        try {
+            this.console.appendLine("€ using ETH:", this.format.currency(new CriptoyaAPI().euroByEth()));
+            this.console.appendLine("€ using BTC:", this.format.currency(new CriptoyaAPI().euroByBtc()));
+        } catch (IOException | InterruptedException ex) {
+            this.console.appendLine("Error");
+        }
     }
 
     private void invEvoPct(String[] args, String paramName) {
