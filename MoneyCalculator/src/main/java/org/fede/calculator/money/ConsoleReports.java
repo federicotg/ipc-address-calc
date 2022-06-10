@@ -652,7 +652,7 @@ public class ConsoleReports {
     private void incomeEvolution() {
 
         appendLine("===< Income evolution >===");
-        this.bar.evolution("Income", this.series.realIncome(), 30);
+        this.bar.evolution("Income", this.series.realIncome(), 40);
     }
 
     private void incomeAverageEvolution(String[] args, String paramName) {
