@@ -303,8 +303,8 @@ public class ConsoleReports {
                     entry("savings-half", me::halfSavings),
                     entry("savings-quarter", me::quarterSavings),
                     entry("savings-avg-net-change", () -> me.monthlySavings(args, "savings-avg-net-change")),
-                    entry("savings-avg-net-pct", () -> me.netAvgSavingPct(args, "savings-avg-net-pct")),
-                    entry("savings-avg-spent-pct", () -> me.netAvgSavingSpentPct(args, "savings-avg-spent-pct")),
+                    //entry("savings-avg-net-pct", () -> me.netAvgSavingPct(args, "savings-avg-net-pct")),
+                    entry("savings-avg-pct", () -> me.netAvgSavingSpentPct(args, "savings-avg-pct")),
                     entry("savings-dist", me::savingsDistributionEvolution),
                     entry("savings-dist-pct", me::savingsDistributionPercentEvolution),
                     entry("saved-salaries-evo", () -> me.averageSavedSalaries(args, "saved-salaries-evo")),
@@ -827,32 +827,6 @@ public class ConsoleReports {
         this.bar.evolution(title,
                 new SimpleAggregation(months).average(this.series.realNetSavings()),
                 40);
-    }
-
-    private void netAvgSavingPct(String[] args, String name) {
-
-        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
-
-        final var title = format("===< Average {0}-month net monthly average savings percent >===", months);
-
-        appendLine(title);
-
-        final var agg = new SimpleAggregation(months);
-        final var income = agg.average(this.series.realIncome());
-        final var netSaving = agg.average(this.series.realNetSavings());
-
-        netSaving.map((ym, ma) -> this.positiveOrZero(ma))
-                .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
-                .forEach((ym, savingMa) -> appendLine(this.bar.percentBar(ym, savingMa, income.getAmountOrElseZero(ym).subtract(savingMa))));
-
-        appendLine(title);
-        appendLine("");
-        appendLine("References:");
-        appendLine(Ansi.colorize(" ", Attribute.BLUE_BACK()),
-                ": saved, ",
-                Ansi.colorize(" ", Attribute.RED_BACK()),
-                ": spent. ");
-
     }
 
     private void netAvgSavingSpentPct(String[] args, String name) {
