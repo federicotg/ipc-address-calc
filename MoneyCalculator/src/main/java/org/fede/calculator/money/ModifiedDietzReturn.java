@@ -198,7 +198,7 @@ public class ModifiedDietzReturn {
         final var cashFlowTime = ChronoUnit.DAYS.between(this.initialMoment, cashFlowDate);
 
         return this.cashFlowAmount(ie)
-                .multiply(BigDecimal.valueOf(this.daysBetween - cashFlowTime).divide(BigDecimal.valueOf(this.daysBetween), C), C);
+                .multiply(BigDecimal.valueOf(this.daysBetween - cashFlowTime).divide(BigDecimal.valueOf(Math.max(1, this.daysBetween)), C), C);
     }
 
     private BigDecimal cashFlowAmount(InvestmentEvent ie) {
