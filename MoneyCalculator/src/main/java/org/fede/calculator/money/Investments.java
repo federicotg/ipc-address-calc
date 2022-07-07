@@ -574,7 +574,7 @@ public class Investments {
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
                 .collect(toList());
 
-        this.console.appendLine("Month;Portfolio;Portfolio With Fees;CSPX;IWDA;Cash");
+        this.console.appendLine("Month;Portfolio;CSPX;IWDA;Cash");
 
         final Map<YearMonth, BigDecimal[]> results = new LinkedHashMap<>();
 
@@ -617,9 +617,9 @@ public class Investments {
                                 this.format.text(String.valueOf(month.getYear()), 4),
                                 this.format.text((month.getMonth() < 10 ? "0" : "") + String.valueOf(month.getMonth()), 2),
                                 this.format.currency(arr[0], 10),
+                                this.format.currency(arr[1], 10),
                                 this.format.currency(arr[2], 10),
-                                this.format.currency(arr[3], 10),
-                                this.format.currency(arr[4], 10))));
+                                this.format.currency(arr[3], 10))));
     }
 
 }
