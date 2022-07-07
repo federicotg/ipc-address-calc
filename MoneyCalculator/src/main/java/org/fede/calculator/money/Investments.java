@@ -403,7 +403,6 @@ public class Investments {
                 ": loss, ",
                 Ansi.colorize(" ", Attribute.CYAN_BACK()),
                 ": tax.");
-
     }
 
     private Map<String, MoneyAmountSeries> investmentEvolution(String currency, boolean nominal) {
