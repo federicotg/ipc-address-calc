@@ -215,7 +215,8 @@ public class ModifiedDietzReturn {
 
     private MoneyAmount portfolioValue(YearMonth ym) {
 
-        return this.getInvestments().stream()
+        return this.getInvestments()
+                .stream()
                 .filter(i -> i.isCurrent(ym.asToDate()))
                 .map(Investment::getInvestment)
                 .map(asset -> ForeignExchanges.getMoneyAmountForeignExchange(asset.getCurrency(), currency).apply(asset.getMoneyAmount(), ym))
