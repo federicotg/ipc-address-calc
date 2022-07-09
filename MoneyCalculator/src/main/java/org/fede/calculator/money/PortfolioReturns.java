@@ -45,7 +45,6 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
-import org.fede.util.Pair;
 import static org.fede.calculator.money.MathConstants.C;
 
 /**
@@ -67,6 +66,7 @@ public class PortfolioReturns {
         this.bar = bar;
         this.cashInvestments = new CashInvestmentBuilder(() ->
                 SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
+                        .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json").exchangeInto("USD"))
                         .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
                         .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
     }
