@@ -66,7 +66,7 @@ public class PortfolioReturns {
         this.bar = bar;
         this.cashInvestments = new CashInvestmentBuilder(() ->
                 SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
-                        .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json").exchangeInto("USD"))
+                        .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
                         .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
                         .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
     }
