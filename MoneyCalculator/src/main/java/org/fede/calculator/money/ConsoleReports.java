@@ -78,8 +78,8 @@ public class ConsoleReports {
     private static final String TRIALS = "150000";
     private static final String RETIREMENT = "65";
     private static final String AGE = "99";
-    private static final String DEPOSIT = "1300";
-    private static final String WITHDRAW = "700";
+    private static final String DEPOSIT = "1400";
+    private static final String WITHDRAW = "800";
     private static final String INFLATION = "3";
     private static final String CASH = "0";
     private static final String TAX = "true";
