@@ -50,6 +50,7 @@ public class Positions {
             "CSPX", "iShares Core S&P 500",
             "EIMI", "iShares Core MSCI EM IMI",
             "XRSU", "Xtrackers Russell 2000",
+            "RTWO", "L&G Russell 2000 Small Cap Quality",
             "MEUD", "Lyxor Core STOXX Europe 600 DR"
     );
 
@@ -73,7 +74,7 @@ public class Positions {
             this.console.appendLine(this.format.title("Positions Without Fees"));
         }
 
-        final var descWidth = 32;
+        final var descWidth = 36;
         final var posWidth = 4;
         final var lastWidth = 10;
         final var costWidth = 14;
