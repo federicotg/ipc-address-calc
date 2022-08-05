@@ -549,6 +549,7 @@ public class Investments {
                 Map.entry("EIMI", "Global Eq."),
                 Map.entry("MEUD", "Global Eq."),
                 Map.entry("XRSU", "Global Eq."),
+                Map.entry("RTWO", "Global Eq."),
                 Map.entry("CONAAFA", "Dom. Eq."),
                 Map.entry("CONBALA", "Dom. Bonds"),
                 Map.entry("CAPLUSA", "Dom. Bonds"),
