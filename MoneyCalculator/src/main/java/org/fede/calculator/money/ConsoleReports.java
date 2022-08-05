@@ -1027,6 +1027,7 @@ public class ConsoleReports {
                         of("CASH", this.lastAmount("ahorros-dai", ym)),
                         of("EQUITY", this.lastAmount("ahorros-cspx", ym)),
                         of("EQUITY", this.lastAmount("ahorros-eimi", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-rtwo", ym)),
                         of("EQUITY", this.lastAmount("ahorros-meud", ym)),
                         of("EQUITY", this.lastAmount("ahorros-conaafa", ym)),
                         of("EQUITY", this.lastAmount("ahorros-xrsu", ym)))

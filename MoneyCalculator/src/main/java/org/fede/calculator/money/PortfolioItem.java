@@ -78,12 +78,12 @@ public class PortfolioItem {
     }
 
     public String asReport(MoneyAmount total) {
-
+        
         final var pct = this.getDollarAmount().getAmount().divide(total.getAmount(), MathConstants.C);
         return MessageFormat.format("{0} {1} {2} {3} {4}",
-                String.format("%-9s", this.type),
-                String.format("%-7s", this.amount.getCurrency()),
-                String.format("%11s", MessageFormat.format("{0,number,currency}", this.getDollarAmount().getAmount())),
+                String.format("%-8s", this.type),
+                String.format("%-5s", this.amount.getCurrency()),
+                String.format("%13s", MessageFormat.format("{0,number,currency}", this.getDollarAmount().getAmount())),
                 String.format("%7s", this.pct(pct)),
                 Ansi.colorize(pctBar(pct), Attribute.BRIGHT_WHITE_BACK())
         );
