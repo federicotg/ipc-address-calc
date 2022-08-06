@@ -25,6 +25,7 @@ import static java.util.Comparator.reverseOrder;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.groupingBy;
@@ -179,7 +180,7 @@ public class Positions {
 
         this.console.appendLine(this.format.subtitle("Average Prices"));
 
-        this.console.appendLine(this.format.text("", 8), 
+        this.console.appendLine(this.format.text("", 8),
                 positionsByYear.keySet().stream()
                         .map(Pair::getFirst)
                         .distinct()
@@ -206,14 +207,19 @@ public class Positions {
                         .distinct()
                         .sorted()
                         .map(currency -> Pair.of(currency, year))
-                        .map(positionsByYear::get)
-                        .map(Position::getAveragePrice)
-                        .map(MoneyAmount::getAmount)
-                        .map(avgPrice -> this.format.currency(avgPrice, 8)))
+                        .map(key -> this.avgPrice(positionsByYear, key)))
                 .collect(joining());
- 
+
     }
-    
+
+    private String avgPrice(Map<Pair<String, Integer>, Position> positionsByYear, Pair<String, Integer> key) {
+        return Optional.ofNullable(positionsByYear.get(key))
+                .map(Position::getAveragePrice)
+                .map(MoneyAmount::getAmount)
+                .map(avgPrice -> this.format.currency(avgPrice, 8))
+                .orElseGet(() -> this.format.text("", 8));
+    }
+
     private String exchangeClassifier(Investment i) {
         if (i.getComment() == null) {
             return i.getCurrency().equals("MEUD")
@@ -283,7 +289,7 @@ public class Positions {
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getAmount)
                 .reduce(ZERO, BigDecimal::add);
-        
+
         final var now = YearMonth.of(new Date());
 
         return new Position(
