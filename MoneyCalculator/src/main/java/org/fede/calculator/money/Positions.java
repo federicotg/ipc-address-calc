@@ -180,12 +180,12 @@ public class Positions {
 
         this.console.appendLine(this.format.subtitle("Average Prices"));
 
-        this.console.appendLine(this.format.text("", 8),
+        this.console.appendLine(this.format.text("", 9),
                 positionsByYear.keySet().stream()
                         .map(Pair::getFirst)
                         .distinct()
                         .sorted()
-                        .map(currency -> this.format.text(currency, 8))
+                        .map(currency -> this.format.text(currency, 9))
                         .collect(joining()));
 
         positionsByYear.keySet().stream()
@@ -216,8 +216,8 @@ public class Positions {
         return Optional.ofNullable(positionsByYear.get(key))
                 .map(Position::getAveragePrice)
                 .map(MoneyAmount::getAmount)
-                .map(avgPrice -> this.format.currency(avgPrice, 8))
-                .orElseGet(() -> this.format.text("", 8));
+                .map(avgPrice -> this.format.currency(avgPrice, 9))
+                .orElseGet(() -> this.format.text("", 9));
     }
 
     private String exchangeClassifier(Investment i) {
