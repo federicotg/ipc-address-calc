@@ -211,9 +211,9 @@ public class Positions {
                         .map(MoneyAmount::getAmount)
                         .map(avgPrice -> this.format.currency(avgPrice, 8)))
                 .collect(joining());
-
+ 
     }
-
+    
     private String exchangeClassifier(Investment i) {
         if (i.getComment() == null) {
             return i.getCurrency().equals("MEUD")
@@ -283,7 +283,7 @@ public class Positions {
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getAmount)
                 .reduce(ZERO, BigDecimal::add);
-
+        
         final var now = YearMonth.of(new Date());
 
         return new Position(
