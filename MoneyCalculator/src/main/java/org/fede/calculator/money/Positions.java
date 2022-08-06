@@ -20,20 +20,20 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
-import java.util.Comparator;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.joining;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentType;
@@ -120,8 +120,7 @@ public class Positions {
                 .stream()
                 .map(this::position)
                 .collect(toList());
-        
-        
+
         final var positionsByYear = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
@@ -132,7 +131,7 @@ public class Positions {
                 .collect(groupingBy(i -> Pair.of(i.getCurrency(), YearMonth.of(i.getInitialDate()).getYear())))
                 .entrySet()
                 .stream()
-                .collect(Collectors.toMap(e -> e.getKey(), e -> this.position(e.getValue())));
+                .collect(toMap(e -> e.getKey(), e -> this.position(e.getValue())));
 
         final var totalMarketValue = positions
                 .stream()
@@ -179,26 +178,40 @@ public class Positions {
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
         this.console.appendLine(this.format.subtitle("Average Prices"));
-        
-        positionsByYear.entrySet()
-                .stream()
-                .sorted(Comparator.comparing((Map.Entry<Pair<String, Integer>, Position> e) -> e.getKey().getFirst()).thenComparing(e -> e.getKey().getSecond()))
-                .map(e -> this.avgPrice(e.getKey().getFirst(), e.getKey().getSecond(), e.getValue().getAveragePrice()))
+
+        this.console.appendLine(this.format.text("", 8), 
+                positionsByYear.keySet().stream()
+                        .map(Pair::getFirst)
+                        .distinct()
+                        .sorted()
+                        .map(currency -> this.format.text(currency, 8))
+                        .collect(joining()));
+
+        positionsByYear.keySet().stream()
+                .mapToInt(Pair::getSecond)
+                .distinct()
+                .sorted()
+                .mapToObj(year -> this.avgPrice(year, positionsByYear))
                 .forEach(this.console::appendLine);
-        
+
         this.costs(symbol, nominal);
 
     }
-    
-    
-    private String avgPrice(String currency, int year, MoneyAmount avgPrice){
-        return MessageFormat.format("{0} {1} {2} {3}",
-            this.format.text(currency, 5),
-            this.format.text(String.valueOf(year), 5),
-            this.format.text(avgPrice.getCurrency(), 5),
-            this.format.currency(avgPrice.getAmount(), 5));
-            
-        
+
+    private String avgPrice(int year, Map<Pair<String, Integer>, Position> positionsByYear) {
+        return Stream.concat(
+                Stream.of(this.format.text(String.valueOf(year), 5)),
+                positionsByYear.keySet().stream()
+                        .map(Pair::getFirst)
+                        .distinct()
+                        .sorted()
+                        .map(currency -> Pair.of(currency, year))
+                        .map(positionsByYear::get)
+                        .map(Position::getAveragePrice)
+                        .map(MoneyAmount::getAmount)
+                        .map(avgPrice -> this.format.currency(avgPrice, 8)))
+                .collect(joining());
+
     }
 
     private String exchangeClassifier(Investment i) {
