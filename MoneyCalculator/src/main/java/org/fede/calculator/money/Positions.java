@@ -20,12 +20,14 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
+import java.util.Comparator;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
@@ -37,6 +39,7 @@ import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.util.Pair;
 
 /**
  *
@@ -117,6 +120,19 @@ public class Positions {
                 .stream()
                 .map(this::position)
                 .collect(toList());
+        
+        
+        final var positionsByYear = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isCurrent)
+                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(inv -> symbol == null || inv.getCurrency().equals(symbol))
+                .map(inv -> ForeignExchanges.exchange(inv, "USD"))
+                .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
+                .collect(groupingBy(i -> Pair.of(i.getCurrency(), YearMonth.of(i.getInitialDate()).getYear())))
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(e -> e.getKey(), e -> this.position(e.getValue())));
 
         final var totalMarketValue = positions
                 .stream()
@@ -162,8 +178,27 @@ public class Positions {
                 this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
+        this.console.appendLine(this.format.subtitle("Average Prices"));
+        
+        positionsByYear.entrySet()
+                .stream()
+                .sorted(Comparator.comparing((Map.Entry<Pair<String, Integer>, Position> e) -> e.getKey().getFirst()).thenComparing(e -> e.getKey().getSecond()))
+                .map(e -> this.avgPrice(e.getKey().getFirst(), e.getKey().getSecond(), e.getValue().getAveragePrice()))
+                .forEach(this.console::appendLine);
+        
         this.costs(symbol, nominal);
 
+    }
+    
+    
+    private String avgPrice(String currency, int year, MoneyAmount avgPrice){
+        return MessageFormat.format("{0} {1} {2} {3}",
+            this.format.text(currency, 5),
+            this.format.text(String.valueOf(year), 5),
+            this.format.text(avgPrice.getCurrency(), 5),
+            this.format.currency(avgPrice.getAmount(), 5));
+            
+        
     }
 
     private String exchangeClassifier(Investment i) {
