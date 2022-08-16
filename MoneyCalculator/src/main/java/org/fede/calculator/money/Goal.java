@@ -25,7 +25,6 @@ import java.util.Arrays;
 import static java.util.Comparator.comparing;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -62,7 +61,7 @@ public class Goal {
     private static final BigDecimal SELL_FEE = new BigDecimal("0.00726").multiply(new BigDecimal("0.5"), C)
             .add(new BigDecimal("0.00056").multiply(new BigDecimal("0.5"), C));
 
-    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.135"), C), C);
+    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), C), C);
 
     private static final Function<BigDecimal, BigDecimal> IBKR_FEE_STRATEGY = new InteractiveBrokersTieredLondonUSDFeeStrategy();
 
@@ -79,8 +78,6 @@ public class Goal {
 
     private final Console console;
     private final Format format;
-
-    private final List<Double> topAmount = new ArrayList<>(1000);
 
     public Goal(Console console, Format format, double bbppTaxRate, double bbppMin) {
         this.bbppTaxRate = bbppTaxRate;
@@ -117,8 +114,6 @@ public class Goal {
 
             amount = amount * returns[i - startingYear] + d;
         }
-
-        this.topAmount.add(amount);
 
         final var cgt = CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT.doubleValue();
 
@@ -255,45 +250,6 @@ public class Goal {
         this.console.appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
 
         this.console.appendLine(format("{0}/{1} {2}", successes, trials, this.format.percent(BigDecimal.valueOf((double) successes / (double) trials))));
-
-        this.stats(this.topAmount, "Top Amount");
-    }
-
-    private void stats(List<Double> values, String title) {
-
-        final var mean = values.parallelStream()
-                .filter(Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
-                .average()
-                .getAsDouble();
-
-        // Variance
-        final double variance = values.parallelStream()
-                .filter(Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
-                .map(i -> i - mean)
-                .map(i -> i * i)
-                .average()
-                .getAsDouble();
-
-        //Standard Deviation 
-        final double standardDeviation = Math.sqrt(variance);
-
-        this.console.appendLine(this.format.subtitle(title));
-
-        this.console.appendLine(
-                "µ+-2σ => [ ",
-                this.format.currency(BigDecimal.valueOf(mean - 2 * standardDeviation)),
-                " , ",
-                this.format.currency(BigDecimal.valueOf(mean + 2 * standardDeviation)),
-                " ]");
-
-        this.console.appendLine(
-                "µ ",
-                this.format.currency(BigDecimal.valueOf(mean)),
-                " σ ",
-                this.format.currency(BigDecimal.valueOf(standardDeviation))
-        );
 
     }
 
