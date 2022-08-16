@@ -130,8 +130,13 @@ public class Investments {
     }
 
     private List<Investment> benchmark(List<Investment> etfs, String benchmark) {
+      
+        final var allEtfs = this.getInvestments()
+                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .collect(toList());
+        
         return etfs.stream()
-                .map(new BenchmarkInvestmentMapper(benchmark, etfs))
+                .map(new BenchmarkInvestmentMapper(benchmark, allEtfs))
                 .collect(toList());
     }
 
@@ -141,14 +146,10 @@ public class Investments {
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
                 .filter(everyone)
                 .collect(toList());
-        
-        final var allEtfs = this.getInvestments()
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
-                .collect(toList());
 
-        final var cspxBenchmarkSeries = benchmark(allEtfs, "CSPX");
-        final var iwdaBenchmarkSeries = benchmark(allEtfs, "IWDA");
-        final var cashBenchmarkSeries = benchmark(allEtfs, "USD");
+        final var cspxBenchmarkSeries = benchmark(etfs, "CSPX");
+        final var iwdaBenchmarkSeries = benchmark(etfs, "IWDA");
+        final var cashBenchmarkSeries = benchmark(etfs, "USD");
 
         this.investmentReport(everyone, nominal);
         this.yearMatrix(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, nominal);
