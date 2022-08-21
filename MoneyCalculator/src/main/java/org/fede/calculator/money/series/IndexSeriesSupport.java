@@ -27,7 +27,7 @@ import java.util.Objects;
  */
 public abstract class IndexSeriesSupport extends SeriesSupport implements IndexSeries {
     
-    public static IndexSeries CONSTANT_SERIES = new IndexSeriesSupport() {
+    public static final IndexSeries CONSTANT_SERIES = new IndexSeriesSupport() {
         @Override
         public YearMonth getFrom() {
             return YearMonth.of(1, 1);
