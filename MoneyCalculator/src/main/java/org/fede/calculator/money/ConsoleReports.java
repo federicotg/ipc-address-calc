@@ -82,7 +82,7 @@ public class ConsoleReports {
     private static final String INFLATION = "3";
     private static final String CASH = "0";
     private static final String TAX = "true";
-    private static final String EXPECTED_RETRUNS = "true";
+    private static final String EXPECTED_RETRUNS = "blackrock";
     private static final String BBPP = "2.25";
     private static final String BBPP_MIN = "30000";
     private static final String PENSION = "100";
@@ -692,7 +692,7 @@ public class ConsoleReports {
         final var age = Integer.parseInt(params.getOrDefault("age", AGE));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", CASH));
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", TAX));
-        final var expected = Boolean.parseBoolean(params.getOrDefault("exp", EXPECTED_RETRUNS));
+        final var expected = params.getOrDefault("exp", EXPECTED_RETRUNS);
         final var pension = Integer.parseInt(params.getOrDefault("pension", PENSION));
 
         final var bbppTax = afterTax

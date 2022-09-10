@@ -18,6 +18,7 @@ package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import java.math.RoundingMode;
@@ -27,6 +28,7 @@ import java.util.Arrays;
 import static java.util.Comparator.comparing;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
@@ -39,6 +41,7 @@ import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import static org.fede.calculator.money.MathConstants.RM;
 import static org.fede.calculator.money.MathConstants.SCALE;
+import org.fede.calculator.money.series.SeriesReader;
 
 /**
  *
@@ -49,28 +52,6 @@ public class Goal {
     private static final double OFFICIAL_DOLLAR_MEAN = 0.8d;
     private static final double OFFICIAL_DOLLAR_STD_DEV = 0.1d;
 
-//    private static final double US_NOMINAL_EXPECTED_RETURN = 6.25d;
-//    private static final double US_EXPECTED_RETURN_STDDEV = 14.21d;
-//    private static final double EX_US_NOMINAL_EXPECTED_RETURN = 6.92d;
-//    private static final double EX_US_EXPECTED_RETURN_STDDEV = 13.12d;
-
-    // 20 year expected returns 
-    // Black Rock: https://www.blackrock.com/institutions/en-us/insights/charts/capital-market-assumptions
-    
-    private static final double US_LARGE_CAP_EXPECTED_RETURN = 7.7d;
-    private static final double US_LARGE_CAP_EXPECTED_RETURN_STDDEV = 17.2d;
-    
-    private static final double US_SMALL_CAP_EXPECTED_RETURN = 6.7d;
-    private static final double US_SMALL_CAP_EXPECTED_RETURN_STDDEV = 21.4d;
-    
-    private static final double EUROPE_LARGE_CAP_EXPECTED_RETURN = 9.2d;
-    private static final double EUROPE_LARGE_CAP_EXPECTED_RETURN_STDDEV = 18.3d;
-    
-    private static final double EM_LARGE_CAP_EXPECTED_RETURN = 10.00d;
-    private static final double EM_LARGE_CAP_EXPECTED_RETURN_STDDEV = 21.3d;
-    
-    
-    
     private static final double CSPX_FEE = 0.0007d;
 
     private static final int END_AGE_STD = 5;
@@ -178,7 +159,7 @@ public class Goal {
             final int pension,
             MoneyAmount todaySavings,
             MoneyAmount invested,
-            boolean expected) {
+            String expected) {
 
         final var to = USD_INFLATION.getTo();
 
@@ -245,17 +226,22 @@ public class Goal {
                 .toArray();
 
         long successes;
-        if (expected) {
+
+        final Map<String, ExpectedReturnGroup> expectedReturns = SeriesReader.read("/index/expected-returns.json", new TypeReference<Map<String, ExpectedReturnGroup>>() {
+        });
+
+        final var expectedReturn = expectedReturns.get(expected);
+        if (expectedReturn != null) {
             successes = this.expectedReturnSuccesses(
                     new GaussReturnSupplier(
-                            US_LARGE_CAP_EXPECTED_RETURN * 0.7d + 
-                                    US_SMALL_CAP_EXPECTED_RETURN * 0.1d + 
-                                    EUROPE_LARGE_CAP_EXPECTED_RETURN * 0.1d +
-                                    EM_LARGE_CAP_EXPECTED_RETURN * 0.1d,
-                            US_LARGE_CAP_EXPECTED_RETURN_STDDEV * 0.7d + 
-                                    US_SMALL_CAP_EXPECTED_RETURN_STDDEV * 0.1d + 
-                                    EUROPE_LARGE_CAP_EXPECTED_RETURN_STDDEV * 0.1d +
-                                    EM_LARGE_CAP_EXPECTED_RETURN_STDDEV * 0.1d,
+                            expectedReturn.getUsLargeCap().getMu().doubleValue() * 0.7d
+                            + expectedReturn.getUsSmallCap().getMu().doubleValue() * 0.1d
+                            + expectedReturn.getEu().getMu().doubleValue() * 0.1d
+                            + expectedReturn.getEm().getMu().doubleValue() * 0.1d,
+                            expectedReturn.getUsLargeCap().getSigma().doubleValue() * 0.7d
+                            + expectedReturn.getUsSmallCap().getSigma().doubleValue() * 0.1d
+                            + expectedReturn.getEu().getSigma().doubleValue() * 0.1d
+                            + expectedReturn.getEm().getSigma().doubleValue() * 0.1d,
                             periodYears * periods),
                     trials,
                     startingYear,
@@ -280,7 +266,12 @@ public class Goal {
                     realDeposits,
                     realWithdrawals);
         }
-        this.console.appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
+        this.console.appendLine(format("\nSimulating {0} {1}-year periods using {2} returns.", 
+                trials, 
+                periodYears, 
+                expectedReturn == null 
+                        ? "historical" 
+                        : expected + " expected"));
 
         this.console.appendLine(format("{0}/{1} {2}",
                 successes,
