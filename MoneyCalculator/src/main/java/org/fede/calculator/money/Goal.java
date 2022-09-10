@@ -21,20 +21,14 @@ import com.diogonunes.jcolor.Attribute;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
-import java.math.RoundingMode;
 import static java.text.MessageFormat.format;
-import java.util.ArrayList;
 import java.util.Arrays;
-import static java.util.Comparator.comparing;
+import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import static java.util.stream.Collectors.toList;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.YearMonth;
@@ -42,6 +36,7 @@ import static org.fede.calculator.money.MathConstants.C;
 import static org.fede.calculator.money.MathConstants.RM;
 import static org.fede.calculator.money.MathConstants.SCALE;
 import org.fede.calculator.money.series.SeriesReader;
+import org.fede.util.Pair;
 
 /**
  *
@@ -51,8 +46,6 @@ public class Goal {
 
     private static final double OFFICIAL_DOLLAR_MEAN = 0.8d;
     private static final double OFFICIAL_DOLLAR_STD_DEV = 0.1d;
-
-    private static final double CSPX_FEE = 0.0007d;
 
     private static final int END_AGE_STD = 5;
 
@@ -78,8 +71,6 @@ public class Goal {
 
     private final Console console;
     private final Format format;
-
-    private final List<Double> topAmount = new ArrayList<>(1000);
 
     public Goal(Console console, Format format, double bbppTaxRate, double bbppMin) {
         this.bbppTaxRate = bbppTaxRate;
@@ -116,8 +107,6 @@ public class Goal {
 
             amount = amount * returns[i - startingYear] + d;
         }
-
-        this.topAmount.add(amount);
 
         final var cgt = CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT.doubleValue();
 
@@ -225,153 +214,37 @@ public class Goal {
                 .map(f -> f * withdraw)
                 .toArray();
 
-        long successes;
+        this.console.appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
 
         final Map<String, ExpectedReturnGroup> expectedReturns = SeriesReader.read("/index/expected-returns.json", new TypeReference<Map<String, ExpectedReturnGroup>>() {
         });
 
-        final var expectedReturn = expectedReturns.get(expected);
-        if (expectedReturn != null) {
-            successes = this.expectedReturnSuccesses(
-                    new GaussReturnSupplier(
-                            expectedReturn.getUsLargeCap().getMu().doubleValue() * 0.7d
-                            + expectedReturn.getUsSmallCap().getMu().doubleValue() * 0.1d
-                            + expectedReturn.getEu().getMu().doubleValue() * 0.1d
-                            + expectedReturn.getEm().getMu().doubleValue() * 0.1d,
-                            expectedReturn.getUsLargeCap().getSigma().doubleValue() * 0.7d
-                            + expectedReturn.getUsSmallCap().getSigma().doubleValue() * 0.1d
-                            + expectedReturn.getEu().getSigma().doubleValue() * 0.1d
-                            + expectedReturn.getEm().getSigma().doubleValue() * 0.1d,
-                            periodYears * periods),
-                    trials,
-                    startingYear,
-                    retirementYear,
-                    end,
-                    age,
-                    investedAmount,
-                    realDeposits,
-                    realWithdrawals);
+        expectedReturns.entrySet().stream()
+                .filter(entry -> "all".equals(expected) || entry.getKey().equals(expected))
+                .map(entry
+                        -> Pair.of(
+                        entry.getKey(),
+                        this.expectedReturnSuccesses(new GaussReturnSupplier(entry.getValue().mu(), entry.getValue().sigma(), periodYears * periods),
+                                trials,
+                                startingYear,
+                                retirementYear,
+                                end,
+                                age,
+                                investedAmount,
+                                realDeposits,
+                                realWithdrawals)))
+                .sorted(Comparator.comparing(Pair::getSecond))
+                .map(pair
+                        -> format(
+                        "{0} {1}/{2} {3}",
+                        pair.getFirst(), pair.getSecond(),
+                        trials,
+                        this.format.text(
+                                this.format.percent(BigDecimal.valueOf((double) pair.getSecond() / (double) trials)),
+                                6,
+                                new AnsiFormat(Attribute.BOLD()))))
+                .forEach(this.console::appendLine);
 
-        } else {
-            successes = this.historicReturnSuccesses(
-                    new HistoricalReturnSupplier("index/sp-total-return.json"),
-                    periodYears,
-                    trials,
-                    periods,
-                    startingYear,
-                    retirementYear,
-                    end,
-                    age,
-                    investedAmount,
-                    realDeposits,
-                    realWithdrawals);
-        }
-        this.console.appendLine(format("\nSimulating {0} {1}-year periods using {2} returns.", 
-                trials, 
-                periodYears, 
-                expectedReturn == null 
-                        ? "historical" 
-                        : expected + " expected"));
-
-        this.console.appendLine(format("{0}/{1} {2}",
-                successes,
-                trials,
-                this.format.text(
-                        this.format.percent(BigDecimal.valueOf((double) successes / (double) trials)),
-                        6,
-                        new AnsiFormat(Attribute.BOLD()))));
-
-        this.stats(this.topAmount, "Top Amount");
-    }
-
-    private void stats(List<Double> values, String title) {
-
-        final var mean = values.parallelStream()
-                .filter(Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
-                .average()
-                .getAsDouble();
-
-        // Variance
-        final double variance = values.parallelStream()
-                .filter(Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
-                .map(i -> i - mean)
-                .map(i -> i * i)
-                .average()
-                .getAsDouble();
-
-        //Standard Deviation 
-        final double standardDeviation = Math.sqrt(variance);
-
-        this.console.appendLine(this.format.subtitle(title));
-
-        this.console.appendLine(
-                "µ+-2σ => [ ",
-                this.format.currency(BigDecimal.valueOf(mean - 2 * standardDeviation)),
-                " , ",
-                this.format.currency(BigDecimal.valueOf(mean + 2 * standardDeviation)),
-                " ]");
-
-        this.console.appendLine(
-                "µ ",
-                this.format.currency(BigDecimal.valueOf(mean)),
-                " σ ",
-                this.format.currency(BigDecimal.valueOf(standardDeviation))
-        );
-
-    }
-
-    private long historicReturnSuccesses(
-            Supplier<List<BigDecimal>> returnsSuplier,
-            int periodYears,
-            int trials,
-            int periods,
-            int startingYear,
-            int retirementYear,
-            int end,
-            int cash,
-            double investedAmount,
-            double[] realDeposits,
-            double[] realWithdrawals) {
-
-        final var sp500TotalReturns = returnsSuplier.get();
-
-        final double keepWorsePct = 0.75d;
-
-        final var fullYearsPeriods = this.periods(
-                sp500TotalReturns,
-                periodYears,
-                keepWorsePct);
-
-        final var halfYearsPeriods = this.periods(
-                sp500TotalReturns,
-                BigDecimal.valueOf(periodYears).divide(BigDecimal.valueOf(2l), RoundingMode.CEILING).intValue(),
-                keepWorsePct);
-
-        final var allPeriods = new ArrayList<double[]>(fullYearsPeriods.size() + halfYearsPeriods.size());
-
-        for (var half : halfYearsPeriods) {
-            for (var full : fullYearsPeriods) {
-
-                allPeriods.add(DoubleStream.concat(Arrays.stream(half), Arrays.stream(full)).toArray());
-            }
-        }
-
-        return IntStream.range(0, trials)
-                .parallel()
-                .mapToObj(i -> this.randomPeriods(allPeriods, periods, CSPX_FEE))
-                .filter(randomReturns
-                        -> this.goals(
-                        startingYear,
-                        retirementYear,
-                        gauss(end, END_AGE_STD),
-                        cash,
-                        investedAmount,
-                        randomReturns,
-                        realDeposits,
-                        realWithdrawals))
-                .count();
     }
 
     private long expectedReturnSuccesses(
@@ -399,33 +272,6 @@ public class Goal {
                         realDeposits,
                         realWithdrawals))
                 .count();
-    }
-
-    private double[] randomPeriods(List<double[]> allReturns, int periods, double fee) {
-        return ThreadLocalRandom.current().ints(periods, 0, allReturns.size())
-                .mapToObj(allReturns::get)
-                .flatMapToDouble(Arrays::stream)
-                .map(value -> value - fee)
-                .toArray();
-    }
-
-    /**
-     * Me quedo con el keepWorsePct % peor.
-     */
-    private List<double[]> periods(List<BigDecimal> returns, final int years, double keepWorsePct) {
-
-        final var periodCount = returns.size() - years + 1;
-
-        return IntStream.range(0, periodCount)
-                .mapToObj(start -> returns.stream().skip(start).limit(years))
-                .map(l -> l.mapToDouble(BigDecimal::doubleValue).toArray())
-                .sorted(comparing(this::sum))
-                .limit(Math.round(periodCount * keepWorsePct))
-                .collect(toList());
-    }
-
-    private double sum(double[] l) {
-        return Arrays.stream(l).sum();
     }
 
 }
