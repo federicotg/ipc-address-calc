@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.money;
 
+import com.diogonunes.jcolor.AnsiFormat;
+import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import java.math.RoundingMode;
@@ -47,12 +49,28 @@ public class Goal {
     private static final double OFFICIAL_DOLLAR_MEAN = 0.8d;
     private static final double OFFICIAL_DOLLAR_STD_DEV = 0.1d;
 
-    private static final double US_NOMINAL_EXPECTED_RETURN = 6.25d;
-    private static final double US_EXPECTED_RETURN_STDDEV = 14.21d;
+//    private static final double US_NOMINAL_EXPECTED_RETURN = 6.25d;
+//    private static final double US_EXPECTED_RETURN_STDDEV = 14.21d;
+//    private static final double EX_US_NOMINAL_EXPECTED_RETURN = 6.92d;
+//    private static final double EX_US_EXPECTED_RETURN_STDDEV = 13.12d;
 
-    private static final double EX_US_NOMINAL_EXPECTED_RETURN = 6.92d;
-    private static final double EX_US_EXPECTED_RETURN_STDDEV = 13.12d;
-
+    // 20 year expected returns 
+    // Black Rock: https://www.blackrock.com/institutions/en-us/insights/charts/capital-market-assumptions
+    
+    private static final double US_LARGE_CAP_EXPECTED_RETURN = 7.7d;
+    private static final double US_LARGE_CAP_EXPECTED_RETURN_STDDEV = 17.2d;
+    
+    private static final double US_SMALL_CAP_EXPECTED_RETURN = 6.7d;
+    private static final double US_SMALL_CAP_EXPECTED_RETURN_STDDEV = 21.4d;
+    
+    private static final double EUROPE_LARGE_CAP_EXPECTED_RETURN = 9.2d;
+    private static final double EUROPE_LARGE_CAP_EXPECTED_RETURN_STDDEV = 18.3d;
+    
+    private static final double EM_LARGE_CAP_EXPECTED_RETURN = 10.00d;
+    private static final double EM_LARGE_CAP_EXPECTED_RETURN_STDDEV = 21.3d;
+    
+    
+    
     private static final double CSPX_FEE = 0.0007d;
 
     private static final int END_AGE_STD = 5;
@@ -190,10 +208,14 @@ public class Goal {
         final var investedAmount = invested.getAmount().doubleValue();
 
         this.console.appendLine(format("Cash: {0,number,currency}, invested: {1,number,currency}", cash, investedAmount));
+
+        final var formattedDeposit = this.format.text(format("{0,number,currency}", monthlyDeposit), 6, new AnsiFormat(Attribute.BRIGHT_GREEN_TEXT()));
+        final var formattedWithdrawal = this.format.text(format("{0,number,currency}", monthlyWithdraw), 6, new AnsiFormat(Attribute.BRIGHT_RED_TEXT()));
+
         this.console.appendLine(format(
-                "Saving {0,number,currency}, spending {1,number,currency}{2}",
-                monthlyDeposit,
-                monthlyWithdraw,
+                "Saving {0}, spending {1}{2}",
+                formattedDeposit,
+                formattedWithdrawal,
                 afterTax ? " after tax." : "."));
         if (pension > 0) {
             this.console.appendLine(format("Considering {0,number,currency} pension.", pension));
@@ -206,11 +228,11 @@ public class Goal {
 
         final int startingYear = to.getYear();
         final var end = 1978 + age;
-        final var yearsLeft = 100;
+        final var yearsLeft = 80;
 
         final var periods = (int) Math.ceil((float) yearsLeft / periodYears);
 
-        final var inflationFactors = IntStream.range(0, 180)
+        final var inflationFactors = IntStream.range(0, 140)
                 .mapToDouble(year -> Math.pow(inflationRate, year))
                 .toArray();
 
@@ -226,8 +248,14 @@ public class Goal {
         if (expected) {
             successes = this.expectedReturnSuccesses(
                     new GaussReturnSupplier(
-                            US_NOMINAL_EXPECTED_RETURN * 0.78d + EX_US_NOMINAL_EXPECTED_RETURN * 0.22d,
-                            US_EXPECTED_RETURN_STDDEV * 0.78d + EX_US_EXPECTED_RETURN_STDDEV * 0.22d,
+                            US_LARGE_CAP_EXPECTED_RETURN * 0.7d + 
+                                    US_SMALL_CAP_EXPECTED_RETURN * 0.1d + 
+                                    EUROPE_LARGE_CAP_EXPECTED_RETURN * 0.1d +
+                                    EM_LARGE_CAP_EXPECTED_RETURN * 0.1d,
+                            US_LARGE_CAP_EXPECTED_RETURN_STDDEV * 0.7d + 
+                                    US_SMALL_CAP_EXPECTED_RETURN_STDDEV * 0.1d + 
+                                    EUROPE_LARGE_CAP_EXPECTED_RETURN_STDDEV * 0.1d +
+                                    EM_LARGE_CAP_EXPECTED_RETURN_STDDEV * 0.1d,
                             periodYears * periods),
                     trials,
                     startingYear,
@@ -254,7 +282,13 @@ public class Goal {
         }
         this.console.appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
 
-        this.console.appendLine(format("{0}/{1} {2}", successes, trials, this.format.percent(BigDecimal.valueOf((double) successes / (double) trials))));
+        this.console.appendLine(format("{0}/{1} {2}",
+                successes,
+                trials,
+                this.format.text(
+                        this.format.percent(BigDecimal.valueOf((double) successes / (double) trials)),
+                        6,
+                        new AnsiFormat(Attribute.BOLD()))));
 
         this.stats(this.topAmount, "Top Amount");
     }
