@@ -74,12 +74,12 @@ public class ConsoleReports {
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 
-    private static final String TRIALS = "150000";
-    private static final String RETIREMENT = "65";
+    private static final String TRIALS = "180000";
+    private static final String RETIREMENT = "66";
     private static final String AGE = "99";
-    private static final String DEPOSIT = "1400";
+    private static final String DEPOSIT = "1500";
     private static final String WITHDRAW = "800";
-    private static final String INFLATION = "3";
+    private static final String INFLATION = "2.5";
     private static final String CASH = "0";
     private static final String TAX = "true";
     private static final String EXPECTED_RETRUNS = "blackrock";
@@ -687,7 +687,7 @@ public class ConsoleReports {
         final var trials = Integer.parseInt(params.getOrDefault("trials", TRIALS));
         final var deposit = Integer.parseInt(params.getOrDefault("d", DEPOSIT));
         final var withdraw = Integer.parseInt(params.getOrDefault("w", WITHDRAW));
-        final var inflation = Integer.parseInt(params.getOrDefault("inflation", INFLATION));
+        final var inflation = new BigDecimal(params.getOrDefault("inflation", INFLATION));
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", RETIREMENT));
         final var age = Integer.parseInt(params.getOrDefault("age", AGE));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", CASH));

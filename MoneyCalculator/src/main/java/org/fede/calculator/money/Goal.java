@@ -45,9 +45,9 @@ import org.fede.util.Pair;
 public class Goal {
 
     private static final double OFFICIAL_DOLLAR_MEAN = 0.8d;
-    private static final double OFFICIAL_DOLLAR_STD_DEV = 0.1d;
+    private static final double OFFICIAL_DOLLAR_STD_DEV = 0.05d;
 
-    private static final int END_AGE_STD = 5;
+    private static final int END_AGE_STD = 4;
 
     private static final BigDecimal BUY_FEE = new BigDecimal("200");
 
@@ -140,7 +140,7 @@ public class Goal {
             final int trials,
             final int monthlyDeposit,
             final int monthlyWithdraw,
-            final int inflation,
+            final BigDecimal inflation,
             final int retirementAge,
             final BigDecimal extraCash,
             final boolean afterTax,
@@ -157,7 +157,7 @@ public class Goal {
                 .add(extraCash, C).doubleValue();
 
         final var inflationRate = ONE.setScale(SCALE, RM)
-                .add(BigDecimal.valueOf(inflation).setScale(SCALE, RM).movePointLeft(2), C).doubleValue();
+                .add(inflation.setScale(SCALE, RM).movePointLeft(2), C).doubleValue();
 
         final var yearBuyTransactions = BigDecimal.TEN;
 
