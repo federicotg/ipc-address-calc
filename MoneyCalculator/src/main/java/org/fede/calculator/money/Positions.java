@@ -314,8 +314,4 @@ public class Positions {
                         "USD"));
     }
 
-    private BigDecimal price(Investment i) {
-        return i.getIn().getMoneyAmount().add(i.getCost()).getAmount()
-                .divide(i.getInvestment().getAmount(), C);
-    }
 }
