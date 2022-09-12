@@ -40,6 +40,7 @@ import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.util.Pair;
 
 /**
@@ -306,8 +307,10 @@ public class Positions {
                                 now),
                 new MoneyAmount(
                         investments.stream()
-                                .map(i -> this.price(i).multiply(i.getInvestment().getAmount(), C).divide(position, C))
-                                .reduce(ZERO, BigDecimal::add),
+                                .map(Investment::getIn)
+                                .map(InvestmentEvent::getAmount)
+                                .reduce(ZERO, BigDecimal::add)
+                                .divide(position, C),
                         "USD"));
     }
 
