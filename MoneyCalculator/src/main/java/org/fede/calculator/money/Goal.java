@@ -202,7 +202,7 @@ public class Goal {
 
         final var periods = (int) Math.ceil((float) yearsLeft / periodYears);
 
-        final var inflationFactors = IntStream.range(0, 140)
+        final var inflationFactors = IntStream.range(0, 120)
                 .mapToDouble(year -> Math.pow(inflationRate, year))
                 .toArray();
 

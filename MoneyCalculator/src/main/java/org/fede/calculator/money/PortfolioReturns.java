@@ -25,7 +25,6 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import static java.util.Comparator.comparing;
 import java.util.Date;
 import java.util.List;
@@ -137,26 +136,6 @@ public class PortfolioReturns {
                 .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
                 .reduce(PortfolioReturns::max)
                 .get();
-
-        List<BigDecimal> monthyMDR = new ArrayList<>(60);
-        for (var ym = YearMonth.of(from); ym.compareTo(YearMonth.of(to)) < 0; ym = ym.next()) {
-
-            var next = ym.next();
-
-            final var st = LocalDate.ofInstant(ym.asToDate().toInstant(), ZoneId.systemDefault()).plusDays(1);
-
-            final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), ZoneId.systemDefault());
-
-            monthyMDR.add(
-                    returnTypeFunction.apply(
-                            new ModifiedDietzReturn(
-                                    inv,
-                                    "USD",
-                                    nominal,
-                                    st,
-                                    fn)).getMoneyWeighted());
-
-        }
 
         this.console.appendLine(
                 format(
@@ -287,7 +266,7 @@ public class PortfolioReturns {
                 this.bar.pctBar(d.getAmount(), total)))
                 .forEach(this.console::appendLine);
 
-        Optional.ofNullable(mdrByYear.get(Integer.parseInt(year)))
+        Optional.ofNullable(mdrByYear.get(Integer.valueOf(year)))
                 .map(ModifiedDietzReturnResult::getMoneyWeighted)
                 .map(this.format::percent)
                 .map(pct -> format("Return {0}\n", pct))

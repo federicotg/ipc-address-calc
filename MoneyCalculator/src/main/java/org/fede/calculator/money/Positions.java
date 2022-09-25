@@ -153,9 +153,10 @@ public class Positions {
         positions
                 .stream()
                 .sorted(comparing((Position p) -> p.getMarketValue().getAmount(), reverseOrder()))
-                .map(p -> MessageFormat.format(fmt,
-                this.format.text(p.getFundName(), descWidth),
-                String.format("%" + posWidth + "d", p.getPosition().intValue()),
+                .map(p -> MessageFormat.format(
+                        fmt, 
+                        this.format.text(p.getFundName(), descWidth), 
+                        String.format("%" + posWidth + "d", p.getPosition().intValue()),
                 this.format.currency(p.getLast().getAmount(), lastWidth),
                 this.format.currency(p.getCostBasis().getAmount(), costWidth),
                 this.format.percent(p.getCostBasis().getAmount().divide(totalCostBasis.getAmount(), C), costPct),
