@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.text.MessageFormat.format;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -460,6 +461,26 @@ public class ConsoleReports {
                 yearAndMonth[1].setScale(0, MathConstants.RM),
                 this.format.percent(ONE.subtract(averagNetSavings.getAmount().divide(averageIncome.getAmount(), C), C)),
                 averageIncome.subtract(averagNetSavings).getAmount()));
+
+        final var unlp = SeriesReader.readSeries("income/unlp.json");
+        final var despegar = SeriesReader.readSeries("income/despegar.json");
+
+        final var totalYears = Math.round((double) unlp.getFrom().next().monthsUntil(unlp.getTo()) / 12.0d);
+        final var simultaneousYears = Math.round((double) despegar.getFrom().monthsUntil(despegar.getTo()) / 12.0d);
+
+        final var simultaneousPercent = new BigDecimal("0.82").divide(new BigDecimal("30"), MathConstants.C);
+
+        final var yearsLeft = 1978 + 65 - LocalDate.now().getYear();
+
+        appendLine(format("Retirement: {0} last 120 average salaries plus {1} best UNLP salary.",
+                this.format.percent(BigDecimal.valueOf(totalYears).multiply(new BigDecimal("0.015"), MathConstants.C)),
+                this.format.percent(simultaneousPercent
+                        .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
+
+        appendLine(format("Projected: {0} last 120 average salaries plus {1} best UNLP salary.",
+                this.format.percent(BigDecimal.valueOf(totalYears+yearsLeft).multiply(new BigDecimal("0.015"), MathConstants.C)),
+                this.format.percent(simultaneousPercent
+                        .multiply(BigDecimal.valueOf(simultaneousYears+yearsLeft), MathConstants.C))));
 
     }
 
