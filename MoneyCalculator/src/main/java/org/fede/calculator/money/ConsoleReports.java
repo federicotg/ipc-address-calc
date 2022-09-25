@@ -116,7 +116,7 @@ public class ConsoleReports {
 
     private void investments() {
 
-        this.console.appendLine(this.format.title("===< Inversiones actuales agrupadas por moneda >==="));
+        this.console.appendLine(this.format.title("Inversiones actuales agrupadas por moneda"));
 
         final NumberFormat sixDigits = NumberFormat.getNumberInstance();
         sixDigits.setMinimumFractionDigits(6);
@@ -145,7 +145,7 @@ public class ConsoleReports {
         final var reportCurrency = "USD";
         final var limit = USD_INFLATION.getTo();
 
-        appendLine("===< Inversiones Actuales Agrupadas en ", reportCurrency, " ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()), " >===");
+        appendLine("Inversiones Actuales Agrupadas en ", reportCurrency, " ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()));
 
         final var total = this.total(Investment::isCurrent, reportCurrency, limit);
         this.series.getInvestments().stream()
@@ -186,7 +186,7 @@ public class ConsoleReports {
         final var limit = USD_INFLATION.getTo();
         final var limitStr = String.valueOf(limit.getMonth()) + "/" + String.valueOf(limit.getYear());
 
-        appendLine("===< Inversiones Actuales en ", reportCurrency, " por tipo. ", limitStr, " >===");
+        this.appendLine(this.format.title(format("Inversiones Actuales en {0} por tipo. ", limitStr)));
 
         final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit);
 
@@ -243,10 +243,10 @@ public class ConsoleReports {
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(allRealUSDIncome.getTo()))
                 .orElse(ZERO_USD);
 
-        this.appendLine(format("===< Average {0}-month income in {1}/{2} real USD >===",
+        this.appendLine(this.format.title(format("Average {0}-month income in {1}/{2} real USD",
                 months,
                 limit.getMonth(),
-                String.valueOf(limit.getYear())));
+                String.valueOf(limit.getYear()))));
 
         this.appendLine("\tIncome: ",
                 averageRealUSDIncome.getCurrency(),
@@ -421,7 +421,7 @@ public class ConsoleReports {
 
     private void savings() {
 
-        appendLine("===< Historical Real USD Savings Stats >===");
+        this.appendLine(this.format.title("Historical Real USD Savings Stats"));
 
         // total savings
         final var limit = USD_INFLATION.getTo();
@@ -478,9 +478,9 @@ public class ConsoleReports {
                         .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
 
         appendLine(format("Projected: {0} last 120 average salaries plus {1} best UNLP salary.",
-                this.format.percent(BigDecimal.valueOf(totalYears+yearsLeft).multiply(new BigDecimal("0.015"), MathConstants.C)),
+                this.format.percent(BigDecimal.valueOf(totalYears + yearsLeft).multiply(new BigDecimal("0.015"), MathConstants.C)),
                 this.format.percent(simultaneousPercent
-                        .multiply(BigDecimal.valueOf(simultaneousYears+yearsLeft), MathConstants.C))));
+                        .multiply(BigDecimal.valueOf(simultaneousYears + yearsLeft), MathConstants.C))));
 
     }
 
@@ -498,7 +498,7 @@ public class ConsoleReports {
         final String exp = params.get("type");
         final int months = Integer.parseInt(params.getOrDefault("months", "12"));
 
-        this.appendLine(format("===< Real USD expenses in the last {0} months >===", months));
+        this.appendLine(this.format.title(format("Real USD expenses in the last {0} months", months)));
 
         final var list = this.series.getRealUSDExpensesByType()
                 .entrySet()
@@ -558,7 +558,7 @@ public class ConsoleReports {
 
     private void savingsDistributionEvolution() {
 
-        appendLine("===< Savings Distribution Evolution >===");
+        this.appendLine(this.format.title("Savings Distribution Evolution"));
 
         final var cash = this.series.realSavings("LIQ");
         final var eq = this.series.realSavings("EQ");
@@ -575,7 +575,7 @@ public class ConsoleReports {
                         1500,
                         value -> String.format("%13s", nf.format(value)))));
 
-        appendLine("===< Savings Distribution Evolution >===");
+        this.appendLine(this.format.title("Savings Distribution Evolution"));
         appendLine("");
         appendLine("References:");
 
@@ -594,7 +594,7 @@ public class ConsoleReports {
 
     private void savingsDistributionPercentEvolution() {
 
-        appendLine("===< Savings Distribution Percent Evolution >===");
+        this.appendLine(this.format.title("Savings Distribution Percent Evolution"));
 
         final var cash = this.series.realSavings("LIQ");
         final var eq = this.series.realSavings("EQ");
@@ -604,7 +604,7 @@ public class ConsoleReports {
                 this.bar.percentBar(ym, cashMa, eq.getAmountOrElseZero(ym), bo.getAmountOrElseZero(ym))
         ));
 
-        appendLine("===< Savings Distribution Percent Evolution >===");
+        this.appendLine(this.format.title("Savings Distribution Percent Evolution"));
         appendLine("");
         appendLine("References:");
 
@@ -612,12 +612,12 @@ public class ConsoleReports {
     }
 
     private void savingEvolution(String[] args, String paramName) {
-        appendLine("===< Savings Evolution >===");
+        this.appendLine(this.format.title("Savings Evolution"));
         this.bar.evolution("Savings", this.series.realSavings(this.paramsValue(args, paramName).get("type")), 2000);
     }
 
     private void expenseEvolution(String[] args, String paramName) {
-        appendLine("===< Expenses Evolution >===");
+        this.appendLine(this.format.title("Expenses Evolution"));
 
         final var params = this.paramsValue(args, paramName);
 
@@ -633,7 +633,7 @@ public class ConsoleReports {
 
         final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "1")) + 1;
 
-        appendLine(format("===< {0}-month Savings Change >===", months - 1));
+        this.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
         this.bar.evolution(format("{0}-month Savings Change", months - 1), new SimpleAggregation(months)
                 .change(this.series.realSavings(null)), 50 * months);
 
@@ -643,7 +643,7 @@ public class ConsoleReports {
 
         final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "1")) + 1;
 
-        appendLine(format("===< {0}-month Savings Change >===", months - 1));
+        this.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
         final var s = new SimpleAggregation(months)
                 .percentChange(this.series.realSavings(null));
 
@@ -660,7 +660,7 @@ public class ConsoleReports {
 
         final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
 
-        appendLine("===< Expenses Change >===");
+        this.appendLine(this.format.title("Expenses Change"));
 
         this.bar.evolution(format("{0}-month average expenses change", months),
                 new SimpleAggregation(2)
@@ -670,14 +670,14 @@ public class ConsoleReports {
 
     private void incomeEvolution() {
 
-        appendLine("===< Income evolution >===");
+        this.appendLine(this.format.title("Income evolution"));
         this.bar.evolution("Income", this.series.realIncome(), 40);
     }
 
     private void incomeAverageEvolution(String[] args, String paramName) {
         var params = this.paramsValue(args, paramName);
         var months = Integer.parseInt(params.getOrDefault("months", "12"));
-        appendLine(format("===< Average {0}-month income evolution >===", months));
+        this.appendLine(this.format.title(format("Average {0}-month income evolution", months)));
         this.incomeAverageEvolution(months);
 
     }
@@ -701,7 +701,7 @@ public class ConsoleReports {
     private void goal(String[] args, String paramName) {
 
         // trials=100000 period=20 retirement=63 age=97 w=1000 d=850 inflation=3 cash=-50000 sp500=true tax=true bbpp=2.25
-        appendLine("===< Goals >===");
+        this.appendLine(this.format.title("Goals"));
 
         final var params = this.paramsValue(args, paramName);
 
@@ -757,7 +757,7 @@ public class ConsoleReports {
         final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
 
         final var title = format("Average {0}-month real USD saved salaries", months);
-        appendLine("===< ", title, " >===");
+        this.appendLine(this.format.title(title));
 
         final var savings = new SimpleAggregation(months).average(this.series.realSavings(null));
         final var income = new SimpleAggregation(months).average(this.series.realIncome());
@@ -768,7 +768,7 @@ public class ConsoleReports {
     }
 
     private void monthlySavings() {
-        appendLine("===< Net monthly savings >===");
+        this.appendLine(this.format.title("Net monthly savings"));
 
         this.bar.evolution("Net savings", this.series.realNetSavings(), 100);
     }
@@ -809,7 +809,8 @@ public class ConsoleReports {
     }
 
     private void group(String title, MoneyAmountSeries series, MoneyAmountSeries comparisonSeries, Function<YearMonth, String> classifier, int months) {
-        appendLine("===< " + title + " >===");
+
+        this.console.appendLine(this.format.title(title));
 
         final Map<String, MoneyAmount> byYear = new HashMap<>(32, 0.75f);
 
@@ -841,7 +842,7 @@ public class ConsoleReports {
 
         final var title = format("Average {0}-month net monthly savings", months);
 
-        appendLine("===< ", title, " >===");
+        this.appendLine(this.format.title(title));
 
         this.bar.evolution(title,
                 new SimpleAggregation(months).average(this.series.realNetSavings()),
@@ -852,9 +853,9 @@ public class ConsoleReports {
 
         final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
 
-        final var title = format("===< Average {0}-month net monthly average savings and spending percent >===", months);
+        final var title = format("Average {0}-month net monthly average savings and spending percent", months);
 
-        appendLine(title);
+        this.appendLine(this.format.title(title));
 
         final var agg = new SimpleAggregation(months);
         final var income = agg.average(this.series.realIncome());
@@ -872,7 +873,7 @@ public class ConsoleReports {
                                         .subtract(savingMa)
                                         .subtract(spending.getAmountOrElseZero(ym))))));
 
-        appendLine(title);
+        this.format.title(title);
         appendLine("");
         appendLine("References:");
 
@@ -901,7 +902,7 @@ public class ConsoleReports {
                 .mapToObj(i -> Map.entry(i, this.savingsAverage(i)))
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        this.appendLine("==< Average Income / Spending >==");
+        this.appendLine(this.format.title("Average Income / Spending"));
         this.appendLine(
                 this.row(Stream.concat(
                         Stream.of("Years"),
@@ -947,7 +948,7 @@ public class ConsoleReports {
                 .mapToObj(i -> Map.entry(i, this.yearSavings(i)))
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        this.appendLine("==<  Income / Spending by Year >==");
+        this.appendLine(this.format.title("Income / Spending by Year"));
 
         this.appendLine(this.row(Stream.of("-= Year =-", "Income", "Savings", "Spending", "Saving %")));
 
