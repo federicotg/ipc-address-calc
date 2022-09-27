@@ -88,6 +88,10 @@ public class BBPP {
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.getUsd(), C),
+                "RTWO", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "USD")
+                        .apply(item, ym)
+                        .getAmount()
+                        .multiply(bbpp.getUsd(), C),
                 "CSPX", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), "USD")
                         .apply(item, ym)
                         .getAmount()

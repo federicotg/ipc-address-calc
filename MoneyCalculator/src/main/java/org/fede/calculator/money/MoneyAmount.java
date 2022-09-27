@@ -107,13 +107,13 @@ public class MoneyAmount {
     public void appendTo(StringBuilder sb, NumberFormat nf) {
         sb.append(this.currency).append(" ").append(nf.format(this.amount));
     }
-    
-    public MoneyAmount max(MoneyAmount other){
+
+    public MoneyAmount max(MoneyAmount other) {
         this.assertCurrency(other.getCurrency());
-        
-        if(this.getAmount().compareTo(other.getAmount()) >=0){
+
+        if (this.getAmount().compareTo(other.getAmount()) >= 0) {
             return this;
-}
+        }
         return other;
     }
 }
