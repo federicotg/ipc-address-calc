@@ -305,6 +305,7 @@ public class ConsoleReports {
                     entry("savings-avg-net-change", () -> me.monthlySavings(args, "savings-avg-net-change")),
                     //entry("savings-avg-net-pct", () -> me.netAvgSavingPct(args, "savings-avg-net-pct")),
                     entry("savings-avg-pct", () -> me.netAvgSavingSpentPct(args, "savings-avg-pct")),
+                    entry("savings-avg", () -> me.netAvgSavingSpent(args, "savings-avg")),
                     entry("savings-dist", me::savingsDistributionEvolution),
                     entry("savings-dist-pct", me::savingsDistributionPercentEvolution),
                     entry("saved-salaries-evo", () -> me.averageSavedSalaries(args, "saved-salaries-evo")),
@@ -873,8 +874,45 @@ public class ConsoleReports {
                                         .subtract(savingMa)
                                         .subtract(spending.getAmountOrElseZero(ym))))));
 
-        this.format.title(title);
-        appendLine("");
+        this.appendLine(this.format.title(title));
+        appendLine("References:");
+        appendLine(Ansi.colorize(" ", Attribute.BLUE_BACK()),
+                ": saved, ",
+                Ansi.colorize(" ", Attribute.RED_BACK()),
+                ": spent, ",
+                Ansi.colorize(" ", Attribute.YELLOW_BACK()),
+                ": other spending.");
+
+    }
+
+    private void netAvgSavingSpent(String[] args, String name) {
+
+        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+
+        final var title = format("Average {0}-month net monthly average savings and spending", months);
+
+        this.appendLine(this.format.title(title));
+
+        final var agg = new SimpleAggregation(months);
+        final var income = agg.average(this.series.realIncome());
+        final var netSaving = agg.average(this.series.realNetSavings());
+        final var spending = agg.average(this.series.realExpenses(null));
+
+        netSaving.map((ym, ma) -> this.positiveOrZero(ma))
+                .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
+                .forEach((ym, savingMa) -> appendLine(
+                this.bar.currencyBar(ym,
+                        List.of(
+                                Pair.of(savingMa, Attribute.BLUE_BACK()),
+                                Pair.of(spending.getAmountOrElseZero(ym), Attribute.RED_BACK()),
+                                Pair.of(this.positiveOrZero(
+                                        income.getAmountOrElseZero(ym)
+                                                .subtract(savingMa)
+                                                .subtract(spending.getAmountOrElseZero(ym))), Attribute.YELLOW_BACK())),
+                        50)
+        ));
+
+        this.appendLine(this.format.title(title));
         appendLine("References:");
 
         appendLine(Ansi.colorize(" ", Attribute.BLUE_BACK()),
