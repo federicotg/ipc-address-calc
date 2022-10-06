@@ -911,7 +911,7 @@ public class ConsoleReports {
                                                 .subtract(savingMa)
                                                 .subtract(spending.getAmountOrElseZero(ym))), Attribute.YELLOW_BACK()),
                                 Pair.of(savingMa, Attribute.BLUE_BACK())),
-                        50)
+                        25)
         ));
 
         this.savingsRefs(title);
