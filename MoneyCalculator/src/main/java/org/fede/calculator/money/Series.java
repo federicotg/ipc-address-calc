@@ -163,7 +163,7 @@ public class Series {
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
                     .reduce(MoneyAmountSeries::add)
                     .get()
-                    .map((ym, ma) -> ma.subtract(adjuster.difference(ym)));
+                    .map((ym, ma) -> ma.subtract(USD_INFLATION.adjust(adjuster.difference(ym), ym, limit)));
         }
         return this.realNetSavings;
     }
