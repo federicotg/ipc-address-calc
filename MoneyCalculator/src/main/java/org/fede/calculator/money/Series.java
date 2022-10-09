@@ -29,6 +29,7 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
+import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 
@@ -153,13 +154,16 @@ public class Series {
 
             final var limit = USD_INFLATION.getTo();
 
+            final var adjuster = new MonthlyInvestmentSavingsAdjuster(this);
+            
             this.realNetSavings = this.savingsSeries()
                     .stream()
                     .map(new SimpleAggregation(2)::change)
                     .map(series -> series.exchangeInto("USD"))
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
                     .reduce(MoneyAmountSeries::add)
-                    .get();
+                    .get()
+                    .map((ym, ma) -> ma.subtract(adjuster.difference(ym)));
         }
         return this.realNetSavings;
     }
