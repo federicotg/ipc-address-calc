@@ -37,7 +37,7 @@ public class MonthlyInvestmentSavingsAdjuster {
 
         return new MoneyAmount(this.series.getInvestments()
                 .stream()
-                .filter(i -> i.getType().equals(InvestmentType.ETF))
+                .filter(i -> i.getType().equals(InvestmentType.ETF) || i.getType().equals(InvestmentType.FCI))
                 .filter(i -> YearMonth.of(i.getInitialDate()).equals(ym))
                 .filter(i -> i.getOut() == null || YearMonth.of(i.getOut().getDate()).compareTo(ym) > 0)
                 .map(i -> this.eomPriceUSD(i, ym).subtract(this.buyPriceUSD(i, ym), MathConstants.C))
