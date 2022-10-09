@@ -17,6 +17,9 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.YearMonth;
@@ -27,22 +30,36 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class MonthlyInvestmentSavingsAdjuster {
 
-    private final Series series;
+    private static final MoneyAmount ZERO = new MoneyAmount(BigDecimal.ZERO, "USD");
+
+    private final Map<YearMonth, MoneyAmount> differences;
 
     public MonthlyInvestmentSavingsAdjuster(Series series) {
-        this.series = series;
+
+        final Map<YearMonth, List<Investment>> groupedByYeaMonth = series.getInvestments()
+                .stream()
+                .filter(i -> i.getType().equals(InvestmentType.ETF) || i.getType().equals(InvestmentType.FCI))
+                .collect(Collectors.groupingBy(i -> YearMonth.of(i.getInitialDate())));
+
+        this.differences = groupedByYeaMonth.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        e -> e.getKey(),
+                        e -> this.differences(e.getKey(), e.getValue())));
+
     }
 
     public MoneyAmount difference(YearMonth ym) {
+        return this.differences.getOrDefault(ym, ZERO);
+    }
 
-        return new MoneyAmount(this.series.getInvestments()
+    private MoneyAmount differences(YearMonth ym, List<Investment> investments) {
+
+        return new MoneyAmount(investments
                 .stream()
-                .filter(i -> i.getType().equals(InvestmentType.ETF) || i.getType().equals(InvestmentType.FCI))
-                .filter(i -> YearMonth.of(i.getInitialDate()).equals(ym))
                 .filter(i -> i.getOut() == null || YearMonth.of(i.getOut().getDate()).compareTo(ym) > 0)
                 .map(i -> this.eomPriceUSD(i, ym).subtract(this.buyPriceUSD(i, ym), MathConstants.C))
                 .reduce(BigDecimal.ZERO, BigDecimal::add), "USD");
-
     }
 
     private BigDecimal buyPriceUSD(Investment i, YearMonth ym) {
