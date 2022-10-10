@@ -865,17 +865,18 @@ public class ConsoleReports {
 
         netSaving.map((ym, ma) -> ZERO_USD.max(ma))
                 .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
-                .forEach((ym, savingMa) -> appendLine(
-                this.bar.percentBar(ym,
-                        savingMa,
-                        spending.getAmountOrElseZero(ym),
-                        ZERO_USD.max(
-                                income.getAmountOrElseZero(ym)
-                                        .subtract(savingMa)
-                                        .subtract(spending.getAmountOrElseZero(ym))))));
-
+                .forEach((ym, savingMa) -> appendLine(this.bar.percentBar(ym, this.series(ym, spending, income, savingMa))));
         this.savingsRefs(title);
+    }
 
+    private List<Pair<MoneyAmount, Attribute>> series(YearMonth ym, MoneyAmountSeries spending, MoneyAmountSeries income, MoneyAmount savingMa) {
+        return List.of(
+                Pair.of(spending.getAmountOrElseZero(ym), Attribute.RED_BACK()),
+                Pair.of(ZERO_USD.max(
+                        income.getAmountOrElseZero(ym)
+                                .subtract(savingMa)
+                                .subtract(spending.getAmountOrElseZero(ym))), Attribute.YELLOW_BACK()),
+                Pair.of(savingMa, Attribute.BLUE_BACK()));
     }
 
     private void savingsRefs(String title) {
@@ -902,17 +903,7 @@ public class ConsoleReports {
 
         netSaving.map((ym, ma) -> ZERO_USD.max(ma))
                 .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
-                .forEach((ym, savingMa) -> appendLine(
-                this.bar.currencyBar(ym,
-                        List.of(
-                                Pair.of(spending.getAmountOrElseZero(ym), Attribute.RED_BACK()),
-                                Pair.of(ZERO_USD.max(
-                                        income.getAmountOrElseZero(ym)
-                                                .subtract(savingMa)
-                                                .subtract(spending.getAmountOrElseZero(ym))), Attribute.YELLOW_BACK()),
-                                Pair.of(savingMa, Attribute.BLUE_BACK())),
-                        25)
-        ));
+                .forEach((ym, savingMa) -> appendLine(this.bar.currencyBar(ym, this.series(ym, spending, income, savingMa), 25)));
 
         this.savingsRefs(title);
 
