@@ -65,7 +65,6 @@ import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.InvestmentAsset;
-import static org.fede.calculator.money.series.SeriesReader.readSeries;
 
 /**
  *
@@ -579,21 +578,11 @@ public class ConsoleReports {
                         1500,
                         value -> String.format("%13s", nf.format(value)))));
 
-        this.appendLine(this.format.title("Savings Distribution Evolution"));
-        appendLine("");
-        appendLine("References:");
+        this.refs(
+                this.format.title("Savings Distribution Evolution"), 
+                List.of("Cash","equity","bonds"), 
+                List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(),Attribute.YELLOW_BACK()));
 
-        this.reference();
-
-    }
-
-    private void reference() {
-        appendLine(Ansi.colorize(" ", Attribute.BLUE_BACK()),
-                ": cash, ",
-                Ansi.colorize(" ", Attribute.RED_BACK()),
-                ": equity, ",
-                Ansi.colorize(" ", Attribute.YELLOW_BACK()),
-                ": bonds.");
     }
 
     private void savingsDistributionPercentEvolution() {
@@ -608,11 +597,11 @@ public class ConsoleReports {
                 this.bar.percentBar(ym, cashMa, eq.getAmountOrElseZero(ym), bo.getAmountOrElseZero(ym))
         ));
 
-        this.appendLine(this.format.title("Savings Distribution Percent Evolution"));
-        appendLine("");
-        appendLine("References:");
-
-        this.reference();
+        this.refs(
+                this.format.title("Savings Distribution Percent Evolution"), 
+                List.of("Cash","equity","bonds"), 
+                List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(),Attribute.YELLOW_BACK()));
+        
     }
 
     private void savingEvolution(String[] args, String paramName) {
@@ -891,14 +880,14 @@ public class ConsoleReports {
 
     private void savingsRefs(String title) {
         
-        this.savingsRefs(
+        this.refs(
                 title, 
                 List.of("saved","spent", "other spending"), 
                 List.of(Attribute.BLUE_BACK(),Attribute.RED_BACK(),Attribute.YELLOW_BACK()));
         
     }
     
-    private void savingsRefs(String title, List<String> labels, List<Attribute> colors) {
+    private void refs(String title, List<String> labels, List<Attribute> colors) {
         this.appendLine(this.format.title(title));
         appendLine("References:");
         
@@ -944,7 +933,7 @@ public class ConsoleReports {
         unlp.map((ym, ma) -> ZERO_USD.max(ma))
                 .forEach((ym, savingMa) -> appendLine(this.bar.currencyBar(ym, this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList), 25)));
 
-        this.savingsRefs(
+        this.refs(
                 title, 
                 List.of("UNLP", "LIFIA",  "Despegar ARS", "Despegar USD"),
                 colorList);
