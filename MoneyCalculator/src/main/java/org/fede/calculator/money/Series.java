@@ -166,6 +166,13 @@ public class Series {
         }
         return this.realNetSavings;
     }
+    
+    public MoneyAmountSeries incomeSource(String name) {
+        return USD_INFLATION.adjust(
+                readSeries("income/" + name + ".json")
+                        .exchangeInto("USD"),
+                 Inflation.USD_INFLATION.getTo());
+    }
 
     public List<MoneyAmountSeries> getIncomeSeries() {
 
@@ -202,7 +209,6 @@ public class Series {
                     of("LIQ", "ahorros-dolar-liq"),
                     of("LIQ", "ahorros-euro"),
                     of("LIQ", "ahorros-dai"),
-                    //of("LIQ", "ahorros-oro"),
                     of("EQ", "ahorros-cspx"),
                     of("EQ", "ahorros-eimi"),
                     of("EQ", "ahorros-rtwo"),

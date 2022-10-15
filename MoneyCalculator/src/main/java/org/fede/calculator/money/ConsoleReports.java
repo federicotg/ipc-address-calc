@@ -48,6 +48,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
@@ -64,6 +65,7 @@ import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.InvestmentAsset;
+import static org.fede.calculator.money.series.SeriesReader.readSeries;
 
 /**
  *
@@ -324,6 +326,7 @@ public class ConsoleReports {
                     entry("p-type-evo-pct", () -> new Investments(console, format, bar, series).portfolioTypeEvo(true)),
                     entry("pa", () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation(true)),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
+                    entry("income-src", () -> me.incomeAverageBySource(args, "income-src")),
                     //house cost
                     entry("house-evo", () -> new House(console, format, bar).houseCostsEvolution()),
                     entry("house", () -> new House(console, format, bar).houseIrrecoverableCosts(USD_INFLATION.getTo())),
@@ -869,6 +872,13 @@ public class ConsoleReports {
         this.savingsRefs(title);
     }
 
+    private List<Pair<MoneyAmount, Attribute>> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
+        
+        return IntStream.range(0, series.size())
+                .mapToObj(i -> Pair.of(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
+                .collect(Collectors.toList());
+    }
+    
     private List<Pair<MoneyAmount, Attribute>> series(YearMonth ym, MoneyAmountSeries spending, MoneyAmountSeries income, MoneyAmount savingMa) {
         return List.of(
                 Pair.of(spending.getAmountOrElseZero(ym), Attribute.RED_BACK()),
@@ -880,14 +890,21 @@ public class ConsoleReports {
     }
 
     private void savingsRefs(String title) {
+        
+        this.savingsRefs(
+                title, 
+                List.of("saved","spent", "other spending"), 
+                List.of(Attribute.BLUE_BACK(),Attribute.RED_BACK(),Attribute.YELLOW_BACK()));
+        
+    }
+    
+    private void savingsRefs(String title, List<String> labels, List<Attribute> colors) {
         this.appendLine(this.format.title(title));
         appendLine("References:");
-        appendLine(Ansi.colorize(" ", Attribute.BLUE_BACK()),
-                ": saved, ",
-                Ansi.colorize(" ", Attribute.RED_BACK()),
-                ": spent, ",
-                Ansi.colorize(" ", Attribute.YELLOW_BACK()),
-                ": other spending.");
+        
+        appendLine(IntStream.range(0, labels.size())
+                .mapToObj(i -> Ansi.colorize(" ", colors.get(i)) +": "+labels.get(i))
+                .collect(Collectors.joining(", ","", ".")));
     }
 
     private void netAvgSavingSpent(String[] args, String name) {
@@ -908,6 +925,32 @@ public class ConsoleReports {
         this.savingsRefs(title);
 
     }
+
+
+    private void incomeAverageBySource(String[] args, String name) {
+
+        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+        final var title = format("Average {0}-month income by source", months);
+        final var colorList = List.of(Attribute.BLUE_BACK(),Attribute.RED_BACK(),Attribute.YELLOW_BACK(), Attribute.GREEN_BACK());
+        this.appendLine(this.format.title(title));
+        
+        final var agg = new SimpleAggregation(months);
+        
+        final var unlp = agg.average(this.series.incomeSource("unlp"));
+        final var lifia = agg.average(this.series.incomeSource("lifia"));
+        final var despARS = agg.average(this.series.incomeSource("despegar"));
+        final var despUSD = agg.average(this.series.incomeSource("despegar-split"));
+
+        unlp.map((ym, ma) -> ZERO_USD.max(ma))
+                .forEach((ym, savingMa) -> appendLine(this.bar.currencyBar(ym, this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList), 25)));
+
+        this.savingsRefs(
+                title, 
+                List.of("UNLP", "LIFIA",  "Despegar ARS", "Despegar USD"),
+                colorList);
+
+    }
+
 
     private void savingsIncomeTable() {
 
