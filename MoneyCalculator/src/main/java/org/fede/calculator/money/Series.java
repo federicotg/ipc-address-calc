@@ -29,7 +29,6 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
-import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 
