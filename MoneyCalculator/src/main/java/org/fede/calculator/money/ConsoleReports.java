@@ -651,7 +651,7 @@ public class ConsoleReports {
 
     private void expensesChange(String[] args, String name) {
 
-        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+        final var months = this.months(args, name);
 
         this.appendLine(this.format.title("Expenses Change"));
 
@@ -747,7 +747,7 @@ public class ConsoleReports {
 
     private void averageSavedSalaries(String[] args, String name) {
 
-        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+        final var months = this.months(args, name);
 
         final var title = format("Average {0}-month real USD saved salaries", months);
         this.appendLine(this.format.title(title));
@@ -831,7 +831,7 @@ public class ConsoleReports {
 
     private void monthlySavings(String[] args, String name) {
 
-        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+        final var months = this.months(args, name);
 
         final var title = format("Average {0}-month net monthly savings", months);
 
@@ -842,9 +842,13 @@ public class ConsoleReports {
                 40);
     }
 
+    private int months(String[] args, String name){
+        return Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+    }
+    
     private void netAvgSavingSpentPct(String[] args, String name) {
 
-        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+        final var months = this.months(args, name);
 
         final var title = format("Average {0}-month net monthly average savings and spending percent", months);
 
@@ -898,7 +902,7 @@ public class ConsoleReports {
 
     private void netAvgSavingSpent(String[] args, String name) {
 
-        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+        final var months = this.months(args, name);
         final var title = format("Average {0}-month net monthly average savings and spending", months);
         this.appendLine(this.format.title(title));
 
@@ -918,7 +922,7 @@ public class ConsoleReports {
 
     private void incomeAverageBySource(String[] args, String name) {
 
-        final var months = Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+        final var months = this.months(args, name);
         final var title = format("Average {0}-month income by source", months);
         final var colorList = List.of(Attribute.BLUE_BACK(),Attribute.RED_BACK(),Attribute.YELLOW_BACK(), Attribute.GREEN_BACK());
         this.appendLine(this.format.title(title));
