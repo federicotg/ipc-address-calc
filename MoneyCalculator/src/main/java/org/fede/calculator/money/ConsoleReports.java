@@ -336,6 +336,7 @@ public class ConsoleReports {
                     entry("expenses", () -> me.expenses(args, "expenses")),
                     entry("condo", () -> me.condo()),
                     entry("expenses-evo", () -> me.expenseEvolution(args, "expenses-evo")),
+                    entry("expenses-src", () -> me.expenseBySource(args, "expenses-src")),
                     entry("expenses-change", () -> me.expensesChange(args, "expenses-change")),
                     //goal
                     entry("goal", () -> me.goal(args, "goal")),
@@ -615,6 +616,47 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         this.expenseEvolution(params.get("type"), Integer.parseInt(params.getOrDefault("months", "1")));
+    }
+    
+    private void expenseBySource(String[] args, String paramName) {
+        final var months = this.months(args, paramName);
+        final var title = format("Average {0}-month expenses by source", months);
+        
+        final var colorList = List.of(
+                Attribute.BLUE_BACK(),
+                Attribute.RED_BACK(),
+                Attribute.YELLOW_BACK(), 
+                Attribute.GREEN_BACK(),
+                Attribute.MAGENTA_BACK(),
+                Attribute.WHITE_BACK()
+        );
+        this.appendLine(this.format.title(title));
+        
+        final var agg = new SimpleAggregation(months);
+        
+        final var seriesGroups = this.series.getRealUSDExpensesByType();
+        
+        final var series = seriesGroups.entrySet().stream()
+                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .map(e -> e.getValue().stream().reduce(MoneyAmountSeries::add).get())
+                .map(agg::average)
+                .collect(Collectors.toList());
+        
+        final var labels = seriesGroups.entrySet().stream()
+                .map(e -> e.getKey())
+                .sorted()
+                .collect(Collectors.toList());
+                
+        final var oldestSeries = series.stream().min(Comparator.comparing(s -> s.getFrom())).get();
+
+        oldestSeries.map((ym, ma) -> ZERO_USD.max(ma))
+                .forEach((ym, savingMa) -> appendLine(this.bar.currencyBar(ym, this.independenSeries(ym, series, colorList), 8)));
+
+        this.refs(
+                title, 
+                labels,
+                colorList);
+        
     }
 
     private void expenseEvolution(String type, int months) {
