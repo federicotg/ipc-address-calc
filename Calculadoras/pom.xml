@@ -16,7 +16,7 @@
         <org.springframework.version>5.3.7</org.springframework.version>
         <spring-security.version>5.3.9.RELEASE</spring-security.version>
         <hibernate-validator-version>6.2.0.Final</hibernate-validator-version>
-        <jackson2-version>2.12.3</jackson2-version>
+        <jackson2-version>2.13.4.1</jackson2-version>
     </properties>
 
     <prerequisites>
