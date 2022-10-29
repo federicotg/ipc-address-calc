@@ -78,20 +78,20 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
     @Override
     public Stream<MoneyAmount> moneyAmountStream() {
-        return this.values.values().stream();
+        return this.values.values().parallelStream();
     }
 
     @Override
     public Stream<MoneyAmount> filter(BiPredicate<YearMonth, MoneyAmount> predicate) {
 
-        return this.values.entrySet().stream()
+        return this.values.entrySet().parallelStream()
                 .filter(e -> predicate.test(e.getKey(), e.getValue()))
                 .map(Map.Entry::getValue);
     }
 
     @Override
     public Stream<YearMonth> yearMonthStream() {
-        return this.values.keySet().stream();
+        return this.values.keySet().parallelStream();
     }
 
 }
