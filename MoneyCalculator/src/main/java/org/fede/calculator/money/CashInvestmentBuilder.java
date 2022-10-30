@@ -114,7 +114,7 @@ public class CashInvestmentBuilder {
     }
 
     private BigDecimal total(List<Investment> investments) {
-        return investments.parallelStream()
+        return investments.stream()
                 .filter(i -> i.getOut() == null)
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getAmount)

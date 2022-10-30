@@ -184,7 +184,6 @@ public class Series {
                     readSeries("income/unlp.json"),
                     readSeries("income/despegar.json"),
                     readSeries("income/despegar-split.json"))
-                    .parallel()
                     .map(is -> is.exchangeInto("USD"))
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
                     .collect(toList());
@@ -222,7 +221,7 @@ public class Series {
                                     toList())));
         }
 
-        return this.realUSDSavingsByType.entrySet().parallelStream()
+        return this.realUSDSavingsByType.entrySet().stream()
                 .filter(e -> type == null || e.getKey().equals(type))
                 .map(Map.Entry::getValue)
                 .flatMap(Collection::stream)
@@ -233,7 +232,7 @@ public class Series {
     public MoneyAmountSeries realExpenses(String type) {
 
         return this.getRealUSDExpensesByType().entrySet()
-                .parallelStream()
+                .stream()
                 .filter(e -> type == null || e.getKey().equals(type))
                 .map(Map.Entry::getValue)
                 .flatMap(Collection::stream)
