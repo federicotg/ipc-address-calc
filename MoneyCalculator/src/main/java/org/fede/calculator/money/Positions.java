@@ -171,6 +171,9 @@ public class Positions {
                 this.format.text("", avgWidth),
                 this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
+        
+        this.console.appendLine(this.format.subtitle("Costs"));
+        this.costs(nominal);
     }
     
     public void dca(boolean nominal, String type) {
@@ -179,19 +182,19 @@ public class Positions {
         
         final var classifier = GROUPINGS.get(type);
         this.dca(nominal, classifier);
+        
+        this.console.appendLine(this.format.subtitle("Costs"));
         this.cost(classifier, nominal);
     }
     
     private void dca(boolean nominal, Function<Investment, String> groupingFucntion){
-        
-        this.console.appendLine(this.format.subtitle("Prices"));
 
         final var positionByGroup = this.positionsBy(
                 this.series.getInvestments(), 
-                groupingFucntion, //i-> YearMonth.of(i.getInitialDate()).quarter(), 
+                groupingFucntion,
                 nominal);
         
-        this.console.appendLine(this.format.text("", 9),
+        this.console.appendLine(this.format.text("", 11),
                 positionByGroup.keySet().stream()
                         .map(Pair::getFirst)
                         .distinct()
@@ -222,7 +225,7 @@ public class Positions {
 
     private String avgPrice(String year, Map<Pair<String, String>, Position> positionsByGroup) {
         return Stream.concat(
-                Stream.of(this.format.text(String.valueOf(year), 5)),
+                Stream.of(this.format.text(String.valueOf(year), 8)),
                 positionsByGroup.keySet().stream()
                         .map(Pair::getFirst)
                         .distinct()
@@ -254,8 +257,6 @@ public class Positions {
 
     public void costs(boolean nominal) {
 
-        this.console.appendLine(this.format.subtitle("Costs"));
-
         final Function<Investment, String> yearClassifier = i -> String.valueOf(YearMonth.of(i.getInitialDate()).getYear());
         final Function<Investment, String> brokerClassifier = i -> i.getComment() == null ? "PPI " : "IBKR";
         final Function<Investment, String> anyClassifier = i -> "All ";
@@ -272,7 +273,6 @@ public class Positions {
     }
 
     private void cost(Function<Investment, String> classifier, boolean nominal) {
-        this.console.appendLine(this.format.subtitle("Costs"));
         
         final var inv = this.by(nominal, classifier, Investment::getInitialMoneyAmount);
         final var cost = this.by(nominal, classifier, Investment::getCost);
@@ -282,6 +282,7 @@ public class Positions {
                 .stream()
                 .sorted()
                 .forEach(e -> this.costReport(e, inv, cost, totalInv));
+        this.console.appendLine("");
     }
 
     private void costReport(String label, Map<String, MoneyAmount> m1, Map<String, MoneyAmount> m2, BigDecimal totalinv) {
