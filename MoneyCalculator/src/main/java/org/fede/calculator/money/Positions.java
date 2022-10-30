@@ -171,18 +171,20 @@ public class Positions {
                 this.format.text("", avgWidth),
                 this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
-
-        this.dca(nominal, type);
-        this.costs(nominal);
     }
     
     public void dca(boolean nominal, String type) {
-        this.dca(nominal, GROUPINGS.get(type));
+        
+        this.console.appendLine(this.format.title((nominal ? "Nominal" : "Real") + " Dollar Cost Average"));
+        
+        final var classifier = GROUPINGS.get(type);
+        this.dca(nominal, classifier);
+        this.cost(classifier, nominal);
     }
     
     private void dca(boolean nominal, Function<Investment, String> groupingFucntion){
         
-        this.console.appendLine(this.format.subtitle("Average Prices"));
+        this.console.appendLine(this.format.subtitle("Prices"));
 
         final var positionByGroup = this.positionsBy(
                 this.series.getInvestments(), 
@@ -270,22 +272,23 @@ public class Positions {
     }
 
     private void cost(Function<Investment, String> classifier, boolean nominal) {
+        this.console.appendLine(this.format.subtitle("Costs"));
+        
         final var inv = this.by(nominal, classifier, Investment::getInitialMoneyAmount);
         final var cost = this.by(nominal, classifier, Investment::getCost);
-
+        final var totalInv = inv.values().stream().map(MoneyAmount::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         inv
                 .keySet()
                 .stream()
                 .sorted()
-                .forEach(e -> this.costReport(e, inv, cost));
-
-        this.console.appendLine("");
+                .forEach(e -> this.costReport(e, inv, cost, totalInv));
     }
 
-    private void costReport(String label, Map<String, MoneyAmount> m1, Map<String, MoneyAmount> m2) {
+    private void costReport(String label, Map<String, MoneyAmount> m1, Map<String, MoneyAmount> m2, BigDecimal totalinv) {
         this.console.appendLine(label,
                 this.format.currency(m1.get(label).getAmount(), 13),
-                this.format.currency(m2.get(label).getAmount(), 13),
+                this.format.percent(m1.get(label).getAmount().divide(totalinv, C), 9),
+                this.format.currency(m2.get(label).getAmount(), 11),
                 this.format.percent(m2.get(label).getAmount().divide(m1.get(label).getAmount(), C), 8));
     }
 
