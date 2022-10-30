@@ -346,6 +346,7 @@ public class ConsoleReports {
                     entry("mdr", () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar))),
                     entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
                     entry("pos", () -> me.positions(args, "pos")),
+                    entry("dca", () -> me.dca(args, "dca")),
                     entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct")),
                     entry("bench", () -> me.benchmark(args, "bench"))
             );
@@ -390,7 +391,7 @@ public class ConsoleReports {
                         entry("expenses-change", "months=12"),
                         entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)"),
-                        entry("pos", "nominal=false fees=false")
+                        entry("pos", "nominal=false fees=false type=(y*|h|q)")
                 );
 
                 Stream.concat(
@@ -817,30 +818,22 @@ public class ConsoleReports {
         this.group("Yearly income", this.series.realIncome(), null, ym -> String.valueOf(ym.getYear()), 12);
     }
 
-    private String half(YearMonth ym) {
-        return format("{0}-H{1}", String.valueOf(ym.getYear()), ((ym.getMonth() - 1) / 6) + 1);
-    }
-
-    private String quarter(YearMonth ym) {
-        return format("{0}-Q{1}", String.valueOf(ym.getYear()), ((ym.getMonth() - 1) / 3) + 1);
-    }
-
     private void halfSavings() {
 
-        this.group("Net half savings", this.series.realNetSavings(), this.series.realIncome(), this::half, 6);
+        this.group("Net half savings", this.series.realNetSavings(), this.series.realIncome(), YearMonth::half, 6);
     }
 
     private void halfIncome() {
-        this.group("Half income", this.series.realIncome(), null, this::half, 6);
+        this.group("Half income", this.series.realIncome(), null, YearMonth::half, 6);
     }
 
     private void quarterSavings() {
 
-        this.group("Net quarter savings", this.series.realNetSavings(), this.series.realIncome(), this::quarter, 3);
+        this.group("Net quarter savings", this.series.realNetSavings(), this.series.realIncome(), YearMonth::quarter, 3);
     }
 
     private void quarterIncome() {
-        this.group("Quarter income", this.series.realIncome(), null, this::quarter, 3);
+        this.group("Quarter income", this.series.realIncome(), null, YearMonth::quarter, 3);
     }
 
     private void group(String title, MoneyAmountSeries series, MoneyAmountSeries comparisonSeries, Function<YearMonth, String> classifier, int months) {
@@ -1318,9 +1311,16 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         final var withFee = Boolean.parseBoolean(params.getOrDefault("fees", "false"));
-        final var symbol = params.get("symbol");
+        final var type = params.getOrDefault("type", "y");
         new Positions(this.console, this.format, this.series, withFee)
-                .positions(symbol, nominal(params));
+                .positions(nominal(params), type);
+    }
+    private void dca(String[] args, String paramName) {
+        final var params = this.paramsValue(args, paramName);
+
+        final var type = params.getOrDefault("type", "q");
+        new Positions(this.console, this.format, this.series, false)
+                .dca(nominal(params), type);
     }
 
     private void invEvo(String[] args, String paramName) {

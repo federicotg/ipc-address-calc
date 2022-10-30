@@ -58,6 +58,11 @@ public class Positions {
             "RTWO", "L&G Russell 2000 Small Cap Quality",
             "MEUD", "Lyxor Core STOXX Europe 600 DR"
     );
+    
+    private static final Map<String, Function<Investment, String>> GROUPINGS = Map.of(
+                "h", i-> YearMonth.of(i.getInitialDate()).half(),
+                "y", i-> Integer.toString(YearMonth.of(i.getInitialDate()).getYear()),
+                "q", i-> YearMonth.of(i.getInitialDate()).quarter());
 
     private final Console console;
     private final Format format;
@@ -71,7 +76,7 @@ public class Positions {
         this.withFee = withFee;
     }
 
-    public void positions(String symbol, boolean nominal) {
+    public void positions(boolean nominal, String type) {
 
         if (this.withFee) {
             this.console.appendLine(this.format.title("Positions With Fees"));
@@ -114,7 +119,6 @@ public class Positions {
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
-                .filter(inv -> symbol == null || inv.getCurrency().equals(symbol))
                 .map(inv -> ForeignExchanges.exchange(inv, "USD"))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
                 .collect(groupingBy(Investment::getCurrency))
@@ -122,18 +126,6 @@ public class Positions {
                 .stream()
                 .map(this::position)
                 .collect(toList());
-
-        final var positionsByYear = this.series.getInvestments()
-                .stream()
-                .filter(Investment::isCurrent)
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
-                .filter(inv -> symbol == null || inv.getCurrency().equals(symbol))
-                .map(inv -> ForeignExchanges.exchange(inv, "USD"))
-                .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
-                .collect(groupingBy(i -> Pair.of(i.getCurrency(), YearMonth.of(i.getInitialDate()).getYear())))
-                .entrySet()
-                .stream()
-                .collect(toMap(e -> e.getKey(), e -> this.position(e.getValue())));
 
         final var totalMarketValue = positions
                 .stream()
@@ -180,42 +172,85 @@ public class Positions {
                 this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
+        this.dca(nominal, type);
+        
+//        this.console.appendLine(this.format.subtitle("Average Prices"));
+//
+//        this.console.appendLine(this.format.text("", 9),
+//                positionsByYear.keySet().stream()
+//                        .map(Pair::getFirst)
+//                        .distinct()
+//                        .sorted()
+//                        .map(currency -> this.format.text(currency, 9))
+//                        .collect(joining()));
+//
+//        positionsByYear.keySet().stream()
+//                .map(Pair::getSecond)
+//                .distinct()
+//                .sorted()
+//                .map(year -> this.avgPrice(year, positionsByYear))
+//                .forEach(this.console::appendLine);
+        
+        this.costs(nominal);
+    }
+    
+    public void dca(boolean nominal, String type) {
+        this.dca(nominal, GROUPINGS.get(type));
+    }
+    
+    private void dca(boolean nominal, Function<Investment, String> groupingFucntion){
+        
         this.console.appendLine(this.format.subtitle("Average Prices"));
 
+        final var positionByGroup = this.positionsBy(
+                this.series.getInvestments(), 
+                groupingFucntion, //i-> YearMonth.of(i.getInitialDate()).quarter(), 
+                nominal);
+        
         this.console.appendLine(this.format.text("", 9),
-                positionsByYear.keySet().stream()
+                positionByGroup.keySet().stream()
                         .map(Pair::getFirst)
                         .distinct()
                         .sorted()
                         .map(currency -> this.format.text(currency, 9))
                         .collect(joining()));
 
-        positionsByYear.keySet().stream()
-                .mapToInt(Pair::getSecond)
+        positionByGroup.keySet().stream()
+                .map(Pair::getSecond)
                 .distinct()
                 .sorted()
-                .mapToObj(year -> this.avgPrice(year, positionsByYear))
+                .map(year -> this.avgPrice(year, positionByGroup))
                 .forEach(this.console::appendLine);
-
-        this.costs(symbol, nominal);
-
+    }
+      
+    private Map<Pair<String , String>, Position> positionsBy(List<Investment> investments, Function<Investment, String> groupingFucntion, boolean nominal){
+        return investments
+                .stream()
+                .filter(Investment::isCurrent)
+                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .map(inv -> ForeignExchanges.exchange(inv, "USD"))
+                .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
+                .collect(groupingBy(i -> Pair.of(i.getCurrency(), groupingFucntion.apply(i))))
+                .entrySet()
+                .stream()
+                .collect(toMap(e -> e.getKey(), e -> this.position(e.getValue())));
     }
 
-    private String avgPrice(int year, Map<Pair<String, Integer>, Position> positionsByYear) {
+    private String avgPrice(String year, Map<Pair<String, String>, Position> positionsByGroup) {
         return Stream.concat(
                 Stream.of(this.format.text(String.valueOf(year), 5)),
-                positionsByYear.keySet().stream()
+                positionsByGroup.keySet().stream()
                         .map(Pair::getFirst)
                         .distinct()
                         .sorted()
                         .map(currency -> Pair.of(currency, year))
-                        .map(key -> this.avgPrice(positionsByYear, key)))
+                        .map(key -> this.avgPrice(positionsByGroup, key)))
                 .collect(joining());
 
     }
 
-    private String avgPrice(Map<Pair<String, Integer>, Position> positionsByYear, Pair<String, Integer> key) {
-        return Optional.ofNullable(positionsByYear.get(key))
+    private String avgPrice(Map<Pair<String, String>, Position> positionsByGroup, Pair<String, String> key) {
+        return Optional.ofNullable(positionsByGroup.get(key))
                 .map(Position::getAveragePrice)
                 .map(MoneyAmount::getAmount)
                 .map(avgPrice -> this.format.currency(avgPrice, 9))
@@ -233,7 +268,7 @@ public class Positions {
                 : "IBKR €";
     }
 
-    public void costs(String symbol, boolean nominal) {
+    public void costs(boolean nominal) {
 
         this.console.appendLine(this.format.subtitle("Costs"));
 
@@ -243,18 +278,18 @@ public class Positions {
         final Function<Investment, String> etfClassifier = Investment::getCurrency;
         final Function<Investment, String> currencyClassifier = i -> "gettex".equals(i.getComment()) ? "EUR" : "USD";
 
-        this.cost(yearClassifier, symbol, nominal);
-        this.cost(brokerClassifier, symbol, nominal);
-        this.cost(etfClassifier, symbol, nominal);
-        this.cost(currencyClassifier, symbol, nominal);
-        this.cost(this::exchangeClassifier, symbol, nominal);
-        this.cost(anyClassifier, symbol, nominal);
+        this.cost(yearClassifier, nominal);
+        this.cost(brokerClassifier, nominal);
+        this.cost(etfClassifier, nominal);
+        this.cost(currencyClassifier, nominal);
+        this.cost(this::exchangeClassifier, nominal);
+        this.cost(anyClassifier, nominal);
 
     }
 
-    private void cost(Function<Investment, String> classifier, String symbol, boolean nominal) {
-        final var inv = this.by(symbol, nominal, classifier, Investment::getInitialMoneyAmount);
-        final var cost = this.by(symbol, nominal, classifier, Investment::getCost);
+    private void cost(Function<Investment, String> classifier, boolean nominal) {
+        final var inv = this.by(nominal, classifier, Investment::getInitialMoneyAmount);
+        final var cost = this.by(nominal, classifier, Investment::getCost);
 
         inv
                 .keySet()
@@ -272,12 +307,11 @@ public class Positions {
                 this.format.percent(m2.get(label).getAmount().divide(m1.get(label).getAmount(), C), 8));
     }
 
-    private Map<String, MoneyAmount> by(String symbol, boolean nominal, Function<Investment, String> classifier, Function<Investment, MoneyAmount> func) {
+    private Map<String, MoneyAmount> by(boolean nominal, Function<Investment, String> classifier, Function<Investment, MoneyAmount> func) {
         return this.series.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(inv -> inv.getType().equals(InvestmentType.ETF))
-                .filter(inv -> symbol == null || inv.getCurrency().equals(symbol))
                 .map(inv -> ForeignExchanges.exchange(inv, "USD"))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
                 .collect(groupingBy(classifier,

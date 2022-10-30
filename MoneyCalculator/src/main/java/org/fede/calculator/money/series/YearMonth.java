@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.money.series;
 
+import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAdjusters;
@@ -131,5 +132,14 @@ public class YearMonth implements Comparable<YearMonth> {
     public YearMonth max(YearMonth other) {
         return this.compareTo(other) < 0 ? other : this;
     }
+    
+    public String half() {
+        return format("{0}-H{1}", String.valueOf(this.getYear()), ((this.getMonth() - 1) / 6) + 1);
+    }
+
+    public String quarter() {
+        return format("{0}-Q{1}", String.valueOf(this.getYear()), ((this.getMonth() - 1) / 3) + 1);
+    }
+
 
 }
