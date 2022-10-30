@@ -173,24 +173,6 @@ public class Positions {
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
         this.dca(nominal, type);
-        
-//        this.console.appendLine(this.format.subtitle("Average Prices"));
-//
-//        this.console.appendLine(this.format.text("", 9),
-//                positionsByYear.keySet().stream()
-//                        .map(Pair::getFirst)
-//                        .distinct()
-//                        .sorted()
-//                        .map(currency -> this.format.text(currency, 9))
-//                        .collect(joining()));
-//
-//        positionsByYear.keySet().stream()
-//                .map(Pair::getSecond)
-//                .distinct()
-//                .sorted()
-//                .map(year -> this.avgPrice(year, positionsByYear))
-//                .forEach(this.console::appendLine);
-        
         this.costs(nominal);
     }
     
