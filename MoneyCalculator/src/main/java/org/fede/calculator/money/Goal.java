@@ -71,12 +71,16 @@ public class Goal {
 
     private final Console console;
     private final Format format;
+    private final Series series;
+    private final Bar bar;
 
-    public Goal(Console console, Format format, double bbppTaxRate, double bbppMin) {
+    public Goal(Console console, Format format, Series series, Bar bar, double bbppTaxRate, double bbppMin) {
         this.bbppTaxRate = bbppTaxRate;
         this.bbppMin = bbppMin;
         this.console = console;
         this.format = format;
+        this.series = series;
+        this.bar = bar;
 
     }
 
@@ -138,8 +142,29 @@ public class Goal {
 
     public void goal(
             final int trials,
-            final int monthlyDeposit,
-            final int monthlyWithdraw,
+            final int averageIncomeSpendingMonths,
+            final BigDecimal inflation,
+            final int retirementAge,
+            final BigDecimal extraCash,
+            final boolean afterTax,
+            final int age,
+            final int pension,
+            MoneyAmount todaySavings,
+            MoneyAmount invested,
+            String expected) {
+
+        final var spendingandSaving = new Savings(format, series, bar, console).averageSpendingAndSaving(averageIncomeSpendingMonths);
+
+        final var monthlyDeposit = spendingandSaving.getSecond().getAmount();
+        final var monthlyWithdraw = spendingandSaving.getFirst().getAmount();
+
+        this.goal(trials, monthlyDeposit, monthlyWithdraw, inflation, retirementAge, extraCash, afterTax, age, pension, todaySavings, invested, expected);
+    }
+
+    public void goal(
+            final int trials,
+            final BigDecimal monthlyDeposit,
+            final BigDecimal monthlyWithdraw,
             final BigDecimal inflation,
             final int retirementAge,
             final BigDecimal extraCash,
@@ -161,7 +186,7 @@ public class Goal {
 
         final var yearBuyTransactions = BigDecimal.TEN;
 
-        final var yearDeposit = BigDecimal.valueOf(monthlyDeposit)
+        final var yearDeposit = monthlyDeposit
                 .multiply(new BigDecimal("14.8"), C)
                 .subtract(BUY_FEE, C);
 
@@ -171,7 +196,9 @@ public class Goal {
 
         final var deposit = yearDeposit.subtract(yearIBKRFee, C).doubleValue();
 
-        final var withdraw = BigDecimal.valueOf((monthlyWithdraw * 12) - (pension * 13))
+        final var withdraw = (monthlyWithdraw
+                .multiply(new BigDecimal("12"), C)
+                .subtract(new BigDecimal(pension * 13), C))
                 .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
                 .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, C).doubleValue();
 
