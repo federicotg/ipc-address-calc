@@ -275,10 +275,21 @@ public class ConsoleReports {
         final var type = params.getOrDefault("type", "all");
 
         new Investments(this.console, this.format, this.bar, this.series)
-                .inv("all".equalsIgnoreCase(type) ? x -> true : x -> x.getCurrency().equalsIgnoreCase(type), nominal(params));
+                .inv("all".equalsIgnoreCase(type) ? x -> true : x -> this.investmentFilter(x, type), nominal(params));
 
     }
 
+    private boolean investmentFilter(Investment i, String type) {
+        if("all".equalsIgnoreCase(type)){
+            return true;
+        }
+        if("r2k".equalsIgnoreCase(type)){
+            return i.getCurrency().equals("XRSU") || i.getCurrency().equals("RTWO"); 
+        }
+        
+        return i.getCurrency().equalsIgnoreCase(type);
+    }
+    
     public static void main(String[] args) {
         try {
 
