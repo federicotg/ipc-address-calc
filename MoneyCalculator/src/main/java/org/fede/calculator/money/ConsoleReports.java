@@ -286,6 +286,9 @@ public class ConsoleReports {
         if("r2k".equalsIgnoreCase(type)){
             return i.getCurrency().equals("XRSU") || i.getCurrency().equals("RTWO"); 
         }
+        if("exus".equalsIgnoreCase(type)){
+            return i.getCurrency().equals("EIMI") || i.getCurrency().equals("MEUD"); 
+        }
         
         return i.getCurrency().equalsIgnoreCase(type);
     }
@@ -387,7 +390,7 @@ public class ConsoleReports {
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
                         entry("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
-                        entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
+                        entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
                         entry("inv-evo", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("mdr", "nominal=false cash=true start=1999 tw=false"),
@@ -395,7 +398,6 @@ public class ConsoleReports {
                         entry("income-avg-evo", "months=12"),
                         entry("bbpp", "year=2021 ibkr=false"),
                         entry("savings-avg-net-change", "months=12"),
-                        //entry("savings-avg-net-pct", "months=12"),
                         entry("savings-avg-pct", "months=12"),
                         entry("expenses", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("expenses-change", "months=12"),
