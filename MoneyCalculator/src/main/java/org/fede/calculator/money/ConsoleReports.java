@@ -78,12 +78,10 @@ public class ConsoleReports {
     private static final String TRIALS = "50000";
     private static final String RETIREMENT = "66";
     private static final String AGE = "99";
-    private static final String DEPOSIT = "1500";
-    private static final String WITHDRAW = "800";
     private static final String INFLATION = "2.5";
     private static final String CASH = "0";
     private static final String TAX = "true";
-    private static final String EXPECTED_RETRUNS = "blackrock";
+    private static final String EXPECTED_RETRUNS = "all";
     private static final String BBPP = "2.25";
     private static final String BBPP_MIN = "30000";
     private static final String PENSION = "100";
@@ -371,12 +369,10 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", format("trials={0} retirement={1} age={2} w={3} d={4} inflation={5} cash={6} tax={7} bbpp={8} bbppmin={9} pension={10} exp={11}",
+                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} tax={5} bbpp={6} bbppmin={7} pension={8} exp={9}",
                                 TRIALS,
                                 RETIREMENT,
                                 AGE,
-                                WITHDRAW,
-                                DEPOSIT,
                                 INFLATION,
                                 CASH,
                                 TAX,
@@ -719,8 +715,6 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         final var trials = Integer.parseInt(params.getOrDefault("trials", TRIALS));
-        final var deposit = Integer.parseInt(params.getOrDefault("d", DEPOSIT));
-        final var withdraw = Integer.parseInt(params.getOrDefault("w", WITHDRAW));
         final var inflation = new BigDecimal(params.getOrDefault("inflation", INFLATION));
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", RETIREMENT));
         final var age = Integer.parseInt(params.getOrDefault("age", AGE));

@@ -25,10 +25,12 @@ import static java.text.MessageFormat.format;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.YearMonth;
@@ -50,6 +52,8 @@ public class Goal {
     private static final int END_AGE_STD = 4;
 
     private static final BigDecimal BUY_FEE = new BigDecimal("200");
+    
+    private static final BigDecimal MONTHS_IN_A_YEAR = new BigDecimal("12");
 
     private static final BigDecimal SELL_FEE = new BigDecimal("0.00726").multiply(new BigDecimal("0.5"), C)
             .add(new BigDecimal("0.00056").multiply(new BigDecimal("0.5"), C));
@@ -189,7 +193,7 @@ public class Goal {
         final var yearBuyTransactions = BigDecimal.TEN;
 
         final var yearDeposit = monthlyDeposit
-                .multiply(new BigDecimal("14.8"), C)
+                .multiply(MONTHS_IN_A_YEAR, C)
                 .subtract(BUY_FEE, C);
 
         final var yearIBKRFee = IBKR_FEE_STRATEGY
@@ -199,7 +203,7 @@ public class Goal {
         final var deposit = yearDeposit.subtract(yearIBKRFee, C).doubleValue();
 
         final var withdraw = (monthlyWithdraw
-                .multiply(new BigDecimal("12"), C)
+                .multiply(MONTHS_IN_A_YEAR, C)
                 .subtract(new BigDecimal(pension * 13), C))
                 .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
                 .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, C).doubleValue();
@@ -248,7 +252,8 @@ public class Goal {
         final Map<String, ExpectedReturnGroup> expectedReturns = SeriesReader.read("/index/expected-returns.json", new TypeReference<Map<String, ExpectedReturnGroup>>() {
         });
 
-        expectedReturns.entrySet().stream()
+        List<Pair<String, Long>> results = expectedReturns.entrySet()
+                .parallelStream()
                 .filter(entry -> "all".equals(expected) || entry.getKey().equals(expected))
                 .map(entry
                         -> Pair.of(
@@ -262,18 +267,32 @@ public class Goal {
                                 investedAmount,
                                 realDeposits,
                                 realWithdrawals)))
+                .collect(Collectors.toList());
+
+        results.stream()
                 .sorted(Comparator.comparing(Pair::getSecond))
                 .map(pair
-                        -> format(
-                        "{0} {1}/{2} {3}",
-                        pair.getFirst(), pair.getSecond(),
-                        trials,
-                        this.format.text(
-                                this.format.percent(BigDecimal.valueOf((double) pair.getSecond() / (double) trials)),
-                                6,
-                                new AnsiFormat(Attribute.BOLD()))))
+                        -> this.report(pair.getFirst(), pair.getSecond(), trials))
                 .forEach(this.console::appendLine);
 
+        final long averageSuccesses = (long) results.stream()
+                .mapToLong(Pair::getSecond)
+                .average()
+                .getAsDouble();
+        this.console.appendLine(this.format.subtitle("Average"));
+        this.console.appendLine(this.report("Average", averageSuccesses, trials));
+
+    }
+
+    private String report(String label, long successes, int trials) {
+        return format(
+                "{0} {1}/{2} {3}",
+                label, successes,
+                trials,
+                this.format.text(
+                        this.format.percent(BigDecimal.valueOf((double) successes / (double) trials)),
+                        6,
+                        new AnsiFormat(Attribute.BOLD())));
     }
 
     private long expectedReturnSuccesses(
@@ -288,7 +307,6 @@ public class Goal {
             double[] realWithdrawals) {
 
         return IntStream.range(0, trials)
-                .parallel()
                 .mapToObj(i -> returnsSuplier.get())
                 .filter(randomReturns
                         -> this.goals(
