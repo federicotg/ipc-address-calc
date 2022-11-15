@@ -26,6 +26,7 @@ public class ExpectedReturnGroup {
     private ExpectedReturn usSmallCap;
     private ExpectedReturn em;
     private ExpectedReturn eu;
+    private ExpectedReturn inflation;
 
     public ExpectedReturn getUsLargeCap() {
         return usLargeCap;
@@ -71,6 +72,14 @@ public class ExpectedReturnGroup {
                 + this.getUsSmallCap().getSigma().doubleValue() * 0.1d
                 + this.getEu().getSigma().doubleValue() * 0.1d
                 + this.getEm().getSigma().doubleValue() * 0.1d;
+    }
+
+    public ExpectedReturn getInflation() {
+        return inflation;
+    }
+
+    public void setInflation(ExpectedReturn inflation) {
+        this.inflation = inflation;
     }
 
 }

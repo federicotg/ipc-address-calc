@@ -162,7 +162,7 @@ public class ConsoleReports {
     }
 
     private String assetAllocation(Investment investment) {
-        final Set<String> equities = Set.of("CSPX", "EIMI", "MEUD", "XRSU");
+        final Set<String> equities = Set.of("CSPX", "EIMI", "MEUD", "XRSU", "RTWO");
         final Set<String> bonds = Set.of("LECAP", "LETE", "UVA", "AY24");
 
         if (equities.contains(investment.getInvestment().getCurrency())) {
