@@ -56,7 +56,7 @@ public class Format {
     public String number(BigDecimal value) {
         return format("{0,number,0.00}", value);
     }
-    
+
     public String number2(BigDecimal value) {
         return format("{0,number,0.##}", value);
     }
@@ -91,13 +91,17 @@ public class Format {
 
     public String title(String text) {
 
-        return "\n" + Ansi.colorize(text, Attribute.BRIGHT_WHITE_TEXT(), Attribute.BOLD()) + "\n";
+        return "\n"
+                .concat(Ansi.colorize(text, Attribute.BRIGHT_WHITE_TEXT(), Attribute.BOLD()))
+                .concat("\n");
 
     }
 
     public String subtitle(String title) {
 
-        return "\n\t" + Ansi.colorize(format(" {0} ", title), Attribute.BOLD()) + "\n";
+        return "\n\t"
+                .concat(Ansi.colorize(format(" {0} ", title), Attribute.BOLD()))
+                .concat("\n");
 
     }
 }
