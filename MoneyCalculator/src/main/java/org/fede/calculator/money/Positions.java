@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.money;
 
+import com.diogonunes.jcolor.Ansi;
+import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
@@ -58,11 +60,12 @@ public class Positions {
             "RTWO", "L&G Russell 2000 Small Cap Quality",
             "MEUD", "Lyxor Core STOXX Europe 600 DR"
     );
-    
+
     private static final Map<String, Function<Investment, String>> GROUPINGS = Map.of(
-                "h", i-> YearMonth.of(i.getInitialDate()).half(),
-                "y", i-> Integer.toString(YearMonth.of(i.getInitialDate()).getYear()),
-                "q", i-> YearMonth.of(i.getInitialDate()).quarter());
+            "h", i -> YearMonth.of(i.getInitialDate()).half(),
+            "y", i -> Integer.toString(YearMonth.of(i.getInitialDate()).getYear()),
+            "m", i -> YearMonth.of(i.getInitialDate()).month(),
+            "q", i -> YearMonth.of(i.getInitialDate()).quarter());
 
     private final Console console;
     private final Format format;
@@ -146,9 +149,9 @@ public class Positions {
                 .stream()
                 .sorted(comparing((Position p) -> p.getMarketValue().getAmount(), reverseOrder()))
                 .map(p -> MessageFormat.format(
-                        fmt, 
-                        this.format.text(p.getFundName(), descWidth), 
-                        String.format("%" + posWidth + "d", p.getPosition().intValue()),
+                fmt,
+                this.format.text(p.getFundName(), descWidth),
+                String.format("%" + posWidth + "d", p.getPosition().intValue()),
                 this.format.currency(p.getLast().getAmount(), lastWidth),
                 this.format.currency(p.getCostBasis().getAmount(), costWidth),
                 this.format.percent(p.getCostBasis().getAmount().divide(totalCostBasis.getAmount(), C), costPct),
@@ -171,29 +174,34 @@ public class Positions {
                 this.format.text("", avgWidth),
                 this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
-        
+
         this.console.appendLine(this.format.subtitle("Costs"));
         this.costs(nominal);
     }
-    
+
     public void dca(boolean nominal, String type) {
-        
+
         this.console.appendLine(this.format.title((nominal ? "Nominal" : "Real") + " Dollar Cost Average"));
-        
+
         final var classifier = GROUPINGS.get(type);
         this.dca(nominal, classifier);
-        
+
         this.console.appendLine(this.format.subtitle("Costs"));
         this.cost(classifier, nominal);
     }
-    
-    private void dca(boolean nominal, Function<Investment, String> groupingFucntion){
+
+    private void dca(boolean nominal, Function<Investment, String> groupingFucntion) {
+
+        final var averagesByGroup = this.positionsBy(
+                this.series.getInvestments(),
+                (i) -> "*",
+                nominal);
 
         final var positionByGroup = this.positionsBy(
-                this.series.getInvestments(), 
+                this.series.getInvestments(),
                 groupingFucntion,
                 nominal);
-        
+
         this.console.appendLine(this.format.text("", 11),
                 positionByGroup.keySet().stream()
                         .map(Pair::getFirst)
@@ -206,11 +214,11 @@ public class Positions {
                 .map(Pair::getSecond)
                 .distinct()
                 .sorted()
-                .map(year -> this.avgPrice(year, positionByGroup))
+                .map(year -> this.avgPrice(year, positionByGroup, averagesByGroup))
                 .forEach(this.console::appendLine);
     }
-      
-    private Map<Pair<String , String>, Position> positionsBy(List<Investment> investments, Function<Investment, String> groupingFucntion, boolean nominal){
+
+    private Map<Pair<String, String>, Position> positionsBy(List<Investment> investments, Function<Investment, String> groupingFucntion, boolean nominal) {
         return investments
                 .stream()
                 .filter(Investment::isCurrent)
@@ -223,7 +231,7 @@ public class Positions {
                 .collect(toMap(e -> e.getKey(), e -> this.position(e.getValue())));
     }
 
-    private String avgPrice(String year, Map<Pair<String, String>, Position> positionsByGroup) {
+    private String avgPrice(String year, Map<Pair<String, String>, Position> positionsByGroup, Map<Pair<String, String>, Position> averagesByGroup) {
         return Stream.concat(
                 Stream.of(this.format.text(String.valueOf(year), 8)),
                 positionsByGroup.keySet().stream()
@@ -231,17 +239,24 @@ public class Positions {
                         .distinct()
                         .sorted()
                         .map(currency -> Pair.of(currency, year))
-                        .map(key -> this.avgPrice(positionsByGroup, key)))
+                        .map(key -> this.avgPrice(positionsByGroup, key, averagesByGroup)))
                 .collect(joining());
 
     }
 
-    private String avgPrice(Map<Pair<String, String>, Position> positionsByGroup, Pair<String, String> key) {
+    private String avgPrice(Map<Pair<String, String>, Position> positionsByGroup, Pair<String, String> key, Map<Pair<String, String>, Position> averagesByGroup) {
         return Optional.ofNullable(positionsByGroup.get(key))
                 .map(Position::getAveragePrice)
                 .map(MoneyAmount::getAmount)
-                .map(avgPrice -> this.format.currency(avgPrice, 9))
+                .map(avgPrice -> this.colorized(avgPrice, averagesByGroup.get(Pair.of(key.getFirst(), "*")).getAveragePrice().getAmount()))
                 .orElseGet(() -> this.format.text("", 9));
+    }
+
+    private String colorized(BigDecimal avgPrice, BigDecimal globalAverage) {
+        if (avgPrice.compareTo(globalAverage) > 0) {
+            return Ansi.colorize(this.format.currency(avgPrice, 9), Attribute.RED_TEXT());
+        }
+        return Ansi.colorize(this.format.currency(avgPrice, 9), Attribute.GREEN_TEXT());
     }
 
     private String exchangeClassifier(Investment i) {
@@ -273,7 +288,7 @@ public class Positions {
     }
 
     private void cost(Function<Investment, String> classifier, boolean nominal) {
-        
+
         final var inv = this.by(nominal, classifier, Investment::getInitialMoneyAmount);
         final var cost = this.by(nominal, classifier, Investment::getCost);
         final var totalInv = inv.values().stream().map(MoneyAmount::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);

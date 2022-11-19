@@ -32,20 +32,20 @@ import org.fede.util.Pair;
 public class YearMonth implements Comparable<YearMonth> {
 
     private static final Map<Pair<Integer, Integer>, YearMonth> POOL = new ConcurrentHashMap<>(100, 0.75f);
-    
-    public static YearMonth of(LocalDate day){
+
+    public static YearMonth of(LocalDate day) {
         return of(day.getYear(), day.getMonthValue());
     }
-    
-    public static YearMonth of(Date day){
+
+    public static YearMonth of(Date day) {
         LocalDate date = day.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
         return of(date);
     }
-    
-    public static YearMonth of(int year, int month){
+
+    public static YearMonth of(int year, int month) {
         return POOL.computeIfAbsent(Pair.of(year, month), p -> new YearMonth(p.getFirst(), p.getSecond()));
     }
-    
+
     private final int year;
     private final int month;
 
@@ -103,7 +103,7 @@ public class YearMonth implements Comparable<YearMonth> {
         }
         return YearMonth.of(this.year, this.month - 1);
     }
-    
+
     @Override
     public String toString() {
         return "YearMonth{" + "year=" + year + ", month=" + month + '}';
@@ -113,16 +113,16 @@ public class YearMonth implements Comparable<YearMonth> {
 
         return Date.from(
                 LocalDate.of(this.getYear(), this.getMonth(), 1)
-                .with(TemporalAdjusters.lastDayOfMonth())
-                .atTime(12, 00)
-                .toInstant(ZoneOffset.UTC));
+                        .with(TemporalAdjusters.lastDayOfMonth())
+                        .atTime(12, 00)
+                        .toInstant(ZoneOffset.UTC));
     }
 
     public Date asDate() {
         return Date.from(
                 LocalDate.of(this.getYear(), this.getMonth(), 1)
-                .atTime(12, 00)
-                .toInstant(ZoneOffset.UTC));
+                        .atTime(12, 00)
+                        .toInstant(ZoneOffset.UTC));
     }
 
     public YearMonth min(YearMonth other) {
@@ -132,7 +132,7 @@ public class YearMonth implements Comparable<YearMonth> {
     public YearMonth max(YearMonth other) {
         return this.compareTo(other) < 0 ? other : this;
     }
-    
+
     public String half() {
         return format("{0}-H{1}", String.valueOf(this.getYear()), ((this.getMonth() - 1) / 6) + 1);
     }
@@ -141,5 +141,8 @@ public class YearMonth implements Comparable<YearMonth> {
         return format("{0}-Q{1}", String.valueOf(this.getYear()), ((this.getMonth() - 1) / 3) + 1);
     }
 
+    public String month() {
+        return format("{0}-{1}", String.valueOf(this.getYear()), (this.getMonth() < 10 ? "0" : "") + String.valueOf(this.getMonth()));
+    }
 
 }
