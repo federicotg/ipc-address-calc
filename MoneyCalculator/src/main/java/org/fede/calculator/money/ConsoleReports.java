@@ -391,7 +391,7 @@ public class ConsoleReports {
                         entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("mdr", "nominal=false cash=true start=1999 tw=false"),
                         entry("saved-salaries-evo", "months=12"),
-                        entry("income-avg-evo", "months=12"),
+                        entry("income-avg-evo", "months=12 ars=false"),
                         entry("bbpp", "year=2021 ibkr=false"),
                         entry("savings-avg-net-change", "months=12"),
                         entry("savings-avg-pct", "months=12"),
@@ -686,17 +686,26 @@ public class ConsoleReports {
     private void incomeAverageEvolution(String[] args, String paramName) {
         var params = this.paramsValue(args, paramName);
         var months = Integer.parseInt(params.getOrDefault("months", "12"));
+        var ars = Boolean.parseBoolean(params.getOrDefault("ars", "false"));
         this.appendLine(this.format.title(format("Average {0}-month income evolution", months)));
-        this.incomeAverageEvolution(months);
+        this.incomeAverageEvolution(months, ars);
 
     }
 
-    private void incomeAverageEvolution(int months) {
-
-        this.bar.evolution(format("Average {0}-month income", months),
-                new SimpleAggregation(months)
-                        .average(this.series.realIncome()),
-                30);
+    private void incomeAverageEvolution(int months, boolean ars) {
+    
+        final var baseBarSize = 30;
+        final var s = ars 
+                ? this.series.realIncome().exchangeInto("ARS")                        
+                : this.series.realIncome();
+    
+        final var barSize = ars 
+                ? Math.round((float) (baseBarSize - 10) / ForeignExchanges.USD_ARS.exchange(new MoneyAmount(ONE, "ARS"), "USD", Inflation.USD_INFLATION.getTo()).getAmount().floatValue())
+                : baseBarSize;
+        
+        this.bar.evolution(format("Average {0}-month income {1}", months, ars ? "ARS" : "USD"),
+                new SimpleAggregation(months).average(s),
+                barSize);
     }
 
     private Map<String, String> paramsValue(String[] args, String paramName) {
