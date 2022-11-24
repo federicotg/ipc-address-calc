@@ -334,7 +334,7 @@ public class ConsoleReports {
                     entry("p-evo-pct", () -> me.portfolioEvoPct(args, "p-evo-pct")),
                     entry("p-type-evo", () -> new Investments(console, format, bar, series).portfolioTypeEvo(false)),
                     entry("p-type-evo-pct", () -> new Investments(console, format, bar, series).portfolioTypeEvo(true)),
-                    entry("pa", () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation(true)),
+                    entry("pa", () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation()),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     entry("income-src", () -> me.incomeAverageBySource(args, "income-src")),
                     //house cost
@@ -355,6 +355,7 @@ public class ConsoleReports {
                     entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
                     entry("ibkr", () -> me.ibkrCSV()),
                     entry("mdr", () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar))),
+                    entry("mdr-by-currency", new PortfolioReturns(series, console, format, bar)::mdrByCurrency),
                     entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
                     entry("pos", () -> me.positions(args, "pos")),
                     entry("dca", () -> me.dca(args, "dca")),

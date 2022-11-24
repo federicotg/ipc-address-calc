@@ -230,13 +230,33 @@ public class PortfolioReturns {
                 .mapToObj(year -> this.dayDollarsInYear(year, i));
 
     }
+    
+    
+    public void mdrByCurrency(){
+        
+        this.console.appendLine(this.format.title("Real USD Modified Dietz Return by Currency"));
+        Stream.concat(
+                this.cashInvestments.cashInvestments().stream(), 
+                this.series.getInvestments().stream())
+                .map(Investment::getCurrency)
+                .distinct()
+                .forEach(this::mdrByCurrencyReport);
+        
+    }
+    
+    public void mdrByCurrencyReport(String currency){
+        this.console.appendLine(this.format.subtitle(currency));
+        this.modifiedDietzReturn(i -> i.getCurrency().equals(currency), false, true, ModifiedDietzReturn::get);
+    }
+    
 
-    public void portfolioAllocation(boolean timeWeighted) {
+    public void portfolioAllocation() {
 
-        this.console.appendLine(this.format.title((timeWeighted ? "Time Weighted " : "Money Weighted ") + "Return"));
+        this.console.appendLine(this.format.title("Money Weighted Return"));
 
-        final var mdrByYear = this.mdrByYear(timeWeighted ? ModifiedDietzReturn::monthlyLinked : ModifiedDietzReturn::get);
-
+        final var mdrByYear = this.mdrByYear(ModifiedDietzReturn::get);
+        
+        
         Stream.concat(this.cashInvestments.cashInvestments().stream(), this.series.getInvestments().stream())
                 .flatMap(this::asDayDollarsByYear)
                 .collect(groupingBy(
