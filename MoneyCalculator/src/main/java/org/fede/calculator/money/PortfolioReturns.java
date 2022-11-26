@@ -26,10 +26,12 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import static java.util.Comparator.comparing;
+import java.util.Currency;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -139,13 +141,9 @@ public class PortfolioReturns {
 
         this.console.appendLine(
                 format(
-                        "From {0} to {1}.",
+                        "From {0} to {1}. Return: {2}. Annualized {3}.",
                         DateTimeFormatter.ISO_LOCAL_DATE.format(from),
-                        DateTimeFormatter.ISO_LOCAL_DATE.format(to)));
-
-        this.console.appendLine(
-                format(
-                        "\tReturn: {0}. Annualized {1}.",
+                        DateTimeFormatter.ISO_LOCAL_DATE.format(to),
                         this.format.percent(modifiedDietzReturn.getMoneyWeighted()),
                         this.format.percent(modifiedDietzReturn.getAnnualizedMoneyWeighted())));
 
@@ -155,7 +153,7 @@ public class PortfolioReturns {
                         this.format.percent(p.getValue().getMoneyWeighted(), 8),
                         this.bar.pctBar(p.getValue().getAnnualizedMoneyWeighted()));
 
-        this.console.appendLine("");
+        //this.console.appendLine("");
         this.console.appendLine(this.format.text(" ", 10), this.format.text(" Return", 10), this.format.text("    Annualized", 8));
 
         this.mdrByYear(inv, from, to, nominal, returnTypeFunction)
@@ -233,12 +231,15 @@ public class PortfolioReturns {
     
     
     public void mdrByCurrency(){
+    
+        final var skippedCurrencies = Set.of("AY24", "LECAP", "LETE");
         
         this.console.appendLine(this.format.title("Real USD Modified Dietz Return by Currency"));
         Stream.concat(
                 this.cashInvestments.cashInvestments().stream(), 
                 this.series.getInvestments().stream())
                 .map(Investment::getCurrency)
+                .filter(c -> !skippedCurrencies.contains(c))
                 .distinct()
                 .forEach(this::mdrByCurrencyReport);
         

@@ -93,21 +93,21 @@ public class Evolution<T> {
                     .collect(toMap(Map.Entry::getKey, e -> this.accum(e.getValue(), moment, totalFunction, startFunction, endFunction)));
 
             final var colorList = List.of(
-                    Attribute.WHITE_BACK(),
+                    Attribute.BRIGHT_YELLOW_BACK(),
                     Attribute.BLUE_BACK(),
                     Attribute.CYAN_BACK(),
                     Attribute.GREEN_BACK(),
                     Attribute.MAGENTA_BACK(),
                     Attribute.RED_BACK(),
                     Attribute.BLACK_BACK(),
+                    Attribute.BRIGHT_CYAN_BACK(),
                     Attribute.YELLOW_BACK(),
                     Attribute.BRIGHT_MAGENTA_BACK(),
+                    Attribute.WHITE_BACK(),
                     Attribute.BRIGHT_RED_BACK(),
                     Attribute.BRIGHT_BLUE_BACK(),
-                    Attribute.BRIGHT_YELLOW_BACK(),
                     Attribute.BRIGHT_GREEN_BACK(),
-                    Attribute.BRIGHT_WHITE_BACK(),
-                    Attribute.BRIGHT_CYAN_BACK(),
+                    Attribute.BRIGHT_WHITE_BACK(),                    
                     Attribute.BRIGHT_BLACK_BACK());
 
             final var typeList = totals.keySet().stream().sorted().collect(toList());
