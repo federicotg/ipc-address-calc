@@ -25,7 +25,7 @@ import java.util.function.Function;
  */
 public class InteractiveBrokersTieredLondonUSDFeeStrategy implements Function<BigDecimal, BigDecimal> {
 
-    private static final BigDecimal GBPUSD = new BigDecimal("1.0858");
+    private static final BigDecimal GBPUSD = new BigDecimal("1.21");
 
     private static final BigDecimal IBKR_TIERED_USD_FEE = new BigDecimal("0.0005");
     private static final BigDecimal IBKR_TIERED_USD_MIN_FEE = new BigDecimal("1.7");

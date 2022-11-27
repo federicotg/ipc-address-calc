@@ -250,25 +250,6 @@ public class Bar {
                 .setScale(0, RoundingMode.HALF_UP);
     }
 
-    public String percentBar(YearMonth ym, MoneyAmount one, MoneyAmount two) {
-        final var total = one.add(two);
-
-        if (total.getAmount().signum() == 0) {
-            return "";
-        }
-
-        var bar1 = this.asPct(one, total);
-        var bar2 = this.asPct(two, total);
-
-        if (bar1.add(bar2, C).compareTo(HUNDRED) != 0) {
-
-            bar1 = HUNDRED.subtract(bar2, C);
-
-        }
-
-        return this.bar(ym, bar1, bar2, 1, this.format::pctNumber);
-    }
-
     public void evolution(String name, MoneyAmountSeries s, int scale) {
         var limit = USD_INFLATION.getTo();
 
