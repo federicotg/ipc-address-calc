@@ -339,10 +339,7 @@ public class ConsoleReports {
                     entry("income-src", () -> me.incomeAverageBySource(args, "income-src")),
                     //house cost
                     entry("house-evo", () -> new House(console, format, bar).houseCostsEvolution()),
-                    entry("house", () -> new House(console, format, bar).houseIrrecoverableCosts(USD_INFLATION.getTo())),
-                    entry("house1", () -> new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2011, 8))),
-                    entry("house3", () -> new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2013, 8))),
-                    entry("house5", () -> new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2015, 8))),
+                    entry("house", () -> me.house(args, "house")),
                     //expenses
                     entry("expenses", () -> me.expenses(args, "expenses")),
                     entry("condo", () -> me.condo()),
@@ -392,6 +389,7 @@ public class ConsoleReports {
                         entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("mdr", "nominal=false cash=true start=1999 tw=false"),
                         entry("saved-salaries-evo", "months=12"),
+                        entry("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
                         entry("income-avg-evo", "months=12 ars=false"),
                         entry("bbpp", "year=2021 ibkr=false"),
                         entry("savings-avg-net-change", "months=12"),
@@ -426,6 +424,18 @@ public class ConsoleReports {
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
             ex.printStackTrace(System.err);
+        }
+    }
+    
+    private void house(String[] args, String paramName){
+        final var params = this.paramsValue(args, paramName);
+        
+        final var years = params.get("years");
+        
+        if(years == null){
+            new House(console, format, bar).houseIrrecoverableCosts(USD_INFLATION.getTo());
+        }else{
+            new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2010+Integer.parseInt(years), 8));
         }
     }
 
