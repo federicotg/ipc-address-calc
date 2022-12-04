@@ -319,30 +319,21 @@ public class ConsoleReports {
                     entry("gi", me::groupedInvestments),
                     entry("ti", me::listStockByType),
                     entry("inv", () -> me.invReport(args, "inv")),
-                    //savings
-                    entry("savings", me::savings),
+                    entry("savings", () -> me.savings(args, "savings")),
                     entry("savings-evo", () -> me.savingEvolution(args, "savings-evo")),
                     entry("savings-change", () -> me.savingChange(args, "savings-change")),
                     entry("savings-change-pct", () -> me.savingsPercentChange(args, "savings-change-pct")),
                     entry("savings-net-change", me::monthlySavings),
-                    entry("savings-year", me::yearlySavings),
-                    entry("savings-half", me::halfSavings),
-                    entry("savings-quarter", me::quarterSavings),
                     entry("savings-avg-net-change", () -> me.monthlySavings(args, "savings-avg-net-change")),
-                    //entry("savings-avg-net-pct", () -> me.netAvgSavingPct(args, "savings-avg-net-pct")),
                     entry("savings-avg-pct", () -> me.netAvgSavingSpentPct(args, "savings-avg-pct")),
                     entry("savings-avg", () -> me.netAvgSavingSpent(args, "savings-avg")),
                     entry("savings-dist", me::savingsDistributionEvolution),
                     entry("savings-dist-pct", me::savingsDistributionPercentEvolution),
                     entry("saved-salaries-evo", () -> me.averageSavedSalaries(args, "saved-salaries-evo")),
-                    //income
                     entry("income", () -> me.income(args, "income")),
                     entry("income-evo", me::incomeEvolution),
                     entry("income-table", me::savingsIncomeTable),
                     entry("income-year-table", me::yearSavingsIncomeTable),
-                    //entry("income-year", me::yearlyIncome),
-                    //entry("income-half", me::halfIncome),
-                    //entry("income-quarter", me::quarterIncome),
                     entry("p", () -> me.portfolio(args, "p")),
                     entry("p-evo", () -> me.portfolioEvo(args, "p-evo")),
                     entry("p-evo-pct", () -> me.portfolioEvoPct(args, "p-evo-pct")),
@@ -351,16 +342,13 @@ public class ConsoleReports {
                     entry("pa", () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation()),
                     entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
                     entry("income-src", () -> me.incomeAverageBySource(args, "income-src")),
-                    //house cost
                     entry("house-evo", () -> new House(console, format, bar).houseCostsEvolution()),
                     entry("house", () -> me.house(args, "house")),
-                    //expenses
                     entry("expenses", () -> me.expenses(args, "expenses")),
                     entry("condo", () -> me.condo()),
                     entry("expenses-evo", () -> me.expenseEvolution(args, "expenses-evo")),
                     entry("expenses-src", () -> me.expenseBySource(args, "expenses-src")),
                     entry("expenses-change", () -> me.expensesChange(args, "expenses-change")),
-                    //goal
                     entry("goal", () -> me.goal(args, "goal")),
                     entry("bbpp", () -> me.bbpp(args, "bbpp")),
                     entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
@@ -395,6 +383,7 @@ public class ConsoleReports {
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "by=(year|half|quarter) months=12"),
+                        entry("savings", "by=(year|half|quarter)"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
                         entry("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
@@ -457,68 +446,81 @@ public class ConsoleReports {
         new Investments(console, format, bar, series).monthly(nominal(this.paramsValue(args, param)));
     }
 
-    private void savings() {
+    private void savings(String[] args, String paramName) {
 
-        this.appendLine(this.format.title("Historical Real USD Savings Stats"));
+        final var params = this.paramsValue(args, paramName);
+        final var by = params.get("by");
 
-        // total savings
-        final var limit = USD_INFLATION.getTo();
+        if ("quarter".equals(by)) {
+            this.quarterSavings();
+        } else if ("half".equals(by)) {
+            this.halfSavings();
+        } else if ("year".equals(by)) {
+            this.yearlySavings();
+        } else {
 
-        final var totalSavings = this.series.realSavings(null).getAmount(limit);
+            this.appendLine(this.format.title("Historical Real USD Savings Stats"));
 
-        // total income
-        final var totalIncome = this.series.realIncome()
-                .moneyAmountStream()
-                .reduce(ZERO_USD, MoneyAmount::add);
+            // total savings
+            final var limit = USD_INFLATION.getTo();
 
-        final var months = this.series.realIncome().getFrom().monthsUntil(limit);
+            final var totalSavings = this.series.realSavings(null).getAmount(limit);
 
-        final var avgSalary = totalIncome.getAmount().divide(BigDecimal.valueOf(months), C);
+            // total income
+            final var totalIncome = this.series.realIncome()
+                    .moneyAmountStream()
+                    .reduce(ZERO_USD, MoneyAmount::add);
 
-        appendLine(format("Income USD {0}\nSavings USD {1} {2}\nAverage salary {3}\nSaved salaries {4}",
-                this.format.currency(totalIncome.getAmount()),
-                this.format.currency(totalSavings.getAmount()),
-                this.format.percent(totalSavings.getAmount().divide(totalIncome.getAmount(), C)),
-                this.format.currency(avgSalary),
-                totalSavings.getAmount().divide(avgSalary, C)));
+            final var months = this.series.realIncome().getFrom().monthsUntil(limit);
 
-        //ingreso promedio de N meses
-        final var agg = new SimpleAggregation(YearMonth.of(2012, 1).monthsUntil(USD_INFLATION.getTo()));
+            final var avgSalary = totalIncome.getAmount().divide(BigDecimal.valueOf(months), C);
 
-        final var averageIncome = agg.average(this.series.realIncome()).getAmount(USD_INFLATION.getTo());
+            appendLine(format("Income USD {0}\nSavings USD {1} {2}\nAverage salary {3}\nSaved salaries {4}",
+                    this.format.currency(totalIncome.getAmount()),
+                    this.format.currency(totalSavings.getAmount()),
+                    this.format.percent(totalSavings.getAmount().divide(totalIncome.getAmount(), C)),
+                    this.format.currency(avgSalary),
+                    totalSavings.getAmount().divide(avgSalary, C)));
 
-        // ahorro promedio de N meses
-        final var averagNetSavings = agg.average(this.series.realNetSavings()).getAmount(USD_INFLATION.getTo());
+            //ingreso promedio de N meses
+            final var agg = new SimpleAggregation(YearMonth.of(2012, 1).monthsUntil(USD_INFLATION.getTo()));
 
-        final var m = totalSavings.getAmount().divide(averageIncome.subtract(averagNetSavings).getAmount(), C);
+            final var averageIncome = agg.average(this.series.realIncome()).getAmount(USD_INFLATION.getTo());
 
-        final var yearAndMonth = m.divideAndRemainder(BigDecimal.valueOf(12), C);
+            // ahorro promedio de N meses
+            final var averagNetSavings = agg.average(this.series.realNetSavings()).getAmount(USD_INFLATION.getTo());
 
-        appendLine(format("Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
-                yearAndMonth[0],
-                yearAndMonth[1].setScale(0, MathConstants.RM),
-                this.format.percent(ONE.subtract(averagNetSavings.getAmount().divide(averageIncome.getAmount(), C), C)),
-                averageIncome.subtract(averagNetSavings).getAmount()));
+            final var m = totalSavings.getAmount().divide(averageIncome.subtract(averagNetSavings).getAmount(), C);
 
-        final var unlp = SeriesReader.readSeries("income/unlp.json");
-        final var despegar = SeriesReader.readSeries("income/despegar.json");
+            final var yearAndMonth = m.divideAndRemainder(BigDecimal.valueOf(12), C);
 
-        final var totalYears = Math.round((double) unlp.getFrom().next().monthsUntil(unlp.getTo()) / 12.0d);
-        final var simultaneousYears = Math.round((double) despegar.getFrom().monthsUntil(despegar.getTo()) / 12.0d);
+            appendLine(format("Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
+                    yearAndMonth[0],
+                    yearAndMonth[1].setScale(0, MathConstants.RM),
+                    this.format.percent(ONE.subtract(averagNetSavings.getAmount().divide(averageIncome.getAmount(), C), C)),
+                    averageIncome.subtract(averagNetSavings).getAmount()));
 
-        final var simultaneousPercent = new BigDecimal("0.82").divide(new BigDecimal("30"), MathConstants.C);
+            final var unlp = SeriesReader.readSeries("income/unlp.json");
+            final var despegar = SeriesReader.readSeries("income/despegar.json");
 
-        final var yearsLeft = 1978 + 65 - LocalDate.now().getYear();
+            final var totalYears = Math.round((double) unlp.getFrom().next().monthsUntil(unlp.getTo()) / 12.0d);
+            final var simultaneousYears = Math.round((double) despegar.getFrom().monthsUntil(despegar.getTo()) / 12.0d);
 
-        appendLine(format("Retirement: {0} last 120 average salaries plus {1} best UNLP salary.",
-                this.format.percent(BigDecimal.valueOf(totalYears).multiply(new BigDecimal("0.015"), MathConstants.C)),
-                this.format.percent(simultaneousPercent
-                        .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
+            final var simultaneousPercent = new BigDecimal("0.82").divide(new BigDecimal("30"), MathConstants.C);
 
-        appendLine(format("Projected: {0} last 120 average salaries plus {1} best UNLP salary.",
-                this.format.percent(BigDecimal.valueOf(totalYears + yearsLeft).multiply(new BigDecimal("0.015"), MathConstants.C)),
-                this.format.percent(simultaneousPercent
-                        .multiply(BigDecimal.valueOf(simultaneousYears + yearsLeft), MathConstants.C))));
+            final var yearsLeft = 1978 + 65 - LocalDate.now().getYear();
+
+            appendLine(format("Retirement: {0} last 120 average salaries plus {1} best UNLP salary.",
+                    this.format.percent(BigDecimal.valueOf(totalYears).multiply(new BigDecimal("0.015"), MathConstants.C)),
+                    this.format.percent(simultaneousPercent
+                            .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
+
+            appendLine(format("Projected: {0} last 120 average salaries plus {1} best UNLP salary.",
+                    this.format.percent(BigDecimal.valueOf(totalYears + yearsLeft).multiply(new BigDecimal("0.015"), MathConstants.C)),
+                    this.format.percent(simultaneousPercent
+                            .multiply(BigDecimal.valueOf(simultaneousYears + yearsLeft), MathConstants.C))));
+
+        }
 
     }
 
