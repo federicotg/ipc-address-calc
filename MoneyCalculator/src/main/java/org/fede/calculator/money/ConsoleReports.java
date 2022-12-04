@@ -219,17 +219,31 @@ public class ConsoleReports {
     }
 
     private void income(String[] args, String paramName) {
-        this.income(Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "12")));
 
-        final var totalIncome = this.series.getIncomeSeries()
-                .stream()
-                .flatMap(MoneyAmountSeries::moneyAmountStream)
-                .collect(reducing(MoneyAmount::add))
-                .orElse(ZERO_USD)
-                .getAmount();
+        final var params = this.paramsValue(args, paramName);
 
-        this.appendLine(format("Total income: {0}", this.format.currency(totalIncome)));
+        final var by = params.get("by");
 
+        if ("quarter".equals(by)) {
+            this.quarterIncome();
+
+        } else if ("half".equals(by)) {
+            this.halfIncome();
+        } else if ("year".equals(by)) {
+            this.yearlyIncome();
+        } else {
+
+            this.income(Integer.parseInt(params.getOrDefault("months", "12")));
+
+            final var totalIncome = this.series.getIncomeSeries()
+                    .stream()
+                    .flatMap(MoneyAmountSeries::moneyAmountStream)
+                    .collect(reducing(MoneyAmount::add))
+                    .orElse(ZERO_USD)
+                    .getAmount();
+
+            this.appendLine(format("Total income: {0}", this.format.currency(totalIncome)));
+        }
     }
 
     private void income(int months) {
@@ -278,19 +292,19 @@ public class ConsoleReports {
     }
 
     private boolean investmentFilter(Investment i, String type) {
-        if("all".equalsIgnoreCase(type)){
+        if ("all".equalsIgnoreCase(type)) {
             return true;
         }
-        if("r2k".equalsIgnoreCase(type)){
-            return i.getCurrency().equals("XRSU") || i.getCurrency().equals("RTWO"); 
+        if ("r2k".equalsIgnoreCase(type)) {
+            return i.getCurrency().equals("XRSU") || i.getCurrency().equals("RTWO");
         }
-        if("exus".equalsIgnoreCase(type)){
-            return i.getCurrency().equals("EIMI") || i.getCurrency().equals("MEUD"); 
+        if ("exus".equalsIgnoreCase(type)) {
+            return i.getCurrency().equals("EIMI") || i.getCurrency().equals("MEUD");
         }
-        
+
         return i.getCurrency().equalsIgnoreCase(type);
     }
-    
+
     public static void main(String[] args) {
         try {
 
@@ -326,9 +340,9 @@ public class ConsoleReports {
                     entry("income-evo", me::incomeEvolution),
                     entry("income-table", me::savingsIncomeTable),
                     entry("income-year-table", me::yearSavingsIncomeTable),
-                    entry("income-year", me::yearlyIncome),
-                    entry("income-half", me::halfIncome),
-                    entry("income-quarter", me::quarterIncome),
+                    //entry("income-year", me::yearlyIncome),
+                    //entry("income-half", me::halfIncome),
+                    //entry("income-quarter", me::quarterIncome),
                     entry("p", () -> me.portfolio(args, "p")),
                     entry("p-evo", () -> me.portfolioEvo(args, "p-evo")),
                     entry("p-evo-pct", () -> me.portfolioEvoPct(args, "p-evo-pct")),
@@ -380,7 +394,7 @@ public class ConsoleReports {
                                 EXPECTED_RETRUNS)),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
-                        entry("income", "months=12"),
+                        entry("income", "by=(year|half|quarter) months=12"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
                         entry("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
@@ -426,16 +440,16 @@ public class ConsoleReports {
             ex.printStackTrace(System.err);
         }
     }
-    
-    private void house(String[] args, String paramName){
+
+    private void house(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-        
+
         final var years = params.get("years");
-        
-        if(years == null){
+
+        if (years == null) {
             new House(console, format, bar).houseIrrecoverableCosts(USD_INFLATION.getTo());
-        }else{
-            new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2010+Integer.parseInt(years), 8));
+        } else {
+            new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2010 + Integer.parseInt(years), 8));
         }
     }
 
@@ -704,16 +718,16 @@ public class ConsoleReports {
     }
 
     private void incomeAverageEvolution(int months, boolean ars) {
-    
+
         final var baseBarSize = 30;
-        final var s = ars 
-                ? this.series.realIncome().exchangeInto("ARS")                        
+        final var s = ars
+                ? this.series.realIncome().exchangeInto("ARS")
                 : this.series.realIncome();
-    
-        final var barSize = ars 
+
+        final var barSize = ars
                 ? Math.round((float) (baseBarSize - 10) / ForeignExchanges.USD_ARS.exchange(new MoneyAmount(ONE, "ARS"), "USD", Inflation.USD_INFLATION.getTo()).getAmount().floatValue())
                 : baseBarSize;
-        
+
         this.bar.evolution(format("Average {0}-month income {1}", months, ars ? "ARS" : "USD"),
                 new SimpleAggregation(months).average(s),
                 barSize);
