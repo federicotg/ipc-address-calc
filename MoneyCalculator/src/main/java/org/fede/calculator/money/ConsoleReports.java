@@ -1222,11 +1222,6 @@ public class ConsoleReports {
                 "CSPX", (ma, ym) -> ma.getAmount()
         );
 
-//        final var cusips = Map.of(
-//                "EIMI", "BKM4GZ6",
-//                "XRSU", "BWBXSH4",
-//                "CSPX", "B50YWZ5",
-//                "MEUD", "LU0908500753");
         final var codes = Map.of(
                 "CSPX", "CSSPXz",
                 "EIMI", "EIMIz",
