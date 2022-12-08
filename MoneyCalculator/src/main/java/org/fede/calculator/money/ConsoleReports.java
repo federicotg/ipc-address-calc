@@ -1184,20 +1184,20 @@ public class ConsoleReports {
     private void ibkrCSV() {
 
         this.series.getInvestments().stream()
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(Investment::isETF)
                 .filter(inv -> inv.getComment() == null)
                 .map(this::assetRow)
                 .forEach(this::appendLine);
 
         final var eur = this.series.getInvestments().stream()
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(Investment::isETF)
                 .filter(inv -> inv.getComment() == null)
                 .filter(inv -> "MEUD".equals(inv.getInvestment().getCurrency()))
                 .map(inv -> inv.getIn().getAmount().add(inv.getIn().getFee(), C))
                 .reduce(ZERO, BigDecimal::add);
 
         final var usd = this.series.getInvestments().stream()
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(Investment::isETF)
                 .filter(inv -> inv.getComment() == null)
                 .filter(inv -> !"MEUD".equals(inv.getInvestment().getCurrency()))
                 .map(inv -> inv.getIn().getAmount().add(inv.getIn().getFee(), C))

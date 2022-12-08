@@ -22,6 +22,8 @@ import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -33,8 +35,19 @@ public class Format {
     private static final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
     private static final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
 
+    private final Map<Integer, String> rightAlignedFormat = new HashMap<>();
+    private final Map<Integer, String> leftAlignedFormat = new HashMap<>();
+    
     public Format() {
         PERCENT_FORMAT.setMinimumFractionDigits(2);
+    }
+    
+    private String getRightAlignedFormat(int width){
+        return rightAlignedFormat.computeIfAbsent(width, w -> "%" + w + "s");
+    }
+    
+    private String getLeftAlignedFormat(int width){
+        return leftAlignedFormat.computeIfAbsent(width, w -> "%-" + w + "s");
     }
 
     public String text(String value, int width, AnsiFormat fmt) {
@@ -42,7 +55,7 @@ public class Format {
     }
 
     public String text(String value, int width) {
-        return String.format("%-" + width + "s", value);
+        return String.format(this.getLeftAlignedFormat(width), value);
     }
 
     public String currency(BigDecimal value) {
@@ -50,7 +63,7 @@ public class Format {
     }
 
     public String currency(BigDecimal value, int width) {
-        return String.format("%" + width + "s", currency(value));
+        return String.format(this.getRightAlignedFormat(width), currency(value));
     }
 
     public String number(BigDecimal value) {
@@ -62,21 +75,21 @@ public class Format {
     }
 
     public String number(BigDecimal value, int width) {
-        return String.format("%" + width + "s", number(value));
+        return String.format(this.getRightAlignedFormat(width), number(value));
     }
 
     public String currencyPL(BigDecimal value, int width) {
 
-        return Ansi.colorize(String.format("%" + width + "s", currency(value)), value.signum() >= 0 ? PROFIT_FORMAT : LOSS_FORMAT);
+        return Ansi.colorize(String.format(this.getRightAlignedFormat(width), currency(value)), value.signum() >= 0 ? PROFIT_FORMAT : LOSS_FORMAT);
     }
 
     public String currency(MoneyAmount value, int width) {
-        return String.format("%" + width + "s", format("{0} {1}", value.getCurrency(), currency(value.getAmount())));
+        return String.format(this.getRightAlignedFormat(width), format("{0} {1}", value.getCurrency(), currency(value.getAmount())));
     }
 
     public String percent(BigDecimal pct, int width) {
 
-        return String.format("%" + width + "s", percent(pct));
+        return String.format(this.getRightAlignedFormat(width), percent(pct));
     }
 
     public String percent(BigDecimal pct) {

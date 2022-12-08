@@ -38,7 +38,7 @@ public class MonthlyInvestmentSavingsAdjuster {
 
         final Map<YearMonth, List<Investment>> groupedByYeaMonth = series.getInvestments()
                 .stream()
-                .filter(i -> i.getType().equals(InvestmentType.ETF) || i.getType().equals(InvestmentType.FCI))
+                .filter(i -> i.isETF() || i.getType().equals(InvestmentType.FCI))
                 .collect(Collectors.groupingBy(i -> YearMonth.of(i.getInitialDate())));
 
         this.differences = groupedByYeaMonth.entrySet()

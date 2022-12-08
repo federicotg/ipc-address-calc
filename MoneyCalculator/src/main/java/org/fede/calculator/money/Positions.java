@@ -121,7 +121,7 @@ public class Positions {
         final var positions = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(Investment::isETF)
                 .map(inv -> ForeignExchanges.exchange(inv, "USD"))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
                 .collect(groupingBy(Investment::getCurrency))
@@ -222,7 +222,7 @@ public class Positions {
         return investments
                 .stream()
                 .filter(Investment::isCurrent)
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(Investment::isETF)
                 .map(inv -> ForeignExchanges.exchange(inv, "USD"))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
                 .collect(groupingBy(i -> Pair.of(i.getCurrency(), groupingFucntion.apply(i))))
@@ -312,7 +312,7 @@ public class Positions {
         return this.series.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(Investment::isETF)
                 .map(inv -> ForeignExchanges.exchange(inv, "USD"))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
                 .collect(groupingBy(classifier,

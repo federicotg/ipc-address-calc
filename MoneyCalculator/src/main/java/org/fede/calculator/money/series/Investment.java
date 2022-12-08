@@ -207,5 +207,9 @@ public class Investment {
         return this.getIn().getFee()
                 .add(this.getIn().getTransferFee(), C);
     }
+    
+    public boolean isETF(){
+        return this.getType().equals(InvestmentType.ETF);
+    }
 
 }

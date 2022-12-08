@@ -115,7 +115,7 @@ public class Investments {
 
         final var details = this.getInvestments()
                 .filter(Investment::isCurrent)
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(Investment::isETF)
                 .filter(everyone)
                 .map(ics::details)
                 .map(d -> nominal ? d : d.asReal())
@@ -132,7 +132,7 @@ public class Investments {
     private List<Investment> benchmark(List<Investment> etfs, String benchmark) {
       
         final var allEtfs = this.getInvestments()
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(Investment::isETF)
                 .collect(toList());
         
         return etfs.stream()
@@ -143,7 +143,7 @@ public class Investments {
     public void inv(final Predicate<Investment> everyone, boolean nominal) {
 
         final var etfs = this.getInvestments()
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(Investment::isETF)
                 .filter(everyone)
                 .collect(toList());
 
@@ -414,7 +414,7 @@ public class Investments {
     private Map<String, MoneyAmountSeries> investmentEvolution(String currency, boolean nominal) {
 
         final var inv = this.getInvestments()
-                .filter(i -> Objects.equals(i.getType(), InvestmentType.ETF))
+                .filter(Investment::isETF)
                 .filter(i -> Objects.isNull(currency) || Objects.equals(currency, i.getCurrency()))
                 .sorted(comparing(Investment::getInitialDate, Comparator.naturalOrder()))
                 .collect(toList());

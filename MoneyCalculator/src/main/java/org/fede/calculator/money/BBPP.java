@@ -109,7 +109,7 @@ public class BBPP {
                 .stream()
                 .filter(i -> ibkr || i.getComment() == null)
                 .filter(i -> i.isCurrent(date))
-                .filter(i -> ETF.equals(i.getType()))
+                .filter(Investment::isETF)
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getMoneyAmount)
                 .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
