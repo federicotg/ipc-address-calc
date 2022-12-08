@@ -226,12 +226,10 @@ public class ForeignExchanges {
         final var fee = new MoneyAmount(in.getFee(), in.getCurrency());
 
         InvestmentEvent answer = new InvestmentEvent();
-        //MoneyAmount ma = fx.exchange(in.getMoneyAmount(), currency, in.getDate());
         MoneyAmount ma = fx(in.getFx(),fx, in.getMoneyAmount(), currency, in.getDate());
         answer.setAmount(ma.getAmount());
         answer.setCurrency(ma.getCurrency());
         answer.setDate(in.getDate());
-        //answer.setFee(fx.exchange(fee, currency, in.getDate()).getAmount());
         answer.setFee(fx(in.getFx(), fx, fee, currency, in.getDate()).getAmount());
         answer.setTransferFee(
                 Optional.ofNullable(in.getTransferFee())

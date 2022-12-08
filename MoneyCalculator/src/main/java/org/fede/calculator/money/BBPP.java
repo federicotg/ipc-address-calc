@@ -39,7 +39,6 @@ import org.fede.calculator.money.series.BBPPYear;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import static org.fede.calculator.money.series.InvestmentType.BONO;
-import static org.fede.calculator.money.series.InvestmentType.ETF;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;

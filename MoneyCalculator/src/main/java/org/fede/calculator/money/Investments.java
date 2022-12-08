@@ -386,9 +386,7 @@ public class Investments {
     }
 
     public void invEvo(String currency, boolean nominal) {
-
         this.invEvo("===< {0} Investment Evolution >===", currency, nominal, false);
-
     }
 
     public void invEvoPct(String currency, boolean nominal) {
@@ -571,14 +569,13 @@ public class Investments {
 
         new Evolution<Investment>(this.console, this.bar)
                 .evo(totalFunction, startFunction, endFunction, classifier, i -> true, comparator, this.getAllInvestments(), pct);
-
     }
 
     public void monthly(boolean nominal) {
 
         final var currency = "USD";
         final var etfs = this.getInvestments()
-                .filter(inv -> inv.getType().equals(InvestmentType.ETF))
+                .filter(Investment::isETF)
                 .collect(toList());
 
         this.console.appendLine("Month;Portfolio;CSPX;IWDA;Cash");

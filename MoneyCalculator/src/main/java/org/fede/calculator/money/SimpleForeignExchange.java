@@ -122,11 +122,8 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     @Override
     public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, Date moment) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(moment);
-        int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH);
-        return this.exchange(amount, targetCurrency, year, month + 1);
+        final var ym = YearMonth.of(moment);      
+        return this.exchange(amount, targetCurrency, ym.getYear(), ym.getMonth());
     }
 
     @Override
