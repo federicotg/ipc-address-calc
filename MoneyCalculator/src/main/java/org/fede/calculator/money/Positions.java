@@ -79,7 +79,7 @@ public class Positions {
         this.withFee = withFee;
     }
 
-    public void positions(boolean nominal, String type) {
+    public void positions(boolean nominal) {
 
         if (this.withFee) {
             this.console.appendLine(this.format.title("Positions With Fees"));

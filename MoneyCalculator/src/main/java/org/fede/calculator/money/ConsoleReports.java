@@ -403,7 +403,7 @@ public class ConsoleReports {
                         entry("expenses-change", "months=12"),
                         entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)"),
-                        entry("pos", "nominal=false fees=false type=(y*|h|q)")
+                        entry("pos", "nominal=false fees=false")
                 );
 
                 Stream.concat(
@@ -1267,9 +1267,8 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         final var withFee = Boolean.parseBoolean(params.getOrDefault("fees", "false"));
-        final var type = params.getOrDefault("type", "y");
         new Positions(this.console, this.format, this.series, withFee)
-                .positions(nominal(params), type);
+                .positions(nominal(params));
     }
 
     private void dca(String[] args, String paramName) {
