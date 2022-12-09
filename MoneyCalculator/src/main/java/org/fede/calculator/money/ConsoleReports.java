@@ -319,29 +319,32 @@ public class ConsoleReports {
                     entry("gi", me::groupedInvestments),
                     entry("ti", me::listStockByType),
                     entry("inv", () -> me.invReport(args, "inv")),
+
                     entry("savings", () -> me.savings(args, "savings")),
                     entry("savings-evo", () -> me.savingEvolution(args, "savings-evo")),
                     entry("savings-change", () -> me.savingChange(args, "savings-change")),
                     entry("savings-change-pct", () -> me.savingsPercentChange(args, "savings-change-pct")),
-                    entry("savings-net-change", me::monthlySavings),
-                    entry("savings-avg-net-change", () -> me.monthlySavings(args, "savings-avg-net-change")),
+                    entry("savings-net-change", () -> me.monthlySavings(args, "savings-net-change")),
                     entry("savings-avg-pct", () -> me.netAvgSavingSpentPct(args, "savings-avg-pct")),
                     entry("savings-avg", () -> me.netAvgSavingSpent(args, "savings-avg")),
                     entry("savings-dist", me::savingsDistributionEvolution),
                     entry("savings-dist-pct", me::savingsDistributionPercentEvolution),
                     entry("saved-salaries-evo", () -> me.averageSavedSalaries(args, "saved-salaries-evo")),
+
                     entry("income", () -> me.income(args, "income")),
-                    entry("income-evo", me::incomeEvolution),
                     entry("income-table", me::savingsIncomeTable),
                     entry("income-year-table", me::yearSavingsIncomeTable),
+                    entry("income-evo", () -> me.incomeAverageEvolution(args, "income-evo")),
+                    entry("income-src", () -> me.incomeAverageBySource(args, "income-src")),
+                    entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
+
                     entry("p", () -> me.portfolio(args, "p")),
                     entry("p-evo", () -> me.portfolioEvo(args, "p-evo")),
                     entry("p-evo-pct", () -> me.portfolioEvoPct(args, "p-evo-pct")),
                     entry("p-type-evo", () -> new Investments(console, format, bar, series).portfolioTypeEvo(false)),
                     entry("p-type-evo-pct", () -> new Investments(console, format, bar, series).portfolioTypeEvo(true)),
                     entry("pa", () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation()),
-                    entry("income-avg-evo", () -> me.incomeAverageEvolution(args, "income-avg-evo")),
-                    entry("income-src", () -> me.incomeAverageBySource(args, "income-src")),
+
                     entry("house-evo", () -> new House(console, format, bar).houseCostsEvolution()),
                     entry("house", () -> me.house(args, "house")),
                     entry("expenses", () -> me.expenses(args, "expenses")),
@@ -351,7 +354,6 @@ public class ConsoleReports {
                     entry("expenses-change", () -> me.expensesChange(args, "expenses-change")),
                     entry("goal", () -> me.goal(args, "goal")),
                     entry("bbpp", () -> me.bbpp(args, "bbpp")),
-                    entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
                     entry("ibkr", () -> me.ibkrCSV()),
                     entry("mdr", () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar))),
                     entry("mdr-by-currency", new PortfolioReturns(series, console, format, bar)::mdrByCurrency),
@@ -393,9 +395,9 @@ public class ConsoleReports {
                         entry("mdr", "nominal=false cash=true start=1999 tw=false"),
                         entry("saved-salaries-evo", "months=12"),
                         entry("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
-                        entry("income-avg-evo", "months=12 ars=false"),
+                        entry("income-evo", "months=12 ars=false"),
                         entry("bbpp", "year=2021 ibkr=false"),
-                        entry("savings-avg-net-change", "months=12"),
+                        entry("savings-net-change", "months=12"),
                         entry("savings-avg-pct", "months=12"),
                         entry("expenses", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("expenses-change", "months=12"),
@@ -704,12 +706,12 @@ public class ConsoleReports {
                                 .average(this.series.realExpenses(null))), 5);
     }
 
-    private void incomeEvolution() {
-
-        this.appendLine(this.format.title("Income evolution"));
-        this.bar.evolution("Income", this.series.realIncome(), 40);
-    }
-
+//    private void incomeEvolution() {
+//
+//        this.appendLine(this.format.title("Income evolution"));
+//        this.bar.evolution("Income", this.series.realIncome(), 40);
+//    }
+//
     private void incomeAverageEvolution(String[] args, String paramName) {
         var params = this.paramsValue(args, paramName);
         var months = Integer.parseInt(params.getOrDefault("months", "12"));
@@ -810,11 +812,11 @@ public class ConsoleReports {
                 2);
     }
 
-    private void monthlySavings() {
-        this.appendLine(this.format.title("Net monthly savings"));
-
-        this.bar.evolution("Net savings", this.series.realNetSavings(), 100);
-    }
+//    private void monthlySavings() {
+//        this.appendLine(this.format.title("Net monthly savings"));
+//
+//        this.bar.evolution("Net savings", this.series.realNetSavings(), 100);
+//    }
 
     private void yearlySavings() {
 
@@ -881,7 +883,7 @@ public class ConsoleReports {
 
         this.bar.evolution(title,
                 new SimpleAggregation(months).average(this.series.realNetSavings()),
-                40);
+                100);
     }
 
     private int months(String[] args, String name) {

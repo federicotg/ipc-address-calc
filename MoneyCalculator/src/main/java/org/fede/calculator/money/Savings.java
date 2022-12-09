@@ -105,11 +105,15 @@ public class Savings {
                         1500,
                         value -> String.format("%13s", nf.format(value)))));
 
+        this.cashEquityBondsRef("Savings Distribution Evolution");
+
+    }
+
+    private void cashEquityBondsRef(String title) {
         this.refs(
-                this.format.title("Savings Distribution Evolution"),
+                this.format.title(title),
                 List.of("Cash", "equity", "bonds"),
                 List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK()));
-
     }
 
     public void savingsDistributionPercentEvolution() {
@@ -124,10 +128,7 @@ public class Savings {
                 this.bar.percentBar(ym, cashMa, eq.getAmountOrElseZero(ym), bo.getAmountOrElseZero(ym))
         ));
 
-        this.refs(
-                this.format.title("Savings Distribution Percent Evolution"),
-                List.of("Cash", "equity", "bonds"),
-                List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK()));
+        this.cashEquityBondsRef("Savings Distribution Percent Evolution");
     }
 
     private void savingsRefs(String title) {
