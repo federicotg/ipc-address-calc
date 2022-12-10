@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
@@ -336,7 +335,9 @@ public class Positions {
         
         this.console.appendLine(MessageFormat.format("{0} {1}", 
                 "Cost per year", 
-                this.format.percent(new BigDecimal(Math.pow(totalCost.divide(totalInv, C).add(ONE, C).doubleValue(),365.0d/(double) days)-1.0d))));
+                this.format.percent(
+                        new BigDecimal("0.00104").add(
+                        new BigDecimal(Math.pow(totalCost.divide(totalInv, C).add(ONE, C).doubleValue(),365.0d/(double) days)-1.0d))), C));
         
     }
 
