@@ -196,7 +196,7 @@ public class PortfolioReturns {
                 .map(InvestmentEvent::getDate)
                 .map(Date::toInstant)
                 .map(instant -> LocalDate.ofInstant(instant, ZoneId.systemDefault()))
-                .orElse(LocalDate.now());
+                .orElseGet(LocalDate::now);
 
         final var to = min(yearEnd, investmentEnd);
 

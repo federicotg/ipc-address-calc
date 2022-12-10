@@ -172,7 +172,7 @@ public class Investment {
         final LocalDate buyDate = this.getIn().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         final LocalDate sellDate = Optional.ofNullable(this.getOut())
                 .map(e -> e.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
-                .orElse(LocalDate.of(2099, Month.DECEMBER, 31));
+                .orElseGet(() -> LocalDate.of(2099, Month.DECEMBER, 31));
 
         return (buyDate.isBefore(reference) || buyDate.isEqual(reference))
                 && sellDate.isAfter(reference);
