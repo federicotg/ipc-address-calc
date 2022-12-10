@@ -354,6 +354,7 @@ public class ConsoleReports {
                     entry("expenses-change", () -> me.expensesChange(args, "expenses-change")),
                     entry("goal", () -> me.goal(args, "goal")),
                     entry("bbpp", () -> me.bbpp(args, "bbpp")),
+                    entry("bbpp-evo", () -> me.bbppEvo(args, "bbpp-evo")),
                     entry("ibkr", () -> me.ibkrCSV()),
                     entry("mdr", () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar))),
                     entry("mdr-by-currency", new PortfolioReturns(series, console, format, bar)::mdrByCurrency),
@@ -797,6 +798,14 @@ public class ConsoleReports {
         new BBPP(format, series, console)
                 .bbpp(Integer.parseInt(params.getOrDefault("year", "2021")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
     }
+    
+    private void bbppEvo(String[] args, String paramName) {
+        final var params = this.paramsValue(args, paramName);
+
+        new BBPP(format, series, console)
+                .bbppEvolution(Integer.parseInt(params.getOrDefault("year", "2021")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
+    }
+    
 
     private void averageSavedSalaries(String[] args, String name) {
 

@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Comparator;
 import static java.util.Comparator.comparing;
 import java.util.Date;
 import java.util.List;
@@ -49,6 +50,20 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class BBPP {
 
+    private static class BBPPResult {
+        private int year;
+        private BigDecimal totalAmount;
+        private BigDecimal taxedDomesticAmount;
+        private BigDecimal taxedForeignAmount;
+        private BigDecimal taxedTotal;
+        private BigDecimal taxRate;
+        private BigDecimal taxAmount;
+        private MoneyAmount usdTaxAmount;
+        private MoneyAmount allInvested;
+        private BigDecimal yearRealIncome;
+        private List<BBPPItem> allArs;
+    }
+
     private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
 
     private final Format format;
@@ -61,10 +76,25 @@ public class BBPP {
         this.console = console;
     }
 
-    public void bbpp(int year, boolean ibkr) {
+    public void bbppEvolution(int year, boolean ibkr) {
+        SeriesReader.read("bbpp.json", new TypeReference<List<BBPPYear>>() {
+        }).stream()
+                .map(BBPPYear::getYear)
+                .map(y -> this.bbppResult(y, ibkr))
+                .sorted(Comparator.comparing(r -> r.year))
+                .forEach(this::bbppEvoReport);
+    }
 
-        this.console.appendLine("===< ", format("BB.PP. {0}", String.valueOf(year)), " >===");
+    private void bbppEvoReport(BBPPResult bbpp) {
+        this.console.appendLine(format("{3}: Tax amount {0} / USD {1}. Advances {2}",
+                this.format.currency(bbpp.taxAmount),
+                this.format.currency(bbpp.usdTaxAmount.getAmount()),
+                this.format.currency(bbpp.taxAmount.divide(BigDecimal.valueOf(5), C)),
+                String.valueOf(bbpp.year)));
 
+    }
+
+    private BBPPResult bbppResult(int year, boolean ibkr) {
         List<BBPPYear> bbppYears = SeriesReader.read("bbpp.json", new TypeReference<List<BBPPYear>>() {
         });
 
@@ -155,8 +185,6 @@ public class BBPP {
                 .map(i -> i.getValue().multiply(i.getHolding(), C))
                 .reduce(ZERO, BigDecimal::add);
 
-        this.console.appendLine(format("Total amount {0}", this.format.currency(totalAmount)));
-
         final var taxedDomesticAmount = allArs
                 .stream()
                 .filter(BBPPItem::isDomestic)
@@ -165,8 +193,6 @@ public class BBPP {
                 .reduce(ZERO, BigDecimal::add)
                 .multiply(new BigDecimal("1.05"), C);
 
-        this.console.appendLine(format("Taxed domestic amount {0}", this.format.currency(taxedDomesticAmount)));
-
         final var taxedForeignAmount = allArs
                 .stream()
                 .filter(i -> !i.isDomestic())
@@ -174,14 +200,10 @@ public class BBPP {
                 .map(i -> i.getValue().multiply(i.getHolding(), C))
                 .reduce(ZERO, BigDecimal::add);
 
-        this.console.appendLine(format("Taxed foreign amount {0}", this.format.currency(taxedForeignAmount)));
-
         final var taxedTotal = bbpp.getMinimum()
                 .negate()
                 .add(taxedDomesticAmount, C)
                 .add(taxedForeignAmount, C);
-
-        this.console.appendLine(format("Taxed total {0}", this.format.currency(taxedTotal)));
 
         final var taxRate = bbpp.getBrakets()
                 .stream()
@@ -191,19 +213,10 @@ public class BBPP {
                 .get()
                 .getTax();
 
-        this.console.appendLine(format("Tax rate {0}", this.format.percent(taxRate)));
-
         final var taxAmount = taxedTotal.multiply(taxRate, C);
 
         final var usdTaxAmount = getMoneyAmountForeignExchange("ARS", "USD")
                 .apply(new MoneyAmount(taxAmount, "ARS"), ym);
-
-        this.console.appendLine(format("Tax amount {0} / USD {1}. Advances {2}",
-                this.format.currency(taxAmount),
-                this.format.currency(usdTaxAmount.getAmount()),
-                this.format.currency(taxAmount.divide(BigDecimal.valueOf(5), C))));
-
-        this.console.appendLine(format("Monthly tax amount USD {0}", this.format.currency(usdTaxAmount.adjust(BigDecimal.valueOf(12), ONE).getAmount())));
 
         final var allInvested = this.series.getInvestments()
                 .stream()
@@ -213,20 +226,62 @@ public class BBPP {
                 .map(ma -> getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, ym))
                 .reduce(ZERO_USD, MoneyAmount::add);
 
-        final var yearRealIncome = new ArrayList<MoneyAmount>(12);
+        final var yearRealIncomeList = new ArrayList<MoneyAmount>(12);
 
         this.series.realIncome()
-                .forEachNonZero((yearMonth, ma) -> Optional.of(ma).filter(m -> yearMonth.getYear() == year).ifPresent(yearRealIncome::add));
+                .forEachNonZero((yearMonth, ma) -> Optional.of(ma).filter(m -> yearMonth.getYear() == year).ifPresent(yearRealIncomeList::add));
+
+        final var yearRealIncome = yearRealIncomeList.stream()
+                .map(MoneyAmount::getAmount)
+                .reduce(ZERO, BigDecimal::add);
+        final var result = new BBPPResult();
+        result.allInvested = allInvested;
+        result.taxAmount = taxAmount;
+        result.taxRate = taxRate;
+        result.taxedDomesticAmount = taxedDomesticAmount;
+        result.taxedForeignAmount = taxedForeignAmount;
+        result.taxedTotal = taxedTotal;
+        result.totalAmount = totalAmount;
+        result.usdTaxAmount = usdTaxAmount;
+        result.year = year;
+        result.yearRealIncome = yearRealIncome;
+        result.allArs = allArs;
+        return result;
+    }
+
+    public void bbpp(int year, boolean ibkr) {
+
+        this.bbppReport(this.bbppResult(year, ibkr));
+
+    }
+
+    private void bbppReport(BBPPResult bbpp) {
+
+        // report
+        this.console.appendLine("===< ", format("BB.PP. {0}", String.valueOf(bbpp.year)), " >===");
+        this.console.appendLine(format("Total amount {0}", this.format.currency(bbpp.totalAmount)));
+
+        this.console.appendLine(format("Taxed domestic amount {0}", this.format.currency(bbpp.taxedDomesticAmount)));
+        this.console.appendLine(format("Taxed foreign amount {0}", this.format.currency(bbpp.taxedForeignAmount)));
+        this.console.appendLine(format("Taxed total {0}", this.format.currency(bbpp.taxedTotal)));
+        this.console.appendLine(format("Tax rate {0}", this.format.percent(bbpp.taxRate)));
+
+        this.console.appendLine(format("Tax amount {0} / USD {1}. Advances {2}",
+                this.format.currency(bbpp.taxAmount),
+                this.format.currency(bbpp.usdTaxAmount.getAmount()),
+                this.format.currency(bbpp.taxAmount.divide(BigDecimal.valueOf(5), C))));
+
+        this.console.appendLine(format("Monthly tax amount USD {0}", this.format.currency(bbpp.usdTaxAmount.adjust(BigDecimal.valueOf(12), ONE).getAmount())));
 
         this.console.appendLine(format("Effective tax rate is {0}. Tax is {1} of investments. Tax is {2} of income.",
-                this.format.percent(taxAmount.divide(totalAmount, C)),
-                this.format.percent(usdTaxAmount.getAmount().divide(allInvested.getAmount(), C)),
-                this.format.percent(usdTaxAmount.getAmount().divide(yearRealIncome.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add), C))));
+                this.format.percent(bbpp.taxAmount.divide(bbpp.totalAmount, C)),
+                this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.allInvested.getAmount(), C)),
+                this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.yearRealIncome, C))));
 
         this.console.appendLine(this.format.subtitle("Detail"));
 
         this.console.appendLine(format("{0}{1}{2}{3}", this.format.text("", 16), this.format.text("      Value", 16), this.format.text("    %", 10), this.format.text("      Taxed", 16)));
-        allArs.stream()
+        bbpp.allArs.stream()
                 .map(i -> format("{0}{1}{2}{3}",
                 this.format.text(i.getName(), 16),
                 this.format.currency(i.getValue(), 16),
