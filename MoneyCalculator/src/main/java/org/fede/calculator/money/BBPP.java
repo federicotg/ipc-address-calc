@@ -50,7 +50,11 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class BBPP {
 
+    private static final TypeReference<List<BBPPYear>> TR = new TypeReference<List<BBPPYear>>() {
+    };
+
     private static class BBPPResult {
+
         private int year;
         private BigDecimal totalAmount;
         private BigDecimal taxedDomesticAmount;
@@ -62,6 +66,7 @@ public class BBPP {
         private MoneyAmount allInvested;
         private BigDecimal yearRealIncome;
         private List<BBPPItem> allArs;
+        private MoneyAmount usdPaidAmount;
     }
 
     private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
@@ -77,8 +82,11 @@ public class BBPP {
     }
 
     public void bbppEvolution(int year, boolean ibkr) {
-        SeriesReader.read("bbpp.json", new TypeReference<List<BBPPYear>>() {
-        }).stream()
+
+        this.console.appendLine(this.format.title("BB.PP. Evolution"));
+
+        SeriesReader.read("bbpp.json", TR)
+                .stream()
                 .map(BBPPYear::getYear)
                 .map(y -> this.bbppResult(y, ibkr))
                 .sorted(Comparator.comparing(r -> r.year))
@@ -86,15 +94,17 @@ public class BBPP {
     }
 
     private void bbppEvoReport(BBPPResult bbpp) {
-        this.console.appendLine(format("{3}: Tax amount {0} / USD {1}. Advances {2}",
-                this.format.currency(bbpp.taxAmount),
-                this.format.currency(bbpp.usdTaxAmount.getAmount()),
-                this.format.currency(bbpp.taxAmount.divide(BigDecimal.valueOf(5), C)),
-                String.valueOf(bbpp.year)));
+
+        this.console.appendLine(format("{3}: Tax amount {0} / {1}. Advances {2}. Paid {4}.",
+                this.format.currency(bbpp.taxAmount, 12),
+                this.format.currency(bbpp.usdTaxAmount, 12),
+                this.format.currency(bbpp.taxAmount.divide(BigDecimal.valueOf(5), C), 12),
+                String.valueOf(bbpp.year),
+                this.format.currency(bbpp.usdPaidAmount, 12)));
 
     }
 
-    private BBPPResult bbppResult(int year, boolean ibkr) {
+    private BBPPResult bbppResult(final int year, final boolean ibkr) {
         List<BBPPYear> bbppYears = SeriesReader.read("bbpp.json", new TypeReference<List<BBPPYear>>() {
         });
 
@@ -173,19 +183,21 @@ public class BBPP {
         bbpp.getItems().add(etfsItem);
         bbpp.getItems().add(onsItem);
 
-        final var allArs = bbpp.getItems()
+        final var result = new BBPPResult();
+
+        result.allArs = bbpp.getItems()
                 .stream()
                 .filter(i -> ibkr || !i.getName().equals("IBKR USD"))
                 .map(i -> this.toARS(i, bbpp.getUsd(), bbpp.getEur()))
                 .filter(bbppItem -> bbppItem.getValue().compareTo(ZERO) != 0)
                 .collect(toList());
 
-        final var totalAmount = allArs
+        result.totalAmount = result.allArs
                 .stream()
                 .map(i -> i.getValue().multiply(i.getHolding(), C))
                 .reduce(ZERO, BigDecimal::add);
 
-        final var taxedDomesticAmount = allArs
+        result.taxedDomesticAmount = result.allArs
                 .stream()
                 .filter(BBPPItem::isDomestic)
                 .filter(i -> !i.isExempt())
@@ -193,32 +205,32 @@ public class BBPP {
                 .reduce(ZERO, BigDecimal::add)
                 .multiply(new BigDecimal("1.05"), C);
 
-        final var taxedForeignAmount = allArs
+        result.taxedForeignAmount = result.allArs
                 .stream()
                 .filter(i -> !i.isDomestic())
                 .filter(i -> !i.isExempt())
                 .map(i -> i.getValue().multiply(i.getHolding(), C))
                 .reduce(ZERO, BigDecimal::add);
 
-        final var taxedTotal = bbpp.getMinimum()
+        result.taxedTotal = bbpp.getMinimum()
                 .negate()
-                .add(taxedDomesticAmount, C)
-                .add(taxedForeignAmount, C);
+                .add(result.taxedDomesticAmount, C)
+                .add(result.taxedForeignAmount, C);
 
-        final var taxRate = bbpp.getBrakets()
+        result.taxRate = bbpp.getBrakets()
                 .stream()
                 .sorted(comparing(BBPPTaxBraket::getFrom))
-                .filter(b -> b.getFrom().compareTo(totalAmount) <= 0)
+                .filter(b -> b.getFrom().compareTo(result.totalAmount) <= 0)
                 .reduce((left, right) -> right)
                 .get()
                 .getTax();
 
-        final var taxAmount = taxedTotal.multiply(taxRate, C);
+        result.taxAmount = result.taxedTotal.multiply(result.taxRate, C);
 
-        final var usdTaxAmount = getMoneyAmountForeignExchange("ARS", "USD")
-                .apply(new MoneyAmount(taxAmount, "ARS"), ym);
+        result.usdTaxAmount = getMoneyAmountForeignExchange("ARS", "USD")
+                .apply(new MoneyAmount(result.taxAmount, "ARS"), ym);
 
-        final var allInvested = this.series.getInvestments()
+        result.allInvested = this.series.getInvestments()
                 .stream()
                 .filter(i -> i.isCurrent(date))
                 .map(Investment::getInvestment)
@@ -231,22 +243,22 @@ public class BBPP {
         this.series.realIncome()
                 .forEachNonZero((yearMonth, ma) -> Optional.of(ma).filter(m -> yearMonth.getYear() == year).ifPresent(yearRealIncomeList::add));
 
-        final var yearRealIncome = yearRealIncomeList.stream()
+        result.yearRealIncome = yearRealIncomeList.stream()
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
-        final var result = new BBPPResult();
-        result.allInvested = allInvested;
-        result.taxAmount = taxAmount;
-        result.taxRate = taxRate;
-        result.taxedDomesticAmount = taxedDomesticAmount;
-        result.taxedForeignAmount = taxedForeignAmount;
-        result.taxedTotal = taxedTotal;
-        result.totalAmount = totalAmount;
-        result.usdTaxAmount = usdTaxAmount;
         result.year = year;
-        result.yearRealIncome = yearRealIncome;
-        result.allArs = allArs;
+
+        result.usdPaidAmount = SeriesReader.readSeries("expense/bbpp.json")
+                .exchangeInto("USD")
+                .filter((yearMonth, ma) -> this.bbppPaymentYear(yearMonth, year))
+                .reduce(ZERO_USD, MoneyAmount::add);
+
         return result;
+    }
+    
+    private boolean bbppPaymentYear(YearMonth ym, int bbppYear){
+        return (ym.getYear() == bbppYear && ym.getMonth() >= 6) 
+                || (ym.getYear() == bbppYear+1 && ym.getMonth() < 6);
     }
 
     public void bbpp(int year, boolean ibkr) {
@@ -257,8 +269,7 @@ public class BBPP {
 
     private void bbppReport(BBPPResult bbpp) {
 
-        // report
-        this.console.appendLine("===< ", format("BB.PP. {0}", String.valueOf(bbpp.year)), " >===");
+        this.console.appendLine(this.format.title(format("BB.PP. {0}", String.valueOf(bbpp.year))));
         this.console.appendLine(format("Total amount {0}", this.format.currency(bbpp.totalAmount)));
 
         this.console.appendLine(format("Taxed domestic amount {0}", this.format.currency(bbpp.taxedDomesticAmount)));
