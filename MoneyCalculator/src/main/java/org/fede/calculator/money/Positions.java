@@ -22,6 +22,10 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
 import java.util.Date;
@@ -29,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
@@ -269,7 +274,7 @@ public class Positions {
                 : "IBKR €";
     }
 
-    public void costs(boolean nominal) {
+    private void costs(boolean nominal) {
 
         final Function<Investment, String> yearClassifier = i -> String.valueOf(YearMonth.of(i.getInitialDate()).getYear());
         final Function<Investment, String> brokerClassifier = i -> i.getComment() == null ? "PPI " : "IBKR";
@@ -297,6 +302,42 @@ public class Positions {
                 .sorted()
                 .forEach(e -> this.costReport(e, inv, cost, totalInv));
         this.console.appendLine("");
+        this.annualCost(nominal);
+
+    }
+    
+    
+    private void annualCost(boolean nominal){
+
+        final Function<Investment, String> any = i -> "all";
+        
+        final var totalCost = this.by(nominal, any, Investment::getCost)
+                .values()
+                .stream()
+                .map(MoneyAmount::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        final var totalInv = this.by(nominal, any, Investment::getInitialMoneyAmount)
+                .values()
+                .stream()
+                .map(MoneyAmount::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        final var startDate = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isCurrent)
+                .filter(Investment::isETF)
+                .map(Investment::getInitialDate)
+                .min(Comparator.naturalOrder())
+                .map(Date::toInstant)
+                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
+                .get();
+        
+        final var days = ChronoUnit.DAYS.between(startDate, LocalDate.now());
+        
+        this.console.appendLine(MessageFormat.format("{0} {1}", 
+                "Cost per year", 
+                this.format.percent(new BigDecimal(Math.pow(totalCost.divide(totalInv, C).add(ONE, C).doubleValue(),365.0d/(double) days)-1.0d))));
+        
     }
 
     private void costReport(String label, Map<String, MoneyAmount> m1, Map<String, MoneyAmount> m2, BigDecimal totalinv) {
