@@ -403,6 +403,7 @@ public class ConsoleReports {
                         entry("expenses-change", "months=12"),
                         entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)"),
+                        entry("dca", "type=(q*|h|y|m)"),
                         entry("pos", "nominal=false fees=false")
                 );
 
