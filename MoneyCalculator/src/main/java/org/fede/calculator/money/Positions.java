@@ -180,6 +180,7 @@ public class Positions {
 
         this.console.appendLine(this.format.subtitle("Costs"));
         this.costs(nominal);
+        this.annualCost(nominal);
     }
 
     public void dca(boolean nominal, String type) {
@@ -191,6 +192,8 @@ public class Positions {
 
         this.console.appendLine(this.format.subtitle("Costs"));
         this.cost(classifier, nominal);
+        
+        this.annualCost(nominal);
     }
 
     private void dca(boolean nominal, Function<Investment, String> groupingFucntion) {
@@ -301,7 +304,6 @@ public class Positions {
                 .sorted()
                 .forEach(e -> this.costReport(e, inv, cost, totalInv));
         this.console.appendLine("");
-        this.annualCost(nominal);
 
     }
     
