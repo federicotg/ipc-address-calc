@@ -85,10 +85,11 @@ public class BBPP {
 
         this.console.appendLine(this.format.title("BB.PP. Evolution"));
 
+        final List<BBPPYear> bbppYears = SeriesReader.read("bbpp.json", TR);
         SeriesReader.read("bbpp.json", TR)
                 .stream()
                 .map(BBPPYear::getYear)
-                .map(y -> this.bbppResult(y, ibkr))
+                .map(y -> this.bbppResult(bbppYears, y, ibkr))
                 .sorted(Comparator.comparing(r -> r.year))
                 .forEach(this::bbppEvoReport);
     }
@@ -104,9 +105,7 @@ public class BBPP {
 
     }
 
-    private BBPPResult bbppResult(final int year, final boolean ibkr) {
-        List<BBPPYear> bbppYears = SeriesReader.read("bbpp.json", new TypeReference<List<BBPPYear>>() {
-        });
+    private BBPPResult bbppResult(List<BBPPYear> bbppYears, final int year, final boolean ibkr) {
 
         final var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
@@ -160,7 +159,6 @@ public class BBPP {
                 .filter(i -> BONO.equals(i.getType()))
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getMoneyAmount)
-                //.peek(ma -> System.out.println(ma.getCurrency()))
                 .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -255,16 +253,14 @@ public class BBPP {
 
         return result;
     }
-    
-    private boolean bbppPaymentYear(YearMonth ym, int bbppYear){
-        return (ym.getYear() == bbppYear && ym.getMonth() >= 6) 
-                || (ym.getYear() == bbppYear+1 && ym.getMonth() < 6);
+
+    private boolean bbppPaymentYear(YearMonth ym, int bbppYear) {
+        return (ym.getYear() == bbppYear && ym.getMonth() >= 6)
+                || (ym.getYear() == bbppYear + 1 && ym.getMonth() < 6);
     }
 
     public void bbpp(int year, boolean ibkr) {
-
-        this.bbppReport(this.bbppResult(year, ibkr));
-
+        this.bbppReport(this.bbppResult(SeriesReader.read("bbpp.json", TR), year, ibkr));
     }
 
     private void bbppReport(BBPPResult bbpp) {
@@ -299,7 +295,6 @@ public class BBPP {
                 this.format.percent(i.getHolding(), 10),
                 this.format.currency(i.getValue().multiply(i.isExempt() ? ZERO : i.getHolding(), C), 16)))
                 .forEach(this.console::appendLine);
-
     }
 
     private BBPPItem toARS(BBPPItem item, BigDecimal usdValue, BigDecimal eurValue) {
@@ -315,15 +310,13 @@ public class BBPP {
         newItem.setName(item.getName());
 
         if (item.getCurrency().equals("USD")) {
-
             newItem.setValue(item.getValue().multiply(usdValue, C));
-
         }
+
         if (item.getCurrency().equals("EUR")) {
-
             newItem.setValue(item.getValue().multiply(eurValue, C));
-
         }
+
         return newItem;
 
     }

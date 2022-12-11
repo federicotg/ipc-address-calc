@@ -95,6 +95,10 @@ public class ConsoleReports {
     private static boolean nominal(Map<String, String> params) {
         return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
     }
+    
+    private static int months(Map<String, String> params) {
+        return Integer.parseInt(params.getOrDefault("months", "12"));
+    }
 
     private final Series series;
     private final Console console;
@@ -201,7 +205,7 @@ public class ConsoleReports {
                 .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), reportCurrency), entry.getKey()))
                 .forEach(this::appendLine);
 
-        total.map(t -> format("-----------------------------\n{0}{1}", this.format.text("Total", 5), this.format.currency(t, 16)))
+        total.map(t -> format("-----------------------------\n{0} {1}", this.format.text("Total", 5), this.format.currency(t, 16)))
                 .ifPresent(this::appendLine);
     }
 
@@ -233,7 +237,7 @@ public class ConsoleReports {
             this.yearlyIncome();
         } else {
 
-            this.income(Integer.parseInt(params.getOrDefault("months", "12")));
+            this.income(months(params));
 
             final var totalIncome = this.series.getIncomeSeries()
                     .stream()
@@ -540,7 +544,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, type);
 
         final String exp = params.get("type");
-        final int months = Integer.parseInt(params.getOrDefault("months", "12"));
+        final int months = months(params);
 
         this.appendLine(this.format.title(format("Real USD expenses in the last {0} months", months)));
 
@@ -708,15 +712,9 @@ public class ConsoleReports {
                                 .average(this.series.realExpenses(null))), 5);
     }
 
-//    private void incomeEvolution() {
-//
-//        this.appendLine(this.format.title("Income evolution"));
-//        this.bar.evolution("Income", this.series.realIncome(), 40);
-//    }
-//
     private void incomeAverageEvolution(String[] args, String paramName) {
         var params = this.paramsValue(args, paramName);
-        var months = Integer.parseInt(params.getOrDefault("months", "12"));
+        var months = months(params);
         var ars = Boolean.parseBoolean(params.getOrDefault("ars", "false"));
         this.appendLine(this.format.title(format("Average {0}-month income evolution", months)));
         this.incomeAverageEvolution(months, ars);
@@ -821,12 +819,6 @@ public class ConsoleReports {
                 income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).getAmount().divide(ONE.max(ma.getAmount()), C), ma.getCurrency())),
                 2);
     }
-
-//    private void monthlySavings() {
-//        this.appendLine(this.format.title("Net monthly savings"));
-//
-//        this.bar.evolution("Net savings", this.series.realNetSavings(), 100);
-//    }
 
     private void yearlySavings() {
 

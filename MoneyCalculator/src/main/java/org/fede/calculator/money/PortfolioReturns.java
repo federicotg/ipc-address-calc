@@ -152,7 +152,6 @@ public class PortfolioReturns {
                         this.format.percent(p.getValue().getMoneyWeighted(), 8),
                         this.bar.pctBar(p.getValue().getAnnualizedMoneyWeighted()));
 
-        //this.console.appendLine("");
         this.console.appendLine(this.format.text(" ", 10), this.format.text(" Return", 10), this.format.text("    Annualized", 8));
 
         this.mdrByYear(inv, from, to, nominal, returnTypeFunction)
