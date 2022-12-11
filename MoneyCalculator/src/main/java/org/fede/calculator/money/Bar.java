@@ -153,8 +153,7 @@ public class Bar {
 
         final var steps = value.movePointRight(2)
                 .abs()
-                .divide(BigDecimal.TEN, C)
-                .setScale(0, RoundingMode.HALF_UP)
+                .movePointLeft(1)
                 .intValue();
 
         final var stream = steps < 15

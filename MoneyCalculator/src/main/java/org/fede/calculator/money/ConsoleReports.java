@@ -95,7 +95,7 @@ public class ConsoleReports {
     private static boolean nominal(Map<String, String> params) {
         return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
     }
-    
+
     private static int months(Map<String, String> params) {
         return Integer.parseInt(params.getOrDefault("months", "12"));
     }
@@ -323,7 +323,6 @@ public class ConsoleReports {
                     entry("gi", me::groupedInvestments),
                     entry("ti", me::listStockByType),
                     entry("inv", () -> me.invReport(args, "inv")),
-
                     entry("savings", () -> me.savings(args, "savings")),
                     entry("savings-evo", () -> me.savingEvolution(args, "savings-evo")),
                     entry("savings-change", () -> me.savingChange(args, "savings-change")),
@@ -334,21 +333,18 @@ public class ConsoleReports {
                     entry("savings-dist", me::savingsDistributionEvolution),
                     entry("savings-dist-pct", me::savingsDistributionPercentEvolution),
                     entry("saved-salaries-evo", () -> me.averageSavedSalaries(args, "saved-salaries-evo")),
-
                     entry("income", () -> me.income(args, "income")),
                     entry("income-table", me::savingsIncomeTable),
                     entry("income-year-table", me::yearSavingsIncomeTable),
                     entry("income-evo", () -> me.incomeAverageEvolution(args, "income-evo")),
                     entry("income-src", () -> me.incomeAverageBySource(args, "income-src")),
                     entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
-
                     entry("p", () -> me.portfolio(args, "p")),
                     entry("p-evo", () -> me.portfolioEvo(args, "p-evo")),
                     entry("p-evo-pct", () -> me.portfolioEvoPct(args, "p-evo-pct")),
                     entry("p-type-evo", () -> new Investments(console, format, bar, series).portfolioTypeEvo(false)),
                     entry("p-type-evo-pct", () -> new Investments(console, format, bar, series).portfolioTypeEvo(true)),
                     entry("pa", () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation()),
-
                     entry("house-evo", () -> new House(console, format, bar).houseCostsEvolution()),
                     entry("house", () -> me.house(args, "house")),
                     entry("expenses", () -> me.expenses(args, "expenses")),
@@ -796,14 +792,13 @@ public class ConsoleReports {
         new BBPP(format, series, console)
                 .bbpp(Integer.parseInt(params.getOrDefault("year", "2021")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
     }
-    
+
     private void bbppEvo(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
 
         new BBPP(format, series, console)
                 .bbppEvolution(Integer.parseInt(params.getOrDefault("year", "2021")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
     }
-    
 
     private void averageSavedSalaries(String[] args, String name) {
 
@@ -1003,7 +998,7 @@ public class ConsoleReports {
 
         this.appendLine(this.format.title("Income / Spending by Year"));
 
-        this.appendLine(this.row(Stream.of("-= Year =-", "Income", "Savings", "Spending", "Saving %")));
+        this.appendLine(this.row(Stream.of("-= Year =-", "Income", "Sav.", "Spend.", "Sav. %", "Sav./Spend.")));
 
         IntStream.of(years)
                 .mapToObj(y -> this.row(Stream.of(format("-= {0} =-", String.valueOf(y) + (y == USD_INFLATION.getTo().getYear() ? "*" : "")),
@@ -1012,7 +1007,8 @@ public class ConsoleReports {
                 this.format.currency(incomes.get(y).subtract(savings.get(y)).getAmount()),
                 format("{0}", this.format.percent(savings.get(y).getAmount()
                         .divide(incomes.get(y).getAmount()
-                                .subtract(ONE, C), C))))))
+                                .subtract(ONE, C), C))),
+                this.format.number(savings.get(y).getAmount().divide(incomes.get(y).subtract(savings.get(y)).getAmount(), C)))))
                 .forEach(this::appendLine);
     }
 
