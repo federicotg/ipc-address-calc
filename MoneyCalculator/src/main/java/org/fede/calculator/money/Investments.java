@@ -50,7 +50,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
-import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
