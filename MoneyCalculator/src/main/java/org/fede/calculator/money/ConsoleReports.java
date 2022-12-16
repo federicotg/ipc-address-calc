@@ -797,7 +797,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         new BBPP(format, series, console)
-                .bbppEvolution(Integer.parseInt(params.getOrDefault("year", "2021")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
+                .bbppEvolution(Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
     }
 
     private void averageSavedSalaries(String[] args, String name) {

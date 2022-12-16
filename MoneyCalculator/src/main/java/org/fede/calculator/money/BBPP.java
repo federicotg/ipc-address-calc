@@ -81,14 +81,14 @@ public class BBPP {
         this.console = console;
     }
 
-    public void bbppEvolution(int year, boolean ibkr) {
+    public void bbppEvolution(boolean ibkr) {
 
         this.console.appendLine(this.format.title("BB.PP. Evolution"));
 
         this.console.appendLine(
                 this.format.text("Year", 5),
                 this.format.text("     Amount", 14),
-                this.format.text("   Amount USD", 14),
+                this.format.text("   Amount USD", 16),
                 this.format.text("    Advance", 14),
                 this.format.text("     Paid", 14),
                 this.format.text("  Ef. rate", 10),
@@ -109,7 +109,7 @@ public class BBPP {
         this.console.appendLine(format("{0}{1}{2}{3}{4}{5}{6}{7}",
                 this.format.text(String.valueOf(bbpp.year), 5),
                 this.format.currency(bbpp.taxAmount, 14),
-                this.format.currency(bbpp.usdTaxAmount, 14),
+                this.format.currency(bbpp.usdTaxAmount, 16),
                 this.format.currency(bbpp.taxAmount.divide(BigDecimal.valueOf(5), C), 14),
                 this.format.currency(bbpp.usdPaidAmount, 14),
                 this.format.percent(bbpp.taxAmount.divide(bbpp.totalAmount, C), 10),
