@@ -85,6 +85,16 @@ public class BBPP {
 
         this.console.appendLine(this.format.title("BB.PP. Evolution"));
 
+        this.console.appendLine(
+                this.format.text("Year", 5),
+                this.format.text("     Amount", 14),
+                this.format.text("   Amount USD", 14),
+                this.format.text("    Advance", 14),
+                this.format.text("     Paid", 14),
+                this.format.text("  Ef. rate", 10),
+                this.format.text("  Inv. %", 10),
+                this.format.text("   Income %", 12));
+
         final List<BBPPYear> bbppYears = SeriesReader.read("bbpp.json", TR);
         SeriesReader.read("bbpp.json", TR)
                 .stream()
@@ -96,12 +106,15 @@ public class BBPP {
 
     private void bbppEvoReport(BBPPResult bbpp) {
 
-        this.console.appendLine(format("{3}: Tax amount {0} / {1}. Advances {2}. Paid {4}.",
-                this.format.currency(bbpp.taxAmount, 12),
-                this.format.currency(bbpp.usdTaxAmount, 12),
-                this.format.currency(bbpp.taxAmount.divide(BigDecimal.valueOf(5), C), 12),
-                String.valueOf(bbpp.year),
-                this.format.currency(bbpp.usdPaidAmount, 12)));
+        this.console.appendLine(format("{0}{1}{2}{3}{4}{5}{6}{7}",
+                this.format.text(String.valueOf(bbpp.year), 5),
+                this.format.currency(bbpp.taxAmount, 14),
+                this.format.currency(bbpp.usdTaxAmount, 14),
+                this.format.currency(bbpp.taxAmount.divide(BigDecimal.valueOf(5), C), 14),
+                this.format.currency(bbpp.usdPaidAmount, 14),
+                this.format.percent(bbpp.taxAmount.divide(bbpp.totalAmount, C), 10),
+                this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.allInvested.getAmount(), C), 10),
+                this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.yearRealIncome, C), 12)));
 
     }
 
@@ -225,8 +238,10 @@ public class BBPP {
 
         result.taxAmount = result.taxedTotal.multiply(result.taxRate, C);
 
+        final var usdFxYearMonth = Inflation.USD_INFLATION.getTo().min(YearMonth.of(ym.getYear() + 1, 6));
+
         result.usdTaxAmount = getMoneyAmountForeignExchange("ARS", "USD")
-                .apply(new MoneyAmount(result.taxAmount, "ARS"), ym);
+                .apply(new MoneyAmount(result.taxAmount, "ARS"), usdFxYearMonth);
 
         result.allInvested = this.series.getInvestments()
                 .stream()
