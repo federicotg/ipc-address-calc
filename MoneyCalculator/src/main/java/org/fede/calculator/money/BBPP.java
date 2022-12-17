@@ -96,7 +96,7 @@ public class BBPP {
                 this.format.text("   Income %", 12));
 
         final List<BBPPYear> bbppYears = SeriesReader.read("bbpp.json", TR);
-        SeriesReader.read("bbpp.json", TR)
+        bbppYears
                 .stream()
                 .map(BBPPYear::getYear)
                 .map(y -> this.bbppResult(bbppYears, y, ibkr))
