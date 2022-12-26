@@ -55,6 +55,9 @@ public class Series {
     public List<Investment> getInvestments() {
         if (this.investments == null) {
             this.investments = SeriesReader.read("investments.json", TR);
+            if(!this.investments.stream().allMatch(Investment::isValid)){
+                throw new IllegalArgumentException("Invalid investment");
+            }
         }
 
         return investments;

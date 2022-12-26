@@ -307,15 +307,15 @@ public class Goal {
             double[] realWithdrawals) {
 
         return IntStream.range(0, trials)
-                .mapToObj(i -> returnsSuplier.get())
-                .filter(randomReturns
+                .mapToObj(i -> Pair.of(returnsSuplier.get(), gauss(end, END_AGE_STD)))
+                .filter(p
                         -> this.goals(
                         startingYear,
                         retirementYear,
-                        gauss(end, END_AGE_STD),
+                        p.getSecond(),
                         cash,
                         investedAmount,
-                        randomReturns,
+                        p.getFirst(),
                         realDeposits,
                         realWithdrawals))
                 .count();

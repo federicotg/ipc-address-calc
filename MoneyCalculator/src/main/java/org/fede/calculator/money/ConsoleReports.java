@@ -78,7 +78,7 @@ public class ConsoleReports {
     private static final String TRIALS = "50000";
     private static final String RETIREMENT = "66";
     private static final String AGE = "99";
-    private static final String INFLATION = "2.5";
+    private static final String INFLATION = "2.6";
     private static final String CASH = "0";
     private static final String TAX = "true";
     private static final String EXPECTED_RETRUNS = "all";
