@@ -23,41 +23,9 @@ import java.util.Set;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public enum InvestmentType {
-    PF {
-        @Override
-        public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {
-            return out != null
-                    && in.getDate().before(out.getDate())
-                    && in.getCurrency().equals(asset.getCurrency())
-                    && in.getCurrency().equals(out.getCurrency())
-                    && in.getAmount().compareTo(out.getAmount()) < 0;
-        }
-    },
-    USD {
-        @Override
-        public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {
-            return asset.getCurrency().equals("USD");
-        }
-    },
-    FCI {
-        @Override
-        public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {
-            return true;
-        }
-    },
-    BONO {
-        @Override
-        public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {
-            return Set.of("AY24", "LETE", "LECAP", "USD").contains(asset.getCurrency());
-        }
-    },
-    ETF {
-        @Override
-        public boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset) {
-            return Set.of("CSPX", "MEUD", "EIMI", "XRSU", "RTWO").contains(asset.getCurrency());
-        }
-    };
-
-    public abstract boolean isValid(InvestmentEvent in, InvestmentEvent out, InvestmentAsset asset);
-
+    PF,
+    USD,
+    FCI,
+    BONO,
+    ETF;
 }

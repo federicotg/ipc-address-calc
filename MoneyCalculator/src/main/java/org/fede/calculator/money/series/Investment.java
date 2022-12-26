@@ -80,11 +80,6 @@ public class Investment {
     }
 
     @JsonIgnore
-    public boolean isValid() {
-        return this.getType().isValid(this.getIn(), this.getOut(), this.getInvestment());
-    }
-
-    @JsonIgnore
     public Date getInitialDate() {
         return this.getIn().getDate();
     }
