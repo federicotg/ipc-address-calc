@@ -256,7 +256,7 @@ public class ConsoleReports {
                 .stream()
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(new SimpleAggregation(months)::average)
-                .map(allRealUSDIncome -> allRealUSDIncome.getAmount(allRealUSDIncome.getTo()))
+                .map(allRealUSDIncome -> allRealUSDIncome.getAmount(limit.min(allRealUSDIncome.getTo())))
                 .orElse(ZERO_USD);
 
         this.appendLine(this.format.title(format("Average {0}-month income in {1}/{2} real USD",
