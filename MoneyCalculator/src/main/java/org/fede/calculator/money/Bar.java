@@ -250,9 +250,13 @@ public class Bar {
     }
 
     public void evolution(String name, MoneyAmountSeries s, int scale) {
-        var limit = USD_INFLATION.getTo();
+        final var limit = USD_INFLATION.getTo();
 
-        s.forEach((ym, ma) -> this.console.appendLine(this.currencyBar(ym, List.of(Pair.of(ma, Attribute.WHITE_BACK())), scale)));
+        s.forEach((ym, ma) -> {
+            if (ym.compareTo(limit) <= 0) {
+                this.console.appendLine(this.currencyBar(ym, List.of(Pair.of(ma, Attribute.WHITE_BACK())), scale));
+            }
+        });
 
         this.console.appendLine("\n", name, " real USD ", format("{0}/{1}", String.valueOf(limit.getYear()), limit.getMonth()));
 
