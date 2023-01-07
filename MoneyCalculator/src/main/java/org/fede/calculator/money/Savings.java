@@ -47,6 +47,16 @@ public class Savings {
         this.console = console;
     }
 
+    private int getScale(int months) {
+        int scale = 25;
+        if (months <= 6) {
+            scale = 35;
+        } else if (months > 24) {
+            scale = 20;
+        }
+        return scale;
+    }
+
     public void netAvgSavingSpent(int months, String title) {
 
         this.console.appendLine(this.format.title(title));
@@ -58,7 +68,7 @@ public class Savings {
 
         netSaving.map((ym, ma) -> ZERO_USD.max(ma))
                 .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.currencyBar(ym, this.series(ym, spending, income, savingMa), 25)));
+                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.currencyBar(ym, this.series(ym, spending, income, savingMa), this.getScale(months))));
 
         this.savingsRefs(title);
 
