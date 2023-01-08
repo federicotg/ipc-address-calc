@@ -719,7 +719,12 @@ public class ConsoleReports {
 
     private void incomeAverageEvolution(int months, boolean ars) {
 
-        final var baseBarSize = 30;
+        int baseBarSize = 30;
+        
+        if(months < 6){
+            baseBarSize = 50;
+        }
+        
         final var s = ars
                 ? this.series.realIncome().exchangeInto("ARS")
                 : this.series.realIncome();
