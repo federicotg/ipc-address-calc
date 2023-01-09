@@ -83,7 +83,7 @@ public class ConsoleReports {
     private static final String TAX = "true";
     private static final String EXPECTED_RETRUNS = "all";
     private static final String BBPP = "2.25";
-    private static final String BBPP_MIN = "64000";
+    //private static final String BBPP_MIN = "64000";
     private static final String PENSION = "100";
 
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(MathConstants.SCALE, MathConstants.RM), BigDecimal::add);
@@ -372,7 +372,7 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} tax={5} bbpp={6} bbppmin={7} pension={8} exp={9}",
+                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} tax={5} bbppmin={6} pension={7} exp={8}",
                                 TRIALS,
                                 RETIREMENT,
                                 AGE,
@@ -380,7 +380,6 @@ public class ConsoleReports {
                                 CASH,
                                 TAX,
                                 BBPP,
-                                BBPP_MIN,
                                 PENSION,
                                 EXPECTED_RETRUNS)),
                         entry("savings-change", "months=1"),
@@ -641,26 +640,24 @@ public class ConsoleReports {
 
         final var seriesGroups = this.series.getRealUSDExpensesByType();
 
-        final var series = seriesGroups.entrySet().stream()
+        final var ss = seriesGroups.entrySet().stream()
                 .sorted(Comparator.comparing(Map.Entry::getKey))
                 .map(e -> e.getValue().stream().reduce(MoneyAmountSeries::add).get())
                 .map(agg::average)
                 .collect(Collectors.toList());
 
         final var labels = seriesGroups.entrySet().stream()
-                .map(e -> e.getKey())
+                .map(Map.Entry::getKey)
                 .sorted()
                 .collect(Collectors.toList());
 
-        final var oldestSeries = series.stream().min(Comparator.comparing(s -> s.getFrom())).get();
+        final var oldestSeries = ss.stream().min(Comparator.comparing(MoneyAmountSeries::getFrom)).get();
 
         oldestSeries.map((ym, ma) -> ZERO_USD.max(ma))
-                .forEach((ym, savingMa) -> appendLine(this.bar.currencyBar(ym, this.independenSeries(ym, series, colorList), 8)));
+                .forEach((ym, savingMa) -> appendLine(this.bar.currencyBar(ym, this.independenSeries(ym, ss, colorList), 8)));
 
-        new Savings(format, this.series, bar, console).refs(
-                title,
-                labels,
-                colorList);
+        new Savings(format, this.series, bar, console)
+                .refs(title, labels, colorList);
 
     }
 
@@ -720,11 +717,11 @@ public class ConsoleReports {
     private void incomeAverageEvolution(int months, boolean ars) {
 
         int baseBarSize = 30;
-        
-        if(months < 6){
+
+        if (months < 6) {
             baseBarSize = 50;
         }
-        
+
         final var s = ars
                 ? this.series.realIncome().exchangeInto("ARS")
                 : this.series.realIncome();
@@ -767,11 +764,7 @@ public class ConsoleReports {
                 ? Double.parseDouble(params.getOrDefault("bbpp", BBPP)) / 100.0d
                 : 0.0d;
 
-        final var bbppTaxMin = afterTax
-                ? Double.parseDouble(params.getOrDefault("bbppmin", BBPP_MIN))
-                : 0.0d;
-
-        final var goal = new Goal(this.console, this.format, this.series, this.bar, bbppTax, bbppTaxMin);
+        final var goal = new Goal(this.console, this.format, this.series, this.bar, bbppTax);
 
         final var todaySavings = this.series.realSavings(null).getAmount(Inflation.USD_INFLATION.getTo());
 

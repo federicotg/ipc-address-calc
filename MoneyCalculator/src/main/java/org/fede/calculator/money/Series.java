@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import org.fede.calculator.money.series.BBPPYear;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
@@ -39,6 +40,9 @@ import static org.fede.util.Pair.of;
 public class Series {
 
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
+    };
+    
+    private static final TypeReference<List<BBPPYear>> BBPP_TR = new TypeReference<List<BBPPYear>>() {
     };
 
     private List<Investment> investments;
@@ -249,6 +253,10 @@ public class Series {
         return USD_INFLATION.adjust(
                 SeriesReader.readSeries(prefix + fileName + ".json").exchangeInto("USD"),
                 limit);
+    }
+    
+    public List<BBPPYear> bbppSeries(){
+        return SeriesReader.read("bbpp.json", BBPP_TR);
     }
 
 }

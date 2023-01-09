@@ -50,9 +50,6 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class BBPP {
 
-    private static final TypeReference<List<BBPPYear>> TR = new TypeReference<List<BBPPYear>>() {
-    };
-
     private static class BBPPResult {
 
         private int year;
@@ -95,9 +92,9 @@ public class BBPP {
                 this.format.text("  Inv. %", 10),
                 this.format.text("   Income %", 12));
 
-        final List<BBPPYear> bbppYears = SeriesReader.read("bbpp.json", TR);
-        bbppYears
-                .stream()
+        final List<BBPPYear> bbppYears = this.series.bbppSeries();
+
+        bbppYears.stream()
                 .map(BBPPYear::getYear)
                 .map(y -> this.bbppResult(bbppYears, y, ibkr))
                 .sorted(Comparator.comparing(r -> r.year))
@@ -275,7 +272,7 @@ public class BBPP {
     }
 
     public void bbpp(int year, boolean ibkr) {
-        this.bbppReport(this.bbppResult(SeriesReader.read("bbpp.json", TR), year, ibkr));
+        this.bbppReport(this.bbppResult(this.series.bbppSeries(), year, ibkr));
     }
 
     private void bbppReport(BBPPResult bbpp) {

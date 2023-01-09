@@ -52,7 +52,7 @@ public class Goal {
     private static final int END_AGE_STD = 4;
 
     private static final BigDecimal BUY_FEE = new BigDecimal("200");
-    
+
     private static final BigDecimal MONTHS_IN_A_YEAR = new BigDecimal("12");
 
     private static final BigDecimal SELL_FEE = new BigDecimal("0.00726").multiply(new BigDecimal("0.5"), C)
@@ -71,16 +71,13 @@ public class Goal {
     }
 
     private final double bbppTaxRate;
-    private final double bbppMin;
-
     private final Console console;
     private final Format format;
     private final Series series;
     private final Bar bar;
 
-    public Goal(Console console, Format format, Series series, Bar bar, double bbppTaxRate, double bbppMin) {
+    public Goal(Console console, Format format, Series series, Bar bar, double bbppTaxRate) {
         this.bbppTaxRate = bbppTaxRate;
-        this.bbppMin = bbppMin;
         this.console = console;
         this.format = format;
         this.series = series;
@@ -96,7 +93,8 @@ public class Goal {
             final double investedAmount,
             final double[] returns,
             final double[] deposit,
-            final double[] withdraw) {
+            final double[] withdraw,
+            final double bbppMin) {
 
         double cashAmount = cash;
         double amount = investedAmount;
@@ -108,7 +106,7 @@ public class Goal {
             final var officialDollarFactor = Math.min(1.0d, gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
 
             // BB.PP.
-            bbpp = Math.max(amount * officialDollarFactor - this.bbppMin, 0.0d) * this.bbppTaxRate;
+            bbpp = Math.max(amount * officialDollarFactor - bbppMin, 0.0d) * this.bbppTaxRate;
             final var d = deposit[i - startingYear];
 
             amount -= bbpp;
@@ -127,7 +125,7 @@ public class Goal {
             final var officialDollarFactor = Math.min(1.0d, gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
 
             // BB.PP.
-            bbpp = Math.max(amount * officialDollarFactor - this.bbppMin, 0.0d) * this.bbppTaxRate;
+            bbpp = Math.max(amount * officialDollarFactor - bbppMin, 0.0d) * this.bbppTaxRate;
             amount -= bbpp * cgt;
 
             if (amount > 0.0d) {
@@ -225,6 +223,15 @@ public class Goal {
         }
         this.console.appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2} +/-{3}.", inflation, retirementAge, age, END_AGE_STD));
 
+        final var bbppMin = this.series.bbppSeries()
+                .stream()
+                .map(bbpp -> bbpp.getMinimum().divide(bbpp.getUsd(), MathConstants.C))
+                .mapToDouble(BigDecimal::doubleValue)
+                .average()
+                .orElse(30000d);
+        
+        this.console.appendLine(format("BB.PP min. {0,number,currency}.", bbppMin));
+
         final var retirementYear = 1978 + retirementAge;
 
         final var periodYears = retirementYear - YearMonth.of(new Date()).getYear();
@@ -266,7 +273,8 @@ public class Goal {
                                 age,
                                 investedAmount,
                                 realDeposits,
-                                realWithdrawals)))
+                                realWithdrawals,
+                                bbppMin)))
                 .collect(Collectors.toList());
 
         results.stream()
@@ -304,7 +312,8 @@ public class Goal {
             int cash,
             double investedAmount,
             double[] realDeposits,
-            double[] realWithdrawals) {
+            double[] realWithdrawals,
+            double bbppMin) {
 
         return IntStream.range(0, trials)
                 .mapToObj(i -> Pair.of(returnsSuplier.get(), gauss(end, END_AGE_STD)))
@@ -317,7 +326,8 @@ public class Goal {
                         investedAmount,
                         p.getFirst(),
                         realDeposits,
-                        realWithdrawals))
+                        realWithdrawals,
+                        bbppMin))
                 .count();
     }
 
