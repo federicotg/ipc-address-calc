@@ -372,7 +372,7 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} tax={5} bbppmin={6} pension={7} exp={8}",
+                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} tax={5} bbpp={6} pension={7} exp={8}",
                                 TRIALS,
                                 RETIREMENT,
                                 AGE,
