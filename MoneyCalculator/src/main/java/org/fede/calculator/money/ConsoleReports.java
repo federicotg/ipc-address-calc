@@ -1173,7 +1173,12 @@ public class ConsoleReports {
 
         final var change = agg.change(average);
 
-        average.forEachNonZero((ym, ch) -> percentEvolutionReport(ym, change.getAmount(ym).getAmount().divide(average.getAmount(ym).getAmount(), C)));
+        final var limit = Inflation.USD_INFLATION.getTo();
+        average.forEachNonZero((ym, ch) -> {
+            if (ym.compareTo(limit) <= 0) {
+                percentEvolutionReport(ym, change.getAmount(ym).getAmount().divide(average.getAmount(ym).getAmount(), C));
+            }
+        });
 
         this.console.appendLine(this.format.title(title));
 
