@@ -702,7 +702,7 @@ public class ConsoleReports {
         this.bar.evolution(format("{0}-month average expenses change", months),
                 new SimpleAggregation(2)
                         .change(new SimpleAggregation(months)
-                                .average(this.series.realExpenses(null))), 5);
+                                .average(this.series.realExpenses(null))), 1);
     }
 
     private void incomeAverageEvolution(String[] args, String paramName) {
