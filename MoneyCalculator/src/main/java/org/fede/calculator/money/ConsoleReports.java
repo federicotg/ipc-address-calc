@@ -372,7 +372,7 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} tax={5} bbpp={6} pension={7} exp={8}",
+                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} tax={5} bbpp={6} pension={7} exp={8} months={9}",
                                 TRIALS,
                                 RETIREMENT,
                                 AGE,
@@ -381,7 +381,8 @@ public class ConsoleReports {
                                 TAX,
                                 BBPP,
                                 PENSION,
-                                EXPECTED_RETRUNS)),
+                                EXPECTED_RETRUNS,
+                                36)),
                         entry("savings-change", "months=1"),
                         entry("savings-change-pct", "months=1"),
                         entry("income", "by=(year|half|quarter) months=12"),
