@@ -22,14 +22,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.text.MessageFormat.format;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -79,8 +76,6 @@ public class Goal {
     private final Series series;
     private final Bar bar;
 
-    private final Collection<Double> maxPortfolioValues = new ConcurrentLinkedQueue<>();
-
     public Goal(Console console, Format format, Series series, Bar bar, double bbppTaxRate) {
         this.bbppTaxRate = bbppTaxRate;
         this.console = console;
@@ -120,8 +115,6 @@ public class Goal {
         }
 
         final var cgt = CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT.doubleValue();
-
-        this.maxPortfolioValues.add(amount);
 
         // withdrawing
         for (var i = retirement; i <= end; i++) {
@@ -297,16 +290,6 @@ public class Goal {
         this.console.appendLine(this.format.subtitle("Average"));
         this.console.appendLine(this.report("Average", averageSuccesses, trials));
         
-        final var stats = this.maxPortfolioValues
-                                .stream()
-                                .mapToDouble(Double::doubleValue)
-                                .summaryStatistics();
-        
-        this.console.appendLine(format("Portfolio max {0} min {1} avg {2}",
-                this.format.currency(BigDecimal.valueOf(stats.getMax())),
-                this.format.currency(BigDecimal.valueOf(stats.getMin())),
-                this.format.currency(BigDecimal.valueOf(stats.getAverage()))));
-
     }
 
     private String report(String label, long successes, int trials) {
