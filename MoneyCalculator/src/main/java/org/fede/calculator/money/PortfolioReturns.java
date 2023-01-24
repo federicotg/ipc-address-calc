@@ -65,8 +65,8 @@ public class PortfolioReturns {
         this.console = console;
         this.format = format;
         this.bar = bar;
-        this.cashInvestments = new CashInvestmentBuilder(() ->
-                SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
+        this.cashInvestments = new CashInvestmentBuilder(()
+                -> SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
                         .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
                         .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
                         .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
@@ -113,8 +113,8 @@ public class PortfolioReturns {
         return this.mdrByYear(inv, from, to, false, returnTypeFunction);
     }
 
-    private ModifiedDietzReturnResult mdrResult(Predicate<Investment> criteria, boolean nominal, boolean withCash, Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction){
-        
+    private ModifiedDietzReturnResult mdrResult(Predicate<Investment> criteria, boolean nominal, boolean withCash, Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction) {
+
         final var inv = Stream.concat(
                 withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
                 this.series.getInvestments().stream())
@@ -127,21 +127,17 @@ public class PortfolioReturns {
                 nominal));
 
     }
-    
-    
-    public void modifiedDietzReturn(Predicate<Investment> criteria, boolean nominal, boolean withCash, Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction) {
 
-        
+    public void modifiedDietzReturn(Predicate<Investment> criteria, boolean nominal, boolean withCash, Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction) {
 
         final var modifiedDietzReturn = this.mdrResult(criteria, nominal, withCash, returnTypeFunction);
 
-        
         final var inv = Stream.concat(
                 withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
                 this.series.getInvestments().stream())
                 .filter(criteria)
                 .collect(toList());
-        
+
         final var from = inv.stream()
                 .map(Investment::getInitialDate)
                 .map(Date::toInstant)
@@ -194,49 +190,48 @@ public class PortfolioReturns {
         this.console.appendLine(this.format.title((nominal ? "Nominal " : "Real ") + (timeWeighted ? "Time Weighted " : "Money Weighted ") + "Returns" + (withCash ? "" : " Without Cash")));
 
         final Predicate<Investment> sinceYear = i -> after(i.getInitialDate(), startYear, Month.JANUARY, 1);
-        
-        Function<ModifiedDietzReturn, ModifiedDietzReturnResult> f =
-        timeWeighted 
-                ? ModifiedDietzReturn::monthlyLinked 
-                : ModifiedDietzReturn::get;
-        
+
+        Function<ModifiedDietzReturn, ModifiedDietzReturnResult> f
+                = timeWeighted
+                        ? ModifiedDietzReturn::monthlyLinked
+                        : ModifiedDietzReturn::get;
+
         this.modifiedDietzReturn(sinceYear, nominal, withCash, f);
-            
+
         this.console.appendLine(this.format.subtitle("Summary"));
-        
+
         final var withCashNominal = this.mdrResult(sinceYear, true, true, f);
         final var withoutCashNominal = this.mdrResult(sinceYear, true, false, f);
         final var withCashReal = this.mdrResult(sinceYear, false, true, f);
         final var withoutCashReal = this.mdrResult(sinceYear, false, false, f);
-        
+
         final var col1 = 14;
         final var col2 = 18;
         final var col3 = 18;
-        
-        this.console.appendLine(MessageFormat.format("{0}{1}{2}", 
-                this.format.text("",col1),
+
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}",
+                this.format.text("", col1),
                 this.format.text("     Nominal", col2),
-                this.format.text("      Real",col3)));
-        
-        this.console.appendLine(MessageFormat.format("{0}{1}{2}", 
-                this.format.text("With Cash",col1), 
-                this.format.text(this.summaryItem(withCashNominal),col2),
-                this.format.text(this.summaryItem(withCashReal),col3)));
-        
-        this.console.appendLine(MessageFormat.format("{0}{1}{2}", 
-                this.format.text("Without Cash",col1), 
-                this.format.text(this.summaryItem(withoutCashNominal),col2),
-                this.format.text(this.summaryItem(withoutCashReal),col3)));
-        
-        
+                this.format.text("      Real", col3)));
+
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}",
+                this.format.text("With Cash", col1),
+                this.format.text(this.summaryItem(withCashNominal), col2),
+                this.format.text(this.summaryItem(withCashReal), col3)));
+
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}",
+                this.format.text("Without Cash", col1),
+                this.format.text(this.summaryItem(withoutCashNominal), col2),
+                this.format.text(this.summaryItem(withoutCashReal), col3)));
+
     }
 
-    
-    private String summaryItem(ModifiedDietzReturnResult r){
+    private String summaryItem(ModifiedDietzReturnResult r) {
         return MessageFormat.format("{0} ({1})", this.format.percent(r.getMoneyWeighted()),
-                        this.format.percent(r.getAnnualizedMoneyWeighted()));
+                this.format.percent(r.getAnnualizedMoneyWeighted()));
 
     }
+
     private DayDollars dayDollarsInYear(int year, Investment i) {
 
         final var yearStart = LocalDate.of(year, Month.JANUARY, 1);
@@ -279,36 +274,33 @@ public class PortfolioReturns {
                 .mapToObj(year -> this.dayDollarsInYear(year, i));
 
     }
-    
-    
-    public void mdrByCurrency(){
-    
+
+    public void mdrByCurrency() {
+
         final var skippedCurrencies = Set.of("AY24", "LECAP", "LETE");
-        
+
         this.console.appendLine(this.format.title("Real USD Modified Dietz Return by Currency"));
         Stream.concat(
-                this.cashInvestments.cashInvestments().stream(), 
+                this.cashInvestments.cashInvestments().stream(),
                 this.series.getInvestments().stream())
                 .map(Investment::getCurrency)
                 .filter(c -> !skippedCurrencies.contains(c))
                 .distinct()
                 .forEach(this::mdrByCurrencyReport);
-        
+
     }
-    
-    public void mdrByCurrencyReport(String currency){
+
+    public void mdrByCurrencyReport(String currency) {
         this.console.appendLine(this.format.subtitle(currency));
         this.modifiedDietzReturn(i -> i.getCurrency().equals(currency), false, true, ModifiedDietzReturn::get);
     }
-    
 
     public void portfolioAllocation() {
 
         this.console.appendLine(this.format.title("Money Weighted Return"));
 
         final var mdrByYear = this.mdrByYear(ModifiedDietzReturn::get);
-        
-        
+
         Stream.concat(this.cashInvestments.cashInvestments().stream(), this.series.getInvestments().stream())
                 .flatMap(this::asDayDollarsByYear)
                 .collect(groupingBy(
