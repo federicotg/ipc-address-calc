@@ -165,7 +165,7 @@ public class Goal {
         this.goal(trials, monthlyDeposit, monthlyWithdraw, inflation, retirementAge, extraCash, afterTax, age, pension, todaySavings, invested, expected);
     }
 
-    public void goal(
+    private void goal(
             final int trials,
             final BigDecimal monthlyDeposit,
             final BigDecimal monthlyWithdraw,
@@ -184,7 +184,7 @@ public class Goal {
         final var cash = todaySavings.getAmount()
                 .subtract(invested.getAmount(), C)
                 .add(extraCash, C).doubleValue();
-
+        
         final var inflationRate = ONE.setScale(SCALE, RM)
                 .add(inflation.setScale(SCALE, RM).movePointLeft(2), C).doubleValue();
 
@@ -270,7 +270,7 @@ public class Goal {
                                 startingYear,
                                 retirementYear,
                                 end,
-                                age,
+                                cash,
                                 investedAmount,
                                 realDeposits,
                                 realWithdrawals,
@@ -309,7 +309,7 @@ public class Goal {
             int startingYear,
             int retirementYear,
             int end,
-            int cash,
+            double cash,
             double investedAmount,
             double[] realDeposits,
             double[] realWithdrawals,
