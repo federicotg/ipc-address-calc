@@ -18,6 +18,7 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
+import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -112,19 +113,35 @@ public class PortfolioReturns {
         return this.mdrByYear(inv, from, to, false, returnTypeFunction);
     }
 
-    public void modifiedDietzReturn(Predicate<Investment> criteria, boolean nominal, boolean withCash, Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction) {
-
+    private ModifiedDietzReturnResult mdrResult(Predicate<Investment> criteria, boolean nominal, boolean withCash, Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction){
+        
         final var inv = Stream.concat(
                 withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
                 this.series.getInvestments().stream())
                 .filter(criteria)
                 .collect(toList());
 
-        final var modifiedDietzReturn = returnTypeFunction.apply(new ModifiedDietzReturn(
+        return returnTypeFunction.apply(new ModifiedDietzReturn(
                 inv,
                 "USD",
                 nominal));
 
+    }
+    
+    
+    public void modifiedDietzReturn(Predicate<Investment> criteria, boolean nominal, boolean withCash, Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction) {
+
+        
+
+        final var modifiedDietzReturn = this.mdrResult(criteria, nominal, withCash, returnTypeFunction);
+
+        
+        final var inv = Stream.concat(
+                withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
+                this.series.getInvestments().stream())
+                .filter(criteria)
+                .collect(toList());
+        
         final var from = inv.stream()
                 .map(Investment::getInitialDate)
                 .map(Date::toInstant)
@@ -177,13 +194,49 @@ public class PortfolioReturns {
         this.console.appendLine(this.format.title((nominal ? "Nominal " : "Real ") + (timeWeighted ? "Time Weighted " : "Money Weighted ") + "Returns" + (withCash ? "" : " Without Cash")));
 
         final Predicate<Investment> sinceYear = i -> after(i.getInitialDate(), startYear, Month.JANUARY, 1);
-
-        this.modifiedDietzReturn(sinceYear, nominal, withCash, timeWeighted 
+        
+        Function<ModifiedDietzReturn, ModifiedDietzReturnResult> f =
+        timeWeighted 
                 ? ModifiedDietzReturn::monthlyLinked 
-                : ModifiedDietzReturn::get);
-
+                : ModifiedDietzReturn::get;
+        
+        this.modifiedDietzReturn(sinceYear, nominal, withCash, f);
+            
+        this.console.appendLine(this.format.subtitle("Summary"));
+        
+        final var withCashNominal = this.mdrResult(sinceYear, true, true, f);
+        final var withoutCashNominal = this.mdrResult(sinceYear, true, false, f);
+        final var withCashReal = this.mdrResult(sinceYear, false, true, f);
+        final var withoutCashReal = this.mdrResult(sinceYear, false, false, f);
+        
+        final var col1 = 14;
+        final var col2 = 18;
+        final var col3 = 18;
+        
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}", 
+                this.format.text("",col1),
+                this.format.text("     Nominal", col2),
+                this.format.text("      Real",col3)));
+        
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}", 
+                this.format.text("With Cash",col1), 
+                this.format.text(this.summaryItem(withCashNominal),col2),
+                this.format.text(this.summaryItem(withCashReal),col3)));
+        
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}", 
+                this.format.text("Without Cash",col1), 
+                this.format.text(this.summaryItem(withoutCashNominal),col2),
+                this.format.text(this.summaryItem(withoutCashReal),col3)));
+        
+        
     }
 
+    
+    private String summaryItem(ModifiedDietzReturnResult r){
+        return MessageFormat.format("{0} ({1})", this.format.percent(r.getMoneyWeighted()),
+                        this.format.percent(r.getAnnualizedMoneyWeighted()));
+
+    }
     private DayDollars dayDollarsInYear(int year, Investment i) {
 
         final var yearStart = LocalDate.of(year, Month.JANUARY, 1);
