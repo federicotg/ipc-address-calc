@@ -40,33 +40,38 @@ public class CashInvestmentBuilder {
 
     private final Supplier<MoneyAmountSeries> cash;
 
+    private List<Investment> data;
+
     public CashInvestmentBuilder(Supplier<MoneyAmountSeries> cash) {
         this.cash = cash;
     }
 
     public List<Investment> cashInvestments() {
 
-        final List<Investment> investments = new ArrayList<>(100);
+        if (this.data == null) {
 
-        final var cashInvesments = this.cash.get();
-        
-        for (var ym = cashInvesments.getFrom(); ym.compareTo(cashInvesments.getTo()) <= 0; ym = ym.next()) {
+            this.data = new ArrayList<>(100);
 
-            var currentSavedUSD = cashInvesments.getAmountOrElseZero(ym).getAmount();
-            var total = this.total(investments);
-            if (currentSavedUSD.compareTo(total) > 0) {
-                investments.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.C), ym));
-            } else if (currentSavedUSD.compareTo(total) < 0) {
+            final var cashInvesments = this.cash.get();
 
-                this.sellUntilBelow(currentSavedUSD, investments, ym);
-                total = this.total(investments);
+            for (var ym = cashInvesments.getFrom(); ym.compareTo(cashInvesments.getTo()) <= 0; ym = ym.next()) {
+
+                var currentSavedUSD = cashInvesments.getAmountOrElseZero(ym).getAmount();
+                var total = this.total(this.data);
                 if (currentSavedUSD.compareTo(total) > 0) {
-                    investments.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.C), ym));
+                    this.data.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.C), ym));
+                } else if (currentSavedUSD.compareTo(total) < 0) {
+
+                    this.sellUntilBelow(currentSavedUSD, this.data, ym);
+                    total = this.total(this.data);
+                    if (currentSavedUSD.compareTo(total) > 0) {
+                        this.data.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.C), ym));
+                    }
                 }
             }
         }
 
-        return investments;
+        return this.data;
 
     }
 
