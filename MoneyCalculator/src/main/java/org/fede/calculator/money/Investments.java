@@ -134,8 +134,10 @@ public class Investments {
                 .filter(Investment::isETF)
                 .collect(toList());
         
+        final var mapper = new BenchmarkInvestmentMapper(benchmark, allEtfs);
+        
         return etfs.stream()
-                .map(new BenchmarkInvestmentMapper(benchmark, allEtfs))
+                .map(mapper)
                 .collect(toList());
     }
 
