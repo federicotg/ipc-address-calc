@@ -192,7 +192,7 @@ public class Positions {
 
         this.console.appendLine(this.format.subtitle("Costs"));
         this.cost(classifier, nominal);
-        
+
         this.annualCost(nominal);
     }
 
@@ -259,10 +259,10 @@ public class Positions {
     }
 
     private String colorized(BigDecimal avgPrice, BigDecimal globalAverage) {
-        if (avgPrice.compareTo(globalAverage) > 0) {
-            return Ansi.colorize(this.format.currency(avgPrice, 9), Attribute.RED_TEXT());
-        }
-        return Ansi.colorize(this.format.currency(avgPrice, 9), Attribute.GREEN_TEXT());
+        return Ansi.colorize(this.format.currency(avgPrice, 9),
+                avgPrice.compareTo(globalAverage) >= 0
+                ? Attribute.RED_TEXT()
+                : Attribute.GREEN_TEXT());
     }
 
     private String exchangeClassifier(Investment i) {
@@ -306,12 +306,11 @@ public class Positions {
         this.console.appendLine("");
 
     }
-    
-    
-    private void annualCost(boolean nominal){
+
+    private void annualCost(boolean nominal) {
 
         final Function<Investment, String> any = i -> "all";
-        
+
         final var totalCost = this.by(nominal, any, Investment::getCost)
                 .values()
                 .stream()
@@ -332,15 +331,15 @@ public class Positions {
                 .map(Date::toInstant)
                 .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
                 .get();
-        
+
         final var days = ChronoUnit.DAYS.between(startDate, LocalDate.now());
-        
-        this.console.appendLine(MessageFormat.format("{0} {1}", 
-                "Cost per year", 
+
+        this.console.appendLine(MessageFormat.format("{0} {1}",
+                "Cost per year",
                 this.format.percent(
                         new BigDecimal("0.00104").add(
-                        new BigDecimal(Math.pow(totalCost.divide(totalInv, C).add(ONE, C).doubleValue(),365.0d/(double) days)-1.0d))), C));
-        
+                                new BigDecimal(Math.pow(totalCost.divide(totalInv, C).add(ONE, C).doubleValue(), 365.0d / (double) days) - 1.0d))), C));
+
     }
 
     private void costReport(String label, Map<String, MoneyAmount> m1, Map<String, MoneyAmount> m2, BigDecimal totalinv) {
