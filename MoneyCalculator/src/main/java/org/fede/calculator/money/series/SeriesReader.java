@@ -17,6 +17,7 @@
 package org.fede.calculator.money.series;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -47,6 +48,10 @@ public class SeriesReader {
 
     private static final Map<String, MoneyAmountSeries> MACACHE = new ConcurrentHashMap<>();
 
+    static {
+        OM.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+    
     public static IndexSeries readIndexSeries(String name) {
         return CACHE.computeIfAbsent(name, seriesName -> new JSONIndexSeries(read(seriesName, INDEX_SERIES_TYPE_REFERENCE)));
     }
