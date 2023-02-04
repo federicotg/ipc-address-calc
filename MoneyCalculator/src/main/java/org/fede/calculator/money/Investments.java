@@ -30,6 +30,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
@@ -68,8 +69,12 @@ public class Investments {
 
     private static final Comparator<Pair<String, ModifiedDietzReturnResult>> MONEY_WEIGHTED_ORDER = comparing((Pair<String, ModifiedDietzReturnResult> p) -> p.getSecond().getMoneyWeighted()).reversed();
 
-    private static final Map<String, String> ETF_NAME = Map.of(
+        private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
+            "EIMI", "iShares Core MSCI EM IMI",
+            "XRSU", "Xtrackers Russell 2000",
+            "RTWO", "L&G Russell 2000",
+            "MEUD", "Lyxor Core STOXX Eu. 600",
             "IWDA", "iShares Core MSCI World"
     );
 
@@ -129,13 +134,13 @@ public class Investments {
     }
 
     private List<Investment> benchmark(List<Investment> etfs, String benchmark) {
-      
+
         final var allEtfs = this.getInvestments()
                 .filter(Investment::isETF)
                 .collect(toList());
-        
+
         final var mapper = new BenchmarkInvestmentMapper(benchmark, allEtfs);
-        
+
         return etfs.stream()
                 .map(mapper)
                 .collect(toList());
@@ -155,6 +160,15 @@ public class Investments {
         this.investmentReport(everyone, nominal);
         this.yearMatrix(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, nominal);
         this.timeWeightedReport(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, nominal);
+        
+        this.etfMatrix(
+                this.getInvestments().filter(i -> i.getCurrency().equals("RTWO")).collect(toList()),
+                this.getInvestments().filter(i -> i.getCurrency().equals("CSPX")).collect(toList()),
+                this.getInvestments().filter(i -> i.getCurrency().equals("EIMI")).collect(toList()),
+                this.getInvestments().filter(i -> i.getCurrency().equals("MEUD")).collect(toList()),
+                this.getInvestments().filter(i -> i.getCurrency().equals("XRSU")).collect(toList()),
+                nominal);
+        
     }
 
     private Pair<String, ModifiedDietzReturnResult> item(List<Investment> series, boolean nominal, int year) {
@@ -173,6 +187,29 @@ public class Investments {
         return IntStream.concat(IntStream.rangeClosed(2019, Inflation.USD_INFLATION.getTo().getYear()), IntStream.of(0));
     }
 
+    private void matrix(Map<String, List<Pair<String, ModifiedDietzReturnResult>>> matrix, boolean nominal) {
+
+        final var titleRow = matrix.values()
+                .stream()
+                .findFirst()
+                .get()
+                .stream()
+                .map(Pair::getFirst)
+                .map(y -> this.format.text(y, 9))
+                .collect(joining());
+
+        this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Modified Dietz Returns"));
+
+        this.console.appendLine(this.format.text(" ", 28), titleRow);
+        matrix
+                .entrySet()
+                .stream()
+                .sorted(comparing(m -> m.getValue().stream().skip(m.getValue().size() - 1).findFirst().get().getSecond(), reverseOrder()))
+                .map(e -> this.matrixRow(e.getKey(), e.getValue().stream().map(Pair::getSecond).collect(toList()), matrix))
+                .forEach(this.console::appendLine);
+
+    }
+
     private void yearMatrix(
             List<Investment> etfs,
             List<Investment> cspxBenchmarkSeries,
@@ -180,7 +217,6 @@ public class Investments {
             List<Investment> cashBenchmarkSeries,
             boolean nominal) {
 
-        this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Modified Dietz Returns"));
 
         final Map<String, List<Pair<String, ModifiedDietzReturnResult>>> benchmarkMatrix = Map.of(
                 "Portfolio",
@@ -200,26 +236,48 @@ public class Investments {
                         .mapToObj(year -> item(cashBenchmarkSeries, nominal, year))
                         .collect(toList())
         );
-
-        final var titleRow = benchmarkMatrix.values()
-                .stream()
-                .findFirst()
-                .get()
-                .stream()
-                .map(Pair::getFirst)
-                .map(y -> this.format.text(y, 9))
-                .collect(joining());
-
-        this.console.appendLine(this.format.text(" ", 28), titleRow);
-        benchmarkMatrix
-                .entrySet()
-                .stream()
-                .sorted(comparing(m -> m.getValue().stream().skip(m.getValue().size() - 1).findFirst().get().getSecond(), reverseOrder()))
-                .map(e -> this.matrixRow(e.getKey(), e.getValue().stream().map(Pair::getSecond).collect(toList()), benchmarkMatrix))
-                .forEach(this.console::appendLine);
+        this.matrix(benchmarkMatrix, nominal);
 
     }
 
+        private void etfMatrix(
+            List<Investment> rtwoSeries,
+            List<Investment> cspxSeries,
+            List<Investment> eimiSeries,
+            List<Investment> meudSeries,
+            List<Investment> xrsuSeries,
+            boolean nominal) {
+
+
+        final Map<String, List<Pair<String, ModifiedDietzReturnResult>>> benchmarkMatrix = Map.of(
+                ETF_NAME.get("RTWO"),
+                this.range()
+                        .mapToObj(year -> item(rtwoSeries, nominal, year))
+                        .collect(toList()),
+                ETF_NAME.get("CSPX"),
+                this.range()
+                        .mapToObj(year -> item(cspxSeries, nominal, year))
+                        .collect(toList()),
+                ETF_NAME.get("MEUD"),
+                this.range()
+                        .mapToObj(year -> item(meudSeries, nominal, year))
+                        .collect(toList()),
+                ETF_NAME.get("XRSU"),
+                this.range()
+                        .mapToObj(year -> item(xrsuSeries, nominal, year))
+                        .collect(toList()),
+                ETF_NAME.get("EIMI"),
+                this.range()
+                        .mapToObj(year -> item(eimiSeries, nominal, year))
+                        .collect(toList())
+        );
+        this.matrix(benchmarkMatrix, nominal);
+
+    }
+
+    
+    
+    
     private void timeWeightedReport(
             List<Investment> etfs,
             List<Investment> cspxBenchmarkSeries,
@@ -260,21 +318,25 @@ public class Investments {
             List<ModifiedDietzReturnResult> rowData,
             Map<String, List<Pair<String, ModifiedDietzReturnResult>>> benchmarkMatrix) {
 
-        final List<ModifiedDietzReturnResult> iwdaList = benchmarkMatrix.get("IWDA")
+        final List<ModifiedDietzReturnResult> iwdaList = Optional.ofNullable(benchmarkMatrix.get("IWDA"))
+                .orElseGet(Collections::emptyList)
                 .stream()
                 .map(Pair::getSecond)
                 .collect(toList());
 
-        final List<ModifiedDietzReturnResult> cspxList = benchmarkMatrix.get("CSPX")
+        final List<ModifiedDietzReturnResult> cspxList = Optional.ofNullable(benchmarkMatrix.get("CSPX"))
+                .orElseGet(Collections::emptyList)
                 .stream()
                 .map(Pair::getSecond)
                 .collect(toList());
 
+        final var useBenchmarks = !iwdaList.isEmpty() && !cspxList.isEmpty();
+        
         return Stream.concat(
                 Stream.of(this.format.text(ETF_NAME.getOrDefault(name, name), 25, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
                 IntStream.range(0, rowData.size())
                         .mapToObj(i -> Pair.of(i, rowData.get(i)))
-                        .map(pair -> coloredPercent(pair.getSecond(), color(name, pair.getSecond(), iwdaList.get(pair.getFirst()), cspxList.get(pair.getFirst())))))
+                        .map(pair -> coloredPercent(pair.getSecond(), color(name, pair.getSecond(), useBenchmarks ? iwdaList.get(pair.getFirst()):null, useBenchmarks? cspxList.get(pair.getFirst()):null))))
                 .collect(joining());
     }
 
@@ -283,6 +345,13 @@ public class Investments {
     }
 
     private AnsiFormat color(String name, ModifiedDietzReturnResult value, ModifiedDietzReturnResult iwda, ModifiedDietzReturnResult cspx) {
+        
+        if(iwda == null || cspx== null){
+            return ETF_COLOR.containsKey(name)
+                ? BRIGHT_WHITE_TEXT
+                : color(value.getMoneyWeighted(), ZERO, new BigDecimal("0.001"));
+    
+        }
         return ETF_COLOR.containsKey(name)
                 ? BRIGHT_WHITE_TEXT
                 : color(value.getMoneyWeighted(), iwda.getMoneyWeighted(), cspx.getMoneyWeighted());
@@ -342,7 +411,7 @@ public class Investments {
 
     private void invEvo(String title, String currency, boolean nominal, boolean pct) {
 
-        this.console.appendLine(this.format.title(format(title , nominal ? "Nominal" : "Real")));
+        this.console.appendLine(this.format.title(format(title, nominal ? "Nominal" : "Real")));
 
         final var m = this.investmentEvolution(currency, nominal);
 
