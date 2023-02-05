@@ -159,16 +159,7 @@ public class Investments {
 
         this.investmentReport(everyone, nominal);
         this.yearMatrix(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, nominal);
-        this.timeWeightedReport(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, nominal);
-        
-        this.etfMatrix(
-                this.getInvestments().filter(i -> i.getCurrency().equals("RTWO")).collect(toList()),
-                this.getInvestments().filter(i -> i.getCurrency().equals("CSPX")).collect(toList()),
-                this.getInvestments().filter(i -> i.getCurrency().equals("EIMI")).collect(toList()),
-                this.getInvestments().filter(i -> i.getCurrency().equals("MEUD")).collect(toList()),
-                this.getInvestments().filter(i -> i.getCurrency().equals("XRSU")).collect(toList()),
-                nominal);
-        
+                
     }
 
     private Pair<String, ModifiedDietzReturnResult> item(List<Investment> series, boolean nominal, int year) {
@@ -239,80 +230,7 @@ public class Investments {
         this.matrix(benchmarkMatrix, nominal);
 
     }
-
-        private void etfMatrix(
-            List<Investment> rtwoSeries,
-            List<Investment> cspxSeries,
-            List<Investment> eimiSeries,
-            List<Investment> meudSeries,
-            List<Investment> xrsuSeries,
-            boolean nominal) {
-
-
-        final Map<String, List<Pair<String, ModifiedDietzReturnResult>>> benchmarkMatrix = Map.of(
-                ETF_NAME.get("RTWO"),
-                this.range()
-                        .mapToObj(year -> item(rtwoSeries, nominal, year))
-                        .collect(toList()),
-                ETF_NAME.get("CSPX"),
-                this.range()
-                        .mapToObj(year -> item(cspxSeries, nominal, year))
-                        .collect(toList()),
-                ETF_NAME.get("MEUD"),
-                this.range()
-                        .mapToObj(year -> item(meudSeries, nominal, year))
-                        .collect(toList()),
-                ETF_NAME.get("XRSU"),
-                this.range()
-                        .mapToObj(year -> item(xrsuSeries, nominal, year))
-                        .collect(toList()),
-                ETF_NAME.get("EIMI"),
-                this.range()
-                        .mapToObj(year -> item(eimiSeries, nominal, year))
-                        .collect(toList())
-        );
-        this.matrix(benchmarkMatrix, nominal);
-
-    }
-
-    
-    
-    
-    private void timeWeightedReport(
-            List<Investment> etfs,
-            List<Investment> cspxBenchmarkSeries,
-            List<Investment> iwdaBenchmarkSeries,
-            List<Investment> cashBenchmarkSeries,
-            boolean nominal) {
-
-        final Function<Pair<String, ModifiedDietzReturnResult>, String> lineFunction
-                = (p) -> format("{0} {1} {2}",
-                        this.format.text(ETF_NAME.getOrDefault(p.getFirst(), p.getFirst()), 25, ETF_COLOR.getOrDefault(p.getFirst(), BRIGHT_WHITE_TEXT)),
-                        this.format.percent(p.getSecond().getMoneyWeighted(), 8),
-                        this.bar.pctBar(p.getSecond().getAnnualizedMoneyWeighted()));
-
-        this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Time Weighted MDR"));
-
-        this.console.appendLine(this.format.text(" ", 25), this.format.text(" Return", 8), this.format.text("    Annualized", 16));
-        Stream.of(
-                Pair.of(
-                        "CSPX",
-                        new ModifiedDietzReturn(cspxBenchmarkSeries, nominal).monthlyLinked()),
-                Pair.of(
-                        "Portfolio",
-                        new ModifiedDietzReturn(etfs, nominal).monthlyLinked()),
-                Pair.of(
-                        "IWDA",
-                        new ModifiedDietzReturn(iwdaBenchmarkSeries, nominal).monthlyLinked()),
-                Pair.of(
-                        "Cash",
-                        new ModifiedDietzReturn(cashBenchmarkSeries, nominal).monthlyLinked()))
-                .sorted(MONEY_WEIGHTED_ORDER)
-                .map(lineFunction)
-                .forEach(this.console::appendLine);
-
-    }
-
+ 
     private String matrixRow(
             String name,
             List<ModifiedDietzReturnResult> rowData,
