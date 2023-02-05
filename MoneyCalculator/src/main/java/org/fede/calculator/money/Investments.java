@@ -67,14 +67,12 @@ public class Investments {
 
     private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
 
-    private static final Comparator<Pair<String, ModifiedDietzReturnResult>> MONEY_WEIGHTED_ORDER = comparing((Pair<String, ModifiedDietzReturnResult> p) -> p.getSecond().getMoneyWeighted()).reversed();
-
-        private static final Map<String, String> ETF_NAME = Map.of(
+    private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
             "EIMI", "iShares Core MSCI EM IMI",
             "XRSU", "Xtrackers Russell 2000",
-            "RTWO", "L&G Russell 2000",
-            "MEUD", "Lyxor Core STOXX Eu. 600",
+            "RTWO", "L&G Russell 2000 Quality Factor",
+            "MEUD", "Lyxor Core STOXX Europe 600 DR",
             "IWDA", "iShares Core MSCI World"
     );
 
