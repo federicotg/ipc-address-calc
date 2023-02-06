@@ -53,6 +53,8 @@ import org.fede.util.Pair;
  * @author fede
  */
 public class Positions {
+    
+    private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
 
     private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
 
@@ -329,7 +331,7 @@ public class Positions {
                 .map(Investment::getInitialDate)
                 .min(Comparator.naturalOrder())
                 .map(Date::toInstant)
-                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
+                .map(i -> LocalDate.ofInstant(i, SYSTEM_DEFAULT_ZONE_ID))
                 .get();
 
         final var days = ChronoUnit.DAYS.between(startDate, LocalDate.now());

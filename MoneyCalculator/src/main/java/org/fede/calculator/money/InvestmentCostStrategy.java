@@ -26,6 +26,8 @@ import org.fede.calculator.money.series.Investment;
  */
 public class InvestmentCostStrategy {
 
+    private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
+    
     private final String currency;
 
     public InvestmentCostStrategy(String currency) {
@@ -48,7 +50,7 @@ public class InvestmentCostStrategy {
 
         d.setCostBasis(inv.getCost());
 
-        d.setInvestmentDate(LocalDate.ofInstant(inv.getInitialDate().toInstant(), ZoneId.systemDefault()));
+        d.setInvestmentDate(LocalDate.ofInstant(inv.getInitialDate().toInstant(), SYSTEM_DEFAULT_ZONE_ID));
         d.setInvestedAmount(new MoneyAmount(investedAmount, this.currency));
         d.setInvestmentCurrency(inv.getInvestment().getCurrency());
         d.setCurrentAmount(new MoneyAmount(presentValue, this.currency));

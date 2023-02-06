@@ -41,13 +41,15 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class BenchmarkInvestmentMapper implements Function<Investment, Investment> {
 
+    private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
+    
     private static final TypeReference<Map<String, List<SeenPrice>>> TR = new TypeReference<Map<String, List<SeenPrice>>>() {
     };
 
     private static final DateTimeFormatter DMY = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private static String dmy(Investment i) {
-        return DMY.format(LocalDate.ofInstant(i.getInitialDate().toInstant(), ZoneId.systemDefault()));
+        return DMY.format(LocalDate.ofInstant(i.getInitialDate().toInstant(), SYSTEM_DEFAULT_ZONE_ID));
     }
 
     private static BigDecimal price(Investment i) {
