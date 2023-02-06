@@ -61,17 +61,17 @@ public class ExpectedReturnGroup {
     }
 
     public double mu() {
-        return this.getUsLargeCap().getMu().doubleValue() * 0.7d
-                + this.getUsSmallCap().getMu().doubleValue() * 0.1d
-                + this.getEu().getMu().doubleValue() * 0.1d
-                + this.getEm().getMu().doubleValue() * 0.1d;
+        return this.getUsLargeCap().getMu() * 0.7d
+                + this.getUsSmallCap().getMu() * 0.1d
+                + this.getEu().getMu() * 0.1d
+                + this.getEm().getMu() * 0.1d;
     }
 
     public double sigma() {
-        return this.getUsLargeCap().getSigma().doubleValue() * 0.7d
-                + this.getUsSmallCap().getSigma().doubleValue() * 0.1d
-                + this.getEu().getSigma().doubleValue() * 0.1d
-                + this.getEm().getSigma().doubleValue() * 0.1d;
+        return this.getUsLargeCap().getSigma() * 0.7d
+                + this.getUsSmallCap().getSigma() * 0.1d
+                + this.getEu().getSigma() * 0.1d
+                + this.getEm().getSigma() * 0.1d;
     }
 
     public ExpectedReturn getInflation() {

@@ -16,30 +16,28 @@
  */
 package org.fede.calculator.money;
 
-import java.math.BigDecimal;
-
 /**
  *
  * @author federicogentile
  */
 public class ExpectedReturn {
 
-    private BigDecimal mu;
-    private BigDecimal sigma;
+    private double mu;
+    private double sigma;
 
-    public BigDecimal getMu() {
+    public double getMu() {
         return mu;
     }
 
-    public void setMu(BigDecimal mu) {
+    public void setMu(double mu) {
         this.mu = mu;
     }
 
-    public BigDecimal getSigma() {
+    public double getSigma() {
         return sigma;
     }
 
-    public void setSigma(BigDecimal sigma) {
+    public void setSigma(double sigma) {
         this.sigma = sigma;
     }
 
