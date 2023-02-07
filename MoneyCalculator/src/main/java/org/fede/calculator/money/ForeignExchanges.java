@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,9 +38,19 @@ import org.fede.util.Pair;
  */
 public class ForeignExchanges {
 
-    private static final Map<String, String> INTERMEDIATE_FOREIGN_EXCHANGES = new HashMap<>();
+    private static final Map<String, String> INTERMEDIATE_FOREIGN_EXCHANGES = Map.of(
+            "UVA", "ARS",
+            "CONAAFA", "ARS",
+            "CAPLUSA", "ARS",
+            "CONBALA", "ARS",
+            "LECAP", "ARS",
+            "MEUD", "EUR",
+            "CSPX", "USD",
+            "IWDA", "USD",
+            "DAI", "USD",
+            "ARS", "USD");
 
-    private static final Map<Pair<String, String>, ForeignExchange> DIRECT_FOREIGN_EXCHANGES = new HashMap<>();
+    private static final Map<Pair<String, String>, ForeignExchange> DIRECT_FOREIGN_EXCHANGES;
 
     private static final String USD = "USD";
 
@@ -106,50 +117,42 @@ public class ForeignExchanges {
             () -> SeriesReader.readIndexSeries("index/RTWO-USD.json"),
             "RTWO", USD);
 
-    
     public static final ForeignExchange USD_IWDA = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/IWDA-USD.json"),
             "IWDA", USD);
-    
+
     public static final ForeignExchange EUR_MEUD = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/MEUD-EUR.json"),
             "MEUD", "EUR");
 
-    private static void map(String from, String to, ForeignExchange fx) {
-        DIRECT_FOREIGN_EXCHANGES.put(new Pair<>(from, to), fx);
-        DIRECT_FOREIGN_EXCHANGES.put(new Pair<>(to, from), fx);
+    private static void map(Map<Pair<String, String>, ForeignExchange> temporalMap, String from, String to, ForeignExchange fx) {
+        temporalMap.put(new Pair<>(from, to), fx);
+        temporalMap.put(new Pair<>(to, from), fx);
     }
 
     static {
 
+        final Map<Pair<String, String>, ForeignExchange> temporalMap = new HashMap<>();
         // direct conversions
-        map("ARS", USD, USD_ARS);
-        map("LETE", USD, USD_LETE);
-        map(USD, "EUR", USD_EUR);
-        map(USD, "DAI", USD_DAI);
-        map("ARS", "CONAAFA", ARS_CONAAFA);
-        map("ARS", "CONBALA", ARS_CONBALA);
-        map("ARS", "CAPLUSA", ARS_CAPLUSA);
-        map("ARS", "LECAP", ARS_LECAP);
-        map("ARS", "UVA", ARS_UVA);
-        map(USD, "AY24", USD_AY24);
-        map(USD, "CSPX", USD_CSPX);
-        map(USD, "IWDA", USD_IWDA);
-        map("EUR", "MEUD", EUR_MEUD);
-        map(USD, "XRSU", USD_XRSU);
-        map(USD, "RTWO", USD_RTWO);
-        map(USD, "EIMI", USD_EIMI);
+        map(temporalMap, "ARS", USD, USD_ARS);
+        map(temporalMap, "LETE", USD, USD_LETE);
+        map(temporalMap, USD, "EUR", USD_EUR);
+        map(temporalMap, USD, "DAI", USD_DAI);
+        map(temporalMap, "ARS", "CONAAFA", ARS_CONAAFA);
+        map(temporalMap, "ARS", "CONBALA", ARS_CONBALA);
+        map(temporalMap, "ARS", "CAPLUSA", ARS_CAPLUSA);
+        map(temporalMap, "ARS", "LECAP", ARS_LECAP);
+        map(temporalMap, "ARS", "UVA", ARS_UVA);
+        map(temporalMap, USD, "AY24", USD_AY24);
+        map(temporalMap, USD, "CSPX", USD_CSPX);
+        map(temporalMap, USD, "IWDA", USD_IWDA);
+        map(temporalMap, "EUR", "MEUD", EUR_MEUD);
+        map(temporalMap, USD, "XRSU", USD_XRSU);
+        map(temporalMap, USD, "RTWO", USD_RTWO);
+        map(temporalMap, USD, "EIMI", USD_EIMI);
 
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("UVA", "ARS");
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("CONAAFA", "ARS");
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("CAPLUSA", "ARS");
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("CONBALA", "ARS");
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("LECAP", "ARS");
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("MEUD", "EUR");
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("CSPX", "USD");
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("IWDA", "USD");
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("DAI", "USD");
-        INTERMEDIATE_FOREIGN_EXCHANGES.put("ARS", "USD");
+        DIRECT_FOREIGN_EXCHANGES = Collections.unmodifiableMap(temporalMap);
+
     }
 
     public static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(String from, String to) {
@@ -212,7 +215,7 @@ public class ForeignExchanges {
         asset.setCurrency(investment.getInvestment().getCurrency());
         asset.setAmount(investment.getInvestment().getAmount());
         answer.setInvestment(asset);
-        
+
         return answer;
 
     }
@@ -226,7 +229,7 @@ public class ForeignExchanges {
         final var fee = new MoneyAmount(in.getFee(), in.getCurrency());
 
         InvestmentEvent answer = new InvestmentEvent();
-        MoneyAmount ma = fx(in.getFx(),fx, in.getMoneyAmount(), currency, in.getDate());
+        MoneyAmount ma = fx(in.getFx(), fx, in.getMoneyAmount(), currency, in.getDate());
         answer.setAmount(ma.getAmount());
         answer.setCurrency(ma.getCurrency());
         answer.setDate(in.getDate());

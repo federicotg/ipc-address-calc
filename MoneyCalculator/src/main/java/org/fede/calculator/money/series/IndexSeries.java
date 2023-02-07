@@ -29,6 +29,4 @@ public interface IndexSeries extends Series {
 
     BigDecimal getIndex(int year, int month);
 
-    BigDecimal predictValue(int year, int month);
-
 }

@@ -44,11 +44,6 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
         }
 
         @Override
-        public BigDecimal predictValue(int year, int month) {
-            return BigDecimal.ONE;
-        }
-
-        @Override
         public int hashCode() {
             return Objects.hashCode(this);
         }

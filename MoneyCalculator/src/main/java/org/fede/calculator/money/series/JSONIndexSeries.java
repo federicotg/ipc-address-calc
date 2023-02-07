@@ -17,9 +17,9 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
-import org.fede.calculator.money.NoSeriesDataFoundException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -27,39 +27,42 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public class JSONIndexSeries extends IndexSeriesSupport {
 
-    private final List<JSONDataPoint> data;
+    private final Map<Integer, Map<Integer, BigDecimal>> data;
+    private final YearMonth from;
+    private final YearMonth to;
 
     public JSONIndexSeries(List<JSONDataPoint> data) {
-        this.data = data;
+        JSONDataPoint first = data.get(0);
+        this.from = YearMonth.of(first.getYear(), first.getMonth());
+        JSONDataPoint last = data.get(data.size() - 1);
+        this.to = YearMonth.of(last.getYear(), last.getMonth());
+
+        this.data = new ConcurrentHashMap<>(data.size());
+        for (var dp : data) {
+            var yearMap = this.data.computeIfAbsent(dp.getYear(), y -> new ConcurrentHashMap<>(12));
+            yearMap.put(dp.getMonth(), dp.getValue());
+        }
     }
 
     @Override
     public BigDecimal getIndex(int year, int month) {
-        int index = Collections.binarySearch(data, new JSONDataPoint(year, month));
-        if (index < 0 || index >= this.data.size()) {
-            return this.predictValue(year, month);
+
+        if (YearMonth.of(year, month).compareTo(this.getTo()) > 0) {
+            return this.data.get(this.to.getYear()).get(this.getTo().getMonth());
         }
-        return this.data.get(index).getValue();
+
+        return this.data.get(year).get(month);
+
     }
 
     @Override
     public YearMonth getFrom() {
-        JSONDataPoint point = this.data.get(0);
-        return YearMonth.of(point.getYear(), point.getMonth());
+        return this.from;
     }
 
     @Override
     public YearMonth getTo() {
-        JSONDataPoint point = this.data.get(this.data.size() - 1);
-        return YearMonth.of(point.getYear(), point.getMonth());
-    }
-
-    @Override
-    public BigDecimal predictValue(int year, int month) {
-        if (YearMonth.of(year, month).compareTo(this.getTo()) > 0) {
-            return this.data.get(this.data.size() - 1).getValue();
-        }
-        throw new NoSeriesDataFoundException("No data for specified year and month.");
+        return this.to;
     }
 
 }
