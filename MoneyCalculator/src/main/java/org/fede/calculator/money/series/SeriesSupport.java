@@ -24,21 +24,11 @@ public abstract class SeriesSupport implements Series {
 
     @Override
     public final YearMonth minimumTo(Series other) {
-        YearMonth myTo = this.getTo();
-        YearMonth otherTo = other.getTo();
-        if (myTo.compareTo(otherTo) < 0) {
-            return myTo;
-        }
-        return otherTo;
+        return this.getTo().min(other.getTo());
     }
 
     @Override
     public final YearMonth maximumFrom(Series other) {
-        YearMonth myFrom = this.getFrom();
-        YearMonth otherFrom = other.getFrom();
-        if (myFrom.compareTo(otherFrom) > 0) {
-            return myFrom;
-        }
-        return otherFrom;
+        return this.getFrom().max(other.getFrom());
     }
 }
