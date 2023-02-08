@@ -80,8 +80,7 @@ public class CashInvestmentBuilder {
         while (total(investments).compareTo(amount) > 0) {
             investments.stream()
                     .filter(i -> Objects.isNull(i.getOut()))
-                    .sorted(Comparator.comparing(Investment::getInitialDate))
-                    .findFirst()
+                    .min(Comparator.comparing(Investment::getInitialDate))
                     .ifPresent(i -> this.sellInvestment(i, ym));
         }
     }
