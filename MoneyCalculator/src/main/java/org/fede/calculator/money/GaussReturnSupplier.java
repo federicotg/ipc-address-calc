@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import java.util.Random;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 
 /**
  *
@@ -29,7 +28,7 @@ public class GaussReturnSupplier implements Supplier<double[]> {
     private final double mean;
     private final double std;
     private final int years;
-    private static final ThreadLocal<Random> RANDOM = new ThreadLocal<>(){
+    private static final ThreadLocal<Random> RANDOM = new ThreadLocal<>() {
         @Override
         protected Random initialValue() {
             return new Random();
@@ -45,13 +44,12 @@ public class GaussReturnSupplier implements Supplier<double[]> {
     @Override
     public double[] get() {
         final var rng = RANDOM.get();
-        return IntStream.range(0, this.years)
-                .mapToDouble(i -> this.mean + rng.nextGaussian() * this.std)
-                .map(r -> 1.0d + (r / 100.0d))
-                .toArray();
-    
+        double[] result = new double[years];
+        for (int i = 0; i < years; i++) {
+            result[i] = 1.0d + (this.mean + rng.nextGaussian() * this.std / 100.0d);
+        }
+        return result;
+
     }
-    
-    
 
 }
