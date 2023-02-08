@@ -76,8 +76,8 @@ public class Bar {
         }
         final var relativeAmounts = amounts
                 .stream()
-                .map(p -> Pair.of(new MoneyAmount(p.getFirst().getAmount().divide(total, C).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.getFirst().getCurrency()), p.getSecond()))
                 .filter(p -> !p.getFirst().isZero())
+                .map(p -> Pair.of(new MoneyAmount(p.getFirst().getAmount().divide(total, C).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.getFirst().getCurrency()), p.getSecond()))
                 .collect(toList());
 
         final var relativeTotal = relativeAmounts
