@@ -539,35 +539,47 @@ public class ConsoleReports {
 
         final var params = this.paramsValue(args, type);
 
-        final String exp = params.get("type");
-        final int months = months(params);
+        final var by = params.get("by");
 
-        this.appendLine(this.format.title(format("Real USD expenses in the last {0} months", months)));
+        if ("quarter".equals(by)) {
+            this.quarterExpenses();
+        } else if ("half".equals(by)) {
+            this.halfExpenses();
+        } else if ("year".equals(by)) {
+            this.yearlyExpenses();
+        } else if ("month".equals(by)) {
+            this.monthlyExpenses();
+        } else {
 
-        final var list = this.series.getRealUSDExpensesByType()
-                .entrySet()
-                .stream()
-                .filter(p -> exp == null || exp.equals(p.getKey()))
-                .map(e -> of(e.getKey(), this.aggregate(e.getValue(), s -> this.lastMonths(s, months)).getAmount()))
-                .collect(toList());
+            final String exp = params.get("type");
+            final int months = months(params);
 
-        final var total = list.stream()
-                .map(Pair::getSecond)
-                .reduce(ZERO, BigDecimal::add);
+            this.appendLine(this.format.title(format("Real USD expenses in the last {0} months", months)));
 
-        list.stream()
-                .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
-                .map(e -> format("{0}{1}{2}{3}",
-                this.format.text(e.getFirst(), 13),
-                this.format.text(" USD ", 4),
-                this.format.currency(e.getSecond(), 10),
-                this.bar.pctBar(e.getSecond(), total)))
-                .forEach(this::appendLine);
+            final var list = this.series.getRealUSDExpensesByType()
+                    .entrySet()
+                    .stream()
+                    .filter(p -> exp == null || exp.equals(p.getKey()))
+                    .map(e -> of(e.getKey(), this.aggregate(e.getValue(), s -> this.lastMonths(s, months)).getAmount()))
+                    .collect(toList());
 
-        this.appendLine(format("-----------------------------\n{0} USD {1}",
-                this.format.text("Total", 5),
-                this.format.currency(total, 10)));
+            final var total = list.stream()
+                    .map(Pair::getSecond)
+                    .reduce(ZERO, BigDecimal::add);
 
+            list.stream()
+                    .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
+                    .map(e -> format("{0}{1}{2}{3}",
+                    this.format.text(e.getFirst(), 13),
+                    this.format.text(" USD ", 4),
+                    this.format.currency(e.getSecond(), 10),
+                    this.bar.pctBar(e.getSecond(), total)))
+                    .forEach(this::appendLine);
+
+            this.appendLine(format("-----------------------------\n{0} USD {1}",
+                    this.format.text("Total", 5),
+                    this.format.currency(total, 10)));
+        }
     }
 
     private MoneyAmount aggregate(List<MoneyAmountSeries> mas, Function<MoneyAmountSeries, MoneyAmount> aggregation) {
@@ -838,7 +850,23 @@ public class ConsoleReports {
     }
 
     private void quarterIncome() {
-        this.group("Quarter income", this.series.realIncome(), null, YearMonth::quarter, 3);
+        this.group("Quarterly income", this.series.realIncome(), null, YearMonth::quarter, 3);
+    }
+
+    private void quarterExpenses() {
+        this.group("Quarterly expenses", this.series.realExpense(), null, YearMonth::quarter, 3);
+    }
+
+    private void monthlyExpenses() {
+        this.group("Quarterly expenses", this.series.realExpense(), null, YearMonth::month, 3);
+    }
+
+    private void yearlyExpenses() {
+        this.group("Yearly expenses", this.series.realExpense(), null, ym -> String.valueOf(ym.getYear()), 12);
+    }
+
+    private void halfExpenses() {
+        this.group("Half expenses", this.series.realExpense(), null, YearMonth::half, 3);
     }
 
     private void group(String title, MoneyAmountSeries series, MoneyAmountSeries comparisonSeries, Function<YearMonth, String> classifier, int months) {

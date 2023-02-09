@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -143,6 +144,13 @@ public class Series {
                 .collect(toList());
     }
 
+    public MoneyAmountSeries realExpense() {
+        final var negationFactor = BigDecimal.ONE.negate(MathConstants.C);
+        return this.realIncome()
+                .add(this.realNetSavings().map((ym, ma) -> ma.adjust(BigDecimal.ONE, negationFactor)));
+    }
+
+    
     public MoneyAmountSeries realIncome() {
 
         return this.getIncomeSeries()
