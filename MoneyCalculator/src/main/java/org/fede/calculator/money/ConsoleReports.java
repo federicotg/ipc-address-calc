@@ -858,7 +858,7 @@ public class ConsoleReports {
     }
 
     private void monthlyExpenses() {
-        this.group("Quarterly expenses", this.series.realExpense(), null, YearMonth::month, 3);
+        this.group("Monthly expenses", this.series.realExpense(), null, YearMonth::month, 3);
     }
 
     private void yearlyExpenses() {
