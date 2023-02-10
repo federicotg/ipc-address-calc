@@ -83,7 +83,6 @@ public class ConsoleReports {
     private static final String TAX = "true";
     private static final String EXPECTED_RETRUNS = "all";
     private static final String BBPP = "2.25";
-    //private static final String BBPP_MIN = "64000";
     private static final String PENSION = "100";
 
     private static final Collector<BigDecimal, ?, BigDecimal> REDUCER = reducing(ZERO.setScale(MathConstants.SCALE, MathConstants.RM), BigDecimal::add);
@@ -222,32 +221,46 @@ public class ConsoleReports {
                 this.bar.pctBar(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), C)).orElse(ZERO)));
     }
 
+    private void by(Map<String, String> params, Runnable quarter, Runnable half, Runnable year, Runnable otherwise) {
+        final var by = params.get("by");
+        if ("quarter".equals(by)) {
+            quarter.run();
+        } else if ("half".equals(by)) {
+            half.run();
+        } else if ("year".equals(by)) {
+            year.run();
+        } else {
+            otherwise.run();
+        }
+    }
+
+    private void by(Map<String, String> params, Runnable quarter, Runnable half, Runnable year, Runnable month, Runnable otherwise) {
+        final var by = params.get("by");
+        Runnable monthly = () -> {
+            if ("month".equals(by)) {
+                month.run();
+            } else {
+                otherwise.run();
+            }
+        };
+        this.by(params, quarter, half, year, monthly);
+    }
+
     private void income(String[] args, String paramName) {
 
         final var params = this.paramsValue(args, paramName);
-
-        final var by = params.get("by");
-
-        if ("quarter".equals(by)) {
-            this.quarterIncome();
-
-        } else if ("half".equals(by)) {
-            this.halfIncome();
-        } else if ("year".equals(by)) {
-            this.yearlyIncome();
-        } else {
-
+        final Runnable otherwise = () -> {
             this.income(months(params));
-
             final var totalIncome = this.series.getIncomeSeries()
                     .stream()
                     .flatMap(MoneyAmountSeries::moneyAmountStream)
                     .collect(reducing(MoneyAmount::add))
                     .orElse(ZERO_USD)
                     .getAmount();
-
             this.appendLine(format("Total income: {0}", this.format.currency(totalIncome)));
-        }
+        };
+        this.by(params, this::quarterIncome, this::halfIncome, this::yearlyIncome, otherwise);
+
     }
 
     private void income(int months) {
@@ -453,15 +466,8 @@ public class ConsoleReports {
     private void savings(String[] args, String paramName) {
 
         final var params = this.paramsValue(args, paramName);
-        final var by = params.get("by");
 
-        if ("quarter".equals(by)) {
-            this.quarterSavings();
-        } else if ("half".equals(by)) {
-            this.halfSavings();
-        } else if ("year".equals(by)) {
-            this.yearlySavings();
-        } else {
+        Runnable otherwise = () -> {
 
             this.appendLine(this.format.title("Historical Real USD Savings Stats"));
 
@@ -524,8 +530,9 @@ public class ConsoleReports {
                     this.format.percent(simultaneousPercent
                             .multiply(BigDecimal.valueOf(simultaneousYears + yearsLeft), MathConstants.C))));
 
-        }
+        };
 
+        this.by(params, this::quarterSavings, this::halfSavings, this::yearlySavings, otherwise);
     }
 
     private void condo() {
@@ -539,17 +546,7 @@ public class ConsoleReports {
 
         final var params = this.paramsValue(args, type);
 
-        final var by = params.get("by");
-
-        if ("quarter".equals(by)) {
-            this.quarterExpenses();
-        } else if ("half".equals(by)) {
-            this.halfExpenses();
-        } else if ("year".equals(by)) {
-            this.yearlyExpenses();
-        } else if ("month".equals(by)) {
-            this.monthlyExpenses();
-        } else {
+        Runnable otherwise = () -> {
 
             final String exp = params.get("type");
             final int months = months(params);
@@ -579,7 +576,9 @@ public class ConsoleReports {
             this.appendLine(format("-----------------------------\n{0} USD {1}",
                     this.format.text("Total", 5),
                     this.format.currency(total, 10)));
-        }
+        };
+
+        this.by(params, this::quarterExpenses, this::halfExpenses, this::yearlyExpenses, this::monthlyExpenses, otherwise);
     }
 
     private MoneyAmount aggregate(List<MoneyAmountSeries> mas, Function<MoneyAmountSeries, MoneyAmount> aggregation) {
