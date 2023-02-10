@@ -400,9 +400,9 @@ public class ConsoleReports {
                         entry("bbpp", "year=2021 ibkr=false"),
                         entry("savings-net-change", "months=12"),
                         entry("savings-avg-pct", "months=12"),
-                        entry("expenses", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
+                        entry("expenses", "by=(year|half|quarter) type=(taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("expenses-change", "months=12"),
-                        entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) months=12"),
+                        entry("expenses-evo", "type=(full|taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)"),
                         entry("dca", "type=(q*|h|y|m)"),
                         entry("pos", "nominal=false fees=false")
@@ -676,7 +676,11 @@ public class ConsoleReports {
 
     private void expenseEvolution(String type, int months) {
 
-        this.bar.evolution(format("Average {0}-month expenses.", months), new SimpleAggregation(months).average(this.series.realExpenses(type)), 18);
+        final var series = "full".equals(type)
+                ? this.series.realExpense()
+                : this.series.realExpenses(type);
+
+        this.bar.evolution(format("Average {0}-month expenses.", months), new SimpleAggregation(months).average(series), 18);
     }
 
     private void savingChange(String[] args, String paramName) {
