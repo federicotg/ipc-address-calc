@@ -216,10 +216,10 @@ public class ModifiedDietzReturn {
     }
 
     private MoneyAmount portfolioValue(YearMonth ym) {
-
+        final var toDate = ym.asToDate();
         return this.getInvestments()
                 .stream()
-                .filter(i -> i.isCurrent(ym.asToDate()))
+                .filter(i -> i.isCurrent(toDate))
                 .map(Investment::getInvestment)
                 .map(asset -> ForeignExchanges.getMoneyAmountForeignExchange(asset.getCurrency(), currency).apply(asset.getMoneyAmount(), ym))
                 .map(ma -> nominal ? ma : Inflation.USD_INFLATION.adjust(ma, ym, Inflation.USD_INFLATION.getTo()))
