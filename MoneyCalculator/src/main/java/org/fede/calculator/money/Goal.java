@@ -93,7 +93,7 @@ public class Goal {
             final double investedAmount,
             final double[] returns,
             final double[] deposit,
-            final double[] withdraw,
+            final double[] withdrawal,
             final double bbppMin) {
 
         double cashAmount = cash;
@@ -119,26 +119,29 @@ public class Goal {
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
-            amount -= withdraw[i - startingYear];
+            var thisYearWithdrawal = withdrawal[i - startingYear];
 
-            // brecha
-            final var officialDollarFactor = Math.min(1.0d, gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
-
-            // BB.PP.
-            bbpp = Math.max(amount * officialDollarFactor - bbppMin, 0.0d) * this.bbppTaxRate;
-            amount -= bbpp * cgt;
-
-            if (amount > 0.0d) {
-                amount *= returns[i - startingYear];
+            if (cashAmount > thisYearWithdrawal) {
+                // sobra cash
+                cashAmount -= thisYearWithdrawal;
             } else {
-                cashAmount += amount;
-                amount = 0.0d;
-            }
-            if (cashAmount <= 0.0d) {
-                return false;
+                // (cashAmount <= thisYearWithdrawal) => sell investments
+
+                thisYearWithdrawal = thisYearWithdrawal - cashAmount;
+
+                cashAmount = 0.0d;
+
+                amount -= thisYearWithdrawal;
+
+                // brecha
+                final var officialDollarFactor = Math.min(1.0d, gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
+
+                // BB.PP.
+                bbpp = Math.max(amount * officialDollarFactor - bbppMin, 0.0d) * this.bbppTaxRate;
+                amount -= bbpp * cgt;
+                amount *= returns[i - startingYear];
             }
         }
-
         return amount + cashAmount > 0.0d;
     }
 
@@ -184,7 +187,7 @@ public class Goal {
         final var cash = todaySavings.getAmount()
                 .subtract(invested.getAmount(), C)
                 .add(extraCash, C).doubleValue();
-        
+
         final var inflationRate = ONE.setScale(SCALE, RM)
                 .add(inflation.setScale(SCALE, RM).movePointLeft(2), C).doubleValue();
 
@@ -289,7 +292,7 @@ public class Goal {
                 .getAsDouble();
         this.console.appendLine(this.format.subtitle("Average"));
         this.console.appendLine(this.report("Average", averageSuccesses, trials));
-        
+
     }
 
     private String report(String label, long successes, int trials) {
