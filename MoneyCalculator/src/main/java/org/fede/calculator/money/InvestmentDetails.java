@@ -88,7 +88,7 @@ public class InvestmentDetails {
     public BigDecimal getCAGR() {
         final var days = days(this.investmentDate);
 
-        if (days.signum() <= 0) {
+        if (days == 0l) {
             return BigDecimal.ZERO;
         }
 
@@ -96,7 +96,7 @@ public class InvestmentDetails {
 
         final double x = Math.pow(
                 BigDecimal.ONE.add(cumulativeProfit).doubleValue(),
-                365.0d / days.doubleValue()) - 1.0d;
+                365.0d / (double) days) - 1.0d;
 
         if (Double.isNaN(x)) {
             return BigDecimal.ZERO;
@@ -106,9 +106,9 @@ public class InvestmentDetails {
 
     }
 
-    private static BigDecimal days(LocalDate date) {
+    private static long days(LocalDate date) {
 
-        return BigDecimal.valueOf(ChronoUnit.DAYS.between(date, LocalDate.now()) + 1);
+        return ChronoUnit.DAYS.between(date, LocalDate.now()) + 1l;
     }
 
     public InvestmentDetails asReal() {
