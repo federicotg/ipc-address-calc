@@ -474,7 +474,6 @@ public class ConsoleReports {
 
             this.appendLine(this.format.title("Historical Real USD Savings Stats"));
 
-            // total savings
             final var limit = USD_INFLATION.getTo();
 
             final var totalSavings = this.series.realSavings(null).getAmount(limit);
@@ -921,9 +920,6 @@ public class ConsoleReports {
                 100);
     }
 
-//    private int months(String[] args, String name) {
-//        return Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
-//    }
     private void netAvgSavingSpentPct(String[] args, String name) {
 
         final var months = months(this.paramsValue(args, name));
