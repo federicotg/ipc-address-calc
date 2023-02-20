@@ -416,7 +416,7 @@ public class ConsoleReports {
                         entry("savings-net-change", "months=12"),
                         entry("savings-avg-pct", "months=12"),
                         entry("expenses", "by=(year|half|quarter) type=(taxes|insurance|phone|services|home|entertainment) months=12"),
-                        entry("expenses-change", "months=12"),
+                        entry("expenses-change", "type=(full|tracked*) months=12"),
                         entry("expenses-evo", "type=(full|taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)"),
                         entry("dca", "type=(q*|h|y|m)"),
@@ -638,7 +638,7 @@ public class ConsoleReports {
     }
 
     private void expenseBySource(String[] args, String paramName) {
-        final var months = this.months(args, paramName);
+        final var months = months(this.paramsValue(args, paramName));
         final var title = format("Average {0}-month expenses by source", months);
 
         final var colorList = List.of(
@@ -714,14 +714,19 @@ public class ConsoleReports {
 
     private void expensesChange(String[] args, String name) {
 
-        final var months = this.months(args, name);
-
+        var params = this.paramsValue(args, name);
+        final var months = months(params);
+        final var type = params.getOrDefault("type", "tracked");
         this.appendLine(this.format.title("Expenses Change"));
+
+        final var series = "full".equals(type)
+                ? this.series.realExpense()
+                : this.series.realExpenses(null);
 
         this.bar.evolution(format("{0}-month average expenses change", months),
                 new SimpleAggregation(2)
                         .change(new SimpleAggregation(months)
-                                .average(this.series.realExpenses(null))), 1);
+                                .average(series)), 1);
     }
 
     private void incomeAverageEvolution(String[] args, String paramName) {
@@ -819,7 +824,7 @@ public class ConsoleReports {
 
     private void averageSavedSalaries(String[] args, String name) {
 
-        final var months = this.months(args, name);
+        final var months = months(this.paramsValue(args, name));
 
         final var title = format("Average {0}-month real USD saved salaries", months);
         this.appendLine(this.format.title(title));
@@ -905,7 +910,7 @@ public class ConsoleReports {
 
     private void monthlySavings(String[] args, String name) {
 
-        final var months = this.months(args, name);
+        final var months = months(this.paramsValue(args, name));
 
         final var title = format("Average {0}-month net monthly savings", months);
 
@@ -916,13 +921,12 @@ public class ConsoleReports {
                 100);
     }
 
-    private int months(String[] args, String name) {
-        return Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
-    }
-
+//    private int months(String[] args, String name) {
+//        return Integer.parseInt(this.paramsValue(args, name).getOrDefault("months", "12"));
+//    }
     private void netAvgSavingSpentPct(String[] args, String name) {
 
-        final var months = this.months(args, name);
+        final var months = months(this.paramsValue(args, name));
 
         final var title = format("Average {0}-month net monthly average savings and spending percent", months);
 
@@ -939,7 +943,7 @@ public class ConsoleReports {
 
     private void netAvgSavingSpent(String[] args, String name) {
 
-        final var months = this.months(args, name);
+        final var months = months(this.paramsValue(args, name));
 
         final var title = format("Average {0}-month net monthly average savings and spending", months);
 
@@ -949,7 +953,7 @@ public class ConsoleReports {
 
     private void incomeAverageBySource(String[] args, String name) {
 
-        final var months = this.months(args, name);
+        final var months = months(this.paramsValue(args, name));
         final var title = format("Average {0}-month income by source", months);
         final var colorList = List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK(), Attribute.GREEN_BACK());
         this.appendLine(this.format.title(title));
