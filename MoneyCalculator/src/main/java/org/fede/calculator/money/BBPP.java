@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.money;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
@@ -66,7 +65,7 @@ public class BBPP {
         private MoneyAmount usdPaidAmount;
     }
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
 
     private final Format format;
     private final Series series;

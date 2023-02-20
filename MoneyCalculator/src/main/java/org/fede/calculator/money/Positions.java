@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
@@ -57,7 +56,7 @@ public class Positions {
 
     private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
 
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
@@ -111,7 +110,7 @@ public class Positions {
         final var pnlWidth = 14;
         final var pnlPctWidth = 9;
 
-        final var separator = IntStream.rangeClosed(0, IntStream.of(costPct, descWidth, posWidth, lastWidth, costWidth, mkvWidth, mkvPctWidth, avgWidth, pnlWidth, pnlPctWidth).sum())
+        final var separator = IntStream.rangeClosed(0, costPct + descWidth + posWidth + lastWidth + costWidth + mkvWidth + mkvPctWidth + avgWidth + pnlWidth + pnlPctWidth)
                 .mapToObj(n -> "=")
                 .collect(joining());
 
@@ -405,7 +404,7 @@ public class Positions {
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD")
                         .apply(investments.stream()
                                 .map(Investment::getMoneyAmount)
-                                .reduce(new MoneyAmount(ZERO, symbol), MoneyAmount::add),
+                                .reduce(MoneyAmount.zero(symbol), MoneyAmount::add),
                                 now),
                 new MoneyAmount(
                         investments.stream()

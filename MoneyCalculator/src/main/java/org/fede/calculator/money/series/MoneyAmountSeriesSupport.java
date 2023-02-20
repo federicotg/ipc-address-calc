@@ -16,12 +16,9 @@
  */
 package org.fede.calculator.money.series;
 
-import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.Date;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import org.fede.calculator.money.ForeignExchanges;
@@ -33,8 +30,6 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements MoneyAmountSeries {
-
-    static final Map<String, MoneyAmount> ZERO_AMOUNTS = new ConcurrentHashMap<>();
 
     private final String currency;
 
@@ -187,7 +182,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
             return this.getAmount(moment);
         }
 
-        return ZERO_AMOUNTS.computeIfAbsent(this.currency, c -> new MoneyAmount(BigDecimal.ZERO, c));
+        return MoneyAmount.zero(this.currency);
 
     }
 

@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.money.series;
 
-import java.math.BigDecimal;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -40,7 +39,7 @@ public enum InterpolationStrategy {
     }, ZERO_VALUE_INTERPOLATION {
         @Override
         public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
-            return MoneyAmountSeriesSupport.ZERO_AMOUNTS.computeIfAbsent(currency, c -> new MoneyAmount(BigDecimal.ZERO, c));
+            return MoneyAmount.zero(currency);
         }
     }, USD_INFLATION_INTERPOLATION {
         @Override

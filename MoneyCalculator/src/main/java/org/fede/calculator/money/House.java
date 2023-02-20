@@ -45,7 +45,7 @@ public class House {
     private static final BigDecimal REALTOR_FEE = new BigDecimal("0.045");
     private static final BigDecimal STAMP_TAX = new BigDecimal("0.018");
     private static final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
 
     private final Console console;
     private final Format format;
@@ -131,7 +131,7 @@ public class House {
     }
 
     private MoneyAmount limit(YearMonth timeLimit, YearMonth ym, MoneyAmount amount) {
-        return ym.compareTo(timeLimit) <= 0 ? amount : new MoneyAmount(ZERO, amount.getCurrency());
+        return ym.compareTo(timeLimit) <= 0 ? amount : MoneyAmount.zero(amount.getCurrency());
     }
 
     private void buyVsRent(MoneyAmount realExpensesInUSD, BigDecimal rate, YearMonth timeLimit) {

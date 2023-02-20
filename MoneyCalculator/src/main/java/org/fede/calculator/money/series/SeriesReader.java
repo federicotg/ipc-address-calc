@@ -70,7 +70,7 @@ public class SeriesReader {
 
     private static MoneyAmount moneyAmount(BigDecimal value, String currency) {
         return value.signum() == 0
-                ? MoneyAmountSeriesSupport.ZERO_AMOUNTS.computeIfAbsent(currency, c -> new MoneyAmount(BigDecimal.ZERO, c))
+                ? MoneyAmount.zero(currency)
                 : new MoneyAmount(value, currency);
     }
 

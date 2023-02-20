@@ -19,13 +19,21 @@ package org.fede.calculator.money;
 import java.math.BigDecimal;
 import static java.math.RoundingMode.HALF_UP;
 import java.text.NumberFormat;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
  * @author fede
  */
 public class MoneyAmount {
+
+    private static final Map<String, MoneyAmount> ZERO_AMOUNTS = new ConcurrentHashMap<>();
+
+    public static MoneyAmount zero(String currency) {
+        return ZERO_AMOUNTS.computeIfAbsent(currency, c -> new MoneyAmount(BigDecimal.ZERO, c));
+    }
 
     private final String currency;
     private final BigDecimal amount;
@@ -45,7 +53,7 @@ public class MoneyAmount {
 
     public MoneyAmount exchange(String newCurrency, BigDecimal exchangeRate) {
         if (this.isZero()) {
-            return new MoneyAmount(BigDecimal.ZERO, newCurrency);
+            return MoneyAmount.zero(newCurrency);
         }
         return new MoneyAmount(this.amount.multiply(exchangeRate, MathConstants.C), newCurrency);
     }

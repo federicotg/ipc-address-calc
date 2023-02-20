@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
-import static java.math.BigDecimal.ZERO;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +39,7 @@ import org.fede.util.Pair;
  */
 public class Evolution<T> {
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
 
     private final Console console;
     private final Bar bar;

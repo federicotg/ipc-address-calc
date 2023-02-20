@@ -67,7 +67,7 @@ public class Investments {
     
     private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
 
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",

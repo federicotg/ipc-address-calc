@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
-import static java.math.BigDecimal.ZERO;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +32,7 @@ import org.fede.util.Pair;
  */
 public class Savings {
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
 
     private final Format format;
     private final Series series;

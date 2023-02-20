@@ -30,7 +30,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class MonthlyInvestmentSavingsAdjuster {
 
-    private static final MoneyAmount ZERO = new MoneyAmount(BigDecimal.ZERO, "USD");
+    private static final MoneyAmount ZERO = MoneyAmount.zero("USD");
 
     private final Map<YearMonth, MoneyAmount> differences;
 

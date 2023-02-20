@@ -71,7 +71,7 @@ import org.fede.calculator.money.series.InvestmentAsset;
  */
 public class ConsoleReports {
 
-    private static final MoneyAmount ZERO_USD = new MoneyAmount(ZERO.setScale(6, MathConstants.RM), "USD");
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 

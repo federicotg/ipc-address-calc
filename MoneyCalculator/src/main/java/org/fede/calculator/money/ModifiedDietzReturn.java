@@ -141,7 +141,7 @@ public class ModifiedDietzReturn {
     public ModifiedDietzReturn(List<Investment> investments, String currency, boolean nominal, LocalDate initialMoment, LocalDate finalMoment) {
         this.investments = investments;
         this.currency = currency;
-        this.zeroAmount = new MoneyAmount(ZERO, this.currency);
+        this.zeroAmount = MoneyAmount.zero(this.currency);
         this.nominal = nominal;
         this.initialMoment = max(initialMoment,
                 investments
