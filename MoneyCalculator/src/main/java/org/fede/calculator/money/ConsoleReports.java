@@ -322,6 +322,55 @@ public class ConsoleReports {
         return i.getCurrency().equalsIgnoreCase(type);
     }
 
+    private static Map<String, Runnable> getActions(String[] args, ConsoleReports me, Format format, Bar bar, Series series, Console console) {
+        return Map.ofEntries(
+                entry("i", me::investments),
+                entry("gi", me::groupedInvestments),
+                entry("ti", me::listStockByType),
+                entry("inv", () -> me.invReport(args, "inv")),
+                entry("savings", () -> me.savings(args, "savings")),
+                entry("savings-evo", () -> me.savingEvolution(args, "savings-evo")),
+                entry("savings-change", () -> me.savingChange(args, "savings-change")),
+                entry("savings-change-pct", () -> me.savingsPercentChange(args, "savings-change-pct")),
+                entry("savings-net-change", () -> me.monthlySavings(args, "savings-net-change")),
+                entry("savings-avg-pct", () -> me.netAvgSavingSpentPct(args, "savings-avg-pct")),
+                entry("savings-avg", () -> me.netAvgSavingSpent(args, "savings-avg")),
+                entry("savings-dist", me::savingsDistributionEvolution),
+                entry("savings-dist-pct", me::savingsDistributionPercentEvolution),
+                entry("saved-salaries-evo", () -> me.averageSavedSalaries(args, "saved-salaries-evo")),
+                entry("income", () -> me.income(args, "income")),
+                entry("income-table", me::savingsIncomeTable),
+                entry("income-year-table", me::yearSavingsIncomeTable),
+                entry("income-evo", () -> me.incomeAverageEvolution(args, "income-evo")),
+                entry("income-src", () -> me.incomeAverageBySource(args, "income-src")),
+                entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
+                entry("p", () -> me.portfolio(args, "p")),
+                entry("p-evo", () -> me.portfolioEvo(args, "p-evo")),
+                entry("p-evo-pct", () -> me.portfolioEvoPct(args, "p-evo-pct")),
+                entry("p-type-evo", () -> new Investments(console, format, bar, series).portfolioTypeEvo(false)),
+                entry("p-type-evo-pct", () -> new Investments(console, format, bar, series).portfolioTypeEvo(true)),
+                entry("pa", () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation()),
+                entry("house-evo", () -> new House(console, format, bar).houseCostsEvolution()),
+                entry("house", () -> me.house(args, "house")),
+                entry("expenses", () -> me.expenses(args, "expenses")),
+                entry("condo", () -> me.condo()),
+                entry("expenses-evo", () -> me.expenseEvolution(args, "expenses-evo")),
+                entry("expenses-src", () -> me.expenseBySource(args, "expenses-src")),
+                entry("expenses-change", () -> me.expensesChange(args, "expenses-change")),
+                entry("goal", () -> me.goal(args, "goal")),
+                entry("bbpp", () -> me.bbpp(args, "bbpp")),
+                entry("bbpp-evo", () -> me.bbppEvo(args, "bbpp-evo")),
+                entry("ibkr", () -> me.ibkrCSV()),
+                entry("mdr", () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar))),
+                entry("mdr-by-currency", new PortfolioReturns(series, console, format, bar)::mdrByCurrency),
+                entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
+                entry("pos", () -> me.positions(args, "pos")),
+                entry("dca", () -> me.dca(args, "dca")),
+                entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct")),
+                entry("bench", () -> me.benchmark(args, "bench"))
+        );
+    }
+
     public static void main(String[] args) {
         try {
 
@@ -330,53 +379,6 @@ public class ConsoleReports {
             final var bar = new Bar(console, format);
             final var series = new Series();
             final var me = new ConsoleReports(console, format, bar, series);
-
-            final Map<String, Runnable> actions = Map.ofEntries(
-                    entry("i", me::investments),
-                    entry("gi", me::groupedInvestments),
-                    entry("ti", me::listStockByType),
-                    entry("inv", () -> me.invReport(args, "inv")),
-                    entry("savings", () -> me.savings(args, "savings")),
-                    entry("savings-evo", () -> me.savingEvolution(args, "savings-evo")),
-                    entry("savings-change", () -> me.savingChange(args, "savings-change")),
-                    entry("savings-change-pct", () -> me.savingsPercentChange(args, "savings-change-pct")),
-                    entry("savings-net-change", () -> me.monthlySavings(args, "savings-net-change")),
-                    entry("savings-avg-pct", () -> me.netAvgSavingSpentPct(args, "savings-avg-pct")),
-                    entry("savings-avg", () -> me.netAvgSavingSpent(args, "savings-avg")),
-                    entry("savings-dist", me::savingsDistributionEvolution),
-                    entry("savings-dist-pct", me::savingsDistributionPercentEvolution),
-                    entry("saved-salaries-evo", () -> me.averageSavedSalaries(args, "saved-salaries-evo")),
-                    entry("income", () -> me.income(args, "income")),
-                    entry("income-table", me::savingsIncomeTable),
-                    entry("income-year-table", me::yearSavingsIncomeTable),
-                    entry("income-evo", () -> me.incomeAverageEvolution(args, "income-evo")),
-                    entry("income-src", () -> me.incomeAverageBySource(args, "income-src")),
-                    entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
-                    entry("p", () -> me.portfolio(args, "p")),
-                    entry("p-evo", () -> me.portfolioEvo(args, "p-evo")),
-                    entry("p-evo-pct", () -> me.portfolioEvoPct(args, "p-evo-pct")),
-                    entry("p-type-evo", () -> new Investments(console, format, bar, series).portfolioTypeEvo(false)),
-                    entry("p-type-evo-pct", () -> new Investments(console, format, bar, series).portfolioTypeEvo(true)),
-                    entry("pa", () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation()),
-                    entry("house-evo", () -> new House(console, format, bar).houseCostsEvolution()),
-                    entry("house", () -> me.house(args, "house")),
-                    entry("expenses", () -> me.expenses(args, "expenses")),
-                    entry("condo", () -> me.condo()),
-                    entry("expenses-evo", () -> me.expenseEvolution(args, "expenses-evo")),
-                    entry("expenses-src", () -> me.expenseBySource(args, "expenses-src")),
-                    entry("expenses-change", () -> me.expensesChange(args, "expenses-change")),
-                    entry("goal", () -> me.goal(args, "goal")),
-                    entry("bbpp", () -> me.bbpp(args, "bbpp")),
-                    entry("bbpp-evo", () -> me.bbppEvo(args, "bbpp-evo")),
-                    entry("ibkr", () -> me.ibkrCSV()),
-                    entry("mdr", () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar))),
-                    entry("mdr-by-currency", new PortfolioReturns(series, console, format, bar)::mdrByCurrency),
-                    entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
-                    entry("pos", () -> me.positions(args, "pos")),
-                    entry("dca", () -> me.dca(args, "dca")),
-                    entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct")),
-                    entry("bench", () -> me.benchmark(args, "bench"))
-            );
 
             final var params = Arrays.stream(args)
                     .map(String::toLowerCase)
@@ -420,7 +422,7 @@ public class ConsoleReports {
                         entry("dca", "type=(q*|h|y|m)"),
                         entry("pos", "nominal=false fees=false")
                 );
-
+                final Map<String, Runnable> actions = getActions(args, me, format, bar, series, console);
                 Stream.concat(
                         actions.keySet()
                                 .stream()
@@ -431,6 +433,7 @@ public class ConsoleReports {
                         .forEach(me::appendLine);
             } else {
 
+                final Map<String, Runnable> actions = getActions(args, me, format, bar, series, console);
                 actions.entrySet()
                         .stream()
                         .filter(e -> params.isEmpty() || params.contains(e.getKey().toLowerCase()))
