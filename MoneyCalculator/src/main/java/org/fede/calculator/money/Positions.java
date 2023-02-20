@@ -198,7 +198,7 @@ public class Positions {
         this.annualCost(nominal);
     }
 
-    private void dca(boolean nominal, Function<Investment, String> groupingFucntion) {
+    private void dca(boolean nominal, Function<Investment, String> groupingFunction) {
 
         final var averagesByGroup = this.positionsBy(
                 this.series.getInvestments(),
@@ -207,7 +207,7 @@ public class Positions {
 
         final var positionByGroup = this.positionsBy(
                 this.series.getInvestments(),
-                groupingFucntion,
+                groupingFunction,
                 nominal);
 
         this.console.appendLine(this.format.text("", 11),
