@@ -31,13 +31,17 @@ public interface MoneyAmountSeries extends Series {
 
     MoneyAmount getAmount(Date day);
 
-    MoneyAmount getAmount(int year, int month);
+    default MoneyAmount getAmount(int year, int month){
+        return this.getAmount(YearMonth.of(year, month));
+    }
 
     MoneyAmount getAmount(YearMonth moment);
 
     MoneyAmount getAmountOrElseZero(YearMonth moment);
 
-    void putAmount(int year, int month, MoneyAmount amount);
+    default void putAmount(int year, int month, MoneyAmount amount){
+        this.putAmount(YearMonth.of(year, month), amount);
+    }
     
     void putAmount(YearMonth ym, MoneyAmount amount);
 

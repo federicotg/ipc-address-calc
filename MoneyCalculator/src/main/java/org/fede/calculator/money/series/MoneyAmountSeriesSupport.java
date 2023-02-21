@@ -113,11 +113,6 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     protected abstract MoneyAmount getAmountOrNull(YearMonth ym);
 
     @Override
-    public final void putAmount(int year, int month, MoneyAmount amount) {
-        this.putAmount(YearMonth.of(year, month), amount);
-    }
-
-    @Override
     public final boolean equals(Object obj) {
         if (!(obj instanceof MoneyAmountSeries)) {
             return false;
@@ -169,11 +164,6 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
             throw new NoSeriesDataFoundException(MessageFormat.format("No data specified for year {0} and month {1}.", moment.getYear(), moment.getMonth()));
         }
         return answer;
-    }
-
-    @Override
-    public final MoneyAmount getAmount(int year, int month) {
-        return this.getAmount(YearMonth.of(year, month));
     }
 
     @Override
