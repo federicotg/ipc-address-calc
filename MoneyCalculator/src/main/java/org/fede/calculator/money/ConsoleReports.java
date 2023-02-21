@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.Attribute;
+import java.io.BufferedOutputStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
@@ -443,7 +444,7 @@ public class ConsoleReports {
                             me.appendLine("");
                         });
             }
-            console.printReport(System.out);
+            console.printReport(new BufferedOutputStream(System.out));
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
             ex.printStackTrace(System.err);

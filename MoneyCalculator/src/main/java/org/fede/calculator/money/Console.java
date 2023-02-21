@@ -16,7 +16,8 @@
  */
 package org.fede.calculator.money;
 
-import java.io.PrintStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 
 /**
@@ -37,7 +38,7 @@ public class Console {
         out.append("\n");
     }
 
-    public void printReport(PrintStream out) {
-        out.println(this.out.toString());
+    public void printReport(OutputStream out) throws IOException {
+        out.write(this.out.toString().getBytes());
     }
 }
