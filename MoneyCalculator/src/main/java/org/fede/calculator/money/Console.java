@@ -40,5 +40,7 @@ public class Console {
 
     public void printReport(OutputStream out) throws IOException {
         out.write(this.out.toString().getBytes());
+        out.flush();
+        out.close();
     }
 }
