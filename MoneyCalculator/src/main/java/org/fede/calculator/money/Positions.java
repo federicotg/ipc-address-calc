@@ -241,11 +241,15 @@ public class Positions {
         this.console.appendLine(this.format.text("Curr.", 8),
                 ETF_NAME.keySet().stream()
                         .sorted()
-                        .map(currency -> new MoneyAmount(ONE, currency))
-                        .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, Inflation.USD_INFLATION.getTo()))
-                        .map(MoneyAmount::getAmount)
-                        .map(avgPrice -> Ansi.colorize(this.format.currency(avgPrice, 9), PNL_COLORS.get(0)))
+                        .map(c -> this.currentPice(averagesByGroup, c))
                         .collect(joining()));
+    }
+    
+    private String currentPice(Map<Pair<String, String>,Position> averagePrices, String currency){
+        final var ma = new MoneyAmount(ONE, currency);
+        final var current = ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, Inflation.USD_INFLATION.getTo());
+        final var average = averagePrices.get(Pair.of(currency, AVERAGE_KEY)).getAveragePrice();
+        return this.colorized(current.getAmount(), average.getAmount());
     }
 
     private Map<Pair<String, String>, Position> positionsBy(List<Investment> investments, Function<Investment, String> groupingFunction, boolean nominal) {
