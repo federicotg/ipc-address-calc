@@ -44,7 +44,7 @@ public class MonthlyInvestmentSavingsAdjuster {
         this.differences = groupedByYeaMonth.entrySet()
                 .stream()
                 .collect(Collectors.toMap(
-                        e -> e.getKey(),
+                        Map.Entry::getKey,
                         e -> this.differences(e.getKey(), e.getValue())));
 
     }
