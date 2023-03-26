@@ -58,6 +58,8 @@ public class Positions {
 
     private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
 
+    private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
+
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
             "EIMI", "iShares Core MSCI EM IMI",
@@ -187,9 +189,37 @@ public class Positions {
                 this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
+        this.console.appendLine(this.format.subtitle("Capital Gains Tax"));
+        
+        final var realizationCost = this.realizationCost();
+        
+        this.console.appendLine(MessageFormat.format("{0} {1}", this.format.currency(realizationCost, 10), 
+                this.format.percent(realizationCost.getAmount().divide(totalPnL.getAmount(), C))));
+        
         this.console.appendLine(this.format.subtitle("Costs"));
         this.costs(nominal);
         this.annualCost(nominal);
+    }
+
+    private MoneyAmount realizationCost() {
+        return this.series.getInvestments()
+                .stream()
+                .filter(Investment::isCurrent)
+                .filter(Investment::isETF)
+                .map(this::unrealizedUSDCapitalGains)
+                .reduce(ZERO_USD, MoneyAmount::add);
+    }
+
+    private MoneyAmount unrealizedUSDCapitalGains(Investment i) {
+
+        final var initialUSDAmount = ForeignExchanges.getMoneyAmountForeignExchange(i.getInitialMoneyAmount().getCurrency(), "USD")
+                .apply(i.getInitialMoneyAmount(), YearMonth.of(i.getInitialDate()));
+
+        final var currentUSDAmount = ForeignExchanges.getMoneyAmountForeignExchange(i.getCurrency(), "USD")
+                .apply(i.getInvestment().getMoneyAmount(), Inflation.USD_INFLATION.getTo());
+
+        return currentUSDAmount.subtract(initialUSDAmount).adjust(ONE, CAPITAL_GAINS_TAX_RATE);
+
     }
 
     public void dca(boolean nominal, String type) {
@@ -244,8 +274,8 @@ public class Positions {
                         .map(c -> this.currentPice(averagesByGroup, c))
                         .collect(joining()));
     }
-    
-    private String currentPice(Map<Pair<String, String>,Position> averagePrices, String currency){
+
+    private String currentPice(Map<Pair<String, String>, Position> averagePrices, String currency) {
         final var ma = new MoneyAmount(ONE, currency);
         final var current = ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, Inflation.USD_INFLATION.getTo());
         final var average = averagePrices.get(Pair.of(currency, AVERAGE_KEY)).getAveragePrice();
