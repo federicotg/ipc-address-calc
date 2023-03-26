@@ -148,7 +148,7 @@ public class Evolution<T> {
     }
 
     private String bar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> elements, int scale) {
-        return this.bar.currencyBar(ym, elements, scale);
+        return this.bar.genericBar(ym, elements, scale);
     }
 
     private String pctBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> elements) {

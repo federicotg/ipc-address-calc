@@ -669,7 +669,7 @@ public class ConsoleReports {
         final var oldestSeries = ss.stream().min(Comparator.comparing(MoneyAmountSeries::getFrom)).get();
 
         oldestSeries.map((ym, ma) -> ZERO_USD.max(ma))
-                .forEach((ym, savingMa) -> appendLine(this.bar.currencyBar(ym, this.independenSeries(ym, ss, colorList), 8)));
+                .forEach((ym, savingMa) -> appendLine(this.bar.genericBar(ym, this.independenSeries(ym, ss, colorList), 8)));
 
         new Savings(format, this.series, bar, console)
                 .refs(title, labels, colorList);
@@ -963,7 +963,7 @@ public class ConsoleReports {
         final var despUSD = agg.average(this.series.incomeSource("despegar-split"));
 
         unlp.map((ym, ma) -> ZERO_USD.max(ma))
-                .forEach((ym, savingMa) -> appendLine(this.bar.currencyBar(ym, this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList), 25)));
+                .forEach((ym, savingMa) -> appendLine(this.bar.genericBar(ym, this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList), 25)));
 
         new Savings(format, series, bar, console).refs(
                 title,

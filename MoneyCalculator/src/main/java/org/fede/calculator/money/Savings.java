@@ -67,7 +67,7 @@ public class Savings {
 
         netSaving.map((ym, ma) -> ZERO_USD.max(ma))
                 .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.currencyBar(ym, this.series(ym, spending, income, savingMa), this.getScale(months))));
+                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.series(ym, spending, income, savingMa), this.getScale(months))));
 
         this.savingsRefs(title);
 

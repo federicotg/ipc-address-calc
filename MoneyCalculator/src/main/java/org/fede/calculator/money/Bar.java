@@ -59,10 +59,6 @@ public class Bar {
         this.format = format;
     }
 
-    public String currencyBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
-        return this.genericBar(ym, amounts, width);
-    }
-
     public String percentBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts) {
 
         final var total = amounts
@@ -101,7 +97,7 @@ public class Bar {
         return this.genericBar(ym, relativeAmounts, 1);
     }
 
-    private String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
+    public String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
 
         final var bars = IntStream.range(0, amounts.size())
                 .map(i -> i + 2)
@@ -254,7 +250,7 @@ public class Bar {
 
         s.forEach((ym, ma) -> {
             if (ym.compareTo(limit) <= 0) {
-                this.console.appendLine(this.currencyBar(ym, List.of(Pair.of(ma, Attribute.WHITE_BACK())), scale));
+                this.console.appendLine(this.genericBar(ym, List.of(Pair.of(ma, Attribute.WHITE_BACK())), scale));
             }
         });
 
