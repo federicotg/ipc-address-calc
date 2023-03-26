@@ -190,12 +190,12 @@ public class Positions {
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
         this.console.appendLine(this.format.subtitle("Capital Gains Tax"));
-        
+
         final var realizationCost = this.realizationCost();
-        
-        this.console.appendLine(MessageFormat.format("{0} {1}", this.format.currency(realizationCost, 10), 
+
+        this.console.appendLine(MessageFormat.format("{0} {1}", this.format.currency(realizationCost, 10),
                 this.format.percent(realizationCost.getAmount().divide(totalPnL.getAmount(), C))));
-        
+
         this.console.appendLine(this.format.subtitle("Costs"));
         this.costs(nominal);
         this.annualCost(nominal);
@@ -212,13 +212,17 @@ public class Positions {
 
     private MoneyAmount unrealizedUSDCapitalGains(Investment i) {
 
-        final var initialUSDAmount = ForeignExchanges.getMoneyAmountForeignExchange(i.getInitialMoneyAmount().getCurrency(), "USD")
-                .apply(i.getInitialMoneyAmount(), YearMonth.of(i.getInitialDate()));
+        final var initialUSDAmount = Optional.ofNullable(i.getIn().getFx())
+                .map(fx -> i.getInitialMoneyAmount().getAmount().multiply(fx, C))
+                .map(usd -> new MoneyAmount(usd, "USD"))
+                .orElseGet(i::getInitialMoneyAmount);
 
         final var currentUSDAmount = ForeignExchanges.getMoneyAmountForeignExchange(i.getCurrency(), "USD")
                 .apply(i.getInvestment().getMoneyAmount(), Inflation.USD_INFLATION.getTo());
 
-        return currentUSDAmount.subtract(initialUSDAmount).adjust(ONE, CAPITAL_GAINS_TAX_RATE);
+        return currentUSDAmount.subtract(initialUSDAmount)
+                .max(ZERO_USD)
+                .adjust(ONE, CAPITAL_GAINS_TAX_RATE);
 
     }
 
