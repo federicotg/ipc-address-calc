@@ -19,6 +19,7 @@ package org.fede.calculator.money;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
+import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.Month;
@@ -114,7 +115,7 @@ public class BBPP {
 
     }
 
-    private BBPPResult bbppResult(List<BBPPYear> bbppYears, final int year, final boolean ibkr) {
+    private BBPPYear bbpp(List<BBPPYear> bbppYears, int year, boolean ibkr) {
 
         final var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
@@ -189,6 +190,16 @@ public class BBPP {
 
         bbpp.getItems().add(etfsItem);
         bbpp.getItems().add(onsItem);
+        return bbpp;
+    }
+
+    private BBPPResult bbppResult(List<BBPPYear> bbppYears, final int year, final boolean ibkr) {
+
+        final var ym = YearMonth.of(year, 12);
+
+        final var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        final var bbpp = this.bbpp(bbppYears, year, ibkr);
 
         final var result = new BBPPResult();
 
@@ -272,6 +283,8 @@ public class BBPP {
 
     public void bbpp(int year, boolean ibkr) {
         this.bbppReport(this.bbppResult(this.series.bbppSeries(), year, ibkr));
+        this.console.appendLine(this.format.subtitle("Official"));
+        this.officialReport(year, ibkr);
     }
 
     private void bbppReport(BBPPResult bbpp) {
@@ -329,6 +342,71 @@ public class BBPP {
         }
 
         return newItem;
+
+    }
+
+    private void officialReport(int year, boolean ibkr) {
+
+        //final var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        final var bbpp = this.bbpp(this.series.bbppSeries(), year, ibkr);
+
+        final var domestic = bbpp.getItems()
+                .stream()
+                .filter(BBPPItem::isDomestic)
+                .filter(i -> !i.isExempt())
+                .map(i -> i.getValue().multiply(i.getHolding(), C))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .multiply(new BigDecimal("1.05"), C);
+
+        final var foreign = bbpp.getItems()
+                .stream()
+                .filter(i -> ibkr || !i.getName().equals("IBKR USD"))
+                .filter(i -> !i.isDomestic())
+                .filter(i -> !i.isExempt())
+                .map(i -> this.toARS(i, bbpp.getUsd(), bbpp.getEur()))
+                .map(i -> i.getValue().multiply(i.getHolding(), C))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        this.console.appendLine(MessageFormat.format(
+                "Total de bienes en el país sujeto a immpuesto {0}",
+                this.format.currency(domestic)));
+
+        this.console.appendLine(MessageFormat.format(
+                "Total de bienes en el exterior sujeto a immpuesto {0}",
+                this.format.currency(foreign)));
+
+        this.console.appendLine(MessageFormat.format(
+                "Mínimo no imponible en el país {0}",
+                this.format.currency(bbpp.getMinimum().min(domestic))));
+
+        
+        this.console.appendLine(MessageFormat.format(
+                "Base imponible en el país {0}",
+                this.format.currency(ZERO.max(domestic.subtract(bbpp.getMinimum(), C)))));
+        
+        final var mni = bbpp.getMinimum().subtract(domestic, C).min(foreign);
+
+        this.console.appendLine(MessageFormat.format(
+                "Mínimo no imponible en el exterior {0}",
+                this.format.currency(mni)));
+
+        final var base = foreign.subtract(mni, C);
+
+        this.console.appendLine(MessageFormat.format(
+                "Base imponible en el exterior {0}",
+                this.format.currency(base)));
+
+        final var taxRate = bbpp.getBrakets()
+                        .stream()
+                        .sorted(comparing(BBPPTaxBraket::getFrom))
+                        .filter(b -> b.getFrom().compareTo(domestic.add(foreign, C)) <= 0)
+                        .reduce((left, right) -> right)
+                        .get()
+                        .getTax();
+
+        this.console.appendLine(MessageFormat.format(
+                "Impuesto determinado {0}",
+                this.format.currency(base.multiply(taxRate, C))));
 
     }
 
