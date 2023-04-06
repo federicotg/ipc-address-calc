@@ -347,7 +347,7 @@ public class ConsoleReports {
                 entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
                 entry("p", () -> me.portfolio(args, "p")),
                 entry("p-evo", () -> me.portfolioEvo(args, "p-evo")),
-                entry("p-evo-pct", () -> me.portfolioEvoPct(args, "p-evo-pct")),
+                entry("p-evo-pct", () -> me.portfolioEvo(args, "p-evo-pct")),
                 entry("p-type-evo", () -> new Investments(console, format, bar, series).portfolioTypeEvo(false)),
                 entry("p-type-evo-pct", () -> new Investments(console, format, bar, series).portfolioTypeEvo(true)),
                 entry("pa", () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation()),
@@ -638,41 +638,9 @@ public class ConsoleReports {
     }
 
     private void expenseBySource(String[] args, String paramName) {
+
         final var months = months(this.paramsValue(args, paramName));
-        final var title = format("Average {0}-month expenses by source", months);
-
-        final var colorList = List.of(
-                Attribute.BLUE_BACK(),
-                Attribute.RED_BACK(),
-                Attribute.YELLOW_BACK(),
-                Attribute.GREEN_BACK(),
-                Attribute.MAGENTA_BACK(),
-                Attribute.WHITE_BACK()
-        );
-        this.appendLine(this.format.title(title));
-
-        final var agg = new SimpleAggregation(months);
-
-        final var seriesGroups = this.series.getRealUSDExpensesByType();
-
-        final var ss = seriesGroups.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .map(e -> e.getValue().stream().reduce(MoneyAmountSeries::add).get())
-                .map(agg::average)
-                .collect(Collectors.toList());
-
-        final var labels = seriesGroups.entrySet().stream()
-                .map(Map.Entry::getKey)
-                .sorted()
-                .collect(Collectors.toList());
-
-        final var oldestSeries = ss.stream().min(Comparator.comparing(MoneyAmountSeries::getFrom)).get();
-
-        oldestSeries.map((ym, ma) -> ZERO_USD.max(ma))
-                .forEach((ym, savingMa) -> appendLine(this.bar.genericBar(ym, this.independenSeries(ym, ss, colorList), 8)));
-
-        new Savings(format, this.series, bar, console)
-                .refs(title, labels, colorList);
+        new Savings(format, this.series, bar, console).expenseBySource(months);
 
     }
 
@@ -931,19 +899,10 @@ public class ConsoleReports {
 
     }
 
-    private List<Pair<MoneyAmount, Attribute>> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
-
-        return IntStream.range(0, series.size())
-                .mapToObj(i -> Pair.of(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
-                .collect(Collectors.toList());
-    }
-
     private void netAvgSavingSpent(String[] args, String name) {
 
         final var months = months(this.paramsValue(args, name));
-
         final var title = format("Average {0}-month net monthly average savings and spending", months);
-
         new Savings(format, series, bar, console).netAvgSavingSpent(months, title);
 
     }
@@ -951,24 +910,7 @@ public class ConsoleReports {
     private void incomeAverageBySource(String[] args, String name) {
 
         final var months = months(this.paramsValue(args, name));
-        final var title = format("Average {0}-month income by source", months);
-        final var colorList = List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK(), Attribute.GREEN_BACK());
-        this.appendLine(this.format.title(title));
-
-        final var agg = new SimpleAggregation(months);
-
-        final var unlp = agg.average(this.series.incomeSource("unlp"));
-        final var lifia = agg.average(this.series.incomeSource("lifia"));
-        final var despARS = agg.average(this.series.incomeSource("despegar"));
-        final var despUSD = agg.average(this.series.incomeSource("despegar-split"));
-
-        unlp.map((ym, ma) -> ZERO_USD.max(ma))
-                .forEach((ym, savingMa) -> appendLine(this.bar.genericBar(ym, this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList), 25)));
-
-        new Savings(format, series, bar, console).refs(
-                title,
-                List.of("UNLP", "LIFIA", "Despegar ARS", "Despegar USD"),
-                colorList);
+        new Savings(format, series, bar, console).incomeAverageBySource(months);
 
     }
 
@@ -1329,23 +1271,8 @@ public class ConsoleReports {
     private void portfolioEvo(String[] args, String paramName) {
         this.console.appendLine(this.format.title("Portfolio Evolution"));
         final var params = this.paramsValue(args, paramName);
-
         final var type = params.get("type");
-
-        new Investments(console, format, bar, series).portfolioEvo(type, false);
-
-    }
-
-    private void portfolioEvoPct(String[] args, String paramName) {
-
-        this.console.appendLine(this.format.title("Portfolio Evolution"));
-
-        final var params = this.paramsValue(args, paramName);
-
-        final var type = params.get("type");
-
-        new Investments(console, format, bar, series).portfolioEvo(type, true);
-
+        new Investments(console, format, bar, series).portfolioEvo(type, "p-evo-pct".equals(paramName));
     }
 
 }

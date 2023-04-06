@@ -18,8 +18,11 @@ package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
+import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -167,4 +170,74 @@ public class Savings {
                 .mapToObj(i -> Ansi.colorize(" ", colors.get(i)) + ": " + labels.get(i))
                 .collect(Collectors.joining(", ", "", ".")));
     }
+
+    private List<Pair<MoneyAmount, Attribute>> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
+
+        return IntStream.range(0, series.size())
+                .mapToObj(i -> Pair.of(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
+                .collect(Collectors.toList());
+    }
+
+    public void incomeAverageBySource(int months) {
+
+        final var title = format("Average {0}-month income by source", months);
+        final var colorList = List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK(), Attribute.GREEN_BACK());
+        this.console.appendLine(this.format.title(title));
+
+        final var agg = new SimpleAggregation(months);
+
+        final var unlp = agg.average(this.series.incomeSource("unlp"));
+        final var lifia = agg.average(this.series.incomeSource("lifia"));
+        final var despARS = agg.average(this.series.incomeSource("despegar"));
+        final var despUSD = agg.average(this.series.incomeSource("despegar-split"));
+
+        unlp.map((ym, ma) -> ZERO_USD.max(ma))
+                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList), 25)));
+
+        this.refs(
+                title,
+                List.of("UNLP", "LIFIA", "Despegar ARS", "Despegar USD"),
+                colorList);
+
+    }
+    
+        public void expenseBySource(int months) {
+        
+        final var title = format("Average {0}-month expenses by source", months);
+
+        final var colorList = List.of(
+                Attribute.BLUE_BACK(),
+                Attribute.RED_BACK(),
+                Attribute.YELLOW_BACK(),
+                Attribute.GREEN_BACK(),
+                Attribute.MAGENTA_BACK(),
+                Attribute.WHITE_BACK()
+        );
+        this.console.appendLine(this.format.title(title));
+
+        final var agg = new SimpleAggregation(months);
+
+        final var seriesGroups = this.series.getRealUSDExpensesByType();
+
+        final var ss = seriesGroups.entrySet().stream()
+                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .map(e -> e.getValue().stream().reduce(MoneyAmountSeries::add).get())
+                .map(agg::average)
+                .collect(Collectors.toList());
+
+        final var labels = seriesGroups.entrySet().stream()
+                .map(Map.Entry::getKey)
+                .sorted()
+                .collect(Collectors.toList());
+
+        final var oldestSeries = ss.stream().min(Comparator.comparing(MoneyAmountSeries::getFrom)).get();
+
+        oldestSeries.map((ym, ma) -> ZERO_USD.max(ma))
+                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, ss, colorList), 8)));
+
+        this.refs(title, labels, colorList);
+
+    }
+       
+
 }
