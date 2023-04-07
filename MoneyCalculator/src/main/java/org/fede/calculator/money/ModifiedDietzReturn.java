@@ -83,22 +83,6 @@ public class ModifiedDietzReturn {
         return asLocalDate(d.toInstant());
     }
 
-    public static long daysBetween(List<Investment> investments) {
-
-        final var from = investments
-                .stream()
-                .map(Investment::getIn)
-                .map(InvestmentEvent::getDate)
-                .map(Date::toInstant)
-                .reduce(ModifiedDietzReturn::min)
-                .map(ModifiedDietzReturn::asLocalDate)
-                .get();
-
-        final var to = min(finalMoment(investments), LocalDate.now());
-
-        return ChronoUnit.DAYS.between(from, to);
-    }
-
     private static LocalDate finalMoment(List<Investment> investments) {
 
         if (investments.stream().map(Investment::getOut).anyMatch(Objects::isNull)) {
