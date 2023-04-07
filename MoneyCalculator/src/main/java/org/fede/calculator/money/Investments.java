@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static java.text.MessageFormat.format;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import static java.time.Month.DECEMBER;
 import static java.time.Month.JANUARY;
@@ -44,6 +45,9 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.joining;
 import static org.fede.calculator.money.MathConstants.C;
@@ -56,6 +60,7 @@ import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
+import static org.fede.util.Pair.of;
 
 /**
  *
@@ -64,7 +69,7 @@ import org.fede.util.Pair;
 public class Investments {
 
     private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
-    
+
     private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
 
     private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
@@ -159,7 +164,7 @@ public class Investments {
 
         this.investmentReport(everyone, nominal);
         this.yearMatrix(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, nominal);
-                
+
     }
 
     private Pair<String, ModifiedDietzReturnResult> item(List<Investment> series, boolean nominal, int year) {
@@ -208,7 +213,6 @@ public class Investments {
             List<Investment> cashBenchmarkSeries,
             boolean nominal) {
 
-
         final Map<String, List<Pair<String, ModifiedDietzReturnResult>>> benchmarkMatrix = Map.of(
                 "Portfolio",
                 this.range()
@@ -230,7 +234,7 @@ public class Investments {
         this.matrix(benchmarkMatrix, nominal);
 
     }
- 
+
     private String matrixRow(
             String name,
             List<ModifiedDietzReturnResult> rowData,
@@ -249,12 +253,12 @@ public class Investments {
                 .collect(toList());
 
         final var useBenchmarks = !iwdaList.isEmpty() && !cspxList.isEmpty();
-        
+
         return Stream.concat(
                 Stream.of(this.format.text(ETF_NAME.getOrDefault(name, name), 25, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
                 IntStream.range(0, rowData.size())
                         .mapToObj(i -> Pair.of(i, rowData.get(i)))
-                        .map(pair -> coloredPercent(pair.getSecond(), color(name, pair.getSecond(), useBenchmarks ? iwdaList.get(pair.getFirst()):null, useBenchmarks? cspxList.get(pair.getFirst()):null))))
+                        .map(pair -> coloredPercent(pair.getSecond(), color(name, pair.getSecond(), useBenchmarks ? iwdaList.get(pair.getFirst()) : null, useBenchmarks ? cspxList.get(pair.getFirst()) : null))))
                 .collect(joining());
     }
 
@@ -263,12 +267,12 @@ public class Investments {
     }
 
     private AnsiFormat color(String name, ModifiedDietzReturnResult value, ModifiedDietzReturnResult iwda, ModifiedDietzReturnResult cspx) {
-        
-        if(iwda == null || cspx== null){
+
+        if (iwda == null || cspx == null) {
             return ETF_COLOR.containsKey(name)
-                ? BRIGHT_WHITE_TEXT
-                : color(value.getMoneyWeighted(), ZERO, new BigDecimal("0.001"));
-    
+                    ? BRIGHT_WHITE_TEXT
+                    : color(value.getMoneyWeighted(), ZERO, new BigDecimal("0.001"));
+
         }
         return ETF_COLOR.containsKey(name)
                 ? BRIGHT_WHITE_TEXT
@@ -614,4 +618,28 @@ public class Investments {
                                 this.format.currency(arr[3], 10))));
     }
 
+    public void investments() {
+
+        final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
+                .thenComparing(comparing(pair -> pair.getFirst().getSecond()));
+
+        Collector<Investment, ?, BigDecimal> mapper = Collectors.mapping(
+                inv -> inv.getMoneyAmount().getAmount(),
+                Collectors.reducing(ZERO, BigDecimal::add));
+
+        this.console.appendLine(this.format.title("Inversiones actuales agrupadas por moneda"));
+
+        final NumberFormat sixDigits = NumberFormat.getNumberInstance();
+        sixDigits.setMinimumFractionDigits(6);
+
+        this.series.getInvestments().stream()
+                .filter(Investment::isCurrent)
+                .collect(groupingBy(inv -> of(inv.getType().toString(), inv.getCurrency()), mapper))
+                .entrySet()
+                .stream()
+                .map(e -> of(e.getKey(), e.getValue()))
+                .sorted(TYPE_CURRENCY_COMPARATOR)
+                .map(e -> format("{0} {2}: {1}", e.getFirst().getFirst(), sixDigits.format(e.getSecond()), e.getFirst().getSecond()))
+                .forEach(this.console::appendLine);
+    }
 }

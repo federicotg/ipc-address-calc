@@ -20,23 +20,33 @@ import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import static java.math.BigDecimal.ZERO;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.util.Comparator;
+import static java.util.Comparator.comparing;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
+import static org.fede.util.Pair.of;
 
 /**
  *
@@ -373,4 +383,161 @@ public class Savings {
     private String cell(String value) {
         return String.format("%12s", value);
     }
+
+    public void savings(Map<String, String> params) {
+
+        Runnable otherwise = () -> {
+
+            this.console.appendLine(this.format.title("Historical Real USD Savings Stats"));
+
+            final var limit = USD_INFLATION.getTo();
+
+            final var totalSavings = this.series.realSavings(null).getAmount(limit);
+
+            // total income
+            final var totalIncome = this.series.realIncome()
+                    .moneyAmountStream()
+                    .reduce(ZERO_USD, MoneyAmount::add);
+
+            final var months = this.series.realIncome().getFrom().monthsUntil(limit);
+
+            final var avgSalary = totalIncome.getAmount().divide(BigDecimal.valueOf(months), C);
+
+            this.console.appendLine(format("Income USD {0}\nSavings USD {1} {2}\nAverage salary {3}\nSaved salaries {4}",
+                    this.format.currency(totalIncome.getAmount()),
+                    this.format.currency(totalSavings.getAmount()),
+                    this.format.percent(totalSavings.getAmount().divide(totalIncome.getAmount(), C)),
+                    this.format.currency(avgSalary),
+                    totalSavings.getAmount().divide(avgSalary, C)));
+
+            //ingreso promedio de N meses
+            final var agg = new SimpleAggregation(YearMonth.of(2012, 1).monthsUntil(USD_INFLATION.getTo()));
+
+            final var averageIncome = agg.average(this.series.realIncome()).getAmount(USD_INFLATION.getTo());
+
+            // ahorro promedio de N meses
+            final var averagNetSavings = agg.average(this.series.realNetSavings()).getAmount(USD_INFLATION.getTo());
+
+            final var m = totalSavings.getAmount().divide(averageIncome.subtract(averagNetSavings).getAmount(), C);
+
+            final var yearAndMonth = m.divideAndRemainder(BigDecimal.valueOf(12), C);
+
+            this.console.appendLine(format("Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
+                    yearAndMonth[0],
+                    yearAndMonth[1].setScale(0, MathConstants.RM),
+                    this.format.percent(ONE.subtract(averagNetSavings.getAmount().divide(averageIncome.getAmount(), C), C)),
+                    averageIncome.subtract(averagNetSavings).getAmount()));
+
+            final var unlp = SeriesReader.readSeries("income/unlp.json");
+            final var despegar = SeriesReader.readSeries("income/despegar.json");
+
+            final var totalYears = Math.round((double) unlp.getFrom().next().monthsUntil(unlp.getTo()) / 12.0d);
+            final var simultaneousYears = Math.round((double) despegar.getFrom().monthsUntil(despegar.getTo()) / 12.0d);
+
+            final var simultaneousPercent = new BigDecimal("0.82").divide(new BigDecimal("30"), MathConstants.C);
+
+            final var yearsLeft = 1978 + 65 - LocalDate.now().getYear();
+
+            this.console.appendLine(format("Retirement: {0} last 120 average salaries plus {1} best UNLP salary.",
+                    this.format.percent(BigDecimal.valueOf(totalYears).multiply(new BigDecimal("0.015"), MathConstants.C)),
+                    this.format.percent(simultaneousPercent
+                            .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
+
+            this.console.appendLine(format("Projected: {0} last 120 average salaries plus {1} best UNLP salary.",
+                    this.format.percent(BigDecimal.valueOf(totalYears + yearsLeft).multiply(new BigDecimal("0.015"), MathConstants.C)),
+                    this.format.percent(simultaneousPercent
+                            .multiply(BigDecimal.valueOf(simultaneousYears + yearsLeft), MathConstants.C))));
+        };
+
+        new By().by(params, this::quarterSavings, this::halfSavings, this::yearlySavings, otherwise);
+    }
+
+    private void quarterSavings() {
+
+        new Group(console, format, bar).group("Net quarter savings", this.series.realNetSavings(), this.series.realIncome(), YearMonth::quarter, 3);
+    }
+
+    private void halfSavings() {
+
+        new Group(console, format, bar).group("Net half savings", this.series.realNetSavings(), this.series.realIncome(), YearMonth::half, 6);
+    }
+
+    private void yearlySavings() {
+
+        new Group(console, format, bar).group("Net yearly savings", this.series.realNetSavings(), this.series.realIncome(), ym -> String.valueOf(ym.getYear()), 12);
+    }
+
+    public void expenses(Map<String, String> params) {
+
+        Runnable otherwise = () -> {
+
+            final String exp = params.get("type");
+            final int months = Integer.parseInt(params.getOrDefault("months", "12"));
+
+            this.console.appendLine(this.format.title(format("Real USD expenses in the last {0} months", months)));
+
+            final var list = this.series.getRealUSDExpensesByType()
+                    .entrySet()
+                    .stream()
+                    .filter(p -> exp == null || exp.equals(p.getKey()))
+                    .map(e -> of(e.getKey(), this.aggregate(e.getValue(), s -> this.lastMonths(s, months)).getAmount()))
+                    .collect(toList());
+
+            final var total = list.stream()
+                    .map(Pair::getSecond)
+                    .reduce(ZERO, BigDecimal::add);
+
+            list.stream()
+                    .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
+                    .map(e -> format("{0}{1}{2}{3}",
+                    this.format.text(e.getFirst(), 13),
+                    this.format.text(" USD ", 4),
+                    this.format.currency(e.getSecond(), 10),
+                    this.bar.pctBar(e.getSecond(), total)))
+                    .forEach(this.console::appendLine);
+
+            this.console.appendLine(format("-----------------------------\n{0} USD {1}",
+                    this.format.text("Total", 5),
+                    this.format.currency(total, 10)));
+        };
+
+        new By().by(params, this::quarterExpenses, this::halfExpenses, this::yearlyExpenses, this::monthlyExpenses, otherwise);
+    }
+
+    private MoneyAmount aggregate(List<MoneyAmountSeries> mas, Function<MoneyAmountSeries, MoneyAmount> aggregation) {
+        return mas.stream()
+                .map(aggregation)
+                .reduce(ZERO_USD, MoneyAmount::add);
+    }
+
+    private MoneyAmount lastMonths(MoneyAmountSeries s, int months) {
+
+        var ym = USD_INFLATION.getTo();
+        var amount = ZERO_USD;
+
+        for (var i = 0; i < months; i++) {
+            amount = amount.add(s.getAmountOrElseZero(ym));
+            ym = ym.prev();
+        }
+
+        return amount;
+
+    }
+
+    private void quarterExpenses() {
+        new Group(console, format, bar).group("Quarterly expenses", this.series.realExpense(), null, YearMonth::quarter, 3);
+    }
+
+    private void monthlyExpenses() {
+        new Group(console, format, bar).group("Monthly expenses", this.series.realExpense(), null, YearMonth::month, 3);
+    }
+
+    private void yearlyExpenses() {
+        new Group(console, format, bar).group("Yearly expenses", this.series.realExpense(), null, ym -> String.valueOf(ym.getYear()), 12);
+    }
+
+    private void halfExpenses() {
+        new Group(console, format, bar).group("Half expenses", this.series.realExpense(), null, YearMonth::half, 3);
+    }
+
 }
