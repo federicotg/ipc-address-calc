@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
+import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -33,20 +34,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import static java.util.stream.Collectors.toMap;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.InvestmentEvent;
+import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
+import static org.fede.util.Pair.of;
 
 /**
  *
@@ -451,6 +460,75 @@ public class Positions {
                                 .reduce(ZERO, BigDecimal::add)
                                 .divide(position, C),
                         "USD"));
+    }
+
+    public void portfolio(String type, String subtype, int year, int month) {
+
+        final var ym = YearMonth.of(year, month);
+
+        final Map<String, Map<String, Optional<MoneyAmount>>> grouped
+                = Stream.of(
+                        of("BOND", this.lastAmount("ahorros-ay24", ym)),
+                        of("BOND", this.lastAmount("ahorros-conbala", ym)),
+                        of("BOND", this.lastAmount("ahorros-uva", ym)),
+                        of("BOND", this.lastAmount("ahorros-dolar-ON", ym)),
+                        of("BOND", this.lastAmount("ahorros-lecap", ym)),
+                        of("BOND", this.lastAmount("ahorros-lete", ym)),
+                        of("BOND", this.lastAmount("ahorros-caplusa", ym)),
+                        of("CASH", this.lastAmount("ahorros-dolar-banco", ym)),
+                        of("CASH", this.lastAmount("ahorros-peso", ym)),
+                        of("CASH", this.lastAmount("ahorros-dolar-liq", ym)),
+                        of("CASH", this.lastAmount("ahorros-euro", ym)),
+                        of("CASH", this.lastAmount("ahorros-dai", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-cspx", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-eimi", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-rtwo", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-meud", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-conaafa", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-xrsu", ym)))
+                        .filter(p -> "all".equals(subtype) || p.getFirst().equalsIgnoreCase(subtype))
+                        .collect(groupingBy(
+                                Pair::getFirst,
+                                groupingBy(
+                                        p -> p.getSecond().get().getCurrency(),
+                                        mapping(
+                                                p -> p.getSecond().get(),
+                                                reducing(MoneyAmount::add)))));
+
+        final var items = grouped
+                .entrySet()
+                .stream()
+                .flatMap(e -> this.item(e.getKey(), e.getValue(), ym))
+                .sorted(comparing((PortfolioItem::getDollarAmount), comparing(MoneyAmount::getAmount)).reversed())
+                .collect(toList());
+
+        final var total = items.stream()
+                .map(PortfolioItem::getDollarAmount)
+                .reduce(ZERO_USD, MoneyAmount::add);
+
+        final var pct = "pct".equals(type);
+
+        items.stream()
+                .map(i -> pct ? i.asPercentReport(total) : i.asReport(total))
+                .forEach(this.console::appendLine);
+
+        if (!pct) {
+            this.console.appendLine("--------------------------------------");
+            this.console.appendLine(format("Total {0}", this.format.currency(total.getAmount())));
+        }
+    }
+
+    private Stream<PortfolioItem> item(String type, Map<String, Optional<MoneyAmount>> amounts, YearMonth ym) {
+
+        return amounts.values()
+                .stream()
+                .flatMap(Optional::stream)
+                .filter(ma -> !ma.isZero())
+                .map(amount -> new PortfolioItem(amount, type, ym));
+    }
+
+    private Supplier<MoneyAmount> lastAmount(String seriesName, YearMonth ym) {
+        return () -> SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
     }
 
 }

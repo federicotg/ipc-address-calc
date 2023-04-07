@@ -18,13 +18,22 @@ package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
+import java.math.BigDecimal;
+import static java.math.BigDecimal.ONE;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.reducing;
+import static java.util.stream.Collectors.toMap;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
@@ -200,9 +209,9 @@ public class Savings {
                 colorList);
 
     }
-    
-        public void expenseBySource(int months) {
-        
+
+    public void expenseBySource(int months) {
+
         final var title = format("Average {0}-month expenses by source", months);
 
         final var colorList = List.of(
@@ -238,6 +247,130 @@ public class Savings {
         this.refs(title, labels, colorList);
 
     }
-       
 
+    public void savingsIncomeTable() {
+
+        final int[] years = new int[]{1, 2, 4, 6, 8, 10, 12, 14, 16};
+
+        final var incomes = IntStream.of(years)
+                .mapToObj(i -> Map.entry(i, this.incomeAverage(i)))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        final var savings = IntStream.of(years)
+                .mapToObj(i -> Map.entry(i, this.savingsAverage(i)))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        this.console.appendLine(this.format.title("Average Income / Spending"));
+        this.console.appendLine(
+                this.row(Stream.concat(
+                        Stream.of("Years"),
+                        IntStream.of(years).mapToObj(y -> format("-= {0} =-", y)))));
+        this.console.appendLine(
+                this.row(Stream.concat(
+                        Stream.of("Income"),
+                        IntStream.of(years)
+                                .mapToObj(incomes::get)
+                                .map(MoneyAmount::getAmount)
+                                .map(this.format::currency))));
+        this.console.appendLine(
+                this.row(
+                        Stream.concat(
+                                Stream.of("Savings"),
+                                IntStream.of(years)
+                                        .mapToObj(savings::get)
+                                        .map(MoneyAmount::getAmount)
+                                        .map(this.format::currency))));
+        this.console.appendLine(
+                this.row(
+                        Stream.concat(
+                                Stream.of("Spending"),
+                                IntStream.of(years)
+                                        .mapToObj(y -> incomes.get(y).subtract(savings.get(y)))
+                                        .map(MoneyAmount::getAmount)
+                                        .map(this.format::currency))));
+        this.console.appendLine(this.row(Stream.concat(Stream.of("Saving %"),
+                IntStream.of(years)
+                        .mapToObj(y -> savings.get(y).getAmount().divide(incomes.get(y).getAmount().subtract(ONE, C), C))
+                        .map(this.format::percent))));
+    }
+
+    private MoneyAmount incomeAverage(int years) {
+
+        return this.series.getIncomeSeries()
+                .stream()
+                .collect(reducing(MoneyAmountSeries::add))
+                .map(new SimpleAggregation(years * 12)::average)
+                .map(allRealUSDIncome -> allRealUSDIncome.getAmount(USD_INFLATION.getTo()))
+                .orElse(ZERO_USD);
+    }
+
+    private MoneyAmount savingsAverage(int years) {
+        return new SimpleAggregation(years * 12)
+                .average(this.series.realNetSavings())
+                .getAmount(USD_INFLATION.getTo());
+    }
+
+    public void yearSavingsIncomeTable() {
+
+        final int[] years = IntStream.rangeClosed(1999, USD_INFLATION.getTo().getYear()).toArray();
+
+        final var incomes = IntStream.of(years)
+                .mapToObj(i -> Map.entry(i, this.yearIncome(i)))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        final var savings = IntStream.of(years)
+                .mapToObj(i -> Map.entry(i, this.yearSavings(i)))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        this.console.appendLine(this.format.title("Income / Spending by Year"));
+
+        this.console.appendLine(this.row(Stream.of("-= Year =-", "Income", "Sav.", "Spend.", "Sav. %", "Sav./Spend.")));
+
+        IntStream.of(years)
+                .mapToObj(y -> this.row(Stream.of(format("-= {0} =-", String.valueOf(y) + (y == USD_INFLATION.getTo().getYear() ? "*" : "")),
+                this.format.currency(incomes.get(y).getAmount()),
+                this.format.currency(savings.get(y).getAmount()),
+                this.format.currency(incomes.get(y).subtract(savings.get(y)).getAmount()),
+                format("{0}", this.format.percent(savings.get(y).getAmount()
+                        .divide(incomes.get(y).getAmount()
+                                .subtract(ONE, C), C))),
+                this.format.number(savings.get(y).getAmount().divide(incomes.get(y).subtract(savings.get(y)).getAmount(), C)))))
+                .forEach(this.console::appendLine);
+    }
+
+    private MoneyAmount yearIncome(int year) {
+
+        final var months = year < USD_INFLATION.getTo().getYear()
+                ? 12
+                : USD_INFLATION.getTo().getMonth();
+
+        return this.series.getIncomeSeries()
+                .stream()
+                .map(s -> s.filter((ym, ma) -> ym.getYear() == year))
+                .flatMap(Function.identity())
+                .reduce(ZERO_USD, MoneyAmount::add)
+                .adjust(BigDecimal.valueOf(months), ONE);
+    }
+
+    private MoneyAmount yearSavings(int year) {
+
+        final var months = year < USD_INFLATION.getTo().getYear()
+                ? 12
+                : USD_INFLATION.getTo().getMonth();
+
+        return this.series.realNetSavings()
+                .filter((ym, ma) -> ym.getYear() == year)
+                .reduce(ZERO_USD, MoneyAmount::add)
+                .adjust(BigDecimal.valueOf(months), ONE);
+    }
+
+    private String row(Stream<String> values) {
+        return values
+                .map(this::cell)
+                .collect(joining());
+    }
+
+    private String cell(String value) {
+        return String.format("%12s", value);
+    }
 }

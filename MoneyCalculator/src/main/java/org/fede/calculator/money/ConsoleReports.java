@@ -336,12 +336,12 @@ public class ConsoleReports {
                 entry("savings-net-change", () -> me.monthlySavings(args, "savings-net-change")),
                 entry("savings-avg-pct", () -> me.netAvgSavingSpentPct(args, "savings-avg-pct")),
                 entry("savings-avg", () -> me.netAvgSavingSpent(args, "savings-avg")),
-                entry("savings-dist", me::savingsDistributionEvolution),
-                entry("savings-dist-pct", me::savingsDistributionPercentEvolution),
+                entry("savings-dist", new Savings(format, series, bar, console)::savingsDistributionEvolution),
+                entry("savings-dist-pct", new Savings(format, series, bar, console)::savingsDistributionPercentEvolution),
                 entry("saved-salaries-evo", () -> me.averageSavedSalaries(args, "saved-salaries-evo")),
                 entry("income", () -> me.income(args, "income")),
-                entry("income-table", me::savingsIncomeTable),
-                entry("income-year-table", me::yearSavingsIncomeTable),
+                entry("income-table", new Savings(format, series, bar, console)::savingsIncomeTable),
+                entry("income-year-table", new Savings(format, series, bar, console)::yearSavingsIncomeTable),
                 entry("income-evo", () -> me.incomeAverageEvolution(args, "income-evo")),
                 entry("income-src", () -> me.incomeAverageBySource(args, "income-src")),
                 entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
@@ -532,7 +532,6 @@ public class ConsoleReports {
                     this.format.percent(BigDecimal.valueOf(totalYears + yearsLeft).multiply(new BigDecimal("0.015"), MathConstants.C)),
                     this.format.percent(simultaneousPercent
                             .multiply(BigDecimal.valueOf(simultaneousYears + yearsLeft), MathConstants.C))));
-
         };
 
         this.by(params, this::quarterSavings, this::halfSavings, this::yearlySavings, otherwise);
@@ -614,16 +613,6 @@ public class ConsoleReports {
                 this.bar.bar(ma.movePointRight(2), 1));
     }
 
-    private void savingsDistributionEvolution() {
-        new Savings(format, series, bar, console).savingsDistributionEvolution();
-    }
-
-    private void savingsDistributionPercentEvolution() {
-
-        new Savings(format, series, bar, console).savingsDistributionPercentEvolution();
-
-    }
-
     private void savingEvolution(String[] args, String paramName) {
         this.appendLine(this.format.title("Savings Evolution"));
         this.bar.evolution("Savings", this.series.realSavings(this.paramsValue(args, paramName).get("type")), 2000);
@@ -660,7 +649,6 @@ public class ConsoleReports {
         this.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
         this.bar.evolution(format("{0}-month Savings Change", months - 1), new SimpleAggregation(months)
                 .change(this.series.realSavings(null)), 50 * months);
-
     }
 
     private void savingsPercentChange(String[] args, String paramName) {
@@ -703,7 +691,6 @@ public class ConsoleReports {
         var ars = Boolean.parseBoolean(params.getOrDefault("ars", "false"));
         this.appendLine(this.format.title(format("Average {0}-month income evolution", months)));
         this.incomeAverageEvolution(months, ars);
-
     }
 
     private void incomeAverageEvolution(int months, boolean ars) {
@@ -879,9 +866,7 @@ public class ConsoleReports {
     private void monthlySavings(String[] args, String name) {
 
         final var months = months(this.paramsValue(args, name));
-
         final var title = format("Average {0}-month net monthly savings", months);
-
         this.appendLine(this.format.title(title));
 
         this.bar.evolution(title,
@@ -892,9 +877,7 @@ public class ConsoleReports {
     private void netAvgSavingSpentPct(String[] args, String name) {
 
         final var months = months(this.paramsValue(args, name));
-
         final var title = format("Average {0}-month net monthly average savings and spending percent", months);
-
         new Savings(format, series, bar, console).netAvgSavingSpentPct(months, title);
 
     }
@@ -914,219 +897,25 @@ public class ConsoleReports {
 
     }
 
-    private void savingsIncomeTable() {
-
-        final int[] years = new int[]{1, 2, 4, 6, 8, 10, 12, 14, 16};
-
-        final var incomes = IntStream.of(years)
-                .mapToObj(i -> Map.entry(i, this.incomeAverage(i)))
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        final var savings = IntStream.of(years)
-                .mapToObj(i -> Map.entry(i, this.savingsAverage(i)))
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        this.appendLine(this.format.title("Average Income / Spending"));
-        this.appendLine(
-                this.row(Stream.concat(
-                        Stream.of("Years"),
-                        IntStream.of(years).mapToObj(y -> format("-= {0} =-", y)))));
-        this.appendLine(
-                this.row(Stream.concat(
-                        Stream.of("Income"),
-                        IntStream.of(years)
-                                .mapToObj(incomes::get)
-                                .map(MoneyAmount::getAmount)
-                                .map(this.format::currency))));
-        this.appendLine(
-                this.row(
-                        Stream.concat(
-                                Stream.of("Savings"),
-                                IntStream.of(years)
-                                        .mapToObj(savings::get)
-                                        .map(MoneyAmount::getAmount)
-                                        .map(this.format::currency))));
-        this.appendLine(
-                this.row(
-                        Stream.concat(
-                                Stream.of("Spending"),
-                                IntStream.of(years)
-                                        .mapToObj(y -> incomes.get(y).subtract(savings.get(y)))
-                                        .map(MoneyAmount::getAmount)
-                                        .map(this.format::currency))));
-        this.appendLine(this.row(Stream.concat(Stream.of("Saving %"),
-                IntStream.of(years)
-                        .mapToObj(y -> savings.get(y).getAmount().divide(incomes.get(y).getAmount().subtract(ONE, C), C))
-                        .map(this.format::percent))));
-    }
-
-    private void yearSavingsIncomeTable() {
-
-        final int[] years = IntStream.rangeClosed(1999, USD_INFLATION.getTo().getYear()).toArray();
-
-        final var incomes = IntStream.of(years)
-                .mapToObj(i -> Map.entry(i, this.yearIncome(i)))
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        final var savings = IntStream.of(years)
-                .mapToObj(i -> Map.entry(i, this.yearSavings(i)))
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        this.appendLine(this.format.title("Income / Spending by Year"));
-
-        this.appendLine(this.row(Stream.of("-= Year =-", "Income", "Sav.", "Spend.", "Sav. %", "Sav./Spend.")));
-
-        IntStream.of(years)
-                .mapToObj(y -> this.row(Stream.of(format("-= {0} =-", String.valueOf(y) + (y == USD_INFLATION.getTo().getYear() ? "*" : "")),
-                this.format.currency(incomes.get(y).getAmount()),
-                this.format.currency(savings.get(y).getAmount()),
-                this.format.currency(incomes.get(y).subtract(savings.get(y)).getAmount()),
-                format("{0}", this.format.percent(savings.get(y).getAmount()
-                        .divide(incomes.get(y).getAmount()
-                                .subtract(ONE, C), C))),
-                this.format.number(savings.get(y).getAmount().divide(incomes.get(y).subtract(savings.get(y)).getAmount(), C)))))
-                .forEach(this::appendLine);
-    }
-
-    private MoneyAmount incomeAverage(int years) {
-
-        return this.series.getIncomeSeries()
-                .stream()
-                .collect(reducing(MoneyAmountSeries::add))
-                .map(new SimpleAggregation(years * 12)::average)
-                .map(allRealUSDIncome -> allRealUSDIncome.getAmount(USD_INFLATION.getTo()))
-                .orElse(ZERO_USD);
-    }
-
-    private MoneyAmount savingsAverage(int years) {
-        return new SimpleAggregation(years * 12)
-                .average(this.series.realNetSavings())
-                .getAmount(USD_INFLATION.getTo());
-    }
-
-    private MoneyAmount yearIncome(int year) {
-
-        final var months = year < USD_INFLATION.getTo().getYear()
-                ? 12
-                : USD_INFLATION.getTo().getMonth();
-
-        return this.series.getIncomeSeries()
-                .stream()
-                .map(s -> s.filter((ym, ma) -> ym.getYear() == year))
-                .flatMap(Function.identity())
-                .reduce(ZERO_USD, MoneyAmount::add)
-                .adjust(BigDecimal.valueOf(months), ONE);
-    }
-
-    private MoneyAmount yearSavings(int year) {
-
-        final var months = year < USD_INFLATION.getTo().getYear()
-                ? 12
-                : USD_INFLATION.getTo().getMonth();
-
-        return this.series.realNetSavings()
-                .filter((ym, ma) -> ym.getYear() == year)
-                .reduce(ZERO_USD, MoneyAmount::add)
-                .adjust(BigDecimal.valueOf(months), ONE);
-    }
-
-    private String row(Stream<String> values) {
-        return values
-                .map(this::cell)
-                .collect(joining());
-    }
-
-    private String cell(String value) {
-        return String.format("%12s", value);
-    }
-
     private void portfolio(String[] args, String name) {
 
         final var params = this.paramsValue(args, name);
-
         final var type = params.getOrDefault("type", "full");
         final var subtype = params.getOrDefault("subtype", "all");
-
-        final var limit = USD_INFLATION.getTo();
-
         final var year = Optional.ofNullable(params.get("y"))
                 .map(Integer::parseInt)
-                .orElseGet(limit::getYear);
+                .orElseGet(USD_INFLATION.getTo()::getYear);
         final var month = Optional.ofNullable(params.get("m"))
                 .map(Integer::parseInt)
-                .orElseGet(limit::getMonth);
+                .orElseGet(USD_INFLATION.getTo()::getMonth);
+        new Positions(console, format, series, true)
+                .portfolio(type, subtype, year, month);
 
-        final var ym = YearMonth.of(year, month);
-
-        final Map<String, Map<String, Optional<MoneyAmount>>> grouped
-                = Stream.of(
-                        of("BOND", this.lastAmount("ahorros-ay24", ym)),
-                        of("BOND", this.lastAmount("ahorros-conbala", ym)),
-                        of("BOND", this.lastAmount("ahorros-uva", ym)),
-                        of("BOND", this.lastAmount("ahorros-dolar-ON", ym)),
-                        of("BOND", this.lastAmount("ahorros-lecap", ym)),
-                        of("BOND", this.lastAmount("ahorros-lete", ym)),
-                        of("BOND", this.lastAmount("ahorros-caplusa", ym)),
-                        of("CASH", this.lastAmount("ahorros-dolar-banco", ym)),
-                        of("CASH", this.lastAmount("ahorros-peso", ym)),
-                        of("CASH", this.lastAmount("ahorros-dolar-liq", ym)),
-                        of("CASH", this.lastAmount("ahorros-euro", ym)),
-                        of("CASH", this.lastAmount("ahorros-dai", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-cspx", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-eimi", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-rtwo", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-meud", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-conaafa", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-xrsu", ym)))
-                        .filter(p -> "all".equals(subtype) || p.getFirst().equalsIgnoreCase(subtype))
-                        .collect(groupingBy(
-                                Pair::getFirst,
-                                groupingBy(
-                                        p -> p.getSecond().get().getCurrency(),
-                                        mapping(
-                                                p -> p.getSecond().get(),
-                                                reducing(MoneyAmount::add)))));
-
-        final var items = grouped
-                .entrySet()
-                .stream()
-                .flatMap(e -> this.item(e.getKey(), e.getValue(), ym))
-                .sorted(comparing((PortfolioItem::getDollarAmount), comparing(MoneyAmount::getAmount)).reversed())
-                .collect(toList());
-
-        final var total = items.stream()
-                .map(PortfolioItem::getDollarAmount)
-                .reduce(ZERO_USD, MoneyAmount::add);
-
-        final var pct = "pct".equals(type);
-
-        items.stream()
-                .map(i -> pct ? i.asPercentReport(total) : i.asReport(total))
-                .forEach(this::appendLine);
-
-        if (!pct) {
-            this.appendLine("--------------------------------------");
-            this.appendLine(format("Total {0}", this.format.currency(total.getAmount())));
-        }
-    }
-
-    private Stream<PortfolioItem> item(String type, Map<String, Optional<MoneyAmount>> amounts, YearMonth ym) {
-
-        return amounts.values()
-                .stream()
-                .flatMap(Optional::stream)
-                .filter(ma -> !ma.isZero())
-                .map(amount -> new PortfolioItem(amount, type, ym));
-    }
-
-    private Supplier<MoneyAmount> lastAmount(String seriesName, YearMonth ym) {
-        return () -> SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
     }
 
     private void returns(String[] args, String paranName, PortfolioReturns pr) {
 
         final var params = this.paramsValue(args, paranName);
-
         final var timeWeighted = Boolean.parseBoolean(params.getOrDefault("tw", "false"));
         final var withCash = Boolean.parseBoolean(params.getOrDefault("cash", "true"));
         final var startYear = Integer.parseInt(params.getOrDefault("start", "1999"));
@@ -1144,13 +933,9 @@ public class ConsoleReports {
         this.console.appendLine(this.format.title(title));
 
         final var allIncomeSeries = this.series.getIncomeSeries().stream().reduce(MoneyAmountSeries::add).get();
-
         final var agg = new SimpleAggregation(months);
-
         final var average = agg.average(allIncomeSeries);
-
         final var change = agg.change(average);
-
         final var limit = Inflation.USD_INFLATION.getTo();
         average.forEachNonZero((ym, ch) -> {
             if (ym.compareTo(limit) <= 0) {
@@ -1236,15 +1021,12 @@ public class ConsoleReports {
 
     private void invEvoPct(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-
         final var currency = params.get("currency");
-
         new Investments(console, format, bar, series).invEvoPct(currency, nominal(params));
     }
 
     private void positions(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-
         final var withFee = Boolean.parseBoolean(params.getOrDefault("fees", "false"));
         new Positions(this.console, this.format, this.series, withFee)
                 .positions(nominal(params));
@@ -1260,12 +1042,9 @@ public class ConsoleReports {
 
     private void invEvo(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-
         final var currency = params.get("type");
         final var nominal = nominal(params);
-
         new Investments(console, format, bar, series).invEvo(currency, nominal);
-
     }
 
     private void portfolioEvo(String[] args, String paramName) {
