@@ -503,7 +503,7 @@ public class Investments {
                 .map(InvestmentEvent::getDate)
                 .map(YearMonth::of)
                 .map(YearMonth::prev)
-                .orElse(Inflation.USD_INFLATION.getTo());
+                .orElseGet(Inflation.USD_INFLATION::getTo);
 
         Function<Investment, String> classifier = i -> i.getType().toString() + " " + i.getCurrency();
 
@@ -537,7 +537,7 @@ public class Investments {
                 .map(InvestmentEvent::getDate)
                 .map(YearMonth::of)
                 .map(YearMonth::prev)
-                .orElse(Inflation.USD_INFLATION.getTo());
+                .orElseGet(Inflation.USD_INFLATION::getTo);
 
         final var categories = Map.ofEntries(
                 Map.entry("CSPX", "Global Eq."),

@@ -320,17 +320,17 @@ public class ConsoleReports {
     }
 
     private void expenses(String[] args, String type) {
-        new Savings(format, series, bar, console).expenses(this.paramsValue(args, type));
+        new Expenses(series, console, bar, format).expenses(this.paramsValue(args, type));
     }
 
-    private void percentEvolutionReport(YearMonth ym, BigDecimal ma) {
-
-        this.appendLine(
-                format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
-                " ",
-                this.format.percent(ma, 8),
-                " ",
-                this.bar.bar(ma.movePointRight(2), 1));
+    private void savingsPercentChange(String[] args, String paramName) {
+     final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "1")) + 1;
+     new Savings(format, series, bar, console).savingsPercentChange(months);
+    }
+    
+    private void incomeDelta(String[] args, String paramName) {
+        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "12"));
+        new Savings(format, series, bar, console).incomeDelta(months);
     }
 
     private void savingEvolution(String[] args, String paramName) {
@@ -347,7 +347,7 @@ public class ConsoleReports {
     }
 
     private void expenseBySource(String[] args, String paramName) {
-        new Savings(format, this.series, bar, console).expenseBySource(months(this.paramsValue(args, paramName)));
+        new Expenses(series, console, bar, format).expenseBySource(months(this.paramsValue(args, paramName)));
     }
 
     private void expenseEvolution(String type, int months) {
@@ -368,38 +368,14 @@ public class ConsoleReports {
                 .change(this.series.realSavings(null)), 50 * months);
     }
 
-    private void savingsPercentChange(String[] args, String paramName) {
 
-        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "1")) + 1;
-
-        this.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
-        final var s = new SimpleAggregation(months)
-                .percentChange(this.series.realSavings(null));
-
-        var ym = s.getFrom();
-        var limit = s.getTo();
-
-        while (ym.compareTo(limit) <= 0) {
-            this.percentEvolutionReport(ym, s.getIndex(ym.getYear(), ym.getMonth()));
-            ym = ym.next();
-        }
-    }
 
     private void expensesChange(String[] args, String name) {
 
         var params = this.paramsValue(args, name);
         final var months = months(params);
         final var type = params.getOrDefault("type", "tracked");
-        this.appendLine(this.format.title("Expenses Change"));
-
-        final var series = "full".equals(type)
-                ? this.series.realExpense()
-                : this.series.realExpenses(null);
-
-        this.bar.evolution(format("{0}-month average expenses change", months),
-                new SimpleAggregation(2)
-                        .change(new SimpleAggregation(months)
-                                .average(series)), 1);
+        new Expenses(series, console, bar, format).expensesChange(type, months);
     }
 
     private void incomeAverageEvolution(String[] args, String paramName) {
@@ -582,28 +558,6 @@ public class ConsoleReports {
 
     }
 
-    // increase in real USD -  rolling N months
-    private void incomeDelta(String[] args, String paramName) {
-
-        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "12"));
-
-        final var title = format("{0}-month real USD income change over {0}-month real income average.", months);
-        this.console.appendLine(this.format.title(title));
-
-        final var allIncomeSeries = this.series.getIncomeSeries().stream().reduce(MoneyAmountSeries::add).get();
-        final var agg = new SimpleAggregation(months);
-        final var average = agg.average(allIncomeSeries);
-        final var change = agg.change(average);
-        final var limit = Inflation.USD_INFLATION.getTo();
-        average.forEachNonZero((ym, ch) -> {
-            if (ym.compareTo(limit) <= 0) {
-                percentEvolutionReport(ym, change.getAmount(ym).getAmount().divide(average.getAmount(ym).getAmount(), C));
-            }
-        });
-
-        this.console.appendLine(this.format.title(title));
-
-    }
 
     private void ibkrCSV() {
 

@@ -16,23 +16,18 @@
  */
 package org.fede.calculator.money;
 
-import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
-import static java.math.BigDecimal.ZERO;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.util.Comparator;
-import static java.util.Comparator.comparing;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.reducing;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -42,7 +37,6 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
-import static org.fede.util.Pair.of;
 
 /**
  *
@@ -137,7 +131,7 @@ public class Savings {
     }
 
     private void cashEquityBondsRef(String title) {
-        this.refs(
+        new References(console, format).refs(
                 this.format.title(title),
                 List.of("Cash", "equity", "bonds"),
                 List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK()));
@@ -160,7 +154,7 @@ public class Savings {
 
     private void savingsRefs(String title) {
 
-        this.refs(
+        new References(console, format).refs(
                 title,
                 List.of("saved", "spent", "other spending"),
                 List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK()));
@@ -175,22 +169,6 @@ public class Savings {
                                 .subtract(savingMa)
                                 .subtract(spending.getAmountOrElseZero(ym))), Attribute.YELLOW_BACK()),
                 Pair.of(savingMa, Attribute.BLUE_BACK()));
-    }
-
-    public void refs(String title, List<String> labels, List<Attribute> colors) {
-        this.console.appendLine(this.format.title(title));
-        this.console.appendLine("References:");
-
-        this.console.appendLine(IntStream.range(0, labels.size())
-                .mapToObj(i -> Ansi.colorize(" ", colors.get(i)) + ": " + labels.get(i))
-                .collect(Collectors.joining(", ", "", ".")));
-    }
-
-    private List<Pair<MoneyAmount, Attribute>> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
-
-        return IntStream.range(0, series.size())
-                .mapToObj(i -> Pair.of(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
-                .collect(Collectors.toList());
     }
 
     public void incomeAverageBySource(int months) {
@@ -209,49 +187,18 @@ public class Savings {
         unlp.map((ym, ma) -> ZERO_USD.max(ma))
                 .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList), 25)));
 
-        this.refs(
+        new References(console, format).refs(
                 title,
                 List.of("UNLP", "LIFIA", "Despegar ARS", "Despegar USD"),
                 colorList);
 
     }
 
-    public void expenseBySource(int months) {
+    private List<Pair<MoneyAmount, Attribute>> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
 
-        final var title = format("Average {0}-month expenses by source", months);
-
-        final var colorList = List.of(
-                Attribute.BLUE_BACK(),
-                Attribute.RED_BACK(),
-                Attribute.YELLOW_BACK(),
-                Attribute.GREEN_BACK(),
-                Attribute.MAGENTA_BACK(),
-                Attribute.WHITE_BACK()
-        );
-        this.console.appendLine(this.format.title(title));
-
-        final var agg = new SimpleAggregation(months);
-
-        final var seriesGroups = this.series.getRealUSDExpensesByType();
-
-        final var ss = seriesGroups.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .map(e -> e.getValue().stream().reduce(MoneyAmountSeries::add).get())
-                .map(agg::average)
+        return IntStream.range(0, series.size())
+                .mapToObj(i -> Pair.of(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
                 .collect(Collectors.toList());
-
-        final var labels = seriesGroups.entrySet().stream()
-                .map(Map.Entry::getKey)
-                .sorted()
-                .collect(Collectors.toList());
-
-        final var oldestSeries = ss.stream().min(Comparator.comparing(MoneyAmountSeries::getFrom)).get();
-
-        oldestSeries.map((ym, ma) -> ZERO_USD.max(ma))
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, ss, colorList), 8)));
-
-        this.refs(title, labels, colorList);
-
     }
 
     public void savingsIncomeTable() {
@@ -463,77 +410,48 @@ public class Savings {
         new Group(console, format, bar).group("Net yearly savings", this.series.realNetSavings(), this.series.realIncome(), ym -> String.valueOf(ym.getYear()), 12);
     }
 
-    public void expenses(Map<String, String> params) {
+    // increase in real USD -  rolling N months
+    public void incomeDelta(int months) {
+        final var title = format("{0}-month real USD income change over {0}-month real income average.", months);
+        this.console.appendLine(this.format.title(title));
 
-        Runnable otherwise = () -> {
+        final var allIncomeSeries = this.series.getIncomeSeries().stream().reduce(MoneyAmountSeries::add).get();
+        final var agg = new SimpleAggregation(months);
+        final var average = agg.average(allIncomeSeries);
+        final var change = agg.change(average);
+        final var limit = Inflation.USD_INFLATION.getTo();
+        average.forEachNonZero((ym, ch) -> {
+            if (ym.compareTo(limit) <= 0) {
+                percentEvolutionReport(ym, change.getAmount(ym).getAmount().divide(average.getAmount(ym).getAmount(), C));
+            }
+        });
 
-            final String exp = params.get("type");
-            final int months = Integer.parseInt(params.getOrDefault("months", "12"));
+        this.console.appendLine(this.format.title(title));
 
-            this.console.appendLine(this.format.title(format("Real USD expenses in the last {0} months", months)));
-
-            final var list = this.series.getRealUSDExpensesByType()
-                    .entrySet()
-                    .stream()
-                    .filter(p -> exp == null || exp.equals(p.getKey()))
-                    .map(e -> of(e.getKey(), this.aggregate(e.getValue(), s -> this.lastMonths(s, months)).getAmount()))
-                    .collect(toList());
-
-            final var total = list.stream()
-                    .map(Pair::getSecond)
-                    .reduce(ZERO, BigDecimal::add);
-
-            list.stream()
-                    .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
-                    .map(e -> format("{0}{1}{2}{3}",
-                    this.format.text(e.getFirst(), 13),
-                    this.format.text(" USD ", 4),
-                    this.format.currency(e.getSecond(), 10),
-                    this.bar.pctBar(e.getSecond(), total)))
-                    .forEach(this.console::appendLine);
-
-            this.console.appendLine(format("-----------------------------\n{0} USD {1}",
-                    this.format.text("Total", 5),
-                    this.format.currency(total, 10)));
-        };
-
-        new By().by(params, this::quarterExpenses, this::halfExpenses, this::yearlyExpenses, this::monthlyExpenses, otherwise);
     }
 
-    private MoneyAmount aggregate(List<MoneyAmountSeries> mas, Function<MoneyAmountSeries, MoneyAmount> aggregation) {
-        return mas.stream()
-                .map(aggregation)
-                .reduce(ZERO_USD, MoneyAmount::add);
-    }
+    public void savingsPercentChange(int months) {
 
-    private MoneyAmount lastMonths(MoneyAmountSeries s, int months) {
+        this.console.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
+        final var s = new SimpleAggregation(months)
+                .percentChange(this.series.realSavings(null));
 
-        var ym = USD_INFLATION.getTo();
-        var amount = ZERO_USD;
+        var ym = s.getFrom();
+        var limit = s.getTo();
 
-        for (var i = 0; i < months; i++) {
-            amount = amount.add(s.getAmountOrElseZero(ym));
-            ym = ym.prev();
+        while (ym.compareTo(limit) <= 0) {
+            this.percentEvolutionReport(ym, s.getIndex(ym.getYear(), ym.getMonth()));
+            ym = ym.next();
         }
-
-        return amount;
-
     }
 
-    private void quarterExpenses() {
-        new Group(console, format, bar).group("Quarterly expenses", this.series.realExpense(), null, YearMonth::quarter, 3);
-    }
+    private void percentEvolutionReport(YearMonth ym, BigDecimal ma) {
 
-    private void monthlyExpenses() {
-        new Group(console, format, bar).group("Monthly expenses", this.series.realExpense(), null, YearMonth::month, 3);
+        this.console.appendLine(
+                format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
+                " ",
+                this.format.percent(ma, 8),
+                " ",
+                this.bar.bar(ma.movePointRight(2), 1));
     }
-
-    private void yearlyExpenses() {
-        new Group(console, format, bar).group("Yearly expenses", this.series.realExpense(), null, ym -> String.valueOf(ym.getYear()), 12);
-    }
-
-    private void halfExpenses() {
-        new Group(console, format, bar).group("Half expenses", this.series.realExpense(), null, YearMonth::half, 3);
-    }
-
 }
