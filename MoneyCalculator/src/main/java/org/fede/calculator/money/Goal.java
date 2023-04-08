@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.text.MessageFormat.format;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
@@ -31,12 +32,14 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import static org.fede.calculator.money.MathConstants.RM;
 import static org.fede.calculator.money.MathConstants.SCALE;
+import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
 
@@ -45,6 +48,9 @@ import org.fede.util.Pair;
  * @author fede
  */
 public class Goal {
+
+    private static final TypeReference<Map<String, ExpectedReturnGroup>> TR = new TypeReference<Map<String, ExpectedReturnGroup>>() {
+    };
 
     private static final double OFFICIAL_DOLLAR_MEAN = 0.8d;
     private static final double OFFICIAL_DOLLAR_STD_DEV = 0.05d;
@@ -259,8 +265,7 @@ public class Goal {
 
         this.console.appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
 
-        final Map<String, ExpectedReturnGroup> expectedReturns = SeriesReader.read("/index/expected-returns.json", new TypeReference<Map<String, ExpectedReturnGroup>>() {
-        });
+        final Map<String, ExpectedReturnGroup> expectedReturns = SeriesReader.read("/index/expected-returns.json", TR);
 
         List<Pair<String, Long>> results = expectedReturns.entrySet()
                 .parallelStream()
@@ -292,6 +297,8 @@ public class Goal {
                 .getAsDouble();
         this.console.appendLine(this.format.subtitle("Average"));
         this.console.appendLine(this.report("Average", averageSuccesses, trials));
+
+        //this.endValue(retirementYear - LocalDate.now().getYear(), invested.getAmount().doubleValue());
 
     }
 
@@ -332,6 +339,63 @@ public class Goal {
                         realWithdrawals,
                         bbppMin))
                 .count();
+    }
+
+    public void endValue(int years, double invested) {
+
+        this.console.appendLine(this.format.title(format("Expected Portfolio Value in {0} years", years)));
+
+        this.console.appendLine(
+                this.format.text("   Supplier", 14),
+                this.format.text("     Worst 10%", 14),
+                this.format.text("           50%", 14),
+                this.format.text("      Best 10%", 14));
+
+        SeriesReader.read("/index/expected-returns.json", TR)
+                .entrySet()
+                .stream()
+                .map(e -> this.endValueReportLine(e.getKey(), e.getValue(), years, invested))
+                .forEach(this.console::appendLine);
+
+    }
+
+    private String endValueReportLine(String name, ExpectedReturnGroup expectedReturn, int years, double invested) {
+
+        final var mu = expectedReturn.getUsLargeCap().getMu() * 0.7d
+                + expectedReturn.getUsSmallCap().getMu() * 0.1d
+                + expectedReturn.getEm().getMu() * 0.1d
+                + expectedReturn.getEu().getMu() * 0.1d;
+
+        final var sigma = expectedReturn.getUsLargeCap().getSigma() * 0.7d
+                + expectedReturn.getUsSmallCap().getSigma() * 0.1d
+                + expectedReturn.getEm().getSigma() * 0.1d
+                + expectedReturn.getEu().getSigma() * 0.1d;
+
+        Supplier<double[]> supplier = new GaussReturnSupplier(mu, sigma, years);
+       
+        final var trials = 80000;
+
+        final var returnPct = IntStream.range(0, trials)
+                .parallel()
+                .mapToObj(i -> supplier.get())
+                .map(this::endReturn)
+                .sorted()
+                .collect(Collectors.toList());
+
+        return this.format.text(name, 14)
+                + " "
+                + this.format.currency(new BigDecimal(invested * returnPct.get((int) Math.round(trials * 0.1))), 14)
+                + ", "
+                + this.format.currency(new BigDecimal(invested * returnPct.get((int) Math.round(trials * 0.5))), 14)
+                + ", "
+                + this.format.currency(new BigDecimal(invested * returnPct.get((int) Math.round(trials * 0.9))), 14);
+
+    }
+
+    private double endReturn(double[] randomReturns) {
+        return DoubleStream.of(randomReturns)
+                .reduce(1.0d, (x, y) -> x * y);
+
     }
 
 }
