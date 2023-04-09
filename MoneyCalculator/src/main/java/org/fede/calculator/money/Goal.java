@@ -384,11 +384,11 @@ public class Goal {
 
         return this.format.text(name, 14)
                 + " "
-                + this.format.currency(new BigDecimal(invested * returnPct.get((int) Math.round(trials * 0.1))), 14)
+                + this.format.currency(new BigDecimal(invested * returnPct.get((int) Math.round(trials * 0.1d))), 14)
                 + ", "
-                + this.format.currency(new BigDecimal(invested * returnPct.get((int) Math.round(trials * 0.5))), 14)
+                + this.format.currency(new BigDecimal(invested * returnPct.get((int) Math.round(trials * 0.5d))), 14)
                 + ", "
-                + this.format.currency(new BigDecimal(invested * returnPct.get((int) Math.round(trials * 0.9))), 14);
+                + this.format.currency(new BigDecimal(invested * returnPct.get((int) Math.round(trials * 0.9d))), 14);
 
     }
 
