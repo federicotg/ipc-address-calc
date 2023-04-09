@@ -22,7 +22,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.text.MessageFormat.format;
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
@@ -39,7 +38,6 @@ import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import static org.fede.calculator.money.MathConstants.RM;
 import static org.fede.calculator.money.MathConstants.SCALE;
-import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
 
