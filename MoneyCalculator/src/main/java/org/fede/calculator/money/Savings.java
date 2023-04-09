@@ -171,6 +171,69 @@ public class Savings {
                 Pair.of(savingMa, Attribute.BLUE_BACK()));
     }
 
+    private void income(int months) {
+        final var limit = USD_INFLATION.getTo();
+        final var averageRealUSDIncome = this.series.getIncomeSeries()
+                .stream()
+                .collect(reducing(MoneyAmountSeries::add))
+                .map(new SimpleAggregation(months)::average)
+                .map(allRealUSDIncome -> allRealUSDIncome.getAmount(limit.min(allRealUSDIncome.getTo())))
+                .orElse(ZERO_USD);
+
+        this.console.appendLine(this.format.title(format("Average {0}-month income in {1}/{2} real USD",
+                months,
+                limit.getMonth(),
+                String.valueOf(limit.getYear()))));
+
+        this.console.appendLine("\tIncome: ",
+                averageRealUSDIncome.getCurrency(),
+                " ",
+                this.format.currency(averageRealUSDIncome.getAmount()));
+
+        final var savingPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.5"), C), averageRealUSDIncome.getCurrency());
+
+        this.console.appendLine("50% saving: ",
+                averageRealUSDIncome.getCurrency(),
+                " ",
+                this.format.currency(savingPct.getAmount()),
+                " / ",
+                this.format.currency(ForeignExchanges.getMoneyAmountForeignExchange(savingPct.getCurrency(), "ARS").apply(savingPct, limit).getAmount()));
+
+        this.console.appendLine(format("Saved salaries {0}",
+                this.series.realSavings(null).getAmount(limit).getAmount()
+                        .divide(averageRealUSDIncome.getAmount(), C)));
+
+    }
+
+    public void income(Map<String, String> params) {
+
+        final var months = Integer.parseInt(params.getOrDefault("months", "12"));
+        final Runnable otherwise = () -> {
+            new Savings(format, series, bar, console).income(months);
+            final var totalIncome = this.series.getIncomeSeries()
+                    .stream()
+                    .flatMap(MoneyAmountSeries::moneyAmountStream)
+                    .collect(reducing(MoneyAmount::add))
+                    .orElse(ZERO_USD)
+                    .getAmount();
+            this.console.appendLine(format("Total income: {0}", this.format.currency(totalIncome)));
+        };
+        new By().by(params, this::quarterIncome, this::halfIncome, this::yearlyIncome, otherwise);
+
+    }
+
+    private void yearlyIncome() {
+        new Group(console, format, bar).group("Yearly income", this.series.realIncome(), null, ym -> String.valueOf(ym.getYear()), 12);
+    }
+
+    private void halfIncome() {
+        new Group(console, format, bar).group("Half income", this.series.realIncome(), null, YearMonth::half, 6);
+    }
+
+    private void quarterIncome() {
+        new Group(console, format, bar).group("Quarterly income", this.series.realIncome(), null, YearMonth::quarter, 3);
+    }
+
     public void incomeAverageBySource(int months) {
 
         final var title = format("Average {0}-month income by source", months);
@@ -453,5 +516,49 @@ public class Savings {
                 this.format.percent(ma, 8),
                 " ",
                 this.bar.bar(ma.movePointRight(2), 1));
+    }
+
+    public void monthlySavings(int months) {
+
+        final var title = format("Average {0}-month net monthly savings", months);
+        this.console.appendLine(this.format.title(title));
+
+        this.bar.evolution(title,
+                new SimpleAggregation(months).average(this.series.realNetSavings()),
+                100);
+    }
+
+    public void averageSavedSalaries(int months) {
+
+        final var title = format("Average {0}-month real USD saved salaries", months);
+        this.console.appendLine(this.format.title(title));
+
+        final var savings = new SimpleAggregation(months).average(this.series.realSavings(null));
+        final var income = new SimpleAggregation(months).average(this.series.realIncome());
+
+        this.bar.evolution(title,
+                income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).getAmount().divide(ONE.max(ma.getAmount()), C), ma.getCurrency())),
+                2);
+    }
+
+    public void incomeAverageEvolution(int months, boolean ars) {
+        this.console.appendLine(this.format.title(format("Average {0}-month income evolution", months)));
+        int baseBarSize = 30;
+
+        if (months < 6) {
+            baseBarSize = 50;
+        }
+
+        final var s = ars
+                ? this.series.realIncome().exchangeInto("ARS")
+                : this.series.realIncome();
+
+        final var barSize = ars
+                ? Math.round((float) (baseBarSize - 10) / ForeignExchanges.USD_ARS.exchange(new MoneyAmount(ONE, "ARS"), "USD", Inflation.USD_INFLATION.getTo()).getAmount().floatValue())
+                : baseBarSize;
+
+        this.bar.evolution(format("Average {0}-month income {1}", months, ars ? "ARS" : "USD"),
+                new SimpleAggregation(months).average(s),
+                barSize);
     }
 }
