@@ -53,6 +53,7 @@ import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
@@ -200,16 +201,27 @@ public class Positions {
                 this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
-        this.console.appendLine(this.format.subtitle("Capital Gains Tax"));
+        this.console.appendLine(this.format.subtitle("Costs"));
 
         final var realizationCost = this.realizationCost();
+        final var wealthTax = wealthTax(nominal);
+        final var taxes = List.of(
+                Pair.of("Realization", realizationCost),
+                Pair.of("Wealth Tax", wealthTax),
+                Pair.of("Total", wealthTax.add(realizationCost)));
 
-        this.console.appendLine(MessageFormat.format("{0} {1}", this.format.currency(realizationCost, 10),
-                this.format.percent(realizationCost.getAmount().divide(totalPnL.getAmount(), C))));
+        taxes.stream().forEach(tax -> this.printTaxLine(tax, totalPnL));
 
-        this.console.appendLine(this.format.subtitle("Costs"));
+        this.console.appendLine(this.format.subtitle("Fees"));
         this.costs(nominal);
         this.annualCost(nominal);
+    }
+
+    private void printTaxLine(Pair<String, MoneyAmount> tax, MoneyAmount totalPnL) {
+        this.console.appendLine(MessageFormat.format("{0} {1} {2}",
+                this.format.text(tax.getFirst(), 13),
+                this.format.currency(tax.getSecond().getAmount(), 10),
+                this.format.percent(tax.getSecond().getAmount().divide(totalPnL.getAmount(), C))));
     }
 
     private MoneyAmount realizationCost() {
@@ -218,6 +230,13 @@ public class Positions {
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
                 .map(this::unrealizedUSDCapitalGains)
+                .reduce(ZERO_USD, MoneyAmount::add);
+    }
+
+    private MoneyAmount wealthTax(boolean nominal) {
+        final var now = YearMonth.of(LocalDate.now());
+        return this.series.getExpense("bbpp", nominal)
+                .filter((ym, map) -> ym.compareTo(now) <= 0)
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
 

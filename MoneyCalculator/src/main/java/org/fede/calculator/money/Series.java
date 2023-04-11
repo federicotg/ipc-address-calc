@@ -42,7 +42,7 @@ public class Series {
 
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
-    
+
     private static final TypeReference<List<BBPPYear>> BBPP_TR = new TypeReference<List<BBPPYear>>() {
     };
 
@@ -119,6 +119,13 @@ public class Series {
         return realUSDExpensesByType;
     }
 
+    public MoneyAmountSeries getExpense(String name, boolean nominal) {
+        if (nominal) {
+            return this.readSeriesInUSD("expense/", name);
+        }
+        return this.asRealUSDSeries("expense/", name);
+    }
+
     private List<MoneyAmountSeries> savingsSeries() {
         return Stream.of("ahorros-ay24",
                 "ahorros-conbala",
@@ -150,7 +157,6 @@ public class Series {
                 .add(this.realNetSavings().map((ym, ma) -> ma.adjust(BigDecimal.ONE, negationFactor)));
     }
 
-    
     public MoneyAmountSeries realIncome() {
 
         return this.getIncomeSeries()
@@ -166,7 +172,7 @@ public class Series {
             final var limit = USD_INFLATION.getTo();
 
             final var adjuster = new MonthlyInvestmentSavingsAdjuster(this);
-            
+
             this.realNetSavings = this.savingsSeries()
                     .stream()
                     .map(new SimpleAggregation(2)::change)
@@ -178,12 +184,12 @@ public class Series {
         }
         return this.realNetSavings;
     }
-    
+
     public MoneyAmountSeries incomeSource(String name) {
         return USD_INFLATION.adjust(
                 readSeries("income/" + name + ".json")
                         .exchangeInto("USD"),
-                 Inflation.USD_INFLATION.getTo());
+                Inflation.USD_INFLATION.getTo());
     }
 
     public List<MoneyAmountSeries> getIncomeSeries() {
@@ -258,12 +264,14 @@ public class Series {
 
     private MoneyAmountSeries asRealUSDSeries(String prefix, String fileName) {
         var limit = USD_INFLATION.getTo();
-        return USD_INFLATION.adjust(
-                SeriesReader.readSeries(prefix + fileName + ".json").exchangeInto("USD"),
-                limit);
+        return USD_INFLATION.adjust(this.readSeriesInUSD(prefix, fileName), limit);
     }
-    
-    public List<BBPPYear> bbppSeries(){
+
+    private MoneyAmountSeries readSeriesInUSD(String prefix, String fileName) {
+        return SeriesReader.readSeries(prefix + fileName + ".json").exchangeInto("USD");
+    }
+
+    public List<BBPPYear> bbppSeries() {
         return SeriesReader.read("bbpp.json", BBPP_TR);
     }
 
