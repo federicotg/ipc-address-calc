@@ -205,10 +205,14 @@ public class Positions {
 
         final var realizationCost = this.realizationCost();
         final var wealthTax = wealthTax(nominal);
+        
+        final var cost = this.by(nominal, i -> "*", Investment::getCost).values().stream().findFirst().get();
+        
         final var taxes = List.of(
                 Pair.of("Realization", realizationCost),
                 Pair.of("Wealth Tax", wealthTax),
-                Pair.of("Total", wealthTax.add(realizationCost)));
+                Pair.of("Cost", cost),
+                Pair.of("Total", cost.add(wealthTax.add(realizationCost))));
 
         taxes.stream().forEach(tax -> this.printTaxLine(tax, totalPnL));
 
