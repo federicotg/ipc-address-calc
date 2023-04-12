@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.joining;
@@ -53,7 +54,6 @@ import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
-import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
@@ -205,13 +205,13 @@ public class Positions {
 
         final var realizationCost = this.realizationCost();
         final var wealthTax = wealthTax(nominal);
-        
+
         final var cost = this.by(nominal, i -> "*", Investment::getCost).values().stream().findFirst().get();
-        
+
         final var taxes = List.of(
-                Pair.of("Realization", realizationCost),
+                Pair.of("Buy Cost", cost),
                 Pair.of("Wealth Tax", wealthTax),
-                Pair.of("Cost", cost),
+                Pair.of("Sell Cost", realizationCost),
                 Pair.of("Total", cost.add(wealthTax.add(realizationCost))));
 
         taxes.stream().forEach(tax -> this.printTaxLine(tax, totalPnL));
@@ -229,12 +229,40 @@ public class Positions {
     }
 
     private MoneyAmount realizationCost() {
+        final var feeStrategies = Map.of(
+                "PPI_USD", new PPIGlobalUSDFeeStrategy(),
+                "PPI_EUR", new PPIGlobalEURFeeStrategy(),
+                "gettex", new InteractiveBrokersTieredGETTEXFeeStrategy(),
+                "lse", new InteractiveBrokersTieredLondonUSDFeeStrategy()
+        );
+
+        final var sellFee = new MoneyAmount(this.series.getInvestments()
+                .stream()
+                .filter(Investment::isCurrent)
+                .filter(Investment::isETF)
+                .map(i -> feeStrategies.get(this.feeStrategyKey(i)).apply(this.currentValueUSD(i).getAmount()))
+                .reduce(ZERO, BigDecimal::add), "USD");
+
         return this.series.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
                 .map(this::unrealizedUSDCapitalGains)
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add)
+                .add(sellFee);
+
+    }
+    
+    private MoneyAmount currentValueUSD(Investment i){
+        return ForeignExchanges.getMoneyAmountForeignExchange(i.getCurrency(), "USD")
+                .apply(i.getInvestment().getMoneyAmount(), Inflation.USD_INFLATION.getTo());
+    }
+
+    private String feeStrategyKey(Investment i) {
+        if (i.getComment() == null) {
+            return "PPI_" + (i.getCurrency().equals("MEUD") ? "EUR" : "USD");
+        }
+        return i.getComment();
     }
 
     private MoneyAmount wealthTax(boolean nominal) {
@@ -251,10 +279,8 @@ public class Positions {
                 .map(usd -> new MoneyAmount(usd, "USD"))
                 .orElseGet(i::getInitialMoneyAmount);
 
-        final var currentUSDAmount = ForeignExchanges.getMoneyAmountForeignExchange(i.getCurrency(), "USD")
-                .apply(i.getInvestment().getMoneyAmount(), Inflation.USD_INFLATION.getTo());
-
-        return currentUSDAmount.subtract(initialUSDAmount)
+        return this.currentValueUSD(i)
+                .subtract(initialUSDAmount)
                 .max(ZERO_USD)
                 .adjust(ONE, CAPITAL_GAINS_TAX_RATE);
 
