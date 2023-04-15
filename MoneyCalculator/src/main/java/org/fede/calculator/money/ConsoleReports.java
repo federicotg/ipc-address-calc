@@ -19,7 +19,6 @@ package org.fede.calculator.money;
 import java.io.BufferedOutputStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
-import static java.math.BigDecimal.ONE;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Optional;
@@ -113,8 +112,8 @@ public class ConsoleReports {
     private static Map<String, Runnable> getActions(String[] args, ConsoleReports me, Format format, Bar bar, Series series, Console console) {
         return Map.ofEntries(
                 entry("i", new Investments(console, format, bar, series)::investments),
-                entry("gi", new Positions(console, format, series, bar, true)::groupedInvestments),
-                entry("ti", new Positions(console, format, series, bar, true)::listStockByType),
+                entry("gi", new Positions(console, format, series, bar)::groupedInvestments),
+                entry("ti", new Positions(console, format, series, bar)::listStockByType),
                 entry("inv", () -> me.invReport(args, "inv")),
                 entry("savings", () -> me.savings(args, "savings")),
                 entry("savings-evo", () -> me.savingEvolution(args, "savings-evo")),
@@ -208,7 +207,7 @@ public class ConsoleReports {
                         entry("expenses-evo", "type=(full|taxes|insurance|phone|services|home|entertainment) months=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)"),
                         entry("dca", "type=(q*|h|y|m)"),
-                        entry("pos", "nominal=false fees=false")
+                        entry("pos", "nominal=false")
                 );
                 final Map<String, Runnable> actions = getActions(args, me, format, bar, series, console);
                 Stream.concat(
@@ -439,7 +438,7 @@ public class ConsoleReports {
         final var month = Optional.ofNullable(params.get("m"))
                 .map(Integer::parseInt)
                 .orElseGet(USD_INFLATION.getTo()::getMonth);
-        new Positions(console, format, series, bar, true)
+        new Positions(console, format, series, bar)
                 .portfolio(type, subtype, year, month);
 
     }
@@ -535,8 +534,7 @@ public class ConsoleReports {
 
     private void positions(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-        final var withFee = Boolean.parseBoolean(params.getOrDefault("fees", "false"));
-        new Positions(this.console, this.format, this.series, this.bar, withFee)
+        new Positions(this.console, this.format, this.series, this.bar)
                 .positions(nominal(params));
     }
 
@@ -544,7 +542,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         final var type = params.getOrDefault("type", "q");
-        new Positions(this.console, this.format, this.series, this.bar, false)
+        new Positions(this.console, this.format, this.series, this.bar)
                 .dca(nominal(params), type);
     }
 

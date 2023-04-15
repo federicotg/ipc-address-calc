@@ -37,7 +37,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.joining;
@@ -95,23 +94,18 @@ public class Positions {
     private final Format format;
     private final Series series;
     private final Bar bar;
-    private final boolean withFee;
+    //private final boolean withFee;
 
-    public Positions(Console console, Format format, Series series, Bar bar, boolean withFee) {
+    public Positions(Console console, Format format, Series series, Bar bar) {
         this.console = console;
         this.format = format;
         this.series = series;
-        this.withFee = withFee;
         this.bar = bar;
     }
 
     public void positions(boolean nominal) {
 
-        if (this.withFee) {
-            this.console.appendLine(this.format.title("Positions With Fees"));
-        } else {
-            this.console.appendLine(this.format.title("Positions Without Fees"));
-        }
+        this.console.appendLine(this.format.title("Positions Without Fees"));
 
         final var descWidth = 36;
         final var posWidth = 4;
@@ -208,13 +202,18 @@ public class Positions {
 
         final var cost = this.by(nominal, i -> "*", Investment::getCost).values().stream().findFirst().get();
 
+        final var inflationCost = this.inflationCost();
+
+        final var totalCost = inflationCost.add(cost.add(wealthTax.add(realizationCost)));
+
         final var taxes = List.of(
                 Pair.of("Buy Cost", cost),
                 Pair.of("Wealth Tax", wealthTax),
                 Pair.of("Sell Cost", realizationCost),
-                Pair.of("Total", cost.add(wealthTax.add(realizationCost))));
+                Pair.of("Inflation Cost", inflationCost),
+                Pair.of("Total Cost", totalCost));
 
-        taxes.stream().forEach(tax -> this.printTaxLine(tax, totalPnL));
+        taxes.stream().forEach(tax -> this.printTaxLine(tax, totalCost));
 
         this.console.appendLine(this.format.subtitle("Fees"));
         this.costs(nominal);
@@ -223,9 +222,30 @@ public class Positions {
 
     private void printTaxLine(Pair<String, MoneyAmount> tax, MoneyAmount totalPnL) {
         this.console.appendLine(MessageFormat.format("{0} {1} {2}",
-                this.format.text(tax.getFirst(), 13),
-                this.format.currency(tax.getSecond().getAmount(), 10),
-                this.format.percent(tax.getSecond().getAmount().divide(totalPnL.getAmount(), C))));
+                this.format.text(tax.getFirst(), 14),
+                this.format.currency(tax.getSecond().getAmount(), 12),
+                this.format.percent(tax.getSecond().getAmount().divide(totalPnL.getAmount(), C), 10)));
+    }
+
+    private MoneyAmount inflationCost() {
+        final var real = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isCurrent)
+                .filter(Investment::isETF)
+                .map(inv -> ForeignExchanges.exchange(inv, "USD"))
+                .map(Inflation.USD_INFLATION::real)
+                .map(Investment::getInitialMoneyAmount)
+                .reduce(ZERO_USD, MoneyAmount::add);
+
+        final var nominal = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isCurrent)
+                .filter(Investment::isETF)
+                .map(inv -> ForeignExchanges.exchange(inv, "USD"))
+                .map(Investment::getInitialMoneyAmount)
+                .reduce(ZERO_USD, MoneyAmount::add);
+
+        return real.subtract(nominal);
     }
 
     private MoneyAmount realizationCost() {
@@ -252,8 +272,8 @@ public class Positions {
                 .add(sellFee);
 
     }
-    
-    private MoneyAmount currentValueUSD(Investment i){
+
+    private MoneyAmount currentValueUSD(Investment i) {
         return ForeignExchanges.getMoneyAmountForeignExchange(i.getCurrency(), "USD")
                 .apply(i.getInvestment().getMoneyAmount(), Inflation.USD_INFLATION.getTo());
     }
@@ -497,7 +517,7 @@ public class Positions {
                 position,
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD").apply(new MoneyAmount(ONE, symbol), now),
                 investments.stream()
-                        .map(i -> i.getIn().getMoneyAmount().add(this.withFee ? i.getCost() : ZERO_USD))
+                        .map(i -> i.getIn().getMoneyAmount())
                         .reduce(ZERO_USD, MoneyAmount::add),
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD")
                         .apply(investments.stream()
