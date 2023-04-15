@@ -202,7 +202,7 @@ public class Positions {
 
         final var cost = this.by(nominal, i -> "*", Investment::getCost).values().stream().findFirst().get();
 
-        final var inflationCost = this.inflationCost();
+        final var inflationCost = nominal ? this.inflationCost():ZERO_USD;
 
         final var totalCost = inflationCost.add(cost.add(wealthTax.add(realizationCost)));
 
@@ -213,7 +213,7 @@ public class Positions {
                 Pair.of("Inflation Cost", inflationCost),
                 Pair.of("Total Cost", totalCost));
 
-        taxes.stream().forEach(tax -> this.printTaxLine(tax, totalCost));
+        taxes.stream().filter(p -> !p.getSecond().isZero()).forEach(tax -> this.printTaxLine(tax, totalCost));
 
         this.console.appendLine(this.format.subtitle("Fees"));
         this.costs(nominal);
