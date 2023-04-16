@@ -72,7 +72,7 @@ public class Positions {
     private static final Map<String, Function<BigDecimal, BigDecimal>> FEE_STRATEGIES = Map.of(
             "PPI_USD", new PPIGlobalUSDFeeStrategy(),
             "PPI_EUR", new PPIGlobalEURFeeStrategy(),
-            "gettex", new InteractiveBrokersTieredGETTEXFeeStrategy(),
+            "gettex", new InteractiveBrokersTieredEuronextEURFeeStrategy(),
             "lse", new InteractiveBrokersTieredLondonUSDFeeStrategy()
     );
 
@@ -204,19 +204,23 @@ public class Positions {
 
         this.console.appendLine(this.format.subtitle("Costs"));
 
-        final var realizationCost = this.realizationCost();
+        final var capitalGainsTax = this.capitalGainsTaxAmount();
+
+        final var sellFee = this.sellFee();
+
         final var wealthTax = wealthTax(nominal);
 
         final var cost = this.by(nominal, i -> "*", Investment::getCost).values().stream().findFirst().get();
 
         final var inflationCost = nominal ? this.inflationCost() : ZERO_USD;
 
-        final var totalCost = inflationCost.add(cost.add(wealthTax.add(realizationCost)));
+        final var totalCost = sellFee.add(inflationCost.add(cost.add(wealthTax.add(capitalGainsTax))));
 
         final var taxes = List.of(
                 Pair.of("Buy Cost", cost),
                 Pair.of("Wealth Tax", wealthTax),
-                Pair.of("Sell Cost", realizationCost),
+                Pair.of("Sell Fee", sellFee),
+                Pair.of("C.G. Tax", capitalGainsTax),
                 Pair.of("Inflation Cost", inflationCost),
                 Pair.of("Total Cost", totalCost));
 
@@ -255,21 +259,23 @@ public class Positions {
         return real.subtract(nominal);
     }
 
-    private MoneyAmount realizationCost() {
-        final var sellFee = new MoneyAmount(this.series.getInvestments()
+    private MoneyAmount sellFee() {
+        return new MoneyAmount(this.series.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
                 .map(i -> FEE_STRATEGIES.get(this.feeStrategyKey(i)).apply(this.currentValueUSD(i, FEE_STRATEGIES).getAmount()))
                 .reduce(ZERO, BigDecimal::add), "USD");
+    }
+
+    private MoneyAmount capitalGainsTaxAmount() {
 
         return this.series.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
                 .map(this::unrealizedUSDCapitalGains)
-                .reduce(ZERO_USD, MoneyAmount::add)
-                .add(sellFee);
+                .reduce(ZERO_USD, MoneyAmount::add);
 
     }
 
