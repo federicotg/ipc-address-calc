@@ -69,6 +69,13 @@ public class Positions {
 
     private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
 
+    private static final Map<String, Function<BigDecimal, BigDecimal>> FEE_STRATEGIES = Map.of(
+            "PPI_USD", new PPIGlobalUSDFeeStrategy(),
+            "PPI_EUR", new PPIGlobalEURFeeStrategy(),
+            "gettex", new InteractiveBrokersTieredGETTEXFeeStrategy(),
+            "lse", new InteractiveBrokersTieredLondonUSDFeeStrategy()
+    );
+
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
             "EIMI", "iShares Core MSCI EM IMI",
@@ -202,7 +209,7 @@ public class Positions {
 
         final var cost = this.by(nominal, i -> "*", Investment::getCost).values().stream().findFirst().get();
 
-        final var inflationCost = nominal ? this.inflationCost():ZERO_USD;
+        final var inflationCost = nominal ? this.inflationCost() : ZERO_USD;
 
         final var totalCost = inflationCost.add(cost.add(wealthTax.add(realizationCost)));
 
@@ -249,18 +256,11 @@ public class Positions {
     }
 
     private MoneyAmount realizationCost() {
-        final var feeStrategies = Map.of(
-                "PPI_USD", new PPIGlobalUSDFeeStrategy(),
-                "PPI_EUR", new PPIGlobalEURFeeStrategy(),
-                "gettex", new InteractiveBrokersTieredGETTEXFeeStrategy(),
-                "lse", new InteractiveBrokersTieredLondonUSDFeeStrategy()
-        );
-
         final var sellFee = new MoneyAmount(this.series.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
-                .map(i -> feeStrategies.get(this.feeStrategyKey(i)).apply(this.currentValueUSD(i).getAmount()))
+                .map(i -> FEE_STRATEGIES.get(this.feeStrategyKey(i)).apply(this.currentValueUSD(i, FEE_STRATEGIES).getAmount()))
                 .reduce(ZERO, BigDecimal::add), "USD");
 
         return this.series.getInvestments()
@@ -273,9 +273,11 @@ public class Positions {
 
     }
 
-    private MoneyAmount currentValueUSD(Investment i) {
-        return ForeignExchanges.getMoneyAmountForeignExchange(i.getCurrency(), "USD")
+    private MoneyAmount currentValueUSD(Investment i, Map<String, Function<BigDecimal, BigDecimal>> feeStrategies) {
+        final var currentValue = ForeignExchanges.getMoneyAmountForeignExchange(i.getCurrency(), "USD")
                 .apply(i.getInvestment().getMoneyAmount(), Inflation.USD_INFLATION.getTo());
+
+        return currentValue.subtract(new MoneyAmount(feeStrategies.get(this.feeStrategyKey(i)).apply(currentValue.getAmount()), "USD"));
     }
 
     private String feeStrategyKey(Investment i) {
@@ -299,7 +301,7 @@ public class Positions {
                 .map(usd -> new MoneyAmount(usd, "USD"))
                 .orElseGet(i::getInitialMoneyAmount);
 
-        return this.currentValueUSD(i)
+        return this.currentValueUSD(i, FEE_STRATEGIES)
                 .subtract(initialUSDAmount)
                 .max(ZERO_USD)
                 .adjust(ONE, CAPITAL_GAINS_TAX_RATE);
