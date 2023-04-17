@@ -260,12 +260,17 @@ public class Positions {
     }
 
     private MoneyAmount sellFee() {
-        return new MoneyAmount(this.series.getInvestments()
+        return this.series.getInvestments()
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
-                .map(i -> FEE_STRATEGIES.get(this.feeStrategyKey(i)).apply(this.currentValueUSD(i, FEE_STRATEGIES).getAmount()))
-                .reduce(ZERO, BigDecimal::add), "USD");
+                .map(i -> ForeignExchanges.exchange(i, "USD"))
+                .map(this::sellFee)
+                .reduce(ZERO_USD, MoneyAmount::add);
+    }
+
+    private MoneyAmount sellFee(Investment i) {
+        return new MoneyAmount(FEE_STRATEGIES.get(this.feeStrategyKey(i)).apply(this.currentValueUSD(i).getAmount()), "USD");
     }
 
     private MoneyAmount capitalGainsTaxAmount() {
@@ -279,11 +284,9 @@ public class Positions {
 
     }
 
-    private MoneyAmount currentValueUSD(Investment i, Map<String, Function<BigDecimal, BigDecimal>> feeStrategies) {
-        final var currentValue = ForeignExchanges.getMoneyAmountForeignExchange(i.getCurrency(), "USD")
+    private MoneyAmount currentValueUSD(Investment i) {
+        return ForeignExchanges.getMoneyAmountForeignExchange(i.getCurrency(), "USD")
                 .apply(i.getInvestment().getMoneyAmount(), Inflation.USD_INFLATION.getTo());
-
-        return currentValue.subtract(new MoneyAmount(feeStrategies.get(this.feeStrategyKey(i)).apply(currentValue.getAmount()), "USD"));
     }
 
     private String feeStrategyKey(Investment i) {
@@ -307,7 +310,8 @@ public class Positions {
                 .map(usd -> new MoneyAmount(usd, "USD"))
                 .orElseGet(i::getInitialMoneyAmount);
 
-        return this.currentValueUSD(i, FEE_STRATEGIES)
+        return this.currentValueUSD(i)
+                .subtract(this.sellFee(i))
                 .subtract(initialUSDAmount)
                 .max(ZERO_USD)
                 .adjust(ONE, CAPITAL_GAINS_TAX_RATE);
