@@ -505,7 +505,7 @@ public class Investments {
                 .map(YearMonth::prev)
                 .orElseGet(Inflation.USD_INFLATION::getTo);
 
-        Function<Investment, String> classifier = i -> i.getType().toString() + " " + i.getCurrency();
+        Function<Investment, String> classifier = i -> i.getType().toString().concat(" ").concat(i.getCurrency());
 
         Predicate<Investment> filterPredicate = i -> Objects.isNull(type) || i.getType().toString().equals(type);
         Comparator<Investment> comparator = comparing(Investment::getInitialDate, naturalOrder());

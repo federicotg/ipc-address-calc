@@ -43,11 +43,11 @@ public class Format {
     }
     
     private String getRightAlignedFormat(int width){
-        return rightAlignedFormat.computeIfAbsent(width, w -> "%" + w + "s");
+        return rightAlignedFormat.computeIfAbsent(width, w -> "%".concat(String.valueOf(w)).concat("s"));
     }
     
     private String getLeftAlignedFormat(int width){
-        return leftAlignedFormat.computeIfAbsent(width, w -> "%-" + w + "s");
+        return leftAlignedFormat.computeIfAbsent(width, w -> "%-".concat(String.valueOf(w)).concat("s"));
     }
 
     public String text(String value, int width, AnsiFormat fmt) {

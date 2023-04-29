@@ -41,7 +41,7 @@ public class References {
         this.console.appendLine("References:");
 
         this.console.appendLine(IntStream.range(0, labels.size())
-                .mapToObj(i -> Ansi.colorize(" ", colors.get(i)) + ": " + labels.get(i))
+                .mapToObj(i -> Ansi.colorize(" ", colors.get(i)).concat(": ").concat(labels.get(i)))
                 .collect(Collectors.joining(", ", "", ".")));
     }
 }

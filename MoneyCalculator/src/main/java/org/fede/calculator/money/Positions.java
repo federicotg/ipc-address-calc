@@ -220,7 +220,7 @@ public class Positions {
                 Pair.of("Buy Cost", cost),
                 Pair.of("Wealth Tax", wealthTax),
                 Pair.of("Sell Fee", sellFee),
-                Pair.of("C.G. Tax", capitalGainsTax),
+                Pair.of("Tax", capitalGainsTax),
                 Pair.of("Inflation Cost", inflationCost),
                 Pair.of("Total Cost", totalCost));
 
