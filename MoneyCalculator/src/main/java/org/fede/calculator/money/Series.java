@@ -57,6 +57,9 @@ public class Series {
 
     private MoneyAmountSeries realNetSavings;
 
+    private MoneyAmountSeries realIncome;
+    private MoneyAmountSeries realExpense;
+
     public List<Investment> getInvestments() {
         if (this.investments == null) {
             this.investments = SeriesReader.read("investments.json", TR);
@@ -152,17 +155,22 @@ public class Series {
     }
 
     public MoneyAmountSeries realExpense() {
-        final var negationFactor = BigDecimal.ONE.negate(MathConstants.C);
-        return this.realIncome()
-                .add(this.realNetSavings().map((ym, ma) -> ma.adjust(BigDecimal.ONE, negationFactor)));
+        if (this.realExpense == null) {
+            final var negationFactor = BigDecimal.ONE.negate(MathConstants.C);
+            this.realExpense = this.realIncome()
+                    .add(this.realNetSavings().map((ym, ma) -> ma.adjust(BigDecimal.ONE, negationFactor)));
+        }
+        return this.realExpense;
     }
 
     public MoneyAmountSeries realIncome() {
-
-        return this.getIncomeSeries()
-                .stream()
-                .reduce(MoneyAmountSeries::add)
-                .get();
+        if (this.realIncome == null) {
+            this.realIncome = this.getIncomeSeries()
+                    .stream()
+                    .reduce(MoneyAmountSeries::add)
+                    .get();
+        }
+        return this.realIncome;
     }
 
     public MoneyAmountSeries realNetSavings() {
