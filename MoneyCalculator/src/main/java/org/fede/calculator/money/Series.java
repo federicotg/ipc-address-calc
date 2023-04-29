@@ -276,7 +276,7 @@ public class Series {
     }
 
     private MoneyAmountSeries readSeriesInUSD(String prefix, String fileName) {
-        return SeriesReader.readSeries(prefix + fileName + ".json").exchangeInto("USD");
+        return SeriesReader.readSeries(prefix.concat(fileName).concat(".json")).exchangeInto("USD");
     }
 
     public List<BBPPYear> bbppSeries() {
