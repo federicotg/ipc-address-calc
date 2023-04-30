@@ -124,37 +124,28 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
         if (!equal) {
             return false;
         }
-        final boolean[] holder = new boolean[]{true};
-        try {
 
-            this.forEach((yearMonth, amount) -> {
-                holder[0] &= amount.equals(other.getAmount(yearMonth));
-            });
-
-            return holder[0];
-        } catch (NoSeriesDataFoundException ex) {
-
-            System.err.println("Not eq 2");
-
-            return false;
+        var current = this.getFrom();
+        while (current.compareTo(this.getTo()) <= 0) {
+            if (!Objects.equals(this.getAmount(current), other.getAmount(current))) {
+                return false;
+            }
+            current = current.next();
         }
-
+        return true;
     }
 
     @Override
     public final int hashCode() {
 
-        final int[] holder = new int[]{1};
-
-        try {
-            this.forEach((yearMonth, amount) -> {
-                holder[0] += 37 * Objects.hashCode(amount);
-            });
-        } catch (NoSeriesDataFoundException ex) {
-
+        var current = this.getFrom();
+        int valueHash = 13;
+        while (current.compareTo(this.getTo()) <= 0) {
+            valueHash += 37*Objects.hash(this.getAmount(current), current);
+            current = current.next();
         }
-
-        return 37 * Objects.hash(this.getCurrency(), this.getFrom(), this.getTo()) + holder[0];
+        
+        return 37 * Objects.hash(this.getCurrency(), this.getFrom(), this.getTo()) + valueHash;
     }
 
     @Override

@@ -19,7 +19,7 @@ package org.fede.calculator.money.series;
 import java.util.Date;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
+import java.util.function.BiPredicate;  
 import java.util.stream.Stream;
 import org.fede.calculator.money.MoneyAmount;
 
