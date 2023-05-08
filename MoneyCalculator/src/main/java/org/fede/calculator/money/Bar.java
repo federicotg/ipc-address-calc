@@ -49,7 +49,8 @@ public class Bar {
     private static final Set<String> DARK_COLORS = Set.of(
             Attribute.BLACK_BACK().toString(),
             Attribute.BRIGHT_BLACK_BACK().toString(),
-            Attribute.RED_BACK().toString());
+            Attribute.RED_BACK().toString(),
+            Attribute.BLUE_BACK().toString());
 
     private final Console console;
     private final Format format;
