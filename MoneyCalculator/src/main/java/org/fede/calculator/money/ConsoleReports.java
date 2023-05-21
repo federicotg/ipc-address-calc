@@ -46,6 +46,8 @@ import static org.fede.calculator.money.MathConstants.C;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class ConsoleReports {
+    
+    private static final String MONTHS_PARAM = "m";
 
     //private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
@@ -65,7 +67,7 @@ public class ConsoleReports {
     }
 
     private static int months(Map<String, String> params) {
-        return Integer.parseInt(params.getOrDefault("months", "12"));
+        return Integer.parseInt(params.getOrDefault(MONTHS_PARAM, "12"));
     }
 
     private final Series series;
@@ -273,12 +275,12 @@ public class ConsoleReports {
     }
 
     private void savingsPercentChange(String[] args, String paramName) {
-        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "1")) + 1;
+        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault(MONTHS_PARAM, "1")) + 1;
         new Savings(format, series, bar, console).savingsPercentChange(months);
     }
 
     private void incomeDelta(String[] args, String paramName) {
-        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "12"));
+        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault(MONTHS_PARAM, "12"));
         new Savings(format, series, bar, console).incomeDelta(months);
     }
 
@@ -292,7 +294,7 @@ public class ConsoleReports {
 
         final var params = this.paramsValue(args, paramName);
 
-        this.expenseEvolution(params.get("type"), Integer.parseInt(params.getOrDefault("months", "1")));
+        this.expenseEvolution(params.get("type"), Integer.parseInt(params.getOrDefault(MONTHS_PARAM, "1")));
     }
 
     private void expenseBySource(String[] args, String paramName) {
@@ -310,7 +312,7 @@ public class ConsoleReports {
 
     private void savingChange(String[] args, String paramName) {
 
-        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault("months", "1")) + 1;
+        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault(MONTHS_PARAM, "1")) + 1;
 
         this.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
         this.bar.evolution(format("{0}-month Savings Change", months - 1), new SimpleAggregation(months)
@@ -352,7 +354,7 @@ public class ConsoleReports {
         final var inflation = new BigDecimal(params.getOrDefault("inflation", INFLATION));
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", RETIREMENT));
         final var age = Integer.parseInt(params.getOrDefault("age", AGE));
-        final var months = Integer.parseInt(params.getOrDefault("months", "36"));
+        final var months = Integer.parseInt(params.getOrDefault(MONTHS_PARAM, "36"));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", CASH));
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", TAX));
         final var expected = params.getOrDefault("exp", EXPECTED_RETRUNS);

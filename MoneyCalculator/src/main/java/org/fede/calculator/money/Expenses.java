@@ -73,7 +73,7 @@ public class Expenses {
         Runnable otherwise = () -> {
 
             final String exp = params.get("type");
-            final int months = Integer.parseInt(params.getOrDefault("months", "12"));
+            final int months = Integer.parseInt(params.getOrDefault("m", "12"));
 
             this.console.appendLine(this.format.title(format("Real USD expenses in the last {0} months", months)));
 

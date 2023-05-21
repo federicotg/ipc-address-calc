@@ -207,7 +207,7 @@ public class Savings {
 
     public void income(Map<String, String> params) {
 
-        final var months = Integer.parseInt(params.getOrDefault("months", "12"));
+        final var months = Integer.parseInt(params.getOrDefault("m", "12"));
         final Runnable otherwise = () -> {
             new Savings(format, series, bar, console).income(months);
             final var totalIncome = this.series.getIncomeSeries()
