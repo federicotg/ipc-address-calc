@@ -46,7 +46,7 @@ import static org.fede.calculator.money.MathConstants.C;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class ConsoleReports {
-    
+
     private static final String MONTHS_PARAM = "m";
 
     //private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
@@ -155,6 +155,7 @@ public class ConsoleReports {
                 entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
                 entry("pos", () -> me.positions(args, "pos")),
                 entry("dca", () -> me.dca(args, "dca")),
+                entry("ppi", () -> me.ppi(args, "ppi")),
                 entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct")),
                 entry("bench", () -> me.benchmark(args, "bench"))
         );
@@ -253,6 +254,27 @@ public class ConsoleReports {
         } else {
             new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2010 + Integer.parseInt(years), 8));
         }
+    }
+
+    private void ppi(String[] args, String param) {
+        this.console.appendLine(this.format.title("CCL PPI"));
+
+        try {
+            final var api = new PPIRestAPI();
+            this.console.appendLine(
+                    this.format.text("Letras Inmediato", 20),
+                    this.format.currency(api.exchangeRate("S3Y3C", "S31Y3", InstrumentType.LETRAS, SettlementType.INMEDIATA), 10));
+            this.console.appendLine(
+                    this.format.text("GD30 Inmediato", 20),
+                    this.format.currency(api.exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.INMEDIATA), 10));
+            this.console.appendLine(
+                    this.format.text("GD30 a 48 horas", 20),
+                    this.format.currency(api.exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.A48), 10));
+        } catch (Exception ex) {
+            System.err.println("Exception " + ex.getClass().toString()+" "+ ex.getMessage());
+            ex.printStackTrace(System.err);
+        }
+
     }
 
     private void benchmark(String[] args, String param) {
