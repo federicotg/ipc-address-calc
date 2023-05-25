@@ -153,14 +153,8 @@ public class PPIRestAPI {
             return this.token;
         }
 
-        if (this.token == null) {
-            this.token = this.login();
-        } else {
-            this.token = this.refresh(this.token);
-        }
-
+        this.token = this.login();
         return this.token;
-
     }
 
     private PPIMarketData marketData(String ticker, InstrumentType type, SettlementType settlement) throws URISyntaxException, IOException, InterruptedException {
