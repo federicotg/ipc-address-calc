@@ -274,7 +274,6 @@ public class ConsoleReports {
             System.err.println("Exception " + ex.getClass().toString()+" "+ ex.getMessage());
             ex.printStackTrace(System.err);
         }
-
     }
 
     private void benchmark(String[] args, String param) {
