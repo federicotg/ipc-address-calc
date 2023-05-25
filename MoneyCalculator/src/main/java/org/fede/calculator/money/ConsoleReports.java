@@ -257,23 +257,7 @@ public class ConsoleReports {
     }
 
     private void ppi(String[] args, String param) {
-        this.console.appendLine(this.format.title("CCL PPI"));
-
-        try {
-            final var api = new PPIRestAPI();
-            this.console.appendLine(
-                    this.format.text("Letras Inmediato", 20),
-                    this.format.currency(api.exchangeRate("S3Y3C", "S31Y3", InstrumentType.LETRAS, SettlementType.INMEDIATA), 10));
-            this.console.appendLine(
-                    this.format.text("GD30 Inmediato", 20),
-                    this.format.currency(api.exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.INMEDIATA), 10));
-            this.console.appendLine(
-                    this.format.text("GD30 a 48 horas", 20),
-                    this.format.currency(api.exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.A48), 10));
-        } catch (Exception ex) {
-            System.err.println("Exception " + ex.getClass().toString()+" "+ ex.getMessage());
-            ex.printStackTrace(System.err);
-        }
+        new PPI(console, format).ccl();
     }
 
     private void benchmark(String[] args, String param) {
