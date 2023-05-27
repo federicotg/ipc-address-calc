@@ -14,8 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.money;
+package org.fede.calculator.ppi;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.File;
@@ -30,7 +31,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Properties;
+import org.fede.calculator.money.InstrumentType;
+import org.fede.calculator.money.MathConstants;
+import org.fede.calculator.money.MoneyAmount;
+import org.fede.calculator.money.SettlementType;
 
 /**
  *
@@ -42,6 +48,7 @@ public class PPIRestAPI {
     private static final String LOGIN = "{0}/api/{1}/Account/LoginApi";
     private static final String REFRESH_TOKEN = "{0}/api/{1}/Account/RefreshToken";
     private static final String CURRENT_MARKET_DATA = "{0}/api/{1}/MarketData/Current?ticker={2}&type={3}&settlement={4}";
+    private static final String BALANCES_AND_POSITIONS = "{0}/api/{1}/Account/BalancesAndPositions?accountNumber={2}";
 
     private static final String VERSION = "1.0";
     private static final String AUTHORIZED_CLIENT_HEADER = "AuthorizedClient";
@@ -71,7 +78,7 @@ public class PPIRestAPI {
 
         final var loginRequest = HttpRequest.newBuilder()
                 .uri(new URI(MessageFormat.format(LOGIN, PPI_API, VERSION)))
-                .header(AUTHORIZED_CLIENT_HEADER, this.config.getProperty("ppi.authotizedclient"))
+                .header(AUTHORIZED_CLIENT_HEADER, this.config.getProperty("ppi.authorizedclient"))
                 .header(CLIENT_KEY_HEADER, this.config.getProperty("ppi.clientkey"))
                 .header(API_KEY_HEADER, this.config.getProperty("ppi.public"))
                 .header("Content-Type", "application/json")
@@ -104,7 +111,7 @@ public class PPIRestAPI {
 
         final var loginRequest = HttpRequest.newBuilder()
                 .uri(new URI(MessageFormat.format(REFRESH_TOKEN, PPI_API, VERSION)))
-                .header(AUTHORIZED_CLIENT_HEADER, this.config.getProperty("ppi.authotizedclient"))
+                .header(AUTHORIZED_CLIENT_HEADER, this.config.getProperty("ppi.authorizedclient"))
                 .header(CLIENT_KEY_HEADER, this.config.getProperty("ppi.clientkey"))
                 .header("Content-Type", "application/json")
                 .header(AUTHORIZATION_HEADER_NAME, token.asAuthorizationHeader())
@@ -157,15 +164,20 @@ public class PPIRestAPI {
         return this.token;
     }
 
-    private PPIMarketData marketData(String ticker, InstrumentType type, SettlementType settlement) throws URISyntaxException, IOException, InterruptedException {
-
-        final var req = HttpRequest.newBuilder()
-                .uri(new URI(MessageFormat.format(CURRENT_MARKET_DATA, PPI_API, VERSION, ticker, type.toString(), settlement.toString())))
-                .header(AUTHORIZED_CLIENT_HEADER, this.config.getProperty("ppi.authotizedclient"))
+    private HttpRequest.Builder requestBuilderFor(String uri) throws URISyntaxException, IOException, InterruptedException {
+        return HttpRequest.newBuilder()
+                .uri(new URI(uri))
+                .header(AUTHORIZED_CLIENT_HEADER, this.config.getProperty("ppi.authorizedclient"))
                 .header(CLIENT_KEY_HEADER, this.config.getProperty("ppi.clientkey"))
                 .header(AUTHORIZATION_HEADER_NAME, this.getToken().asAuthorizationHeader())
                 .header("Content-Type", "application/json")
-                .version(HttpClient.Version.HTTP_1_1)
+                .version(HttpClient.Version.HTTP_1_1);
+
+    }
+
+    private PPIMarketData marketData(String ticker, InstrumentType type, SettlementType settlement) throws URISyntaxException, IOException, InterruptedException {
+
+        final var req = this.requestBuilderFor(MessageFormat.format(CURRENT_MARKET_DATA, PPI_API, VERSION, ticker, type.toString(), settlement.toString()))
                 .GET()
                 .build();
 
@@ -177,7 +189,27 @@ public class PPIRestAPI {
             return this.jsonMapper.readValue(response.body(), PPIMarketData.class);
 
         } else {
-            throw new IOException(MessageFormat.format("Could read market data: {0} {1}", response.statusCode(), response.body()));
+            throw new IOException(MessageFormat.format("Could not read market data: {0} {1}", response.statusCode(), response.body()));
+        }
+
+    }
+
+    public List<PPIBalance> balancesAndPositions() throws URISyntaxException, IOException, InterruptedException {
+
+        final var req = this.requestBuilderFor(MessageFormat.format(BALANCES_AND_POSITIONS, PPI_API, VERSION, this.config.get("ppi.accountnumber")))
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(req, BodyHandlers.ofString());
+
+        if (response.statusCode() == 200) {
+
+            return this.jsonMapper.readValue(response.body(), new TypeReference<List<PPIBalance>>() {
+            });
+
+        } else {
+            throw new IOException(MessageFormat.format("Could not balances data: {0} {1}", response.statusCode(), response.body()));
         }
 
     }

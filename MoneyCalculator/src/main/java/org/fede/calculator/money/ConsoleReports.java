@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.money;
 
+import org.fede.calculator.ppi.PPI;
 import java.io.BufferedOutputStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
@@ -156,6 +157,7 @@ public class ConsoleReports {
                 entry("pos", () -> me.positions(args, "pos")),
                 entry("dca", () -> me.dca(args, "dca")),
                 entry("ppi", () -> me.ppi(args, "ppi")),
+                entry("balances", () -> me.balances(args, "balances")),
                 entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct")),
                 entry("bench", () -> me.benchmark(args, "bench"))
         );
@@ -258,6 +260,10 @@ public class ConsoleReports {
 
     private void ppi(String[] args, String param) {
         new PPI(console, format).ccl();
+    }
+    
+    private void balances(String[] args, String param) {
+        new PPI(console, format).balances();
     }
 
     private void benchmark(String[] args, String param) {
