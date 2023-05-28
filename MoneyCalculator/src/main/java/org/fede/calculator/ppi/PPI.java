@@ -125,7 +125,7 @@ public class PPI {
                         this.format.text(position.getSymbol(), 4),
                         this.format.text(position.getName(), 40),
                         this.format.number(position.getAmount(), 10),
-                        this.format.text(position.getSettlement().toString(), 10)
+                        this.format.text(position.getSettlement(), 10)
                 )
         );
     }
