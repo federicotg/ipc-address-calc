@@ -30,6 +30,7 @@ import static java.text.MessageFormat.format;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
 import static java.util.Map.entry;
@@ -43,6 +44,7 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.util.Pair;
 
 /**
  *
@@ -251,15 +253,26 @@ public class ConsoleReports {
 
         try {
 
-            final var fee = this.paramsValue(args, param).getOrDefault("fee", "0");
-            
+            final var fee = this.paramsValue(args, param).getOrDefault("fee", "3");
+
+            final var feePct = new BigDecimal(fee).movePointLeft(2);
+
             final var api = new CriptoYaAPI();
             final var initialAmount = new BigDecimal(3000);
-            final var blueFee = BigDecimal.ONE.add(new BigDecimal(fee).movePointLeft(2));
-            this.printRoute("Letsbit", initialAmount, api.lbRoute(initialAmount));
-            this.printRoute("Buenbit", initialAmount, api.bbRoute(initialAmount));
-            this.printRoute("ARS Letsbit", initialAmount, api.arsLbRoute(initialAmount, blueFee));
-            this.printRoute("ARS Buenbit", initialAmount, api.arsBbRoute(initialAmount, blueFee));
+
+            this.console.appendLine(MessageFormat.format("Sending {0}", this.format.currency(new MoneyAmount(initialAmount, "USD"), 10)));
+            final var blueFee = BigDecimal.ONE.add(feePct);
+            final Comparator<Pair<String, BigDecimal>> cmp = Comparator.comparing(Pair::getSecond);
+            Stream.of(
+                    Pair.of("Letsbit", api.lbRoute(initialAmount)),
+                    Pair.of("Buenbit", api.bbRoute(initialAmount)),
+                    Pair.of("ARS Letsbit", api.arsLbRoute(initialAmount, blueFee)),
+                    Pair.of("ARS Buenbit", api.arsBbRoute(initialAmount, blueFee)))
+                    .sorted(cmp.reversed())
+                    .forEach(p -> this.printRoute(p.getFirst(), initialAmount, p.getSecond()));
+
+            this.console.appendLine("");
+            this.console.appendLine(MessageFormat.format("Considering blue fee of {0}", this.format.percent(feePct)));
 
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
@@ -269,9 +282,8 @@ public class ConsoleReports {
 
     private void printRoute(String name, BigDecimal initialAmount, BigDecimal result) {
         this.console.appendLine(
-                MessageFormat.format("{0}{1}{2}{3}",
+                MessageFormat.format("{0}{1}{2}",
                         this.format.text(name, 12),
-                        this.format.currency(initialAmount, 12),
                         this.format.currency(result, 12),
                         this.format.percent(BigDecimal.ONE.subtract(result.divide(initialAmount, MathConstants.C)).negate(), 8)
                 ));

@@ -134,7 +134,7 @@ public class CriptoYaAPI {
                 .subtract(this.fee("Buenbit", "DAI", "ERC20"))
                 .divide(new BigDecimal("1.002"), MathConstants.C);
     }
-
+    
     public BigDecimal arsLbRoute(BigDecimal initialAmount, BigDecimal blueFee) throws URISyntaxException, IOException, InterruptedException {
         return initialAmount
                 .divide(blueFee, MathConstants.C)
