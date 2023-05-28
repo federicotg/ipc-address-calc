@@ -98,6 +98,20 @@ public class PPI {
         }
 
     }
+    public void cashBalance() {
+        this.console.appendLine(this.format.title("Cash Balance"));
+        try {
+
+            this.getApi().cashBalance().stream()
+                    //.filter(pos -> pos.getSettlement().equals(SettlementType.INMEDIATA))
+                    .forEach(this::showPosition);
+
+        } catch (Exception ex) {
+            System.err.println("Exception " + ex.getClass().toString() + " " + ex.getMessage());
+            ex.printStackTrace(System.err);
+        }
+
+    }
 
     private void showBalance(PPIBalance balance) {
         this.console.appendLine(this.format.subtitle(balance.getCurrency()));
@@ -107,10 +121,11 @@ public class PPI {
 
     private void showPosition(PPIPosition position) {
         this.console.appendLine(
-                MessageFormat.format("{0} {1} {2}",
+                MessageFormat.format("{0} {1} {2} {3}",
                         this.format.text(position.getSymbol(), 4),
-                        this.format.text(position.getName(), 20),
-                        this.format.number(position.getAmount(), 10)
+                        this.format.text(position.getName(), 40),
+                        this.format.number(position.getAmount(), 10),
+                        this.format.text(position.getSettlement().toString(), 10)
                 )
         );
     }

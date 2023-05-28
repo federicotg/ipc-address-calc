@@ -49,6 +49,7 @@ public class PPIRestAPI {
     private static final String REFRESH_TOKEN = "{0}/api/{1}/Account/RefreshToken";
     private static final String CURRENT_MARKET_DATA = "{0}/api/{1}/MarketData/Current?ticker={2}&type={3}&settlement={4}";
     private static final String BALANCES_AND_POSITIONS = "{0}/api/{1}/Account/BalancesAndPositions?accountNumber={2}";
+    private static final String CASH_BALANCE = "{0}/api/{1}/Account/AvailableBalance?accountNumber={2}";
 
     private static final String VERSION = "1.0";
     private static final String AUTHORIZED_CLIENT_HEADER = "AuthorizedClient";
@@ -206,6 +207,26 @@ public class PPIRestAPI {
         if (response.statusCode() == 200) {
 
             return this.jsonMapper.readValue(response.body(), new TypeReference<List<PPIBalance>>() {
+            });
+
+        } else {
+            throw new IOException(MessageFormat.format("Could not balances data: {0} {1}", response.statusCode(), response.body()));
+        }
+
+    }
+
+    public List<PPIPosition> cashBalance() throws URISyntaxException, IOException, InterruptedException {
+
+        final var req = this.requestBuilderFor(MessageFormat.format(CASH_BALANCE, PPI_API, VERSION, this.config.get("ppi.accountnumber")))
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(req, BodyHandlers.ofString());
+
+        if (response.statusCode() == 200) {
+
+            return this.jsonMapper.readValue(response.body(), new TypeReference<List<PPIPosition>>() {
             });
 
         } else {

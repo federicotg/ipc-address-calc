@@ -156,8 +156,9 @@ public class ConsoleReports {
                 entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
                 entry("pos", () -> me.positions(args, "pos")),
                 entry("dca", () -> me.dca(args, "dca")),
-                entry("ppi", () -> me.ppi(args, "ppi")),
-                entry("balances", () -> me.balances(args, "balances")),
+                entry("ccl", () -> new PPI(console, format).ccl()),
+                entry("balances", () -> new PPI(console, format).balances()),
+                entry("cash", () -> new PPI(console, format).cashBalance()),
                 entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct")),
                 entry("bench", () -> me.benchmark(args, "bench"))
         );
@@ -258,13 +259,7 @@ public class ConsoleReports {
         }
     }
 
-    private void ppi(String[] args, String param) {
-        new PPI(console, format).ccl();
-    }
     
-    private void balances(String[] args, String param) {
-        new PPI(console, format).balances();
-    }
 
     private void benchmark(String[] args, String param) {
         new Investments(console, format, bar, series).monthly(nominal(this.paramsValue(args, param)));
