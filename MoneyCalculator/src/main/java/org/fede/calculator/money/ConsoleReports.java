@@ -20,6 +20,7 @@ import org.fede.calculator.ppi.PPI;
 import java.io.BufferedOutputStream;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
+import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,7 @@ import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import static java.util.stream.Collectors.joining;
 import java.util.stream.Stream;
+import org.fede.calculator.criptoya.CriptoYaAPI;
 
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.YearMonth;
@@ -157,6 +159,7 @@ public class ConsoleReports {
                 entry("pos", () -> me.positions(args, "pos")),
                 entry("dca", () -> me.dca(args, "dca")),
                 entry("ccl", () -> new PPI(console, format).ccl()),
+                entry("routes", () -> me.routes(args, "routes")),
                 entry("balances", () -> new PPI(console, format).balances()),
                 entry("cash", () -> new PPI(console, format).cashBalance()),
                 entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct")),
@@ -243,6 +246,37 @@ public class ConsoleReports {
         }
     }
 
+    private void routes(String[] args, String param) {
+        this.console.appendLine(this.format.title("Exit Routes"));
+
+        try {
+
+            final var fee = this.paramsValue(args, param).getOrDefault("fee", "0");
+            
+            final var api = new CriptoYaAPI();
+            final var initialAmount = new BigDecimal(3000);
+            final var blueFee = BigDecimal.ONE.add(new BigDecimal(fee).movePointLeft(2));
+            this.printRoute("Letsbit", initialAmount, api.lbRoute(initialAmount));
+            this.printRoute("Buenbit", initialAmount, api.bbRoute(initialAmount));
+            this.printRoute("ARS Letsbit", initialAmount, api.arsLbRoute(initialAmount, blueFee));
+            this.printRoute("ARS Buenbit", initialAmount, api.arsBbRoute(initialAmount, blueFee));
+
+        } catch (Exception ex) {
+            System.err.println(ex.getMessage());
+            ex.printStackTrace(System.err);
+        }
+    }
+
+    private void printRoute(String name, BigDecimal initialAmount, BigDecimal result) {
+        this.console.appendLine(
+                MessageFormat.format("{0}{1}{2}{3}",
+                        this.format.text(name, 12),
+                        this.format.currency(initialAmount, 12),
+                        this.format.currency(result, 12),
+                        this.format.percent(BigDecimal.ONE.subtract(result.divide(initialAmount, MathConstants.C)).negate(), 8)
+                ));
+    }
+
     private void income(String[] args) {
         new Savings(format, series, bar, console).income(this.paramsValue(args, "income"));
     }
@@ -258,8 +292,6 @@ public class ConsoleReports {
             new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2010 + Integer.parseInt(years), 8));
         }
     }
-
-    
 
     private void benchmark(String[] args, String param) {
         new Investments(console, format, bar, series).monthly(nominal(this.paramsValue(args, param)));
