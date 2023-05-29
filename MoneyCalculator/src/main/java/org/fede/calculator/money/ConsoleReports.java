@@ -264,10 +264,11 @@ public class ConsoleReports {
             final var blueFee = BigDecimal.ONE.add(feePct);
             final Comparator<Pair<String, BigDecimal>> cmp = Comparator.comparing(Pair::getSecond);
             Stream.of(
-                    Pair.of("Letsbit", api.lbRoute(initialAmount)),
-                    Pair.of("Buenbit", api.bbRoute(initialAmount)),
-                    Pair.of("ARS Letsbit", api.arsLbRoute(initialAmount, blueFee)),
-                    Pair.of("ARS Buenbit", api.arsBbRoute(initialAmount, blueFee)))
+                    Pair.of("Cash > Bank > Letsbit > USDT > Kraken", api.lbRoute(initialAmount)),
+                    Pair.of("Cash > Bank > Buenbit > DAI > Kraken", api.bbRoute(initialAmount)),
+                    Pair.of("Cash > ARS > Bank > Letsbit > USDT > Kraken", api.arsLbRoute(initialAmount, blueFee)),
+                    Pair.of("Cash > ARS > Bank > Letsbit > DAI > Kraken", api.arsLbDaiRoute(initialAmount, blueFee)),
+                    Pair.of("Cash > ARS > Bank > Buenbit > DAI > Kraken", api.arsBbRoute(initialAmount, blueFee)))
                     .sorted(cmp.reversed())
                     .forEach(p -> this.printRoute(p.getFirst(), initialAmount, p.getSecond()));
 
@@ -283,7 +284,7 @@ public class ConsoleReports {
     private void printRoute(String name, BigDecimal initialAmount, BigDecimal result) {
         this.console.appendLine(
                 MessageFormat.format("{0}{1}{2}",
-                        this.format.text(name, 12),
+                        this.format.text(name, 50),
                         this.format.currency(result, 12),
                         this.format.percent(BigDecimal.ONE.subtract(result.divide(initialAmount, MathConstants.C)).negate(), 8)
                 ));
