@@ -56,7 +56,7 @@ public class CriptoYaAPI {
 
     }
 
-    private BigDecimal blueSell() throws URISyntaxException, IOException, InterruptedException {
+    public BigDecimal blueSell() throws URISyntaxException, IOException, InterruptedException {
 
         final var req = this.requestBuilderFor(MessageFormat.format("{0}/api/dolar", API))
                 .GET()
@@ -102,7 +102,7 @@ public class CriptoYaAPI {
 
     }
 
-    private BigDecimal buyCoin(String exchange, String coin, String fiat, BigDecimal amount) throws URISyntaxException, IOException, InterruptedException {
+    public BigDecimal buyCoin(String exchange, String coin, String fiat, BigDecimal amount) throws URISyntaxException, IOException, InterruptedException {
         return this.fx(exchange, coin, fiat, amount).getTotalAsk();
     }
 

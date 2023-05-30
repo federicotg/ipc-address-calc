@@ -20,12 +20,16 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.text.MessageFormat;
+import java.util.Comparator;
+import java.util.stream.Stream;
+import org.fede.calculator.criptoya.CriptoYaAPI;
 import org.fede.calculator.money.Console;
 import org.fede.calculator.money.Format;
 import org.fede.calculator.money.InstrumentType;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.SettlementType;
+import org.fede.util.Pair;
 
 /**
  *
@@ -39,6 +43,7 @@ public class PPI {
     private final Console console;
     private final Format format;
     private PPIRestAPI api;
+    private CriptoYaAPI criptoya;
 
     public PPI(Console console, Format format) {
         this.console = console;
@@ -58,27 +63,33 @@ public class PPI {
         return this.api;
     }
 
+    private CriptoYaAPI getCriptoYaApi() throws IOException, URISyntaxException, InterruptedException {
+        if (this.criptoya == null) {
+            this.criptoya = new CriptoYaAPI();
+        }
+        return this.criptoya;
+    }
+
     public void ccl() {
 
         this.console.appendLine(this.format.title("CCL PPI"));
 
         try {
 
-            this.console.appendLine(
-                    this.format.text("Letras Inmediato", 20),
-                    this.format.currency(
-                            this.netOfFees(this.getApi().exchangeRate("S3Y3C", "S31Y3", InstrumentType.LETRAS, SettlementType.INMEDIATA), LETES_FEE),
-                            10));
-            this.console.appendLine(
-                    this.format.text("GD30 Inmediato", 20),
-                    this.format.currency(
-                            this.netOfFees(this.getApi().exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.INMEDIATA), BONDS_FEE),
-                            10));
-            this.console.appendLine(
-                    this.format.text("GD30 a 48 horas", 20),
-                    this.format.currency(
-                            this.netOfFees(this.getApi().exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.A48), BONDS_FEE),
-                            10));
+            Comparator<Pair<String, MoneyAmount>> cmp = Comparator.comparing(p -> p.getSecond().getAmount());
+
+            Stream.of(
+                    Pair.of("Letras Inmediato", this.netOfFees(this.getApi().exchangeRate("S3Y3C", "S31Y3", InstrumentType.LETRAS, SettlementType.INMEDIATA), LETES_FEE)),
+                    Pair.of("GD30 Inmediato", this.netOfFees(this.getApi().exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.INMEDIATA), BONDS_FEE)),
+                    Pair.of("GD30 a 48 horas", this.netOfFees(this.getApi().exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.A48), BONDS_FEE)),
+                    Pair.of("Blue compra", new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS")),
+                    Pair.of("DAI compra Buenbit", new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "dai", "ars", BigDecimal.ONE), "ARS")),
+                    Pair.of("DAI compra Letsbit", new MoneyAmount(this.getCriptoYaApi().buyCoin("Letsbit", "dai", "ars", BigDecimal.ONE), "ARS")),
+                    Pair.of("USDT compra Buenbit", new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "usdt", "ars", BigDecimal.ONE), "ARS")),
+                    Pair.of("USDT compra Letsbit", new MoneyAmount(this.getCriptoYaApi().buyCoin("Letsbit", "usdt", "ars", BigDecimal.ONE), "ARS"))
+            ).sorted(cmp.reversed())
+                    .forEach(p -> this.console.appendLine(this.format.text(p.getFirst(), 20), this.format.currency(p.getSecond(), 10)));
+
         } catch (Exception ex) {
             System.err.println("Exception " + ex.getClass().toString() + " " + ex.getMessage());
             ex.printStackTrace(System.err);
@@ -98,6 +109,7 @@ public class PPI {
         }
 
     }
+
     public void cashBalance() {
         this.console.appendLine(this.format.title("Cash Balance"));
         try {
