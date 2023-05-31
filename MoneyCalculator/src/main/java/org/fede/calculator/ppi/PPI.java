@@ -80,11 +80,11 @@ public class PPI {
                     Pair.of("Letras Inmediato", this.netOfFees(this.getApi().exchangeRate("SJ3C", "S30J3", InstrumentType.LETRAS, SettlementType.INMEDIATA), LETES_FEE)),
                     Pair.of("GD30 Inmediato", this.netOfFees(this.getApi().exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.INMEDIATA), BONDS_FEE)),
                     Pair.of("GD30 a 48 horas", this.netOfFees(this.getApi().exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.A48), BONDS_FEE)),
-                    Pair.of("Blue compra", new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS")),
-                    Pair.of("DAI compra Buenbit", new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "dai", "ars", BigDecimal.ONE), "ARS")),
-                    Pair.of("DAI compra Letsbit", new MoneyAmount(this.getCriptoYaApi().buyCoin("Letsbit", "dai", "ars", BigDecimal.ONE), "ARS")),
-                    Pair.of("USDT compra Buenbit", new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "usdt", "ars", BigDecimal.ONE), "ARS")),
-                    Pair.of("USDT compra Letsbit", new MoneyAmount(this.getCriptoYaApi().buyCoin("Letsbit", "usdt", "ars", BigDecimal.ONE), "ARS"))
+                    Pair.of("Blue (Venta)", new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS")),
+                    Pair.of("DAI Buenbit (Compra)", new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "dai", "ars", BigDecimal.ONE), "ARS")),
+                    Pair.of("DAI Letsbit (Compra)", new MoneyAmount(this.getCriptoYaApi().buyCoin("Letsbit", "dai", "ars", BigDecimal.ONE), "ARS")),
+                    Pair.of("USDT Buenbit (Compra)", new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "usdt", "ars", BigDecimal.ONE), "ARS")),
+                    Pair.of("USDT Letsbit (Compra)", new MoneyAmount(this.getCriptoYaApi().buyCoin("Letsbit", "usdt", "ars", BigDecimal.ONE), "ARS"))
             ).sorted(Comparator.comparing(p -> p.getSecond().getAmount(), Comparator.reverseOrder()))
                     .forEach(p -> this.console.appendLine(this.format.text(p.getFirst(), 20), this.format.currency(p.getSecond(), 10)));
 
