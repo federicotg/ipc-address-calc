@@ -86,7 +86,7 @@ public class PPI {
                     Pair.of("USDT Buenbit (Compra)", new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "usdt", "ars", BigDecimal.ONE), "ARS")),
                     Pair.of("USDT Letsbit (Compra)", new MoneyAmount(this.getCriptoYaApi().buyCoin("Letsbit", "usdt", "ars", BigDecimal.ONE), "ARS"))
             ).sorted(Comparator.comparing(p -> p.getSecond().getAmount(), Comparator.reverseOrder()))
-                    .forEach(p -> this.console.appendLine(this.format.text(p.getFirst(), 20), this.format.currency(p.getSecond(), 10)));
+                    .forEach(p -> this.console.appendLine(this.format.text(p.getFirst(), 22), this.format.currency(p.getSecond(), 10)));
 
         } catch (Exception ex) {
             System.err.println("Exception " + ex.getClass().toString() + " " + ex.getMessage());
