@@ -262,14 +262,13 @@ public class ConsoleReports {
 
             this.console.appendLine(MessageFormat.format("Sending {0}", this.format.currency(new MoneyAmount(initialAmount, "USD"), 10)));
             final var blueFee = BigDecimal.ONE.add(feePct);
-            final Comparator<Pair<String, BigDecimal>> cmp = Comparator.comparing(Pair::getSecond);
             Stream.of(
                     Pair.of("Cash > Bank > Letsbit > USDT > Kraken", api.lbRoute(initialAmount)),
                     Pair.of("Cash > Bank > Buenbit > DAI > Kraken", api.bbRoute(initialAmount)),
                     Pair.of("Cash > ARS > Bank > Letsbit > USDT > Kraken", api.arsLbRoute(initialAmount, blueFee)),
                     Pair.of("Cash > ARS > Bank > Letsbit > DAI > Kraken", api.arsLbDaiRoute(initialAmount, blueFee)),
                     Pair.of("Cash > ARS > Bank > Buenbit > DAI > Kraken", api.arsBbRoute(initialAmount, blueFee)))
-                    .sorted(cmp.reversed())
+                    .sorted(Comparator.comparing(Pair::getSecond, Comparator.reverseOrder()))
                     .forEach(p -> this.printRoute(p.getFirst(), initialAmount, p.getSecond()));
 
             this.console.appendLine("");

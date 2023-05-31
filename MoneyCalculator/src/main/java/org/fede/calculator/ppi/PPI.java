@@ -76,8 +76,6 @@ public class PPI {
 
         try {
 
-            Comparator<Pair<String, MoneyAmount>> cmp = Comparator.comparing(p -> p.getSecond().getAmount());
-
             Stream.of(
                     Pair.of("Letras Inmediato", this.netOfFees(this.getApi().exchangeRate("S3Y3C", "S31Y3", InstrumentType.LETRAS, SettlementType.INMEDIATA), LETES_FEE)),
                     Pair.of("GD30 Inmediato", this.netOfFees(this.getApi().exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.INMEDIATA), BONDS_FEE)),
@@ -87,7 +85,7 @@ public class PPI {
                     Pair.of("DAI compra Letsbit", new MoneyAmount(this.getCriptoYaApi().buyCoin("Letsbit", "dai", "ars", BigDecimal.ONE), "ARS")),
                     Pair.of("USDT compra Buenbit", new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "usdt", "ars", BigDecimal.ONE), "ARS")),
                     Pair.of("USDT compra Letsbit", new MoneyAmount(this.getCriptoYaApi().buyCoin("Letsbit", "usdt", "ars", BigDecimal.ONE), "ARS"))
-            ).sorted(cmp.reversed())
+            ).sorted(Comparator.comparing(p -> p.getSecond().getAmount(), Comparator.reverseOrder()))
                     .forEach(p -> this.console.appendLine(this.format.text(p.getFirst(), 20), this.format.currency(p.getSecond(), 10)));
 
         } catch (Exception ex) {

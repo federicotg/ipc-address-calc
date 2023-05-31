@@ -89,7 +89,7 @@ public class Expenses {
                     .reduce(ZERO, BigDecimal::add);
 
             list.stream()
-                    .sorted(comparing((Pair<String, BigDecimal> p) -> p.getSecond()).reversed())
+                    .sorted(comparing(Pair::getSecond, Comparator.reverseOrder()))
                     .map(e -> format("{0}{1}{2}{3}",
                     this.format.text(e.getFirst(), 13),
                     this.format.text(" USD ", 4),
