@@ -160,7 +160,7 @@ public class ConsoleReports {
                 entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
                 entry("pos", () -> me.positions(args, "pos")),
                 entry("dca", () -> me.dca(args, "dca")),
-                entry("ccl", () -> new PPI(console, format).ccl()),
+                entry("ccl", () -> new PPI(console, format).dollar()),
                 entry("routes", () -> me.routes(args, "routes")),
                 entry("balances", () -> new PPI(console, format).balances()),
                 entry("cash", () -> new PPI(console, format).cashBalance()),

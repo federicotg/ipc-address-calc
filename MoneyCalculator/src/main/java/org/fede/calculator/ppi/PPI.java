@@ -70,14 +70,14 @@ public class PPI {
         return this.criptoya;
     }
 
-    public void ccl() {
+    public void dollar() {
 
-        this.console.appendLine(this.format.title("CCL PPI"));
+        this.console.appendLine(this.format.title("Dólar"));
 
         try {
 
             Stream.of(
-                    Pair.of("Letras Inmediato", this.netOfFees(this.getApi().exchangeRate("S3Y3C", "S31Y3", InstrumentType.LETRAS, SettlementType.INMEDIATA), LETES_FEE)),
+                    Pair.of("Letras Inmediato", this.netOfFees(this.getApi().exchangeRate("SJ3C", "S30J3", InstrumentType.LETRAS, SettlementType.INMEDIATA), LETES_FEE)),
                     Pair.of("GD30 Inmediato", this.netOfFees(this.getApi().exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.INMEDIATA), BONDS_FEE)),
                     Pair.of("GD30 a 48 horas", this.netOfFees(this.getApi().exchangeRate("GD30C", "GD30", InstrumentType.BONOS, SettlementType.A48), BONDS_FEE)),
                     Pair.of("Blue compra", new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS")),
