@@ -31,7 +31,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import org.fede.calculator.money.InstrumentType;
 import org.fede.calculator.money.MathConstants;
@@ -62,6 +64,7 @@ public class PPIRestAPI {
     private final Properties config;
     private final ObjectMapper jsonMapper;
     private PPIToken token;
+    private Map<String, Map<InstrumentType, Map<SettlementType, PPIMarketData>>> marketDataCache = new HashMap<>();
 
     public PPIRestAPI() throws FileNotFoundException, IOException, URISyntaxException, InterruptedException {
 
@@ -178,6 +181,14 @@ public class PPIRestAPI {
 
     private PPIMarketData marketData(String ticker, InstrumentType type, SettlementType settlement) throws URISyntaxException, IOException, InterruptedException {
 
+        final var answer = this.marketDataCache.computeIfAbsent(ticker, t -> new HashMap<>())
+                .computeIfAbsent(type, t -> new HashMap<>())
+                .get(settlement);
+
+        if (answer != null) {
+            return answer;
+        }
+
         final var req = this.requestBuilderFor(MessageFormat.format(CURRENT_MARKET_DATA, PPI_API, VERSION, ticker, type.toString(), settlement.toString()))
                 .GET()
                 .build();
@@ -187,14 +198,20 @@ public class PPIRestAPI {
 
         if (response.statusCode() == 200) {
 
-            return this.jsonMapper.readValue(response.body(), PPIMarketData.class);
+            final var newAnswer = this.jsonMapper.readValue(response.body(), PPIMarketData.class);
+
+            this.marketDataCache.computeIfAbsent(ticker, t -> new HashMap<>())
+                    .computeIfAbsent(type, t -> new HashMap<>())
+                    .put(settlement, newAnswer);
+
+            return newAnswer;
 
         } else {
             throw new IOException(MessageFormat.format("Could not read market data: {0} {1}", response.statusCode(), response.body()));
         }
 
     }
-
+    
     public List<PPIBalance> balancesAndPositions() throws URISyntaxException, IOException, InterruptedException {
 
         final var req = this.requestBuilderFor(MessageFormat.format(BALANCES_AND_POSITIONS, PPI_API, VERSION, this.config.get("ppi.accountnumber")))
