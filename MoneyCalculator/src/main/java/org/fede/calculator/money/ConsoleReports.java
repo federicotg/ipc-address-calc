@@ -438,7 +438,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         new BBPP(format, series, console)
-                .bbpp(Integer.parseInt(params.getOrDefault("year", "2021")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
+                .bbpp(Integer.parseInt(params.getOrDefault("year", "2022")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
     }
 
     private void bbppEvo(String[] args, String paramName) {
