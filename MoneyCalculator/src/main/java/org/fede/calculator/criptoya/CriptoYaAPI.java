@@ -158,7 +158,8 @@ public class CriptoYaAPI {
     }
 
     public BigDecimal bbRoute(BigDecimal initialAmount) throws URISyntaxException, IOException, InterruptedException {
-        return initialAmount.divide(this.buyCoin("buenbit", "DAI", "USD", initialAmount), MathConstants.C)
+        return initialAmount
+                .divide(this.buyCoin("buenbit", "DAI", "USD", initialAmount), MathConstants.C)
                 .subtract(this.fee("Buenbit", "DAI", "ERC20"))
                 .divide(new BigDecimal("1.002"), MathConstants.C);
     }
