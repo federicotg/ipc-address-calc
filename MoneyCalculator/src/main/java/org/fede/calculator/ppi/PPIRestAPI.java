@@ -31,10 +31,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.text.MessageFormat;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import org.fede.calculator.money.InstrumentType;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
@@ -61,10 +61,15 @@ public class PPIRestAPI {
     private static final String TOKEN_FILE_PATH = "ppi.token";
     private static final String AUTHORIZATION_HEADER_NAME = "Authorization";
 
+    private static final TypeReference<List<PPIBalance>> BALANCE_TR = new TypeReference<List<PPIBalance>>() {
+    };
+    private static final TypeReference<List<PPIPosition>> POSITIONS_TR = new TypeReference<List<PPIPosition>>() {
+    };
+    
     private final Properties config;
     private final ObjectMapper jsonMapper;
     private PPIToken token;
-    private Map<String, Map<InstrumentType, Map<SettlementType, PPIMarketData>>> marketDataCache = new HashMap<>();
+    private final Map<String, Map<InstrumentType, Map<SettlementType, PPIMarketData>>> marketDataCache = new ConcurrentHashMap<>();
 
     public PPIRestAPI() throws FileNotFoundException, IOException, URISyntaxException, InterruptedException {
 
@@ -181,8 +186,8 @@ public class PPIRestAPI {
 
     private PPIMarketData marketData(String ticker, InstrumentType type, SettlementType settlement) throws URISyntaxException, IOException, InterruptedException {
 
-        final var answer = this.marketDataCache.computeIfAbsent(ticker, t -> new HashMap<>())
-                .computeIfAbsent(type, t -> new HashMap<>())
+        final var answer = this.marketDataCache.computeIfAbsent(ticker, t -> new ConcurrentHashMap<>())
+                .computeIfAbsent(type, t -> new ConcurrentHashMap<>())
                 .get(settlement);
 
         if (answer != null) {
@@ -200,8 +205,8 @@ public class PPIRestAPI {
 
             final var newAnswer = this.jsonMapper.readValue(response.body(), PPIMarketData.class);
 
-            this.marketDataCache.computeIfAbsent(ticker, t -> new HashMap<>())
-                    .computeIfAbsent(type, t -> new HashMap<>())
+            this.marketDataCache.computeIfAbsent(ticker, t -> new ConcurrentHashMap<>())
+                    .computeIfAbsent(type, t -> new ConcurrentHashMap<>())
                     .put(settlement, newAnswer);
 
             return newAnswer;
@@ -211,7 +216,7 @@ public class PPIRestAPI {
         }
 
     }
-    
+
     public List<PPIBalance> balancesAndPositions() throws URISyntaxException, IOException, InterruptedException {
 
         final var req = this.requestBuilderFor(MessageFormat.format(BALANCES_AND_POSITIONS, PPI_API, VERSION, this.config.get("ppi.accountnumber")))
@@ -223,8 +228,7 @@ public class PPIRestAPI {
 
         if (response.statusCode() == 200) {
 
-            return this.jsonMapper.readValue(response.body(), new TypeReference<List<PPIBalance>>() {
-            });
+            return this.jsonMapper.readValue(response.body(), BALANCE_TR);
 
         } else {
             throw new IOException(MessageFormat.format("Could not balances data: {0} {1}", response.statusCode(), response.body()));
@@ -243,15 +247,14 @@ public class PPIRestAPI {
 
         if (response.statusCode() == 200) {
 
-            return this.jsonMapper.readValue(response.body(), new TypeReference<List<PPIPosition>>() {
-            });
+            return this.jsonMapper.readValue(response.body(), POSITIONS_TR);
 
         } else {
             throw new IOException(MessageFormat.format("Could not balances data: {0} {1}", response.statusCode(), response.body()));
         }
 
     }
-
+    
     public MoneyAmount exchangeRate(
             String tickerUSD,
             String tickerARS,

@@ -28,8 +28,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.MessageFormat;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.fede.calculator.money.MathConstants;
 
 /**
@@ -40,11 +40,17 @@ public class CriptoYaAPI {
 
     private static final String API = "https://criptoya.com";
 
+    private static final TypeReference<Map<String, Map<String, Map<String, BigDecimal>>>> FEES_TR = new TypeReference<Map<String, Map<String, Map<String, BigDecimal>>>>() {
+    };
+
+    private static final TypeReference<Map<String, BigDecimal>> FX_TR = new TypeReference<Map<String, BigDecimal>>() {
+    };
+
     private final ObjectMapper jsonMapper;
 
     private Map<String, Map<String, Map<String, BigDecimal>>> fees;
 
-    private Map<String, Map<String, Map<String, CriptoYaFx>>> fxCache = new HashMap<>();
+    private final Map<String, Map<String, Map<String, CriptoYaFx>>> fxCache = new ConcurrentHashMap<>();
 
     public CriptoYaAPI() {
         this.jsonMapper = new ObjectMapper();
@@ -72,8 +78,7 @@ public class CriptoYaAPI {
 
             final var b = response.body();
 
-            return this.jsonMapper.readValue(b, new TypeReference<Map<String, BigDecimal>>() {
-            }).get("blue_bid");
+            return this.jsonMapper.readValue(b, FX_TR).get("blue_bid");
 
         } else {
             throw new IOException(MessageFormat.format("Could not read criptoya data: {0} {1}", response.statusCode(), response.body()));
@@ -94,8 +99,7 @@ public class CriptoYaAPI {
 
             if (response.statusCode() == 200) {
 
-                this.fees = this.jsonMapper.readValue(response.body(), new TypeReference<Map<String, Map<String, Map<String, BigDecimal>>>>() {
-                });
+                this.fees = this.jsonMapper.readValue(response.body(), FEES_TR);
 
             } else {
                 throw new IOException(MessageFormat.format("Could not read criptoya data: {0} {1}", response.statusCode(), response.body()));
@@ -115,8 +119,8 @@ public class CriptoYaAPI {
 
     private CriptoYaFx fx(String exchange, String coin, String fiat, BigDecimal amount) throws URISyntaxException, IOException, InterruptedException {
 
-        final var answer = this.fxCache.computeIfAbsent(exchange, t -> new HashMap<>())
-                .computeIfAbsent(coin, t -> new HashMap<>())
+        final var answer = this.fxCache.computeIfAbsent(exchange, t -> new ConcurrentHashMap<>())
+                .computeIfAbsent(coin, t -> new ConcurrentHashMap<>())
                 .get(fiat);
 
         if (answer != null) {
@@ -135,8 +139,8 @@ public class CriptoYaAPI {
 
             final var newAnswer = this.jsonMapper.readValue(response.body(), CriptoYaFx.class);
 
-            this.fxCache.computeIfAbsent(exchange, t -> new HashMap<>())
-                    .computeIfAbsent(coin, t -> new HashMap<>())
+            this.fxCache.computeIfAbsent(exchange, t -> new ConcurrentHashMap<>())
+                    .computeIfAbsent(coin, t -> new ConcurrentHashMap<>())
                     .put(fiat, newAnswer);
 
             return newAnswer;
