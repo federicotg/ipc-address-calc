@@ -116,57 +116,157 @@ public class ConsoleReports {
         return i.getCurrency().equalsIgnoreCase(type);
     }
 
-    private static Map<String, Runnable> getActions(String[] args, ConsoleReports me, Format format, Bar bar, Series series, Console console) {
-        return Map.ofEntries(
-                entry("i", new Investments(console, format, bar, series)::investments),
-                entry("gi", new Positions(console, format, series, bar)::groupedInvestments),
-                entry("ti", new Positions(console, format, series, bar)::listStockByType),
-                entry("inv", () -> me.invReport(args, "inv")),
-                entry("savings", () -> me.savings(args, "savings")),
-                entry("savings-evo", () -> me.savingEvolution(args, "savings-evo")),
-                entry("savings-change", () -> me.savingChange(args, "savings-change")),
-                entry("savings-change-pct", () -> me.savingsPercentChange(args, "savings-change-pct")),
-                entry("savings-net-change", () -> me.monthlySavings(args, "savings-net-change")),
-                entry("savings-avg-pct", () -> me.netAvgSavingSpentPct(args, "savings-avg-pct")),
-                entry("savings-avg", () -> me.netAvgSavingSpent(args, "savings-avg")),
-                entry("savings-dist", new Savings(format, series, bar, console)::savingsDistributionEvolution),
-                entry("savings-dist-pct", new Savings(format, series, bar, console)::savingsDistributionPercentEvolution),
-                entry("saved-salaries-evo", () -> me.averageSavedSalaries(args, "saved-salaries-evo")),
-                entry("income", () -> me.income(args)),
-                entry("income-table", new Savings(format, series, bar, console)::savingsIncomeTable),
-                entry("income-year-table", new Savings(format, series, bar, console)::yearSavingsIncomeTable),
-                entry("income-evo", () -> me.incomeAverageEvolution(args, "income-evo")),
-                entry("income-src", () -> me.incomeAverageBySource(args, "income-src")),
-                entry("income-avg-change", () -> me.incomeDelta(args, "income-avg-change")),
-                entry("p", () -> me.portfolio(args, "p")),
-                entry("p-evo", () -> me.portfolioEvo(args, "p-evo")),
-                entry("p-evo-pct", () -> me.portfolioEvo(args, "p-evo-pct")),
-                entry("p-type-evo", () -> new Investments(console, format, bar, series).portfolioTypeEvo(false)),
-                entry("p-type-evo-pct", () -> new Investments(console, format, bar, series).portfolioTypeEvo(true)),
-                entry("pa", () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation()),
-                entry("house-evo", () -> new House(console, format, bar).houseCostsEvolution()),
-                entry("house", () -> me.house(args, "house")),
-                entry("expenses", () -> me.expenses(args, "expenses")),
-                entry("condo", () -> me.condo()),
-                entry("expenses-evo", () -> me.expenseEvolution(args, "expenses-evo")),
-                entry("expenses-src", () -> me.expenseBySource(args, "expenses-src")),
-                entry("expenses-change", () -> me.expensesChange(args, "expenses-change")),
-                entry("goal", () -> me.goal(args, "goal")),
-                entry("bbpp", () -> me.bbpp(args, "bbpp")),
-                entry("bbpp-evo", () -> me.bbppEvo(args, "bbpp-evo")),
-                entry("ibkr", () -> me.ibkrCSV()),
-                entry("mdr", () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar))),
-                entry("mdr-by-currency", new PortfolioReturns(series, console, format, bar)::mdrByCurrency),
-                entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
-                entry("pos", () -> me.positions(args, "pos")),
-                entry("dca", () -> me.dca(args, "dca")),
-                entry("ccl", () -> new PPI(console, format, new SingleHttpClientSupplier()).dollar()),
-                entry("routes", () -> me.routes(args, "routes")),
-                entry("balances", () -> new PPI(console, format, new SingleHttpClientSupplier()).balances()),
-                entry("cash", () -> new PPI(console, format, new SingleHttpClientSupplier()).cashBalance()),
-                entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct")),
-                entry("bench", () -> me.benchmark(args, "bench"))
-        );
+    private static Runnable getAction(String[] args, ConsoleReports me, Format format, Bar bar, Series series, Console console) {
+
+        return switch (args[0]) {
+            case "i" -> {
+                yield new Investments(console, format, bar, series)::investments;
+            }
+            case "gi" -> {
+                yield new Positions(console, format, series, bar)::groupedInvestments;
+            }
+            case "ti" -> {
+                yield new Positions(console, format, series, bar)::listStockByType;
+            }
+            case "inv" -> {
+                yield () -> me.invReport(args, "inv");
+            }
+            case "savings" -> {
+                yield () -> me.savings(args, "savings");
+            }
+            case "savings-evo" -> {
+                yield () -> me.savingEvolution(args, "savings-evo");
+            }
+            case "savings-change" -> {
+                yield () -> me.savingChange(args, "savings-change");
+            }
+            case "savings-change-pct" -> {
+                yield () -> me.savingsPercentChange(args, "savings-change-pct");
+            }
+            case "savings-net-change" -> {
+                yield () -> me.monthlySavings(args, "savings-net-change");
+            }
+            case "savings-avg-pct" -> {
+                yield () -> me.netAvgSavingSpentPct(args, "savings-avg-pct");
+            }
+            case "savings-avg" -> {
+                yield () -> me.netAvgSavingSpent(args, "savings-avg");
+            }
+            case "savings-dist" -> {
+                yield new Savings(format, series, bar, console)::savingsDistributionEvolution;
+            }
+            case "savings-dist-pct" -> {
+                yield new Savings(format, series, bar, console)::savingsDistributionPercentEvolution;
+            }
+            case "saved-salaries-evo" -> {
+                yield () -> me.averageSavedSalaries(args, "saved-salaries-evo");
+            }
+            case "income" -> {
+                yield () -> me.income(args);
+            }
+            case "income-table" -> {
+                yield new Savings(format, series, bar, console)::savingsIncomeTable;
+            }
+            case "income-year-table" -> {
+                yield new Savings(format, series, bar, console)::yearSavingsIncomeTable;
+            }
+            case "income-evo" -> {
+                yield () -> me.incomeAverageEvolution(args, "income-evo");
+            }
+            case "income-src" -> {
+                yield () -> me.incomeAverageBySource(args, "income-src");
+            }
+            case "income-avg-change" -> {
+                yield () -> me.incomeDelta(args, "income-avg-change");
+            }
+            case "p" -> {
+                yield () -> me.portfolio(args, "p");
+            }
+            case "p-evo" -> {
+                yield () -> me.portfolioEvo(args, "p-evo");
+            }
+            case "p-evo-pct" -> {
+                yield () -> me.portfolioEvo(args, "p-evo-pct");
+            }
+            case "p-type-evo" -> {
+                yield () -> new Investments(console, format, bar, series).portfolioTypeEvo(false);
+            }
+            case "p-type-evo-pct" -> {
+                yield () -> new Investments(console, format, bar, series).portfolioTypeEvo(true);
+            }
+            case "pa" -> {
+                yield () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation();
+            }
+            case "house-evo" -> {
+                yield () -> new House(console, format, bar).houseCostsEvolution();
+            }
+            case "house" -> {
+                yield () -> me.house(args, "house");
+            }
+            case "expenses" -> {
+                yield () -> me.expenses(args, "expenses");
+            }
+            case "condo" -> {
+                yield () -> me.condo();
+            }
+            case "expenses-evo" -> {
+                yield () -> me.expenseEvolution(args, "expenses-evo");
+            }
+            case "expenses-src" -> {
+                yield () -> me.expenseBySource(args, "expenses-src");
+            }
+            case "expenses-change" -> {
+                yield () -> me.expensesChange(args, "expenses-change");
+            }
+            case "goal" -> {
+                yield () -> me.goal(args, "goal");
+            }
+            case "bbpp" -> {
+                yield () -> me.bbpp(args, "bbpp");
+            }
+            case "bbpp-evo" -> {
+                yield () -> me.bbppEvo(args, "bbpp-evo");
+            }
+            case "ibkr" -> {
+                yield () -> me.ibkrCSV();
+            }
+            case "mdr" -> {
+                yield () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar));
+            }
+            case "mdr-by-currency" -> {
+                yield new PortfolioReturns(series, console, format, bar)::mdrByCurrency;
+            }
+            case "inv-evo" -> {
+                yield () -> me.invEvo(args, "inv-evo");
+            }
+            case "pos" -> {
+                yield () -> me.positions(args, "pos");
+            }
+            case "dca" -> {
+                yield () -> me.dca(args, "dca");
+            }
+            case "ccl" -> {
+                yield () -> new PPI(console, format, new SingleHttpClientSupplier()).dollar();
+            }
+            case "routes" -> {
+                yield () -> me.routes(args, "routes");
+            }
+            case "balances" -> {
+                yield () -> new PPI(console, format, new SingleHttpClientSupplier()).balances();
+            }
+            case "cash" -> {
+                yield () -> new PPI(console, format, new SingleHttpClientSupplier()).cashBalance();
+            }
+            case "inv-evo-pct" -> {
+                yield () -> me.invEvoPct(args, "inv-evo-pct");
+            }
+            case "bench" -> {
+                yield () -> me.benchmark(args, "bench");
+            }
+            default -> {
+                yield () -> console.appendLine("Unknown parameter.");
+            }
+        };
     }
 
     public static void main(String[] args) {
@@ -220,26 +320,15 @@ public class ConsoleReports {
                         entry("dca", "type=(q*|h|y|m)"),
                         entry("pos", "nominal=false")
                 );
-                final Map<String, Runnable> actions = getActions(args, me, format, bar, series, console);
-                Stream.concat(
-                        actions.keySet()
-                                .stream()
-                                .filter(action -> !help.keySet().contains(action))
-                                .map(action -> format(" - {0}", action)),
-                        help.entrySet().stream().map(e -> format(" - {0} {1}", e.getKey(), e.getValue())))
+
+                help.entrySet().stream().map(e -> format(" - {0} {1}", e.getKey(), e.getValue()))
                         .sorted()
                         .forEach(me::appendLine);
             } else {
 
-                final Map<String, Runnable> actions = getActions(args, me, format, bar, series, console);
-                actions.entrySet()
-                        .stream()
-                        .filter(e -> params.isEmpty() || params.contains(e.getKey().toLowerCase()))
-                        .map(Map.Entry::getValue)
-                        .forEach(r -> {
-                            r.run();
-                            me.appendLine("");
-                        });
+                getAction(args, me, format, bar, series, console).run();
+                me.appendLine("");
+
             }
             console.printReport(new BufferedOutputStream(System.out));
         } catch (Exception ex) {
