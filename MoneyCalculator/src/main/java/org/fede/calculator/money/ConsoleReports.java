@@ -160,10 +160,10 @@ public class ConsoleReports {
                 entry("inv-evo", () -> me.invEvo(args, "inv-evo")),
                 entry("pos", () -> me.positions(args, "pos")),
                 entry("dca", () -> me.dca(args, "dca")),
-                entry("ccl", () -> new PPI(console, format).dollar()),
+                entry("ccl", () -> new PPI(console, format, new SingleHttpClientSupplier()).dollar()),
                 entry("routes", () -> me.routes(args, "routes")),
-                entry("balances", () -> new PPI(console, format).balances()),
-                entry("cash", () -> new PPI(console, format).cashBalance()),
+                entry("balances", () -> new PPI(console, format, new SingleHttpClientSupplier()).balances()),
+                entry("cash", () -> new PPI(console, format, new SingleHttpClientSupplier()).cashBalance()),
                 entry("inv-evo-pct", () -> me.invEvoPct(args, "inv-evo-pct")),
                 entry("bench", () -> me.benchmark(args, "bench"))
         );
@@ -196,8 +196,8 @@ public class ConsoleReports {
                                 PENSION,
                                 EXPECTED_RETRUNS,
                                 36)),
-                        entry("savings-change", "months=1"),
-                        entry("savings-change-pct", "months=1"),
+                        entry("savings-change", "m=1"),
+                        entry("savings-change-pct", "m=1"),
                         entry("income", "by=(year|half|quarter) months=12"),
                         entry("savings", "by=(year|half|quarter)"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
@@ -211,11 +211,11 @@ public class ConsoleReports {
                         entry("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
                         entry("income-evo", "months=12 ars=false"),
                         entry("bbpp", "year=2021 ibkr=false"),
-                        entry("savings-net-change", "months=12"),
-                        entry("savings-avg-pct", "months=12"),
-                        entry("expenses", "by=(year|half|quarter) type=(taxes|insurance|phone|services|home|entertainment) months=12"),
-                        entry("expenses-change", "type=(full|tracked*) months=12"),
-                        entry("expenses-evo", "type=(full|taxes|insurance|phone|services|home|entertainment) months=12"),
+                        entry("savings-net-change", "m=12"),
+                        entry("savings-avg-pct", "m=12"),
+                        entry("expenses", "by=(year|half|quarter) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
+                        entry("expenses-change", "type=(full|tracked*) m=12"),
+                        entry("expenses-evo", "type=(full|taxes|insurance|phone|services|home|entertainment) m=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)"),
                         entry("dca", "type=(q*|h|y|m)"),
                         entry("pos", "nominal=false")
@@ -257,7 +257,7 @@ public class ConsoleReports {
 
             final var feePct = new BigDecimal(fee).movePointLeft(2);
 
-            final var api = new CriptoYaAPI();
+            final var api = new CriptoYaAPI(new SingleHttpClientSupplier());
             final var initialAmount = new BigDecimal(3000);
 
             this.console.appendLine(MessageFormat.format("Sending {0}", this.format.currency(new MoneyAmount(initialAmount, "USD"), 10)));

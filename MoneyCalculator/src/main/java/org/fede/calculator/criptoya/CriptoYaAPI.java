@@ -30,6 +30,7 @@ import java.net.http.HttpResponse;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import org.fede.calculator.money.MathConstants;
 
 /**
@@ -48,12 +49,16 @@ public class CriptoYaAPI {
 
     private final ObjectMapper jsonMapper;
 
+    private final Supplier<HttpClient> clientSupplier;
+
     private Map<String, Map<String, Map<String, BigDecimal>>> fees;
 
     private final Map<String, Map<String, Map<String, CriptoYaFx>>> fxCache = new ConcurrentHashMap<>();
+    private Map<String, BigDecimal> dollarCache;
 
-    public CriptoYaAPI() {
+    public CriptoYaAPI(Supplier<HttpClient> clientSupplier) {
         this.jsonMapper = new ObjectMapper();
+        this.clientSupplier = clientSupplier;
         this.jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
@@ -67,18 +72,22 @@ public class CriptoYaAPI {
 
     public BigDecimal blueSell() throws URISyntaxException, IOException, InterruptedException {
 
+        if (this.dollarCache != null) {
+            return this.dollarCache.get("blue_bid");
+        }
+
         final var req = this.requestBuilderFor(MessageFormat.format("{0}/api/dolar", API))
                 .GET()
                 .build();
 
-        HttpResponse<String> response = HttpClient.newHttpClient()
+        HttpResponse<String> response = this.clientSupplier.get()
                 .send(req, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() == 200) {
 
-            final var b = response.body();
+            this.dollarCache = this.jsonMapper.readValue(response.body(), FX_TR);
 
-            return this.jsonMapper.readValue(b, FX_TR).get("blue_bid");
+            return this.dollarCache.get("blue_bid");
 
         } else {
             throw new IOException(MessageFormat.format("Could not read criptoya data: {0} {1}", response.statusCode(), response.body()));
@@ -94,7 +103,7 @@ public class CriptoYaAPI {
                     .GET()
                     .build();
 
-            HttpResponse<String> response = HttpClient.newHttpClient()
+            HttpResponse<String> response = this.clientSupplier.get()
                     .send(req, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
@@ -132,7 +141,7 @@ public class CriptoYaAPI {
                 .GET()
                 .build();
 
-        HttpResponse<String> response = HttpClient.newHttpClient()
+        HttpResponse<String> response = this.clientSupplier.get()
                 .send(req, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() == 200) {

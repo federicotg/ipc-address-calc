@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import org.fede.calculator.money.InstrumentType;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
@@ -68,10 +69,11 @@ public class PPIRestAPI {
     
     private final Properties config;
     private final ObjectMapper jsonMapper;
+    private final Supplier<HttpClient> clientSupplier;
     private PPIToken token;
     private final Map<String, Map<InstrumentType, Map<SettlementType, PPIMarketData>>> marketDataCache = new ConcurrentHashMap<>();
 
-    public PPIRestAPI() throws FileNotFoundException, IOException, URISyntaxException, InterruptedException {
+    public PPIRestAPI(Supplier<HttpClient> clientSupplier) throws FileNotFoundException, IOException, URISyntaxException, InterruptedException {
 
         try (var is = new FileInputStream(new File(System.getenv("HOME") + File.separator + "Sync" + File.separator + "ppi-secrets.properties"))) {
             this.config = new Properties();
@@ -80,7 +82,7 @@ public class PPIRestAPI {
 
         this.jsonMapper = new ObjectMapper();
         this.jsonMapper.registerModule(new JavaTimeModule());
-
+        this.clientSupplier = clientSupplier;
     }
 
     private PPIToken login() throws IOException, InterruptedException, URISyntaxException {
@@ -96,7 +98,7 @@ public class PPIRestAPI {
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
 
-        HttpResponse<String> response = HttpClient.newHttpClient()
+        HttpResponse<String> response = this.clientSupplier.get()
                 .send(loginRequest, BodyHandlers.ofString());
 
         if (response.statusCode() == 200) {
@@ -128,7 +130,7 @@ public class PPIRestAPI {
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-        HttpResponse<String> response = HttpClient.newHttpClient()
+        HttpResponse<String> response = this.clientSupplier.get()
                 .send(loginRequest, BodyHandlers.ofString());
 
         if (response.statusCode() == 200) {
@@ -198,7 +200,7 @@ public class PPIRestAPI {
                 .GET()
                 .build();
 
-        HttpResponse<String> response = HttpClient.newHttpClient()
+        HttpResponse<String> response = this.clientSupplier.get()
                 .send(req, BodyHandlers.ofString());
 
         if (response.statusCode() == 200) {
@@ -223,7 +225,7 @@ public class PPIRestAPI {
                 .GET()
                 .build();
 
-        HttpResponse<String> response = HttpClient.newHttpClient()
+        HttpResponse<String> response = this.clientSupplier.get()
                 .send(req, BodyHandlers.ofString());
 
         if (response.statusCode() == 200) {
@@ -242,7 +244,7 @@ public class PPIRestAPI {
                 .GET()
                 .build();
 
-        HttpResponse<String> response = HttpClient.newHttpClient()
+        HttpResponse<String> response = this.clientSupplier.get()
                 .send(req, BodyHandlers.ofString());
 
         if (response.statusCode() == 200) {
