@@ -46,7 +46,7 @@ public class PPI {
     private static final BigDecimal SMALL_FACE_FEE = new BigDecimal("0.03");
 
     private static final AnsiFormat DIM_WHITE_TEXT = new AnsiFormat(Attribute.DIM());
-    private static final AnsiFormat BLUE_TEXT = new AnsiFormat(Attribute.BLUE_TEXT());
+    private static final AnsiFormat BLUE_TEXT = new AnsiFormat(Attribute.BRIGHT_GREEN_TEXT());
 
     private final Console console;
     private final Format format;
