@@ -64,7 +64,7 @@ public class Goal {
 
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), C), C);
     
-    private static final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("250");
+    private static final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("225");
 
     private static final Function<BigDecimal, BigDecimal> IBKR_FEE_STRATEGY = new InteractiveBrokersTieredLondonUSDFeeStrategy();
 
