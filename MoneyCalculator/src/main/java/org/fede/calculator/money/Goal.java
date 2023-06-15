@@ -63,6 +63,8 @@ public class Goal {
             .add(new BigDecimal("0.00056").multiply(new BigDecimal("0.5"), C));
 
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), C), C);
+    
+    private static final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("250");
 
     private static final Function<BigDecimal, BigDecimal> IBKR_FEE_STRATEGY = new InteractiveBrokersTieredLondonUSDFeeStrategy();
 
@@ -208,6 +210,7 @@ public class Goal {
         final var deposit = yearDeposit.subtract(yearIBKRFee, C).doubleValue();
 
         final var withdraw = (monthlyWithdraw
+                .add(HEALTH_MONTHLY_COST, C)
                 .multiply(MONTHS_IN_A_YEAR, C)
                 .subtract(new BigDecimal(pension * 13), C))
                 .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
@@ -228,6 +231,9 @@ public class Goal {
         if (pension > 0) {
             this.console.appendLine(format("Considering {0,number,currency} pension.", pension));
         }
+        
+        this.console.appendLine(format("Considering {0,number,currency} health insurance.", HEALTH_MONTHLY_COST));
+        
         this.console.appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2} +/-{3}.", inflation, retirementAge, age, END_AGE_STD));
 
         final var bbppMin = this.series.bbppSeries()
