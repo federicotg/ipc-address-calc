@@ -51,9 +51,7 @@ public class Goal {
     };
 
     private static final double OFFICIAL_DOLLAR_MEAN = 0.8d;
-    private static final double OFFICIAL_DOLLAR_STD_DEV = 0.05d;
-
-    private static final int END_AGE_STD = 4;
+    private static final double OFFICIAL_DOLLAR_STD_DEV = 0.04d;
 
     private static final BigDecimal BUY_FEE = new BigDecimal("200");
 
@@ -72,9 +70,6 @@ public class Goal {
         return mean + ThreadLocalRandom.current().nextGaussian() * std;
     }
 
-    private static int gauss(int mean, int std) {
-        return (int) Math.round(gauss((double) mean, (double) std));
-    }
 
     private final double bbppTaxRate;
     private final Console console;
@@ -234,7 +229,7 @@ public class Goal {
         
         this.console.appendLine(format("Considering {0,number,currency} health insurance.", HEALTH_MONTHLY_COST));
         
-        this.console.appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2} +/-{3}.", inflation, retirementAge, age, END_AGE_STD));
+        this.console.appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2}.", inflation, retirementAge, age));
 
         final var bbppMin = this.series.bbppSeries()
                 .stream()
@@ -330,7 +325,7 @@ public class Goal {
             double bbppMin) {
 
         return IntStream.range(0, trials)
-                .mapToObj(i -> Pair.of(returnsSuplier.get(), gauss(end, END_AGE_STD)))
+                .mapToObj(i -> Pair.of(returnsSuplier.get(), end))
                 .filter(p
                         -> this.goals(
                         startingYear,
