@@ -31,8 +31,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import org.fede.calculator.money.series.BBPPItem;
 import org.fede.calculator.money.series.BBPPTaxBraket;
@@ -116,7 +120,7 @@ public class BBPP {
                 this.format.currency(bbpp.usdPaidAmount, 14),
                 this.format.currency(bbpp.minimum, 17),
                 this.format.currency(bbpp.taxedTotalUSD, 17),
-                this.format.percent(bbpp.taxRate,9),
+                this.format.percent(bbpp.taxRate, 9),
                 this.format.percent(bbpp.taxAmount.divide(bbpp.totalAmount, C), 9),
                 this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.allInvested.getAmount(), C), 9),
                 this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.yearRealIncome, C), 9)));
@@ -266,30 +270,38 @@ public class BBPP {
                 .map(ma -> getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, ym))
                 .reduce(ZERO_USD, MoneyAmount::add);
 
+        final var incomeMonths = Stream.concat(
+                IntStream.range(6, 12).mapToObj(m -> YearMonth.of(year, m)), 
+                IntStream.range(1, 5).mapToObj(m -> YearMonth.of(year + 1, m)))
+                .collect(Collectors.toSet());
+    
         final var yearRealIncomeList = new ArrayList<MoneyAmount>(12);
-
         this.series.realIncome()
-                .forEachNonZero((yearMonth, ma) -> Optional.of(ma).filter(m -> yearMonth.getYear() == year).ifPresent(yearRealIncomeList::add));
+                .forEachNonZero((yearMonth, ma) -> Optional.of(ma).filter(m -> incomeMonths.contains(yearMonth)).ifPresent(yearRealIncomeList::add));
 
-        result.yearRealIncome = yearRealIncomeList.stream()
+        final int incomeSize = yearRealIncomeList.size();
+        
+        var income = yearRealIncomeList.stream()
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
+        
+        if(incomeSize < 12){
+            income = income
+                    .divide(BigDecimal.valueOf(incomeSize), C)
+                    .multiply(BigDecimal.valueOf(12l), C);
+        }
+        
+        result.yearRealIncome = income;
         result.year = year;
-
         result.usdPaidAmount = SeriesReader.readSeries("expense/bbpp.json")
                 .exchangeInto("USD")
-                .filter((yearMonth, ma) -> this.bbppPaymentYear(yearMonth, year))
+                .filter((yearMonth, ma) -> incomeMonths.contains(yearMonth))
                 .reduce(ZERO_USD, MoneyAmount::add);
 
-        result.minimum =  new MoneyAmount(bbpp.getMinimum().divide(bbpp.getUsd(), C), "USD");        
+        result.minimum = new MoneyAmount(bbpp.getMinimum().divide(bbpp.getUsd(), C), "USD");
         result.taxedTotalUSD = new MoneyAmount(result.taxedTotal.divide(bbpp.getUsd(), C), "USD");
 
         return result;
-    }
-
-    private boolean bbppPaymentYear(YearMonth ym, int bbppYear) {
-        return (ym.getYear() == bbppYear && ym.getMonth() >= 6)
-                || (ym.getYear() == bbppYear + 1 && ym.getMonth() < 6);
     }
 
     public void bbpp(int year, boolean ibkr) {
@@ -390,11 +402,10 @@ public class BBPP {
                 "Mínimo no imponible en el país {0}",
                 this.format.currency(bbpp.getMinimum().min(domestic))));
 
-        
         this.console.appendLine(MessageFormat.format(
                 "Base imponible en el país {0}",
                 this.format.currency(ZERO.max(domestic.subtract(bbpp.getMinimum(), C)))));
-        
+
         final var mni = bbpp.getMinimum().subtract(domestic, C).min(foreign);
 
         this.console.appendLine(MessageFormat.format(
@@ -408,12 +419,12 @@ public class BBPP {
                 this.format.currency(base)));
 
         final var taxRate = bbpp.getBrakets()
-                        .stream()
-                        .sorted(comparing(BBPPTaxBraket::getFrom))
-                        .filter(b -> b.getFrom().compareTo(domestic.add(foreign, C)) <= 0)
-                        .reduce((left, right) -> right)
-                        .get()
-                        .getTax();
+                .stream()
+                .sorted(comparing(BBPPTaxBraket::getFrom))
+                .filter(b -> b.getFrom().compareTo(domestic.add(foreign, C)) <= 0)
+                .reduce((left, right) -> right)
+                .get()
+                .getTax();
 
         this.console.appendLine(MessageFormat.format(
                 "Impuesto determinado {0}",
