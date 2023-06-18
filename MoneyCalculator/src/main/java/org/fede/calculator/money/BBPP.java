@@ -47,6 +47,7 @@ import static org.fede.calculator.money.series.InvestmentType.BONO;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 
 /**
  *
@@ -77,6 +78,8 @@ public class BBPP {
     private final Format format;
     private final Series series;
     private final Console console;
+
+    private MoneyAmountSeries bbppExpenseSeries;
 
     public BBPP(Format format, Series series, Console console) {
         this.format = format;
@@ -271,30 +274,29 @@ public class BBPP {
                 .reduce(ZERO_USD, MoneyAmount::add);
 
         final var incomeMonths = Stream.concat(
-                IntStream.range(6, 12).mapToObj(m -> YearMonth.of(year, m)), 
+                IntStream.range(6, 12).mapToObj(m -> YearMonth.of(year, m)),
                 IntStream.range(1, 5).mapToObj(m -> YearMonth.of(year + 1, m)))
                 .collect(Collectors.toSet());
-    
+
         final var yearRealIncomeList = new ArrayList<MoneyAmount>(12);
         this.series.realIncome()
                 .forEachNonZero((yearMonth, ma) -> Optional.of(ma).filter(m -> incomeMonths.contains(yearMonth)).ifPresent(yearRealIncomeList::add));
 
         final int incomeSize = yearRealIncomeList.size();
-        
+
         var income = yearRealIncomeList.stream()
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
-        
-        if(incomeSize < 12){
+
+        if (incomeSize < 12) {
             income = income
                     .divide(BigDecimal.valueOf(incomeSize), C)
                     .multiply(BigDecimal.valueOf(12l), C);
         }
-        
+
         result.yearRealIncome = income;
         result.year = year;
-        result.usdPaidAmount = SeriesReader.readSeries("expense/bbpp.json")
-                .exchangeInto("USD")
+        result.usdPaidAmount = this.getBBPPExpenseSeries()
                 .filter((yearMonth, ma) -> incomeMonths.contains(yearMonth))
                 .reduce(ZERO_USD, MoneyAmount::add);
 
@@ -302,6 +304,14 @@ public class BBPP {
         result.taxedTotalUSD = new MoneyAmount(result.taxedTotal.divide(bbpp.getUsd(), C), "USD");
 
         return result;
+    }
+
+    private MoneyAmountSeries getBBPPExpenseSeries() {
+        if (this.bbppExpenseSeries == null) {
+            this.bbppExpenseSeries = SeriesReader.readSeries("expense/bbpp.json")
+                    .exchangeInto("USD");
+        }
+        return this.bbppExpenseSeries;
     }
 
     public void bbpp(int year, boolean ibkr) {
