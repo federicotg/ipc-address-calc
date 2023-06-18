@@ -237,7 +237,7 @@ public class Goal {
                 .mapToDouble(BigDecimal::doubleValue)
                 .average()
                 .orElse(30000d);
-
+        
         this.console.appendLine(format("BB.PP min. {0,number,currency}.", bbppMin));
 
         final var retirementYear = 1978 + retirementAge;

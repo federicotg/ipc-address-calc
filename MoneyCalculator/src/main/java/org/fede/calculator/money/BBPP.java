@@ -64,6 +64,8 @@ public class BBPP {
         private BigDecimal yearRealIncome;
         private List<BBPPItem> allArs;
         private MoneyAmount usdPaidAmount;
+        private MoneyAmount minimum;
+        private MoneyAmount taxedTotalUSD;
     }
 
     private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
@@ -88,9 +90,12 @@ public class BBPP {
                 this.format.text("   Amount USD", 16),
                 this.format.text("    Advance", 14),
                 this.format.text("     Paid", 14),
-                this.format.text("  Ef. rate", 10),
-                this.format.text("  Inv. %", 10),
-                this.format.text("   Income %", 12));
+                this.format.text("    Minimum", 17),
+                this.format.text("  Taxed Fiscal", 17),
+                this.format.text(" Tax rate", 9),
+                this.format.text(" Ef. rate", 9),
+                this.format.text("  Inv. %", 9),
+                this.format.text(" Income %", 9));
 
         final List<BBPPYear> bbppYears = this.series.bbppSeries();
 
@@ -103,15 +108,18 @@ public class BBPP {
 
     private void bbppEvoReport(BBPPResult bbpp) {
 
-        this.console.appendLine(format("{0}{1}{2}{3}{4}{5}{6}{7}",
+        this.console.appendLine(format("{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}{10}",
                 this.format.text(String.valueOf(bbpp.year), 5),
                 this.format.currency(bbpp.taxAmount, 14),
                 this.format.currency(bbpp.usdTaxAmount, 16),
                 this.format.currency(bbpp.taxAmount.divide(BigDecimal.valueOf(5), C), 14),
                 this.format.currency(bbpp.usdPaidAmount, 14),
-                this.format.percent(bbpp.taxAmount.divide(bbpp.totalAmount, C), 10),
-                this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.allInvested.getAmount(), C), 10),
-                this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.yearRealIncome, C), 12)));
+                this.format.currency(bbpp.minimum, 17),
+                this.format.currency(bbpp.taxedTotalUSD, 17),
+                this.format.percent(bbpp.taxRate,9),
+                this.format.percent(bbpp.taxAmount.divide(bbpp.totalAmount, C), 9),
+                this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.allInvested.getAmount(), C), 9),
+                this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.yearRealIncome, C), 9)));
 
     }
 
@@ -272,6 +280,9 @@ public class BBPP {
                 .exchangeInto("USD")
                 .filter((yearMonth, ma) -> this.bbppPaymentYear(yearMonth, year))
                 .reduce(ZERO_USD, MoneyAmount::add);
+
+        result.minimum =  new MoneyAmount(bbpp.getMinimum().divide(bbpp.getUsd(), C), "USD");        
+        result.taxedTotalUSD = new MoneyAmount(result.taxedTotal.divide(bbpp.getUsd(), C), "USD");
 
         return result;
     }
