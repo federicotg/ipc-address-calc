@@ -400,11 +400,11 @@ public class BBPP {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         this.console.appendLine(MessageFormat.format(
-                "Total de bienes en el país sujeto a immpuesto {0}",
+                "Total de bienes en el país sujeto a impuesto {0}",
                 this.format.currency(domestic)));
 
         this.console.appendLine(MessageFormat.format(
-                "Total de bienes en el exterior sujeto a immpuesto {0}",
+                "Total de bienes en el exterior sujeto a impuesto {0}",
                 this.format.currency(foreign)));
 
         this.console.appendLine(MessageFormat.format(
