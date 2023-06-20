@@ -78,13 +78,17 @@ public class Investments {
             "CSPX", "iShares Core S&P 500",
             "EIMI", "iShares Core MSCI EM IMI",
             "XRSU", "Xtrackers Russell 2000",
-            "RTWO", "L&G Russell 2000 Quality Factor",
-            "MEUD", "Lyxor Core STOXX Europe 600 DR",
+            "RTWO", "Russell 2000 Q. Factor",
+            "MEUD", "Lyxor Core STOXX Eu. 600",
             "IWDA", "iShares Core MSCI World"
     );
 
     private static final Map<String, AnsiFormat> ETF_COLOR = Map.of(
             "CSPX", new AnsiFormat(Attribute.DIM()),
+            "EIMI", new AnsiFormat(Attribute.DIM()),
+            "RTWO", new AnsiFormat(Attribute.DIM()),
+            "XRSU", new AnsiFormat(Attribute.DIM()),
+            "MEUD", new AnsiFormat(Attribute.DIM()),
             "IWDA", new AnsiFormat(Attribute.DIM()),
             "Cash", new AnsiFormat(Attribute.DIM())
     );
@@ -164,6 +168,8 @@ public class Investments {
 
         this.investmentReport(everyone, nominal);
         this.yearMatrix(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, nominal);
+        
+        this.etfYearMatrix(nominal);
 
     }
 
@@ -206,6 +212,58 @@ public class Investments {
 
     }
 
+    private void etfYearMatrix(boolean nominal){
+        
+        final var cspx = this.getInvestments()
+                .filter(Investment::isETF)
+                .filter(i -> i.getCurrency().equals("CSPX"))
+                .collect(toList());
+        final var eimi = this.getInvestments()
+                .filter(Investment::isETF)
+                .filter(i -> i.getCurrency().equals("EIMI"))
+                .collect(toList());
+        final var meud = this.getInvestments()
+                .filter(Investment::isETF)
+                .filter(i -> i.getCurrency().equals("MEUD"))
+                .collect(toList());
+        final var rtwo = this.getInvestments()
+                .filter(Investment::isETF)
+                .filter(i -> i.getCurrency().equals("RTWO"))
+                .collect(toList());
+        final var xrsu = this.getInvestments()
+                .filter(Investment::isETF)
+                .filter(i -> i.getCurrency().equals("XRSU"))
+                .collect(toList());
+        
+        
+        final Map<String, List<Pair<String, ModifiedDietzReturnResult>>> benchmarkMatrix = Map.of(
+                "CSPX",
+                this.range()
+                        .mapToObj(year -> item(cspx, nominal, year))
+                        .collect(toList()),
+                "RTWO",
+                this.range()
+                        .mapToObj(year -> item(rtwo, nominal, year))
+                        .collect(toList()),
+                "EIMI",
+                this.range()
+                        .mapToObj(year -> item(eimi, nominal, year))
+                        .collect(toList()),
+                "XRSU",
+                this.range()
+                        .mapToObj(year -> item(xrsu, nominal, year))
+                        .collect(toList()),
+                "MEUD",
+                this.range()
+                        .mapToObj(year -> item(meud, nominal, year))
+                        .collect(toList())
+        );
+        
+        
+        this.matrix(benchmarkMatrix, nominal);
+    }
+    
+    
     private void yearMatrix(
             List<Investment> etfs,
             List<Investment> cspxBenchmarkSeries,
