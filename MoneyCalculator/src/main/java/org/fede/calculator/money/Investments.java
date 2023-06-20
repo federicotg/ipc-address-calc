@@ -49,6 +49,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.joining;
 import static org.fede.calculator.money.MathConstants.C;
 import java.util.stream.IntStream;
@@ -168,7 +169,7 @@ public class Investments {
 
         this.investmentReport(everyone, nominal);
         this.yearMatrix(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, nominal);
-        
+
         this.etfYearMatrix(nominal);
 
     }
@@ -212,58 +213,21 @@ public class Investments {
 
     }
 
-    private void etfYearMatrix(boolean nominal){
-        
-        final var cspx = this.getInvestments()
-                .filter(Investment::isETF)
-                .filter(i -> i.getCurrency().equals("CSPX"))
+    private List<Pair<String, ModifiedDietzReturnResult>> etfYearMatrixItem(String currency, boolean nominal) {
+
+        return this.range()
+                .mapToObj(year -> item(this.getInvestments().filter(Investment::isETF).filter(i -> i.getCurrency().equals(currency)).collect(toList()), nominal, year))
                 .collect(toList());
-        final var eimi = this.getInvestments()
-                .filter(Investment::isETF)
-                .filter(i -> i.getCurrency().equals("EIMI"))
-                .collect(toList());
-        final var meud = this.getInvestments()
-                .filter(Investment::isETF)
-                .filter(i -> i.getCurrency().equals("MEUD"))
-                .collect(toList());
-        final var rtwo = this.getInvestments()
-                .filter(Investment::isETF)
-                .filter(i -> i.getCurrency().equals("RTWO"))
-                .collect(toList());
-        final var xrsu = this.getInvestments()
-                .filter(Investment::isETF)
-                .filter(i -> i.getCurrency().equals("XRSU"))
-                .collect(toList());
-        
-        
-        final Map<String, List<Pair<String, ModifiedDietzReturnResult>>> benchmarkMatrix = Map.of(
-                "CSPX",
-                this.range()
-                        .mapToObj(year -> item(cspx, nominal, year))
-                        .collect(toList()),
-                "RTWO",
-                this.range()
-                        .mapToObj(year -> item(rtwo, nominal, year))
-                        .collect(toList()),
-                "EIMI",
-                this.range()
-                        .mapToObj(year -> item(eimi, nominal, year))
-                        .collect(toList()),
-                "XRSU",
-                this.range()
-                        .mapToObj(year -> item(xrsu, nominal, year))
-                        .collect(toList()),
-                "MEUD",
-                this.range()
-                        .mapToObj(year -> item(meud, nominal, year))
-                        .collect(toList())
-        );
-        
-        
-        this.matrix(benchmarkMatrix, nominal);
     }
-    
-    
+
+    private void etfYearMatrix(boolean nominal) {
+
+        this.matrix(
+                Stream.of("CSPX", "RTWO", "EIMI", "XRSU", "MEUD")
+                        .collect(toMap(Function.identity(), c -> this.etfYearMatrixItem(c, nominal))),
+                nominal);
+    }
+
     private void yearMatrix(
             List<Investment> etfs,
             List<Investment> cspxBenchmarkSeries,
