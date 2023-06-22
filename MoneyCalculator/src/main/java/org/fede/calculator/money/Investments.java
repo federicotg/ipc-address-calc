@@ -84,14 +84,15 @@ public class Investments {
             "IWDA", "iShares Core MSCI World"
     );
 
+    private static final AnsiFormat DIM = new AnsiFormat(Attribute.DIM());
     private static final Map<String, AnsiFormat> ETF_COLOR = Map.of(
-            "CSPX", new AnsiFormat(Attribute.DIM()),
-            "EIMI", new AnsiFormat(Attribute.DIM()),
-            "RTWO", new AnsiFormat(Attribute.DIM()),
-            "XRSU", new AnsiFormat(Attribute.DIM()),
-            "MEUD", new AnsiFormat(Attribute.DIM()),
-            "IWDA", new AnsiFormat(Attribute.DIM()),
-            "Cash", new AnsiFormat(Attribute.DIM())
+            "CSPX", DIM,
+            "EIMI", DIM,
+            "RTWO", DIM,
+            "XRSU", DIM,
+            "MEUD", DIM,
+            "IWDA", DIM,
+            "Cash", DIM
     );
 
     private static final AnsiFormat BRIGHT_WHITE_TEXT = new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT());
