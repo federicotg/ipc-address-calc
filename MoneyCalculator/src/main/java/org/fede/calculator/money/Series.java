@@ -208,6 +208,7 @@ public class Series {
             this.incomeSeries = Stream.of(
                     readSeries("income/lifia.json"),
                     readSeries("income/unlp.json"),
+                    readSeries("income/other.json"),
                     readSeries("income/despegar.json"),
                     readSeries("income/despegar-split.json"))
                     .map(is -> is.exchangeInto("USD"))
