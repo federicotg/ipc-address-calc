@@ -59,11 +59,13 @@ public class Savings {
     }
 
     private int getScale(int months) {
-        int scale = 25;
-        if (months <= 6) {
-            scale = 35;
+        int scale = 50;
+        if (months <= 3) {
+            scale = 100;
+        } else if (months <= 6) {
+            scale = 65;
         } else if (months > 24) {
-            scale = 20;
+            scale = 40;
         }
         return scale;
     }
