@@ -77,8 +77,9 @@ public class Savings {
         final var netSaving = agg.average(this.series.realNetSavings());
         final var spending = agg.average(this.series.realExpenses(null));
 
-        netSaving.map((ym, ma) -> ZERO_USD.max(ma))
-                .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
+        netSaving
+                //.map((ym, ma) -> ZERO_USD.max(ma))
+                //.map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
                 .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.series(ym, spending, income, savingMa), this.getScale(months))));
 
         this.savingsRefs(title);
@@ -101,8 +102,9 @@ public class Savings {
         final var netSaving = agg.average(this.series.realNetSavings());
         final var spending = agg.average(this.series.realExpenses(null));
 
-        netSaving.map((ym, ma) -> ZERO_USD.max(ma))
-                .map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
+        netSaving
+                //.map((ym, ma) -> ZERO_USD.max(ma))
+                //.map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
                 .forEach((ym, savingMa) -> this.console.appendLine(this.bar.percentBar(ym, this.series(ym, spending, income, savingMa))));
         this.savingsRefs(title);
     }
@@ -168,7 +170,7 @@ public class Savings {
                         income.getAmountOrElseZero(ym)
                                 .subtract(savingMa)
                                 .subtract(spending.getAmountOrElseZero(ym))), Attribute.YELLOW_BACK()),
-                Pair.of(savingMa, Attribute.BLUE_BACK()));
+                Pair.of(ZERO_USD.max(savingMa), Attribute.BLUE_BACK()));
     }
 
     private void income(int months) {
