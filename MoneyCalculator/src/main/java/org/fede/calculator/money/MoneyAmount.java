@@ -124,4 +124,13 @@ public class MoneyAmount {
         }
         return other;
     }
+    
+    public MoneyAmount min(MoneyAmount other) {
+        this.assertCurrency(other.getCurrency());
+
+        if (this.getAmount().compareTo(other.getAmount()) >= 0) {
+            return other;
+        }
+        return this;
+    }
 }

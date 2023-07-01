@@ -101,7 +101,7 @@ public class PPI {
         try {
             final var labelWidth = 22;
             Stream.of(
-                    Pair.of("Letras Inmediato", this.netOfPPIFees(this.getApi().exchangeRate("SJ3C", "S30J3", LETRAS, INMEDIATA), LETES_FEE)),
+                    Pair.of("Letras Inmediato", this.netOfPPIFees(this.getApi().exchangeRate("SL3C", "S31L3", LETRAS, INMEDIATA), LETES_FEE)),
                     Pair.of(this.dim("GD30 Inmediato", labelWidth), this.netOfPPIFees(this.getApi().exchangeRate("GD30C", "GD30", BONOS, INMEDIATA), BONDS_FEE)),
                     Pair.of(this.dim("GD30 a 48 horas", labelWidth), this.netOfPPIFees(this.getApi().exchangeRate("GD30C", "GD30", BONOS, A48), BONDS_FEE)),
                     Pair.of(this.blue("Blue (Venta)", labelWidth), new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS")),
