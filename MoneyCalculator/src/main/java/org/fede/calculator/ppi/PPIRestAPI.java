@@ -66,7 +66,7 @@ public class PPIRestAPI {
     };
     private static final TypeReference<List<PPIPosition>> POSITIONS_TR = new TypeReference<List<PPIPosition>>() {
     };
-    
+
     private final Properties config;
     private final ObjectMapper jsonMapper;
     private final Supplier<HttpClient> clientSupplier;
@@ -256,15 +256,24 @@ public class PPIRestAPI {
         }
 
     }
-    
+
     public MoneyAmount exchangeRate(
             String tickerUSD,
             String tickerARS,
             InstrumentType type,
             SettlementType settlement) throws URISyntaxException, IOException, InterruptedException {
+        return this.exchangeRate(tickerUSD, tickerARS, type, settlement, "ARS");
+    }
+
+    public MoneyAmount exchangeRate(
+            String tickerUSD,
+            String tickerARS,
+            InstrumentType type,
+            SettlementType settlement,
+            String currency) throws URISyntaxException, IOException, InterruptedException {
 
         final var usdPrice = this.marketData(tickerUSD, type, settlement).getPrice();
         final var arsPrice = this.marketData(tickerARS, type, settlement).getPrice();
-        return new MoneyAmount(arsPrice.divide(usdPrice, MathConstants.C), "ARS");
+        return new MoneyAmount(arsPrice.divide(usdPrice, MathConstants.C), currency);
     }
 }
