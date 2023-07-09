@@ -19,7 +19,6 @@ package org.fede.calculator.money;
 import org.fede.calculator.ppi.PPI;
 import java.io.BufferedOutputStream;
 import java.math.BigDecimal;
-import static java.math.BigDecimal.ZERO;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.List;
@@ -34,7 +33,6 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
 import static java.util.Map.entry;
-import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import static java.util.stream.Collectors.joining;
 import java.util.stream.Stream;
@@ -297,7 +295,6 @@ public class ConsoleReports {
                                 EXPECTED_RETRUNS,
                                 36)),
                         entry("savings-change", "m=1"),
-                        
                         entry("i", ""),
                         entry("ti", ""),
                         entry("gi", ""),
@@ -307,7 +304,6 @@ public class ConsoleReports {
                         entry("p-type-evo", ""),
                         entry("p-type-evo-pct", ""),
                         entry("condo", ""),
-                        
                         entry("ccl", ""),
                         entry("bbpp-evo", ""),
                         entry("routes", ""),
@@ -318,12 +314,10 @@ public class ConsoleReports {
                         entry("mdr-by-currency", ""),
                         entry("income-src", "m=12"),
                         entry("savings-avg", "m=12"),
-                        
                         entry("income-table", ""),
                         entry("savings-dist", ""),
                         entry("savings-dist-pct", ""),
                         entry("income-avg-change", "m=12"),
-                        
                         entry("income", "by=(year|half|quarter) months=12"),
                         entry("savings", "by=(year|half|quarter)"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
@@ -628,22 +622,6 @@ public class ConsoleReports {
                 .filter(inv -> inv.getComment() == null)
                 .map(this::assetRow)
                 .forEach(this::appendLine);
-
-        final var eur = this.series.getInvestments().stream()
-                .filter(Investment::isETF)
-                .filter(inv -> inv.getComment() == null)
-                .filter(inv -> "MEUD".equals(inv.getInvestment().getCurrency()))
-                .map(inv -> inv.getIn().getAmount().add(inv.getIn().getFee(), C))
-                .reduce(ZERO, BigDecimal::add);
-
-        final var usd = this.series.getInvestments().stream()
-                .filter(Investment::isETF)
-                .filter(inv -> inv.getComment() == null)
-                .filter(inv -> !"MEUD".equals(inv.getInvestment().getCurrency()))
-                .map(inv -> inv.getIn().getAmount().add(inv.getIn().getFee(), C))
-                .reduce(ZERO, BigDecimal::add);
-
-        this.appendLine(format("€ {0} - USD {1}", eur, usd));
     }
 
     private String assetRow(Investment inv) {
@@ -653,22 +631,8 @@ public class ConsoleReports {
                 "XRSU", "IE00BJZ2DD79",
                 "CSPX", "IE00B5BMR087",
                 "MEUD", "LU0908500753");
-        final var currencies = Map.of("MEUD", "EUR");
 
-        final Map<String, BiFunction<MoneyAmount, YearMonth, BigDecimal>> currencyConverter = Map.of(
-                "MEUD", (ma, ym) -> ForeignExchanges.USD_EUR.exchange(ma, "EUR", ym).getAmount(),
-                "XRSU", (ma, ym) -> ma.getAmount(),
-                "EIMI", (ma, ym) -> ma.getAmount(),
-                "CSPX", (ma, ym) -> ma.getAmount()
-        );
-
-        final var codes = Map.of(
-                "CSPX", "CSSPXz",
-                "EIMI", "EIMIz",
-                "XRSU", "XRS2z",
-                "MEUD", "MEUD");
-
-        final DateTimeFormatter mdy = DateTimeFormatter.ofPattern("M/d/yyyy").withZone(ZoneId.systemDefault());
+        final DateTimeFormatter mdy = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
 
         final var numberFormat = NumberFormat.getInstance(Locale.US);
         numberFormat.setGroupingUsed(false);
@@ -676,19 +640,16 @@ public class ConsoleReports {
         numberFormat.setMinimumFractionDigits(2);
 
         return List.of("A",
-                codes.get(inv.getInvestment().getCurrency()),
+                inv.getInvestment().getCurrency(),
                 isins.get(inv.getInvestment().getCurrency()),
-                currencies.getOrDefault(inv.getInvestment().getCurrency(), "USD"),
+                "USD",
                 mdy.format(inv.getIn().getDate().toInstant()),
                 "BUY",
                 "Investment",
                 "ETF",
                 numberFormat.format(inv.getInvestment().getAmount()),
-                numberFormat.format(currencyConverter.get(inv.getInvestment().getCurrency())
-                        .apply(new MoneyAmount(inv.getIn().getAmount().divide(inv.getInvestment().getAmount(), C), inv.getInvestment().getCurrency()), YearMonth.of(inv.getIn().getDate()))),
-                numberFormat.format(
-                        currencyConverter.get(inv.getInvestment().getCurrency())
-                                .apply(inv.getIn().getFeeMoneyAmount(), YearMonth.of(inv.getIn().getDate()))))
+                numberFormat.format(inv.getIn().getAmount().divide(inv.getInvestment().getAmount(), C)),
+                numberFormat.format(inv.getIn().getFeeMoneyAmount().getAmount()))
                 .stream()
                 .collect(joining(","));
     }
