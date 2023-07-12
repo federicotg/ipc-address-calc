@@ -101,6 +101,8 @@ public class PPI {
         try {
             final var labelWidth = 22;
 
+            final var blue = new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS");
+            
             final var letra1 = "SL3";
             final var letra2 = "XL3";
             Stream.of(
@@ -110,8 +112,8 @@ public class PPI {
                     Pair.of("C a D " + letra2, this.netOfPPIFees(this.getApi().exchangeRate(letra2 + "C", letra2 + "D", LETRAS, INMEDIATA, "USD"), LETES_FEE)),
                     Pair.of(this.dim("GD30 Inmediato", labelWidth), this.netOfPPIFees(this.getApi().exchangeRate("GD30C", "GD30", BONOS, INMEDIATA), BONDS_FEE)),
                     Pair.of(this.dim("GD30 a 48 horas", labelWidth), this.netOfPPIFees(this.getApi().exchangeRate("GD30C", "GD30", BONOS, A48), BONDS_FEE)),
-                    Pair.of(this.blue("Blue (Venta)", labelWidth), new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS")),
-                    Pair.of(this.blue("Blue Small (Venta)", labelWidth), this.netOfSimpleFees(new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS"), SMALL_FACE_FEE)),
+                    Pair.of(this.blue("Blue (Venta)", labelWidth), blue),
+                    Pair.of(this.blue("Blue Small (Venta)", labelWidth), this.netOfSimpleFees(blue, SMALL_FACE_FEE)),
                     Pair.of(this.dim("DAI Buenbit (Compra)", labelWidth), new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "dai", "ars", BigDecimal.ONE), "ARS")),
                     Pair.of(this.dim("DAI Letsbit (Compra)", labelWidth), new MoneyAmount(this.getCriptoYaApi().buyCoin("Letsbit", "dai", "ars", BigDecimal.ONE), "ARS")),
                     Pair.of(this.dim("USDT Buenbit (Compra)", labelWidth), new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "usdt", "ars", BigDecimal.ONE), "ARS")),
