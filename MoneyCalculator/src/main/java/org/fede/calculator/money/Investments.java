@@ -179,7 +179,7 @@ public class Investments {
                         .mapToObj(y -> y == 0 ? "Total" : this.format.text(String.valueOf(y), 9))
                         .collect(joining()));
 
-        for (var symbol : new String[]{"CSPX", "EIMI", "XRSU", "MEUD"}) {
+        for (var symbol : new String[]{"CSPX", "EIMI", "XRSU", "RTWO", "MEUD"}) {
             this.console.appendLine(this.row(symbol, nominal));
         }
 
@@ -196,9 +196,13 @@ public class Investments {
 
     private BigDecimal annualRealReturn(String symbol, int year, boolean nominal) {
 
-        final var amount = new MoneyAmount(ONE, symbol);
         final var fx = ForeignExchanges.getForeignExchange(symbol, "USD");
 
+        if (year != 0 && (fx.getFrom().getYear() > year || fx.getTo().getYear() < year)) {
+            return BigDecimal.ZERO;
+        }
+
+        final var amount = new MoneyAmount(ONE, symbol);
         final var startYm = YearMonth.of(Math.max(2019, year) - 1, 12).max(fx.getFrom());
         final var endYm = year == 0
                 ? fx.getTo()
