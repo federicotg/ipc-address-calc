@@ -171,7 +171,47 @@ public class Investments {
         this.investmentReport(everyone, nominal);
         this.yearMatrix(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, nominal);
 
-        this.etfYearMatrix(nominal);
+        this.console.appendLine(this.format.subtitle(nominal ? "Nominal Returns" : "Real Returns"));
+
+        this.console.appendLine(
+                this.format.text("", 28),
+                this.range()
+                        .mapToObj(y -> y == 0 ? "Total" : this.format.text(String.valueOf(y), 9))
+                        .collect(joining()));
+
+        for (var symbol : new String[]{"CSPX", "EIMI", "XRSU", "MEUD"}) {
+            this.console.appendLine(this.row(symbol, nominal));
+        }
+
+    }
+
+    private String row(String symbol, boolean nominal) {
+        return format("{0}{1}",
+                this.format.text(ETF_NAME.get(symbol), 25),
+                this.range()
+                        .mapToObj(y -> this.format.percent(this.annualRealReturn(symbol, y, nominal), 9))
+                        .collect(joining())
+        );
+    }
+
+    private BigDecimal annualRealReturn(String symbol, int year, boolean nominal) {
+
+        final var amount = new MoneyAmount(ONE, symbol);
+        final var fx = ForeignExchanges.getForeignExchange(symbol, "USD");
+
+        final var startYm = YearMonth.of(Math.max(2019, year) - 1, 12).max(fx.getFrom());
+        final var endYm = year == 0
+                ? fx.getTo()
+                : YearMonth.of(year, 12).min(fx.getTo());
+
+        var startValue = fx.exchange(amount, "USD", startYm);
+        var endValue = fx.exchange(amount, "USD", endYm);
+        if (!nominal) {
+            startValue = Inflation.USD_INFLATION.adjust(startValue, startYm, Inflation.USD_INFLATION.getTo());
+            endValue = Inflation.USD_INFLATION.adjust(endValue, endYm, Inflation.USD_INFLATION.getTo());
+        }
+
+        return endValue.getAmount().divide(startValue.getAmount(), MathConstants.C).subtract(ONE);
 
     }
 
@@ -212,21 +252,6 @@ public class Investments {
                 .map(e -> this.matrixRow(e.getKey(), e.getValue().stream().map(Pair::getSecond).collect(toList()), matrix))
                 .forEach(this.console::appendLine);
 
-    }
-
-    private List<Pair<String, ModifiedDietzReturnResult>> etfYearMatrixItem(String currency, boolean nominal) {
-
-        return this.range()
-                .mapToObj(year -> item(this.getInvestments().filter(Investment::isETF).filter(i -> i.getCurrency().equals(currency)).collect(toList()), nominal, year))
-                .collect(toList());
-    }
-
-    private void etfYearMatrix(boolean nominal) {
-
-        this.matrix(
-                Stream.of("CSPX", "RTWO", "EIMI", "XRSU", "MEUD")
-                        .collect(toMap(Function.identity(), c -> this.etfYearMatrixItem(c, nominal))),
-                nominal);
     }
 
     private void yearMatrix(
