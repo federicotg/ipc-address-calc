@@ -179,7 +179,7 @@ public class Investments {
                         .mapToObj(y -> y == 0 ? "Total" : this.format.text(String.valueOf(y), 9))
                         .collect(joining()));
 
-        for (var symbol : new String[]{"CSPX", "EIMI", "XRSU", "RTWO", "MEUD"}) {
+        for (var symbol : new String[]{"CSPX", "EIMI", "XRSU", "RTWO", "MEUD", "IWDA"}) {
             this.console.appendLine(this.row(symbol, nominal));
         }
 
