@@ -49,7 +49,6 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.joining;
 import static org.fede.calculator.money.MathConstants.C;
 import java.util.stream.IntStream;
@@ -179,9 +178,13 @@ public class Investments {
                         .mapToObj(y -> y == 0 ? "Total" : this.format.text(String.valueOf(y), 9))
                         .collect(joining()));
 
-        for (var symbol : new String[]{"CSPX", "EIMI", "XRSU", "RTWO", "MEUD", "IWDA"}) {
-            this.console.appendLine(this.row(symbol, nominal));
-        }
+        
+        Stream.of("CSPX", "EIMI", "XRSU", "RTWO", "MEUD", "IWDA")
+                .map(symbol -> Pair.of(symbol, this.annualRealReturn(symbol, 0, nominal)))
+                .sorted(Comparator.comparing(Pair::getSecond, Comparator.reverseOrder()))
+                .map(p-> this.row(p.getFirst(), nominal))
+                .forEach(this.console::appendLine);
+
 
     }
 
