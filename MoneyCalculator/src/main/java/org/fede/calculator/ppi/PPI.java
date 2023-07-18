@@ -107,9 +107,9 @@ public class PPI {
             final var letra2 = "XL3";
             Stream.of(
                     Pair.of(letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", "S31L3", LETRAS, INMEDIATA), LETES_FEE)),
-                    Pair.of(letra2, this.netOfPPIFees(this.getApi().exchangeRate(letra2 + "C", "X18L3", LETRAS, INMEDIATA), LETES_FEE)),
+                    //Pair.of(letra2, this.netOfPPIFees(this.getApi().exchangeRate(letra2 + "C", "X18L3", LETRAS, INMEDIATA), LETES_FEE)),
                     Pair.of("C a D " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD"), LETES_FEE)),
-                    Pair.of("C a D " + letra2, this.netOfPPIFees(this.getApi().exchangeRate(letra2 + "C", letra2 + "D", LETRAS, INMEDIATA, "USD"), LETES_FEE)),
+                    //Pair.of("C a D " + letra2, this.netOfPPIFees(this.getApi().exchangeRate(letra2 + "C", letra2 + "D", LETRAS, INMEDIATA, "USD"), LETES_FEE)),
                     Pair.of(this.dim("GD30 Inmediato", labelWidth), this.netOfPPIFees(this.getApi().exchangeRate("GD30C", "GD30", BONOS, INMEDIATA), BONDS_FEE)),
                     Pair.of(this.dim("GD30 a 48 horas", labelWidth), this.netOfPPIFees(this.getApi().exchangeRate("GD30C", "GD30", BONOS, A48), BONDS_FEE)),
                     Pair.of(this.blue("Blue (Venta)", labelWidth), blue),
