@@ -110,8 +110,8 @@ public class PPI {
 
                     Pair.of("C a D " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD"), LETES_FEE)),
 
-                    Pair.of(this.dim("GD30 Inmediato", labelWidth), this.netOfPPIFees(this.getApi().exchangeRate("GD30C", "GD30", BONOS, INMEDIATA), BONDS_FEE)),
-                    Pair.of(this.dim("GD30 a 48 horas", labelWidth), this.netOfPPIFees(this.getApi().exchangeRate("GD30C", "GD30", BONOS, A48), BONDS_FEE)),
+                    // Pair.of(this.dim("GD30 Inmediato", labelWidth), this.netOfPPIFees(this.getApi().exchangeRate("GD30C", "GD30", BONOS, INMEDIATA), BONDS_FEE)),
+                    // Pair.of(this.dim("GD30 a 48 horas", labelWidth), this.netOfPPIFees(this.getApi().exchangeRate("GD30C", "GD30", BONOS, A48), BONDS_FEE)),
                     Pair.of(this.blue("Blue (Venta)", labelWidth), blue),
                     Pair.of(this.blue("Blue Small (Venta)", labelWidth), this.netOfSimpleFees(blue, SMALL_FACE_FEE)),
                     Pair.of(this.dim("DAI Buenbit (Compra)", labelWidth), new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "dai", "ars", BigDecimal.ONE), "ARS")),
