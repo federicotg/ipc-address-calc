@@ -106,7 +106,8 @@ public class PPI {
             final var letra1 = "SO3";
 
             Stream.of(
-                    Pair.of(letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", "S31O3", LETRAS, INMEDIATA), LETES_FEE)),
+                    Pair.of("CCL " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", "S31O3", LETRAS, INMEDIATA), LETES_FEE)),
+                    Pair.of("MEP " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "D", "S31O3", LETRAS, INMEDIATA), LETES_FEE)),
 
                     Pair.of("C a D " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD"), LETES_FEE)),
 
