@@ -173,7 +173,7 @@ public class Bar {
     }
 
     private String bar(BigDecimal value, int scale, Attribute color) {
-        return this.bar(value, scale, color, this.format::number2);
+        return this.bar(value, scale, color, this.format::currencyShort);
     }
 
     private String bar(BigDecimal value, int scale, Attribute color, Function<BigDecimal, String> valueFormat) {

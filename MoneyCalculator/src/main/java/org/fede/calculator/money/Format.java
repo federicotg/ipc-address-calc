@@ -31,6 +31,7 @@ import java.util.Map;
  */
 public class Format {
 
+    private static final BigDecimal ONE_THOUSAND = BigDecimal.ONE.movePointRight(3);
     private static final AnsiFormat PROFIT_FORMAT = new AnsiFormat(Attribute.GREEN_TEXT());
     private static final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
     private static final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
@@ -72,6 +73,13 @@ public class Format {
 
     public String number2(BigDecimal value) {
         return format("{0,number,0.##}", value);
+    }
+    
+    public String currencyShort(BigDecimal value) {
+        if(value.abs().compareTo(ONE_THOUSAND) < 0){
+            return format("{0,number,0.##}", value);
+        }
+        return format("{0,number,0.#}k", value.movePointLeft(3));
     }
 
     public String number(BigDecimal value, int width) {
