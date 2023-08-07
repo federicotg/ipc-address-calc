@@ -147,7 +147,7 @@ public class PPI {
         try {
 
             this.getApi().cashBalance().stream()
-                    .filter(pos -> pos.getSettlement().equals(INMEDIATA.toString()))
+                    //.filter(pos -> pos.getSettlement().equals(INMEDIATA.toString()))
                     .forEach(this::showPosition);
 
         } catch (Exception ex) {
