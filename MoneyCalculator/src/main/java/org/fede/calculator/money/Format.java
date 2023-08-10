@@ -77,7 +77,7 @@ public class Format {
     
     public String currencyShort(BigDecimal value) {
         if(value.abs().compareTo(ONE_THOUSAND) < 0){
-            return format("{0,number,0.##}", value);
+            return format("{0,number,0}", value);
         }
         return format("{0,number,0.#}k", value.movePointLeft(3));
     }
