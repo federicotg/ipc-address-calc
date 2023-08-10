@@ -20,6 +20,7 @@ import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
 import java.util.HashMap;
@@ -77,9 +78,9 @@ public class Format {
     
     public String currencyShort(BigDecimal value) {
         if(value.abs().compareTo(ONE_THOUSAND) < 0){
-            return format("{0,number,0}", value);
+            return format("{0,number,0}", value.setScale(0, RoundingMode.HALF_UP));
         }
-        return format("{0,number,0.#}k", value.movePointLeft(3));
+        return format("{0,number,0.#}k", value.movePointLeft(3).setScale(1, RoundingMode.HALF_UP));
     }
 
     public String number(BigDecimal value, int width) {
