@@ -372,11 +372,12 @@ public class ConsoleReports {
             this.console.appendLine(MessageFormat.format("Sending {0}", this.format.currency(new MoneyAmount(initialAmount, "USD"), 10)));
             final var blueFee = BigDecimal.ONE.add(feePct);
             Stream.of(
-                    Pair.of("Cash > Bank > Letsbit > USDT > Kraken", api.lbRoute(initialAmount)),
-                    Pair.of("Cash > Bank > Buenbit > DAI > Kraken", api.bbRoute(initialAmount)),
-                    Pair.of("Cash > ARS > Bank > Letsbit > USDT > Kraken", api.arsLbRoute(initialAmount, blueFee)),
-                    Pair.of("Cash > ARS > Bank > Letsbit > DAI > Kraken", api.arsLbDaiRoute(initialAmount, blueFee)),
-                    Pair.of("Cash > ARS > Bank > Buenbit > DAI > Kraken", api.arsBbRoute(initialAmount, blueFee)))
+                    Pair.of("USD > Letsbit > USDT > TRON > Kraken", api.lbRoute(initialAmount)),
+                    Pair.of("USD > Buenbit > DAI > ERC20 > Kraken", api.bbRoute(initialAmount)),
+                    Pair.of("USD > BuenBit > USDT > Polygon > Kraken", api.bbPolygonRoute(initialAmount)),
+                    Pair.of("USD > ARS > Letsbit > USDT > TRON > Kraken", api.arsLbRoute(initialAmount, blueFee)),
+                    Pair.of("USD > ARS > Letsbit > DAI > ERC20 > Kraken", api.arsLbDaiRoute(initialAmount, blueFee)),
+                    Pair.of("USD > ARS > Buenbit > USDT > Polygon > Kraken", api.arsBbPolygonRoute(initialAmount, blueFee)))
                     .sorted(Comparator.comparing(Pair::getSecond, Comparator.reverseOrder()))
                     .forEach(p -> this.printRoute(p.getFirst(), initialAmount, p.getSecond()));
 
@@ -394,7 +395,7 @@ public class ConsoleReports {
                 MessageFormat.format("{0}{1}{2}",
                         this.format.text(name, 50),
                         this.format.currency(result, 12),
-                        this.format.percent(BigDecimal.ONE.subtract(result.divide(initialAmount, MathConstants.C)).negate(), 8)
+                        this.format.percent(BigDecimal.ONE.subtract(result.divide(initialAmount, MathConstants.C)).negate(), 9)
                 ));
     }
 
