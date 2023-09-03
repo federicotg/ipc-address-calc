@@ -20,6 +20,7 @@ import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
 import java.io.IOException;
 import java.math.BigDecimal;
+import static java.math.BigDecimal.ONE;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.text.MessageFormat;
@@ -31,6 +32,7 @@ import org.fede.calculator.money.Console;
 import org.fede.calculator.money.Format;
 import static org.fede.calculator.money.InstrumentType.*;
 import org.fede.calculator.money.MathConstants;
+import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.SettlementType.*;
 import org.fede.util.Pair;
@@ -40,6 +42,8 @@ import org.fede.util.Pair;
  * @author federicogentile
  */
 public class PPI {
+
+    private static final int LABEL_WIDTH = 30;
 
     private static final BigDecimal BONDS_FEE = new BigDecimal("0.006");
     private static final BigDecimal LETES_FEE = new BigDecimal("0.0015");
@@ -62,14 +66,14 @@ public class PPI {
 
     private MoneyAmount netOfPPIFees(MoneyAmount gross, BigDecimal fee) {
         return gross.adjust(
-                BigDecimal.ONE,
-                BigDecimal.ONE.subtract(fee.add(fee, MathConstants.C), MathConstants.C));
+                ONE,
+                ONE.subtract(fee.add(fee, MathConstants.C), MathConstants.C));
     }
 
     private MoneyAmount netOfSimpleFees(MoneyAmount gross, BigDecimal fee) {
         return gross.adjust(
-                BigDecimal.ONE,
-                BigDecimal.ONE.subtract(fee, MathConstants.C));
+                ONE,
+                ONE.subtract(fee, MathConstants.C));
     }
 
     private PPIRestAPI getApi() throws IOException, URISyntaxException, InterruptedException {
@@ -94,33 +98,42 @@ public class PPI {
         return this.format.text(text, width, BLUE_TEXT);
     }
 
+    private Pair<String, MoneyAmount> item(String desc, BigDecimal value, String currency) {
+        return Pair.of(this.dim(desc, LABEL_WIDTH), new MoneyAmount(value, currency));
+    }
+
     public void dollar() {
 
         this.console.appendLine(this.format.title("Dólar"));
 
         try {
-            final var labelWidth = 22;
 
             final var blue = new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS");
-            
+
             final var letra1 = "SO3";
 
+            /*System.out.println(this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "USD", ONE));
+            System.out.println(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "ARS", ONE));
+            */
             Stream.of(
                     Pair.of("CCL " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", "S31O3", LETRAS, INMEDIATA), LETES_FEE)),
                     Pair.of("MEP " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "D", "S31O3", LETRAS, INMEDIATA), LETES_FEE)),
-
                     Pair.of("C a D " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD"), LETES_FEE)),
+                    Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), blue)/*,
 
-                    // Pair.of(this.dim("GD30 Inmediato", labelWidth), this.netOfPPIFees(this.getApi().exchangeRate("GD30C", "GD30", BONOS, INMEDIATA), BONDS_FEE)),
-                    // Pair.of(this.dim("GD30 a 48 horas", labelWidth), this.netOfPPIFees(this.getApi().exchangeRate("GD30C", "GD30", BONOS, A48), BONDS_FEE)),
-                    Pair.of(this.blue("Blue (Venta)", labelWidth), blue),
-                    Pair.of(this.blue("Blue Small (Venta)", labelWidth), this.netOfSimpleFees(blue, SMALL_FACE_FEE)),
-                    Pair.of(this.dim("DAI Buenbit (Compra)", labelWidth), new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "dai", "ars", BigDecimal.ONE), "ARS")),
-                    Pair.of(this.dim("DAI Letsbit (Compra)", labelWidth), new MoneyAmount(this.getCriptoYaApi().buyCoin("Letsbit", "dai", "ars", BigDecimal.ONE), "ARS")),
-                    Pair.of(this.dim("USDT Buenbit (Compra)", labelWidth), new MoneyAmount(this.getCriptoYaApi().buyCoin("Buenbit", "usdt", "ars", BigDecimal.ONE), "ARS")),
-                    Pair.of(this.dim("USDT Letsbit (Compra)", labelWidth), new MoneyAmount(this.getCriptoYaApi().buyCoin("Letsbit", "usdt", "ars", BigDecimal.ONE), "ARS"))
+                    item("BuenBit USDT (Venta)", this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "USD", ONE), C), "ARS"),
+                    item("BuenBit DAI (Venta)", this.getCriptoYaApi().sellCoin("Buenbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Buenbit", "DAI", "USD", ONE), C), "ARS"),
+                    item("Letsbit USDT (Venta)", this.getCriptoYaApi().sellCoin("Letsbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Letsbit", "USDT", "USD", ONE), C), "ARS"),
+                    item("Letsbit DAI (Venta)", this.getCriptoYaApi().sellCoin("Letsbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Letsbit", "DAI", "USD", ONE), C), "ARS"),
+                                      
+                    item("BuenBit USDT (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "USD", ONE), C), "ARS"),
+                    item("BuenBit DAI (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "DAI", "USD", ONE), C), "ARS"),
+                    item("Letsbit USDT (Compra)", this.getCriptoYaApi().buyCoin("Letsbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Letsbit", "USDT", "USD", ONE), C), "ARS"),
+                    item("Letsbit DAI (Compra)", this.getCriptoYaApi().buyCoin("Letsbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Letsbit", "DAI", "USD", ONE), C), "ARS"),
+                    
+                    item("USD BuenBit USDT (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "USD", ONE), C), "ARS")*/
             ).sorted(Comparator.comparing(p -> p.getSecond().getAmount(), Comparator.reverseOrder()))
-                    .forEach(p -> this.console.appendLine(this.format.text(p.getFirst(), labelWidth), this.format.currency(p.getSecond(), 10)));
+                    .forEach(p -> this.console.appendLine(this.format.text(p.getFirst(), LABEL_WIDTH), this.format.currency(p.getSecond(), 10)));
 
         } catch (Exception ex) {
             System.err.println("Exception " + ex.getClass().toString() + " " + ex.getMessage());

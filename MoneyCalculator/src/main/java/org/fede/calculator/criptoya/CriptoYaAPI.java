@@ -122,7 +122,7 @@ public class CriptoYaAPI {
         return this.fx(exchange, coin, fiat, amount).getTotalAsk();
     }
 
-    private BigDecimal sellCoin(String exchange, String coin, String fiat, BigDecimal amount) throws URISyntaxException, IOException, InterruptedException {
+    public BigDecimal sellCoin(String exchange, String coin, String fiat, BigDecimal amount) throws URISyntaxException, IOException, InterruptedException {
         return this.fx(exchange, coin, fiat, amount).getTotalBid();
     }
 
@@ -172,7 +172,7 @@ public class CriptoYaAPI {
                 .subtract(this.fee("Buenbit", "DAI", "ERC20"))
                 .divide(new BigDecimal("1.002"), MathConstants.C);
     }
-    
+
     public BigDecimal bbPolygonRoute(BigDecimal initialAmount) throws URISyntaxException, IOException, InterruptedException {
         return initialAmount
                 .divide(this.buyCoin("buenbit", "USDT", "USD", initialAmount), MathConstants.C)
@@ -206,7 +206,7 @@ public class CriptoYaAPI {
                 .subtract(this.fee("Buenbit", "DAI", "ERC20"))
                 .divide(new BigDecimal("1.002"), MathConstants.C);
     }
-    
+
     public BigDecimal arsBbPolygonRoute(BigDecimal initialAmount, BigDecimal blueFee) throws URISyntaxException, IOException, InterruptedException {
         return initialAmount
                 .divide(blueFee, MathConstants.C)
