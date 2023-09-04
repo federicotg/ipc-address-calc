@@ -112,21 +112,21 @@ public class PPI {
 
             final var letra1 = "SO3";
 
-            /*System.out.println(this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "USD", ONE));
+            System.out.println(this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "USD", ONE));
             System.out.println(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "ARS", ONE));
-            */
+            
             Stream.of(
                     Pair.of("CCL " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", "S31O3", LETRAS, INMEDIATA), LETES_FEE)),
                     Pair.of("MEP " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "D", "S31O3", LETRAS, INMEDIATA), LETES_FEE)),
                     Pair.of("C a D " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD"), LETES_FEE)),
-                    Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), blue)/*,
+                    Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), blue),
 
                     item("BuenBit USDT (Venta)", this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "USD", ONE), C), "ARS"),
                     item("BuenBit DAI (Venta)", this.getCriptoYaApi().sellCoin("Buenbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Buenbit", "DAI", "USD", ONE), C), "ARS"),
                     item("Letsbit USDT (Venta)", this.getCriptoYaApi().sellCoin("Letsbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Letsbit", "USDT", "USD", ONE), C), "ARS"),
-                    item("Letsbit DAI (Venta)", this.getCriptoYaApi().sellCoin("Letsbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Letsbit", "DAI", "USD", ONE), C), "ARS"),
+                    item("Letsbit DAI (Venta)", this.getCriptoYaApi().sellCoin("Letsbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Letsbit", "DAI", "USD", ONE), C), "ARS")
                                       
-                    item("BuenBit USDT (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "USD", ONE), C), "ARS"),
+                    /*item("BuenBit USDT (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "USD", ONE), C), "ARS"),
                     item("BuenBit DAI (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "DAI", "USD", ONE), C), "ARS"),
                     item("Letsbit USDT (Compra)", this.getCriptoYaApi().buyCoin("Letsbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Letsbit", "USDT", "USD", ONE), C), "ARS"),
                     item("Letsbit DAI (Compra)", this.getCriptoYaApi().buyCoin("Letsbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Letsbit", "DAI", "USD", ONE), C), "ARS"),
