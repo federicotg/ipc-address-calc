@@ -112,8 +112,8 @@ public class PPI {
 
             final var letra1 = "SO3";
 
-            System.out.println(this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "USD", ONE));
-            System.out.println(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "ARS", ONE));
+            /*System.out.println(this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "USD", ONE));
+            System.out.println(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "ARS", ONE));*/
             
             Stream.of(
                     Pair.of("CCL " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", "S31O3", LETRAS, INMEDIATA), LETES_FEE)),
