@@ -13,8 +13,8 @@
                 <version>3.11.0</version>
                 <configuration>
                     <showDeprecation>true</showDeprecation>
-                    <source>19</source>
-                    <target>19</target>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
             </plugin>
             
