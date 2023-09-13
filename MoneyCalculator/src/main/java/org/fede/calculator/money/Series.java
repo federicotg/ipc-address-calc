@@ -129,7 +129,7 @@ public class Series {
         return this.asRealUSDSeries("expense/", name);
     }
 
-    private List<MoneyAmountSeries> savingsSeries() {
+    private Stream<MoneyAmountSeries> savingsSeries() {
         return Stream.of("ahorros-ay24",
                 "ahorros-conbala",
                 "ahorros-uva",
@@ -150,8 +150,7 @@ public class Series {
                 "ahorros-conaafa",
                 "ahorros-xrsu")
                 .map(f -> "saving/" + f + ".json")
-                .map(SeriesReader::readSeries)
-                .collect(toList());
+                .map(SeriesReader::readSeries);
     }
 
     public MoneyAmountSeries realExpense() {
@@ -182,7 +181,6 @@ public class Series {
             final var adjuster = new MonthlyInvestmentSavingsAdjuster(this);
 
             this.realNetSavings = this.savingsSeries()
-                    .stream()
                     .map(new SimpleAggregation(2)::change)
                     .map(series -> series.exchangeInto("USD"))
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
