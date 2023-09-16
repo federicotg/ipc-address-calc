@@ -379,7 +379,7 @@ public class Goal {
                 .mapToObj(i -> supplier.get())
                 .map(this::endReturn)
                 .sorted()
-                .collect(Collectors.toList());
+                .toList();
 
         return this.format.text(name, 14)
                 + " "
