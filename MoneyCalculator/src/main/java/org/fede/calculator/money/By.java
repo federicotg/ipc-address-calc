@@ -26,7 +26,7 @@ public class By {
 
     public void by(Map<String, String> params, Runnable quarter, Runnable half, Runnable year, Runnable otherwise) {
 
-        var action = switch (params.get("by")) {
+        var action = switch (params.getOrDefault("by", "null")) {
             case "quarter":
                 yield quarter;
             case "half":
