@@ -57,7 +57,7 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
     }
 
     public SortedMapMoneyAmountSeries(final String currency) {
-        this(currency, new HashMap<>());
+        this(currency, HashMap.newHashMap(1000));
     }
 
     @Override
