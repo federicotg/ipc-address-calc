@@ -64,8 +64,8 @@ public class House {
 
         final var nominalInitialCost = new BigDecimal("96000");
         final var nominalTransactionCost = nominalInitialCost.multiply(REALTOR_FEE.add(STAMP_TAX, C)
-                        .add(REGISTER_TAX, C)
-                        .add(NOTARY_FEE, C),
+                .add(REGISTER_TAX, C)
+                .add(NOTARY_FEE, C),
                 C);
 
         final var start = YearMonth.of(2010, 8);
@@ -75,15 +75,14 @@ public class House {
 
         final var initialCostSeries = new SortedMapMoneyAmountSeries(
                 "USD",
-                new TreeMap<>(
-                        Map.of(
-                                start, realInitialCost,
-                                YearMonth.of(2010, 9), ZERO_USD,
-                                YearMonth.of(2010, 10), ZERO_USD,
-                                YearMonth.of(2010, 11), ZERO_USD,
-                                YearMonth.of(2010, 12), ZERO_USD,
-                                YearMonth.of(2011, 1), ZERO_USD
-                        )));
+                Map.of(
+                        start, realInitialCost,
+                        YearMonth.of(2010, 9), ZERO_USD,
+                        YearMonth.of(2010, 10), ZERO_USD,
+                        YearMonth.of(2010, 11), ZERO_USD,
+                        YearMonth.of(2010, 12), ZERO_USD,
+                        YearMonth.of(2011, 1), ZERO_USD
+                ));
 
         final var proportionalExpenses = SeriesReader.readSeries("expense/consorcio-reparaciones.json")
                 .map((ym, amount) -> amount.adjust(ONE, COEFFICIENT));
@@ -139,8 +138,8 @@ public class House {
 
         final var nominalInitialCost = new BigDecimal("96000");
         final var nominalTransactionCost = nominalInitialCost.multiply(REALTOR_FEE.add(STAMP_TAX, C)
-                        .add(REGISTER_TAX, C)
-                        .add(NOTARY_FEE, C),
+                .add(REGISTER_TAX, C)
+                .add(NOTARY_FEE, C),
                 C);
 
         final var start = YearMonth.of(2010, 8);

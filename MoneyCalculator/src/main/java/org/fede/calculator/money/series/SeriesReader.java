@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +100,7 @@ public class SeriesReader {
                 }
                 ym = ym.next();
             }
-            return new SortedMapMoneyAmountSeries(currency, interpolatedData);
+            return new SortedMapMoneyAmountSeries(currency, new HashMap<>(interpolatedData));
 
         } catch (IOException ioEx) {
             throw new IllegalArgumentException(MessageFormat.format("Could not read series named {0}", name), ioEx);
