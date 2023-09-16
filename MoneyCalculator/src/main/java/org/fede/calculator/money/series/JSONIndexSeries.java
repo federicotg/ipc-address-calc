@@ -17,8 +17,8 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
+import java.util.SequencedCollection;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -31,15 +31,15 @@ public class JSONIndexSeries extends IndexSeriesSupport {
     private final YearMonth from;
     private final YearMonth to;
 
-    public JSONIndexSeries(List<JSONDataPoint> data) {
-        JSONDataPoint first = data.get(0);
+    public JSONIndexSeries(SequencedCollection<JSONDataPoint> data) {
+        JSONDataPoint first = data.getFirst();
         this.from = YearMonth.of(first.year(), first.month());
-        JSONDataPoint last = data.get(data.size() - 1);
+        JSONDataPoint last = data.getLast();
         this.to = YearMonth.of(last.year(), last.month());
 
-        this.data = new ConcurrentHashMap<>(data.size());
+        this.data = new ConcurrentHashMap<>();
         for (var dp : data) {
-            var yearMap = this.data.computeIfAbsent(dp.year(), y -> new ConcurrentHashMap<>(12));
+            var yearMap = this.data.computeIfAbsent(dp.year(), y -> new ConcurrentHashMap<>());
             yearMap.put(dp.month(), dp.value());
         }
     }

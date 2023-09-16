@@ -48,20 +48,20 @@ public class SimpleAggregation implements Aggregation {
         }
     }
 
-    private MoneyAmount avg(List<MoneyAmount> lastValues) {
+    private MoneyAmount avg(SequencedCollection<MoneyAmount> lastValues) {
         return new MoneyAmount(
                 lastValues.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add)
-                        .divide(new BigDecimal(lastValues.size()), MathConstants.C), lastValues.get(0).getCurrency());
+                        .divide(new BigDecimal(lastValues.size()), MathConstants.C), lastValues.getFirst().getCurrency());
     }
 
-    private MoneyAmount sum(List<MoneyAmount> lastValues) {
+    private MoneyAmount sum(SequencedCollection<MoneyAmount> lastValues) {
         return new MoneyAmount(
                 lastValues.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add),
-                lastValues.get(0).getCurrency());
+                lastValues.getFirst().getCurrency());
     }
 
-    private MoneyAmount change(List<MoneyAmount> lastValues) {
-        return new MoneyAmount(lastValues.get(0).getAmount().subtract(lastValues.get(lastValues.size() - 1).getAmount()), lastValues.get(0).getCurrency());
+    private MoneyAmount change(SequencedCollection<MoneyAmount> lastValues) {
+        return new MoneyAmount(lastValues.getFirst().getAmount().subtract(lastValues.getLast().getAmount()), lastValues.getFirst().getCurrency());
     }
 
     private BigDecimal percentChange(SequencedCollection<MoneyAmount> lastValues) {
@@ -77,8 +77,8 @@ public class SimpleAggregation implements Aggregation {
 
     }
 
-    private MoneyAmountSeries aggregate(MoneyAmountSeries series, final Function<List<MoneyAmount>, MoneyAmount> aggregationFunction) {
-        final LinkedList<MoneyAmount> lastValues = new LinkedList<>();
+    private MoneyAmountSeries aggregate(MoneyAmountSeries series, final Function<SequencedCollection<MoneyAmount>, MoneyAmount> aggregationFunction) {
+        final SequencedCollection<MoneyAmount> lastValues = new ArrayList<>();
 
         final String seriesCurrency = series.getCurrency();
 

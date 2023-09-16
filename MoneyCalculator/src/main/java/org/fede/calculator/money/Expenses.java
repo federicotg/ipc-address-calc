@@ -162,12 +162,12 @@ public class Expenses {
                 .sorted(Comparator.comparing(Map.Entry::getKey))
                 .map(e -> e.getValue().stream().reduce(MoneyAmountSeries::add).get())
                 .map(agg::average)
-                .collect(Collectors.toList());
+                .toList();
 
         final var labels = seriesGroups.entrySet().stream()
                 .map(Map.Entry::getKey)
                 .sorted()
-                .collect(Collectors.toList());
+                .toList();
 
         final var oldestSeries = ss.stream().min(Comparator.comparing(MoneyAmountSeries::getFrom)).get();
 
@@ -182,6 +182,6 @@ public class Expenses {
 
         return IntStream.range(0, series.size())
                 .mapToObj(i -> Pair.of(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
-                .collect(Collectors.toList());
+                .toList();
     }
 }
