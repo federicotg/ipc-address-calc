@@ -223,7 +223,7 @@ public class Positions {
                 Pair.of("Inflation Cost", inflationCost),
                 Pair.of("Total Cost", totalCost));
 
-        taxes.stream().filter(p -> !p.getSecond().isZero()).forEach(tax -> this.printTaxLine(tax, totalCost));
+        taxes.stream().filter(p -> !p.second().isZero()).forEach(tax -> this.printTaxLine(tax, totalCost));
 
         this.console.appendLine(this.format.subtitle("Fees"));
         this.costs(nominal);
@@ -232,9 +232,9 @@ public class Positions {
 
     private void printTaxLine(Pair<String, MoneyAmount> tax, MoneyAmount totalPnL) {
         this.console.appendLine(MessageFormat.format("{0} {1} {2}",
-                this.format.text(tax.getFirst(), 14),
-                this.format.currency(tax.getSecond().getAmount(), 12),
-                this.format.percent(tax.getSecond().getAmount().divide(totalPnL.getAmount(), C), 10)));
+                this.format.text(tax.first(), 14),
+                this.format.currency(tax.second().getAmount(), 12),
+                this.format.percent(tax.second().getAmount().divide(totalPnL.getAmount(), C), 10)));
     }
 
     private MoneyAmount inflationCost() {
@@ -344,21 +344,21 @@ public class Positions {
 
         this.console.appendLine(this.format.text("", 11),
                 positionByGroup.keySet().stream()
-                        .map(Pair::getFirst)
+                        .map(Pair::first)
                         .distinct()
                         .sorted()
                         .map(currency -> this.format.text(currency, 9))
                         .collect(joining()));
 
         positionByGroup.keySet().stream()
-                .map(Pair::getSecond)
+                .map(Pair::second)
                 .distinct()
                 .sorted()
                 .map(year -> this.avgPrice(year, positionByGroup, averagesByGroup))
                 .forEach(this.console::appendLine);
 
         averagesByGroup.keySet().stream()
-                .map(Pair::getSecond)
+                .map(Pair::second)
                 .distinct()
                 .map(year -> this.avgPrice(year, averagesByGroup, averagesByGroup))
                 .forEach(this.console::appendLine);
@@ -394,7 +394,7 @@ public class Positions {
         return Stream.concat(
                 Stream.of(this.format.text(String.valueOf(year), 8)),
                 positionsByGroup.keySet().stream()
-                        .map(Pair::getFirst)
+                        .map(Pair::first)
                         .distinct()
                         .sorted()
                         .map(currency -> Pair.of(currency, year))
@@ -407,7 +407,7 @@ public class Positions {
         return Optional.ofNullable(positionsByGroup.get(key))
                 .map(Position::getAveragePrice)
                 .map(MoneyAmount::getAmount)
-                .map(avgPrice -> this.colorized(avgPrice, averagesByGroup.get(Pair.of(key.getFirst(), AVERAGE_KEY)).getAveragePrice().getAmount()))
+                .map(avgPrice -> this.colorized(avgPrice, averagesByGroup.get(Pair.of(key.first(), AVERAGE_KEY)).getAveragePrice().getAmount()))
                 .orElseGet(() -> this.format.text("", 9));
     }
 
@@ -568,13 +568,13 @@ public class Positions {
                         of("EQUITY", this.lastAmount("ahorros-meud", ym)),
                         of("EQUITY", this.lastAmount("ahorros-conaafa", ym)),
                         of("EQUITY", this.lastAmount("ahorros-xrsu", ym)))
-                        .filter(p -> "all".equals(subtype) || p.getFirst().equalsIgnoreCase(subtype))
+                        .filter(p -> "all".equals(subtype) || p.first().equalsIgnoreCase(subtype))
                         .collect(groupingBy(
-                                Pair::getFirst,
+                                Pair::first,
                                 groupingBy(
-                                        p -> p.getSecond().get().getCurrency(),
+                                        p -> p.second().get().getCurrency(),
                                         mapping(
-                                                p -> p.getSecond().get(),
+                                                p -> p.second().get(),
                                                 reducing(MoneyAmount::add)))));
 
         final var items = grouped
@@ -680,10 +680,10 @@ public class Positions {
                                 reducing(ZERO, BigDecimal::add))))
                 .entrySet()
                 .stream()
-                .map(e -> of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().getSecond())))
-                .map(p -> of(p.getFirst(), this.fx(p, reportCurrency)))
-                .sorted((p, q) -> q.getSecond().getAmount().compareTo(p.getSecond().getAmount()))
-                .map(pair -> this.formatReport(total, pair.getSecond(), pair.getFirst().getFirst()))
+                .map(e -> of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().second())))
+                .map(p -> of(p.first(), this.fx(p, reportCurrency)))
+                .sorted((p, q) -> q.second().getAmount().compareTo(p.second().getAmount()))
+                .map(pair -> this.formatReport(total, pair.second(), pair.first().first()))
                 .forEach(this.console::appendLine);
 
         total.map(t -> format("-----------------------------\n{0}{1}", this.format.text("Total", 5), this.format.currency(t, 16)))
@@ -692,7 +692,7 @@ public class Positions {
 
     private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency) {
 
-        return getMoneyAmountForeignExchange(p.getSecond().getCurrency(), reportCurrency).apply(p.getSecond(), USD_INFLATION.getTo());
+        return getMoneyAmountForeignExchange(p.second().getCurrency(), reportCurrency).apply(p.second(), USD_INFLATION.getTo());
     }
 
     private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type) {

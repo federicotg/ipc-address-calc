@@ -180,8 +180,8 @@ public class Investments {
         
         Stream.of("CSPX", "EIMI", "XRSU", "RTWO", "MEUD", "IWDA")
                 .map(symbol -> Pair.of(symbol, this.annualRealReturn(symbol, 0, nominal)))
-                .sorted(Comparator.comparing(Pair::getSecond, Comparator.reverseOrder()))
-                .map(p-> this.row(p.getFirst(), nominal))
+                .sorted(Comparator.comparing(Pair::second, Comparator.reverseOrder()))
+                .map(p-> this.row(p.first(), nominal))
                 .forEach(this.console::appendLine);
 
 
@@ -244,7 +244,7 @@ public class Investments {
                 .findFirst()
                 .get()
                 .stream()
-                .map(Pair::getFirst)
+                .map(Pair::first)
                 .map(y -> this.format.text(y, 9))
                 .collect(joining());
 
@@ -254,8 +254,8 @@ public class Investments {
         matrix
                 .entrySet()
                 .stream()
-                .sorted(comparing(m -> m.getValue().stream().skip(m.getValue().size() - 1).findFirst().get().getSecond(), reverseOrder()))
-                .map(e -> this.matrixRow(e.getKey(), e.getValue().stream().map(Pair::getSecond).toList(), matrix))
+                .sorted(comparing(m -> m.getValue().stream().skip(m.getValue().size() - 1).findFirst().get().second(), reverseOrder()))
+                .map(e -> this.matrixRow(e.getKey(), e.getValue().stream().map(Pair::second).toList(), matrix))
                 .forEach(this.console::appendLine);
 
     }
@@ -297,13 +297,13 @@ public class Investments {
         final List<ModifiedDietzReturnResult> iwdaList = Optional.ofNullable(benchmarkMatrix.get("IWDA"))
                 .orElseGet(Collections::emptyList)
                 .stream()
-                .map(Pair::getSecond)
+                .map(Pair::second)
                 .toList();
 
         final List<ModifiedDietzReturnResult> cspxList = Optional.ofNullable(benchmarkMatrix.get("CSPX"))
                 .orElseGet(Collections::emptyList)
                 .stream()
-                .map(Pair::getSecond)
+                .map(Pair::second)
                 .toList();
 
         final var useBenchmarks = !iwdaList.isEmpty() && !cspxList.isEmpty();
@@ -312,7 +312,7 @@ public class Investments {
                 Stream.of(this.format.text(ETF_NAME.getOrDefault(name, name), 25, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
                 IntStream.range(0, rowData.size())
                         .mapToObj(i -> Pair.of(i, rowData.get(i)))
-                        .map(pair -> coloredPercent(pair.getSecond(), color(name, pair.getSecond(), useBenchmarks ? iwdaList.get(pair.getFirst()) : null, useBenchmarks ? cspxList.get(pair.getFirst()) : null))))
+                        .map(pair -> coloredPercent(pair.second(), color(name, pair.second(), useBenchmarks ? iwdaList.get(pair.first()) : null, useBenchmarks ? cspxList.get(pair.first()) : null))))
                 .collect(joining());
     }
 
@@ -674,8 +674,8 @@ public class Investments {
 
     public void investments() {
 
-        final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = comparing((Pair<Pair<String, String>, ?> pair) -> pair.getFirst().getFirst())
-                .thenComparing(comparing(pair -> pair.getFirst().getSecond()));
+        final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = comparing((Pair<Pair<String, String>, ?> pair) -> pair.first().first())
+                .thenComparing(comparing(pair -> pair.first().second()));
 
         Collector<Investment, ?, BigDecimal> mapper = Collectors.mapping(
                 inv -> inv.getMoneyAmount().getAmount(),
@@ -693,7 +693,7 @@ public class Investments {
                 .stream()
                 .map(e -> of(e.getKey(), e.getValue()))
                 .sorted(TYPE_CURRENCY_COMPARATOR)
-                .map(e -> format("{0} {2}: {1}", e.getFirst().getFirst(), sixDigits.format(e.getSecond()), e.getFirst().getSecond()))
+                .map(e -> format("{0} {2}: {1}", e.first().first(), sixDigits.format(e.second()), e.first().second()))
                 .forEach(this.console::appendLine);
     }
 }

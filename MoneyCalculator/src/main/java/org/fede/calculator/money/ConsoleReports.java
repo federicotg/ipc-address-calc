@@ -378,8 +378,8 @@ public class ConsoleReports {
                     Pair.of("USD > ARS > Letsbit > USDT > TRON > Kraken", api.arsLbRoute(initialAmount, blueFee)),
                     Pair.of("USD > ARS > Letsbit > DAI > ERC20 > Kraken", api.arsLbDaiRoute(initialAmount, blueFee)),
                     Pair.of("USD > ARS > Buenbit > USDT > Polygon > Kraken", api.arsBbPolygonRoute(initialAmount, blueFee)))
-                    .sorted(Comparator.comparing(Pair::getSecond, Comparator.reverseOrder()))
-                    .forEach(p -> this.printRoute(p.getFirst(), initialAmount, p.getSecond()));
+                    .sorted(Comparator.comparing(Pair::second, Comparator.reverseOrder()))
+                    .forEach(p -> this.printRoute(p.first(), initialAmount, p.second()));
 
             this.console.appendLine("");
             this.console.appendLine(MessageFormat.format("Considering blue fee of {0}", this.format.percent(feePct)));

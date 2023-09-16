@@ -65,7 +65,7 @@ public class Bar {
 
         final var total = amounts
                 .stream()
-                .map(Pair::getFirst)
+                .map(Pair::first)
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
@@ -74,25 +74,25 @@ public class Bar {
         }
         final var relativeAmounts = amounts
                 .stream()
-                .filter(p -> !p.getFirst().isZero())
-                .map(p -> Pair.of(new MoneyAmount(p.getFirst().getAmount().divide(total, C).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.getFirst().getCurrency()), p.getSecond()))
+                .filter(p -> !p.first().isZero())
+                .map(p -> Pair.of(new MoneyAmount(p.first().getAmount().divide(total, C).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.first().getCurrency()), p.second()))
                 .toList();
 
         final var relativeTotal = relativeAmounts
                 .stream()
-                .map(Pair::getFirst)
+                .map(Pair::first)
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
         if (relativeTotal.compareTo(HUNDRED) != 0) {
             final var first = relativeAmounts.get(0);
 
-            final var firstAmount = first.getFirst().getAmount();
+            final var firstAmount = first.first().getAmount();
 
             var difference = relativeTotal.subtract(HUNDRED, C).negate(C);
 
             relativeAmounts.set(0,
-                    Pair.of(new MoneyAmount(firstAmount.add(difference, C), first.getFirst().getCurrency()), first.getSecond()));
+                    Pair.of(new MoneyAmount(firstAmount.add(difference, C), first.first().getCurrency()), first.second()));
 
         }
 
@@ -105,7 +105,7 @@ public class Bar {
                 .map(i -> i + 2)
                 .mapToObj(i -> format("'{'{0}'}'", i))
                 .collect(joining(""));
-        final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.getFirst().getAmount(), width, p.getFirst().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.getSecond()));
+        final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.first().getAmount(), width, p.first().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.second()));
         final Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth()));
 
         return format("{0}/{1} " + bars,

@@ -132,8 +132,8 @@ public class PPI {
                     item("Letsbit DAI (Compra)", this.getCriptoYaApi().buyCoin("Letsbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Letsbit", "DAI", "USD", ONE), C), "ARS"),
                     
                     item("USD BuenBit USDT (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "USD", ONE), C), "ARS")*/
-            ).sorted(Comparator.comparing(p -> p.getSecond().getAmount(), Comparator.reverseOrder()))
-                    .forEach(p -> this.console.appendLine(this.format.text(p.getFirst(), LABEL_WIDTH), this.format.currency(p.getSecond(), 10)));
+            ).sorted(Comparator.comparing(p -> p.second().getAmount(), Comparator.reverseOrder()))
+                    .forEach(p -> this.console.appendLine(this.format.text(p.first(), LABEL_WIDTH), this.format.currency(p.second(), 10)));
 
         } catch (Exception ex) {
             System.err.println("Exception " + ex.getClass().toString() + " " + ex.getMessage());

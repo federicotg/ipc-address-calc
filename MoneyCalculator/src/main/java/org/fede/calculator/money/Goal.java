@@ -162,8 +162,8 @@ public class Goal {
         final var spendingandSaving = new Savings(format, series, bar, console)
                 .averageSpendingAndSaving(averageIncomeSpendingMonths);
 
-        final var monthlyDeposit = spendingandSaving.getSecond().getAmount();
-        final var monthlyWithdraw = spendingandSaving.getFirst().getAmount()
+        final var monthlyDeposit = spendingandSaving.second().getAmount();
+        final var monthlyWithdraw = spendingandSaving.first().getAmount()
                 .subtract(new BigDecimal(pension), C);
 
         this.goal(trials, monthlyDeposit, monthlyWithdraw, inflation, retirementAge, extraCash, afterTax, age, pension, todaySavings, invested, expected);
@@ -285,13 +285,13 @@ public class Goal {
                 .toList();
 
         results.stream()
-                .sorted(Comparator.comparing(Pair::getSecond))
+                .sorted(Comparator.comparing(Pair::second))
                 .map(pair
-                        -> this.report(pair.getFirst(), pair.getSecond(), trials))
+                        -> this.report(pair.first(), pair.second(), trials))
                 .forEach(this.console::appendLine);
 
         final long averageSuccesses = (long) results.stream()
-                .mapToLong(Pair::getSecond)
+                .mapToLong(Pair::second)
                 .average()
                 .getAsDouble();
         this.console.appendLine(this.format.subtitle("Average"));
@@ -330,10 +330,10 @@ public class Goal {
                         -> this.goals(
                         startingYear,
                         retirementYear,
-                        p.getSecond(),
+                        p.second(),
                         cash,
                         investedAmount,
-                        p.getFirst(),
+                        p.first(),
                         realDeposits,
                         realWithdrawals,
                         bbppMin))

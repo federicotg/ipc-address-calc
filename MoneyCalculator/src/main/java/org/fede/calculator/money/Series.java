@@ -114,8 +114,8 @@ public class Series {
                     of("entertainment", "viajes"),
                     of("entertainment", "xbox"))
                     .collect(groupingBy(
-                            Pair::getFirst,
-                            mapping(p -> this.asRealUSDSeries("expense/", p.getSecond()),
+                            Pair::first,
+                            mapping(p -> this.asRealUSDSeries("expense/", p.second()),
                                     Collectors.toList())));
         }
 
@@ -241,8 +241,8 @@ public class Series {
                     of("EQ", "ahorros-conaafa"),
                     of("EQ", "ahorros-xrsu"))
                     .collect(groupingBy(
-                            Pair::getFirst,
-                            mapping(p -> this.asRealUSDSeries(p.getSecond()),
+                            Pair::first,
+                            mapping(p -> this.asRealUSDSeries(p.second()),
                                     Collectors.toList())));
         }
 

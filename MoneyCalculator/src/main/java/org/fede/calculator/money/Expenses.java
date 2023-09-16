@@ -84,16 +84,16 @@ public class Expenses {
                     .toList();
 
             final var total = list.stream()
-                    .map(Pair::getSecond)
+                    .map(Pair::second)
                     .reduce(ZERO, BigDecimal::add);
 
             list.stream()
-                    .sorted(comparing(Pair::getSecond, Comparator.reverseOrder()))
+                    .sorted(comparing(Pair::second, Comparator.reverseOrder()))
                     .map(e -> format("{0}{1}{2}{3}",
-                    this.format.text(e.getFirst(), 13),
+                    this.format.text(e.first(), 13),
                     this.format.text(" USD ", 4),
-                    this.format.currency(e.getSecond(), 10),
-                    this.bar.pctBar(e.getSecond(), total)))
+                    this.format.currency(e.second(), 10),
+                    this.bar.pctBar(e.second(), total)))
                     .forEach(this.console::appendLine);
 
             this.console.appendLine(format("-----------------------------\n{0} USD {1}",
