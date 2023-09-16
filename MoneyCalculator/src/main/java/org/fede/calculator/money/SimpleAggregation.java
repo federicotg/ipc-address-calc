@@ -17,9 +17,11 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.SequencedCollection;
 import java.util.function.Function;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.JSONDataPoint;
@@ -62,13 +64,13 @@ public class SimpleAggregation implements Aggregation {
         return new MoneyAmount(lastValues.get(0).getAmount().subtract(lastValues.get(lastValues.size() - 1).getAmount()), lastValues.get(0).getCurrency());
     }
 
-    private BigDecimal percentChange(List<MoneyAmount> lastValues) {
+    private BigDecimal percentChange(SequencedCollection<MoneyAmount> lastValues) {
 
-        final var last = lastValues.get(lastValues.size() - 1).getAmount();
+        final var last = lastValues.getLast().getAmount();
         if (last.signum() == 0) {
             return ZERO;
         }
-        return lastValues.get(0)
+        return lastValues.getFirst()
                 .getAmount()
                 .subtract(last)
                 .divide(last, MathConstants.C);
@@ -111,7 +113,7 @@ public class SimpleAggregation implements Aggregation {
 
         final var list = new ArrayList<JSONDataPoint>();
 
-        final LinkedList<MoneyAmount> lastValues = new LinkedList<>();
+        final SequencedCollection<MoneyAmount> lastValues = new ArrayDeque<>();
 
         series.forEach((ym, ma) -> {
 
