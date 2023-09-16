@@ -26,7 +26,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.IntStream;
 import org.fede.calculator.money.series.YearMonth;
@@ -62,7 +61,7 @@ public class Evolution<T> {
         final var inv = list.stream()
                 .filter(filterPredicate)
                 .sorted(comparator)
-                .collect(toList());
+                .toList();
 
         final var start = inv
                 .stream()
@@ -109,11 +108,11 @@ public class Evolution<T> {
                     Attribute.BRIGHT_WHITE_BACK(),                    
                     Attribute.BRIGHT_BLACK_BACK());
 
-            final var typeList = totals.keySet().stream().sorted().collect(toList());
+            final var typeList = totals.keySet().stream().sorted().toList();
 
             final var elements = IntStream.range(0, typeList.size())
                     .mapToObj(i -> Pair.of(totals.get(typeList.get(i)), colorList.get(i)))
-                    .collect(toList());
+                    .toList();
 
             this.console.appendLine(
                     pct
@@ -122,7 +121,7 @@ public class Evolution<T> {
 
             refs.addAll(IntStream.range(0, typeList.size())
                     .mapToObj(i -> Ansi.colorize(" ", colorList.get(i)) + typeList.get(i))
-                    .collect(toList()));
+                    .toList());
 
             ym = ym.next();
         }

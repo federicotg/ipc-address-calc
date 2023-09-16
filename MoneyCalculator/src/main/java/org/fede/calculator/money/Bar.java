@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
@@ -77,7 +76,7 @@ public class Bar {
                 .stream()
                 .filter(p -> !p.getFirst().isZero())
                 .map(p -> Pair.of(new MoneyAmount(p.getFirst().getAmount().divide(total, C).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.getFirst().getCurrency()), p.getSecond()))
-                .collect(toList());
+                .toList();
 
         final var relativeTotal = relativeAmounts
                 .stream()

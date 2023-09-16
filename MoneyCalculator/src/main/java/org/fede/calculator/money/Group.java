@@ -49,14 +49,14 @@ public class Group {
 
         this.console.appendLine(this.format.title(title));
 
-        final Map<String, MoneyAmount> byYear = new HashMap<>(32, 0.75f);
+        final Map<String, MoneyAmount> byYear = HashMap.newHashMap(100);
 
         series.forEachNonZero((ym, ma) -> byYear.merge(classifier.apply(ym), ma, MoneyAmount::add));
 
         final Map<String, Long> counts = series.yearMonthStream()
                 .collect(groupingBy(classifier, counting()));
 
-        final Map<String, MoneyAmount> comparisonByYear = new HashMap<>(32, 0.75f);
+        final Map<String, MoneyAmount> comparisonByYear = HashMap.newHashMap(32);
 
         if (comparisonSeries != null) {
             comparisonSeries.forEachNonZero((ym, ma) -> comparisonByYear.merge(classifier.apply(ym), ma, MoneyAmount::add));

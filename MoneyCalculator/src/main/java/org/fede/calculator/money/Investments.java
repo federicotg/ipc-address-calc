@@ -48,7 +48,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.joining;
 import static org.fede.calculator.money.MathConstants.C;
 import java.util.stream.IntStream;
@@ -133,7 +132,7 @@ public class Investments {
                 .filter(everyone)
                 .map(ics::details)
                 .map(d -> nominal ? d : d.asReal())
-                .collect(toList());
+                .toList();
 
         details.stream()
                 .sorted(comparing(InvestmentDetails::getInvestmentDate))
@@ -147,13 +146,13 @@ public class Investments {
 
         final var allEtfs = this.getInvestments()
                 .filter(Investment::isETF)
-                .collect(toList());
+                .toList();
 
         final var mapper = new BenchmarkInvestmentMapper(benchmark, allEtfs);
 
         return etfs.stream()
                 .map(mapper)
-                .collect(toList());
+                .toList();
     }
 
     public void inv(final Predicate<Investment> everyone, boolean nominal) {
@@ -161,7 +160,7 @@ public class Investments {
         final var etfs = this.getInvestments()
                 .filter(Investment::isETF)
                 .filter(everyone)
-                .collect(toList());
+                .toList();
 
         final var cspxBenchmarkSeries = benchmark(etfs, "CSPX");
         final var iwdaBenchmarkSeries = benchmark(etfs, "IWDA");
@@ -256,7 +255,7 @@ public class Investments {
                 .entrySet()
                 .stream()
                 .sorted(comparing(m -> m.getValue().stream().skip(m.getValue().size() - 1).findFirst().get().getSecond(), reverseOrder()))
-                .map(e -> this.matrixRow(e.getKey(), e.getValue().stream().map(Pair::getSecond).collect(toList()), matrix))
+                .map(e -> this.matrixRow(e.getKey(), e.getValue().stream().map(Pair::getSecond).toList(), matrix))
                 .forEach(this.console::appendLine);
 
     }
@@ -272,19 +271,19 @@ public class Investments {
                 "Portfolio",
                 this.range()
                         .mapToObj(year -> item(etfs, nominal, year))
-                        .collect(toList()),
+                        .toList(),
                 "CSPX",
                 this.range()
                         .mapToObj(year -> item(cspxBenchmarkSeries, nominal, year))
-                        .collect(toList()),
+                        .toList(),
                 "IWDA",
                 this.range()
                         .mapToObj(year -> item(iwdaBenchmarkSeries, nominal, year))
-                        .collect(toList()),
+                        .toList(),
                 "Cash",
                 this.range()
                         .mapToObj(year -> item(cashBenchmarkSeries, nominal, year))
-                        .collect(toList())
+                        .toList()
         );
         this.matrix(benchmarkMatrix, nominal);
 
@@ -299,13 +298,13 @@ public class Investments {
                 .orElseGet(Collections::emptyList)
                 .stream()
                 .map(Pair::getSecond)
-                .collect(toList());
+                .toList();
 
         final List<ModifiedDietzReturnResult> cspxList = Optional.ofNullable(benchmarkMatrix.get("CSPX"))
                 .orElseGet(Collections::emptyList)
                 .stream()
                 .map(Pair::getSecond)
-                .collect(toList());
+                .toList();
 
         final var useBenchmarks = !iwdaList.isEmpty() && !cspxList.isEmpty();
 
@@ -462,7 +461,7 @@ public class Investments {
                 .filter(Investment::isETF)
                 .filter(i -> Objects.isNull(currency) || Objects.equals(currency, i.getCurrency()))
                 .sorted(comparing(Investment::getInitialDate, Comparator.naturalOrder()))
-                .collect(toList());
+                .toList();
 
         final var start = inv
                 .stream()
@@ -580,7 +579,7 @@ public class Investments {
         return Stream.concat(
                 this.getInvestments(),
                 this.cashInvestments.cashInvestments().stream())
-                .collect(toList());
+                .toList();
     }
 
     public void portfolioTypeEvo(boolean pct) {
@@ -623,7 +622,7 @@ public class Investments {
         final var currency = "USD";
         final var etfs = this.getInvestments()
                 .filter(Investment::isETF)
-                .collect(toList());
+                .toList();
 
         this.console.appendLine("Month;Portfolio;CSPX;IWDA;Cash");
 

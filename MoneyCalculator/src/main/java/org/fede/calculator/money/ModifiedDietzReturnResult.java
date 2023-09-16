@@ -22,15 +22,7 @@ import java.math.BigDecimal;
  *
  * @author federicogentile
  */
-public class ModifiedDietzReturnResult implements Comparable<ModifiedDietzReturnResult> {
-
-    private final BigDecimal moneyWeighted;
-    private final BigDecimal annualizedMoneyWeighted;
-
-    public ModifiedDietzReturnResult(BigDecimal moneyWeighted, BigDecimal annualizedMoneyWeighted) {
-        this.moneyWeighted = moneyWeighted;
-        this.annualizedMoneyWeighted = annualizedMoneyWeighted;
-    }
+public record ModifiedDietzReturnResult(BigDecimal moneyWeighted, BigDecimal annualizedMoneyWeighted) implements Comparable<ModifiedDietzReturnResult> {
 
     public BigDecimal getMoneyWeighted() {
         return moneyWeighted;

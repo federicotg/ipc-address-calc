@@ -21,9 +21,9 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
-import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.BBPPYear;
@@ -116,7 +116,7 @@ public class Series {
                     .collect(groupingBy(
                             Pair::getFirst,
                             mapping(p -> this.asRealUSDSeries("expense/", p.getSecond()),
-                                    toList())));
+                                    Collectors.toList())));
         }
 
         return realUSDExpensesByType;
@@ -211,7 +211,7 @@ public class Series {
                     readSeries("income/despegar-split.json"))
                     .map(is -> is.exchangeInto("USD"))
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
-                    .collect(toList());
+                    .toList();
         }
         return this.incomeSeries;
     }
@@ -243,7 +243,7 @@ public class Series {
                     .collect(groupingBy(
                             Pair::getFirst,
                             mapping(p -> this.asRealUSDSeries(p.getSecond()),
-                                    toList())));
+                                    Collectors.toList())));
         }
 
         return this.realUSDSavingsByType.entrySet().stream()

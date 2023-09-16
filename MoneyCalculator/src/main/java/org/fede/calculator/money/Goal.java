@@ -282,7 +282,7 @@ public class Goal {
                                 realDeposits,
                                 realWithdrawals,
                                 bbppMin)))
-                .collect(Collectors.toList());
+                .toList();
 
         results.stream()
                 .sorted(Comparator.comparing(Pair::getSecond))

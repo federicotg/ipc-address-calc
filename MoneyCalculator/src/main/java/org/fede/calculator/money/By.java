@@ -25,30 +25,24 @@ import java.util.Map;
 public class By {
 
     public void by(Map<String, String> params, Runnable quarter, Runnable half, Runnable year, Runnable otherwise) {
-        final var by = params.get("by");
-        if ("quarter".equals(by)) {
-            quarter.run();
-        } else if ("half".equals(by)) {
-            half.run();
-        } else if ("year".equals(by)) {
-            year.run();
-        } else {
-            otherwise.run();
-        }
+
+        var action = switch (params.get("by")) {
+            case "quarter":
+                yield quarter;
+            case "half":
+                yield half;
+            case "year":
+                yield year;
+            default:
+                yield otherwise;
+        };
+        action.run();
+
     }
 
     public void by(Map<String, String> params, Runnable quarter, Runnable half, Runnable year, Runnable month, Runnable otherwise) {
-        final var by = params.get("by");
-        Runnable monthly = () -> {
-            if ("month".equals(by)) {
-                month.run();
-            } else {
-                otherwise.run();
-            }
-        };
-        this.by(params, quarter, half, year, monthly);
+
+        this.by(params, quarter, half, year, "month".equals(params.get("by")) ? month : otherwise);
     }
-    
-    
-    
+
 }

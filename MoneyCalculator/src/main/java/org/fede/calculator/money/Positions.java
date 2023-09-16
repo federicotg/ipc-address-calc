@@ -42,7 +42,6 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.reducing;
-import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
@@ -87,7 +86,7 @@ public class Positions {
     private static final Map<String, Function<Investment, String>> GROUPINGS = Map.of(
             "h", i -> YearMonth.of(i.getInitialDate()).half(),
             "y", i -> Integer.toString(YearMonth.of(i.getInitialDate()).getYear()),
-            "m", i -> YearMonth.of(i.getInitialDate()).month(),
+            "m", i -> YearMonth.of(i.getInitialDate()).monthString(),
             "q", i -> YearMonth.of(i.getInitialDate()).quarter());
 
     private static final String AVERAGE_KEY = "Avg.";
@@ -155,7 +154,7 @@ public class Positions {
                 .values()
                 .stream()
                 .map(this::position)
-                .collect(toList());
+                .toList();
 
         final var totalMarketValue = positions
                 .stream()
@@ -583,7 +582,7 @@ public class Positions {
                 .stream()
                 .flatMap(e -> this.item(e.getKey(), e.getValue(), ym))
                 .sorted(comparing((PortfolioItem::getDollarAmount), comparing(MoneyAmount::getAmount)).reversed())
-                .collect(toList());
+                .toList();
 
         final var total = items.stream()
                 .map(PortfolioItem::getDollarAmount)

@@ -28,9 +28,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author fede
  */
-public class YearMonth implements Comparable<YearMonth> {
+public record YearMonth(int year, int month) implements Comparable<YearMonth> {
 
-    private static final Map<Integer, Map<Integer, YearMonth>> POOL = new ConcurrentHashMap<>(100, 0.75f);
+    private static final Map<Integer, Map<Integer, YearMonth>> POOL = new ConcurrentHashMap<>(128, 0.75f);
 
     public static YearMonth of(LocalDate day) {
         return of(day.getYear(), day.getMonthValue());
@@ -43,29 +43,8 @@ public class YearMonth implements Comparable<YearMonth> {
 
     public static YearMonth of(int year, int month) {
         return POOL
-                .computeIfAbsent(year, y -> new ConcurrentHashMap<>(100, 0.75f))
+                .computeIfAbsent(year, y -> new ConcurrentHashMap<>(128, 0.75f))
                         .computeIfAbsent(month, m -> new YearMonth(year, month));
-    }
-
-    private final int year;
-    private final int month;
-
-    private YearMonth(int year, int month) {
-        this.year = year;
-        this.month = month;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 83 * hash + this.year;
-        hash = 83 * hash + this.month;
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof YearMonth && this.year == ((YearMonth) obj).year && this.month == ((YearMonth) obj).month;
     }
 
     @Override
@@ -142,7 +121,7 @@ public class YearMonth implements Comparable<YearMonth> {
         return format("{0}-Q{1}", String.valueOf(this.getYear()), ((this.getMonth() - 1) / 3) + 1);
     }
 
-    public String month() {
+    public String monthString() {
         return format("{0}-{1}", String.valueOf(this.getYear()), (this.getMonth() < 10 ? "0" : "") + String.valueOf(this.getMonth()));
     }
 

@@ -69,9 +69,7 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
     @Override
     public boolean equals(Object obj) {
 
-        if (obj instanceof IndexSeries) {
-
-            IndexSeries other = (IndexSeries) obj;
+        if (obj instanceof IndexSeries other) {
 
             final int months = this.getFrom().monthsUntil(this.getTo());
             YearMonth ym = this.getFrom();

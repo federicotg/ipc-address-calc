@@ -83,8 +83,8 @@ public class SeriesReader {
             final SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
             final String currency = series.getCurrency();
             for (JSONDataPoint dp : series.getData()) {
-                if (interpolatedData.put(YearMonth.of(dp.getYear(), dp.getMonth()), moneyAmount(dp.getValue(), currency)) != null) {
-                    throw new IllegalArgumentException(MessageFormat.format("Series {0} has two values for year {1} and month {2}", name, dp.getYear(), dp.getMonth()));
+                if (interpolatedData.put(YearMonth.of(dp.year(), dp.month()), moneyAmount(dp.value(), currency)) != null) {
+                    throw new IllegalArgumentException(MessageFormat.format("Series {0} has two values for year {1} and month {2}", name, dp.year(), dp.month()));
                 }
             }
 

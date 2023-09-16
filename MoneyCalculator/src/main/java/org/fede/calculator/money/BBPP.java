@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
@@ -222,7 +221,7 @@ public class BBPP {
                 .filter(i -> ibkr || !i.getName().equals("IBKR USD"))
                 .map(i -> this.toARS(i, bbpp.getUsd(), bbpp.getEur()))
                 .filter(bbppItem -> bbppItem.getValue().compareTo(ZERO) != 0)
-                .collect(toList());
+                .toList();
 
         result.totalAmount = result.allArs
                 .stream()

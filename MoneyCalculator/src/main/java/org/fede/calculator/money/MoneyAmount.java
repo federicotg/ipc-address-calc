@@ -20,27 +20,18 @@ import java.math.BigDecimal;
 import static java.math.RoundingMode.HALF_UP;
 import java.text.NumberFormat;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
  * @author fede
  */
-public class MoneyAmount {
+public record MoneyAmount(BigDecimal amount, String currency) {
 
     private static final Map<String, MoneyAmount> ZERO_AMOUNTS = new ConcurrentHashMap<>();
 
     public static MoneyAmount zero(String currency) {
         return ZERO_AMOUNTS.computeIfAbsent(currency, c -> new MoneyAmount(BigDecimal.ZERO, c));
-    }
-
-    private final String currency;
-    private final BigDecimal amount;
-
-    public MoneyAmount(BigDecimal amount, String currencySymbol) {
-        this.amount = amount;
-        this.currency = currencySymbol;
     }
 
     public MoneyAmount adjust(BigDecimal divisor, BigDecimal factor) {
@@ -59,21 +50,11 @@ public class MoneyAmount {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(this.currency, this.amount);
-    }
-
-    @Override
     public boolean equals(Object obj) {
         return obj instanceof MoneyAmount
                 && ((MoneyAmount) obj).currency.equals(this.currency)
                 && ((MoneyAmount) obj).amount.setScale(5, HALF_UP)
                         .compareTo(this.amount.setScale(5, HALF_UP)) == 0;
-    }
-
-    @Override
-    public String toString() {
-        return this.currency + " " + this.amount.toString();
     }
 
     public void assertCurrency(String currency) {

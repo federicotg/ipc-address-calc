@@ -37,7 +37,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
-import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
@@ -97,7 +96,7 @@ public class PortfolioReturns {
                 this.cashInvestments.cashInvestments().stream(),
                 this.series.getInvestments().stream())
                 .filter(sinceYear)
-                .collect(toList());
+                .toList();
 
         final var from = inv.stream()
                 .map(Investment::getInitialDate)
@@ -121,7 +120,7 @@ public class PortfolioReturns {
                 withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
                 this.series.getInvestments().stream())
                 .filter(criteria)
-                .collect(toList());
+                .toList();
 
         return returnTypeFunction.apply(new ModifiedDietzReturn(
                 inv,
@@ -138,7 +137,7 @@ public class PortfolioReturns {
                 withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
                 this.series.getInvestments().stream())
                 .filter(criteria)
-                .collect(toList());
+                .toList();
 
         final var from = inv.stream()
                 .map(Investment::getInitialDate)

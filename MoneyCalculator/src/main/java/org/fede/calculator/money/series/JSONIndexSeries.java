@@ -33,14 +33,14 @@ public class JSONIndexSeries extends IndexSeriesSupport {
 
     public JSONIndexSeries(List<JSONDataPoint> data) {
         JSONDataPoint first = data.get(0);
-        this.from = YearMonth.of(first.getYear(), first.getMonth());
+        this.from = YearMonth.of(first.year(), first.month());
         JSONDataPoint last = data.get(data.size() - 1);
-        this.to = YearMonth.of(last.getYear(), last.getMonth());
+        this.to = YearMonth.of(last.year(), last.month());
 
         this.data = new ConcurrentHashMap<>(data.size());
         for (var dp : data) {
-            var yearMap = this.data.computeIfAbsent(dp.getYear(), y -> new ConcurrentHashMap<>(12));
-            yearMap.put(dp.getMonth(), dp.getValue());
+            var yearMap = this.data.computeIfAbsent(dp.year(), y -> new ConcurrentHashMap<>(12));
+            yearMap.put(dp.month(), dp.value());
         }
     }
 

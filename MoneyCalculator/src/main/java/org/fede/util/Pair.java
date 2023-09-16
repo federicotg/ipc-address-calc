@@ -16,57 +16,24 @@
  */
 package org.fede.util;
 
-import java.util.Objects;
-
 /**
  *
  * @author fede
  * @param <A>
  * @param <B>
  */
-public class Pair<A, B> {
+public record Pair<A, B>(A first, B second) {
 
     public static <A, B> Pair<A, B> of(A first, B second){
         return new Pair<>(first, second);
     }
     
-    private A first;
-    private B second;
-
-    public Pair(A first, B second) {
-        this.first = first;
-        this.second = second;
-    }
-
     public A getFirst() {
         return first;
     }
 
-    public void setFirst(A first) {
-        this.first = first;
-    }
-
     public B getSecond() {
         return second;
-    }
-
-    public void setSecond(B second) {
-        this.second = second;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.first, this.second);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-
-        return obj != null
-                && obj.getClass().equals(Pair.class)
-                && Objects.equals(this.first, ((Pair<?, ?>) obj).first)
-                && Objects.equals(this.second, ((Pair<?, ?>) obj).second);
-
     }
 
 }

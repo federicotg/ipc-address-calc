@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import static java.util.stream.Collectors.toList;
 import java.util.stream.IntStream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -82,7 +81,7 @@ public class Expenses {
                     .stream()
                     .filter(p -> exp == null || exp.equals(p.getKey()))
                     .map(e -> of(e.getKey(), this.aggregate(e.getValue(), s -> this.lastMonths(s, months)).getAmount()))
-                    .collect(toList());
+                    .toList();
 
             final var total = list.stream()
                     .map(Pair::getSecond)
@@ -130,7 +129,7 @@ public class Expenses {
     }
 
     private void monthlyExpenses() {
-        new Group(console, format, bar).group("Monthly expenses", this.series.realExpense(), null, YearMonth::month, 3);
+        new Group(console, format, bar).group("Monthly expenses", this.series.realExpense(), null, YearMonth::monthString, 3);
     }
 
     private void yearlyExpenses() {

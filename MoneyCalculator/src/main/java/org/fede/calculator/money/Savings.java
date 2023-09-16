@@ -265,7 +265,7 @@ public class Savings {
 
         return IntStream.range(0, series.size())
                 .mapToObj(i -> Pair.of(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public void savingsIncomeTable() {
