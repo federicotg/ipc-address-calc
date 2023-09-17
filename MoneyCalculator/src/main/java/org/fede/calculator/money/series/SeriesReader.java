@@ -90,17 +90,19 @@ public class SeriesReader {
             }
 
             final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
-
+           
             YearMonth ym = interpolatedData.firstKey();
             final YearMonth last = interpolatedData.lastKey();
+            
+            final var allValues = new HashMap<>(interpolatedData);
             while (ym.monthsUntil(last) > 0) {
                 YearMonth next = ym.next();
-                if (!interpolatedData.containsKey(next)) {
-                    interpolatedData.put(next, strategy.interpolate(interpolatedData.get(ym), ym, currency));
+                if (!allValues.containsKey(next)) {
+                    allValues.put(next, strategy.interpolate(allValues.get(ym), ym, currency));
                 }
                 ym = ym.next();
             }
-            return new SortedMapMoneyAmountSeries(currency, new HashMap<>(interpolatedData));
+            return new SortedMapMoneyAmountSeries(currency, allValues);
 
         } catch (IOException ioEx) {
             throw new IllegalArgumentException(MessageFormat.format("Could not read series named {0}", name), ioEx);
