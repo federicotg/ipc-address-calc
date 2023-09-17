@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.money;
 
-import java.util.Calendar;
 import java.util.Date;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesSupport;
@@ -98,23 +97,15 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
 
     @Override
     public final MoneyAmountSeries adjust(MoneyAmountSeries series, Date moment) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(moment);
-        int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH);
-        return this.adjust(series, year, month + 1);
+        final var ym = YearMonth.of(moment);
+        return this.adjust(series, ym.year(), ym.month() + 1);
     }
 
     @Override
     public final MoneyAmount adjust(MoneyAmount amount, Date from, Date to) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(from);
-        int yearFrom = cal.get(Calendar.YEAR);
-        int monthFrom = cal.get(Calendar.MONTH);
-        cal.setTime(to);
-        int yearTo = cal.get(Calendar.YEAR);
-        int monthTo = cal.get(Calendar.MONTH);
-        return this.adjust(amount, yearFrom, monthFrom + 1, yearTo, monthTo + 1);
+        final var fromYm = YearMonth.of(from);
+        final var toYm = YearMonth.of(to);
+        return this.adjust(amount, fromYm.year(), fromYm.month(), toYm.year(), toYm.month());
     }
 
 }

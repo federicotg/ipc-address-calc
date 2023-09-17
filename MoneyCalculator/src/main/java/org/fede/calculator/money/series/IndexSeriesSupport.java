@@ -17,7 +17,6 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
 
@@ -59,11 +58,8 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
 
     @Override
     public final BigDecimal getIndex(Date day) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(day);
-        int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH);
-        return this.getIndex(year, month + 1);
+        final var ym = YearMonth.of(day);
+        return this.getIndex(ym.year(), ym.month());
     }
 
     @Override
