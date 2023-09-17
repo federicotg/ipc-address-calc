@@ -18,7 +18,7 @@ package org.fede.calculator.benchmark;
 
 import org.fede.calculator.money.Bar;
 import org.fede.calculator.money.Format;
-import org.fede.calculator.money.PortfolioReturns;
+import org.fede.calculator.money.Savings;
 import org.fede.calculator.money.Series;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -30,7 +30,7 @@ import org.openjdk.jmh.annotations.Warmup;
  *
  * @author fede
  */
-public class MDRBenchmark {
+public class SavingsAvgBenchmark {
 
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
@@ -40,12 +40,12 @@ public class MDRBenchmark {
 
         var console = new BenchmarkConsole();
         var format = new Format();
-        new PortfolioReturns(new Series(), console, format, new Bar(console, format)).returns(false, true, 1999, false);
-
+        
+        new Savings(format, new Series(), new Bar(console, format), console).netAvgSavingSpent(12, "Title");
     }
 
     public static void main(String[] args) {
-        var instance = new MDRBenchmark();
+        var instance = new SavingsAvgBenchmark();
 
         for (var i = 0; i < 100; i++) {
             instance.init();
