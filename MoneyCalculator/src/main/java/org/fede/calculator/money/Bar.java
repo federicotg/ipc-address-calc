@@ -108,7 +108,7 @@ public class Bar {
         final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.first().getAmount(), width, p.first().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.second()));
         final Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth()));
 
-        return format("{0}/{1} " + bars,
+        return format("{0}/{1} ".concat(bars),
                 (Object[]) Stream.of(ymStream, barsStream).flatMap(Function.identity()).toArray(String[]::new));
     }
 
@@ -137,7 +137,7 @@ public class Bar {
 
             return format("{0} {1}",
                     this.format.percent(value, 10),
-                    Ansi.colorize(part + "/-/" + part, attr));
+                    Ansi.colorize(part.concat("/-/").concat(part), attr));
         }
 
         return format("{0} {1}",
