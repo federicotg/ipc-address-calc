@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import org.fede.calculator.money.series.IndexSeriesSupport;
 import org.fede.calculator.money.series.Investment;
@@ -37,6 +38,10 @@ import org.fede.util.Pair;
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class ForeignExchanges {
+
+    private static final Map<Pair<String, String>, BiFunction<MoneyAmount, YearMonth, MoneyAmount>> FX_FUNCTION_CACHE = new ConcurrentHashMap<>();
+
+    private static final Map<String, ForeignExchange> IDENTITY_FX = new ConcurrentHashMap<>();
 
     private static final Map<String, String> INTERMEDIATE_FOREIGN_EXCHANGES = Map.of(
             "UVA", "ARS",
@@ -156,12 +161,17 @@ public class ForeignExchanges {
     }
 
     public static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(String from, String to) {
-        return (amount, ym) -> getForeignExchange(from, to).exchange(amount, to, ym);
+        return FX_FUNCTION_CACHE.computeIfAbsent(Pair.of(from, to), ForeignExchanges::getMoneyAmountForeignExchange);
+    }
+
+    private static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(Pair<String, String> fromTo) {
+        return (amount, ym) -> getForeignExchange(fromTo.first(), fromTo.second()).exchange(amount, fromTo.second(), ym);
     }
 
     public static ForeignExchange getForeignExchange(String from, String to) {
+
         if (from.equals(to)) {
-            return getIdentityForeignExchange(from);
+            return IDENTITY_FX.computeIfAbsent(to, currency -> getIdentityForeignExchange(currency));
         }
 
         ForeignExchange answer = DIRECT_FOREIGN_EXCHANGES.get(new Pair<>(from, to));

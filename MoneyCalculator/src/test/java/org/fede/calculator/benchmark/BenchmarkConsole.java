@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 federicogentile
+ * Copyright (C) 2023 fede
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,18 +14,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.money;
+package org.fede.calculator.benchmark;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import org.fede.calculator.money.Console;
 
 /**
  *
  * @author fede
  */
-public interface Console {
+public class BenchmarkConsole implements Console {
 
-  
-    void appendLine(String... texts);
-    void printReport(OutputStream out) throws IOException;
+    @Override
+    public void appendLine(String... texts) {
+        // do nothing
+    }
+
+    @Override
+    public void printReport(OutputStream out) throws IOException {
+        // do nothing
+    }
+    
 }

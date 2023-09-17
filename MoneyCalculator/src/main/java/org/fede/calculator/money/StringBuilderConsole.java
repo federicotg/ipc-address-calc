@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 federicogentile
+ * Copyright (C) 2023 fede
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,14 +18,34 @@ package org.fede.calculator.money;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 /**
  *
  * @author fede
  */
-public interface Console {
+public class StringBuilderConsole implements Console {
+    
+    
+    private final StringBuilder out;
 
-  
-    void appendLine(String... texts);
-    void printReport(OutputStream out) throws IOException;
+    public StringBuilderConsole() {
+        this.out = new StringBuilder(1024);
+    }
+
+    @Override
+    public void appendLine(String... texts) {
+        Arrays.stream(texts)
+                .forEach(out::append);
+        out.append("\n");
+    }
+
+    @Override
+    public void printReport(OutputStream out) throws IOException {
+        out.write(this.out.toString().getBytes());
+        out.flush();
+        out.close();
+    }
+
+    
 }

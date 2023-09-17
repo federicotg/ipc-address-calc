@@ -270,7 +270,7 @@ public class ConsoleReports {
     public static void main(String[] args) {
         try {
 
-            final var console = new Console();
+            final var console = new StringBuilderConsole();
             final var format = new Format();
             final var bar = new Bar(console, format);
             final var series = new Series();

@@ -42,9 +42,19 @@ public record YearMonth(int year, int month) implements Comparable<YearMonth> {
     }
 
     public static YearMonth of(int year, int month) {
-        return POOL
-                .computeIfAbsent(year, y -> new ConcurrentHashMap<>(128, 0.75f))
-                        .computeIfAbsent(month, m -> new YearMonth(year, month));
+
+        Map<Integer, YearMonth> yearMap;
+
+        if ((yearMap = POOL.get(year)) == null) {
+            yearMap = new ConcurrentHashMap<>(16, 0.75f);
+            POOL.put(year, yearMap);
+        }
+        YearMonth ym;
+        if ((ym = yearMap.get(month)) == null) {
+            ym = new YearMonth(year, month);
+            yearMap.put(month, ym);
+        }
+        return ym;
     }
 
     @Override
