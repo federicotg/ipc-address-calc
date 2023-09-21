@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -76,7 +77,7 @@ public class Bar {
                 .stream()
                 .filter(p -> !p.first().isZero())
                 .map(p -> Pair.of(new MoneyAmount(p.first().getAmount().divide(total, C).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.first().getCurrency()), p.second()))
-                .toList();
+                .collect(Collectors.toList());
 
         final var relativeTotal = relativeAmounts
                 .stream()
