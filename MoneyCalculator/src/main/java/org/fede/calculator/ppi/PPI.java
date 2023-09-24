@@ -125,14 +125,15 @@ public class PPI {
                 futures.add(this.criptoYaItem("BuenBit DAI (Venta)", new CriptoYaFXParams("Buenbit", "DAI", "USD", "ARS", "ARS"), executor));
                 futures.add(this.criptoYaItem("Letsbit USDT (Venta)", new CriptoYaFXParams("Letsbit", "USDT", "USD", "ARS", "ARS"), executor));
                 futures.add(this.criptoYaItem("Letsbit DAI (Venta)", new CriptoYaFXParams("Letsbit", "DAI", "USD", "ARS", "ARS"), executor));
-            }
-            final var blue = new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS");
-            var ppiResults = new ArrayList<Pair<String, MoneyAmount>>(futures.size());
-            for (var f : futures) {
-                ppiResults.add(Pair.of(f.first(), f.second().get()));
+                futures.add(Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), executor.submit(() -> new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS"))));
             }
 
-            Stream.concat(ppiResults.stream(), Stream.of(Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), blue)))
+            var results = new ArrayList<Pair<String, MoneyAmount>>(futures.size());
+            for (var f : futures) {
+                results.add(Pair.of(f.first(), f.second().get()));
+            }
+
+            results.stream()
                     .sorted(Comparator.comparing(p -> p.second().getAmount(), Comparator.reverseOrder()))
                     .forEach(p -> this.console.appendLine(this.format.text(p.first(), LABEL_WIDTH), this.format.currency(p.second(), 10)));
 

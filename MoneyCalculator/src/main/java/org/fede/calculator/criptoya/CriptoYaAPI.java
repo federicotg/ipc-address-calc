@@ -30,7 +30,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.MessageFormat;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import org.fede.calculator.money.MathConstants;
 import static org.fede.calculator.money.MathConstants.C;
@@ -56,7 +55,7 @@ public class CriptoYaAPI {
 
     private Map<String, Map<String, Map<String, BigDecimal>>> fees;
 
-    private final Map<String, Map<String, Map<String, CriptoYaFx>>> fxCache = new ConcurrentHashMap<>();
+    //private final Map<String, Map<String, Map<String, CriptoYaFx>>> fxCache = new ConcurrentHashMap<>();
     private Map<String, BigDecimal> dollarCache;
 
     public CriptoYaAPI(Supplier<HttpClient> clientSupplier) {
@@ -137,14 +136,15 @@ public class CriptoYaAPI {
 
     private CriptoYaFx fx(String exchange, String coin, String fiat, BigDecimal amount) throws URISyntaxException, IOException, InterruptedException {
 
-        final var answer = this.fxCache.computeIfAbsent(exchange, t -> new ConcurrentHashMap<>())
-                .computeIfAbsent(coin, t -> new ConcurrentHashMap<>())
-                .get(fiat);
-
-        if (answer != null) {
-            return answer;
-        }
-
+//        final var answer = this.fxCache.computeIfAbsent(exchange, t -> new ConcurrentHashMap<>())
+//                .computeIfAbsent(coin, t -> new ConcurrentHashMap<>())
+//                .get(fiat);
+//
+//        if (answer != null) {
+//            System.out.print("+");
+//            return answer;
+//        }
+//        System.out.print("-");
         // "/api/letsbit/usdt/ars/1000"
         final var req = this.requestBuilderFor(MessageFormat.format("{0}/api/{1}/{2}/{3}/{4}", API, exchange, coin.toLowerCase(), fiat.toLowerCase(), amount.setScale(0, RoundingMode.HALF_UP).toString()))
                 .GET()
@@ -157,9 +157,9 @@ public class CriptoYaAPI {
 
             final var newAnswer = this.jsonMapper.readValue(response.body(), CriptoYaFx.class);
 
-            this.fxCache.computeIfAbsent(exchange, t -> new ConcurrentHashMap<>())
-                    .computeIfAbsent(coin, t -> new ConcurrentHashMap<>())
-                    .put(fiat, newAnswer);
+//            this.fxCache.computeIfAbsent(exchange, t -> new ConcurrentHashMap<>())
+//                    .computeIfAbsent(coin, t -> new ConcurrentHashMap<>())
+//                    .put(fiat, newAnswer);
 
             return newAnswer;
 
