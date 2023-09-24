@@ -24,6 +24,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -257,23 +259,41 @@ public class PPIRestAPI {
 
     }
 
-    public MoneyAmount exchangeRate(
-            String tickerUSD,
-            String tickerARS,
-            InstrumentType type,
-            SettlementType settlement) throws URISyntaxException, IOException, InterruptedException {
-        return this.exchangeRate(tickerUSD, tickerARS, type, settlement, "ARS");
+    public MoneyAmount exchangeRate(PPIFXParams params) throws URISyntaxException, IOException, InterruptedException {
+
+        final var usdPrice = this.marketData(params.tickerUSD(), params.type(), params.settlement()).getPrice()
+                .multiply(BigDecimal.ONE.subtract(params.fees().usdFee(), MathConstants.C), MathConstants.C);
+        final var arsPrice = this.marketData(params.tickerARS(), params.type(), params.settlement()).getPrice()
+                .multiply(BigDecimal.ONE.subtract(this.secondFee(params.fees(), params.currency()), MathConstants.C), MathConstants.C);
+        return new MoneyAmount(arsPrice.divide(usdPrice, MathConstants.C), params.currency());
+    }
+    
+    private BigDecimal secondFee(PPIFXFee fees, String currency){
+        return "ARS".equals(currency) 
+                ? fees.arsFee() 
+                : fees.usdFee();
     }
 
-    public MoneyAmount exchangeRate(
+    public record PPIFXFee(BigDecimal usdFee, BigDecimal arsFee) {
+
+        public PPIFXFee(BigDecimal fee) {
+            this(fee, fee);
+        }
+        
+    }
+
+    public record PPIFXParams(
             String tickerUSD,
             String tickerARS,
             InstrumentType type,
             SettlementType settlement,
-            String currency) throws URISyntaxException, IOException, InterruptedException {
+            String currency,
+            PPIFXFee fees) {
 
-        final var usdPrice = this.marketData(tickerUSD, type, settlement).getPrice();
-        final var arsPrice = this.marketData(tickerARS, type, settlement).getPrice();
-        return new MoneyAmount(arsPrice.divide(usdPrice, MathConstants.C), currency);
+        public PPIFXParams(String tickerUSD, String tickerARS, InstrumentType type, SettlementType settlement, PPIFXFee fees) {
+            this(tickerUSD, tickerARS, type, settlement, "ARS", fees);
+        }
+
     }
+
 }

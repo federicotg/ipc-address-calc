@@ -24,17 +24,23 @@ import static java.math.BigDecimal.ONE;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.fede.calculator.criptoya.CriptoYaAPI;
 import org.fede.calculator.money.Console;
 import org.fede.calculator.money.Format;
 import static org.fede.calculator.money.InstrumentType.*;
-import org.fede.calculator.money.MathConstants;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.SettlementType.*;
+import static org.fede.calculator.ppi.PPIRestAPI.PPIFXFee;
+import static org.fede.calculator.ppi.PPIRestAPI.PPIFXParams;
 import org.fede.util.Pair;
 
 /**
@@ -47,6 +53,8 @@ public class PPI {
 
     private static final BigDecimal BONDS_FEE = new BigDecimal("0.006");
     private static final BigDecimal LETES_FEE = new BigDecimal("0.0015");
+    private static final BigDecimal LETES_USD_NEW = new BigDecimal("0.01");
+    private static final BigDecimal LETES_ARS_NEW = new BigDecimal("0.002");
     private static final BigDecimal SMALL_FACE_FEE = new BigDecimal("0.03");
 
     private static final AnsiFormat DIM_WHITE_TEXT = new AnsiFormat(Attribute.DIM());
@@ -62,18 +70,6 @@ public class PPI {
         this.console = console;
         this.format = format;
         this.clientSupplier = clientSupplier;
-    }
-
-    private MoneyAmount netOfPPIFees(MoneyAmount gross, BigDecimal fee) {
-        return gross.adjust(
-                ONE,
-                ONE.subtract(fee.add(fee, MathConstants.C), MathConstants.C));
-    }
-
-    private MoneyAmount netOfSimpleFees(MoneyAmount gross, BigDecimal fee) {
-        return gross.adjust(
-                ONE,
-                ONE.subtract(fee, MathConstants.C));
     }
 
     private PPIRestAPI getApi() throws IOException, URISyntaxException, InterruptedException {
@@ -114,25 +110,46 @@ public class PPI {
 
             /*System.out.println(this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "USD", ONE));
             System.out.println(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "ARS", ONE));*/
-            
-            Stream.of(
-                    Pair.of("CCL " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", "S31O3", LETRAS, INMEDIATA), LETES_FEE)),
-                    Pair.of("MEP " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "D", "S31O3", LETRAS, INMEDIATA), LETES_FEE)),
-                    Pair.of("C a D " + letra1, this.netOfPPIFees(this.getApi().exchangeRate(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD"), LETES_FEE)),
-                    Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), blue),
+            final var oldFee = new PPIFXFee(LETES_FEE);
+            final var newFee = new PPIFXFee(LETES_USD_NEW, LETES_ARS_NEW);
 
-                    item("BuenBit USDT (Venta)", this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "USD", ONE), C), "ARS"),
-                    item("BuenBit DAI (Venta)", this.getCriptoYaApi().sellCoin("Buenbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Buenbit", "DAI", "USD", ONE), C), "ARS"),
-                    item("Letsbit USDT (Venta)", this.getCriptoYaApi().sellCoin("Letsbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Letsbit", "USDT", "USD", ONE), C), "ARS"),
-                    item("Letsbit DAI (Venta)", this.getCriptoYaApi().sellCoin("Letsbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Letsbit", "DAI", "USD", ONE), C), "ARS")
-                                      
+            final List<Pair<String, PPIRestAPI.PPIFXParams>> ppiRequests = List.of(
+                    Pair.of("CCL " + letra1, new PPIFXParams(letra1 + "C", "S31O3", LETRAS, INMEDIATA, oldFee)),
+                    Pair.of("CCL " + letra1 + " nov.", new PPIFXParams(letra1 + "C", "S31O3", LETRAS, INMEDIATA, newFee)),
+                    Pair.of("MEP " + letra1, new PPIFXParams(letra1 + "D", "S31O3", LETRAS, INMEDIATA, oldFee)),
+                    Pair.of("MEP " + letra1 + " nov.", new PPIFXParams(letra1 + "D", "S31O3", LETRAS, INMEDIATA, newFee)),
+                    Pair.of("C a D " + letra1, new PPIFXParams(letra1 + "C", "S31O3", LETRAS, INMEDIATA, oldFee)),
+                    Pair.of("C a D " + letra1 + " nov.", new PPIFXParams(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD", oldFee)));
+
+            List<Future<Pair<String, MoneyAmount>>> ppiFutures = new ArrayList<>(ppiRequests.size());
+            try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+
+                for (var p : ppiRequests) {
+                    ppiFutures.add(executor.submit(() -> Pair.of(p.first(), this.getApi().exchangeRate(p.second()))));
+                }
+            }
+
+            List<Pair<String, MoneyAmount>> results
+                    = Stream.of(
+                            Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), blue),
+                            item("BuenBit USDT (Venta)", this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "USD", ONE), C), "ARS"),
+                            item("BuenBit DAI (Venta)", this.getCriptoYaApi().sellCoin("Buenbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Buenbit", "DAI", "USD", ONE), C), "ARS"),
+                            item("Letsbit USDT (Venta)", this.getCriptoYaApi().sellCoin("Letsbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Letsbit", "USDT", "USD", ONE), C), "ARS"),
+                            item("Letsbit DAI (Venta)", this.getCriptoYaApi().sellCoin("Letsbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Letsbit", "DAI", "USD", ONE), C), "ARS")
                     /*item("BuenBit USDT (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "USD", ONE), C), "ARS"),
                     item("BuenBit DAI (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "DAI", "USD", ONE), C), "ARS"),
                     item("Letsbit USDT (Compra)", this.getCriptoYaApi().buyCoin("Letsbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Letsbit", "USDT", "USD", ONE), C), "ARS"),
                     item("Letsbit DAI (Compra)", this.getCriptoYaApi().buyCoin("Letsbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Letsbit", "DAI", "USD", ONE), C), "ARS"),
                     
                     item("USD BuenBit USDT (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "USD", ONE), C), "ARS")*/
-            ).sorted(Comparator.comparing(p -> p.second().getAmount(), Comparator.reverseOrder()))
+                    ).toList();
+
+            var ppiResults = new ArrayList<Pair<String, MoneyAmount>>(ppiFutures.size());
+            for (var f : ppiFutures) {
+                ppiResults.add(f.get());
+            }
+            Stream.concat(ppiResults.stream(), results.stream())
+                    .sorted(Comparator.comparing(p -> p.second().getAmount(), Comparator.reverseOrder()))
                     .forEach(p -> this.console.appendLine(this.format.text(p.first(), LABEL_WIDTH), this.format.currency(p.second(), 10)));
 
         } catch (Exception ex) {
