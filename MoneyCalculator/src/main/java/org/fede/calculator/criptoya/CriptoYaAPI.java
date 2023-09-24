@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigDecimal;
+import static java.math.BigDecimal.ONE;
 import java.math.RoundingMode;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -32,6 +33,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import org.fede.calculator.money.MathConstants;
+import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.MoneyAmount;
 
 /**
  *
@@ -116,6 +119,12 @@ public class CriptoYaAPI {
         }
         return this.fees.get(exchange).get(currency).get(network);
 
+    }
+
+    public MoneyAmount exchangeRate(CriptoYaFXParams params) throws URISyntaxException, IOException, InterruptedException {
+        return new MoneyAmount(
+                this.sellCoin(params.exchange(), params.coin(), params.fiatTo(), ONE)
+                        .divide(this.buyCoin(params.exchange(), params.coin(), params.fiatFrom(), ONE), C), params.currency());
     }
 
     public BigDecimal buyCoin(String exchange, String coin, String fiat, BigDecimal amount) throws URISyntaxException, IOException, InterruptedException {
@@ -216,4 +225,7 @@ public class CriptoYaAPI {
                 .divide(new BigDecimal("1.002"), MathConstants.C);
     }
 
+    public record CriptoYaFXParams(String exchange, String coin, String fiatFrom, String fiatTo, String currency) {
+
+    }
 }

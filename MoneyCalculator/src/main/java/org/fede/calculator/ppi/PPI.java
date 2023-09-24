@@ -20,7 +20,6 @@ import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
 import java.io.IOException;
 import java.math.BigDecimal;
-import static java.math.BigDecimal.ONE;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.text.MessageFormat;
@@ -36,11 +35,11 @@ import org.fede.calculator.criptoya.CriptoYaAPI;
 import org.fede.calculator.money.Console;
 import org.fede.calculator.money.Format;
 import static org.fede.calculator.money.InstrumentType.*;
-import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.SettlementType.*;
 import static org.fede.calculator.ppi.PPIRestAPI.PPIFXFee;
 import static org.fede.calculator.ppi.PPIRestAPI.PPIFXParams;
+import static org.fede.calculator.criptoya.CriptoYaAPI.CriptoYaFXParams;
 import org.fede.util.Pair;
 
 /**
@@ -51,11 +50,11 @@ public class PPI {
 
     private static final int LABEL_WIDTH = 30;
 
-    private static final BigDecimal BONDS_FEE = new BigDecimal("0.006");
+    //private static final BigDecimal BONDS_FEE = new BigDecimal("0.006");
     private static final BigDecimal LETES_FEE = new BigDecimal("0.0015");
     private static final BigDecimal LETES_USD_NEW = new BigDecimal("0.01");
     private static final BigDecimal LETES_ARS_NEW = new BigDecimal("0.002");
-    private static final BigDecimal SMALL_FACE_FEE = new BigDecimal("0.03");
+    //private static final BigDecimal SMALL_FACE_FEE = new BigDecimal("0.03");
 
     private static final AnsiFormat DIM_WHITE_TEXT = new AnsiFormat(Attribute.DIM());
     private static final AnsiFormat BLUE_TEXT = new AnsiFormat(Attribute.BRIGHT_GREEN_TEXT());
@@ -94,8 +93,12 @@ public class PPI {
         return this.format.text(text, width, BLUE_TEXT);
     }
 
-    private Pair<String, MoneyAmount> item(String desc, BigDecimal value, String currency) {
-        return Pair.of(this.dim(desc, LABEL_WIDTH), new MoneyAmount(value, currency));
+    private Pair<String, Future<MoneyAmount>> criptoYaItem(String desc, CriptoYaAPI.CriptoYaFXParams params, ExecutorService executor) {
+        return Pair.of(this.dim(desc, LABEL_WIDTH), executor.submit(() -> this.getCriptoYaApi().exchangeRate(params)));
+    }
+
+    private Pair<String, Future<MoneyAmount>> ppiItem(String key, PPIRestAPI.PPIFXParams params, ExecutorService executor) {
+        return Pair.of(key, executor.submit(() -> this.getApi().exchangeRate(params)));
     }
 
     public void dollar() {
@@ -108,47 +111,30 @@ public class PPI {
 
             final var letra1 = "SO3";
 
-            /*System.out.println(this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "USD", ONE));
-            System.out.println(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "ARS", ONE));*/
             final var oldFee = new PPIFXFee(LETES_FEE);
             final var newFee = new PPIFXFee(LETES_USD_NEW, LETES_ARS_NEW);
 
-            final List<Pair<String, PPIRestAPI.PPIFXParams>> ppiRequests = List.of(
-                    Pair.of("CCL " + letra1, new PPIFXParams(letra1 + "C", "S31O3", LETRAS, INMEDIATA, oldFee)),
-                    Pair.of("CCL " + letra1 + " nov.", new PPIFXParams(letra1 + "C", "S31O3", LETRAS, INMEDIATA, newFee)),
-                    Pair.of("MEP " + letra1, new PPIFXParams(letra1 + "D", "S31O3", LETRAS, INMEDIATA, oldFee)),
-                    Pair.of("MEP " + letra1 + " nov.", new PPIFXParams(letra1 + "D", "S31O3", LETRAS, INMEDIATA, newFee)),
-                    Pair.of("C a D " + letra1, new PPIFXParams(letra1 + "C", "S31O3", LETRAS, INMEDIATA, oldFee)),
-                    Pair.of("C a D " + letra1 + " nov.", new PPIFXParams(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD", oldFee)));
-
-            List<Future<Pair<String, MoneyAmount>>> ppiFutures = new ArrayList<>(ppiRequests.size());
+            List<Pair<String, Future<MoneyAmount>>> futures = new ArrayList<>(32);
             try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
 
-                for (var p : ppiRequests) {
-                    ppiFutures.add(executor.submit(() -> Pair.of(p.first(), this.getApi().exchangeRate(p.second()))));
-                }
+                futures.add(this.ppiItem("CCL " + letra1,             new PPIFXParams(letra1 + "C", "S31O3", LETRAS, INMEDIATA, oldFee), executor));
+                futures.add(this.ppiItem("CCL " + letra1 + " nov.",   new PPIFXParams(letra1 + "C", "S31O3", LETRAS, INMEDIATA, newFee), executor));
+                futures.add(this.ppiItem("MEP " + letra1,             new PPIFXParams(letra1 + "D", "S31O3", LETRAS, INMEDIATA, oldFee), executor));
+                futures.add(this.ppiItem("MEP " + letra1 + " nov.",   new PPIFXParams(letra1 + "D", "S31O3", LETRAS, INMEDIATA, newFee), executor));
+                futures.add(this.ppiItem("C a D " + letra1,           new PPIFXParams(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD", oldFee), executor));
+                futures.add(this.ppiItem("C a D " + letra1 + " nov.", new PPIFXParams(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD", newFee), executor));
+                futures.add(this.criptoYaItem("BuenBit USDT (Venta)", new CriptoYaFXParams("Buenbit", "USDT", "USD", "ARS", "ARS"), executor));
+                futures.add(this.criptoYaItem("BuenBit DAI (Venta)",  new CriptoYaFXParams("Buenbit", "DAI", "USD", "ARS", "ARS"), executor));
+                futures.add(this.criptoYaItem("Letsbit USDT (Venta)", new CriptoYaFXParams("Letsbit", "USDT", "USD", "ARS", "ARS"), executor));
+                futures.add(this.criptoYaItem("Letsbit DAI (Venta)",  new CriptoYaFXParams("Letsbit", "DAI", "USD", "ARS", "ARS"), executor));
             }
 
-            List<Pair<String, MoneyAmount>> results
-                    = Stream.of(
-                            Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), blue),
-                            item("BuenBit USDT (Venta)", this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "USD", ONE), C), "ARS"),
-                            item("BuenBit DAI (Venta)", this.getCriptoYaApi().sellCoin("Buenbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Buenbit", "DAI", "USD", ONE), C), "ARS"),
-                            item("Letsbit USDT (Venta)", this.getCriptoYaApi().sellCoin("Letsbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Letsbit", "USDT", "USD", ONE), C), "ARS"),
-                            item("Letsbit DAI (Venta)", this.getCriptoYaApi().sellCoin("Letsbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().buyCoin("Letsbit", "DAI", "USD", ONE), C), "ARS")
-                    /*item("BuenBit USDT (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "USD", ONE), C), "ARS"),
-                    item("BuenBit DAI (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "DAI", "USD", ONE), C), "ARS"),
-                    item("Letsbit USDT (Compra)", this.getCriptoYaApi().buyCoin("Letsbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Letsbit", "USDT", "USD", ONE), C), "ARS"),
-                    item("Letsbit DAI (Compra)", this.getCriptoYaApi().buyCoin("Letsbit", "DAI", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Letsbit", "DAI", "USD", ONE), C), "ARS"),
-                    
-                    item("USD BuenBit USDT (Compra)", this.getCriptoYaApi().buyCoin("Buenbit", "USDT", "ARS", ONE).divide(this.getCriptoYaApi().sellCoin("Buenbit", "USDT", "USD", ONE), C), "ARS")*/
-                    ).toList();
-
-            var ppiResults = new ArrayList<Pair<String, MoneyAmount>>(ppiFutures.size());
-            for (var f : ppiFutures) {
-                ppiResults.add(f.get());
+            var ppiResults = new ArrayList<Pair<String, MoneyAmount>>(futures.size());
+            for (var f : futures) {
+                ppiResults.add(Pair.of(f.first(), f.second().get()));
             }
-            Stream.concat(ppiResults.stream(), results.stream())
+
+            Stream.concat(ppiResults.stream(), Stream.of(Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), blue)))
                     .sorted(Comparator.comparing(p -> p.second().getAmount(), Comparator.reverseOrder()))
                     .forEach(p -> this.console.appendLine(this.format.text(p.first(), LABEL_WIDTH), this.format.currency(p.second(), 10)));
 
