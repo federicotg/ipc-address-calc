@@ -107,7 +107,7 @@ public class PPI {
 
         try {
 
-            final var blue = new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS");
+            
 
             final var letra1 = "SO3";
 
@@ -128,7 +128,7 @@ public class PPI {
                 futures.add(this.criptoYaItem("Letsbit USDT (Venta)", new CriptoYaFXParams("Letsbit", "USDT", "USD", "ARS", "ARS"), executor));
                 futures.add(this.criptoYaItem("Letsbit DAI (Venta)",  new CriptoYaFXParams("Letsbit", "DAI", "USD", "ARS", "ARS"), executor));
             }
-
+            final var blue = new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS");
             var ppiResults = new ArrayList<Pair<String, MoneyAmount>>(futures.size());
             for (var f : futures) {
                 ppiResults.add(Pair.of(f.first(), f.second().get()));
