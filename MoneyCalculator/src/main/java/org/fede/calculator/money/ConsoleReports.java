@@ -315,6 +315,7 @@ public class ConsoleReports {
                         entry("income-src", "m=12"),
                         entry("savings-avg", "m=12"),
                         entry("income-table", ""),
+                        entry("income-year-table", ""),
                         entry("savings-dist", ""),
                         entry("savings-dist-pct", ""),
                         entry("income-avg-change", "m=12"),
