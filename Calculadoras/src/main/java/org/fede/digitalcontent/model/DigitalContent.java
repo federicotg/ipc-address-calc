@@ -308,15 +308,15 @@ public class DigitalContent {
 
             for (Pair<String, String> discBox : this.discs) {
 
-                StorageMedium medium = Repository.STORAGE.findById(discBox.getFirst());
+                StorageMedium medium = Repository.STORAGE.findById(discBox.first());
                 if (medium == null) {
-                    medium = new StorageMedium(discBox.getFirst());
+                    medium = new StorageMedium(discBox.first());
                     Repository.STORAGE.add(medium);
                 }
                 medium.addContent(dc);
-                StorageBox storageBox = Repository.STORAGEBOX.findById(discBox.getSecond());
+                StorageBox storageBox = Repository.STORAGEBOX.findById(discBox.second());
                 if (storageBox == null) {
-                    storageBox = new StorageBox(discBox.getSecond());
+                    storageBox = new StorageBox(discBox.second());
                     Repository.STORAGEBOX.add(storageBox);
                 }
                 storageBox.addStorageMedium(medium);

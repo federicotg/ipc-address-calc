@@ -72,14 +72,14 @@ public class InvestmentController {
     private static Map<String, String> filteringUris(DetailedInvestmentReportDTO arsReport, String sort, String path) {
         return Stream.concat(arsReport.getSubtotals().keySet().stream(), Stream.of("all"))
                 .map(key -> Pair.of(key, MessageFormat.format(URI_TEMPLATE, sort, key, path)))
-                .collect(toMap(Pair::getFirst, Pair::getSecond));
+                .collect(toMap(Pair::first, Pair::second));
     }
 
     private static Map<String, String> sortingUris(String filter, String path) {
         return COMPARATORS.entrySet()
                 .stream()
                 .map(entry -> Pair.of(entry.getKey(), MessageFormat.format(URI_TEMPLATE, entry.getKey(), filter, path)))
-                .collect(toMap(Pair::getFirst, Pair::getSecond));
+                .collect(toMap(Pair::first, Pair::second));
     }
 
     @Autowired

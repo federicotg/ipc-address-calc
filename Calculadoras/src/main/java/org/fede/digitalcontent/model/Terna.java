@@ -16,9 +16,6 @@
  */
 package org.fede.digitalcontent.model;
 
-import org.fede.util.Pair;
-import java.util.Objects;
-
 /**
  *
  * @author fede
@@ -26,34 +23,6 @@ import java.util.Objects;
  * @param <B>
  * @param <C>
  */
-public class Terna<A, B, C> extends Pair<A, B> {
-
-    private C third;
-
-    public Terna(A first, B second, C third) {
-        super(first, second);
-        this.third = third;
-    }
-
-    public C getThird() {
-        return third;
-    }
-
-    public void setThird(C third) {
-        this.third = third;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Terna
-                && Objects.equals(this.getFirst(), ((Pair) obj).getFirst())
-                && Objects.equals(this.getSecond(), ((Pair) obj).getSecond())
-                && Objects.equals(this.third, ((Terna) obj).third);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.getFirst(), this.getSecond(), this.getThird());
-    }
+public record Terna<A,B,C>(A first, B second, C third)  {
 
 }

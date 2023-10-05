@@ -23,7 +23,7 @@ import java.util.Map;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
+import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -292,7 +292,7 @@ public class CanvasJSChartService implements ChartService {
             if (yearMonth.compareTo(savings.getFrom()) >= 0 && yearMonth.compareTo(savings.getTo()) <= 0) {
                 CanvasJSDatapointDTO dataPoint = new CanvasJSDatapointDTO(
                         "date-".concat(String.valueOf(yearMonth.getYear())).concat("-").concat(String.valueOf(yearMonth.getMonth() - 1)).concat("-15"),
-                        savings.getAmount(yearMonth).getAmount().divide(sueldo.getAmount(), CONTEXT)
+                        savings.getAmount(yearMonth).getAmount().divide(sueldo.getAmount(), C)
                 );
                 datapoints.add(dataPoint);
             }
@@ -313,7 +313,7 @@ public class CanvasJSChartService implements ChartService {
 
         final MoneyAmount oneTroyOunce = new MoneyAmount(BigDecimal.ONE, "XAU");
 
-        final MoneyAmountSeries historicGold = USD_INFLATION.adjust(ForeignExchanges.USD_XAU.exchange(oneTroyOunce, "USD"), todayYear, todayMonth);
+        final MoneyAmountSeries historicGold = USD_INFLATION.adjust(ForeignExchanges.USD_ARS.exchange(oneTroyOunce, "USD"), todayYear, todayMonth);
 
         CanvasJSChartDTO dto = new CanvasJSChartDTO();
         CanvasJSTitleDTO title = new CanvasJSTitleDTO("Onza Troy en USD de " + this.monthNames.get(todayMonth) + " / " + todayYear);

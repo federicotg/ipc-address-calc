@@ -35,7 +35,7 @@ import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.MathConstants;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
+import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.series.IndexSeries;
@@ -160,14 +160,14 @@ public class InvestmentServiceImpl implements InvestmentService {
         if (then.signum() == 0) {
             return ONE;
         }
-        return now.subtract(then).divide(then, CONTEXT);
+        return now.subtract(then).divide(then, C);
     }
 
     private static BigDecimal savingsPct(BigDecimal savingsNow, BigDecimal savingsThen, BigDecimal avgIncome) {
         if (savingsNow.compareTo(savingsThen) == 0) {
             return ZERO;
         }
-        return savingsNow.subtract(savingsThen).divide(avgIncome, CONTEXT);
+        return savingsNow.subtract(savingsThen).divide(avgIncome, C);
     }
 
     private static BigDecimal realAmount(MoneyAmount nominalAmount, String targetCurrency, Date from, Date to) {
@@ -199,17 +199,13 @@ public class InvestmentServiceImpl implements InvestmentService {
 
     @Override
     public DetailedInvestmentReportDTO currentInvestmentsReport(String currency) {
-        return this.investmentReport(
-                currency, 
-                (item) -> item.isCurrent() 
-                        && item.getInitialDate().before(MAP.get(currency).getTo().asToDate()), 
-                true);
+        return null; 
     }
 
     @Override
     public DetailedInvestmentReportDTO pastInvestmentsReport(String currency) {
 
-        return this.investmentReport(currency, (item) -> !item.isCurrent() && item.getOut().getDate().before(new Date()), false);
+        return null; //this.investmentReport(currency, (item) -> !item.isCurrent() && item.getOut().getDate().before(new Date()), false);
     }
 
     private static YearMonth adjustDate(Date exactDate) {
@@ -222,74 +218,74 @@ public class InvestmentServiceImpl implements InvestmentService {
         return YearMonth.of(exactLocalDate.getYear(), exactLocalDate.getMonthValue());
     }
 
-    private DetailedInvestmentReportDTO investmentReport(String currency, Predicate<Investment> filter, boolean includeTotal) {
-
-        if (!MAP.containsKey(currency)) {
-            throw new IllegalArgumentException("Currency " + currency + " does not have a known inflation index.");
-        }
-
-        final var inflation = MAP.get(currency);
-        final var untilDate = inflation.getTo().asToDate();
-
-        var initialAmount = new MoneyAmount(ZERO, currency);
-        var currentAmount = new MoneyAmount(ZERO, currency);
-
-        final List<InvestmentReportDTO> report = new ArrayList<>();
-
-        for (Investment item : this.investmentSeries.stream()
-                .flatMap(fileName -> SeriesReader.read(fileName, TYPE_REFERENCE).stream())
-                .filter(filter)
-                .collect(Collectors.toList())) {
-
-            final var itemUntilDate = item.getOut() == null ? untilDate : item.getOut().getDate();
-            final var itemUntilYearMonth = adjustDate(itemUntilDate);
-
-            if (includeTotal) {
-                final YearMonth start = adjustDate(item.getInitialDate());
-                initialAmount = initialAmount.add(
-                        inflation.adjust(item.initialAmount(currency),
-                                start.getYear(),
-                                start.getMonth(),
-                                itemUntilYearMonth.getYear(),
-                                itemUntilYearMonth.getMonth()));
-                currentAmount = currentAmount.add(item.finalAmount(currency, itemUntilDate));
-            }
-
-            final var finalAmount = item.finalAmount(currency, itemUntilDate).getAmount();
-            final var realAmount = realAmount(item.initialAmount(currency), currency, item.getInitialDate(), itemUntilDate);
-
-            report.add(new InvestmentReportDTO(
-                    item.getType().name(),
-                    item.getInitialDate(),
-                    itemUntilDate,
-                    currency,
-                    item.initialAmount(currency).getAmount(),
-                    finalAmount,
-                    inflation(currency, item.getInitialDate(), itemUntilDate),
-                    item.getInvestment().getCurrency(),
-                    finalAmount.subtract(realAmount).setScale(2, MathConstants.ROUNDING_MODE),
-                    realAmount));
-
-        }
-
-        final Map<String, InvestmentDTO> subtotals = report.stream()
-                .collect(groupingBy(InvestmentReportDTO::getInvestmentCurrency, reducing(new InvestmentDTO(), this::mapper, this::reducer)));
-
-        final BigDecimal total = subtotals.values()
-                .stream()
-                .map(InvestmentDTO::getFinalAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        subtotals.values()
-                .stream()
-                .forEach(dto -> dto.setRelativePct(dto.getFinalAmount().divide(total, CONTEXT)));
-
-        return new DetailedInvestmentReportDTO(
-                includeTotal
-                        ? new InvestmentDTO(currency, initialAmount.getAmount(), currentAmount.getAmount(), untilDate)
-                        : null,
-                report,
-                subtotals);
-    }
+//    private DetailedInvestmentReportDTO investmentReport(String currency, Predicate<Investment> filter, boolean includeTotal) {
+//
+//        if (!MAP.containsKey(currency)) {
+//            throw new IllegalArgumentException("Currency " + currency + " does not have a known inflation index.");
+//        }
+//
+//        final var inflation = MAP.get(currency);
+//        final var untilDate = inflation.getTo().asToDate();
+//
+//        var initialAmount = new MoneyAmount(ZERO, currency);
+//        var currentAmount = new MoneyAmount(ZERO, currency);
+//
+//        final List<InvestmentReportDTO> report = new ArrayList<>();
+//
+//        for (Investment item : this.investmentSeries.stream()
+//                .flatMap(fileName -> SeriesReader.read(fileName, TYPE_REFERENCE).stream())
+//                .filter(filter)
+//                .collect(Collectors.toList())) {
+//
+//            final var itemUntilDate = item.getOut() == null ? untilDate : item.getOut().getDate();
+//            final var itemUntilYearMonth = adjustDate(itemUntilDate);
+//
+//            if (includeTotal) {
+//                final YearMonth start = adjustDate(item.getInitialDate());
+//                initialAmount = initialAmount.add(
+//                        inflation.adjust(item.initialAmount(currency),
+//                                start.getYear(),
+//                                start.getMonth(),
+//                                itemUntilYearMonth.getYear(),
+//                                itemUntilYearMonth.getMonth()));
+//                currentAmount = currentAmount.add(item.finalAmount(currency, itemUntilDate));
+//            }
+//
+//            final var finalAmount = item.finalAmount(currency, itemUntilDate).getAmount();
+//            final var realAmount = realAmount(item.initialAmount(currency), currency, item.getInitialDate(), itemUntilDate);
+//
+//            report.add(new InvestmentReportDTO(
+//                    item.getType().name(),
+//                    item.getInitialDate(),
+//                    itemUntilDate,
+//                    currency,
+//                    item.initialAmount(currency).getAmount(),
+//                    finalAmount,
+//                    inflation(currency, item.getInitialDate(), itemUntilDate),
+//                    item.getInvestment().getCurrency(),
+//                    finalAmount.subtract(realAmount).setScale(2, MathConstants.RM),
+//                    realAmount));
+//
+//        }
+//
+//        final Map<String, InvestmentDTO> subtotals = report.stream()
+//                .collect(groupingBy(InvestmentReportDTO::getInvestmentCurrency, reducing(new InvestmentDTO(), this::mapper, this::reducer)));
+//
+//        final BigDecimal total = subtotals.values()
+//                .stream()
+//                .map(InvestmentDTO::getFinalAmount)
+//                .reduce(BigDecimal.ZERO, BigDecimal::add);
+//        subtotals.values()
+//                .stream()
+//                .forEach(dto -> dto.setRelativePct(dto.getFinalAmount().divide(total, C)));
+//
+//        return new DetailedInvestmentReportDTO(
+//                includeTotal
+//                        ? new InvestmentDTO(currency, initialAmount.getAmount(), currentAmount.getAmount(), untilDate)
+//                        : null,
+//                report,
+//                subtotals);
+//    }
 
     private InvestmentDTO reducer(InvestmentDTO left, InvestmentDTO right) {
         if (left.getCurrency() == null) {

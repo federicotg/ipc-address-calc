@@ -23,7 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import static org.fede.calculator.money.MathConstants.CONTEXT;
+import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
@@ -179,7 +179,7 @@ public class CanvasJSMultiSeriesChartService implements MultiSeriesChartService 
                     percentSeries.putAmount(
                             yearMonth,
                             new MoneyAmount(
-                                    expensesSum.getAmount().divide(oneCent.max(incomeValue.getAmount()), CONTEXT),
+                                    expensesSum.getAmount().divide(oneCent.max(incomeValue.getAmount()), C),
                                     totalIncome.getCurrency()));
                 }
             });

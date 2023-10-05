@@ -134,8 +134,8 @@ public class SingleMediaTest {
     }
 
     private Map<StorageMedium, List<DigitalContent>> remap(Pair<DigitalContent, List<StorageBox>> pair) {
-        DigitalContent dc = pair.getFirst();
-        return pair.getSecond().stream()
+        DigitalContent dc = pair.first();
+        return pair.second().stream()
                 .flatMap(box -> box.getMedia().stream())
                 .filter(medium -> medium.contains(dc))
                 .collect(Collectors.groupingBy(medium -> medium, Collectors.mapping(medium -> dc, Collectors.toList())));
