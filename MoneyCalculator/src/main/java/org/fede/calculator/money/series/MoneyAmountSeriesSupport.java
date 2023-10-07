@@ -77,8 +77,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     public final MoneyAmountSeries add(final MoneyAmountSeries other) {
 
         if (!other.getCurrency().equals(this.getCurrency())) {
-            String usd = "USD";
-            return this.exchangeInto(usd).add(other.exchangeInto(usd));
+            return this.exchangeInto("USD").add(other.exchangeInto("USD"));
         }
 
         if (this.getFrom().compareTo(other.getFrom()) > 0) {

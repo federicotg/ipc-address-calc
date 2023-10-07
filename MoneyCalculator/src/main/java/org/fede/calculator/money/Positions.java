@@ -605,7 +605,7 @@ public class Positions {
         return amounts.values()
                 .stream()
                 .flatMap(Optional::stream)
-                .filter(ma -> !ma.isZero())
+                .filter(Predicate.not(MoneyAmount::isZero))
                 .map(amount -> new PortfolioItem(amount, type, ym));
     }
 

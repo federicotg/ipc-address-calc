@@ -20,8 +20,6 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static java.text.MessageFormat.format;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
@@ -73,16 +71,13 @@ public class House {
                 start,
                 limit);
 
-        final var initialCostSeries = new SortedMapMoneyAmountSeries(
-                "USD",
-                Map.of(
-                        start, realInitialCost,
-                        YearMonth.of(2010, 9), ZERO_USD,
-                        YearMonth.of(2010, 10), ZERO_USD,
-                        YearMonth.of(2010, 11), ZERO_USD,
-                        YearMonth.of(2010, 12), ZERO_USD,
-                        YearMonth.of(2011, 1), ZERO_USD
-                ));
+        final var initialCostSeries = new SortedMapMoneyAmountSeries("USD");
+        initialCostSeries.putAmount(start, realInitialCost);
+        initialCostSeries.putAmount(YearMonth.of(2010, 9), ZERO_USD);
+        initialCostSeries.putAmount(YearMonth.of(2010, 10), ZERO_USD);
+        initialCostSeries.putAmount(YearMonth.of(2010, 11), ZERO_USD);
+        initialCostSeries.putAmount(YearMonth.of(2010, 12), ZERO_USD);
+        initialCostSeries.putAmount(YearMonth.of(2011, 1), ZERO_USD);
 
         final var proportionalExpenses = SeriesReader.readSeries("expense/consorcio-reparaciones.json")
                 .map((ym, amount) -> amount.adjust(ONE, COEFFICIENT));

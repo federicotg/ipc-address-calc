@@ -285,7 +285,7 @@ public class PortfolioReturns {
                 this.cashInvestments.cashInvestments().stream(),
                 this.series.getInvestments().stream())
                 .map(Investment::getCurrency)
-                .filter(c -> !skippedCurrencies.contains(c))
+                .filter(Predicate.not(skippedCurrencies::contains))
                 .distinct()
                 .forEach(this::mdrByCurrencyReport);
 

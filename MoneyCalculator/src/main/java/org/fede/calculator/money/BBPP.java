@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -231,15 +232,15 @@ public class BBPP {
         result.taxedDomesticAmount = result.allArs
                 .stream()
                 .filter(BBPPItem::isDomestic)
-                .filter(i -> !i.isExempt())
+                .filter(Predicate.not(BBPPItem::isExempt))
                 .map(i -> i.getValue().multiply(i.getHolding(), C))
                 .reduce(ZERO, BigDecimal::add)
                 .multiply(new BigDecimal("1.05"), C);
 
         result.taxedForeignAmount = result.allArs
                 .stream()
-                .filter(i -> !i.isDomestic())
-                .filter(i -> !i.isExempt())
+                .filter(Predicate.not(BBPPItem::isDomestic))
+                .filter(Predicate.not(BBPPItem::isExempt))
                 .map(i -> i.getValue().multiply(i.getHolding(), C))
                 .reduce(ZERO, BigDecimal::add);
 
@@ -384,7 +385,7 @@ public class BBPP {
         final var domestic = bbpp.getItems()
                 .stream()
                 .filter(BBPPItem::isDomestic)
-                .filter(i -> !i.isExempt())
+                .filter(Predicate.not(BBPPItem::isExempt))
                 .map(i -> i.getValue().multiply(i.getHolding(), C))
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .multiply(new BigDecimal("1.05"), C);
@@ -392,8 +393,8 @@ public class BBPP {
         final var foreign = bbpp.getItems()
                 .stream()
                 .filter(i -> ibkr || !i.getName().equals("IBKR USD"))
-                .filter(i -> !i.isDomestic())
-                .filter(i -> !i.isExempt())
+                .filter(Predicate.not(BBPPItem::isDomestic))
+                .filter(Predicate.not(BBPPItem::isExempt))
                 .map(i -> this.toARS(i, bbpp.getUsd(), bbpp.getEur()))
                 .map(i -> i.getValue().multiply(i.getHolding(), C))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

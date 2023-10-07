@@ -16,11 +16,9 @@
  */
 package org.fede.calculator.money.series;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+import java.util.SequencedMap;
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.stream.Stream;
@@ -32,32 +30,11 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
-    private static final Comparator<Map.Entry<YearMonth, ?>> SERIES_COMPARATOR = Comparator.comparing(Map.Entry::getKey);
-    
-    private final Map<YearMonth, MoneyAmount> values;
-    private YearMonth from;
-    private YearMonth to;
-
-    public SortedMapMoneyAmountSeries(final String currency, final Map<YearMonth, MoneyAmount> values) {
-        super(currency);
-        this.values = values;
-        this.from = Optional.ofNullable(values)
-                .orElseGet(Collections::emptyMap)
-                .keySet()
-                .stream()
-                .reduce(YearMonth::min)
-                .orElse(null);
-        this.to = Optional.ofNullable(values)
-                .orElseGet(Collections::emptyMap)
-                .keySet()
-                .stream()
-                .reduce(YearMonth::max)
-                .orElse(null);
-
-    }
+    private final SequencedMap<YearMonth, MoneyAmount> values;
 
     public SortedMapMoneyAmountSeries(final String currency) {
-        this(currency, HashMap.newHashMap(1000));
+        super(currency);
+        this.values = new TreeMap<>(YearMonth::compareTo);
     }
 
     @Override
@@ -67,12 +44,12 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
     @Override
     public YearMonth getFrom() {
-        return this.from;
+        return this.values.firstEntry().getKey();
     }
 
     @Override
     public YearMonth getTo() {
-        return this.to;
+        return this.values.lastEntry().getKey();
     }
 
     @Override
@@ -83,19 +60,12 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
     @Override
     public void putAmount(YearMonth ym, MoneyAmount amount) {
         this.values.put(ym, amount);
-        this.from = Optional.ofNullable(this.from)
-                .map(v -> v.min(ym))
-                .orElse(ym);
-        this.to = Optional.ofNullable(this.to)
-                .map(v -> v.max(ym))
-                .orElse(ym);
     }
 
     @Override
     public void forEach(BiConsumer<YearMonth, MoneyAmount> consumer) {
-        this.values.entrySet()
+        this.values.sequencedEntrySet()
                 .stream()
-                .sorted(SERIES_COMPARATOR)
                 .forEach(e -> consumer.accept(e.getKey(), e.getValue()));
     }
 
@@ -106,20 +76,20 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
     @Override
     public Stream<MoneyAmount> moneyAmountStream() {
-        return this.values.values().stream();
+        return this.values.sequencedValues().stream();
     }
 
     @Override
     public Stream<MoneyAmount> filter(BiPredicate<YearMonth, MoneyAmount> predicate) {
-
-        return this.values.entrySet().stream()
+        return this.values.sequencedEntrySet()
+                .stream()
                 .filter(e -> predicate.test(e.getKey(), e.getValue()))
                 .map(Map.Entry::getValue);
     }
 
     @Override
     public Stream<YearMonth> yearMonthStream() {
-        return this.values.keySet().stream();
+        return this.values.sequencedKeySet().stream();
     }
 
 }

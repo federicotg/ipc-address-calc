@@ -52,7 +52,7 @@ public class SeriesReader {
     static {
         OM.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
-    
+
     public static IndexSeries readIndexSeries(String name) {
         return CACHE.computeIfAbsent(name, seriesName -> new JSONIndexSeries(read(seriesName, INDEX_SERIES_TYPE_REFERENCE)));
     }
@@ -81,28 +81,28 @@ public class SeriesReader {
 
             JSONSeries series = OM.readValue(is, JSONSeries.class);
 
-            final SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
+            //final SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
             final String currency = series.getCurrency();
+            final var maSeries = new SortedMapMoneyAmountSeries(currency);
+
             for (JSONDataPoint dp : series.getData()) {
-                if (interpolatedData.put(YearMonth.of(dp.year(), dp.month()), moneyAmount(dp.value(), currency)) != null) {
-                    throw new IllegalArgumentException(MessageFormat.format("Series {0} has two values for year {1} and month {2}", name, dp.year(), dp.month()));
-                }
+                maSeries.putAmount(YearMonth.of(dp.year(), dp.month()), moneyAmount(dp.value(), currency));
             }
 
             final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
-           
-            YearMonth ym = interpolatedData.firstKey();
-            final YearMonth last = interpolatedData.lastKey();
-            
-            final var allValues = new HashMap<>(interpolatedData);
+
+            YearMonth ym = maSeries.getFrom();
+            final YearMonth last = maSeries.getTo();
+
+            //final var allValues = new HashMap<>(interpolatedData);
             while (ym.monthsUntil(last) > 0) {
                 YearMonth next = ym.next();
-                if (!allValues.containsKey(next)) {
-                    allValues.put(next, strategy.interpolate(allValues.get(ym), ym, currency));
+                if (!maSeries.hasValue(next)) {
+                    maSeries.putAmount(next, strategy.interpolate(maSeries.getAmount(ym), ym, currency));
                 }
                 ym = ym.next();
             }
-            return new SortedMapMoneyAmountSeries(currency, allValues);
+            return maSeries;
 
         } catch (IOException ioEx) {
             throw new IllegalArgumentException(MessageFormat.format("Could not read series named {0}", name), ioEx);
