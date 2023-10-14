@@ -13,8 +13,7 @@
                 <version>3.11.0</version>
                 <configuration>
                     <showDeprecation>true</showDeprecation>
-                    <source>21</source>
-                    <target>21</target>
+                    <release>21</release>
                 </configuration>
             </plugin>
             
@@ -66,7 +65,6 @@
             <version>2.15.2</version>
         </dependency>
         
-        <!-- https://mvnrepository.com/artifact/com.diogonunes/JColor -->
         <dependency>
             <groupId>com.diogonunes</groupId>
             <artifactId>JColor</artifactId>

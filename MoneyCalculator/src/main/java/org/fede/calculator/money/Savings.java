@@ -25,7 +25,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toMap;
@@ -59,15 +58,17 @@ public class Savings {
     }
 
     private int getScale(int months) {
-        int scale = 50;
-        if (months <= 3) {
-            scale = 100;
-        } else if (months <= 6) {
-            scale = 65;
-        } else if (months > 24) {
-            scale = 40;
-        }
-        return scale;
+
+        return switch (months) {
+            case 1, 2, 3 ->
+                100;
+            case 4, 5, 6 ->
+                65;
+            case 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 ->
+                50;
+            default ->
+                40;
+        };
     }
 
     public void netAvgSavingSpent(int months, String title) {
@@ -79,10 +80,7 @@ public class Savings {
         final var netSaving = agg.average(this.series.realNetSavings());
         final var spending = agg.average(this.series.realExpenses(null));
 
-        netSaving
-                //.map((ym, ma) -> ZERO_USD.max(ma))
-                //.map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.series(ym, spending, income, savingMa), this.getScale(months))));
+        netSaving.forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.series(ym, spending, income, savingMa), this.getScale(months))));
 
         this.savingsRefs(title);
 
@@ -105,8 +103,6 @@ public class Savings {
         final var spending = agg.average(this.series.realExpenses(null));
 
         netSaving
-                //.map((ym, ma) -> ZERO_USD.max(ma))
-                //.map((ym, ma) -> new MoneyAmount(income.getAmountOrElseZero(ym).getAmount().min(ma.getAmount()), ma.getCurrency()))
                 .forEach((ym, savingMa) -> this.console.appendLine(this.bar.percentBar(ym, this.series(ym, spending, income, savingMa))));
         this.savingsRefs(title);
     }
