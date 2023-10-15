@@ -116,7 +116,24 @@ public class Investments {
                         .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
     }
 
+    public void cashInv(boolean nominal){
+        this.investmentReport(
+                this.cashInvestments.cashInvestments().stream(),
+                i -> true, 
+                i -> true, 
+                Investment::isCurrent, nominal);
+    }
+    
     private void investmentReport(final Predicate<Investment> everyone, boolean nominal) {
+        this.investmentReport(this.getInvestments(), everyone, Investment::isETF, Investment::isCurrent, nominal);
+    }
+
+    private void investmentReport(
+            Stream<Investment> invStream, 
+            final Predicate<Investment> everyone, 
+            final Predicate<Investment> etf,
+            final Predicate<Investment> current,
+            boolean nominal) {
         this.console.appendLine(this.format.title(format("{0} Investment Results", nominal ? "Nominal" : "Real")));
 
         final var ics = new InvestmentCostStrategy("USD");
@@ -126,9 +143,9 @@ public class Investments {
 
         this.invHeader(colWidths, true);
 
-        final var details = this.getInvestments()
-                .filter(Investment::isCurrent)
-                .filter(Investment::isETF)
+        final var details = invStream
+                .filter(current)
+                .filter(etf)
                 .filter(everyone)
                 .map(ics::details)
                 .map(d -> nominal ? d : d.asReal())
@@ -177,13 +194,11 @@ public class Investments {
                         .mapToObj(y -> y == 0 ? "Total" : this.format.text(String.valueOf(y), 9))
                         .collect(joining()));
 
-        
         Stream.of("CSPX", "EIMI", "XRSU", "RTWO", "MEUD", "IWDA")
                 .map(symbol -> Pair.of(symbol, this.annualRealReturn(symbol, 0, nominal)))
                 .sorted(Comparator.comparing(Pair::second, Comparator.reverseOrder()))
-                .map(p-> this.row(p.first(), nominal))
+                .map(p -> this.row(p.first(), nominal))
                 .forEach(this.console::appendLine);
-
 
     }
 

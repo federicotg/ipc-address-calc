@@ -99,6 +99,17 @@ public class ConsoleReports {
                 .inv("all".equalsIgnoreCase(type) ? x -> true : x -> this.investmentFilter(x, type), nominal(params));
 
     }
+    
+    private void cashInvReport(String[] args, String paramName) {
+
+        final var params = this.paramsValue(args, paramName);
+
+        //final var type = params.getOrDefault("type", "all");
+
+        new Investments(this.console, this.format, this.bar, this.series)
+                .cashInv(nominal(params));
+
+    }
 
     private boolean investmentFilter(Investment i, String type) {
         if ("all".equalsIgnoreCase(type)) {
@@ -128,6 +139,9 @@ public class ConsoleReports {
             }
             case "inv" -> {
                 yield () -> me.invReport(args, "inv");
+            }
+            case "cash-inv" -> {
+                yield () -> me.cashInvReport(args, "cash-inv");
             }
             case "savings" -> {
                 yield () -> me.savings(args, "savings");
