@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 federicogentile
+ * Copyright (C) 2023 fede
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,32 +16,35 @@
  */
 package org.fede.calculator.money;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 
 /**
  *
- * @author federicogentile
+ * @author fede
  */
-public class PrintStreamConsole implements Console {
+public class ByteArrayConsole implements Console {
 
-    private final PrintStream out;
+    private static final byte[] EOL = System.lineSeparator().getBytes();
+    private final ByteArrayOutputStream out;
 
-    public PrintStreamConsole(PrintStream out) {
-        this.out = out;
+    public ByteArrayConsole() {
+        this.out = new ByteArrayOutputStream(4096);
     }
-    
+
     @Override
     public void appendLine(String... texts) {
-        for(var text : texts){
-            this.out.append(text);
+
+        for (var text : texts) {
+            out.writeBytes(text.getBytes());
         }
-        this.out.append("\n");
+        out.writeBytes(EOL);
     }
 
     @Override
     public void printReport() throws IOException {
-        
+        this.out.writeTo(System.out);
+
     }
-    
+
 }

@@ -284,7 +284,7 @@ public class ConsoleReports {
     public static void main(String[] args) {
         try {
 
-            final var console = new PrintStreamConsole(System.out);
+            final var console = new ByteArrayConsole();
             final var format = new Format();
             final var bar = new Bar(console, format);
             final var series = new Series();
@@ -365,7 +365,7 @@ public class ConsoleReports {
                 me.appendLine("");
 
             }
-            console.printReport(null);
+            console.printReport();
         } catch (Exception ex) {
             System.err.println(ex.getMessage());
             ex.printStackTrace(System.err);

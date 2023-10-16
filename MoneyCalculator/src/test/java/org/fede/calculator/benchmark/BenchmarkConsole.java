@@ -17,7 +17,6 @@
 package org.fede.calculator.benchmark;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import org.fede.calculator.money.Console;
 
 /**
@@ -32,7 +31,7 @@ public class BenchmarkConsole implements Console {
     }
 
     @Override
-    public void printReport(OutputStream out) throws IOException {
+    public void printReport() throws IOException {
         // do nothing
     }
     

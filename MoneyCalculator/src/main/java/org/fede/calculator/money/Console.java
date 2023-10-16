@@ -27,5 +27,5 @@ public interface Console {
 
   
     void appendLine(String... texts);
-    void printReport(OutputStream out) throws IOException;
+    void printReport() throws IOException;
 }

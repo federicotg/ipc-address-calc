@@ -16,36 +16,36 @@
  */
 package org.fede.calculator.money;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Arrays;
 
 /**
  *
  * @author fede
  */
 public class StringBuilderConsole implements Console {
-    
-    
+
     private final StringBuilder out;
 
     public StringBuilderConsole() {
-        this.out = new StringBuilder(1024);
+        this.out = new StringBuilder(2048);
     }
 
     @Override
     public void appendLine(String... texts) {
-        Arrays.stream(texts)
-                .forEach(out::append);
+
+        for (var text : texts) {
+            out.append(text);
+        }
         out.append("\n");
     }
 
     @Override
-    public void printReport(OutputStream out) throws IOException {
-        out.write(this.out.toString().getBytes());
-        out.flush();
-        out.close();
+    public void printReport() throws IOException {
+        var os = new BufferedOutputStream(System.out);
+        os.write(this.out.toString().getBytes());
+        os.flush();
+        os.close();
     }
 
-    
 }
