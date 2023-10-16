@@ -171,7 +171,7 @@ public class ForeignExchanges {
     public static ForeignExchange getForeignExchange(String from, String to) {
 
         if (from.equals(to)) {
-            return IDENTITY_FX.computeIfAbsent(to, currency -> getIdentityForeignExchange(currency));
+            return IDENTITY_FX.computeIfAbsent(to, ForeignExchanges::getIdentityForeignExchange);
         }
 
         ForeignExchange answer = DIRECT_FOREIGN_EXCHANGES.get(new Pair<>(from, to));
