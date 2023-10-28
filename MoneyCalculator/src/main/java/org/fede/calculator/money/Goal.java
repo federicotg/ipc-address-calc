@@ -324,15 +324,14 @@ public class Goal {
             double bbppMin) {
 
         return IntStream.range(0, trials)
-                .mapToObj(i -> Pair.of(returnsSuplier.get(), end))
                 .mapToDouble(p
                         -> this.goals(
                         startingYear,
                         retirementYear,
-                        p.second(),
+                        end,
                         cash,
                         investedAmount,
-                        p.first(),
+                        returnsSuplier.get(),
                         realDeposits,
                         realWithdrawals,
                         bbppMin))
