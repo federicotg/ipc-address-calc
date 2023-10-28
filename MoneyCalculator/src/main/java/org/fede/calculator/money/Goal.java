@@ -84,8 +84,8 @@ public class Goal {
         this.bar = bar;
 
     }
-
-    private boolean goals(
+    
+    private double goals(
             final int startingYear,
             final int retirement,
             final int end,
@@ -115,7 +115,7 @@ public class Goal {
         }
 
         final var cgt = CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT.doubleValue();
-
+        
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
@@ -142,7 +142,7 @@ public class Goal {
                 amount *= returns[i - startingYear];
             }
         }
-        return amount + cashAmount > 0.0d;
+        return amount + cashAmount;
     }
 
     public void goal(
@@ -325,7 +325,7 @@ public class Goal {
 
         return IntStream.range(0, trials)
                 .mapToObj(i -> Pair.of(returnsSuplier.get(), end))
-                .filter(p
+                .mapToDouble(p
                         -> this.goals(
                         startingYear,
                         retirementYear,
@@ -336,6 +336,7 @@ public class Goal {
                         realDeposits,
                         realWithdrawals,
                         bbppMin))
+                .filter(d -> d > 0.0d)
                 .count();
     }
 

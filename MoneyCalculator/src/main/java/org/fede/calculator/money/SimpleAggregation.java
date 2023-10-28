@@ -19,8 +19,6 @@ package org.fede.calculator.money;
 import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.SequencedCollection;
 import java.util.function.Function;
 import org.fede.calculator.money.series.IndexSeries;

@@ -17,7 +17,6 @@
 package org.fede.calculator.money;
 
 import org.fede.calculator.ppi.PPI;
-import java.io.BufferedOutputStream;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
@@ -52,7 +51,6 @@ public class ConsoleReports {
 
     private static final String MONTHS_PARAM = "m";
 
-    //private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 
     private static final String TRIALS = "60000";

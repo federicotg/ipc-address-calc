@@ -17,7 +17,6 @@
 package org.fede.calculator.money;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 /**
  *

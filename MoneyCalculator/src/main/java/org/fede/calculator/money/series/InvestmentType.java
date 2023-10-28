@@ -1,7 +1,5 @@
 package org.fede.calculator.money.series;
 
-import java.util.Set;
-
 /*
  * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
  *
