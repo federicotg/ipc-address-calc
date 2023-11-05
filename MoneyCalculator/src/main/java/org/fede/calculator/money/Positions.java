@@ -91,11 +91,6 @@ public class Positions {
 
     private static final String AVERAGE_KEY = "Avg.";
 
-    private static final Map<Integer, Attribute> PNL_COLORS = Map.of(
-            1, Attribute.RED_TEXT(),
-            0, Attribute.WHITE_TEXT(),
-            -1, Attribute.GREEN_TEXT());
-
     private final Console console;
     private final Format format;
     private final Series series;
@@ -344,21 +339,21 @@ public class Positions {
 
         this.console.appendLine(this.format.text("", 11),
                 positionByGroup.keySet().stream()
-                        .map(Pair::first)
+                        .map(CurrencyAndGroupKey::currency)
                         .distinct()
                         .sorted()
                         .map(currency -> this.format.text(currency, 9))
                         .collect(joining()));
 
         positionByGroup.keySet().stream()
-                .map(Pair::second)
+                .map(CurrencyAndGroupKey::groupKey)
                 .distinct()
                 .sorted()
                 .map(year -> this.avgPrice(year, positionByGroup, averagesByGroup))
                 .forEach(this.console::appendLine);
 
         averagesByGroup.keySet().stream()
-                .map(Pair::second)
+                .map(CurrencyAndGroupKey::groupKey)
                 .distinct()
                 .map(year -> this.avgPrice(year, averagesByGroup, averagesByGroup))
                 .forEach(this.console::appendLine);
@@ -366,55 +361,66 @@ public class Positions {
         this.console.appendLine(this.format.text("Curr.", 8),
                 ETF_NAME.keySet().stream()
                         .sorted()
-                        .map(c -> this.currentPice(averagesByGroup, c))
+                        .map(this::currentPice)
                         .collect(joining()));
     }
 
-    private String currentPice(Map<Pair<String, String>, Position> averagePrices, String currency) {
+    private MoneyAmount current(String currency) {
         final var ma = new MoneyAmount(ONE, currency);
-        final var current = ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, Inflation.USD_INFLATION.getTo());
-        final var average = averagePrices.get(Pair.of(currency, AVERAGE_KEY)).getAveragePrice();
-        return this.colorized(current.getAmount(), average.getAmount());
+        return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, Inflation.USD_INFLATION.getTo());
     }
 
-    private Map<Pair<String, String>, Position> positionsBy(List<Investment> investments, Function<Investment, String> groupingFunction, boolean nominal) {
+    private String currentPice(String currency) {
+        return Ansi.colorize(this.format.currency(this.current(currency).getAmount(), 9), Attribute.WHITE_TEXT());
+    }
+
+    private Map<CurrencyAndGroupKey, Position> positionsBy(List<Investment> investments, Function<Investment, String> groupingFunction, boolean nominal) {
         return investments
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
                 .map(inv -> ForeignExchanges.exchange(inv, "USD"))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
-                .collect(groupingBy(i -> Pair.of(i.getCurrency(), groupingFunction.apply(i))))
+                .collect(groupingBy(i -> new CurrencyAndGroupKey(i.getCurrency(), groupingFunction.apply(i))))
                 .entrySet()
                 .stream()
                 .collect(toMap(e -> e.getKey(), e -> this.position(e.getValue())));
     }
 
-    private String avgPrice(String year, Map<Pair<String, String>, Position> positionsByGroup, Map<Pair<String, String>, Position> averagesByGroup) {
+    private String avgPrice(String year, Map<CurrencyAndGroupKey, Position> positionsByGroup, Map<CurrencyAndGroupKey, Position> averagesByGroup) {
         return Stream.concat(
                 Stream.of(this.format.text(String.valueOf(year), 8)),
                 positionsByGroup.keySet().stream()
-                        .map(Pair::first)
+                        .map(CurrencyAndGroupKey::currency)
                         .distinct()
                         .sorted()
-                        .map(currency -> Pair.of(currency, year))
+                        .map(currency -> new CurrencyAndGroupKey(currency, year))
                         .map(key -> this.avgPrice(positionsByGroup, key, averagesByGroup)))
                 .collect(joining());
 
     }
 
-    private String avgPrice(Map<Pair<String, String>, Position> positionsByGroup, Pair<String, String> key, Map<Pair<String, String>, Position> averagesByGroup) {
+    private String avgPrice(Map<CurrencyAndGroupKey, Position> positionsByGroup, CurrencyAndGroupKey key, Map<CurrencyAndGroupKey, Position> averagesByGroup) {
         return Optional.ofNullable(positionsByGroup.get(key))
                 .map(Position::getAveragePrice)
                 .map(MoneyAmount::getAmount)
-                .map(avgPrice -> this.colorized(avgPrice, averagesByGroup.get(Pair.of(key.first(), AVERAGE_KEY)).getAveragePrice().getAmount()))
+                .map(avgPrice -> this.colorized(avgPrice, averagesByGroup.get(new CurrencyAndGroupKey(key.currency(), AVERAGE_KEY)).getAveragePrice().getAmount(), this.current(key.currency()).getAmount()))
                 .orElseGet(() -> this.format.text("", 9));
     }
 
-    private String colorized(BigDecimal avgPrice, BigDecimal globalAverage) {
+    private String colorized(BigDecimal avgPrice, BigDecimal globalAverage, BigDecimal current) {
+        Attribute color;
+        if (avgPrice.compareTo(globalAverage) >= 0 && avgPrice.compareTo(current) >= 0) {
+            color = Attribute.RED_TEXT();
+        } else if (avgPrice.compareTo(globalAverage) > 0 || avgPrice.compareTo(current) > 0) {
+            color = Attribute.YELLOW_TEXT();
+        } else {
+            color = Attribute.GREEN_TEXT();
+        }
+
         return Ansi.colorize(
                 this.format.currency(avgPrice, 9),
-                PNL_COLORS.get(avgPrice.compareTo(globalAverage)));
+                color);
     }
 
     private String exchangeClassifier(Investment i) {
@@ -701,6 +707,10 @@ public class Positions {
                 this.format.text(type, 5),
                 this.format.currency(subtotal, 16),
                 this.bar.pctBar(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), C)).orElse(ZERO)));
+    }
+
+    private record CurrencyAndGroupKey(String currency, String groupKey) {
+
     }
 
 }
