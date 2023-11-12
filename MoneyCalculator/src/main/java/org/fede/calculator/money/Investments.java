@@ -54,12 +54,12 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
+import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
-import static org.fede.util.Pair.of;
 
 /**
  *
@@ -326,8 +326,8 @@ public class Investments {
         return Stream.concat(
                 Stream.of(this.format.text(ETF_NAME.getOrDefault(name, name), 25, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
                 IntStream.range(0, rowData.size())
-                        .mapToObj(i -> Pair.of(i, rowData.get(i)))
-                        .map(pair -> coloredPercent(pair.second(), color(name, pair.second(), useBenchmarks ? iwdaList.get(pair.first()) : null, useBenchmarks ? cspxList.get(pair.first()) : null))))
+                        .mapToObj(i -> new LabelAndMDR(i, rowData.get(i)))
+                        .map(pair -> coloredPercent(pair.mdr(), color(name, pair.mdr(), useBenchmarks ? iwdaList.get(Integer.parseInt(pair.label())) : null, useBenchmarks ? cspxList.get(Integer.parseInt(pair.label())) : null))))
                 .collect(joining());
     }
 
@@ -689,8 +689,8 @@ public class Investments {
 
     public void investments() {
 
-        final Comparator<Pair<Pair<String, String>, ?>> TYPE_CURRENCY_COMPARATOR = comparing((Pair<Pair<String, String>, ?> pair) -> pair.first().first())
-                .thenComparing(comparing(pair -> pair.first().second()));
+        final Comparator<InvestmentTypeCurrencyAndAmount> TYPE_CURRENCY_COMPARATOR = comparing(InvestmentTypeCurrencyAndAmount::type)
+                .thenComparing(InvestmentTypeCurrencyAndAmount::currency);
 
         Collector<Investment, ?, BigDecimal> mapper = Collectors.mapping(
                 inv -> inv.getMoneyAmount().getAmount(),
@@ -703,18 +703,27 @@ public class Investments {
 
         this.series.getInvestments().stream()
                 .filter(Investment::isCurrent)
-                .collect(groupingBy(inv -> of(inv.getType().toString(), inv.getCurrency()), mapper))
+                .collect(groupingBy(inv -> new InvestmentTypeAndCurrency(inv.getType(), inv.getCurrency()), mapper))
                 .entrySet()
                 .stream()
-                .map(e -> of(e.getKey(), e.getValue()))
+                .map(e -> new InvestmentTypeCurrencyAndAmount(e.getKey(), e.getValue()))
                 .sorted(TYPE_CURRENCY_COMPARATOR)
-                .map(e -> format("{0} {2}: {1}", e.first().first(), sixDigits.format(e.second()), e.first().second()))
+                .map(e -> format("{ 0} {2}: {1}", e.type(), sixDigits.format(e.amount()), e.currency()))
                 .forEach(this.console::appendLine);
     }
     
     private record LabelAndMDR(String label, ModifiedDietzReturnResult mdr){
         public LabelAndMDR(int year,  ModifiedDietzReturnResult mdr){
             this(String.valueOf(year), mdr);
+        }
+    }
+    
+    private record InvestmentTypeAndCurrency(InvestmentType type, String currency){}
+    
+    private record InvestmentTypeCurrencyAndAmount(InvestmentType type, String currency, BigDecimal amount){
+        
+        public InvestmentTypeCurrencyAndAmount(InvestmentTypeAndCurrency tc, BigDecimal amount){
+            this(tc.type(), tc.currency(), amount);
         }
     }
 }
