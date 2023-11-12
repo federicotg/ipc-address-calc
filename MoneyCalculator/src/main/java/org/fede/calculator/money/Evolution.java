@@ -111,7 +111,7 @@ public class Evolution<T> {
             final var typeList = totals.keySet().stream().sorted().toList();
 
             final var elements = IntStream.range(0, typeList.size())
-                    .mapToObj(i -> Pair.of(totals.get(typeList.get(i)), colorList.get(i)))
+                    .mapToObj(i -> new AmountAndColor(totals.get(typeList.get(i)), colorList.get(i)))
                     .toList();
 
             this.console.appendLine(
@@ -146,11 +146,11 @@ public class Evolution<T> {
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
 
-    private String bar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> elements, int scale) {
+    private String bar(YearMonth ym, List<AmountAndColor> elements, int scale) {
         return this.bar.genericBar(ym, elements, scale);
     }
 
-    private String pctBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> elements) {
+    private String pctBar(YearMonth ym, List<AmountAndColor> elements) {
         return this.bar.percentBar(ym, elements);
     }
 

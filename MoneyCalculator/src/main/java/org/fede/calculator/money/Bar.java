@@ -34,7 +34,6 @@ import java.util.stream.Stream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
-import org.fede.util.Pair;
 import static org.fede.calculator.money.MathConstants.C;
 
 /**
@@ -62,11 +61,11 @@ public class Bar {
         this.format = format;
     }
 
-    public String percentBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts) {
+    public String percentBar(YearMonth ym, List<AmountAndColor> amounts) {
 
         final var total = amounts
                 .stream()
-                .map(Pair::first)
+                .map(AmountAndColor::amount)
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
@@ -75,38 +74,38 @@ public class Bar {
         }
         final var relativeAmounts = amounts
                 .stream()
-                .filter(p -> !p.first().isZero())
-                .map(p -> Pair.of(new MoneyAmount(p.first().getAmount().divide(total, C).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.first().getCurrency()), p.second()))
+                .filter(p -> !p.amount().isZero())
+                .map(p -> new AmountAndColor(new MoneyAmount(p.amount().getAmount().divide(total, C).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.amount().getCurrency()), p.color()))
                 .collect(Collectors.toList());
 
         final var relativeTotal = relativeAmounts
                 .stream()
-                .map(Pair::first)
+                .map(AmountAndColor::amount)
                 .map(MoneyAmount::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
         if (relativeTotal.compareTo(HUNDRED) != 0) {
             final var first = relativeAmounts.get(0);
 
-            final var firstAmount = first.first().getAmount();
+            final var firstAmount = first.amount().getAmount();
 
             var difference = relativeTotal.subtract(HUNDRED, C).negate(C);
 
             relativeAmounts.set(0,
-                    Pair.of(new MoneyAmount(firstAmount.add(difference, C), first.first().getCurrency()), first.second()));
+                    new AmountAndColor(new MoneyAmount(firstAmount.add(difference, C), first.amount().getCurrency()), first.color()));
 
         }
 
         return this.genericBar(ym, relativeAmounts, 1);
     }
 
-    public String genericBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> amounts, int width) {
+    public String genericBar(YearMonth ym, List<AmountAndColor> amounts, int width) {
 
         final var bars = IntStream.range(0, amounts.size())
                 .map(i -> i + 2)
                 .mapToObj(i -> format("'{'{0}'}'", i))
                 .collect(joining(""));
-        final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.first().getAmount(), width, p.first().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.second()));
+        final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.amount().getAmount(), width, p.amount().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.color()));
         final Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth()));
 
         return format("{0}/{1} ".concat(bars),
@@ -253,7 +252,7 @@ public class Bar {
 
         s.forEach((ym, ma) -> {
             if (ym.compareTo(limit) <= 0) {
-                this.console.appendLine(this.genericBar(ym, List.of(Pair.of(ma, Attribute.WHITE_BACK())), scale));
+                this.console.appendLine(this.genericBar(ym, List.of(new AmountAndColor(ma, Attribute.WHITE_BACK())), scale));
             }
         });
 

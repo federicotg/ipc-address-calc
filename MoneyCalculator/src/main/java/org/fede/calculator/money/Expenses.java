@@ -177,10 +177,10 @@ public class Expenses {
 
     }
 
-    private List<Pair<MoneyAmount, Attribute>> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
+    private List<AmountAndColor> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
 
         return IntStream.range(0, series.size())
-                .mapToObj(i -> Pair.of(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
+                .mapToObj(i -> new AmountAndColor(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
                 .toList();
     }
 }

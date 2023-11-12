@@ -236,14 +236,14 @@ public class Investments {
 
     }
 
-    private Pair<String, ModifiedDietzReturnResult> item(List<Investment> series, boolean nominal, int year) {
+    private LabelAndMDR item(List<Investment> series, boolean nominal, int year) {
         if (year == 0) {
-            return Pair.of(
+            return new LabelAndMDR(
                     "Total",
                     new ModifiedDietzReturn(series, nominal).get());
         }
 
-        return Pair.of(
+        return new LabelAndMDR(
                 String.valueOf(year),
                 new ModifiedDietzReturn(series, nominal, LocalDate.of(year, JANUARY, 1), LocalDate.of(year, DECEMBER, 31)).get());
     }
@@ -252,14 +252,14 @@ public class Investments {
         return IntStream.concat(IntStream.rangeClosed(2019, Inflation.USD_INFLATION.getTo().getYear()), IntStream.of(0));
     }
 
-    private void matrix(Map<String, List<Pair<String, ModifiedDietzReturnResult>>> matrix, boolean nominal) {
+    private void matrix(Map<String, List<LabelAndMDR>> matrix, boolean nominal) {
 
         final var titleRow = matrix.values()
                 .stream()
                 .findFirst()
                 .get()
                 .stream()
-                .map(Pair::first)
+                .map(LabelAndMDR::label)
                 .map(y -> this.format.text(y, 9))
                 .collect(joining());
 
@@ -269,8 +269,8 @@ public class Investments {
         matrix
                 .entrySet()
                 .stream()
-                .sorted(comparing(m -> m.getValue().stream().skip(m.getValue().size() - 1).findFirst().get().second(), reverseOrder()))
-                .map(e -> this.matrixRow(e.getKey(), e.getValue().stream().map(Pair::second).toList(), matrix))
+                .sorted(comparing(m -> m.getValue().stream().skip(m.getValue().size() - 1).findFirst().get().mdr(), reverseOrder()))
+                .map(e -> this.matrixRow(e.getKey(), e.getValue().stream().map(LabelAndMDR::mdr).toList(), matrix))
                 .forEach(this.console::appendLine);
 
     }
@@ -282,7 +282,7 @@ public class Investments {
             List<Investment> cashBenchmarkSeries,
             boolean nominal) {
 
-        final Map<String, List<Pair<String, ModifiedDietzReturnResult>>> benchmarkMatrix = Map.of(
+        final Map<String, List<LabelAndMDR>> benchmarkMatrix = Map.of(
                 "Portfolio",
                 this.range()
                         .mapToObj(year -> item(etfs, nominal, year))
@@ -307,18 +307,18 @@ public class Investments {
     private String matrixRow(
             String name,
             List<ModifiedDietzReturnResult> rowData,
-            Map<String, List<Pair<String, ModifiedDietzReturnResult>>> benchmarkMatrix) {
+            Map<String, List<LabelAndMDR>> benchmarkMatrix) {
 
         final List<ModifiedDietzReturnResult> iwdaList = Optional.ofNullable(benchmarkMatrix.get("IWDA"))
                 .orElseGet(Collections::emptyList)
                 .stream()
-                .map(Pair::second)
+                .map(LabelAndMDR::mdr)
                 .toList();
 
         final List<ModifiedDietzReturnResult> cspxList = Optional.ofNullable(benchmarkMatrix.get("CSPX"))
                 .orElseGet(Collections::emptyList)
                 .stream()
-                .map(Pair::second)
+                .map(LabelAndMDR::mdr)
                 .toList();
 
         final var useBenchmarks = !iwdaList.isEmpty() && !cspxList.isEmpty();
@@ -421,10 +421,10 @@ public class Investments {
             final var netCapitalGains = capitalGains.subtract(taxAmount);
 
             final var elements = List.of(
-                    Pair.of(investment, Attribute.WHITE_BACK()),
-                    Pair.of(costAmount, Attribute.YELLOW_BACK()),
-                    Pair.of(netCapitalGains, Attribute.GREEN_BACK()),
-                    Pair.of(taxAmount, Attribute.CYAN_BACK()));
+                    new AmountAndColor(investment, Attribute.WHITE_BACK()),
+                    new AmountAndColor(costAmount, Attribute.YELLOW_BACK()),
+                    new AmountAndColor(netCapitalGains, Attribute.GREEN_BACK()),
+                    new AmountAndColor(taxAmount, Attribute.CYAN_BACK()));
 
             this.console.appendLine(
                     pct
@@ -438,11 +438,11 @@ public class Investments {
 
     }
 
-    private String bar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> elements, int scale) {
+    private String bar(YearMonth ym, List<AmountAndColor> elements, int scale) {
         return this.bar.genericBar(ym, elements, scale);
     }
 
-    private String pctBar(YearMonth ym, List<Pair<MoneyAmount, Attribute>> elements) {
+    private String pctBar(YearMonth ym, List<AmountAndColor> elements) {
         return this.bar.percentBar(ym, elements);
     }
 
@@ -710,5 +710,11 @@ public class Investments {
                 .sorted(TYPE_CURRENCY_COMPARATOR)
                 .map(e -> format("{0} {2}: {1}", e.first().first(), sixDigits.format(e.second()), e.first().second()))
                 .forEach(this.console::appendLine);
+    }
+    
+    private record LabelAndMDR(String label, ModifiedDietzReturnResult mdr){
+        public LabelAndMDR(int year,  ModifiedDietzReturnResult mdr){
+            this(String.valueOf(year), mdr);
+        }
     }
 }

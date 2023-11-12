@@ -161,14 +161,14 @@ public class Savings {
 
     }
 
-    private List<Pair<MoneyAmount, Attribute>> series(YearMonth ym, MoneyAmountSeries spending, MoneyAmountSeries income, MoneyAmount savingMa) {
+    private List<AmountAndColor> series(YearMonth ym, MoneyAmountSeries spending, MoneyAmountSeries income, MoneyAmount savingMa) {
         return List.of(
-                Pair.of(spending.getAmountOrElseZero(ym), Attribute.RED_BACK()),
-                Pair.of(ZERO_USD.max(
+                new AmountAndColor(spending.getAmountOrElseZero(ym), Attribute.RED_BACK()),
+                new AmountAndColor(ZERO_USD.max(
                         income.getAmountOrElseZero(ym)
                                 .subtract(savingMa)
                                 .subtract(spending.getAmountOrElseZero(ym))), Attribute.YELLOW_BACK()),
-                Pair.of(ZERO_USD.max(savingMa), Attribute.BLUE_BACK()));
+                new AmountAndColor(ZERO_USD.max(savingMa), Attribute.BLUE_BACK()));
     }
 
     private void income(int months) {
@@ -257,10 +257,10 @@ public class Savings {
 
     }
 
-    private List<Pair<MoneyAmount, Attribute>> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
+    private List<AmountAndColor> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
 
         return IntStream.range(0, series.size())
-                .mapToObj(i -> Pair.of(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
+                .mapToObj(i -> new AmountAndColor(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
                 .toList();
     }
 
