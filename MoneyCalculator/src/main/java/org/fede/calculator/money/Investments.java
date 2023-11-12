@@ -708,7 +708,7 @@ public class Investments {
                 .stream()
                 .map(e -> new InvestmentTypeCurrencyAndAmount(e.getKey(), e.getValue()))
                 .sorted(TYPE_CURRENCY_COMPARATOR)
-                .map(e -> format("{ 0} {2}: {1}", e.type(), sixDigits.format(e.amount()), e.currency()))
+                .map(e -> format("{0} {2}: {1}", e.type(), sixDigits.format(e.amount()), e.currency()))
                 .forEach(this.console::appendLine);
     }
     
