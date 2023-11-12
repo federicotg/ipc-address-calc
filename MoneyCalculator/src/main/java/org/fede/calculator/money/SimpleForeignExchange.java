@@ -159,10 +159,10 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof SimpleForeignExchange
-                && Objects.equals(this.fromCurrency, ((SimpleForeignExchange) obj).fromCurrency)
-                && Objects.equals(this.targetCurrency, ((SimpleForeignExchange) obj).targetCurrency)
-                && Objects.equals(this.getSeries(), ((SimpleForeignExchange) obj).getSeries());
+        return obj instanceof SimpleForeignExchange other
+                && Objects.equals(this.fromCurrency, other.fromCurrency)
+                && Objects.equals(this.targetCurrency, other.targetCurrency)
+                && Objects.equals(this.getSeries(), other.getSeries());
     }
 
     @Override

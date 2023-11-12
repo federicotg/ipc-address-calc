@@ -86,9 +86,9 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof CompoundForeignExchange
-                && Objects.equals(this.first, ((CompoundForeignExchange) obj).first)
-                && Objects.equals(this.second, ((CompoundForeignExchange) obj).second);
+        return (obj instanceof CompoundForeignExchange other)
+                && Objects.equals(this.first, other.first)
+                && Objects.equals(this.second, other.second);
     }
 
     @Override

@@ -51,9 +51,9 @@ public record MoneyAmount(BigDecimal amount, String currency) {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof MoneyAmount
-                && ((MoneyAmount) obj).currency.equals(this.currency)
-                && ((MoneyAmount) obj).amount.setScale(5, HALF_UP)
+        return (obj instanceof MoneyAmount other)
+                && other.currency.equals(this.currency)
+                && other.amount.setScale(5, HALF_UP)
                         .compareTo(this.amount.setScale(5, HALF_UP)) == 0;
     }
 
