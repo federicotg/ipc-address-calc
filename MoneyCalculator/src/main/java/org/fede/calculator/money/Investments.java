@@ -718,12 +718,5 @@ public class Investments {
         }
     }
     
-    private record InvestmentTypeAndCurrency(InvestmentType type, String currency){}
-    
-    private record InvestmentTypeCurrencyAndAmount(InvestmentType type, String currency, BigDecimal amount){
-        
-        public InvestmentTypeCurrencyAndAmount(InvestmentTypeAndCurrency tc, BigDecimal amount){
-            this(tc.type(), tc.currency(), amount);
-        }
-    }
+   
 }

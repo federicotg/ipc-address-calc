@@ -29,8 +29,6 @@ import java.util.stream.IntStream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
-import org.fede.util.Pair;
-import static org.fede.util.Pair.of;
 
 /**
  *
@@ -79,20 +77,20 @@ public class Expenses {
                     .entrySet()
                     .stream()
                     .filter(p -> exp == null || exp.equals(p.getKey()))
-                    .map(e -> of(e.getKey(), this.aggregate(e.getValue(), s -> this.lastMonths(s, months)).getAmount()))
+                    .map(e -> new TypeAndAmount(e.getKey(), this.aggregate(e.getValue(), s -> this.lastMonths(s, months)).getAmount()))
                     .toList();
 
             final var total = list.stream()
-                    .map(Pair::second)
+                    .map(TypeAndAmount::amount)
                     .reduce(ZERO, BigDecimal::add);
 
             list.stream()
-                    .sorted(comparing(Pair::second, Comparator.reverseOrder()))
+                    .sorted(comparing(TypeAndAmount::amount, Comparator.reverseOrder()))
                     .map(e -> format("{0}{1}{2}{3}",
-                    this.format.text(e.first(), 13),
+                    this.format.text(e.type(), 13),
                     this.format.text(" USD ", 4),
-                    this.format.currency(e.second(), 10),
-                    this.bar.pctBar(e.second(), total)))
+                    this.format.currency(e.amount(), 10),
+                    this.bar.pctBar(e.amount(), total)))
                     .forEach(this.console::appendLine);
 
             this.console.appendLine(format("-----------------------------\n{0} USD {1}",
@@ -183,4 +181,6 @@ public class Expenses {
                 .mapToObj(i -> new AmountAndColor(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
                 .toList();
     }
+    
+    private record TypeAndAmount(String type, BigDecimal amount){}
 }

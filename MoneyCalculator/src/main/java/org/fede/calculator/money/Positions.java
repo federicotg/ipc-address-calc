@@ -639,7 +639,7 @@ public class Positions {
                                 reducing(ZERO, BigDecimal::add))))
                 .entrySet()
                 .stream()
-                .map(entry -> this.formatReport(total, new MoneyAmount(entry.getValue(), reportCurrency), entry.getKey()))
+                .map(entry -> this.formatReport(total, entry.getValue(), entry.getKey()))
                 .forEach(this.console::appendLine);
 
         total.map(t -> format("-----------------------------\n{0} {1}", this.format.text("Total", 5), this.format.currency(t, 16)))
@@ -681,32 +681,44 @@ public class Positions {
         final var total = this.total(Investment::isCurrent, reportCurrency, limit);
         this.series.getInvestments().stream()
                 .filter(Investment::isCurrent)
-                .collect(groupingBy(in -> of(in.getType().toString(), in.getCurrency()),
+                .collect(groupingBy(in -> new InvestmentTypeAndCurrency(in.getType(), in.getCurrency()),
                         mapping(inv -> inv.getMoneyAmount().getAmount(),
                                 reducing(ZERO, BigDecimal::add))))
                 .entrySet()
                 .stream()
-                .map(e -> of(e.getKey(), new MoneyAmount(e.getValue(), e.getKey().second())))
-                .map(p -> of(p.first(), this.fx(p, reportCurrency)))
-                .sorted((p, q) -> q.second().getAmount().compareTo(p.second().getAmount()))
-                .map(pair -> this.formatReport(total, pair.second(), pair.first().first()))
+                .map(e -> new InvestmentTypeCurrencyAndAmount(e.getKey(), e.getValue()))
+                .map(p -> this.fx(p, reportCurrency))
+                .sorted((p, q) -> q.amount().compareTo(p.amount()))
+                .map(pair -> this.formatReport(total, pair.amount(), pair.type()))
                 .forEach(this.console::appendLine);
+
 
         total.map(t -> format("-----------------------------\n{0}{1}", this.format.text("Total", 5), this.format.currency(t, 16)))
                 .ifPresent(this.console::appendLine);
     }
 
-    private MoneyAmount fx(Pair<Pair<String, String>, MoneyAmount> p, String reportCurrency) {
+    private InvestmentTypeCurrencyAndAmount fx(InvestmentTypeCurrencyAndAmount p, String reportCurrency) {
 
-        return getMoneyAmountForeignExchange(p.second().getCurrency(), reportCurrency).apply(p.second(), USD_INFLATION.getTo());
+        return new InvestmentTypeCurrencyAndAmount(
+                p.type(), 
+                reportCurrency, 
+                getMoneyAmountForeignExchange(
+                        p.currency(), 
+                        reportCurrency)
+                        .apply(new MoneyAmount(p.amount(), p.currency()), 
+                                USD_INFLATION.getTo()).getAmount());
     }
 
-    private String formatReport(Optional<MoneyAmount> total, MoneyAmount subtotal, String type) {
+    private String formatReport(Optional<MoneyAmount> total, BigDecimal subtotal, InvestmentType type) {
+        return this.formatReport(total, subtotal, type.toString());
+    }
+    
+    private String formatReport(Optional<MoneyAmount> total, BigDecimal subtotal, String type) {
 
         return format("{0}{1}{2}",
                 this.format.text(type, 5),
                 this.format.currency(subtotal, 16),
-                this.bar.pctBar(total.map(tot -> subtotal.getAmount().divide(tot.getAmount(), C)).orElse(ZERO)));
+                this.bar.pctBar(total.map(tot -> subtotal.divide(tot.getAmount(), C)).orElse(ZERO)));
     }
 
     private record CurrencyAndGroupKey(String currency, String groupKey) {

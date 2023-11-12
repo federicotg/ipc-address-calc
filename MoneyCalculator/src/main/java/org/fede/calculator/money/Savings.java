@@ -35,7 +35,6 @@ import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
-import org.fede.util.Pair;
 
 /**
  *
@@ -86,11 +85,11 @@ public class Savings {
 
     }
 
-    public Pair<MoneyAmount, MoneyAmount> averageSpendingAndSaving(int months) {
+    public SpendingAndSaving averageSpendingAndSaving(int months) {
         final var agg = new SimpleAggregation(months);
         final var income = agg.average(this.series.realIncome()).getAmount(Inflation.USD_INFLATION.getTo());
         final var netSaving = agg.average(this.series.realNetSavings()).getAmount(Inflation.USD_INFLATION.getTo());
-        return Pair.of(income.subtract(netSaving), netSaving);
+        return new SpendingAndSaving(income.subtract(netSaving), netSaving);
     }
 
     public void netAvgSavingSpentPct(int months, String title) {
@@ -561,4 +560,6 @@ public class Savings {
                 new SimpleAggregation(months).average(s),
                 barSize);
     }
+    
+    public record SpendingAndSaving(MoneyAmount speding,MoneyAmount saving){}
 }

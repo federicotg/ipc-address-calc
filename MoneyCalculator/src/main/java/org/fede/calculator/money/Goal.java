@@ -161,8 +161,8 @@ public class Goal {
         final var spendingandSaving = new Savings(format, series, bar, console)
                 .averageSpendingAndSaving(averageIncomeSpendingMonths);
 
-        final var monthlyDeposit = spendingandSaving.second().getAmount();
-        final var monthlyWithdraw = spendingandSaving.first().getAmount()
+        final var monthlyDeposit = spendingandSaving.saving().getAmount();
+        final var monthlyWithdraw = spendingandSaving.speding().getAmount()
                 .subtract(new BigDecimal(pension), C);
 
         this.goal(trials, monthlyDeposit, monthlyWithdraw, inflation, retirementAge, extraCash, afterTax, age, pension, todaySavings, invested, expected);
