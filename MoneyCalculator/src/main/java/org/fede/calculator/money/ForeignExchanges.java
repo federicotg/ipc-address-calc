@@ -31,7 +31,6 @@ import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
-import org.fede.util.Pair;
 
 /**
  *
@@ -39,7 +38,7 @@ import org.fede.util.Pair;
  */
 public class ForeignExchanges {
 
-    private static final Map<Pair<String, String>, BiFunction<MoneyAmount, YearMonth, MoneyAmount>> FX_FUNCTION_CACHE = new ConcurrentHashMap<>();
+    private static final Map<FromTo, BiFunction<MoneyAmount, YearMonth, MoneyAmount>> FX_FUNCTION_CACHE = new ConcurrentHashMap<>();
 
     private static final Map<String, ForeignExchange> IDENTITY_FX = new ConcurrentHashMap<>();
 
@@ -55,7 +54,7 @@ public class ForeignExchanges {
             "DAI", "USD",
             "ARS", "USD");
 
-    private static final Map<Pair<String, String>, ForeignExchange> DIRECT_FOREIGN_EXCHANGES;
+    private static final Map<FromTo, ForeignExchange> DIRECT_FOREIGN_EXCHANGES;
 
     private static final String USD = "USD";
 
@@ -130,14 +129,14 @@ public class ForeignExchanges {
             () -> SeriesReader.readIndexSeries("index/MEUD-EUR.json"),
             "MEUD", "EUR");
 
-    private static void map(Map<Pair<String, String>, ForeignExchange> temporalMap, String from, String to, ForeignExchange fx) {
-        temporalMap.put(new Pair<>(from, to), fx);
-        temporalMap.put(new Pair<>(to, from), fx);
+    private static void map(Map<FromTo, ForeignExchange> temporalMap, String from, String to, ForeignExchange fx) {
+        temporalMap.put(new FromTo(from, to), fx);
+        temporalMap.put(new FromTo(to, from), fx);
     }
 
     static {
 
-        final Map<Pair<String, String>, ForeignExchange> temporalMap = new HashMap<>();
+        final Map<FromTo, ForeignExchange> temporalMap = new HashMap<>();
         // direct conversions
         map(temporalMap, "ARS", USD, USD_ARS);
         map(temporalMap, "LETE", USD, USD_LETE);
@@ -161,11 +160,11 @@ public class ForeignExchanges {
     }
 
     public static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(String from, String to) {
-        return FX_FUNCTION_CACHE.computeIfAbsent(Pair.of(from, to), ForeignExchanges::getMoneyAmountForeignExchange);
+        return FX_FUNCTION_CACHE.computeIfAbsent(new FromTo(from, to), ForeignExchanges::getMoneyAmountForeignExchange);
     }
 
-    private static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(Pair<String, String> fromTo) {
-        return (amount, ym) -> getForeignExchange(fromTo.first(), fromTo.second()).exchange(amount, fromTo.second(), ym);
+    private static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(FromTo fromTo) {
+        return (amount, ym) -> getForeignExchange(fromTo.from(), fromTo.to()).exchange(amount, fromTo.to(), ym);
     }
 
     public static ForeignExchange getForeignExchange(String from, String to) {
@@ -174,7 +173,7 @@ public class ForeignExchanges {
             return IDENTITY_FX.computeIfAbsent(to, ForeignExchanges::getIdentityForeignExchange);
         }
 
-        ForeignExchange answer = DIRECT_FOREIGN_EXCHANGES.get(new Pair<>(from, to));
+        ForeignExchange answer = DIRECT_FOREIGN_EXCHANGES.get(new FromTo(from, to));
         if (answer != null) {
             return answer;
         }
@@ -190,7 +189,7 @@ public class ForeignExchanges {
         }
 
         return new CompoundForeignExchange(
-                DIRECT_FOREIGN_EXCHANGES.get(new Pair<>(from, intermediate)),
+                DIRECT_FOREIGN_EXCHANGES.get(new FromTo(from, intermediate)),
                 getForeignExchange(intermediate, to)
         );
     }
@@ -259,4 +258,6 @@ public class ForeignExchanges {
         }
         return new MoneyAmount(ma.getAmount().multiply(optionalFxRate, MathConstants.C), "USD");
     }
+    
+    private record FromTo(String from, String to){}
 }
