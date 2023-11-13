@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.IntStream;
 import org.fede.calculator.money.series.YearMonth;
-import org.fede.util.Pair;
 
 /**
  *

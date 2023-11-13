@@ -211,25 +211,25 @@ public class Positions {
         final var totalCost = sellFee.add(inflationCost.add(cost.add(wealthTax.add(capitalGainsTax))));
 
         final var taxes = List.of(
-                Pair.of("Buy Cost", cost),
-                Pair.of("Wealth Tax", wealthTax),
-                Pair.of("Sell Fee", sellFee),
-                Pair.of("Tax", capitalGainsTax),
-                Pair.of("Inflation Cost", inflationCost),
-                Pair.of("Total Cost", totalCost));
+                new DescriptionAndMoneyAmount("Buy Cost", cost),
+                new DescriptionAndMoneyAmount("Wealth Tax", wealthTax),
+                new DescriptionAndMoneyAmount("Sell Fee", sellFee),
+                new DescriptionAndMoneyAmount("Tax", capitalGainsTax),
+                new DescriptionAndMoneyAmount("Inflation Cost", inflationCost),
+                new DescriptionAndMoneyAmount("Total Cost", totalCost));
 
-        taxes.stream().filter(p -> !p.second().isZero()).forEach(tax -> this.printTaxLine(tax, totalCost));
+        taxes.stream().filter(p -> !p.amount().isZero()).forEach(tax -> this.printTaxLine(tax, totalCost));
 
         this.console.appendLine(this.format.subtitle("Fees"));
         this.costs(nominal);
         this.annualCost(nominal);
     }
 
-    private void printTaxLine(Pair<String, MoneyAmount> tax, MoneyAmount totalPnL) {
+    private void printTaxLine(DescriptionAndMoneyAmount tax, MoneyAmount totalPnL) {
         this.console.appendLine(MessageFormat.format("{0} {1} {2}",
-                this.format.text(tax.first(), 14),
-                this.format.currency(tax.second().getAmount(), 12),
-                this.format.percent(tax.second().getAmount().divide(totalPnL.getAmount(), C), 10)));
+                this.format.text(tax.description(), 14),
+                this.format.currency(tax.amount().getAmount(), 12),
+                this.format.percent(tax.amount().getAmount().divide(totalPnL.getAmount(), C), 10)));
     }
 
     private MoneyAmount inflationCost() {
@@ -721,8 +721,7 @@ public class Positions {
                 this.bar.pctBar(total.map(tot -> subtotal.divide(tot.getAmount(), C)).orElse(ZERO)));
     }
 
-    private record CurrencyAndGroupKey(String currency, String groupKey) {
-
-    }
+    private record CurrencyAndGroupKey(String currency, String groupKey) {}
+    private record DescriptionAndMoneyAmount(String description, MoneyAmount amount) {}
 
 }
