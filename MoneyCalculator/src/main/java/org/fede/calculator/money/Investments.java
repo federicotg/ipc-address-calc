@@ -608,6 +608,11 @@ public class Investments {
                 .map(YearMonth::prev)
                 .orElseGet(Inflation.USD_INFLATION::getTo);
 
+        final var pfCategories = Map.ofEntries(
+                Map.entry("USD", "USD CD"),
+                Map.entry("UVA", "UVA CD"),
+                Map.entry("ARS", "ARS CD"));
+
         final var categories = Map.ofEntries(
                 Map.entry("CSPX", "Global Eq."),
                 Map.entry("EIMI", "Global Eq."),
@@ -624,7 +629,9 @@ public class Investments {
                 Map.entry("USD", "Cash"),
                 Map.entry("ARS", "Cash"));
 
-        Function<Investment, String> classifier = i -> categories.getOrDefault(i.getCurrency(), "unknown");
+        Function<Investment, String> classifier = i -> InvestmentType.PF == i.getType()
+                ? pfCategories.getOrDefault(i.getCurrency(), categories.getOrDefault(i.getCurrency(), "unknown")) 
+                : categories.getOrDefault(i.getCurrency(), "unknown");
 
         Comparator<Investment> comparator = comparing(Investment::getInitialDate, naturalOrder());
 
