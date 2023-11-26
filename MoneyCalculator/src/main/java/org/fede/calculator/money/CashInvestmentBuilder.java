@@ -113,7 +113,7 @@ public class CashInvestmentBuilder {
         final var inv = new Investment();
         inv.setIn(in);
         inv.setInvestment(asset);
-        inv.setType(InvestmentType.USD);
+        inv.setType(InvestmentType.USD_CASH);
         return inv;
     }
 

@@ -23,6 +23,7 @@ package org.fede.calculator.money.series;
 public enum InvestmentType {
     PF,
     USD,
+    USD_CASH,
     FCI,
     BONO,
     ETF;

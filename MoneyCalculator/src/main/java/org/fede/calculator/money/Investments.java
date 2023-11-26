@@ -608,12 +608,23 @@ public class Investments {
                 .map(YearMonth::prev)
                 .orElseGet(Inflation.USD_INFLATION::getTo);
 
-        final var pfCategories = Map.ofEntries(
+
+//        Function<Investment, String> classifier = i -> InvestmentType.PF == i.getType()
+//                ? PF_CATEGORIES.getOrDefault(i.getCurrency(), CATEGORIES.getOrDefault(i.getCurrency(), "unknown")) 
+//                : CATEGORIES.getOrDefault(i.getCurrency(), "unknown");
+
+        Comparator<Investment> comparator = comparing(Investment::getInitialDate, naturalOrder());
+
+        new Evolution<Investment>(this.console, this.bar)
+                .evo(totalFunction, startFunction, endFunction, this::classifier, i -> true, comparator, this.getAllInvestments(), pct);
+    }
+
+        private static final Map<String, String> PF_CATEGORIES = Map.ofEntries(
                 Map.entry("USD", "USD CD"),
                 Map.entry("UVA", "UVA CD"),
                 Map.entry("ARS", "ARS CD"));
 
-        final var categories = Map.ofEntries(
+        private static final Map<String, String> CATEGORIES = Map.ofEntries(
                 Map.entry("CSPX", "Global Eq."),
                 Map.entry("EIMI", "Global Eq."),
                 Map.entry("MEUD", "Global Eq."),
@@ -626,17 +637,20 @@ public class Investments {
                 Map.entry("LETE", "Dom. Bonds"),
                 Map.entry("AY24", "Dom. Bonds"),
                 Map.entry("UVA", "Dom. Bonds"),
-                Map.entry("USD", "Cash"),
-                Map.entry("ARS", "Cash"));
+                //Map.entry("USD", "Cash USD"),
+                Map.entry("ARS", "Cash ARS"));
 
-        Function<Investment, String> classifier = i -> InvestmentType.PF == i.getType()
-                ? pfCategories.getOrDefault(i.getCurrency(), categories.getOrDefault(i.getCurrency(), "unknown")) 
-                : categories.getOrDefault(i.getCurrency(), "unknown");
 
-        Comparator<Investment> comparator = comparing(Investment::getInitialDate, naturalOrder());
-
-        new Evolution<Investment>(this.console, this.bar)
-                .evo(totalFunction, startFunction, endFunction, classifier, i -> true, comparator, this.getAllInvestments(), pct);
+    
+    private String classifier(Investment i){
+        
+        return switch(i.getType()){
+            case PF -> PF_CATEGORIES.getOrDefault(i.getCurrency(), CATEGORIES.getOrDefault(i.getCurrency(), "unknown"));
+            case USD_CASH -> "USD cash";
+            case USD -> "USD";
+            case BONO, FCI, ETF -> CATEGORIES.getOrDefault(i.getCurrency(), "unknown");
+        };
+        
     }
 
     public void monthly(boolean nominal) {
