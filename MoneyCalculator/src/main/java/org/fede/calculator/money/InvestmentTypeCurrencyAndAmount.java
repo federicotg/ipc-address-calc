@@ -2,7 +2,6 @@ package org.fede.calculator.money;
 
 
 import java.math.BigDecimal;
-import org.fede.calculator.money.InvestmentTypeAndCurrency;
 import org.fede.calculator.money.series.InvestmentType;
 
 /*

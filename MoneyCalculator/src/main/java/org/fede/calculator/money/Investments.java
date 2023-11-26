@@ -54,7 +54,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
-import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
@@ -620,9 +619,9 @@ public class Investments {
     }
 
         private static final Map<String, String> PF_CATEGORIES = Map.ofEntries(
-                Map.entry("USD", "USD CD"),
-                Map.entry("UVA", "UVA CD"),
-                Map.entry("ARS", "ARS CD"));
+                Map.entry("USD", "USD Bank"),
+                Map.entry("UVA", "ARS Bank"),
+                Map.entry("ARS", "ARS Bank"));
 
         private static final Map<String, String> CATEGORIES = Map.ofEntries(
                 Map.entry("CSPX", "Global Eq."),
@@ -636,19 +635,18 @@ public class Investments {
                 Map.entry("LECAP", "Dom. Bonds"),
                 Map.entry("LETE", "Dom. Bonds"),
                 Map.entry("AY24", "Dom. Bonds"),
-                Map.entry("UVA", "Dom. Bonds"),
-                //Map.entry("USD", "Cash USD"),
-                Map.entry("ARS", "Cash ARS"));
-
+                Map.entry("UVA", "ARS Bank"),
+                Map.entry("ARS", "ARS Cash"));
 
     
     private String classifier(Investment i){
         
         return switch(i.getType()){
             case PF -> PF_CATEGORIES.getOrDefault(i.getCurrency(), CATEGORIES.getOrDefault(i.getCurrency(), "unknown"));
-            case USD_CASH -> "USD cash";
-            case USD -> "USD";
-            case BONO, FCI, ETF -> CATEGORIES.getOrDefault(i.getCurrency(), "unknown");
+            case USD_CASH -> "USD Cash";
+            case USD -> "USD Bank";
+            case BONO -> "Dom. Bonds";
+            case FCI, ETF -> CATEGORIES.getOrDefault(i.getCurrency(), i.getType().toString()+" "+i.getCurrency());
         };
         
     }
