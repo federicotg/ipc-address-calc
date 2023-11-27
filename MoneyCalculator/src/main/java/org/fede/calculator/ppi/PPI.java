@@ -49,11 +49,8 @@ public class PPI {
 
     private static final int LABEL_WIDTH = 30;
 
-    //private static final BigDecimal BONDS_FEE = new BigDecimal("0.006");
-    private static final BigDecimal LETES_FEE = new BigDecimal("0.0015");
-    private static final BigDecimal LETES_USD_NEW = new BigDecimal("0.01");
+    private static final BigDecimal LETES_USD_NEW = new BigDecimal("0.002");
     private static final BigDecimal LETES_ARS_NEW = new BigDecimal("0.002");
-    //private static final BigDecimal SMALL_FACE_FEE = new BigDecimal("0.03");
 
     private static final AnsiFormat DIM_WHITE_TEXT = new AnsiFormat(Attribute.DIM());
     private static final AnsiFormat BLUE_TEXT = new AnsiFormat(Attribute.BRIGHT_GREEN_TEXT());
@@ -113,7 +110,7 @@ public class PPI {
             List<Pair<String, Future<MoneyAmount>>> futures = new ArrayList<>(32);
             try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
 
-                futures.add(this.ppiItem("CCL " + letra1 + " nov.", new PPIFXParams(letra1 + "X", "X18E4", LETRAS, INMEDIATA, newFee), executor));
+                futures.add(this.ppiItem("CCL " + letra1 + " nov.", new PPIFXParams(letra1 + "C", "X18E4", LETRAS, INMEDIATA, newFee), executor));
                 futures.add(this.ppiItem("MEP " + letra1 + " nov.", new PPIFXParams(letra1 + "D", "X18E4", LETRAS, INMEDIATA, newFee), executor));
                 futures.add(this.ppiItem("C a D " + letra1 + " nov.", new PPIFXParams(letra1 + "X", letra1 + "D", LETRAS, INMEDIATA, "USD", newFee), executor));
                 futures.add(this.criptoYaItem("BuenBit USDT (Venta)", new CriptoYaFXParams("Buenbit", "USDT", "USD", "ARS", "ARS"), executor));
