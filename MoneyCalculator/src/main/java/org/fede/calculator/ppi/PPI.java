@@ -49,7 +49,7 @@ public class PPI {
 
     private static final int LABEL_WIDTH = 30;
 
-    private static final BigDecimal LETES_USD_NEW = new BigDecimal("0.002");
+    private static final BigDecimal LETES_USD_NEW = new BigDecimal("0.01");
     private static final BigDecimal LETES_ARS_NEW = new BigDecimal("0.002");
 
     private static final AnsiFormat DIM_WHITE_TEXT = new AnsiFormat(Attribute.DIM());
