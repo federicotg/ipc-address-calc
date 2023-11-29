@@ -91,28 +91,20 @@ public class Evolution<T> {
 
             final var colorList = List.of(
                     Attribute.BLUE_BACK(),
-                    
                     Attribute.CYAN_BACK(),
-                    
                     Attribute.GREEN_BACK(),
-                    
                     Attribute.MAGENTA_BACK(),
-                    
                     Attribute.RED_BACK(),
-                    Attribute.BRIGHT_RED_BACK(),                    
-                   
                     Attribute.YELLOW_BACK(),
-                    
                     Attribute.WHITE_BACK(),
-
                     Attribute.BRIGHT_BLUE_BACK(),
                     Attribute.BRIGHT_CYAN_BACK(),
                     Attribute.BRIGHT_GREEN_BACK(),
                     Attribute.BRIGHT_MAGENTA_BACK(),
                     Attribute.BRIGHT_YELLOW_BACK(),
+                    Attribute.BRIGHT_RED_BACK(),
                     Attribute.BRIGHT_WHITE_BACK()
-
-                    
+                   
                     );
 
             final var typeList = totals.keySet().stream().sorted().toList();

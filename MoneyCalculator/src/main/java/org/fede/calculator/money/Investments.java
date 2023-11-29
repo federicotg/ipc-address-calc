@@ -618,37 +618,39 @@ public class Investments {
                 .evo(totalFunction, startFunction, endFunction, this::classifier, i -> true, comparator, this.getAllInvestments(), pct);
     }
 
-        private static final Map<String, String> PF_CATEGORIES = Map.ofEntries(
-                Map.entry("USD", "USD Bank"),
-                Map.entry("UVA", "ARS Bank"),
-                Map.entry("ARS", "ARS Bank"));
+    private static final Map<String, String> PF_CATEGORIES = Map.ofEntries(
+            Map.entry("USD", "USD Bank"),
+            Map.entry("UVA", "UVA Bank"),
+            Map.entry("ARS", "ARS Bank"));
 
-        private static final Map<String, String> CATEGORIES = Map.ofEntries(
-                Map.entry("CSPX", "Global Eq."),
-                Map.entry("EIMI", "Global Eq."),
-                Map.entry("MEUD", "Global Eq."),
-                Map.entry("XRSU", "Global Eq."),
-                Map.entry("RTWO", "Global Eq."),
-                Map.entry("CONAAFA", "Dom. Eq."),
-                Map.entry("CONBALA", "Dom. Bonds"),
-                Map.entry("CAPLUSA", "Dom. Bonds"),
-                Map.entry("LECAP", "Dom. Bonds"),
-                Map.entry("LETE", "Dom. Bonds"),
-                Map.entry("AY24", "Dom. Bonds"),
-                Map.entry("UVA", "ARS Bank"),
-                Map.entry("ARS", "ARS Cash"));
+    private static final Map<String, String> CATEGORIES = Map.ofEntries(
+            Map.entry("CSPX", "Global Eq."),
+            Map.entry("EIMI", "Global Eq."),
+            Map.entry("MEUD", "Global Eq."),
+            Map.entry("XRSU", "Global Eq."),
+            Map.entry("RTWO", "Global Eq."),
+            Map.entry("CONAAFA", "Dom. Eq."),
+            Map.entry("CONBALA", "Dom. Bonds"),
+            Map.entry("CAPLUSA", "Dom. Bonds"),
+            Map.entry("LECAP", "Dom. Bonds"),
+            Map.entry("LETE", "Dom. Bonds"),
+            Map.entry("AY24", "Dom. Bonds"),
+            Map.entry("ARS", "ARS Cash"));
 
-    
-    private String classifier(Investment i){
-        
-        return switch(i.getType()){
-            case PF -> PF_CATEGORIES.getOrDefault(i.getCurrency(), CATEGORIES.getOrDefault(i.getCurrency(), "unknown"));
-            case USD_CASH -> "USD Cash";
-            case USD -> "USD Bank";
+    private String classifier(Investment i) {
+
+        return switch (i.getType()) {
+            case PF ->
+                PF_CATEGORIES.getOrDefault(i.getCurrency(), CATEGORIES.getOrDefault(i.getCurrency(), "unknown"));
+            case USD_CASH ->
+                "USD Cash";
+            case USD ->
+                "USD Bank";
             case BONO -> "Dom. Bonds";
-            case FCI, ETF -> CATEGORIES.getOrDefault(i.getCurrency(), i.getType().toString()+" "+i.getCurrency());
+            case FCI, ETF ->
+                CATEGORIES.getOrDefault(i.getCurrency(), i.getType().toString() + " " + i.getCurrency());
         };
-        
+
     }
 
     public void monthly(boolean nominal) {
