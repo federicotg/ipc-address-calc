@@ -103,7 +103,8 @@ public class Evolution<T> {
                     Attribute.BRIGHT_MAGENTA_BACK(),
                     Attribute.BRIGHT_YELLOW_BACK(),
                     Attribute.BRIGHT_RED_BACK(),
-                    Attribute.BACK_COLOR(128),
+                    Attribute.BACK_COLOR(80),
+                    Attribute.BACK_COLOR(100),
                     Attribute.BRIGHT_WHITE_BACK()
                    
                     );
