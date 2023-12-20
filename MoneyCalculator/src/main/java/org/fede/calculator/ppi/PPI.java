@@ -106,17 +106,22 @@ public class PPI {
             final var letra1 = "XE4";
 
             final var newFee = new PPIFXFee(LETES_USD_NEW, LETES_ARS_NEW);
+            final var bondsFee = new PPIFXFee(new BigDecimal(0.006), new BigDecimal(0.006));
 
             List<Pair<String, Future<MoneyAmount>>> futures = new ArrayList<>(32);
             try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
 
-                futures.add(this.ppiItem("CCL " + letra1 + " nov.", new PPIFXParams(letra1 + "C", "X18E4", LETRAS, INMEDIATA, newFee), executor));
-                futures.add(this.ppiItem("MEP " + letra1 + " nov.", new PPIFXParams(letra1 + "D", "X18E4", LETRAS, INMEDIATA, newFee), executor));
-                futures.add(this.ppiItem("C a D " + letra1 + " nov.", new PPIFXParams(letra1 + "X", letra1 + "D", LETRAS, INMEDIATA, "USD", newFee), executor));
-                futures.add(this.criptoYaItem("BuenBit USDT (Venta)", new CriptoYaFXParams("Buenbit", "USDT", "USD", "ARS", "ARS"), executor));
-                futures.add(this.criptoYaItem("BuenBit DAI (Venta)", new CriptoYaFXParams("Buenbit", "DAI", "USD", "ARS", "ARS"), executor));
-                futures.add(this.criptoYaItem("Letsbit USDT (Venta)", new CriptoYaFXParams("Letsbit", "USDT", "USD", "ARS", "ARS"), executor));
-                futures.add(this.criptoYaItem("Letsbit DAI (Venta)", new CriptoYaFXParams("Letsbit", "DAI", "USD", "ARS", "ARS"), executor));
+                futures.add(this.ppiItem("C a D AL30", new PPIFXParams("AL30C", "AL30D", BONOS, INMEDIATA, "USD", bondsFee), executor));
+                futures.add(this.ppiItem("C a D GD30", new PPIFXParams("GD30C", "GD30D", BONOS, INMEDIATA, "USD",bondsFee), executor));
+                
+                futures.add(this.ppiItem("CCL " + letra1, new PPIFXParams(letra1 + "C", "X18E4", LETRAS, INMEDIATA, newFee), executor));
+                futures.add(this.ppiItem("MEP " + letra1, new PPIFXParams(letra1 + "D", "X18E4", LETRAS, INMEDIATA, newFee), executor));
+                futures.add(this.ppiItem("C a D " + letra1, new PPIFXParams(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD", newFee), executor));
+
+                //futures.add(this.criptoYaItem("BuenBit USDT (Venta)", new CriptoYaFXParams("Buenbit", "USDT", "USD", "ARS", "ARS"), executor));
+                //futures.add(this.criptoYaItem("BuenBit DAI (Venta)", new CriptoYaFXParams("Buenbit", "DAI", "USD", "ARS", "ARS"), executor));
+                //futures.add(this.criptoYaItem("Letsbit USDT (Venta)", new CriptoYaFXParams("Letsbit", "USDT", "USD", "ARS", "ARS"), executor));
+                //futures.add(this.criptoYaItem("Letsbit DAI (Venta)", new CriptoYaFXParams("Letsbit", "DAI", "USD", "ARS", "ARS"), executor));
                 futures.add(Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), executor.submit(() -> new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS"))));
             }
 
