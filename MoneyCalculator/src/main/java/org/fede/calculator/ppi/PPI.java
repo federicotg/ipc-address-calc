@@ -111,19 +111,22 @@ public class PPI {
             List<Pair<String, Future<MoneyAmount>>> futures = new ArrayList<>(32);
             try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
 
-                futures.add(this.ppiItem("C a D AL30", new PPIFXParams("AL30C", "AL30D", BONOS, INMEDIATA, "USD", bondsFee), executor));
-                futures.add(this.ppiItem("C a D GD30", new PPIFXParams("GD30C", "GD30D", BONOS, INMEDIATA, "USD",bondsFee), executor));
-                
+                futures.add(this.ppiItem("C a D AL30 CI", new PPIFXParams("AL30C", "AL30D", BONOS, INMEDIATA, "USD", bondsFee), executor));
+                futures.add(this.ppiItem("C a D GD30 CI", new PPIFXParams("GD30C", "GD30D", BONOS, INMEDIATA, "USD", bondsFee), executor));
+
+                futures.add(this.ppiItem("C a D AL30 48", new PPIFXParams("AL30C", "AL30D", BONOS, A48, "USD", bondsFee), executor));
+                futures.add(this.ppiItem("C a D GD30 48", new PPIFXParams("GD30C", "GD30D", BONOS, A48, "USD", bondsFee), executor));
+
                 futures.add(this.ppiItem("CCL " + letra1, new PPIFXParams(letra1 + "C", "X18E4", LETRAS, INMEDIATA, newFee), executor));
                 futures.add(this.ppiItem("CCL AL30 CI", new PPIFXParams("AL30C", "AL30", BONOS, INMEDIATA, newFee), executor));
                 futures.add(this.ppiItem("CCL GD30 CI", new PPIFXParams("GD30C", "GD30", BONOS, INMEDIATA, newFee), executor));
-                
+
                 futures.add(this.ppiItem("CCL AL30 48", new PPIFXParams("AL30C", "AL30", BONOS, A48, newFee), executor));
                 futures.add(this.ppiItem("CCL GD30 48", new PPIFXParams("GD30C", "GD30", BONOS, A48, newFee), executor));
-                
-                
+
                 futures.add(this.ppiItem("MEP " + letra1, new PPIFXParams(letra1 + "D", "X18E4", LETRAS, INMEDIATA, newFee), executor));
-                futures.add(this.ppiItem("C a D " + letra1, new PPIFXParams(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD", newFee), executor));
+                futures.add(this.ppiItem("C a D " + letra1 + " CI", new PPIFXParams(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD", newFee), executor));
+                futures.add(this.ppiItem("C a D " + letra1 + " 48", new PPIFXParams(letra1 + "C", letra1 + "D", LETRAS, A48, "USD", newFee), executor));
 
                 //futures.add(this.criptoYaItem("BuenBit USDT (Venta)", new CriptoYaFXParams("Buenbit", "USDT", "USD", "ARS", "ARS"), executor));
                 //futures.add(this.criptoYaItem("BuenBit DAI (Venta)", new CriptoYaFXParams("Buenbit", "DAI", "USD", "ARS", "ARS"), executor));
