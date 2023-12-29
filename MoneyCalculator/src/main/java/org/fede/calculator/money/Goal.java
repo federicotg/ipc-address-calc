@@ -49,8 +49,8 @@ public class Goal {
     private static final TypeReference<Map<String, ExpectedReturnGroup>> TR = new TypeReference<Map<String, ExpectedReturnGroup>>() {
     };
 
-    private static final double OFFICIAL_DOLLAR_MEAN = 0.8d;
-    private static final double OFFICIAL_DOLLAR_STD_DEV = 0.04d;
+    //private static final double OFFICIAL_DOLLAR_MEAN = 1.0d;
+    //private static final double OFFICIAL_DOLLAR_STD_DEV = 0.00d;
 
     private static final BigDecimal BUY_FEE = new BigDecimal("200");
 
@@ -61,13 +61,13 @@ public class Goal {
 
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), C), C);
     
-    private static final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("225");
+    private static final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("400");
 
     private static final Function<BigDecimal, BigDecimal> IBKR_FEE_STRATEGY = new InteractiveBrokersTieredLondonUSDFeeStrategy();
 
-    private static double gauss(double mean, double std) {
-        return mean + ThreadLocalRandom.current().nextGaussian() * std;
-    }
+//    private static double gauss(double mean, double std) {
+//        return mean + ThreadLocalRandom.current().nextGaussian() * std;
+//    }
 
 
     private final double bbppTaxRate;
@@ -103,7 +103,7 @@ public class Goal {
         for (var i = startingYear; i < retirement; i++) {
 
             // brecha
-            final var officialDollarFactor = Math.min(1.0d, gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
+            final var officialDollarFactor = 1.0d;//Math.min(1.0d, gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
 
             // BB.PP.
             bbpp = Math.max(amount * officialDollarFactor - bbppMin, 0.0d) * this.bbppTaxRate;
@@ -134,7 +134,7 @@ public class Goal {
                 amount -= thisYearWithdrawal;
 
                 // brecha
-                final var officialDollarFactor = Math.min(1.0d, gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
+                final var officialDollarFactor = 1.0d;//Math.min(1.0d, gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
 
                 // BB.PP.
                 bbpp = Math.max(amount * officialDollarFactor - bbppMin, 0.0d) * this.bbppTaxRate;
