@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
@@ -174,7 +173,7 @@ public class ModifiedDietzReturn {
                         .filter(ie -> between(ie.getDate(), this.initialMoment, this.finalMoment))
                         .map(cashFlowFunction)
                         .map(BigDecimal::negate))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private BigDecimal adjustedCashFlowAmount(InvestmentEvent ie) {
