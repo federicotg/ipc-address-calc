@@ -76,7 +76,7 @@ public class Bar {
                 .stream()
                 .filter(p -> !p.amount().isZero())
                 .map(p -> new AmountAndColor(new MoneyAmount(p.amount().getAmount().divide(total, C).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.amount().getCurrency()), p.color()))
-                .toList();
+                .collect(Collectors.toList());
 
         final var relativeTotal = relativeAmounts
                 .stream()
