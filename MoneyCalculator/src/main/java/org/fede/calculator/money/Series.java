@@ -111,6 +111,7 @@ public class Series {
                     of("home", "limpieza"),
                     of("home", "expensas"),
                     of("entertainment", "netflix"),
+                    of("entertainment", "netflix-usd"),
                     of("entertainment", "viajes"),
                     of("entertainment", "xbox"))
                     .collect(groupingBy(
