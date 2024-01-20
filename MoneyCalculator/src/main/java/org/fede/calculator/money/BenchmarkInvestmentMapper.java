@@ -73,7 +73,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
         this.seenUSDPrices.putAll(
                 SeriesReader.read("index/seen-prices.json", TR).getOrDefault(benchmark, Collections.emptyList())
                         .stream()
-                        .collect(toMap(SeenPrice::getDmy, SeenPrice::getPrice)));
+                        .collect(toMap(SeenPrice::dmy, SeenPrice::price)));
 
     }
 

@@ -22,25 +22,6 @@ import java.math.BigDecimal;
  *
  * @author federicogentile
  */
-public class SeenPrice {
-
-    private String dmy;
-    private BigDecimal price;
-
-    public String getDmy() {
-        return dmy;
-    }
-
-    public void setDmy(String dmy) {
-        this.dmy = dmy;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
+public record SeenPrice(String dmy, BigDecimal price) {
 
 }
