@@ -46,7 +46,7 @@ public class CriptoYaAPI {
     private static final TypeReference<Map<String, Map<String, Map<String, BigDecimal>>>> FEES_TR = new TypeReference<Map<String, Map<String, Map<String, BigDecimal>>>>() {
     };
 
-    private static final TypeReference<Map<String, BigDecimal>> FX_TR = new TypeReference<Map<String, BigDecimal>>() {
+    private static final TypeReference<Map<String, DollarItem>> FX_TR = new TypeReference<Map<String, DollarItem>>() {
     };
 
     private final ObjectMapper jsonMapper;
@@ -56,7 +56,7 @@ public class CriptoYaAPI {
     private Map<String, Map<String, Map<String, BigDecimal>>> fees;
 
     //private final Map<String, Map<String, Map<String, CriptoYaFx>>> fxCache = new ConcurrentHashMap<>();
-    private Map<String, BigDecimal> dollarCache;
+    private Map<String, DollarItem> dollarCache;
 
     public CriptoYaAPI(Supplier<HttpClient> clientSupplier) {
         this.jsonMapper = new ObjectMapper();
@@ -75,7 +75,7 @@ public class CriptoYaAPI {
     public BigDecimal blueSell() throws URISyntaxException, IOException, InterruptedException {
 
         if (this.dollarCache != null) {
-            return this.dollarCache.get("blue_bid");
+            return this.dollarCache.get("blue").getBid();
         }
 
         final var req = this.requestBuilderFor(MessageFormat.format("{0}/api/dolar", API))
@@ -89,7 +89,7 @@ public class CriptoYaAPI {
 
             this.dollarCache = this.jsonMapper.readValue(response.body(), FX_TR);
 
-            return this.dollarCache.get("blue_bid");
+            return this.dollarCache.get("blue").getBid();
 
         } else {
             throw new IOException(MessageFormat.format("Could not read criptoya data: {0} {1}", response.statusCode(), response.body()));
@@ -227,5 +227,38 @@ public class CriptoYaAPI {
 
     public record CriptoYaFXParams(String exchange, String coin, String fiatFrom, String fiatTo, String currency) {
 
+    }
+    
+    private static class DollarItem{
+    
+        private BigDecimal ask;
+        private BigDecimal bid;
+        private BigDecimal price;
+
+        public BigDecimal getAsk() {
+            return ask;
+        }
+
+        public void setAsk(BigDecimal ask) {
+            this.ask = ask;
+        }
+
+        public BigDecimal getBid() {
+            return bid;
+        }
+
+        public void setBid(BigDecimal bid) {
+            this.bid = bid;
+        }
+
+        public BigDecimal getPrice() {
+            return price;
+        }
+
+        public void setPrice(BigDecimal price) {
+            this.price = price;
+        }
+        
+        
     }
 }
