@@ -48,9 +48,6 @@ public class Goal {
     private static final TypeReference<Map<String, ExpectedReturnGroup>> TR = new TypeReference<Map<String, ExpectedReturnGroup>>() {
     };
 
-    //private static final double OFFICIAL_DOLLAR_MEAN = 1.0d;
-    //private static final double OFFICIAL_DOLLAR_STD_DEV = 0.00d;
-
     private static final BigDecimal BUY_FEE = new BigDecimal("200");
 
     private static final BigDecimal MONTHS_IN_A_YEAR = new BigDecimal("12");
@@ -58,16 +55,11 @@ public class Goal {
     private static final BigDecimal SELL_FEE = new BigDecimal("0.00726").multiply(new BigDecimal("0.5"), C)
             .add(new BigDecimal("0.00056").multiply(new BigDecimal("0.5"), C));
 
-    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.15"), C), C);
+    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.1238"), C), C);
     
     private static final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("400");
 
     private static final Function<BigDecimal, BigDecimal> IBKR_FEE_STRATEGY = new InteractiveBrokersTieredLondonUSDFeeStrategy();
-
-//    private static double gauss(double mean, double std) {
-//        return mean + ThreadLocalRandom.current().nextGaussian() * std;
-//    }
-
 
     private final double bbppTaxRate;
     private final Console console;
