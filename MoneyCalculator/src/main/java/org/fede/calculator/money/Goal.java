@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.YearMonth;
@@ -328,63 +327,6 @@ public class Goal {
                         bbppMin))
                 .filter(d -> d > 0.0d)
                 .count();
-    }
-
-    public void endValue(int years, double invested) {
-
-        this.console.appendLine(this.format.title(format("Expected Portfolio Value in {0} years", years)));
-
-        this.console.appendLine(
-                this.format.text("   Supplier", 14),
-                this.format.text("     Worst 10%", 14),
-                this.format.text("           50%", 14),
-                this.format.text("      Best 10%", 14));
-
-        SeriesReader.read("/index/expected-returns.json", TR)
-                .entrySet()
-                .stream()
-                .map(e -> this.endValueReportLine(e.getKey(), e.getValue(), years, invested))
-                .forEach(this.console::appendLine);
-
-    }
-
-    private String endValueReportLine(String name, ExpectedReturnGroup expectedReturn, int years, double invested) {
-
-        final var mu = expectedReturn.getUsLargeCap().getMu() * 0.7d
-                + expectedReturn.getUsSmallCap().getMu() * 0.1d
-                + expectedReturn.getEm().getMu() * 0.1d
-                + expectedReturn.getEu().getMu() * 0.1d;
-
-        final var sigma = expectedReturn.getUsLargeCap().getSigma() * 0.7d
-                + expectedReturn.getUsSmallCap().getSigma() * 0.1d
-                + expectedReturn.getEm().getSigma() * 0.1d
-                + expectedReturn.getEu().getSigma() * 0.1d;
-
-        Supplier<double[]> supplier = new GaussReturnSupplier(mu, sigma, years);
-       
-        final var trials = 80000;
-
-        final var returnPct = IntStream.range(0, trials)
-                .parallel()
-                .mapToObj(i -> supplier.get())
-                .map(this::endReturn)
-                .sorted()
-                .toList();
-
-        return this.format.text(name, 14)
-                + " "
-                + this.format.currency(new BigDecimal(invested * returnPct.get((int) Math.round(trials * 0.1d))), 14)
-                + ", "
-                + this.format.currency(new BigDecimal(invested * returnPct.get((int) Math.round(trials * 0.5d))), 14)
-                + ", "
-                + this.format.currency(new BigDecimal(invested * returnPct.get((int) Math.round(trials * 0.9d))), 14);
-
-    }
-
-    private double endReturn(double[] randomReturns) {
-        return DoubleStream.of(randomReturns)
-                .reduce(1.0d, (x, y) -> x * y);
-
     }
 
 }
