@@ -77,7 +77,7 @@ public class Investments {
             "EIMI", "iShares Core MSCI EM IMI",
             "XRSU", "Xtrackers Russell 2000",
             "RTWO", "Russell 2000 Q. Factor",
-            "MEUD", "Lyxor Core STOXX Eu. 600",
+            "MEUD", "Amundi Stoxx Europe 600",
             "IWDA", "iShares Core MSCI World"
     );
 

@@ -80,7 +80,7 @@ public class Positions {
             "EIMI", "iShares Core MSCI EM IMI",
             "XRSU", "Xtrackers Russell 2000",
             "RTWO", "L&G Russell 2000 Small Cap Quality",
-            "MEUD", "Lyxor Core STOXX Europe 600 DR"
+            "MEUD", "Amundi Stoxx Europe 600"
     );
 
     private static final Map<String, Function<Investment, String>> GROUPINGS = Map.of(
