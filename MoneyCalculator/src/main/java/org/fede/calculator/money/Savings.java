@@ -542,7 +542,7 @@ public class Savings {
 
     public void incomeAverageEvolution(int months, boolean ars) {
         this.console.appendLine(this.format.title(format("Average {0}-month income evolution", months)));
-        int baseBarSize = 30;
+        int baseBarSize = 40;
 
         if (months < 6) {
             baseBarSize = 50;
