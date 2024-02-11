@@ -149,22 +149,25 @@ public class Bar {
 
     public String smallPctBar(BigDecimal value) {
 
+        final var maxLengh = 21;
+        final var partLength = (maxLengh - 3) / 2;
+        
         final var steps = value.movePointRight(2)
                 .abs()
-                .movePointLeft(1)
+                .divide(new BigDecimal("5"), C)
                 .intValue();
 
-        final var stream = steps < 15
+        final var stream = steps < maxLengh
                 ? IntStream.range(0, steps).mapToObj(x -> " ")
                 : Stream.concat(
                         Stream.concat(
-                                IntStream.range(0, 6).mapToObj(x -> " "),
+                                IntStream.range(0, partLength).mapToObj(x -> " "),
                                 Stream.of("/-/")),
-                        IntStream.range(0, 6).mapToObj(x -> " "));
+                        IntStream.range(0, partLength).mapToObj(x -> " "));
 
         Attribute attr = value.signum() < 0 ? Attribute.RED_BACK() : Attribute.GREEN_BACK();
 
-        return String.format("%-15s", Ansi.colorize(stream.collect(joining()), attr));
+        return String.format("%-"+maxLengh+"s", Ansi.colorize(stream.collect(joining()), attr));
     }
 
     public String bar(BigDecimal value, int scale) {
