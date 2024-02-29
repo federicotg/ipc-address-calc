@@ -96,6 +96,7 @@ public class Series {
                     of("taxes", "bbpp"),
                     of("taxes", "inmobiliario-43"),
                     of("taxes", "monotributo-angeles"),
+                    of("taxes", "monotributo"),
                     of("taxes", "municipal-43"),
                     of("taxes", "contadora"),
                     of("phone", "celular-a"),
