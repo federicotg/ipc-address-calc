@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.ppi;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -27,6 +28,7 @@ import java.time.Instant;
  *
  * @author federicogentile
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PPIMarketData {
 
     private Instant date;
