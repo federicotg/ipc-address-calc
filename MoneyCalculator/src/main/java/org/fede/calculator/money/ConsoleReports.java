@@ -16,31 +16,31 @@
  */
 package org.fede.calculator.money;
 
-import org.fede.calculator.ppi.PPI;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.Optional;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 import static java.text.MessageFormat.format;
+import java.text.NumberFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import static java.util.Map.entry;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import java.util.stream.Stream;
-import org.fede.calculator.criptoya.CriptoYaAPI;
 
-import org.fede.calculator.money.series.Investment;
-import org.fede.calculator.money.series.YearMonth;
+import org.fede.calculator.criptoya.CriptoYaAPI;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.YearMonth;
+import org.fede.calculator.ppi.PPI;
 import org.fede.util.Pair;
 
 /**
@@ -53,14 +53,14 @@ public class ConsoleReports {
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 
-    private static final String TRIALS = "80000";
-    private static final String RETIREMENT = "66";
+    private static final String TRIALS = "50000";
+    private static final String RETIREMENT = "65";
     private static final String AGE = "100";
-    private static final String INFLATION = "2.6";
+    private static final String INFLATION = "2.2";
     private static final String CASH = "0";
     private static final String TAX = "true";
     private static final String EXPECTED_RETRUNS = "all";
-    private static final String BBPP = "1.25";
+    private static final String BBPP = "1.5";
     private static final String PENSION = "100";
 
     private static boolean nominal(Map<String, String> params) {
