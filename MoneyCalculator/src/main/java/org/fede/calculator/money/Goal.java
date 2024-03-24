@@ -52,7 +52,7 @@ public class Goal {
             .add(new BigDecimal("0.00056").multiply(new BigDecimal("0.5"), C));
 
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.1238"), C), C);
-    
+
     private static final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("400");
 
     private static final Function<BigDecimal, BigDecimal> IBKR_FEE_STRATEGY = new InteractiveBrokersTieredLondonUSDFeeStrategy();
@@ -71,7 +71,29 @@ public class Goal {
         this.bar = bar;
 
     }
-    
+
+//    private void nHighestAtRetirement(double[] values, int n, int retirementYear, int startingYear) {
+//        this.nAtRetirement(values, n, retirementYear, startingYear, Comparator.comparing(ReturnPosition::value).reversed());
+//    }
+
+    private void nLowestAtRetirement(double[] values, int n, int retirementYear, int startingYear) {
+        this.nAtRetirement(values, n, retirementYear, startingYear, Comparator.comparing(ReturnPosition::value));
+    }
+
+    private void nAtRetirement(double[] values, int n, int retirementYear, int startingYear, Comparator<ReturnPosition> cmp) {
+        var swaps = IntStream.range(0, values.length)
+                .mapToObj(i -> new ReturnPosition(values[i], i))
+                .sorted(cmp)
+                .mapToInt(ReturnPosition::index)
+                .toArray();
+
+        for (var i = 0; i < n; i++) {
+            double aux = values[retirementYear - startingYear + i];
+            values[retirementYear - startingYear + i] = values[swaps[i]];
+            values[swaps[i]] = aux;
+        }
+    }
+
     private double goals(
             final int startingYear,
             final int retirement,
@@ -82,19 +104,9 @@ public class Goal {
             final double[] deposit,
             final double[] withdrawal,
             final double bbppMin) {
-        
-        var swaps = IntStream.range(0, returns.length)
-                .mapToObj(i -> new ReturnPosition(returns[i], i))
-                .sorted(Comparator.comparing(ReturnPosition::value))
-                .mapToInt(ReturnPosition::index)
-                .toArray();
-        
-        for(var i = 0; i < 3; i++){
-            double aux = returns[retirement - startingYear + i];
-            returns[retirement - startingYear + i] = returns[swaps[i]];
-            returns[swaps[i]] = aux;
-        }
-        
+
+        this.nLowestAtRetirement(returns, 3, retirement, startingYear);
+
         double cashAmount = cash;
         double amount = investedAmount;
         double bbpp;
@@ -111,7 +123,7 @@ public class Goal {
         }
 
         final var cgt = CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT.doubleValue();
-        
+
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
@@ -175,7 +187,10 @@ public class Goal {
             MoneyAmount invested,
             String expected) {
 
-        final var to = USD_INFLATION.getTo();
+        final var retirementYear = 1978 + retirementAge;
+        final int startingYear = USD_INFLATION.getTo().getYear();
+        final var end = 1978 + age;
+        final var yearsLeft = 2088 - startingYear;
 
         final var cash = todaySavings.getAmount()
                 .subtract(invested.getAmount(), C)
@@ -183,6 +198,12 @@ public class Goal {
 
         final var inflationRate = ONE.setScale(SCALE, RM)
                 .add(inflation.setScale(SCALE, RM).movePointLeft(2), C).doubleValue();
+
+        final var inflationFactors = IntStream.range(0, yearsLeft)
+                .mapToDouble(year -> Math.pow(inflationRate, year))
+                .toArray();
+
+        //this.nHighestAtRetirement(inflationFactors, 2, retirementYear, startingYear);
 
         final var yearBuyTransactions = BigDecimal.TEN;
 
@@ -218,9 +239,9 @@ public class Goal {
         if (pension > 0) {
             this.console.appendLine(format("Considering {0,number,currency} pension.", pension));
         }
-        
+
         this.console.appendLine(format("Considering {0,number,currency} health insurance.", HEALTH_MONTHLY_COST));
-        
+
         this.console.appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2}.", inflation, retirementAge, age));
 
         final var bbppMin = this.series.bbppSeries()
@@ -229,18 +250,8 @@ public class Goal {
                 .mapToDouble(BigDecimal::doubleValue)
                 .average()
                 .orElse(30000d);
-        
+
         this.console.appendLine(format("BB.PP min. {0,number,currency}.", bbppMin));
-
-        final var retirementYear = 1978 + retirementAge;
-
-        final int startingYear = to.getYear();
-        final var end = 1978 + age;
-        final var yearsLeft = 2088 - startingYear;
-
-        final var inflationFactors = IntStream.range(0, yearsLeft)
-                .mapToDouble(year -> Math.pow(inflationRate, year))
-                .toArray();
 
         final var realDeposits = Arrays.stream(inflationFactors)
                 .map(f -> f * deposit)
@@ -323,10 +334,13 @@ public class Goal {
                 .count();
     }
 
-    private record SuccessCount(String name, long success){
-        
+    private record SuccessCount(String name, long success) {
+
     }
 
-    private record ReturnPosition(Double value, int index){};
-    
+    private record ReturnPosition(Double value, int index) {
+
+    }
+;
+
 }
