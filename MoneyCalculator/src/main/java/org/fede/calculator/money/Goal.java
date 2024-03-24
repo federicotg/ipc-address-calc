@@ -89,7 +89,7 @@ public class Goal {
                 .mapToInt(ReturnPosition::index)
                 .toArray();
         
-        for(var i = 0; i < 5; i++){
+        for(var i = 0; i < 3; i++){
             double aux = returns[retirement - startingYear + i];
             returns[retirement - startingYear + i] = returns[swaps[i]];
             returns[swaps[i]] = aux;
