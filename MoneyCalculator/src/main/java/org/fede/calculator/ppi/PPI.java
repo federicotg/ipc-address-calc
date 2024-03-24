@@ -105,7 +105,7 @@ public class PPI {
             //final var letra1 = "XE4";
 
             final var newFee = new PPIFXFee(LETES_USD_NEW, LETES_ARS_NEW);
-            final var bondsFee = new PPIFXFee(new BigDecimal(0.004), new BigDecimal(0.004));
+            final var bondsFee = new PPIFXFee(new BigDecimal("0.004"), new BigDecimal("0.004"));
 
             List<Pair<String, Future<MoneyAmount>>> futures = new ArrayList<>(32);
             try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {

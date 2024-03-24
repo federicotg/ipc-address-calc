@@ -24,19 +24,16 @@ import static java.math.BigDecimal.ONE;
 import static java.text.MessageFormat.format;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import static org.fede.calculator.money.MathConstants.RM;
 import static org.fede.calculator.money.MathConstants.SCALE;
 import org.fede.calculator.money.series.SeriesReader;
-import org.fede.util.Pair;
 
 /**
  *
@@ -85,18 +82,27 @@ public class Goal {
             final double[] deposit,
             final double[] withdrawal,
             final double bbppMin) {
-
+        
+        var swaps = IntStream.range(0, returns.length)
+                .mapToObj(i -> new ReturnPosition(returns[i], i))
+                .sorted(Comparator.comparing(ReturnPosition::value))
+                .mapToInt(ReturnPosition::index)
+                .toArray();
+        
+        for(var i = 0; i < 5; i++){
+            double aux = returns[retirement - startingYear + i];
+            returns[retirement - startingYear + i] = returns[swaps[i]];
+            returns[swaps[i]] = aux;
+        }
+        
         double cashAmount = cash;
         double amount = investedAmount;
         double bbpp;
         // depositing
         for (var i = startingYear; i < retirement; i++) {
 
-            // brecha
-            final var officialDollarFactor = 1.0d;//Math.min(1.0d, gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
-
             // BB.PP.
-            bbpp = Math.max(amount * officialDollarFactor - bbppMin, 0.0d) * this.bbppTaxRate;
+            bbpp = Math.max(amount - bbppMin, 0.0d) * this.bbppTaxRate;
             final var d = deposit[i - startingYear];
 
             amount -= bbpp;
@@ -123,11 +129,8 @@ public class Goal {
 
                 amount -= thisYearWithdrawal;
 
-                // brecha
-                final var officialDollarFactor = 1.0d;//Math.min(1.0d, gauss(OFFICIAL_DOLLAR_MEAN, OFFICIAL_DOLLAR_STD_DEV));
-
                 // BB.PP.
-                bbpp = Math.max(amount * officialDollarFactor - bbppMin, 0.0d) * this.bbppTaxRate;
+                bbpp = Math.max(amount - bbppMin, 0.0d) * this.bbppTaxRate;
                 amount -= bbpp * cgt;
                 amount *= returns[i - startingYear];
             }
@@ -231,15 +234,11 @@ public class Goal {
 
         final var retirementYear = 1978 + retirementAge;
 
-        final var periodYears = retirementYear - YearMonth.of(new Date()).getYear();
-
         final int startingYear = to.getYear();
         final var end = 1978 + age;
-        final var yearsLeft = 80;
+        final var yearsLeft = 2088 - startingYear;
 
-        final var periods = (int) Math.ceil((float) yearsLeft / periodYears);
-
-        final var inflationFactors = IntStream.range(0, 120)
+        final var inflationFactors = IntStream.range(0, yearsLeft)
                 .mapToDouble(year -> Math.pow(inflationRate, year))
                 .toArray();
 
@@ -250,18 +249,15 @@ public class Goal {
         final var realWithdrawals = Arrays.stream(inflationFactors)
                 .map(f -> f * withdraw)
                 .toArray();
-
-        this.console.appendLine(format("\nSimulating {0} {1}-year periods.", trials, periodYears));
-
         final Map<String, ExpectedReturnGroup> expectedReturns = SeriesReader.read("/index/expected-returns.json", TR);
 
-        List<Pair<String, Long>> results = expectedReturns.entrySet()
+        List<SuccessCount> results = expectedReturns.entrySet()
                 .parallelStream()
                 .filter(entry -> "all".equals(expected) || entry.getKey().equals(expected))
                 .map(entry
-                        -> Pair.of(
+                        -> new SuccessCount(
                         entry.getKey(),
-                        this.expectedReturnSuccesses(new GaussReturnSupplier(entry.getValue().mu(), entry.getValue().sigma(), periodYears * periods),
+                        this.expectedReturnSuccesses(new GaussReturnSupplier(entry.getValue().mu(), entry.getValue().sigma(), yearsLeft),
                                 trials,
                                 startingYear,
                                 retirementYear,
@@ -274,19 +270,17 @@ public class Goal {
                 .toList();
 
         results.stream()
-                .sorted(Comparator.comparing(Pair::second))
+                .sorted(Comparator.comparing(SuccessCount::success))
                 .map(pair
-                        -> this.report(pair.first(), pair.second(), trials))
+                        -> this.report(pair.name(), pair.success(), trials))
                 .forEach(this.console::appendLine);
 
         final long averageSuccesses = (long) results.stream()
-                .mapToLong(Pair::second)
+                .mapToLong(SuccessCount::success)
                 .average()
                 .getAsDouble();
         this.console.appendLine(this.format.subtitle("Average"));
         this.console.appendLine(this.report("Average", averageSuccesses, trials));
-
-        //this.endValue(retirementYear - LocalDate.now().getYear(), invested.getAmount().doubleValue());
 
     }
 
@@ -329,4 +323,10 @@ public class Goal {
                 .count();
     }
 
+    private record SuccessCount(String name, long success){
+        
+    }
+
+    private record ReturnPosition(Double value, int index){};
+    
 }
