@@ -88,6 +88,37 @@ public class Series {
         return this.realUSDCondoExpenses;
     }
 
+    
+    public Map<String, List<MoneyAmountSeries>> getRealUSDExpensesByEssential(){
+        return Stream.of(
+                    of("essential", "bbpp"),
+                    of("essential", "inmobiliario-43"),
+                    of("essential", "monotributo-angeles"),
+                    of("essential", "monotributo"),
+                    of("essential", "municipal-43"),
+                    of("essential", "contadora"),
+                    of("essential", "celular-a"),
+                    of("essential", "celular-f"),
+                    of("non-essential", "telefono-43"),
+                    of("essential", "emergencia"),
+                    of("non-essential", "ioma"),
+                    of("non-essential", "seguro"),
+                    of("essential", "gas"),
+                    of("essential", "luz"),
+                    of("essential", "cablevision"),
+                    of("essential", "reparaciones"),
+                    of("non-essential", "limpieza"),
+                    of("essential", "expensas"),
+                    of("non-essential", "netflix"),
+                    of("non-essential", "netflix-usd"),
+                    of("non-essential", "viajes"),
+                    of("non-essential", "xbox"))
+                    .collect(groupingBy(
+                            Pair::first,
+                            mapping(p -> this.asRealUSDSeries("expense/", p.second()),
+                                    Collectors.toList())));
+    }
+    
     public Map<String, List<MoneyAmountSeries>> getRealUSDExpensesByType() {
 
         if (this.realUSDExpensesByType == null) {

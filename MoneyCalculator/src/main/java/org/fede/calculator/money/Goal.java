@@ -75,7 +75,6 @@ public class Goal {
 //    private void nHighestAtRetirement(double[] values, int n, int retirementYear, int startingYear) {
 //        this.nAtRetirement(values, n, retirementYear, startingYear, Comparator.comparing(ReturnPosition::value).reversed());
 //    }
-
     private void nLowestAtRetirement(double[] values, int n, int retirementYear, int startingYear) {
         this.nAtRetirement(values, n, retirementYear, startingYear, Comparator.comparing(ReturnPosition::value));
     }
@@ -127,7 +126,10 @@ public class Goal {
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
-            var thisYearWithdrawal = withdrawal[i - startingYear];
+            // withdrawal strategy: bad year => withdraw 20% less.
+            final var lastYearReturn = returns[i - startingYear - 1];
+
+            var thisYearWithdrawal = withdrawal[i - startingYear] * (lastYearReturn <= 0.8d ? 0.8d : 1.0d);
 
             if (cashAmount > thisYearWithdrawal) {
                 // sobra cash
@@ -135,17 +137,16 @@ public class Goal {
             } else {
                 // (cashAmount <= thisYearWithdrawal) => sell investments
 
-                thisYearWithdrawal = thisYearWithdrawal - cashAmount;
-
-                cashAmount = 0.0d;
-
+                //thisYearWithdrawal = thisYearWithdrawal - cashAmount;
+                //cashAmount = 0.0d;
                 amount -= thisYearWithdrawal;
 
                 // BB.PP.
                 bbpp = Math.max(amount - bbppMin, 0.0d) * this.bbppTaxRate;
                 amount -= bbpp * cgt;
-                amount *= returns[i - startingYear];
             }
+            // yearly returns
+            amount *= returns[i - startingYear];
         }
         return amount + cashAmount;
     }
@@ -163,11 +164,11 @@ public class Goal {
             MoneyAmount invested,
             String expected) {
 
-        final var spendingandSaving = new Savings(format, series, bar, console)
+        final var spendingandSaving = new Savings(this.format, this.series, this.bar, this.console)
                 .averageSpendingAndSaving(averageIncomeSpendingMonths);
 
         final var monthlyDeposit = spendingandSaving.saving().getAmount();
-        final var monthlyWithdraw = spendingandSaving.speding().getAmount()
+        final var monthlyWithdraw = spendingandSaving.spending().getAmount()
                 .subtract(new BigDecimal(pension), C);
 
         this.goal(trials, monthlyDeposit, monthlyWithdraw, inflation, retirementAge, extraCash, afterTax, age, pension, todaySavings, invested, expected);
@@ -204,7 +205,6 @@ public class Goal {
                 .toArray();
 
         //this.nHighestAtRetirement(inflationFactors, 2, retirementYear, startingYear);
-
         final var yearBuyTransactions = BigDecimal.TEN;
 
         final var yearDeposit = monthlyDeposit

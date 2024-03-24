@@ -138,6 +138,16 @@ public class Expenses {
     }
 
     public void expenseBySource(int months) {
+        this.expenseBySource(months, this.series.getRealUSDExpensesByType());
+
+    }
+
+    public void expenseByEssential(int months) {
+        this.expenseBySource(months, this.series.getRealUSDExpensesByEssential());
+
+    }
+
+    public void expenseBySource(int months, Map<String, List<MoneyAmountSeries>> source) {
 
         final var title = format("Average {0}-month expenses by source", months);
 
@@ -153,7 +163,7 @@ public class Expenses {
 
         final var agg = new SimpleAggregation(months);
 
-        final var seriesGroups = this.series.getRealUSDExpensesByType();
+        final var seriesGroups = source;
 
         final var ss = seriesGroups.entrySet().stream()
                 .sorted(Comparator.comparing(Map.Entry::getKey))
@@ -181,6 +191,8 @@ public class Expenses {
                 .mapToObj(i -> new AmountAndColor(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
                 .toList();
     }
-    
-    private record TypeAndAmount(String type, BigDecimal amount){}
+
+    private record TypeAndAmount(String type, BigDecimal amount) {
+
+    }
 }

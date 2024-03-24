@@ -561,5 +561,5 @@ public class Savings {
                 barSize);
     }
     
-    public record SpendingAndSaving(MoneyAmount speding,MoneyAmount saving){}
+    public record SpendingAndSaving(MoneyAmount spending, MoneyAmount saving){}
 }
