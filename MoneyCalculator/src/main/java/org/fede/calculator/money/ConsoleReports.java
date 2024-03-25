@@ -55,14 +55,14 @@ public class ConsoleReports {
 
     private static final String TRIALS = "10000";
     private static final String RETIREMENT = "65";
-    private static final String AGE = "98";
+    private static final String AGE = "100";
     
     // https://fred.stlouisfed.org/series/EXPINF30YR
     private static final String INFLATION = "2.38143";
     private static final String CASH = "0";
     private static final String TAX = "true";
     private static final String EXPECTED_RETRUNS = "all";
-    private static final String BBPP = "1.93";
+    private static final String BBPP = "2.25";
     private static final String PENSION = "150";
 
     private static boolean nominal(Map<String, String> params) {
