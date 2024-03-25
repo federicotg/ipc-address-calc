@@ -53,15 +53,17 @@ public class ConsoleReports {
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 
-    private static final String TRIALS = "50000";
+    private static final String TRIALS = "10000";
     private static final String RETIREMENT = "65";
-    private static final String AGE = "100";
-    private static final String INFLATION = "2.2";
+    private static final String AGE = "98";
+    
+    // https://fred.stlouisfed.org/series/EXPINF30YR
+    private static final String INFLATION = "2.38143";
     private static final String CASH = "0";
     private static final String TAX = "true";
     private static final String EXPECTED_RETRUNS = "all";
-    private static final String BBPP = "1.5";
-    private static final String PENSION = "100";
+    private static final String BBPP = "1.93";
+    private static final String PENSION = "150";
 
     private static boolean nominal(Map<String, String> params) {
         return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
@@ -298,7 +300,7 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} tax={5} bbpp={6} pension={7} exp={8} months={9}",
+                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} tax={5} bbpp={6} pension={7} exp={8} m={9}",
                                 TRIALS,
                                 RETIREMENT,
                                 AGE,
@@ -568,7 +570,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         new BBPP(format, series, console)
-                .bbpp(Integer.parseInt(params.getOrDefault("year", "2022")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
+                .bbpp(Integer.parseInt(params.getOrDefault("year", "2023")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
     }
 
     private void bbppEvo(String[] args, String paramName) {

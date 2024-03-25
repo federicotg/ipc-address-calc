@@ -44,8 +44,6 @@ public class Goal {
     private static final TypeReference<Map<String, ExpectedReturnGroup>> TR = new TypeReference<Map<String, ExpectedReturnGroup>>() {
     };
 
-    private static final BigDecimal BUY_FEE = new BigDecimal("200");
-
     private static final BigDecimal MONTHS_IN_A_YEAR = new BigDecimal("12");
 
     private static final BigDecimal SELL_FEE = new BigDecimal("0.00726").multiply(new BigDecimal("0.5"), C)
@@ -72,9 +70,6 @@ public class Goal {
 
     }
 
-//    private void nHighestAtRetirement(double[] values, int n, int retirementYear, int startingYear) {
-//        this.nAtRetirement(values, n, retirementYear, startingYear, Comparator.comparing(ReturnPosition::value).reversed());
-//    }
     private void nLowestAtRetirement(double[] values, int n, int retirementYear, int startingYear) {
         this.nAtRetirement(values, n, retirementYear, startingYear, Comparator.comparing(ReturnPosition::value));
     }
@@ -104,7 +99,7 @@ public class Goal {
             final double[] withdrawal,
             final double bbppMin) {
 
-        this.nLowestAtRetirement(returns, 3, retirement, startingYear);
+        this.nLowestAtRetirement(returns, 2, retirement, startingYear);
 
         double cashAmount = cash;
         double amount = investedAmount;
@@ -129,7 +124,7 @@ public class Goal {
             // withdrawal strategy: bad year => withdraw 20% less.
             final var lastYearReturn = returns[i - startingYear - 1];
 
-            var thisYearWithdrawal = withdrawal[i - startingYear] * (lastYearReturn <= 0.8d ? 0.8d : 1.0d);
+            var thisYearWithdrawal = withdrawal[i - startingYear] * (lastYearReturn <= 0.9d ? 0.9d : 1.0d);
 
             if (cashAmount > thisYearWithdrawal) {
                 // sobra cash
@@ -208,8 +203,7 @@ public class Goal {
         final var yearBuyTransactions = BigDecimal.TEN;
 
         final var yearDeposit = monthlyDeposit
-                .multiply(MONTHS_IN_A_YEAR, C)
-                .subtract(BUY_FEE, C);
+                .multiply(MONTHS_IN_A_YEAR, C);
 
         final var yearIBKRFee = IBKR_FEE_STRATEGY
                 .apply(yearDeposit.divide(yearBuyTransactions, C))
@@ -252,7 +246,8 @@ public class Goal {
                 .orElse(30000d);
 
         this.console.appendLine(format("BB.PP min. {0,number,currency}.", bbppMin));
-
+        this.console.appendLine();
+        
         final var realDeposits = Arrays.stream(inflationFactors)
                 .map(f -> f * deposit)
                 .toArray();
