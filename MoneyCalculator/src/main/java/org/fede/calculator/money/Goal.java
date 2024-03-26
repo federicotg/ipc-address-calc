@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
@@ -52,8 +51,6 @@ public class Goal {
     private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.1238"), C), C);
 
     private static final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("400");
-
-    private static final Function<BigDecimal, BigDecimal> IBKR_FEE_STRATEGY = new InteractiveBrokersTieredLondonUSDFeeStrategy();
 
     private final double bbppTaxRate;
     private final Console console;
@@ -94,12 +91,13 @@ public class Goal {
             final int end,
             final double cash,
             final double investedAmount,
+            final int badReturnYears,
             final double[] returns,
             final double[] deposit,
             final double[] withdrawal,
             final double bbppMin) {
 
-        this.nLowestAtRetirement(returns, 2, retirement, startingYear);
+        this.nLowestAtRetirement(returns, badReturnYears, retirement, startingYear);
 
         double cashAmount = cash;
         double amount = investedAmount;
@@ -157,7 +155,8 @@ public class Goal {
             final int pension,
             MoneyAmount todaySavings,
             MoneyAmount invested,
-            String expected) {
+            String expected,
+            int badReturnYears) {
 
         final var spendingandSaving = new Savings(this.format, this.series, this.bar, this.console)
                 .averageSpendingAndSaving(averageIncomeSpendingMonths);
@@ -166,7 +165,7 @@ public class Goal {
         final var monthlyWithdraw = spendingandSaving.spending().getAmount()
                 .subtract(new BigDecimal(pension), C);
 
-        this.goal(trials, monthlyDeposit, monthlyWithdraw, inflation, retirementAge, extraCash, afterTax, age, pension, todaySavings, invested, expected);
+        this.goal(trials, monthlyDeposit, monthlyWithdraw, inflation, retirementAge, extraCash, afterTax, age, pension, todaySavings, invested, expected, badReturnYears);
     }
 
     private void goal(
@@ -181,7 +180,8 @@ public class Goal {
             final int pension,
             MoneyAmount todaySavings,
             MoneyAmount invested,
-            String expected) {
+            String expected,
+            int badReturnYears) {
 
         final var retirementYear = 1978 + retirementAge;
         final int startingYear = USD_INFLATION.getTo().getYear();
@@ -200,16 +200,8 @@ public class Goal {
                 .toArray();
 
         //this.nHighestAtRetirement(inflationFactors, 2, retirementYear, startingYear);
-        final var yearBuyTransactions = BigDecimal.TEN;
 
-        final var yearDeposit = monthlyDeposit
-                .multiply(MONTHS_IN_A_YEAR, C);
-
-        final var yearIBKRFee = IBKR_FEE_STRATEGY
-                .apply(yearDeposit.divide(yearBuyTransactions, C))
-                .multiply(yearBuyTransactions, C);
-
-        final var deposit = yearDeposit.subtract(yearIBKRFee, C).doubleValue();
+        final var deposit = monthlyDeposit.multiply(MONTHS_IN_A_YEAR, C).doubleValue();
 
         final var withdraw = (monthlyWithdraw
                 .add(HEALTH_MONTHLY_COST, C)
@@ -272,7 +264,8 @@ public class Goal {
                                 investedAmount,
                                 realDeposits,
                                 realWithdrawals,
-                                bbppMin)))
+                                bbppMin, 
+                                badReturnYears)))
                 .toList();
 
         results.stream()
@@ -311,7 +304,8 @@ public class Goal {
             double investedAmount,
             double[] realDeposits,
             double[] realWithdrawals,
-            double bbppMin) {
+            double bbppMin,
+            int badReturnYears) {
 
         return IntStream.range(0, trials)
                 .mapToDouble(p
@@ -321,6 +315,7 @@ public class Goal {
                         end,
                         cash,
                         investedAmount,
+                        badReturnYears,
                         returnsSuplier.get(),
                         realDeposits,
                         realWithdrawals,

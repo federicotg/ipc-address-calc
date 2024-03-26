@@ -64,6 +64,7 @@ public class ConsoleReports {
     private static final String EXPECTED_RETRUNS = "all";
     private static final String BBPP = "2.25";
     private static final String PENSION = "150";
+    private static final String BAD_RETURN_YEARS = "2";
 
     private static boolean nominal(Map<String, String> params) {
         return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
@@ -300,7 +301,7 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} tax={5} bbpp={6} pension={7} exp={8} m={9}",
+                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} tax={5} bbpp={6} pension={7} exp={8} m={9} srr={10}",
                                 TRIALS,
                                 RETIREMENT,
                                 AGE,
@@ -310,7 +311,8 @@ public class ConsoleReports {
                                 BBPP,
                                 PENSION,
                                 EXPECTED_RETRUNS,
-                                36)),
+                                36, 
+                                BAD_RETURN_YEARS)),
                         entry("savings-change", "m=1"),
                         entry("i", ""),
                         entry("ti", ""),
@@ -541,6 +543,7 @@ public class ConsoleReports {
         final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", TAX));
         final var expected = params.getOrDefault("exp", EXPECTED_RETRUNS);
         final var pension = Integer.parseInt(params.getOrDefault("pension", PENSION));
+        final var badReturnYears = Integer.parseInt(params.getOrDefault("srr", BAD_RETURN_YEARS));
 
         final var bbppTax = afterTax
                 ? Double.parseDouble(params.getOrDefault("bbpp", BBPP)) / 100.0d
@@ -563,7 +566,8 @@ public class ConsoleReports {
                 pension,
                 todaySavings,
                 invested,
-                expected);
+                expected,
+                badReturnYears);
     }
 
     private void bbpp(String[] args, String paramName) {
