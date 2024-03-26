@@ -48,7 +48,7 @@ public class Goal {
     private static final BigDecimal SELL_FEE = new BigDecimal("0.00726").multiply(new BigDecimal("0.5"), C)
             .add(new BigDecimal("0.00056").multiply(new BigDecimal("0.5"), C));
 
-    private static final BigDecimal CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT = ONE.divide(ONE.subtract(new BigDecimal("0.1238"), C), C);
+    private static final BigDecimal CAPITAL_GAINS_TAX_PCT = new BigDecimal("0.15");
 
     private static final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("400");
 
@@ -101,7 +101,7 @@ public class Goal {
 
         double cashAmount = cash;
         double amount = investedAmount;
-        double bbpp;
+        double bbpp, gainPct, gainTaxPct, effectiveTaxPct, capitalGainsTaxFactor;
         // depositing
         for (var i = startingYear; i < retirement; i++) {
 
@@ -114,30 +114,35 @@ public class Goal {
             amount = amount * returns[i - startingYear] + d;
         }
 
-        final var cgt = CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT.doubleValue();
+        final var cgtPct = CAPITAL_GAINS_TAX_PCT.doubleValue();
 
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
-            // withdrawal strategy: bad year => withdraw 20% less.
+            // capital gain tax 22 years of gains
+            gainPct = IntStream.range(i - retirement, i - retirement + 22)
+                    .mapToDouble(y -> returns[y])
+                    .reduce(1.0d, (d1, d2) -> d1 * d2);
+
+            gainTaxPct = Math.max(0.0d, (gainPct - 1.0d) * cgtPct);
+            effectiveTaxPct = gainTaxPct / gainPct;
+            capitalGainsTaxFactor = 1.0d / (1.0d - effectiveTaxPct);
+
             final var lastYearReturn = returns[i - startingYear - 1];
 
-            var thisYearWithdrawal = withdrawal[i - startingYear] * (lastYearReturn <= 0.9d ? 0.9d : 1.0d);
+            // withdrawal strategy: bad year => withdraw 15% less.
+            var thisYearWithdrawal = withdrawal[i - startingYear] * (lastYearReturn <= 0.9d ? 0.85d : 1.0d) * capitalGainsTaxFactor;
 
-            if (cashAmount > thisYearWithdrawal) {
-                // sobra cash
+            if (cashAmount >= thisYearWithdrawal && lastYearReturn <= 0.9d) {
+                // usar cash 
                 cashAmount -= thisYearWithdrawal;
             } else {
                 // (cashAmount <= thisYearWithdrawal) => sell investments
-
-                //thisYearWithdrawal = thisYearWithdrawal - cashAmount;
-                //cashAmount = 0.0d;
                 amount -= thisYearWithdrawal;
-
-                // BB.PP.
-                bbpp = Math.max(amount - bbppMin, 0.0d) * this.bbppTaxRate;
-                amount -= bbpp * cgt;
             }
+
+            bbpp = Math.max(amount - bbppMin, 0.0d) * this.bbppTaxRate;
+            amount -= bbpp * capitalGainsTaxFactor;
             // yearly returns
             amount *= returns[i - startingYear];
         }
@@ -200,7 +205,6 @@ public class Goal {
                 .toArray();
 
         //this.nHighestAtRetirement(inflationFactors, 2, retirementYear, startingYear);
-
         final var deposit = monthlyDeposit.multiply(MONTHS_IN_A_YEAR, C).doubleValue();
 
         final var withdraw = (monthlyWithdraw
@@ -208,7 +212,8 @@ public class Goal {
                 .multiply(MONTHS_IN_A_YEAR, C)
                 .subtract(new BigDecimal(pension * 13), C))
                 .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
-                .multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, C).doubleValue();
+                //.multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, C)
+                .doubleValue();
 
         final var investedAmount = invested.getAmount().doubleValue();
 
@@ -239,7 +244,7 @@ public class Goal {
 
         this.console.appendLine(format("BB.PP min. {0,number,currency}.", bbppMin));
         this.console.appendLine();
-        
+
         final var realDeposits = Arrays.stream(inflationFactors)
                 .map(f -> f * deposit)
                 .toArray();
@@ -264,7 +269,7 @@ public class Goal {
                                 investedAmount,
                                 realDeposits,
                                 realWithdrawals,
-                                bbppMin, 
+                                bbppMin,
                                 badReturnYears)))
                 .toList();
 
