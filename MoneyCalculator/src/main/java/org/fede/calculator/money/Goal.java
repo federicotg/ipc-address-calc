@@ -357,6 +357,5 @@ public class Goal {
     private record ReturnPosition(Double value, int index) {
 
     }
-;
 
 }
