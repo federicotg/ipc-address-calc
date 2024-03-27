@@ -548,7 +548,6 @@ public class ConsoleReports {
         final var pension = Integer.parseInt(params.getOrDefault("pension", PENSION));
         final var badReturnYears = Integer.parseInt(params.getOrDefault("srr", BAD_RETURN_YEARS));
         final var saveCashYears = Integer.parseInt(params.getOrDefault("crr", SAVE_CASH_YEARS_BEFORE_RETIREMENT));
-        
         final var bbppTax = Double.parseDouble(params.getOrDefault("bbpp", BBPP)) / 100.0d;
 
         final var goal = new Goal(this.console, this.format, this.series, this.bar, bbppTax);
