@@ -52,6 +52,9 @@ public class Goal {
 
     private static final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("400");
 
+    private static final double BAD_YEAR_SPENDING = 0.85d;
+    private static final int SAVE_CASH_YEARS_BEFORE_RETIREMENT = 2;
+
     private final double bbppTaxRate;
     private final Console console;
     private final Format format;
@@ -111,7 +114,13 @@ public class Goal {
 
             amount -= bbpp;
 
-            amount = amount * returns[i - startingYear] + d;
+            amount = amount * returns[i - startingYear];
+
+            if (i < retirement - SAVE_CASH_YEARS_BEFORE_RETIREMENT) {
+                amount += d;
+            } else {
+                cashAmount += d;
+            }
         }
 
         final var cgtPct = CAPITAL_GAINS_TAX_PCT.doubleValue();
@@ -130,10 +139,10 @@ public class Goal {
 
             final var lastYearReturn = returns[i - startingYear - 1];
 
-            // withdrawal strategy: bad year => withdraw 15% less.
-            var thisYearWithdrawal = withdrawal[i - startingYear] * (lastYearReturn <= 0.9d ? 0.85d : 1.0d) * capitalGainsTaxFactor;
+            // withdrawal strategy: bad year => withdraw less.
+            var thisYearWithdrawal = withdrawal[i - startingYear] * (lastYearReturn <= 0.9d ? BAD_YEAR_SPENDING : 1.0d) * capitalGainsTaxFactor;
 
-            if (cashAmount >= thisYearWithdrawal && lastYearReturn <= 0.9d) {
+            if (cashAmount >= thisYearWithdrawal && lastYearReturn < 1.0d) {
                 // usar cash 
                 cashAmount -= thisYearWithdrawal;
             } else {
@@ -155,7 +164,6 @@ public class Goal {
             final BigDecimal inflation,
             final int retirementAge,
             final BigDecimal extraCash,
-            final boolean afterTax,
             final int age,
             final int pension,
             MoneyAmount todaySavings,
@@ -170,7 +178,7 @@ public class Goal {
         final var monthlyWithdraw = spendingandSaving.spending().getAmount()
                 .subtract(new BigDecimal(pension), C);
 
-        this.goal(trials, monthlyDeposit, monthlyWithdraw, inflation, retirementAge, extraCash, afterTax, age, pension, todaySavings, invested, expected, badReturnYears);
+        this.goal(trials, monthlyDeposit, monthlyWithdraw, inflation, retirementAge, extraCash, age, pension, todaySavings, invested, expected, badReturnYears);
     }
 
     private void goal(
@@ -180,7 +188,6 @@ public class Goal {
             final BigDecimal inflation,
             final int retirementAge,
             final BigDecimal extraCash,
-            final boolean afterTax,
             final int age,
             final int pension,
             MoneyAmount todaySavings,
@@ -212,28 +219,28 @@ public class Goal {
                 .multiply(MONTHS_IN_A_YEAR, C)
                 .subtract(new BigDecimal(pension * 13), C))
                 .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
-                //.multiply(afterTax ? CAPITAL_GAINS_TAX_EXTRA_WITHDRAWAL_PCT : ONE, C)
                 .doubleValue();
 
         final var investedAmount = invested.getAmount().doubleValue();
 
-        this.console.appendLine(format("Cash: {0,number,currency}, invested: {1,number,currency}", cash, investedAmount));
+        final var legend = """
+    - Cash: {0,number,currency}
+    - Invested: {1,number,currency}
+    - Saving: {2}
+    - Spending: {3}
+    - Wealth Tax: {4,number,#.##} %. Min: {5,number,currency}
+    - Capital Gains Tax: {6,number,percent}
+    - Health Cost: {7,number,currency}
+    - Pension: {8,number,currency}
+    - Expected Inflation: {9,number,#.##} %
+    - Sequence of Returns Risk: {10,number} years
+    - Retiring at {11,number} living until {12,number}
+    - Saving {13,number,percent} on bad return years
+    - Saving cash {14,number} years before retirement
+        """;
 
         final var formattedDeposit = this.format.text(format("{0,number,currency}", monthlyDeposit), 6, new AnsiFormat(Attribute.BRIGHT_GREEN_TEXT()));
         final var formattedWithdrawal = this.format.text(format("{0,number,currency}", monthlyWithdraw), 6, new AnsiFormat(Attribute.BRIGHT_RED_TEXT()));
-
-        this.console.appendLine(format(
-                "Saving {0}, spending {1}{2}",
-                formattedDeposit,
-                formattedWithdrawal,
-                afterTax ? " after tax." : "."));
-        if (pension > 0) {
-            this.console.appendLine(format("Considering {0,number,currency} pension.", pension));
-        }
-
-        this.console.appendLine(format("Considering {0,number,currency} health insurance.", HEALTH_MONTHLY_COST));
-
-        this.console.appendLine(format("Expected {0}% inflation, retiring at {1}, until age {2}.", inflation, retirementAge, age));
 
         final var bbppMin = this.series.bbppSeries()
                 .stream()
@@ -242,8 +249,22 @@ public class Goal {
                 .average()
                 .orElse(30000d);
 
-        this.console.appendLine(format("BB.PP min. {0,number,currency}.", bbppMin));
-        this.console.appendLine();
+        this.console.appendLine(format(legend,
+                cash,
+                investedAmount,
+                formattedDeposit,
+                formattedWithdrawal,
+                this.bbppTaxRate * 100.0d,
+                bbppMin,
+                CAPITAL_GAINS_TAX_PCT,
+                HEALTH_MONTHLY_COST,
+                pension,
+                inflation,
+                badReturnYears,
+                retirementAge,
+                age,
+                1.0d - BAD_YEAR_SPENDING,
+                SAVE_CASH_YEARS_BEFORE_RETIREMENT));
 
         final var realDeposits = Arrays.stream(inflationFactors)
                 .map(f -> f * deposit)

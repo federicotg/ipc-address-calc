@@ -60,11 +60,10 @@ public class ConsoleReports {
     // https://fred.stlouisfed.org/series/EXPINF30YR
     private static final String INFLATION = "2.38143";
     private static final String CASH = "0";
-    private static final String TAX = "true";
     private static final String EXPECTED_RETRUNS = "all";
     private static final String BBPP = "2.25";
     private static final String PENSION = "150";
-    private static final String BAD_RETURN_YEARS = "2";
+    private static final String BAD_RETURN_YEARS = "3";
 
     private static boolean nominal(Map<String, String> params) {
         return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
@@ -301,13 +300,12 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 final var help = Map.ofEntries(
-                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} tax={5} bbpp={6} pension={7} exp={8} m={9} srr={10}",
+                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} bbpp={5} pension={6} exp={7} m={8} srr={9}",
                                 TRIALS,
                                 RETIREMENT,
                                 AGE,
                                 INFLATION,
                                 CASH,
-                                TAX,
                                 BBPP,
                                 PENSION,
                                 EXPECTED_RETRUNS,
@@ -540,14 +538,10 @@ public class ConsoleReports {
         final var age = Integer.parseInt(params.getOrDefault("age", AGE));
         final var months = Integer.parseInt(params.getOrDefault(MONTHS_PARAM, "36"));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", CASH));
-        final var afterTax = Boolean.parseBoolean(params.getOrDefault("tax", TAX));
         final var expected = params.getOrDefault("exp", EXPECTED_RETRUNS);
         final var pension = Integer.parseInt(params.getOrDefault("pension", PENSION));
         final var badReturnYears = Integer.parseInt(params.getOrDefault("srr", BAD_RETURN_YEARS));
-
-        final var bbppTax = afterTax
-                ? Double.parseDouble(params.getOrDefault("bbpp", BBPP)) / 100.0d
-                : 0.0d;
+        final var bbppTax = Double.parseDouble(params.getOrDefault("bbpp", BBPP)) / 100.0d;
 
         final var goal = new Goal(this.console, this.format, this.series, this.bar, bbppTax);
 
@@ -561,7 +555,6 @@ public class ConsoleReports {
                 inflation,
                 retirementAge,
                 BigDecimal.valueOf(extraCash),
-                afterTax,
                 age,
                 pension,
                 todaySavings,
