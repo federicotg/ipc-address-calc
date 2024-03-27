@@ -52,8 +52,6 @@ public class Goal {
 
     private static final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("400");
 
-    private static final double BAD_YEAR_SPENDING = 0.85d;
-    private static final int SAVE_CASH_YEARS_BEFORE_RETIREMENT = 2;
 
     private final double bbppTaxRate;
     private final Console console;
@@ -95,6 +93,8 @@ public class Goal {
             final double cash,
             final double investedAmount,
             final int badReturnYears,
+            final double badYearSpending,
+            final int saveCashYears,
             final double[] returns,
             final double[] deposit,
             final double[] withdrawal,
@@ -116,7 +116,7 @@ public class Goal {
 
             amount = amount * returns[i - startingYear];
 
-            if (i < retirement - SAVE_CASH_YEARS_BEFORE_RETIREMENT) {
+            if (i < retirement - saveCashYears) {
                 amount += d;
             } else {
                 cashAmount += d;
@@ -140,7 +140,7 @@ public class Goal {
             final var lastYearReturn = returns[i - startingYear - 1];
 
             // withdrawal strategy: bad year => withdraw less.
-            var thisYearWithdrawal = withdrawal[i - startingYear] * (lastYearReturn <= 0.9d ? BAD_YEAR_SPENDING : 1.0d) * capitalGainsTaxFactor;
+            var thisYearWithdrawal = withdrawal[i - startingYear] * (lastYearReturn <= 0.9d ? badYearSpending : 1.0d) * capitalGainsTaxFactor;
 
             if (cashAmount >= thisYearWithdrawal && lastYearReturn < 1.0d) {
                 // usar cash 
@@ -169,7 +169,9 @@ public class Goal {
             MoneyAmount todaySavings,
             MoneyAmount invested,
             String expected,
-            int badReturnYears) {
+            int badReturnYears,
+            double badYearSpending,
+            int saveCashYears) {
 
         final var spendingandSaving = new Savings(this.format, this.series, this.bar, this.console)
                 .averageSpendingAndSaving(averageIncomeSpendingMonths);
@@ -178,7 +180,10 @@ public class Goal {
         final var monthlyWithdraw = spendingandSaving.spending().getAmount()
                 .subtract(new BigDecimal(pension), C);
 
-        this.goal(trials, monthlyDeposit, monthlyWithdraw, inflation, retirementAge, extraCash, age, pension, todaySavings, invested, expected, badReturnYears);
+        this.goal(trials, monthlyDeposit, monthlyWithdraw, inflation, retirementAge, extraCash, age, 
+                pension, todaySavings, invested, expected, badReturnYears,
+                badYearSpending, saveCashYears
+                );
     }
 
     private void goal(
@@ -193,7 +198,9 @@ public class Goal {
             MoneyAmount todaySavings,
             MoneyAmount invested,
             String expected,
-            int badReturnYears) {
+            int badReturnYears,
+            final double badYearSpending,
+            final int saveCashYears) {
 
         final var retirementYear = 1978 + retirementAge;
         final int startingYear = USD_INFLATION.getTo().getYear();
@@ -263,8 +270,8 @@ public class Goal {
                 badReturnYears,
                 retirementAge,
                 age,
-                1.0d - BAD_YEAR_SPENDING,
-                SAVE_CASH_YEARS_BEFORE_RETIREMENT));
+                1.0d - badYearSpending,
+                saveCashYears));
 
         final var realDeposits = Arrays.stream(inflationFactors)
                 .map(f -> f * deposit)
@@ -291,7 +298,9 @@ public class Goal {
                                 realDeposits,
                                 realWithdrawals,
                                 bbppMin,
-                                badReturnYears)))
+                                badReturnYears, 
+                                badYearSpending, 
+                                saveCashYears)))
                 .toList();
 
         results.stream()
@@ -331,7 +340,9 @@ public class Goal {
             double[] realDeposits,
             double[] realWithdrawals,
             double bbppMin,
-            int badReturnYears) {
+            int badReturnYears,
+            final double badYearSpending,
+            final int saveCashYears) {
 
         return IntStream.range(0, trials)
                 .mapToDouble(p
@@ -342,6 +353,8 @@ public class Goal {
                         cash,
                         investedAmount,
                         badReturnYears,
+                        badYearSpending,
+                        saveCashYears,
                         returnsSuplier.get(),
                         realDeposits,
                         realWithdrawals,
