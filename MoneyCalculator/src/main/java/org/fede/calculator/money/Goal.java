@@ -320,9 +320,8 @@ public class Goal {
 
     private String report(String label, long successes, int trials) {
         return format(
-                "{0} {1}/{2} {3}",
-                label, successes,
-                trials,
+                "{0} {1}",
+                label,
                 this.format.text(
                         this.format.percent(BigDecimal.valueOf((double) successes / (double) trials)),
                         6,
