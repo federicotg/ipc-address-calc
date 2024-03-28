@@ -140,14 +140,14 @@ public class Goal {
             final var lastYearReturn = returns[i - startingYear - 1];
 
             // withdrawal strategy: bad year => withdraw less.
-            var thisYearWithdrawal = withdrawal[i - startingYear] * (lastYearReturn <= 0.9d ? badYearSpending : 1.0d) * capitalGainsTaxFactor;
+            var thisYearWithdrawal = withdrawal[i - startingYear] * (lastYearReturn <= 0.9d ? badYearSpending : 1.0d);
 
             if (cashAmount >= thisYearWithdrawal && lastYearReturn < 1.0d) {
                 // usar cash 
                 cashAmount -= thisYearWithdrawal;
             } else {
                 // (cashAmount <= thisYearWithdrawal) => sell investments
-                amount -= thisYearWithdrawal;
+                amount -= (thisYearWithdrawal * capitalGainsTaxFactor);
             }
 
             bbpp = Math.max(amount - bbppMin, 0.0d) * this.bbppTaxRate;
