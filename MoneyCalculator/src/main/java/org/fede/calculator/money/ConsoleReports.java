@@ -65,7 +65,7 @@ public class ConsoleReports {
     private static final String PENSION = "150";
     private static final String BAD_RETURN_YEARS = "3";
     private static final String BAD_YEAR_SPENDING = "0.85";
-    private static final String SAVE_CASH_YEARS_BEFORE_RETIREMENT = "2";
+    private static final String SAVE_CASH_YEARS_BEFORE_RETIREMENT = "6";
 
 
     private static boolean nominal(Map<String, String> params) {
