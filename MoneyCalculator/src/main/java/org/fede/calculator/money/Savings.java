@@ -19,9 +19,14 @@ package org.fede.calculator.money;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import java.math.RoundingMode;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -425,13 +430,17 @@ public class Savings {
 
             final var m = totalSavings.getAmount().divide(averageIncome.subtract(averagNetSavings).getAmount(), C);
 
-            final var yearAndMonth = m.divideAndRemainder(BigDecimal.valueOf(12), C);
+            final var MONTHS_IN_ONE_YEAR = BigDecimal.valueOf(12);
+            
+            final var yearAndMonth = m.divideAndRemainder(MONTHS_IN_ONE_YEAR, C);
 
+            final var avgIncome = averageIncome.subtract(averagNetSavings).getAmount();
+            
             this.console.appendLine(format("Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
                     yearAndMonth[0],
                     yearAndMonth[1].setScale(0, MathConstants.RM),
                     this.format.percent(ONE.subtract(averagNetSavings.getAmount().divide(averageIncome.getAmount(), C), C)),
-                    averageIncome.subtract(averagNetSavings).getAmount()));
+                    avgIncome));
 
             final var unlp = SeriesReader.readSeries("income/unlp.json");
             final var despegar = SeriesReader.readSeries("income/despegar.json");
@@ -452,6 +461,31 @@ public class Savings {
                     this.format.percent(BigDecimal.valueOf(totalYears + yearsLeft).multiply(new BigDecimal("0.015"), MathConstants.C)),
                     this.format.percent(simultaneousPercent
                             .multiply(BigDecimal.valueOf(simultaneousYears + yearsLeft), MathConstants.C))));
+
+            final long daysWorked = Duration.between(LocalDateTime.of(2015, Month.DECEMBER, 22, 0, 0, 0), LocalDateTime.now()).toDays();
+            final long yearsWorked = daysWorked / 365 + ((daysWorked % 365 > 180) ? 1 : 0);
+
+            final var contingency = BigDecimal.valueOf(yearsWorked)
+                    .multiply(new BigDecimal(2900))
+                    .add(new BigDecimal(100000));
+
+            final var contingencyMonths = contingency.divide(avgIncome, C).setScale(0, MathConstants.RM);
+            
+            final var contingencyYearsAndmonths = contingencyMonths.divideAndRemainder(MONTHS_IN_ONE_YEAR, C);
+            
+            this.console.appendLine(format("Contingency: USD {0,number,currency}, {1,number} years and {2,number} months of income.",
+                    contingency,
+                    contingencyYearsAndmonths[0],
+                    contingencyYearsAndmonths[1].setScale(0, MathConstants.RM)));
+            
+            final var contingencyDate = LocalDateTime.now().plusMonths(contingencyMonths.longValue());
+            final var retiementDate = LocalDateTime.of(1978+65, Month.MARCH, 13,23,59,59);
+            
+            final long gapYears = Math.ceilDiv(Duration.between(contingencyDate, retiementDate).toDays(), 365l);
+            
+            this.console.appendLine(format("Gap is {0,number} years.", gapYears));
+            
+            
         };
 
         new By().by(params, this::quarterSavings, this::halfSavings, this::yearlySavings, otherwise);
@@ -560,6 +594,8 @@ public class Savings {
                 new SimpleAggregation(months).average(s),
                 barSize);
     }
-    
-    public record SpendingAndSaving(MoneyAmount spending, MoneyAmount saving){}
+
+    public record SpendingAndSaving(MoneyAmount spending, MoneyAmount saving) {
+
+    }
 }
