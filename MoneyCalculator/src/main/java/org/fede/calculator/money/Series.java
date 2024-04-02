@@ -121,7 +121,11 @@ public class Series {
                             Pair::first,
                             mapping(p -> this.asRealUSDSeries("expense/", p.second()),
                                     Collectors.toList())));
-            this.realUSDExpensesByType.put("investing", List.of(this.investingExpenses()));
+            this.realUSDExpensesByType.put("investing", 
+                    List.of(
+                            this.investingExpenses(),this.asRealUSDSeries("expense/", "atlantico"),
+                            this.investingExpenses(),this.asRealUSDSeries("expense/", "itau-uy")
+                    ));
         }
 
         return realUSDExpensesByType;
