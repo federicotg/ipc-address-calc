@@ -31,6 +31,8 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
+import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
+import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 
@@ -88,37 +90,6 @@ public class Series {
         return this.realUSDCondoExpenses;
     }
 
-    
-    public Map<String, List<MoneyAmountSeries>> getRealUSDExpensesByEssential(){
-        return Stream.of(
-                    of("essential", "bbpp"),
-                    of("essential", "inmobiliario-43"),
-                    of("essential", "monotributo-angeles"),
-                    of("essential", "monotributo"),
-                    of("essential", "municipal-43"),
-                    of("essential", "contadora"),
-                    of("essential", "celular-a"),
-                    of("essential", "celular-f"),
-                    of("non-essential", "telefono-43"),
-                    of("essential", "emergencia"),
-                    of("non-essential", "ioma"),
-                    of("non-essential", "seguro"),
-                    of("essential", "gas"),
-                    of("essential", "luz"),
-                    of("essential", "cablevision"),
-                    of("essential", "reparaciones"),
-                    of("non-essential", "limpieza"),
-                    of("essential", "expensas"),
-                    of("non-essential", "netflix"),
-                    of("non-essential", "netflix-usd"),
-                    of("non-essential", "viajes"),
-                    of("non-essential", "xbox"))
-                    .collect(groupingBy(
-                            Pair::first,
-                            mapping(p -> this.asRealUSDSeries("expense/", p.second()),
-                                    Collectors.toList())));
-    }
-    
     public Map<String, List<MoneyAmountSeries>> getRealUSDExpensesByType() {
 
         if (this.realUSDExpensesByType == null) {
@@ -150,9 +121,34 @@ public class Series {
                             Pair::first,
                             mapping(p -> this.asRealUSDSeries("expense/", p.second()),
                                     Collectors.toList())));
+            this.realUSDExpensesByType.put("investing", List.of(this.investingExpenses()));
         }
 
         return realUSDExpensesByType;
+    }
+
+    private MoneyAmountSeries investingExpenses() {
+
+        final var zero = MoneyAmount.zero("USD");
+        Map<YearMonth, MoneyAmount> buyFeesBymonth
+                = this.getInvestments()
+                        .stream()
+                        .filter(Investment::isETF)
+                        .map(inv -> ForeignExchanges.exchange(inv, "USD"))
+                        .map(inv -> Inflation.USD_INFLATION.real(inv))
+                        .collect(
+                                Collectors.groupingBy(
+                                        i -> YearMonth.of(i.getIn().getDate()),
+                                        Collectors.reducing(zero, Investment::getCost, MoneyAmount::add)));
+
+        final var expenseSeries = new SortedMapMoneyAmountSeries("USD");
+
+        for (YearMonth ym = YearMonth.of(2016, 1); ym.monthsUntil(Inflation.USD_INFLATION.getTo()) > 0; ym = ym.next()) {
+            expenseSeries.putAmount(ym, buyFeesBymonth.getOrDefault(ym, zero));
+        }
+
+        return expenseSeries;
+
     }
 
     public MoneyAmountSeries getExpense(String name, boolean nominal) {

@@ -142,11 +142,6 @@ public class Expenses {
 
     }
 
-    public void expenseByEssential(int months) {
-        this.expenseBySource(months, this.series.getRealUSDExpensesByEssential());
-
-    }
-
     public void expenseBySource(int months, Map<String, List<MoneyAmountSeries>> source) {
 
         final var title = format("Average {0}-month expenses by source", months);
@@ -157,7 +152,8 @@ public class Expenses {
                 Attribute.YELLOW_BACK(),
                 Attribute.GREEN_BACK(),
                 Attribute.MAGENTA_BACK(),
-                Attribute.WHITE_BACK()
+                Attribute.WHITE_BACK(),
+                Attribute.BRIGHT_CYAN_BACK()
         );
         this.console.appendLine(this.format.title(title));
 

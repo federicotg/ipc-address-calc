@@ -230,9 +230,6 @@ public class ConsoleReports {
             case "expenses-src" -> {
                 yield () -> me.expenseBySource(args, "expenses-src");
             }
-            case "expenses-ess" -> {
-                yield () -> me.expenseByEssential(args, "expenses-ess");
-            }
             case "expenses-change" -> {
                 yield () -> me.expensesChange(args, "expenses-change");
             }
@@ -484,10 +481,6 @@ public class ConsoleReports {
         new Expenses(series, console, bar, format).expenseBySource(months(this.paramsValue(args, paramName)));
     }
     
-    private void expenseByEssential(String[] args, String paramName) {
-        new Expenses(series, console, bar, format).expenseByEssential(months(this.paramsValue(args, paramName)));
-    }
-
     private void expenseEvolution(String type, int months) {
 
         final var series = "full".equalsIgnoreCase(type)
