@@ -562,6 +562,7 @@ public class Positions {
                         of("BOND", this.lastAmount("ahorros-dolar-ON", ym)),
                         of("BOND", this.lastAmount("ahorros-lecap", ym)),
                         of("BOND", this.lastAmount("ahorros-lete", ym)),
+                        of("BOND", this.lastAmount("ahorros-dolar-pf", ym)),
                         of("BOND", this.lastAmount("ahorros-caplusa", ym)),
                         of("CASH", this.lastAmount("ahorros-dolar-banco", ym)),
                         of("CASH", this.lastAmount("ahorros-peso", ym)),
