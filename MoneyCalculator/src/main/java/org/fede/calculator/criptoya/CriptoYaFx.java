@@ -26,28 +26,6 @@ import java.math.BigDecimal;
  *
  * @author federicogentile
  */
-public class CriptoYaFx {
-
-    // compra
-    private BigDecimal totalAsk;
-
-    //venta    
-    private BigDecimal totalBid;
-
-    public BigDecimal getTotalAsk() {
-        return totalAsk;
-    }
-
-    public void setTotalAsk(BigDecimal totalAsk) {
-        this.totalAsk = totalAsk;
-    }
-
-    public BigDecimal getTotalBid() {
-        return totalBid;
-    }
-
-    public void setTotalBid(BigDecimal totalBid) {
-        this.totalBid = totalBid;
-    }
+public record CriptoYaFx(BigDecimal totalAsk, BigDecimal totalBid) {
 
 }

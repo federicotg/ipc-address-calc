@@ -25,43 +25,10 @@ import java.math.BigDecimal;
  *
  * @author fede
  */
-public class PPIPosition {
-
-    private String name;
-    private String symbol;
-    private BigDecimal amount;
-    private String settlement;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSymbol() {
-        return symbol;
-    }
-
-    public void setSymbol(String symbol) {
-        this.symbol = symbol;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getSettlement() {
-        return settlement;
-    }
-
-    public void setSettlement(String settlement) {
-        this.settlement = settlement;
-    }
+public record PPIPosition(
+        String name,
+        String symbol,
+        BigDecimal amount,
+        String settlement) {
 
 }

@@ -24,35 +24,18 @@ import org.fede.calculator.money.series.InvestmentType;
  *
  * @author federico
  */
-public class DayDollars {
-    
-    private final int year;
-    private final InvestmentType type;
-    private final String currency;
-    private final BigDecimal amount;
+public record DayDollars(int year, InvestmentType type, String currency, BigDecimal amount) {
 
-    public DayDollars(int year, InvestmentType type, String currency, BigDecimal amount) {
-        this.year = year;
-        this.type = type;
-        this.currency = currency;
-        this.amount = amount;
-    }
-    
-    public DayDollars combine(DayDollars other){
+    public DayDollars combine(DayDollars other) {
         return new DayDollars(year, type, currency, amount.add(other.amount, MathConstants.C));
     }
-    
-    public String getType(){
+
+    public String getType() {
         return MessageFormat.format("{0} {1}", this.type.toString(), this.currency);
     }
-    
-    
-    public String getYear(){
+
+    public String getYear() {
         return String.valueOf(this.year);
     }
 
-    public BigDecimal getAmount() {
-        return amount;
-    }
-    
 }

@@ -23,65 +23,12 @@ import java.util.List;
  *
  * @author fede
  */
-public class BBPPYear {
-
-    private int year;
-    private List<BBPPTaxBraket> brakets;
-    private BigDecimal minimum;
-    private BigDecimal usd;
-    private BigDecimal eur;
-    private List<BBPPItem> items;
-
-    public int getYear() {
-        return year;
-    }
-
-    public void setYear(int year) {
-        this.year = year;
-    }
-
-    public BigDecimal getEur() {
-        return eur;
-    }
-
-    public void setEur(BigDecimal eur) {
-        this.eur = eur;
-    }
-
-    
-    
-    public BigDecimal getUsd() {
-        return usd;
-    }
-
-    public void setUsd(BigDecimal usd) {
-        this.usd = usd;
-    }
-
-    
-    
-    public List<BBPPTaxBraket> getBrakets() {
-        return brakets;
-    }
-
-    public void setBrakets(List<BBPPTaxBraket> brakets) {
-        this.brakets = brakets;
-    }
-
-    public BigDecimal getMinimum() {
-        return minimum;
-    }
-
-    public void setMinimum(BigDecimal minimum) {
-        this.minimum = minimum;
-    }
-
-    public List<BBPPItem> getItems() {
-        return items;
-    }
-
-    public void setItems(List<BBPPItem> items) {
-        this.items = items;
-    }
+public record BBPPYear(
+        int year,
+        List<BBPPTaxBraket> brakets,
+        BigDecimal minimum,
+        BigDecimal usd,
+        BigDecimal eur,
+        List<BBPPItem> items) {
 
 }

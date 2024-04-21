@@ -251,7 +251,7 @@ public class Goal {
 
         final var bbppMin = this.series.bbppSeries()
                 .stream()
-                .map(bbpp -> bbpp.getMinimum().divide(bbpp.getUsd(), MathConstants.C))
+                .map(bbpp -> bbpp.minimum().divide(bbpp.usd(), MathConstants.C))
                 .mapToDouble(BigDecimal::doubleValue)
                 .average()
                 .orElse(30000d);

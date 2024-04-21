@@ -22,27 +22,8 @@ import java.util.List;
  *
  * @author fede
  */
-public class PPIBalance {
-
-    private String currency;
-    private List<PPIPosition> availability;
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public List<PPIPosition> getAvailability() {
-        return availability;
-    }
-
-    public void setAvailability(List<PPIPosition> availability) {
-        this.availability = availability;
-    }
-
-    
+public record PPIBalance(
+        String currency,
+        List<PPIPosition> availability) {
 
 }

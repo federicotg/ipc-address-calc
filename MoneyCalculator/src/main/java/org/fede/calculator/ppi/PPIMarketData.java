@@ -29,61 +29,12 @@ import java.time.Instant;
  * @author federicogentile
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PPIMarketData {
-
-    private Instant date;
-    private BigDecimal price;
-    private long volume;
-    private BigDecimal openingPrice;
-    private BigDecimal max;
-    private BigDecimal min;
-
-    public Instant getDate() {
-        return date;
-    }
-
-    public void setDate(Instant date) {
-        this.date = date;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public long getVolume() {
-        return volume;
-    }
-
-    public void setVolume(long volume) {
-        this.volume = volume;
-    }
-
-    public BigDecimal getOpeningPrice() {
-        return openingPrice;
-    }
-
-    public void setOpeningPrice(BigDecimal openingPrice) {
-        this.openingPrice = openingPrice;
-    }
-
-    public BigDecimal getMax() {
-        return max;
-    }
-
-    public void setMax(BigDecimal max) {
-        this.max = max;
-    }
-
-    public BigDecimal getMin() {
-        return min;
-    }
-
-    public void setMin(BigDecimal min) {
-        this.min = min;
-    }
+public record PPIMarketData(
+        Instant date,
+        BigDecimal price,
+        long volume,
+        BigDecimal openingPrice,
+        BigDecimal max,
+        BigDecimal min) {
 
 }

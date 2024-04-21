@@ -319,16 +319,16 @@ public class PortfolioReturns {
         final var total = byType.values()
                 .stream()
                 .flatMap(Optional::stream)
-                .map(DayDollars::getAmount)
+                .map(DayDollars::amount)
                 .reduce(ZERO, BigDecimal::add);
 
         byType.values()
                 .stream()
                 .flatMap(Optional::stream)
-                .sorted(comparing(DayDollars::getAmount).reversed())
+                .sorted(comparing(DayDollars::amount).reversed())
                 .map(d -> format("\t{0} {1}",
                 String.format("%-11s", d.getType()),
-                this.bar.pctBar(d.getAmount(), total)))
+                this.bar.pctBar(d.amount(), total)))
                 .forEach(this.console::appendLine);
 
         Optional.ofNullable(mdrByYear.get(Integer.valueOf(year)))

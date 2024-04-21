@@ -38,7 +38,6 @@ import java.util.function.Supplier;
 import org.fede.calculator.money.InstrumentType;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.SettlementType;
 
 /**
  *
@@ -261,9 +260,9 @@ public class PPIRestAPI {
     public MoneyAmount exchangeRate(PPIFXParams params) throws URISyntaxException, IOException, InterruptedException {
         final var netUSD = BigDecimal.ONE.add(params.fees().usdFee(), MathConstants.C);
         final var netSecond = BigDecimal.ONE.subtract(this.secondFee(params.fees(), params.currency()), MathConstants.C);
-        final var usdPrice = this.marketData(params.tickerUSD(), params.type(), params.settlement()).getPrice()
+        final var usdPrice = this.marketData(params.tickerUSD(), params.type(), params.settlement()).price()
                 .multiply(netUSD, MathConstants.C);
-        final var arsPrice = this.marketData(params.tickerARS(), params.type(), params.settlement()).getPrice()
+        final var arsPrice = this.marketData(params.tickerARS(), params.type(), params.settlement()).price()
                 .multiply(netSecond, MathConstants.C);
         return new MoneyAmount(arsPrice.divide(usdPrice, MathConstants.C), params.currency());
     }

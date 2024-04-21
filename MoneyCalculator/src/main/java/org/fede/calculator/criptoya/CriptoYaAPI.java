@@ -127,11 +127,11 @@ public class CriptoYaAPI {
     }
 
     public BigDecimal buyCoin(String exchange, String coin, String fiat, BigDecimal amount) throws URISyntaxException, IOException, InterruptedException {
-        return this.fx(exchange, coin, fiat, amount).getTotalAsk();
+        return this.fx(exchange, coin, fiat, amount).totalAsk();
     }
 
     public BigDecimal sellCoin(String exchange, String coin, String fiat, BigDecimal amount) throws URISyntaxException, IOException, InterruptedException {
-        return this.fx(exchange, coin, fiat, amount).getTotalBid();
+        return this.fx(exchange, coin, fiat, amount).totalBid();
     }
 
     private CriptoYaFx fx(String exchange, String coin, String fiat, BigDecimal amount) throws URISyntaxException, IOException, InterruptedException {

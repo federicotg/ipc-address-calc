@@ -35,7 +35,7 @@ import org.fede.calculator.money.Console;
 import org.fede.calculator.money.Format;
 import static org.fede.calculator.money.InstrumentType.*;
 import org.fede.calculator.money.MoneyAmount;
-import static org.fede.calculator.money.SettlementType.*;
+import static org.fede.calculator.ppi.SettlementType.*;
 import static org.fede.calculator.ppi.PPIRestAPI.PPIFXFee;
 import static org.fede.calculator.ppi.PPIRestAPI.PPIFXParams;
 import org.fede.util.Pair;
@@ -179,18 +179,18 @@ public class PPI {
     }
 
     private void showBalance(PPIBalance balance) {
-        this.console.appendLine(this.format.subtitle(balance.getCurrency()));
-        balance.getAvailability().stream().forEach(this::showPosition);
+        this.console.appendLine(this.format.subtitle(balance.currency()));
+        balance.availability().stream().forEach(this::showPosition);
 
     }
 
     private void showPosition(PPIPosition position) {
         this.console.appendLine(
                 MessageFormat.format("{0} {1} {2} {3}",
-                        this.format.text(position.getSymbol(), 4),
-                        this.format.text(position.getName(), 40),
-                        this.format.number(position.getAmount(), 10),
-                        this.format.text(position.getSettlement(), 10)
+                        this.format.text(position.symbol(), 4),
+                        this.format.text(position.name(), 40),
+                        this.format.number(position.amount(), 10),
+                        this.format.text(position.settlement(), 10)
                 )
         );
     }
