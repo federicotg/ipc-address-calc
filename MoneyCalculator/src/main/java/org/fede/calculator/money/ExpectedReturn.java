@@ -20,25 +20,6 @@ package org.fede.calculator.money;
  *
  * @author federicogentile
  */
-public class ExpectedReturn {
-
-    private double mu;
-    private double sigma;
-
-    public double getMu() {
-        return mu;
-    }
-
-    public void setMu(double mu) {
-        this.mu = mu;
-    }
-
-    public double getSigma() {
-        return sigma;
-    }
-
-    public void setSigma(double sigma) {
-        this.sigma = sigma;
-    }
+public record ExpectedReturn(double mu, double sigma) {
 
 }

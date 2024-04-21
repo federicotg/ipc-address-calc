@@ -79,14 +79,14 @@ public class SeriesReader {
             JSONSeries series = OM.readValue(is, JSONSeries.class);
 
             //final SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
-            final String currency = series.getCurrency();
+            final String currency = series.currency();
             final var maSeries = new SortedMapMoneyAmountSeries(currency);
 
-            for (JSONDataPoint dp : series.getData()) {
+            for (JSONDataPoint dp : series.data()) {
                 maSeries.putAmount(YearMonth.of(dp.year(), dp.month()), moneyAmount(dp.value(), currency));
             }
 
-            final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.getInterpolation());
+            final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.interpolation());
 
             YearMonth ym = maSeries.getFrom();
             final YearMonth last = maSeries.getTo();

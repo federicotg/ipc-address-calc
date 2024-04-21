@@ -20,66 +20,25 @@ package org.fede.calculator.money;
  *
  * @author federicogentile
  */
-public class ExpectedReturnGroup {
+public record ExpectedReturnGroup(
+        ExpectedReturn usLargeCap,
+        ExpectedReturn usSmallCap,
+        ExpectedReturn em,
+        ExpectedReturn eu,
+        ExpectedReturn inflation) {
 
-    private ExpectedReturn usLargeCap;
-    private ExpectedReturn usSmallCap;
-    private ExpectedReturn em;
-    private ExpectedReturn eu;
-    private ExpectedReturn inflation;
-
-    public ExpectedReturn getUsLargeCap() {
-        return usLargeCap;
+    public double weightedMu() {
+        return this.usLargeCap().mu() * 0.7d
+                + this.usSmallCap().mu() * 0.1d
+                + this.eu().mu() * 0.1d
+                + this.em().mu() * 0.1d;
     }
 
-    public void setUsLargeCap(ExpectedReturn usLargeCap) {
-        this.usLargeCap = usLargeCap;
-    }
-
-    public ExpectedReturn getUsSmallCap() {
-        return usSmallCap;
-    }
-
-    public void setUsSmallCap(ExpectedReturn usSmallCap) {
-        this.usSmallCap = usSmallCap;
-    }
-
-    public ExpectedReturn getEm() {
-        return em;
-    }
-
-    public void setEm(ExpectedReturn em) {
-        this.em = em;
-    }
-
-    public ExpectedReturn getEu() {
-        return eu;
-    }
-
-    public void setEu(ExpectedReturn eu) {
-        this.eu = eu;
-    }
-
-    public double mu() {
-        return this.getUsLargeCap().getMu() * 0.7d
-                + this.getUsSmallCap().getMu() * 0.1d
-                + this.getEu().getMu() * 0.1d
-                + this.getEm().getMu() * 0.1d;
-    }
-
-    public double sigma() {
-        return this.getUsLargeCap().getSigma() * 0.7d
-                + this.getUsSmallCap().getSigma() * 0.1d
-                + this.getEu().getSigma() * 0.1d
-                + this.getEm().getSigma() * 0.1d;
-    }
-
-    public ExpectedReturn getInflation() {
-        return inflation;
-    }
-
-    public void setInflation(ExpectedReturn inflation) {
-        this.inflation = inflation;
+    public double weightedSigma() {
+        return this.usLargeCap().sigma() * 0.7d
+                + this.usSmallCap().sigma() * 0.1d
+                + this.eu().sigma() * 0.1d
+                + this.em().sigma() * 0.1d;
     }
 
 }

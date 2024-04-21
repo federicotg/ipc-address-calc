@@ -25,61 +25,12 @@ import java.math.BigDecimal;
  *
  * @author fede
  */
-public class BBPPItem {
-
-    private String name;
-    private BigDecimal value;
-    private BigDecimal holding;
-    private boolean domestic;
-    private boolean exempt;
-    private String currency;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public BigDecimal getValue() {
-        return value;
-    }
-
-    public void setValue(BigDecimal value) {
-        this.value = value;
-    }
-
-    public BigDecimal getHolding() {
-        return holding;
-    }
-
-    public void setHolding(BigDecimal holding) {
-        this.holding = holding;
-    }
-
-    public boolean isDomestic() {
-        return domestic;
-    }
-
-    public void setDomestic(boolean domestic) {
-        this.domestic = domestic;
-    }
-
-    public boolean isExempt() {
-        return exempt;
-    }
-
-    public void setExempt(boolean exempt) {
-        this.exempt = exempt;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
+public record BBPPItem(
+        String name,
+        BigDecimal value,
+        BigDecimal holding,
+        boolean domestic,
+        boolean exempt,
+        String currency) {
 
 }

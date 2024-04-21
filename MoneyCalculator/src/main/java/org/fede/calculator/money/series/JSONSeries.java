@@ -33,42 +33,9 @@ import java.util.List;
  *
  * @author fede
  */
-public class JSONSeries {
+public record JSONSeries(
 
-    private String currency;
-    private List<JSONDataPoint> data;
-    private String interpolation = "NO_INTERPOLATION";
-
-    public JSONSeries() {
-    }
-
-    public JSONSeries(String currency, List<JSONDataPoint> data, String interpolation) {
-        this.currency = currency;
-        this.data = data;
-        this.interpolation = interpolation;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currnecy) {
-        this.currency = currnecy;
-    }
-
-    public List<JSONDataPoint> getData() {
-        return data;
-    }
-
-    public void setData(List<JSONDataPoint> data) {
-        this.data = data;
-    }
-
-    public String getInterpolation() {
-        return interpolation;
-    }
-
-    public void setInterpolation(String interpolation) {
-        this.interpolation = interpolation;
-    }
+     String currency,
+    List<JSONDataPoint> data,
+    String interpolation){
 }

@@ -288,7 +288,7 @@ public class Goal {
                 .map(entry
                         -> new SuccessCount(
                         entry.getKey(),
-                        this.expectedReturnSuccesses(new GaussReturnSupplier(entry.getValue().mu(), entry.getValue().sigma(), yearsLeft),
+                        this.expectedReturnSuccesses(new GaussReturnSupplier(entry.getValue().weightedMu(), entry.getValue().weightedSigma(), yearsLeft),
                                 trials,
                                 startingYear,
                                 retirementYear,

@@ -22,25 +22,7 @@ import java.math.BigDecimal;
  *
  * @author fede
  */
-public class BBPPTaxBraket {
+public record BBPPTaxBraket(BigDecimal from, BigDecimal tax){
 
-    private BigDecimal from;
-    private BigDecimal tax;
-
-    public BigDecimal getFrom() {
-        return from;
-    }
-
-    public void setFrom(BigDecimal from) {
-        this.from = from;
-    }
-
-    public BigDecimal getTax() {
-        return tax;
-    }
-
-    public void setTax(BigDecimal tax) {
-        this.tax = tax;
-    }
 
 }

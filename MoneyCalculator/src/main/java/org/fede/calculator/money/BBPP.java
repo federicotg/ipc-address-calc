@@ -186,21 +186,32 @@ public class BBPP {
                 .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        final var etfsItem = new BBPPItem();
-        etfsItem.setCurrency("ARS");
-        etfsItem.setDomestic(false);
-        etfsItem.setExempt(false);
-        etfsItem.setHolding(ONE);
-        etfsItem.setName("ETFs");
-        etfsItem.setValue(etfs);
+        
+        /*
+        
+        String name,
+        BigDecimal value,
+        BigDecimal holding,
+        boolean domestic,
+        boolean exempt,
+        String currency
+        
+        */
+        final var etfsItem = new BBPPItem("ETFs", etfs,ONE,false,false,"ARS");
+//        etfsItem.setCurrency("ARS");
+//        etfsItem.setDomestic(false);
+//        etfsItem.setExempt(false);
+//        etfsItem.setHolding(ONE);
+//        etfsItem.setName();
+//        etfsItem.setValue(etfs);
 
-        final var onsItem = new BBPPItem();
-        onsItem.setCurrency("ARS");
-        onsItem.setDomestic(true);
-        onsItem.setExempt(false);
-        onsItem.setHolding(ONE);
-        onsItem.setName("ONs");
-        onsItem.setValue(ons);
+        final var onsItem = new BBPPItem("ONs", ons,ONE,true,false,"ARS");
+//        onsItem.setCurrency("ARS");
+//        onsItem.setDomestic(true);
+//        onsItem.setExempt(false);
+//        onsItem.setHolding(ONE);
+//        onsItem.setName("ONs");
+//        onsItem.setValue(ons);
 
         bbpp.getItems().add(etfsItem);
         bbpp.getItems().add(onsItem);
@@ -219,29 +230,29 @@ public class BBPP {
 
         result.allArs = bbpp.getItems()
                 .stream()
-                .filter(i -> ibkr || !i.getName().equals("IBKR USD"))
+                .filter(i -> ibkr || !i.name().equals("IBKR USD"))
                 .map(i -> this.toARS(i, bbpp.getUsd(), bbpp.getEur()))
-                .filter(bbppItem -> bbppItem.getValue().compareTo(ZERO) != 0)
+                .filter(bbppItem -> bbppItem.value().compareTo(ZERO) != 0)
                 .toList();
 
         result.totalAmount = result.allArs
                 .stream()
-                .map(i -> i.getValue().multiply(i.getHolding(), C))
+                .map(i -> i.value().multiply(i.holding(), C))
                 .reduce(ZERO, BigDecimal::add);
 
         result.taxedDomesticAmount = result.allArs
                 .stream()
-                .filter(BBPPItem::isDomestic)
-                .filter(Predicate.not(BBPPItem::isExempt))
-                .map(i -> i.getValue().multiply(i.getHolding(), C))
+                .filter(BBPPItem::domestic)
+                .filter(Predicate.not(BBPPItem::exempt))
+                .map(i -> i.value().multiply(i.holding(), C))
                 .reduce(ZERO, BigDecimal::add)
                 .multiply(new BigDecimal("1.05"), C);
 
         result.taxedForeignAmount = result.allArs
                 .stream()
-                .filter(Predicate.not(BBPPItem::isDomestic))
-                .filter(Predicate.not(BBPPItem::isExempt))
-                .map(i -> i.getValue().multiply(i.getHolding(), C))
+                .filter(Predicate.not(BBPPItem::domestic))
+                .filter(Predicate.not(BBPPItem::exempt))
+                .map(i -> i.value().multiply(i.holding(), C))
                 .reduce(ZERO, BigDecimal::add);
 
         result.taxedTotal = bbpp.getMinimum()
@@ -251,11 +262,11 @@ public class BBPP {
 
         result.taxRate = bbpp.getBrakets()
                 .stream()
-                .sorted(comparing(BBPPTaxBraket::getFrom))
-                .filter(b -> b.getFrom().compareTo(result.totalAmount) <= 0)
+                .sorted(comparing(BBPPTaxBraket::from))
+                .filter(b -> b.from().compareTo(result.totalAmount) <= 0)
                 .reduce((left, right) -> right)
                 .get()
-                .getTax();
+                .tax();
 
         result.taxAmount = result.taxedTotal.multiply(result.taxRate, C);
 
@@ -346,32 +357,38 @@ public class BBPP {
         this.console.appendLine(format("{0}{1}{2}{3}", this.format.text("", 16), this.format.text("      Value", 16), this.format.text("    %", 10), this.format.text("      Taxed", 16)));
         bbpp.allArs.stream()
                 .map(i -> format("{0}{1}{2}{3}",
-                this.format.text(i.getName(), 16),
-                this.format.currency(i.getValue(), 16),
-                this.format.percent(i.getHolding(), 10),
-                this.format.currency(i.getValue().multiply(i.isExempt() ? ZERO : i.getHolding(), C), 16)))
+                this.format.text(i.name(), 16),
+                this.format.currency(i.value(), 16),
+                this.format.percent(i.holding(), 10),
+                this.format.currency(i.value().multiply(i.exempt() ? ZERO : i.holding(), C), 16)))
                 .forEach(this.console::appendLine);
     }
 
     private BBPPItem toARS(BBPPItem item, BigDecimal usdValue, BigDecimal eurValue) {
-        if (item.getCurrency().equals("ARS")) {
+        if (item.currency().equals("ARS")) {
             return item;
         }
 
-        final var newItem = new BBPPItem();
-        newItem.setCurrency("ARS");
-        newItem.setDomestic(item.isDomestic());
-        newItem.setExempt(item.isExempt());
-        newItem.setHolding(item.getHolding());
-        newItem.setName(item.getName());
-
-        if (item.getCurrency().equals("USD")) {
-            newItem.setValue(item.getValue().multiply(usdValue, C));
-        }
-
-        if (item.getCurrency().equals("EUR")) {
-            newItem.setValue(item.getValue().multiply(eurValue, C));
-        }
+        final var value = switch(item.currency()){
+            case "USD" -> item.value().multiply(usdValue, C);
+            case "EUR" -> item.value().multiply(eurValue, C);
+            default -> item.value();
+        };
+        
+        final var newItem = new BBPPItem(item.name(),value, item.holding(), item.domestic(), item.exempt(), "ARS");
+//        newItem.setCurrency("ARS");
+//        newItem.setDomestic(item.domestic());
+//        newItem.setExempt(item.exempt());
+//        newItem.setHolding(item.holding());
+//        newItem.setName(item.name());
+//
+//        if (item.currency().equals("USD")) {
+//            newItem.setValue();
+//        }
+//
+//        if (item.currency().equals("EUR")) {
+//            newItem.setValue();
+//        }
 
         return newItem;
 
@@ -384,19 +401,19 @@ public class BBPP {
 
         final var domestic = bbpp.getItems()
                 .stream()
-                .filter(BBPPItem::isDomestic)
-                .filter(Predicate.not(BBPPItem::isExempt))
-                .map(i -> i.getValue().multiply(i.getHolding(), C))
+                .filter(BBPPItem::domestic)
+                .filter(Predicate.not(BBPPItem::exempt))
+                .map(i -> i.value().multiply(i.holding(), C))
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .multiply(new BigDecimal("1.05"), C);
 
         final var foreign = bbpp.getItems()
                 .stream()
-                .filter(i -> ibkr || !i.getName().equals("IBKR USD"))
-                .filter(Predicate.not(BBPPItem::isDomestic))
-                .filter(Predicate.not(BBPPItem::isExempt))
+                .filter(i -> ibkr || !i.name().equals("IBKR USD"))
+                .filter(Predicate.not(BBPPItem::domestic))
+                .filter(Predicate.not(BBPPItem::exempt))
                 .map(i -> this.toARS(i, bbpp.getUsd(), bbpp.getEur()))
-                .map(i -> i.getValue().multiply(i.getHolding(), C))
+                .map(i -> i.value().multiply(i.holding(), C))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         this.console.appendLine(MessageFormat.format(
@@ -429,11 +446,11 @@ public class BBPP {
 
         final var taxRate = bbpp.getBrakets()
                 .stream()
-                .sorted(comparing(BBPPTaxBraket::getFrom))
-                .filter(b -> b.getFrom().compareTo(domestic.add(foreign, C)) <= 0)
+                .sorted(comparing(BBPPTaxBraket::from))
+                .filter(b -> b.from().compareTo(domestic.add(foreign, C)) <= 0)
                 .reduce((left, right) -> right)
                 .get()
-                .getTax();
+                .tax();
 
         this.console.appendLine(MessageFormat.format(
                 "Impuesto determinado {0}",
