@@ -34,8 +34,8 @@ import java.util.List;
  * @author fede
  */
 public record JSONSeries(
+        String currency,
+        List<JSONDataPoint> data,
+        String interpolation) {
 
-     String currency,
-    List<JSONDataPoint> data,
-    String interpolation){
 }

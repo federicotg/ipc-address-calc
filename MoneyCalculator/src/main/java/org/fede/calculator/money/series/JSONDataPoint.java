@@ -24,10 +24,8 @@ import java.math.BigDecimal;
  */
 public record JSONDataPoint(int year, int month, BigDecimal value) implements Comparable<JSONDataPoint> {
 
-
-
     @Override
-    public int compareTo(JSONDataPoint o) {        
+    public int compareTo(JSONDataPoint o) {
         if (this.year == o.year) {
             return this.month - o.month;
         }
