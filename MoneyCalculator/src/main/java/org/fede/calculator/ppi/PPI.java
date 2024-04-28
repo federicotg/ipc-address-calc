@@ -88,10 +88,6 @@ public class PPI {
         return this.format.text(text, width, BLUE_TEXT);
     }
 
-    private Pair<String, Future<MoneyAmount>> criptoYaItem(String desc, CriptoYaAPI.CriptoYaFXParams params, ExecutorService executor) {
-        return Pair.of(this.dim(desc, LABEL_WIDTH), executor.submit(() -> this.getCriptoYaApi().exchangeRate(params)));
-    }
-
     private Pair<String, Future<MoneyAmount>> ppiItem(String key, PPIRestAPI.PPIFXParams params, ExecutorService executor) {
         return Pair.of(key, executor.submit(() -> this.getApi().exchangeRate(params)));
     }

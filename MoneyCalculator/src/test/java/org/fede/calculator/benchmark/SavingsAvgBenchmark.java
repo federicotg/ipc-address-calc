@@ -25,6 +25,7 @@ import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.infra.Blackhole;
 
 /**
  *
@@ -36,20 +37,14 @@ public class SavingsAvgBenchmark {
     @BenchmarkMode(Mode.AverageTime)
     @Fork(value = 1, warmups = 1)
     @Warmup(iterations = 2)
-    public void init() {
+    public void init(Blackhole bh) {
 
-        var console = new BenchmarkConsole();
+        var console = new BenchmarkConsole(bh);
         var format = new Format();
         
         new Savings(format, new Series(), new Bar(console, format), console).netAvgSavingSpent(12, "Title");
     }
 
-    public static void main(String[] args) {
-        var instance = new SavingsAvgBenchmark();
 
-        for (var i = 0; i < 100; i++) {
-            instance.init();
-        }
-    }
 
 }

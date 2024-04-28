@@ -33,7 +33,7 @@ import static org.junit.Assert.*;
  */
 public class MDRTest {
     
-    private Series series;
+    private final Series series;
     
     public MDRTest() {
         this.series = new Series();

@@ -18,7 +18,6 @@
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import org.fede.calculator.money.CompoundForeignExchange;
-import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.ForeignExchanges.USD_ARS;
 import static org.fede.calculator.money.ForeignExchanges.USD_EUR;

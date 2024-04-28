@@ -25,6 +25,7 @@ import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.infra.Blackhole;
 
 /**
  *
@@ -36,19 +37,13 @@ public class InvBenchmark {
     @BenchmarkMode(Mode.AverageTime)
     @Fork(value = 1, warmups = 1)
     @Warmup(iterations = 2)
-    public void init() {
+    public void init(Blackhole bh) {
 
-        var console = new BenchmarkConsole();
+        var console = new BenchmarkConsole(bh);
         var format = new Format();
         new Investments(console, format, new Bar(console, format), new Series()).inv(i -> true, true);
     }
 
-    public static void main(String[] args) {
-        var instance = new InvBenchmark();
 
-        for (var i = 0; i < 100; i++) {
-            instance.init();
-        }
-    }
 
 }

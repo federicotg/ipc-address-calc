@@ -18,6 +18,7 @@ package org.fede.calculator.benchmark;
 
 import java.io.IOException;
 import org.fede.calculator.money.Console;
+import org.openjdk.jmh.infra.Blackhole;
 
 /**
  *
@@ -25,9 +26,17 @@ import org.fede.calculator.money.Console;
  */
 public class BenchmarkConsole implements Console {
 
+    private final Blackhole blackhole;
+
+    public BenchmarkConsole(Blackhole blackhole) {
+        this.blackhole = blackhole;
+    }
+    
     @Override
     public void appendLine(String... texts) {
-        // do nothing
+    
+        this.blackhole.consume(texts);
+        
     }
 
     @Override
