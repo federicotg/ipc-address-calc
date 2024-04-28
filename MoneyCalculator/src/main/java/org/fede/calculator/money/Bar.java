@@ -47,11 +47,11 @@ public class Bar {
     private static final AnsiFormat RED = new AnsiFormat(Attribute.RED_BACK(), Attribute.WHITE_TEXT());
     private static final AnsiFormat GREEN = new AnsiFormat(Attribute.GREEN_BACK(), Attribute.WHITE_TEXT());
 
-    private static final Set<String> DARK_COLORS = Set.of(
-            Attribute.BLACK_BACK().toString(),
-            Attribute.BRIGHT_BLACK_BACK().toString(),
-            Attribute.RED_BACK().toString(),
-            Attribute.BLUE_BACK().toString());
+    private static final Set<Attribute> DARK_COLORS = Set.of(
+            Attribute.BLACK_BACK(),
+            Attribute.BRIGHT_BLACK_BACK(),
+            Attribute.RED_BACK(),
+            Attribute.BLUE_BACK());
 
     private final Console console;
     private final Format format;
@@ -189,12 +189,23 @@ public class Bar {
             return Ansi.colorize(Stream.concat(
                     Stream.of(valueStr),
                     IntStream.range(0, end - valueStr.length()).mapToObj(x -> " "))
-                    .collect(joining()), color, DARK_COLORS.contains(color.toString()) ? Attribute.WHITE_TEXT() : Attribute.BLACK_TEXT());
+                    .collect(joining()), color, this.isDarkColor(color) 
+                            ? Attribute.WHITE_TEXT() 
+                            : Attribute.BLACK_TEXT());
         }
 
         return Ansi.colorize(IntStream.range(0, end)
                 .mapToObj(x -> " ")
                 .collect(joining()), new AnsiFormat(color));
+    }
+    
+    
+    private boolean isDarkColor(Attribute color){
+        var parts = color.toString().split(";");
+        if(parts.length<3){
+            return DARK_COLORS.contains(color);
+        }
+        return Integer.parseInt(parts[2]) < 128;
     }
 
     private String bar(BigDecimal value, int scale, String symbol) {

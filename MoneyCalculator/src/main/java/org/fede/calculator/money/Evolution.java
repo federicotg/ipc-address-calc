@@ -103,10 +103,9 @@ public class Evolution<T> {
                     Attribute.BRIGHT_MAGENTA_BACK(),
                     Attribute.BRIGHT_YELLOW_BACK(),
                     Attribute.BRIGHT_RED_BACK(),
-                    Attribute.BACK_COLOR(80),
-                    Attribute.BACK_COLOR(100),
-                    Attribute.BRIGHT_WHITE_BACK()
-                   
+                    Attribute.BACK_COLOR(48),
+                    Attribute.BACK_COLOR(16),
+                    Attribute.BACK_COLOR(32)
                     );
 
             final var typeList = totals.keySet().stream().sorted().toList();
