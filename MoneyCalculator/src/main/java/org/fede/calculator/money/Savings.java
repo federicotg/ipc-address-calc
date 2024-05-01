@@ -259,6 +259,58 @@ public class Savings {
 
     }
 
+    public void incomeAccumBySource() {
+
+        final var title = "Accumulated income by source";
+        final var colorList = List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK(), Attribute.GREEN_BACK(), Attribute.WHITE_BACK());
+        this.console.appendLine(this.format.title(title));
+
+        final var agg = new SimpleAggregation();
+
+        final var unlp = agg.sum(this.series.incomeSource("unlp"));
+        final var other = agg.sum(this.series.incomeSource("other"));
+        final var lifia = agg.sum(this.series.incomeSource("lifia"));
+        final var despARS = agg.sum(this.series.incomeSource("despegar"));
+        final var despUSD = agg.sum(this.series.incomeSource("despegar-split"));
+
+        final var maSeries = List.of(unlp, lifia, despARS, despUSD, other);
+
+        unlp.map((ym, ma) -> ZERO_USD.max(ma))
+                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, maSeries, colorList), 3750)));
+
+        new References(console, format).refs(
+                title,
+                List.of("UNLP", "LIFIA", "Despegar ARS", "Despegar USD", "Other"),
+                colorList);
+
+    }
+    
+        public void incomeAccumBySourcePct() {
+
+        final var title = "Accumulated income by source";
+        final var colorList = List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK(), Attribute.GREEN_BACK(), Attribute.WHITE_BACK());
+        this.console.appendLine(this.format.title(title));
+
+        final var agg = new SimpleAggregation();
+
+        final var unlp = agg.sum(this.series.incomeSource("unlp"));
+        final var other = agg.sum(this.series.incomeSource("other"));
+        final var lifia = agg.sum(this.series.incomeSource("lifia"));
+        final var despARS = agg.sum(this.series.incomeSource("despegar"));
+        final var despUSD = agg.sum(this.series.incomeSource("despegar-split"));
+
+        final var maSeries = List.of(unlp, lifia, despARS, despUSD, other);
+
+        unlp.map((ym, ma) -> ZERO_USD.max(ma))
+                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.percentBar(ym, this.independenSeries(ym, maSeries, colorList))));
+
+        new References(console, format).refs(
+                title,
+                List.of("UNLP", "LIFIA", "Despegar ARS", "Despegar USD", "Other"),
+                colorList);
+
+    }
+
     private List<AmountAndColor> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
 
         return IntStream.range(0, series.size())
@@ -429,11 +481,11 @@ public class Savings {
             final var m = totalSavings.getAmount().divide(averageIncome.subtract(averagNetSavings).getAmount(), C);
 
             final var MONTHS_IN_ONE_YEAR = BigDecimal.valueOf(12);
-            
+
             final var yearAndMonth = m.divideAndRemainder(MONTHS_IN_ONE_YEAR, C);
 
             final var avgIncome = averageIncome.subtract(averagNetSavings).getAmount();
-            
+
             this.console.appendLine(format("Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
                     yearAndMonth[0],
                     yearAndMonth[1].setScale(0, MathConstants.RM),
@@ -468,22 +520,21 @@ public class Savings {
                     .add(new BigDecimal(100000));
 
             final var contingencyMonths = contingency.divide(avgIncome, C).setScale(0, MathConstants.RM);
-            
+
             final var contingencyYearsAndmonths = contingencyMonths.divideAndRemainder(MONTHS_IN_ONE_YEAR, C);
-            
+
             this.console.appendLine(format("Contingency: USD {0,number,currency}, {1,number} years and {2,number} months of income.",
                     contingency,
                     contingencyYearsAndmonths[0],
                     contingencyYearsAndmonths[1].setScale(0, MathConstants.RM)));
-            
+
             final var contingencyDate = LocalDateTime.now().plusMonths(contingencyMonths.longValue());
-            final var retiementDate = LocalDateTime.of(1978+65, Month.MARCH, 13,23,59,59);
-            
+            final var retiementDate = LocalDateTime.of(1978 + 65, Month.MARCH, 13, 23, 59, 59);
+
             final long gapYears = Math.ceilDiv(Duration.between(contingencyDate, retiementDate).toDays(), 365l);
-            
+
             this.console.appendLine(format("Gap is {0,number} years.", gapYears));
-            
-            
+
         };
 
         new By().by(params, this::quarterSavings, this::halfSavings, this::yearlySavings, otherwise);

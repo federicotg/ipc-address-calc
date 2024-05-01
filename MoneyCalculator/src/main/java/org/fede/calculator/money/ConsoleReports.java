@@ -39,6 +39,7 @@ import org.fede.calculator.criptoya.CriptoYaAPI;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.ppi.PPI;
 import org.fede.util.Pair;
@@ -190,6 +191,12 @@ public class ConsoleReports {
             }
             case "income-src" -> {
                 yield () -> me.incomeAverageBySource(args, "income-src");
+            }
+            case "income-acc" -> {
+                yield new Savings(format, series, bar, console)::incomeAccumBySource;
+            }
+            case "income-acc-pct" -> {
+                yield new Savings(format, series, bar, console)::incomeAccumBySourcePct;
             }
             case "income-avg-change" -> {
                 yield () -> me.incomeDelta(args, "income-avg-change");
@@ -710,4 +717,6 @@ public class ConsoleReports {
         new Investments(console, format, bar, series).portfolioEvo(type, "p-evo-pct".equalsIgnoreCase(paramName));
     }
 
+    
+    
 }

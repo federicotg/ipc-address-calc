@@ -25,6 +25,7 @@ import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.JSONDataPoint;
 import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 
 /**
  *
@@ -38,6 +39,10 @@ public class SimpleAggregation implements Aggregation {
 
     public SimpleAggregation(int months) {
         this.months = months;
+    }
+
+    public SimpleAggregation() {
+        this.months = -1;
     }
 
     private void checkCurrency(String expectedCurrency, MoneyAmount lastValue) {
@@ -80,15 +85,29 @@ public class SimpleAggregation implements Aggregation {
 
         final String seriesCurrency = series.getCurrency();
 
-        return series.map((yearMonth, amount) -> {
+        MoneyAmountSeries result = new SortedMapMoneyAmountSeries(seriesCurrency);
+        for (var ym = series.getFrom(); ym.compareTo(Inflation.USD_INFLATION.getTo()) <= 0; ym = ym.next()) {
+            var amount = series.getAmountOrElseZero(ym);
             checkCurrency(seriesCurrency, amount);
-
             lastValues.addFirst(amount);
-            if (lastValues.size() > months) {
+            if (months > -1 && lastValues.size() > months) {
                 lastValues.removeLast();
             }
-            return aggregationFunction.apply((lastValues));
-        });
+            result.putAmount(ym, aggregationFunction.apply((lastValues)));
+        }
+
+        return result;
+
+//        
+//        return series.map((yearMonth, amount) -> {
+//            checkCurrency(seriesCurrency, amount);
+//
+//            lastValues.addFirst(amount);
+//            if (months > -1 && lastValues.size() > months) {
+//                lastValues.removeLast();
+//            }
+//            return aggregationFunction.apply((lastValues));
+//        });
     }
 
     @Override
