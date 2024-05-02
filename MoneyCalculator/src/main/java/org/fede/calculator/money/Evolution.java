@@ -117,7 +117,7 @@ public class Evolution<T> {
             this.console.appendLine(
                     pct
                             ? this.pctBar(ym, elements)
-                            : this.bar(ym, elements, 1800));
+                            : this.bar(ym, elements, 2000));
 
             refs.addAll(IntStream.range(0, typeList.size())
                     .mapToObj(i -> Ansi.colorize(" ", colorList.get(i)) + typeList.get(i))

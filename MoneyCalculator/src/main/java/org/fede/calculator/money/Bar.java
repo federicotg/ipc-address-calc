@@ -47,11 +47,11 @@ public class Bar {
     private static final AnsiFormat RED = new AnsiFormat(Attribute.RED_BACK(), Attribute.WHITE_TEXT());
     private static final AnsiFormat GREEN = new AnsiFormat(Attribute.GREEN_BACK(), Attribute.WHITE_TEXT());
 
-    private static final Set<Attribute> DARK_COLORS = Set.of(
-            Attribute.BLACK_BACK(),
-            Attribute.BRIGHT_BLACK_BACK(),
-            Attribute.RED_BACK(),
-            Attribute.BLUE_BACK());
+    private static final Set<String> DARK_COLORS = Set.of(
+            Attribute.BLACK_BACK().toString(),
+            Attribute.BRIGHT_BLACK_BACK().toString(),
+            Attribute.RED_BACK().toString(),
+            Attribute.BLUE_BACK().toString());
 
     private final Console console;
     private final Format format;
@@ -203,7 +203,7 @@ public class Bar {
     private boolean isDarkColor(Attribute color){
         var parts = color.toString().split(";");
         if(parts.length<3){
-            return DARK_COLORS.contains(color);
+            return DARK_COLORS.contains(color.toString());
         }
         return Integer.parseInt(parts[2]) < 128;
     }

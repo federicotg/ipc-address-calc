@@ -125,7 +125,7 @@ public class Savings {
                         cashMa.getAmount(),
                         eq.getAmountOrElseZero(ym).getAmount(),
                         bo.getAmountOrElseZero(ym).getAmount(),
-                        1500,
+                        1900,
                         value -> String.format("%13s", nf.format(value)))));
 
         this.cashEquityBondsRef("Savings Distribution Evolution");
@@ -250,7 +250,7 @@ public class Savings {
         final var despUSD = agg.average(this.series.incomeSource("despegar-split"));
 
         unlp.map((ym, ma) -> ZERO_USD.max(ma))
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList), 25)));
+                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList), 40)));
 
         new References(console, format).refs(
                 title,
