@@ -183,7 +183,7 @@ public class Positions {
                 this.format.percent(p.getUnrealizedPnL().getAmount().divide(p.getCostBasis().getAmount(), C), pnlPctWidth)))
                 .forEach(this.console::appendLine);
 
-        this.console.appendLine(separator);
+        //this.console.appendLine(separator);
         this.console.appendLine(MessageFormat.format(fmt,
                 this.format.text("Total", descWidth),
                 this.format.text("", posWidth),
@@ -439,13 +439,13 @@ public class Positions {
         final Function<Investment, String> yearClassifier = i -> String.valueOf(YearMonth.of(i.getInitialDate()).getYear());
         final Function<Investment, String> brokerClassifier = i -> i.getComment() == null ? "PPI " : "IBKR";
         final Function<Investment, String> anyClassifier = i -> "All ";
-        final Function<Investment, String> etfClassifier = Investment::getCurrency;
-        final Function<Investment, String> currencyClassifier = i -> "gettex".equals(i.getComment()) ? "EUR" : "USD";
+      //  final Function<Investment, String> etfClassifier = Investment::getCurrency;
+      //  final Function<Investment, String> currencyClassifier = i -> "gettex".equals(i.getComment()) ? "EUR" : "USD";
 
         this.cost(yearClassifier, nominal);
         this.cost(brokerClassifier, nominal);
-        this.cost(etfClassifier, nominal);
-        this.cost(currencyClassifier, nominal);
+    //    this.cost(etfClassifier, nominal);
+    //    this.cost(currencyClassifier, nominal);
         this.cost(this::exchangeClassifier, nominal);
         this.cost(anyClassifier, nominal);
 

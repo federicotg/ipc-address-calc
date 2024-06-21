@@ -42,6 +42,7 @@ public class Format {
     
     public Format() {
         PERCENT_FORMAT.setMinimumFractionDigits(2);
+        PERCENT_FORMAT.setMaximumFractionDigits(2);
     }
     
     private String getRightAlignedFormat(int width){
@@ -76,6 +77,10 @@ public class Format {
         return format("{0,number,0.##}", value);
     }
     
+    public String numberLong(BigDecimal value) {
+        return format("{0,number,0.0000}", value);
+    }
+    
     public String currencyShort(BigDecimal value) {
         if(value.abs().compareTo(ONE_THOUSAND) < 0){
             return format("{0,number,0}", value.setScale(0, RoundingMode.HALF_UP));
@@ -104,11 +109,6 @@ public class Format {
     public String percent(BigDecimal pct) {
 
         return format("{0}", PERCENT_FORMAT.format(pct));
-    }
-
-    public String pctNumber(BigDecimal value) {
-        return String.format("%3d", value.intValue()).concat("%");
-
     }
 
     public String title(String text) {

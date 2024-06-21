@@ -233,7 +233,8 @@ public class BBPP {
         result.taxedTotal = bbpp.minimum()
                 .negate()
                 .add(result.taxedDomesticAmount, C)
-                .add(result.taxedForeignAmount, C);
+                .add(result.taxedForeignAmount, C)
+                .max(ZERO);
 
         result.taxRate = bbpp.brakets()
                 .stream()
@@ -243,7 +244,20 @@ public class BBPP {
                 .get()
                 .tax();
 
-        result.taxAmount = result.taxedTotal.multiply(result.taxRate, C);
+        var tax = BigDecimal.ZERO;
+        var remaining = result.taxedTotal;
+        for(var i=1;i < bbpp.brakets().size();i++) {
+            
+            if(remaining.signum() == 0){
+                break;
+            }
+            var currentBraketAmount = bbpp.brakets().get(i).from().min(remaining);
+            remaining= remaining.subtract(currentBraketAmount, C).max(ZERO);
+            tax = tax.add(currentBraketAmount.multiply(bbpp.brakets().get(i-1).tax(), C),C);
+        }
+        
+        
+        result.taxAmount = tax; //result.taxedTotal.multiply(result.taxRate, C);
 
         final var usdFxYearMonth = Inflation.USD_INFLATION.getTo().min(YearMonth.of(ym.getYear() + 1, 6));
 
@@ -310,7 +324,7 @@ public class BBPP {
         this.console.appendLine(this.format.title(format("BB.PP. {0}", String.valueOf(bbpp.year))));
         this.console.appendLine(format("Total amount {0}", this.format.currency(bbpp.totalAmount)));
 
-        this.console.appendLine(format("Taxed domestic amount {0}", this.format.currency(bbpp.taxedDomesticAmount)));
+        this.console.appendLine(format("Taxed domestic amount {0} (+5%)", this.format.currency(bbpp.taxedDomesticAmount)));
         this.console.appendLine(format("Taxed foreign amount {0}", this.format.currency(bbpp.taxedForeignAmount)));
         this.console.appendLine(format("Taxed total {0}", this.format.currency(bbpp.taxedTotal)));
         this.console.appendLine(format("Tax rate {0}", this.format.percent(bbpp.taxRate)));

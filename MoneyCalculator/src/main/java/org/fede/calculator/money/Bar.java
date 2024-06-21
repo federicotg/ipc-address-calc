@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import java.math.RoundingMode;
 import static java.text.MessageFormat.format;
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,7 +47,7 @@ public class Bar {
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
     private static final AnsiFormat RED = new AnsiFormat(Attribute.RED_BACK(), Attribute.WHITE_TEXT());
     private static final AnsiFormat GREEN = new AnsiFormat(Attribute.GREEN_BACK(), Attribute.WHITE_TEXT());
-
+    
     private static final Set<String> DARK_COLORS = Set.of(
             Attribute.BLACK_BACK().toString(),
             Attribute.BRIGHT_BLACK_BACK().toString(),
@@ -234,10 +235,10 @@ public class Bar {
         if (bar1.add(bar2, C).add(bar3, C).compareTo(HUNDRED) != 0) {
             bar1 = HUNDRED.subtract(bar2.add(bar3, C), C);
         }
-        return this.bar(ym, bar1, bar2, bar3, 1, this.format::pctNumber);
+        return this.bar(ym, bar1, bar2, bar3, 1);
     }
 
-    public String bar(YearMonth ym, BigDecimal one, BigDecimal two, int scale, Function<BigDecimal, String> format) {
+    public String bar(YearMonth ym, BigDecimal one, BigDecimal two, int scale) {
         return format("{0}/{1} {2}{3}",
                 String.valueOf(ym.getYear()),
                 String.format("%02d", ym.getMonth()),
@@ -245,7 +246,7 @@ public class Bar {
                 this.bar(two, scale, Attribute.RED_BACK()));
     }
 
-    public String bar(YearMonth ym, BigDecimal one, BigDecimal two, BigDecimal three, int scale, Function<BigDecimal, String> format) {
+    public String bar(YearMonth ym, BigDecimal one, BigDecimal two, BigDecimal three, int scale) {
         return format("{0}/{1} {2}{3}{4}",
                 String.valueOf(ym.getYear()),
                 String.format("%02d", ym.getMonth()),

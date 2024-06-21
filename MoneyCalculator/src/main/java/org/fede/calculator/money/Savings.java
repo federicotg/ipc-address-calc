@@ -125,8 +125,8 @@ public class Savings {
                         cashMa.getAmount(),
                         eq.getAmountOrElseZero(ym).getAmount(),
                         bo.getAmountOrElseZero(ym).getAmount(),
-                        1900,
-                        value -> String.format("%13s", nf.format(value)))));
+                        1900
+                        )));
 
         this.cashEquityBondsRef("Savings Distribution Evolution");
 
@@ -237,6 +237,10 @@ public class Savings {
     }
 
     public void incomeAverageBySource(int months) {
+        this.incomeAverageBySource(months, false);
+    }
+
+    public void incomeAverageBySource(int months, boolean pct) {
 
         final var title = format("Average {0}-month income by source", months);
         final var colorList = List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK(), Attribute.GREEN_BACK());
@@ -249,9 +253,20 @@ public class Savings {
         final var despARS = agg.average(this.series.incomeSource("despegar"));
         final var despUSD = agg.average(this.series.incomeSource("despegar-split"));
 
-        unlp.map((ym, ma) -> ZERO_USD.max(ma))
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList), 40)));
-
+        if (pct) {
+            unlp.map((ym, ma) -> ZERO_USD.max(ma))
+                    .forEach((ym, savingMa) -> this.console.appendLine(
+                    this.bar.percentBar(
+                            ym,
+                            this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList))));
+        } else {
+            unlp.map((ym, ma) -> ZERO_USD.max(ma))
+                    .forEach((ym, savingMa) -> this.console.appendLine(
+                    this.bar.genericBar(
+                            ym,
+                            this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList),
+                            40)));
+        }
         new References(console, format).refs(
                 title,
                 List.of("UNLP", "LIFIA", "Despegar ARS", "Despegar USD"),
@@ -284,8 +299,8 @@ public class Savings {
                 colorList);
 
     }
-    
-        public void incomeAccumBySourcePct() {
+
+    public void incomeAccumBySourcePct() {
 
         final var title = "Accumulated income by source";
         final var colorList = List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK(), Attribute.GREEN_BACK(), Attribute.WHITE_BACK());
