@@ -19,6 +19,8 @@ package org.fede.calculator.money.series;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,16 +28,33 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
+import java.time.LocalDate;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
+import org.fede.calculator.money.SingleHttpClientSupplier;
+import org.fede.calculator.ppi.fmp.CachedETF;
+import org.fede.calculator.ppi.fmp.ETF;
+import org.fede.calculator.ppi.fmp.ExchangeTradedFundData;
+import org.fede.calculator.ppi.fmp.ExchangeTradedFunds;
 
 /**
  *
  * @author fede
  */
 public class SeriesReader {
+
+    private static final Map<String, String> CURRENCY_ETF = Map.of(
+            "CSPX", ETF.CSPX,
+            "RTWO", ETF.RTWO,
+            "EIMI", ETF.EIMI,
+            "XRSU", ETF.XRSU,
+            "IWDA", ETF.IWDA,
+            "MEUD", ETF.MEUD
+    );
 
     private static final ObjectMapper OM = new ObjectMapper();
 
@@ -46,12 +65,51 @@ public class SeriesReader {
 
     private static final Map<String, MoneyAmountSeries> MACACHE = new ConcurrentHashMap<>();
 
+    private static Map<String, ExchangeTradedFundData> ETFS;
+
+    private static final Pattern INDEX_SERIES_NAME = Pattern.compile("index/([A-Z]{4,4})-(USD|EUR).json");
+
     static {
         OM.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
+    private static JSONIndexSeries createIndexSeries(String name) {
+        var indexSeries = new JSONIndexSeries(read(name, INDEX_SERIES_TYPE_REFERENCE));
+
+        var matcher = INDEX_SERIES_NAME.matcher(name);
+        if (matcher.find()) {
+            var currency = matcher.group(1);
+            var value = etfs().get(CURRENCY_ETF.get(currency));
+            if (value != null) {
+                indexSeries.put(YearMonth.of(LocalDate.now()), value.price());
+            }
+        }
+        if ("index/USD-EUR.json".equals(name)) {
+            indexSeries.put(YearMonth.of(LocalDate.now()), etfs().get(ETF.MEUS).price().divide(etfs().get(ETF.MEUD).price(), MathConstants.C));
+        }
+
+        return indexSeries;
+
+    }
+
     public static IndexSeries readIndexSeries(String name) {
-        return CACHE.computeIfAbsent(name, seriesName -> new JSONIndexSeries(read(seriesName, INDEX_SERIES_TYPE_REFERENCE)));
+        return CACHE.computeIfAbsent(name, SeriesReader::createIndexSeries);
+    }
+
+    private static Map<String, ExchangeTradedFundData> etfs() {
+        if (ETFS == null) {
+            try {
+                var om = new ObjectMapper()
+                        .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
+                        .registerModule(new JavaTimeModule());
+                ETFS = new CachedETF(om, new ExchangeTradedFunds(om, new SingleHttpClientSupplier())).etfs();
+            } catch (IOException ex) {
+                System.err.println(ex.getMessage());
+                ex.printStackTrace(System.err);
+                ETFS = Map.of();
+            }
+        }
+        return ETFS;
     }
 
     public static <T> T read(String name, TypeReference<T> typeReference) {
@@ -78,7 +136,6 @@ public class SeriesReader {
 
             JSONSeries series = OM.readValue(is, JSONSeries.class);
 
-            //final SortedMap<YearMonth, MoneyAmount> interpolatedData = new TreeMap<>();
             final String currency = series.currency();
             final var maSeries = new SortedMapMoneyAmountSeries(currency);
 
@@ -91,7 +148,6 @@ public class SeriesReader {
             YearMonth ym = maSeries.getFrom();
             final YearMonth last = maSeries.getTo();
 
-            //final var allValues = new HashMap<>(interpolatedData);
             while (ym.monthsUntil(last) > 0) {
                 YearMonth next = ym.next();
                 if (!maSeries.hasValue(next)) {

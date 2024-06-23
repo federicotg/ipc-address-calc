@@ -65,4 +65,15 @@ public class JSONIndexSeries extends IndexSeriesSupport {
         return this.to;
     }
 
+    public void put(YearMonth ym, BigDecimal value) {
+
+        var y = this.data.get(ym.year());
+        if (y == null) {
+            y = new ConcurrentHashMap<>();
+            this.data.put(ym.year(), y);
+        }
+        y.put(ym.month(), value);
+
+    }
+
 }

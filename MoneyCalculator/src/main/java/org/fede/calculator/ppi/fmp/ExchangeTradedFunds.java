@@ -72,14 +72,6 @@ public class ExchangeTradedFunds implements ETF {
 
     }
 
-    private String currencySymbol(String etf) {
-        return switch (etf) {
-            case MEUD ->
-                "€";
-            default ->
-                "$";
-        };
-    }
 
 //    private ForeignExchange usdEur() throws IOException, URISyntaxException, InterruptedException {
 //
