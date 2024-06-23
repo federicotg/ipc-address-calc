@@ -46,7 +46,6 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.ppi.PPI;
 import org.fede.calculator.ppi.fmp.CachedETF;
-import org.fede.calculator.ppi.fmp.CachedETFData;
 import org.fede.calculator.ppi.fmp.ETF;
 import org.fede.calculator.ppi.fmp.ExchangeTradedFunds;
 import org.fede.util.Pair;
@@ -69,7 +68,7 @@ public class ConsoleReports {
     private static final String INFLATION = "2.38143";
     private static final String CASH = "0";
     private static final String EXPECTED_RETRUNS = "all";
-    private static final String BBPP = "2.25";
+    private static final String BBPP = "1.5";
     private static final String PENSION = "150";
     private static final String BAD_RETURN_YEARS = "3";
     private static final String BAD_YEAR_SPENDING = "0.85";
