@@ -67,7 +67,7 @@ public class SeriesReader {
 
     private static Map<String, ExchangeTradedFundData> ETFS;
 
-    private static final Pattern INDEX_SERIES_NAME = Pattern.compile("index/([A-Z]{4,4})-(USD|EUR).json");
+    private static final Pattern INDEX_SERIES_NAME = Pattern.compile("index/([A-Z]{4,4})-(?:USD|EUR).json");
 
     static {
         OM.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -85,7 +85,9 @@ public class SeriesReader {
             }
         }
         if ("index/USD-EUR.json".equals(name)) {
-            indexSeries.put(YearMonth.of(LocalDate.now()), etfs().get(ETF.MEUS).price().divide(etfs().get(ETF.MEUD).price(), MathConstants.C));
+            indexSeries.put(
+                    YearMonth.of(LocalDate.now()),
+                    etfs().get(ETF.MEUS).price().divide(etfs().get(ETF.MEUD).price(), MathConstants.C));
         }
 
         return indexSeries;
