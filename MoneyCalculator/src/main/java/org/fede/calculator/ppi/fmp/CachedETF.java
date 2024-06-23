@@ -42,7 +42,7 @@ public class CachedETF implements ETF {
     public Map<String, ExchangeTradedFundData> etfs() {
 
         try {
-            var path = Path.of("/tmp/etfs.tmp");
+            var path = Path.of(System.getProperty("user.home") + "/etfs_tmp.json");
             if (Files.exists(path)) {
                 var cachedData = this.om.readValue(Files.readAllBytes(path), CachedETFData.class);
                 if (!cachedData.expired()) {
@@ -51,8 +51,7 @@ public class CachedETF implements ETF {
             }
 
             var data = this.etf.etfs();
-            var cachedData = new CachedETFData(LocalDateTime.now(), data);
-            Files.write(path, this.om.writeValueAsBytes(cachedData), StandardOpenOption.CREATE);
+            Files.write(path, this.om.writeValueAsBytes(new CachedETFData(LocalDateTime.now(), data)), StandardOpenOption.CREATE);
             return data;
 
         } catch (IOException ex) {
