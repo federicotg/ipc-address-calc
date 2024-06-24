@@ -30,7 +30,11 @@ public record CachedETFData(LocalDateTime created, Map<String, ExchangeTradedFun
     public boolean expired() {
         var now = LocalDateTime.now();
         if (now.getDayOfWeek() != DayOfWeek.SATURDAY && now.getDayOfWeek() != DayOfWeek.SUNDAY) {
-            return this.created.isBefore(now.withHour(14).withMinute(0).withSecond(0));
+            if (this.created.isBefore(now.withHour(14).withMinute(0).withSecond(0))) {
+                return Duration.between(this.created, now).toMinutes() > 15;
+            } else {
+                return Duration.between(this.created, now).toHours() > 12;
+            }
         }
         return Duration.between(this.created, now).toDays() > 1;
     }
