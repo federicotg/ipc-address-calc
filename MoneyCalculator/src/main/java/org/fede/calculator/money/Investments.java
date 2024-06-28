@@ -115,21 +115,21 @@ public class Investments {
                         .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
     }
 
-    public void cashInv(boolean nominal){
+    public void cashInv(boolean nominal) {
         this.investmentReport(
                 this.cashInvestments.cashInvestments().stream(),
-                i -> true, 
-                i -> true, 
+                i -> true,
+                i -> true,
                 Investment::isCurrent, nominal);
     }
-    
+
     private void investmentReport(final Predicate<Investment> everyone, boolean nominal) {
         this.investmentReport(this.getInvestments(), everyone, Investment::isETF, Investment::isCurrent, nominal);
     }
 
     private void investmentReport(
-            Stream<Investment> invStream, 
-            final Predicate<Investment> everyone, 
+            Stream<Investment> invStream,
+            final Predicate<Investment> everyone,
             final Predicate<Investment> etf,
             final Predicate<Investment> current,
             boolean nominal) {
@@ -212,18 +212,20 @@ public class Investments {
 
     private BigDecimal annualRealReturn(String symbol, int year, boolean nominal) {
 
-        final var fx = ForeignExchanges.getForeignExchange(symbol, "USD");
+        final var from = Inflation.USD_INFLATION.getFrom();
+        final var to = Inflation.USD_INFLATION.getTo();
 
-        if (year != 0 && (fx.getFrom().getYear() > year || fx.getTo().getYear() < year)) {
+        if (year != 0 && (from.getYear() > year || to.getYear() < year)) {
             return BigDecimal.ZERO;
         }
 
         final var amount = new MoneyAmount(ONE, symbol);
-        final var startYm = YearMonth.of(Math.max(2019, year) - 1, 12).max(fx.getFrom());
+        final var startYm = YearMonth.of(Math.max(2019, year) - 1, 12).max(from);
         final var endYm = year == 0
-                ? fx.getTo()
-                : YearMonth.of(year, 12).min(fx.getTo());
+                ? to
+                : YearMonth.of(year, 12).min(to);
 
+        final var fx = ForeignExchanges.getForeignExchange(symbol, "USD");
         var startValue = fx.exchange(amount, "USD", startYm);
         var endValue = fx.exchange(amount, "USD", endYm);
         if (!nominal) {
@@ -607,11 +609,9 @@ public class Investments {
                 .map(YearMonth::prev)
                 .orElseGet(Inflation.USD_INFLATION::getTo);
 
-
 //        Function<Investment, String> classifier = i -> InvestmentType.PF == i.getType()
 //                ? PF_CATEGORIES.getOrDefault(i.getCurrency(), CATEGORIES.getOrDefault(i.getCurrency(), "unknown")) 
 //                : CATEGORIES.getOrDefault(i.getCurrency(), "unknown");
-
         Comparator<Investment> comparator = comparing(Investment::getInitialDate, naturalOrder());
 
         new Evolution<Investment>(this.console, this.bar)
@@ -646,7 +646,8 @@ public class Investments {
                 "USD Cash";
             case USD ->
                 "USD Bank";
-            case BONO -> "Dom. Bonds";
+            case BONO ->
+                "Dom. Bonds";
             case FCI, ETF ->
                 CATEGORIES.getOrDefault(i.getCurrency(), i.getType().toString() + " " + i.getCurrency());
         };
@@ -732,12 +733,12 @@ public class Investments {
                 .map(e -> format("{0} {2}: {1}", e.type(), sixDigits.format(e.amount()), e.currency()))
                 .forEach(this.console::appendLine);
     }
-    
-    private record LabelAndMDR(String label, ModifiedDietzReturnResult mdr){
-        public LabelAndMDR(int year,  ModifiedDietzReturnResult mdr){
+
+    private record LabelAndMDR(String label, ModifiedDietzReturnResult mdr) {
+
+        public LabelAndMDR(int year, ModifiedDietzReturnResult mdr) {
             this(String.valueOf(year), mdr);
         }
     }
-    
-   
+
 }
