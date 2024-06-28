@@ -76,20 +76,24 @@ public class SeriesReader {
     private static JSONIndexSeries createIndexSeries(String name) {
         var indexSeries = new JSONIndexSeries(read(name, INDEX_SERIES_TYPE_REFERENCE));
 
-        var matcher = INDEX_SERIES_NAME.matcher(name);
-        if (matcher.find()) {
-            var currency = matcher.group(1);
-            var value = etfs().get(CURRENCY_ETF.get(currency));
-            if (value != null) {
-                indexSeries.put(YearMonth.of(LocalDate.now()), value.price());
+        final var now = YearMonth.of(LocalDate.now());
+
+        if (indexSeries.getIndex(now.year(), now.month()).signum() == 0) {
+
+            var matcher = INDEX_SERIES_NAME.matcher(name);
+            if (matcher.find()) {
+                var currency = matcher.group(1);
+                var value = etfs().get(CURRENCY_ETF.get(currency));
+                if (value != null) {
+                    indexSeries.put(now, value.price());
+                }
+            }
+            if ("index/USD-EUR.json".equals(name)) {
+                indexSeries.put(
+                        now,
+                        etfs().get(ETF.MEUS).price().divide(etfs().get(ETF.MEUD).price(), MathConstants.C));
             }
         }
-        if ("index/USD-EUR.json".equals(name)) {
-            indexSeries.put(
-                    YearMonth.of(LocalDate.now()),
-                    etfs().get(ETF.MEUS).price().divide(etfs().get(ETF.MEUD).price(), MathConstants.C));
-        }
-
         return indexSeries;
 
     }
