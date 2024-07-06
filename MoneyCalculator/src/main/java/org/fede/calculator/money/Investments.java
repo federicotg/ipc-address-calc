@@ -609,9 +609,6 @@ public class Investments {
                 .map(YearMonth::prev)
                 .orElseGet(Inflation.USD_INFLATION::getTo);
 
-//        Function<Investment, String> classifier = i -> InvestmentType.PF == i.getType()
-//                ? PF_CATEGORIES.getOrDefault(i.getCurrency(), CATEGORIES.getOrDefault(i.getCurrency(), "unknown")) 
-//                : CATEGORIES.getOrDefault(i.getCurrency(), "unknown");
         Comparator<Investment> comparator = comparing(Investment::getInitialDate, naturalOrder());
 
         new Evolution<Investment>(this.console, this.bar)
