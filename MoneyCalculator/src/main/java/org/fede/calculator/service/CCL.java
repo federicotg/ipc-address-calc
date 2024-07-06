@@ -16,10 +16,14 @@
  */
 package org.fede.calculator.service;
 
+import java.math.BigDecimal;
+import java.util.Map;
+
 /**
  *
  * @author federicogentile
  */
 public interface CCL {
-    
+
+    Map<String, BigDecimal> ccl();
 }

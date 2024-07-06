@@ -40,6 +40,8 @@ import org.fede.calculator.fmp.CachedETF;
 import org.fede.calculator.service.ETF;
 import org.fede.calculator.fmp.ExchangeTradedFundData;
 import org.fede.calculator.fmp.ExchangeTradedFunds;
+import org.fede.calculator.ppi.CachedCCL;
+import org.fede.calculator.ppi.PPI;
 
 /**
  *
@@ -67,6 +69,8 @@ public class SeriesReader {
 
     private static Map<String, ExchangeTradedFundData> ETFS;
 
+    private static Map<String, BigDecimal> CCL;
+
     private static final Pattern INDEX_SERIES_NAME = Pattern.compile("index/([A-Z]{4,4})-(?:USD|EUR).json");
 
     static {
@@ -93,6 +97,9 @@ public class SeriesReader {
                         now,
                         etfs().get(ETF.MEUS).price().divide(etfs().get(ETF.MEUD).price(), MathConstants.C));
             }
+            if ("index/peso-dolar-libre.json".equals(name)) {
+                indexSeries.put(now, ccl().get("ARS"));
+            }
         }
         return indexSeries;
 
@@ -116,6 +123,16 @@ public class SeriesReader {
             }
         }
         return ETFS;
+    }
+
+    private static Map<String, BigDecimal> ccl() {
+        if (CCL == null) {
+            var om = new ObjectMapper()
+                    .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
+                    .registerModule(new JavaTimeModule());
+            CCL = new CachedCCL(om, new PPI(null, null, new SingleHttpClientSupplier())).ccl();
+        }
+        return CCL;
     }
 
     public static <T> T read(String name, TypeReference<T> typeReference) {

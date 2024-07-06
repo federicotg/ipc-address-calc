@@ -26,6 +26,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -38,20 +39,19 @@ import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.ppi.SettlementType.*;
 import static org.fede.calculator.ppi.PPIRestAPI.PPIFXFee;
 import static org.fede.calculator.ppi.PPIRestAPI.PPIFXParams;
+import org.fede.calculator.service.CCL;
 import org.fede.util.Pair;
 
 /**
  *
  * @author federicogentile
  */
-public class PPI {
+public class PPI implements CCL {
 
     private static final int LABEL_WIDTH = 30;
 
-    private static final BigDecimal LETES_USD_NEW = new BigDecimal("0.01");
-    private static final BigDecimal LETES_ARS_NEW = new BigDecimal("0.002");
+    private static final PPIFXFee PPI_PROMO_FEE = new PPIFXFee(new BigDecimal("0.004"), new BigDecimal("0.004"));
 
-    private static final AnsiFormat DIM_WHITE_TEXT = new AnsiFormat(Attribute.DIM());
     private static final AnsiFormat BLUE_TEXT = new AnsiFormat(Attribute.BRIGHT_GREEN_TEXT());
 
     private final Console console;
@@ -80,10 +80,6 @@ public class PPI {
         return this.criptoya;
     }
 
-    private String dim(String text, int width) {
-        return this.format.text(text, width, DIM_WHITE_TEXT);
-    }
-
     private String blue(String text, int width) {
         return this.format.text(text, width, BLUE_TEXT);
     }
@@ -98,31 +94,20 @@ public class PPI {
 
         try {
 
-            //final var letra1 = "XE4";
-
-            final var newFee = new PPIFXFee(LETES_USD_NEW, LETES_ARS_NEW);
-            final var bondsFee = new PPIFXFee(new BigDecimal("0.004"), new BigDecimal("0.004"));
-
             List<Pair<String, Future<MoneyAmount>>> futures = new ArrayList<>(32);
             try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
 
-                futures.add(this.ppiItem("C a D AL30 CI", new PPIFXParams("AL30C", "AL30D", BONOS, INMEDIATA, "USD", bondsFee), executor));
-                futures.add(this.ppiItem("C a D GD30 CI", new PPIFXParams("GD30C", "GD30D", BONOS, INMEDIATA, "USD", bondsFee), executor));
+                futures.add(this.ppiItem("C a D AL30 CI", new PPIFXParams("AL30C", "AL30D", BONOS, INMEDIATA, "USD", PPI_PROMO_FEE), executor));
+                futures.add(this.ppiItem("C a D GD30 CI", new PPIFXParams("GD30C", "GD30D", BONOS, INMEDIATA, "USD", PPI_PROMO_FEE), executor));
 
-                //futures.add(this.ppiItem("C a D AL30 48", new PPIFXParams("AL30C", "AL30D", BONOS, A48, "USD", bondsFee), executor));
-                //futures.add(this.ppiItem("C a D GD30 48", new PPIFXParams("GD30C", "GD30D", BONOS, A48, "USD", bondsFee), executor));
-
-                //futures.add(this.ppiItem("CCL " + letra1 + " CI", new PPIFXParams(letra1 + "C", "X18E4", LETRAS, INMEDIATA, newFee), executor));
-                futures.add(this.ppiItem("CCL AL30 CI", new PPIFXParams("AL30C", "AL30", BONOS, INMEDIATA, newFee), executor));
-                futures.add(this.ppiItem("CCL GD30 CI", new PPIFXParams("GD30C", "GD30", BONOS, INMEDIATA, newFee), executor));
+                futures.add(this.ppiItem("CCL AL30 CI", new PPIFXParams("AL30C", "AL30", BONOS, INMEDIATA, PPI_PROMO_FEE), executor));
+                futures.add(this.ppiItem("CCL GD30 CI", new PPIFXParams("GD30C", "GD30", BONOS, INMEDIATA, PPI_PROMO_FEE), executor));
 
                 //futures.add(this.ppiItem("CCL AL30 48", new PPIFXParams("AL30C", "AL30", BONOS, A48, newFee), executor));
                 //futures.add(this.ppiItem("CCL GD30 48", new PPIFXParams("GD30C", "GD30", BONOS, A48, newFee), executor));
-
                 //futures.add(this.ppiItem("MEP " + letra1 + " CI", new PPIFXParams(letra1 + "D", "X18E4", LETRAS, INMEDIATA, newFee), executor));
                 //futures.add(this.ppiItem("C a D " + letra1 + " CI", new PPIFXParams(letra1 + "C", letra1 + "D", LETRAS, INMEDIATA, "USD", newFee), executor));
                 //futures.add(this.ppiItem("C a D " + letra1 + " 48", new PPIFXParams(letra1 + "C", letra1 + "D", LETRAS, A48, "USD", newFee), executor));
-
                 //futures.add(this.criptoYaItem("BuenBit USDT (Venta)", new CriptoYaFXParams("Buenbit", "USDT", "USD", "ARS", "ARS"), executor));
                 //futures.add(this.criptoYaItem("BuenBit DAI (Venta)", new CriptoYaFXParams("Buenbit", "DAI", "USD", "ARS", "ARS"), executor));
                 //futures.add(this.criptoYaItem("Letsbit USDT (Venta)", new CriptoYaFXParams("Letsbit", "USDT", "USD", "ARS", "ARS"), executor));
@@ -190,4 +175,17 @@ public class PPI {
                 )
         );
     }
+
+    @Override
+    public Map<String, BigDecimal> ccl() {
+        try {
+            var fx = this.getApi().exchangeRate(new PPIFXParams("AL30C", "AL30", BONOS, INMEDIATA, PPI_PROMO_FEE));
+            return Map.of(fx.currency(), fx.amount());
+        } catch (Exception ex) {
+            System.err.println(ex.getMessage());
+            ex.printStackTrace(System.err);
+            return Map.of();
+        }
+    }
+
 }

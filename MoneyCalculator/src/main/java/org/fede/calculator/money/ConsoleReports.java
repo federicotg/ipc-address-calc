@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.money;
 
-import com.fasterxml.jackson.core.JsonFactoryBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -68,7 +67,7 @@ public class ConsoleReports {
     private static final String INFLATION = "2.38143";
     private static final String CASH = "0";
     private static final String EXPECTED_RETRUNS = "all";
-    private static final String BBPP = "1.5";
+    private static final String BBPP = "1.25";
     private static final String PENSION = "150";
     private static final String BAD_RETURN_YEARS = "3";
     private static final String BAD_YEAR_SPENDING = "0.85";
@@ -486,7 +485,7 @@ public class ConsoleReports {
 
     private void savingEvolution(String[] args, String paramName) {
         this.appendLine(this.format.title("Savings Evolution"));
-        this.bar.evolution("Savings", this.series.realSavings(this.paramsValue(args, paramName).get("type")), 2000);
+        this.bar.evolution("Savings", this.series.realSavings(this.paramsValue(args, paramName).get("type")), 2200);
     }
 
     private void expenseEvolution(String[] args, String paramName) {
