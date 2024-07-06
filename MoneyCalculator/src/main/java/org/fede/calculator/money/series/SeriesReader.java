@@ -36,10 +36,10 @@ import java.util.regex.Pattern;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.SingleHttpClientSupplier;
-import org.fede.calculator.ppi.fmp.CachedETF;
-import org.fede.calculator.ppi.fmp.ETF;
-import org.fede.calculator.ppi.fmp.ExchangeTradedFundData;
-import org.fede.calculator.ppi.fmp.ExchangeTradedFunds;
+import org.fede.calculator.fmp.CachedETF;
+import org.fede.calculator.service.ETF;
+import org.fede.calculator.fmp.ExchangeTradedFundData;
+import org.fede.calculator.fmp.ExchangeTradedFunds;
 
 /**
  *

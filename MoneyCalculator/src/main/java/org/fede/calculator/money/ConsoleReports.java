@@ -45,9 +45,9 @@ import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.ppi.PPI;
-import org.fede.calculator.ppi.fmp.CachedETF;
-import org.fede.calculator.ppi.fmp.ETF;
-import org.fede.calculator.ppi.fmp.ExchangeTradedFunds;
+import org.fede.calculator.fmp.CachedETF;
+import org.fede.calculator.service.ETF;
+import org.fede.calculator.fmp.ExchangeTradedFunds;
 import org.fede.util.Pair;
 
 /**

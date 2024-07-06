@@ -14,23 +14,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.ppi.fmp;
+package org.fede.calculator.fmp;
 
-import java.util.Map;
+import java.math.BigDecimal;
 
 /**
  *
  * @author fede
  */
-public interface ETF {
+public record ForeignExchange(
+        BigDecimal bid,
+        BigDecimal ask,
+        BigDecimal open,
+        BigDecimal low,
+        BigDecimal high,
+        BigDecimal changes,
+        String date,
+        String ticker) {
 
-    public static final String CSPX = "CSPX.L";
-    public static final String RTWO = "RTWO.L";
-    public static final String EIMI = "EIMI.L";
-    public static final String IWDA = "IWDA.L";
-    public static final String MEUD = "MEUD.PA";
-    public static final String MEUS = "MEUS.L";
-    public static final String XRSU = "XRSU.L";
-
-    Map<String, ExchangeTradedFundData> etfs();
 }

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.ppi.fmp;
+package org.fede.calculator.fmp;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
