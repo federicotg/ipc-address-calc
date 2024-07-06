@@ -117,7 +117,7 @@ public class Savings {
         final var eq = this.series.realSavings("EQ");
         final var bo = this.series.realSavings("BO");
 
-        final var nf = NumberFormat.getCurrencyInstance();
+        //final var nf = NumberFormat.getCurrencyInstance();
 
         cash.forEach((ym, cashMa) -> this.console.appendLine(
                 this.bar.bar(
@@ -125,7 +125,7 @@ public class Savings {
                         cashMa.getAmount(),
                         eq.getAmountOrElseZero(ym).getAmount(),
                         bo.getAmountOrElseZero(ym).getAmount(),
-                        1900
+                        2200
                         )));
 
         this.cashEquityBondsRef("Savings Distribution Evolution");
