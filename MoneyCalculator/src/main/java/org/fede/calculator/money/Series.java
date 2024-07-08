@@ -126,8 +126,9 @@ public class Series {
                                     Collectors.toList())));
             this.realUSDExpensesByType.put("investing", 
                     List.of(
-                            this.investingExpenses(),this.asRealUSDSeries("expense/", "atlantico"),
-                            this.investingExpenses(),this.asRealUSDSeries("expense/", "itau-uy")
+                            this.investingExpenses(),
+                            this.asRealUSDSeries("expense/", "atlantico"),
+                            this.asRealUSDSeries("expense/", "itau-uy")
                     ));
         }
 
