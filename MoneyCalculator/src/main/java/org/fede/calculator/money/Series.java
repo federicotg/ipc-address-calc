@@ -151,7 +151,7 @@ public class Series {
 
         final var expenseSeries = new SortedMapMoneyAmountSeries("USD");
 
-        for (YearMonth ym = YearMonth.of(2016, 1); ym.monthsUntil(Inflation.USD_INFLATION.getTo()) > 0; ym = ym.next()) {
+        for (YearMonth ym = YearMonth.of(2016, 1); ym.monthsUntil(Inflation.USD_INFLATION.getTo()) >= 0; ym = ym.next()) {
             expenseSeries.putAmount(ym, buyFeesBymonth.getOrDefault(ym, zero));
         }
 

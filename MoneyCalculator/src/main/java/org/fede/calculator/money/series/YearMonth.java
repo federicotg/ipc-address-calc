@@ -20,6 +20,7 @@ import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,10 +60,7 @@ public record YearMonth(int year, int month) implements Comparable<YearMonth> {
 
     @Override
     public int compareTo(YearMonth o) {
-        if (o.year == this.year) {
-            return this.month - o.month;
-        }
-        return this.year - o.year;
+        return Comparator.comparing(YearMonth::year).thenComparing(YearMonth::month).compare(this, o);
     }
 
     public int getYear() {
@@ -74,10 +72,10 @@ public record YearMonth(int year, int month) implements Comparable<YearMonth> {
     }
 
     public int monthsUntil(YearMonth other) {
-        if (this.compareTo(other) < 0) {
+        if (this.compareTo(other) <= 0) {
             return ((other.getYear() - this.getYear()) * 12) + (other.getMonth() - this.getMonth());
         }
-        return 0;
+        return -1;
     }
 
     public YearMonth next() {
