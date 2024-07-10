@@ -19,6 +19,8 @@ package org.fede.calculator.fmp;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Map;
 
 /**
@@ -28,14 +30,25 @@ import java.util.Map;
 public record CachedETFData(LocalDateTime created, Map<String, ExchangeTradedFundData> data) {
 
     public boolean expired() {
-        var now = LocalDateTime.now();
-        if (now.getDayOfWeek() != DayOfWeek.SATURDAY && now.getDayOfWeek() != DayOfWeek.SUNDAY) {
-            if (this.created.isBefore(now.withHour(14).withMinute(0).withSecond(0))) {
-                return Duration.between(this.created, now).toMinutes() > 15;
-            } else {
-                return Duration.between(this.created, now).toHours() > 12;
-            }
+
+        final var londonTime = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/London"));
+        if (this.isTrading(londonTime)) {
+            // trading: 15 minutes
+            return Duration.between(this.created, londonTime).toMinutes() > 15;
         }
-        return Duration.between(this.created, now).toDays() > 1;
+
+        // not trading right now
+        if (this.isTrading(this.created.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneId.of("Europe/London")))) {
+            return true;
+        } else {
+            return Duration.between(this.created, LocalDateTime.now()).toHours() > 12;
+        }
+    }
+
+    private boolean isTrading(ZonedDateTime londonTime) {
+        return londonTime.getDayOfWeek() != DayOfWeek.SATURDAY
+                && londonTime.getDayOfWeek() != DayOfWeek.SUNDAY
+                && londonTime.getHour() >= 8
+                && londonTime.getHour() <= 17;
     }
 }
