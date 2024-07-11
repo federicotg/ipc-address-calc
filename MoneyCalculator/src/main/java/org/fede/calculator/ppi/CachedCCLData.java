@@ -35,7 +35,7 @@ public record CachedCCLData(LocalDateTime created, Map<String, BigDecimal> data)
         final var nycTime = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("America/New_York"));
         if (this.isTrading(nycTime)) {
             // trading: 15 minutes
-            return Duration.between(this.created, nycTime).toMinutes() > 15;
+            return Duration.between(this.created, LocalDateTime.now()).toMinutes() > 15;
         }
         // not trading right now
         if (this.isTrading(this.created.atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneId.of("Europe/London")))) {

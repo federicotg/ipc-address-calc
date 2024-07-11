@@ -34,7 +34,7 @@ public record CachedETFData(LocalDateTime created, Map<String, ExchangeTradedFun
         final var londonTime = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("Europe/London"));
         if (this.isTrading(londonTime)) {
             // trading: 15 minutes
-            return Duration.between(this.created, londonTime).toMinutes() > 15;
+            return Duration.between(this.created, LocalDateTime.now()).toMinutes() > 15;
         }
 
         // not trading right now
