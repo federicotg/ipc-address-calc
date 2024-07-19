@@ -23,7 +23,6 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import java.math.RoundingMode;
 import static java.text.MessageFormat.format;
-import java.text.NumberFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
