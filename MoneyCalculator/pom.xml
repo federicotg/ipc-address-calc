@@ -38,7 +38,7 @@
                             <addClasspath>true</addClasspath>
                             <mainClass>org.fede.calculator.money.ConsoleReports</mainClass>
                         </manifest>
-                         <manifestEntries>
+                        <manifestEntries>
                             <Class-Path>../conf/</Class-Path>
                         </manifestEntries>
                     </archive>
