@@ -33,6 +33,8 @@ import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -67,7 +69,7 @@ public class ConsoleReports {
     private static final String INFLATION = "2.38143";
     private static final String CASH = "0";
     private static final String EXPECTED_RETRUNS = "all";
-    private static final String BBPP = "1.25";
+    private static final String BBPP = "0.75";
     private static final String PENSION = "150";
     private static final String BAD_RETURN_YEARS = "3";
     private static final String BAD_YEAR_SPENDING = "0.85";
@@ -257,6 +259,9 @@ public class ConsoleReports {
 
             case "ibkr" ->
                 () -> me.ibkrCSV();
+
+            case "ibkrpos" ->
+                () -> me.ibkrPositions(Integer.parseInt(me.paramsValue(args, "ibkrpos").get("year")));
 
             case "mdr" ->
                 () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar));
@@ -671,6 +676,29 @@ public class ConsoleReports {
                 .map(this::assetRow)
                 .forEach(this::appendLine);
     }
+    
+    
+    private void ibkrPositions(int year) {
+
+        this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .filter(inv -> inv.getComment() != null)
+                .filter(inv -> YearMonth.of(inv.getInitialDate()).year() <= year)
+                .filter(inv -> inv.getOut() == null || YearMonth.of(inv.getOut().getDate()).year() > year)
+                .collect(
+                        Collectors.groupingBy(
+                                inv -> inv.getCurrency(), 
+                                Collectors.mapping(
+                                        inv -> inv.getInvestment().getAmount(), 
+                                        Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))))
+                .entrySet()
+                .stream()
+                .map(e -> MessageFormat.format("{0} {1}", e.getKey(), format.number(e.getValue())))
+                .sorted()
+                .forEach(console::appendLine);
+    }
+    
 
     private String assetRow(Investment inv) {
 
