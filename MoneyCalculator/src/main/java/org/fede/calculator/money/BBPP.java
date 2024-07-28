@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -46,6 +47,7 @@ import static org.fede.calculator.money.series.InvestmentType.BONO;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 
 /**
@@ -129,6 +131,15 @@ public class BBPP {
 
     }
 
+    private BBPPItem toArs(BBPPItem i, Map<String, Function<MoneyAmount, BigDecimal>> arsFunction) {
+        if (arsFunction.containsKey(i.currency())) {
+            return new BBPPItem(i.name(),
+                    arsFunction.get(i.currency()).apply(new MoneyAmount(i.value(), i.currency())),
+                    i.holding(), i.domestic(), i.exempt(), "ARS");
+        }
+        return i;
+    }
+
     private BBPPYear bbpp(List<BBPPYear> bbppYears, int year, boolean ibkr) {
 
         final var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -169,6 +180,7 @@ public class BBPP {
 
         final var etfs = this.series.getInvestments()
                 .stream()
+                .filter(i -> year < 2023)
                 .filter(i -> ibkr || i.getComment() == null)
                 .filter(i -> i.isCurrent(date))
                 .filter(Investment::isETF)
@@ -180,17 +192,22 @@ public class BBPP {
         final var ons = this.series.getInvestments()
                 .stream()
                 .filter(i -> i.isCurrent(date))
-                .filter(i -> BONO.equals(i.getType()))
+                .filter(i -> BONO == i.getType())
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getMoneyAmount)
                 .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        final var etfsItem = new BBPPItem("ETFs", etfs, ONE, false, false, "ARS");
-        final var onsItem = new BBPPItem("ONs", ons, ONE, true, false, "ARS");
-        bbpp.items().add(etfsItem);
-        bbpp.items().add(onsItem);
-        return bbpp;
+        if (etfs.signum() > 0) {
+            bbpp.items().add(new BBPPItem("ETFs", etfs, ONE, false, false, "ARS"));
+        }
+        bbpp.items().add(new BBPPItem("ONs", ons, ONE, true, false, "ARS"));
+
+        return new BBPPYear(bbpp.year(), bbpp.brakets(), bbpp.minimum(), bbpp.usd(), bbpp.eur(),
+                bbpp.items()
+                        .stream()
+                        .map(i -> this.toArs(i, arsFunction))
+                        .toList());
     }
 
     private BBPPResult bbppResult(List<BBPPYear> bbppYears, final int year, final boolean ibkr) {
@@ -246,17 +263,16 @@ public class BBPP {
 
         var tax = BigDecimal.ZERO;
         var remaining = result.taxedTotal;
-        for(var i=1;i < bbpp.brakets().size();i++) {
-            
-            if(remaining.signum() == 0){
+        for (var i = 1; i < bbpp.brakets().size(); i++) {
+
+            if (remaining.signum() == 0) {
                 break;
             }
             var currentBraketAmount = bbpp.brakets().get(i).from().min(remaining);
-            remaining= remaining.subtract(currentBraketAmount, C).max(ZERO);
-            tax = tax.add(currentBraketAmount.multiply(bbpp.brakets().get(i-1).tax(), C),C);
+            remaining = remaining.subtract(currentBraketAmount, C).max(ZERO);
+            tax = tax.add(currentBraketAmount.multiply(bbpp.brakets().get(i - 1).tax(), C), C);
         }
-        
-        
+
         result.taxAmount = tax; //result.taxedTotal.multiply(result.taxRate, C);
 
         final var usdFxYearMonth = Inflation.USD_INFLATION.getTo().min(YearMonth.of(ym.getYear() + 1, 6));
