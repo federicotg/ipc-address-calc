@@ -412,44 +412,22 @@ public class BBPP {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         this.console.appendLine(MessageFormat.format(
-                "Total de bienes en el país sujeto a impuesto {0}",
-                this.format.currency(domestic)));
+                "Total de bienes sujeto a impuesto {0}",
+                this.format.currency(domestic.add(foreign, C))));
+
+//        this.console.appendLine(MessageFormat.format(
+//                "Total de bienes en el exterior sujeto a impuesto {0}",
+//                this.format.currency(foreign)));
+        this.console.appendLine(MessageFormat.format(
+                "Mínimo no imponible {0}",
+                this.format.currency(bbpp.minimum().min(domestic.add(foreign, C)))));
+
+        var base = ZERO.max(domestic.add(foreign, C).subtract(bbpp.minimum(), C));
 
         this.console.appendLine(MessageFormat.format(
-                "Total de bienes en el exterior sujeto a impuesto {0}",
-                this.format.currency(foreign)));
-
-        this.console.appendLine(MessageFormat.format(
-                "Mínimo no imponible en el país {0}",
-                this.format.currency(bbpp.minimum().min(domestic))));
-
-        this.console.appendLine(MessageFormat.format(
-                "Base imponible en el país {0}",
-                this.format.currency(ZERO.max(domestic.subtract(bbpp.minimum(), C)))));
-
-        final var mni = bbpp.minimum().subtract(domestic, C).min(foreign);
-
-        this.console.appendLine(MessageFormat.format(
-                "Mínimo no imponible en el exterior {0}",
-                this.format.currency(mni)));
-
-        final var base = foreign.subtract(mni, C);
-
-        this.console.appendLine(MessageFormat.format(
-                "Base imponible en el exterior {0}",
+                "Base imponible {0}",
                 this.format.currency(base)));
 
-        final var taxRate = bbpp.brakets()
-                .stream()
-                .sorted(comparing(BBPPTaxBraket::from))
-                .filter(b -> b.from().compareTo(domestic.add(foreign, C)) <= 0)
-                .reduce((left, right) -> right)
-                .get()
-                .tax();
-
-        this.console.appendLine(MessageFormat.format(
-                "Impuesto determinado {0}",
-                this.format.currency(base.multiply(taxRate, C))));
 
     }
 
