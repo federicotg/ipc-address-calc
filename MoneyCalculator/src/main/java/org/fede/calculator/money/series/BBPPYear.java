@@ -29,6 +29,7 @@ public record BBPPYear(
         BigDecimal minimum,
         BigDecimal usd,
         BigDecimal eur,
+        BigDecimal tax,
         List<BBPPItem> items) {
 
 }

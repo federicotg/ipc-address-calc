@@ -63,7 +63,7 @@ public class BBPP {
         private BigDecimal taxedDomesticAmount;
         private BigDecimal taxedForeignAmount;
         private BigDecimal taxedTotal;
-        private BigDecimal taxRate;
+        //private BigDecimal taxRate;
         private BigDecimal taxAmount;
         private MoneyAmount usdTaxAmount;
         private MoneyAmount allInvested;
@@ -100,7 +100,6 @@ public class BBPP {
                 this.format.text("     Paid", 14),
                 this.format.text("    Minimum", 17),
                 this.format.text("  Taxed Fiscal", 17),
-                this.format.text(" Tax rate", 9),
                 this.format.text(" Ef. rate", 9),
                 this.format.text("  Inv. %", 9),
                 this.format.text(" Income %", 9));
@@ -116,7 +115,7 @@ public class BBPP {
 
     private void bbppEvoReport(BBPPResult bbpp) {
 
-        this.console.appendLine(format("{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}{10}",
+        this.console.appendLine(format("{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}",
                 this.format.text(String.valueOf(bbpp.year), 5),
                 this.format.currency(bbpp.taxAmount, 14),
                 this.format.currency(bbpp.usdTaxAmount, 16),
@@ -124,7 +123,7 @@ public class BBPP {
                 this.format.currency(bbpp.usdPaidAmount, 14),
                 this.format.currency(bbpp.minimum, 17),
                 this.format.currency(bbpp.taxedTotalUSD, 17),
-                this.format.percent(bbpp.taxRate, 9),
+                //this.format.percent(bbpp.taxRate, 9),
                 this.format.percent(bbpp.taxAmount.divide(bbpp.totalAmount, C), 9),
                 this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.allInvested.getAmount(), C), 9),
                 this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.yearRealIncome, C), 9)));
@@ -203,7 +202,7 @@ public class BBPP {
         }
         bbpp.items().add(new BBPPItem("ONs", ons, ONE, true, false, "ARS"));
 
-        return new BBPPYear(bbpp.year(), bbpp.brakets(), bbpp.minimum(), bbpp.usd(), bbpp.eur(),
+        return new BBPPYear(bbpp.year(), bbpp.brakets(), bbpp.minimum(), bbpp.usd(), bbpp.eur(), bbpp.tax(),
                 bbpp.items()
                         .stream()
                         .map(i -> this.toArs(i, arsFunction))
@@ -253,27 +252,8 @@ public class BBPP {
                 .add(result.taxedForeignAmount, C)
                 .max(ZERO);
 
-        result.taxRate = bbpp.brakets()
-                .stream()
-                .sorted(comparing(BBPPTaxBraket::from))
-                .filter(b -> b.from().compareTo(result.totalAmount) <= 0)
-                .reduce((left, right) -> right)
-                .get()
-                .tax();
-
-        var tax = BigDecimal.ZERO;
-        var remaining = result.taxedTotal;
-        for (var i = 1; i < bbpp.brakets().size(); i++) {
-
-            if (remaining.signum() == 0) {
-                break;
-            }
-            var currentBraketAmount = bbpp.brakets().get(i).from().min(remaining);
-            remaining = remaining.subtract(currentBraketAmount, C).max(ZERO);
-            tax = tax.add(currentBraketAmount.multiply(bbpp.brakets().get(i - 1).tax(), C), C);
-        }
-
-        result.taxAmount = tax; //result.taxedTotal.multiply(result.taxRate, C);
+        //result.taxRate = bbpp.tax().divide(result.taxedTotal, C);
+        result.taxAmount = bbpp.tax(); //result.taxedTotal.multiply(result.taxRate, C);
 
         final var usdFxYearMonth = Inflation.USD_INFLATION.getTo().min(YearMonth.of(ym.getYear() + 1, 6));
 
@@ -343,7 +323,7 @@ public class BBPP {
         this.console.appendLine(format("Taxed domestic amount {0} (+5%)", this.format.currency(bbpp.taxedDomesticAmount)));
         this.console.appendLine(format("Taxed foreign amount {0}", this.format.currency(bbpp.taxedForeignAmount)));
         this.console.appendLine(format("Taxed total {0}", this.format.currency(bbpp.taxedTotal)));
-        this.console.appendLine(format("Tax rate {0}", this.format.percent(bbpp.taxRate)));
+        //this.console.appendLine(format("Tax rate {0}", this.format.percent(bbpp.taxRate)));
 
         this.console.appendLine(format("Tax amount {0} / USD {1}. Advances {2}",
                 this.format.currency(bbpp.taxAmount),
@@ -428,7 +408,10 @@ public class BBPP {
                 "Base imponible {0}",
                 this.format.currency(base)));
 
-
+        if (bbpp.tax() != null) {
+            this.console.appendLine(MessageFormat.format(
+                    "Impuesto determinado {0}",
+                    this.format.currency(bbpp.tax())));
+        }
     }
-
 }
