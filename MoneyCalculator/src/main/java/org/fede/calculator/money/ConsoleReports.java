@@ -33,7 +33,6 @@ import java.util.Map;
 import static java.util.Map.entry;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
@@ -69,7 +68,7 @@ public class ConsoleReports {
     private static final String INFLATION = "2.38143";
     private static final String CASH = "0";
     private static final String EXPECTED_RETRUNS = "all";
-    private static final String BBPP = "0.75";
+    private static final String BBPP = "0.5";
     private static final String PENSION = "150";
     private static final String BAD_RETURN_YEARS = "3";
     private static final String BAD_YEAR_SPENDING = "0.85";
