@@ -26,12 +26,10 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
-import static java.util.Comparator.comparing;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -39,7 +37,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import org.fede.calculator.money.series.BBPPItem;
-import org.fede.calculator.money.series.BBPPTaxBraket;
 import org.fede.calculator.money.series.BBPPYear;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
@@ -47,7 +44,6 @@ import static org.fede.calculator.money.series.InvestmentType.BONO;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
-import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 
 /**
@@ -123,7 +119,6 @@ public class BBPP {
                 this.format.currency(bbpp.usdPaidAmount, 14),
                 this.format.currency(bbpp.minimum, 17),
                 this.format.currency(bbpp.taxedTotalUSD, 17),
-                //this.format.percent(bbpp.taxRate, 9),
                 this.format.percent(bbpp.taxAmount.divide(bbpp.totalAmount, C), 9),
                 this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.allInvested.getAmount(), C), 9),
                 this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.yearRealIncome, C), 9)));
@@ -252,8 +247,7 @@ public class BBPP {
                 .add(result.taxedForeignAmount, C)
                 .max(ZERO);
 
-        //result.taxRate = bbpp.tax().divide(result.taxedTotal, C);
-        result.taxAmount = bbpp.tax(); //result.taxedTotal.multiply(result.taxRate, C);
+        result.taxAmount = bbpp.tax();
 
         final var usdFxYearMonth = Inflation.USD_INFLATION.getTo().min(YearMonth.of(ym.getYear() + 1, 6));
 
@@ -323,8 +317,7 @@ public class BBPP {
         this.console.appendLine(format("Taxed domestic amount {0} (+5%)", this.format.currency(bbpp.taxedDomesticAmount)));
         this.console.appendLine(format("Taxed foreign amount {0}", this.format.currency(bbpp.taxedForeignAmount)));
         this.console.appendLine(format("Taxed total {0}", this.format.currency(bbpp.taxedTotal)));
-        //this.console.appendLine(format("Tax rate {0}", this.format.percent(bbpp.taxRate)));
-
+ 
         this.console.appendLine(format("Tax amount {0} / USD {1}. Advances {2}",
                 this.format.currency(bbpp.taxAmount),
                 this.format.currency(bbpp.usdTaxAmount.getAmount()),
@@ -395,9 +388,6 @@ public class BBPP {
                 "Total de bienes sujeto a impuesto {0}",
                 this.format.currency(domestic.add(foreign, C))));
 
-//        this.console.appendLine(MessageFormat.format(
-//                "Total de bienes en el exterior sujeto a impuesto {0}",
-//                this.format.currency(foreign)));
         this.console.appendLine(MessageFormat.format(
                 "Mínimo no imponible {0}",
                 this.format.currency(bbpp.minimum().min(domestic.add(foreign, C)))));
