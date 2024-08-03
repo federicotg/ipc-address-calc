@@ -84,7 +84,7 @@ public class BBPP {
         this.console = console;
     }
 
-    public void bbppEvolution(boolean ibkr) {
+    public void bbppEvolution() {
 
         this.console.appendLine(this.format.title("BB.PP. Evolution"));
 
@@ -104,7 +104,7 @@ public class BBPP {
 
         bbppYears.stream()
                 .map(BBPPYear::year)
-                .map(y -> this.bbppResult(bbppYears, y, ibkr))
+                .map(y -> this.bbppResult(bbppYears, y))
                 .sorted(Comparator.comparing(r -> r.year))
                 .forEach(this::bbppEvoReport);
     }
@@ -134,7 +134,7 @@ public class BBPP {
         return i;
     }
 
-    private BBPPYear bbpp(List<BBPPYear> bbppYears, int year, boolean ibkr) {
+    private BBPPYear bbpp(List<BBPPYear> bbppYears, int year) {
 
         final var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
@@ -204,19 +204,19 @@ public class BBPP {
                         .toList());
     }
 
-    private BBPPResult bbppResult(List<BBPPYear> bbppYears, final int year, final boolean ibkr) {
+    private BBPPResult bbppResult(List<BBPPYear> bbppYears, final int year) {
 
         final var ym = YearMonth.of(year, 12);
 
         final var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-        final var bbpp = this.bbpp(bbppYears, year, ibkr);
+        final var bbpp = this.bbpp(bbppYears, year);
 
         final var result = new BBPPResult();
 
         result.allArs = bbpp.items()
                 .stream()
-                .filter(i -> ibkr || !i.name().equals("IBKR USD"))
+                //.filter(i -> ibkr || !i.name().equals("IBKR USD"))
                 .map(i -> this.toARS(i, bbpp.usd(), bbpp.eur()))
                 .filter(bbppItem -> bbppItem.value().compareTo(ZERO) != 0)
                 .toList();
@@ -303,10 +303,10 @@ public class BBPP {
         return this.bbppExpenseSeries;
     }
 
-    public void bbpp(int year, boolean ibkr) {
-        this.bbppReport(this.bbppResult(this.series.bbppSeries(), year, ibkr));
+    public void bbpp(int year) {
+        this.bbppReport(this.bbppResult(this.series.bbppSeries(), year));
         this.console.appendLine(this.format.subtitle("Official"));
-        this.officialReport(year, ibkr);
+        this.officialReport(year);
     }
 
     private void bbppReport(BBPPResult bbpp) {
@@ -362,10 +362,10 @@ public class BBPP {
 
     }
 
-    private void officialReport(int year, boolean ibkr) {
+    private void officialReport(int year) {
 
         //final var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
-        final var bbpp = this.bbpp(this.series.bbppSeries(), year, ibkr);
+        final var bbpp = this.bbpp(this.series.bbppSeries(), year);
 
         final var domestic = bbpp.items()
                 .stream()
@@ -377,7 +377,7 @@ public class BBPP {
 
         final var foreign = bbpp.items()
                 .stream()
-                .filter(i -> ibkr || !i.name().equals("IBKR USD"))
+                //.filter(i -> ibkr || !i.name().equals("IBKR USD"))
                 .filter(Predicate.not(BBPPItem::domestic))
                 .filter(Predicate.not(BBPPItem::exempt))
                 .map(i -> this.toARS(i, bbpp.usd(), bbpp.eur()))

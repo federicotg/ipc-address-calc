@@ -254,7 +254,7 @@ public class ConsoleReports {
                 () -> me.bbpp(args, "bbpp");
 
             case "bbpp-evo" ->
-                () -> me.bbppEvo(args, "bbpp-evo");
+                new BBPP(format, series, console)::bbppEvolution;
 
             case "ibkr" ->
                 () -> me.ibkrCSV();
@@ -373,7 +373,7 @@ public class ConsoleReports {
                         entry("saved-salaries-evo", "months=12"),
                         entry("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
                         entry("income-evo", "months=12 ars=false"),
-                        entry("bbpp", "year=2021 ibkr=false"),
+                        entry("bbpp", "year=2021"),
                         entry("savings-net-change", "m=12"),
                         entry("savings-avg-pct", "m=12"),
                         entry("expenses", "by=(year|half|quarter) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
@@ -592,15 +592,9 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         new BBPP(format, series, console)
-                .bbpp(Integer.parseInt(params.getOrDefault("year", "2023")), Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
+                .bbpp(Integer.parseInt(params.getOrDefault("year", "2023")));
     }
 
-    private void bbppEvo(String[] args, String paramName) {
-        final var params = this.paramsValue(args, paramName);
-
-        new BBPP(format, series, console)
-                .bbppEvolution(Boolean.parseBoolean(params.getOrDefault("ibkr", "false")));
-    }
 
     private void averageSavedSalaries(String[] args, String name) {
         new Savings(format, series, bar, console).averageSavedSalaries(months(this.paramsValue(args, name)));
