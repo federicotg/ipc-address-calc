@@ -332,13 +332,13 @@ public class BBPP {
 
         this.console.appendLine(this.format.subtitle("Detail"));
 
-        this.console.appendLine(format("{0}{1}{2}{3}", this.format.text("", 16), this.format.text("      Value", 16), this.format.text("    %", 10), this.format.text("      Taxed", 16)));
+        this.console.appendLine(format("{0}{1}{2}{3}", this.format.text("", 16), this.format.text("       Value", 17), this.format.text("    %", 10), this.format.text("       Taxed", 17)));
         bbpp.allArs.stream()
                 .map(i -> format("{0}{1}{2}{3}",
                 this.format.text(i.name(), 16),
-                this.format.currency(i.value(), 16),
+                this.format.currency(i.value(), 17),
                 this.format.percent(i.holding(), 10),
-                this.format.currency(i.value().multiply(i.exempt() ? ZERO : i.holding(), C), 16)))
+                this.format.currency(i.value().multiply(i.exempt() ? ZERO : i.holding(), C), 17)))
                 .forEach(this.console::appendLine);
     }
 
