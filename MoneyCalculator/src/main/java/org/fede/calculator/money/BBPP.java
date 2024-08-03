@@ -172,16 +172,16 @@ public class BBPP {
                         .getAmount()
                         .multiply(bbpp.eur(), C));
 
-        final var etfs = this.series.getInvestments()
-                .stream()
-                .filter(i -> year < 2023)
-                .filter(i -> ibkr || i.getComment() == null)
-                .filter(i -> i.isCurrent(date))
-                .filter(Investment::isETF)
-                .map(Investment::getInvestment)
-                .map(InvestmentAsset::getMoneyAmount)
-                .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+//        final var etfs = this.series.getInvestments()
+//                .stream()
+//                .filter(i -> year < 2023)
+//                .filter(i -> ibkr || i.getComment() == null)
+//                .filter(i -> i.isCurrent(date))
+//                .filter(Investment::isETF)
+//                .map(Investment::getInvestment)
+//                .map(InvestmentAsset::getMoneyAmount)
+//                .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
+//                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         final var ons = this.series.getInvestments()
                 .stream()
@@ -192,9 +192,9 @@ public class BBPP {
                 .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        if (etfs.signum() > 0) {
-            bbpp.items().add(new BBPPItem("ETFs", etfs, ONE, false, false, "ARS"));
-        }
+//        if (etfs.signum() > 0) {
+//            bbpp.items().add(new BBPPItem("ETFs", etfs, ONE, false, false, "ARS"));
+//        }
         bbpp.items().add(new BBPPItem("ONs", ons, ONE, true, false, "ARS"));
 
         return new BBPPYear(bbpp.year(), bbpp.brakets(), bbpp.minimum(), bbpp.usd(), bbpp.eur(), bbpp.tax(),
