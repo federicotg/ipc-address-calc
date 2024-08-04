@@ -45,6 +45,7 @@ import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.service.ETF;
 
 /**
  *
@@ -302,7 +303,7 @@ public class BBPP {
         this.console.appendLine(format("Taxed domestic amount {0} (+5%)", this.format.currency(bbpp.taxedDomesticAmount)));
         this.console.appendLine(format("Taxed foreign amount {0}", this.format.currency(bbpp.taxedForeignAmount)));
         this.console.appendLine(format("Taxed total {0}", this.format.currency(bbpp.taxedTotal)));
- 
+
         this.console.appendLine(format("Tax amount {0} / USD {1}. Advances {2}",
                 this.format.currency(bbpp.taxAmount),
                 this.format.currency(bbpp.usdTaxAmount.getAmount()),
@@ -386,4 +387,67 @@ public class BBPP {
                     this.format.currency(bbpp.tax())));
         }
     }
+
+    private BBPPStatus status(YearCurrency yc) {
+
+        final var includedAmount = this.series.bbppSeries()
+                .stream()
+                .filter(bbpp -> bbpp.year() == yc.year)
+                .flatMap(bbpp -> bbpp.items().stream())
+                .filter(bbppItem -> bbppItem.currency().equals(yc.currecy))
+                .map(BBPPItem::value).findFirst()
+                .orElse(BigDecimal.ZERO);
+
+        final var totalAmount = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .filter(inv -> inv.isCurrent(YearMonth.of(yc.year, 12).asToDate()))
+                .filter(inv -> inv.getCurrency().equals(yc.currecy))
+                .map(Investment::getInvestment)
+                .map(InvestmentAsset::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new BBPPStatus(yc, includedAmount, totalAmount);
+    }
+
+    public void status() {
+
+        final var lastYear = YearMonth.of(LocalDate.now()).year();
+
+        Stream.of("CSPX", "EIMI", "XRSU", "MEUD", "RTWO")
+                .flatMap(currency -> IntStream.range(2019, lastYear).boxed().map(y -> new YearCurrency(y, currency)))
+                .map(this::status)
+                .sorted(Comparator.comparing(BBPPStatus::yearCurrency))
+                .map(BBPPStatus::toString)
+                .forEach(console::appendLine);
+        
+    }
+
+    public record YearCurrency(int year, String currecy) implements Comparable<YearCurrency> {
+
+        @Override
+        public int compareTo(YearCurrency o) {
+            return Comparator.comparingInt(YearCurrency::year)
+                    .thenComparing(Comparator.comparing(YearCurrency::currecy))
+                    .compare(this, o);
+        }
+
+    };
+    
+    public record BBPPStatus(YearCurrency yearCurrency, BigDecimal includedAmount, BigDecimal totalAmount) {
+        
+        
+        @Override
+        public String toString() {
+            return MessageFormat.format("{0} {1} {2} {3} {4}",
+                    String.valueOf(yearCurrency.year),
+                    yearCurrency.currecy,
+                    includedAmount.toString(),
+                    totalAmount.toString(),
+                    includedAmount.subtract(totalAmount).toString());
+        }
+
+    }
+;
+
 }

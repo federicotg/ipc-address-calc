@@ -253,6 +253,10 @@ public class ConsoleReports {
             case "bbpp" ->
                 () -> me.bbpp(args, "bbpp");
 
+            case "bbppstatus" ->
+                () -> new BBPP(format, series, console).status();
+    
+                
             case "bbpp-evo" ->
                 new BBPP(format, series, console)::bbppEvolution;
 
