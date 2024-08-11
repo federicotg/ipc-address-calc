@@ -109,16 +109,6 @@ public class ConsoleReports {
 
     }
 
-    private void cashInvReport(String[] args, String paramName) {
-
-        final var params = this.paramsValue(args, paramName);
-
-        //final var type = params.getOrDefault("type", "all");
-        new Investments(this.console, this.format, this.bar, this.series)
-                .cashInv(nominal(params));
-
-    }
-
     private boolean investmentFilter(Investment i, String type) {
         if ("all".equalsIgnoreCase(type)) {
             return true;
@@ -147,9 +137,6 @@ public class ConsoleReports {
 
             case "inv" ->
                 () -> me.invReport(args, "inv");
-
-            case "cash-inv" ->
-                () -> me.cashInvReport(args, "cash-inv");
 
             case "savings" ->
                 () -> me.savings(args, "savings");
@@ -256,7 +243,6 @@ public class ConsoleReports {
             case "bbppstatus" ->
                 () -> new BBPP(format, series, console).status();
     
-                
             case "bbpp-evo" ->
                 new BBPP(format, series, console)::bbppEvolution;
 
@@ -377,7 +363,8 @@ public class ConsoleReports {
                         entry("saved-salaries-evo", "months=12"),
                         entry("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
                         entry("income-evo", "months=12 ars=false"),
-                        entry("bbpp", "year=2021"),
+                        entry("bbpp", "year=2023"),
+                        entry("bbppstatus", ""),
                         entry("savings-net-change", "m=12"),
                         entry("savings-avg-pct", "m=12"),
                         entry("expenses", "by=(year|half|quarter) type=(taxes|insurance|phone|services|home|entertainment) m=12"),

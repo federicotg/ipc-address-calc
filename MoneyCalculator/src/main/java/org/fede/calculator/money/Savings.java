@@ -511,7 +511,7 @@ public class Savings {
             final var despegar = SeriesReader.readSeries("income/despegar.json");
 
             final var totalYears = Math.round((double) unlp.getFrom().next().monthsUntil(unlp.getTo()) / 12.0d);
-            final var simultaneousYears = Math.round((double) despegar.getFrom().monthsUntil(despegar.getTo()) / 12.0d);
+            final var simultaneousYears = Math.round((double) despegar.getFrom().monthsUntil(unlp.getTo()) / 12.0d);
 
             final var simultaneousPercent = new BigDecimal("0.82").divide(new BigDecimal("30"), MathConstants.C);
 
@@ -525,7 +525,7 @@ public class Savings {
             this.console.appendLine(format("Projected: {0} last 120 average salaries plus {1} best UNLP salary.",
                     this.format.percent(BigDecimal.valueOf(totalYears + yearsLeft).multiply(new BigDecimal("0.015"), MathConstants.C)),
                     this.format.percent(simultaneousPercent
-                            .multiply(BigDecimal.valueOf(simultaneousYears + yearsLeft), MathConstants.C))));
+                            .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
 
             final long daysWorked = Duration.between(LocalDateTime.of(2015, Month.DECEMBER, 22, 0, 0, 0), LocalDateTime.now()).toDays();
             final long yearsWorked = daysWorked / 365 + ((daysWorked % 365 > 180) ? 1 : 0);
