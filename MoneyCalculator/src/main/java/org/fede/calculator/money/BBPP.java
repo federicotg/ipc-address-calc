@@ -417,9 +417,9 @@ public class BBPP {
                 .flatMap(currency -> IntStream.range(2019, lastYear).boxed().map(y -> new YearCurrency(y, currency)))
                 .map(this::status)
                 .sorted(Comparator.comparing(BBPPStatus::yearCurrency))
-                .map(BBPPStatus::toString)
+                .map(status -> status.toString(this.format))
                 .forEach(console::appendLine);
-        
+
     }
 
     public record YearCurrency(int year, String currecy) implements Comparable<YearCurrency> {
@@ -431,19 +431,23 @@ public class BBPP {
                     .compare(this, o);
         }
 
-    };
-    
+    }
+
     public record BBPPStatus(YearCurrency yearCurrency, BigDecimal includedAmount, BigDecimal totalAmount) {
-        
-        @Override
-        public String toString() {
-            return MessageFormat.format("{0} {1} {2} {3} {4}",
+
+        public String toString(Format format) {
+
+            final var dif = includedAmount.subtract(totalAmount, C);
+            final var difAmount = ForeignExchanges.getForeignExchange(yearCurrency.currecy, "USD")
+                    .exchange(new MoneyAmount(dif, yearCurrency.currecy), "USD", YearMonth.of(LocalDate.now()));
+            return MessageFormat.format("{0} {1} {2} {3} {4} {5}",
                     String.valueOf(yearCurrency.year),
                     yearCurrency.currecy,
                     includedAmount.toString(),
                     totalAmount.toString(),
-                    includedAmount.subtract(totalAmount).toString());
+                    dif.toString(),
+                    format.currency(difAmount, 12));
         }
-    };
+    }
 
 }
