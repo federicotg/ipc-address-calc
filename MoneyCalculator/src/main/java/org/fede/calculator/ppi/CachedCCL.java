@@ -16,8 +16,6 @@
  */
 package org.fede.calculator.ppi;
 
-import org.fede.calculator.fmp.*;
-import org.fede.calculator.service.ETF;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -27,12 +25,16 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.Map;
 import org.fede.calculator.service.CCL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class CachedCCL implements CCL {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(CachedCCL.class);
 
     private final ObjectMapper om;
     private final CCL ccl;
@@ -59,8 +61,7 @@ public class CachedCCL implements CCL {
             return data;
 
         } catch (IOException ex) {
-            System.err.println(ex.getMessage());
-            ex.printStackTrace(System.err);
+            LOGGER.error("Unexpected error.", ex);
             return Map.of();
         }
 

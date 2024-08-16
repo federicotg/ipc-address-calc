@@ -42,12 +42,16 @@ import org.fede.calculator.fmp.ExchangeTradedFundData;
 import org.fede.calculator.fmp.ExchangeTradedFunds;
 import org.fede.calculator.ppi.CachedCCL;
 import org.fede.calculator.ppi.PPI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class SeriesReader {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(SeriesReader.class);
 
     private static final Map<String, String> CURRENCY_ETF = Map.of(
             "CSPX", ETF.CSPX,
@@ -117,8 +121,7 @@ public class SeriesReader {
                         .registerModule(new JavaTimeModule());
                 ETFS = new CachedETF(om, new ExchangeTradedFunds(om, new SingleHttpClientSupplier())).etfs();
             } catch (IOException ex) {
-                System.err.println(ex.getMessage());
-                ex.printStackTrace(System.err);
+                LOGGER.error("Unexpected error.", ex);
                 ETFS = Map.of();
             }
         }
@@ -139,6 +142,7 @@ public class SeriesReader {
         try (InputStream in = new BufferedInputStream(new FileInputStream(new File(System.getProperty("user.home") + "/Sync/app-resources/" + name)));) {
             return OM.readValue(in, typeReference);
         } catch (IOException ioEx) {
+            LOGGER.error("Unexpected error.", ioEx);
             throw new IllegalArgumentException("Could not read series from resource " + name, ioEx);
         }
     }
@@ -181,6 +185,7 @@ public class SeriesReader {
             return maSeries;
 
         } catch (IOException ioEx) {
+            LOGGER.error("Unexpected error.", ioEx);
             throw new IllegalArgumentException(MessageFormat.format("Could not read series named {0}", name), ioEx);
         }
 

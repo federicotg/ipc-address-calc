@@ -36,11 +36,14 @@ import org.fede.calculator.money.Console;
 import org.fede.calculator.money.Format;
 import static org.fede.calculator.money.InstrumentType.*;
 import org.fede.calculator.money.MoneyAmount;
+import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.ppi.SettlementType.*;
 import static org.fede.calculator.ppi.PPIRestAPI.PPIFXFee;
 import static org.fede.calculator.ppi.PPIRestAPI.PPIFXParams;
 import org.fede.calculator.service.CCL;
 import org.fede.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -48,6 +51,8 @@ import org.fede.util.Pair;
  */
 public class PPI implements CCL {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(PPI.class);
+    
     private static final int LABEL_WIDTH = 30;
 
     private static final PPIFXFee PPI_PROMO_FEE = new PPIFXFee(new BigDecimal("0.004"), new BigDecimal("0.004"));
@@ -125,8 +130,7 @@ public class PPI implements CCL {
                     .forEach(p -> this.console.appendLine(this.format.text(p.first(), LABEL_WIDTH), this.format.currency(p.second(), 10)));
 
         } catch (Exception ex) {
-            System.err.println("Exception " + ex.getClass().toString() + " " + ex.getMessage());
-            ex.printStackTrace(System.err);
+            LOGGER.error("Unexpected error.", ex);
         }
     }
 
@@ -138,8 +142,7 @@ public class PPI implements CCL {
                     .forEach(this::showBalance);
 
         } catch (Exception ex) {
-            System.err.println("Exception " + ex.getClass().toString() + " " + ex.getMessage());
-            ex.printStackTrace(System.err);
+            LOGGER.error("Unexpected error.", ex);
         }
 
     }
@@ -153,8 +156,7 @@ public class PPI implements CCL {
                     .forEach(this::showPosition);
 
         } catch (Exception ex) {
-            System.err.println("Exception " + ex.getClass().toString() + " " + ex.getMessage());
-            ex.printStackTrace(System.err);
+            LOGGER.error("Unexpected error.", ex);
         }
 
     }
@@ -182,8 +184,7 @@ public class PPI implements CCL {
             var fx = this.getApi().exchangeRate(new PPIFXParams("AL30C", "AL30", BONOS, INMEDIATA, PPI_PROMO_FEE));
             return Map.of(fx.currency(), fx.amount());
         } catch (Exception ex) {
-            System.err.println(ex.getMessage());
-            ex.printStackTrace(System.err);
+            LOGGER.error("Unexpected error.", ex);
             return Map.of();
         }
     }

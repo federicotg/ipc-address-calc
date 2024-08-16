@@ -49,12 +49,16 @@ import org.fede.calculator.fmp.CachedETF;
 import org.fede.calculator.service.ETF;
 import org.fede.calculator.fmp.ExchangeTradedFunds;
 import org.fede.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class ConsoleReports {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleReports.class);
 
     private static final String MONTHS_PARAM = "m";
 
@@ -65,7 +69,7 @@ public class ConsoleReports {
     private static final String AGE = "100";
 
     // https://fred.stlouisfed.org/series/EXPINF30YR
-    private static final String INFLATION = "2.38143";
+    private static final String INFLATION = "2.33724";
     private static final String CASH = "0";
     private static final String EXPECTED_RETRUNS = "all";
     private static final String BBPP = "0.5";
@@ -242,7 +246,7 @@ public class ConsoleReports {
 
             case "bbppstatus" ->
                 () -> new BBPP(format, series, console).status();
-    
+
             case "bbpp-evo" ->
                 new BBPP(format, series, console)::bbppEvolution;
 
@@ -250,7 +254,7 @@ public class ConsoleReports {
                 () -> me.ibkrCSV();
 
             case "ibkrpos" ->
-                () -> me.ibkrPositions(Integer.parseInt(me.paramsValue(args, "ibkrpos").get("year")));
+                () -> me.ibkrPositions(Integer.parseInt(me.paramsValue(args, "ibkrpos").getOrDefault("year", "2024")));
 
             case "mdr" ->
                 () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar));
@@ -386,8 +390,7 @@ public class ConsoleReports {
             }
             console.printReport();
         } catch (Exception ex) {
-            System.err.println(ex.getMessage());
-            ex.printStackTrace(System.err);
+            LOGGER.error("Unexpected error.", ex);
         }
     }
 
@@ -419,8 +422,7 @@ public class ConsoleReports {
             this.console.appendLine(MessageFormat.format("Considering blue fee of {0}", this.format.percent(feePct)));
 
         } catch (Exception ex) {
-            System.err.println(ex.getMessage());
-            ex.printStackTrace(System.err);
+            LOGGER.error("Unexpected error.", ex);
         }
     }
 
@@ -586,7 +588,6 @@ public class ConsoleReports {
                 .bbpp(Integer.parseInt(params.getOrDefault("year", "2023")));
     }
 
-
     private void averageSavedSalaries(String[] args, String name) {
         new Savings(format, series, bar, console).averageSavedSalaries(months(this.paramsValue(args, name)));
     }
@@ -660,8 +661,7 @@ public class ConsoleReports {
                 .map(this::assetRow)
                 .forEach(this::appendLine);
     }
-    
-    
+
     private void ibkrPositions(int year) {
 
         this.series.getInvestments()
@@ -672,9 +672,9 @@ public class ConsoleReports {
                 .filter(inv -> inv.getOut() == null || YearMonth.of(inv.getOut().getDate()).year() > year)
                 .collect(
                         Collectors.groupingBy(
-                                inv -> inv.getCurrency(), 
+                                inv -> inv.getCurrency(),
                                 Collectors.mapping(
-                                        inv -> inv.getInvestment().getAmount(), 
+                                        inv -> inv.getInvestment().getAmount(),
                                         Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))))
                 .entrySet()
                 .stream()
@@ -682,7 +682,6 @@ public class ConsoleReports {
                 .sorted()
                 .forEach(console::appendLine);
     }
-    
 
     private String assetRow(Investment inv) {
 
@@ -775,8 +774,7 @@ public class ConsoleReports {
                             format.text("USD/EUR", 8),
                             format.numberLong(etfs.get(ETF.MEUS).price().divide(etfs.get(ETF.MEUD).price(), MathConstants.C))));
         } catch (Exception ex) {
-            System.err.println("Error reading ETFs " + ex.getMessage());
-            ex.printStackTrace(System.err);
+            LOGGER.error("Error reading ETFs ", ex);
         }
     }
 

@@ -24,12 +24,16 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class CachedETF implements ETF {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(CachedETF.class);
 
     private final ObjectMapper om;
     private final ETF etf;
@@ -56,8 +60,7 @@ public class CachedETF implements ETF {
             return data;
 
         } catch (IOException ex) {
-            System.err.println(ex.getMessage());
-            ex.printStackTrace(System.err);
+            LOGGER.error("Unexpected error.", ex);
             return Map.of();
         }
 

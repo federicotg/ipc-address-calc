@@ -45,7 +45,6 @@ import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.service.ETF;
 
 /**
  *
@@ -436,7 +435,6 @@ public class BBPP {
     
     public record BBPPStatus(YearCurrency yearCurrency, BigDecimal includedAmount, BigDecimal totalAmount) {
         
-        
         @Override
         public String toString() {
             return MessageFormat.format("{0} {1} {2} {3} {4}",
@@ -446,8 +444,6 @@ public class BBPP {
                     totalAmount.toString(),
                     includedAmount.subtract(totalAmount).toString());
         }
-
-    }
-;
+    };
 
 }

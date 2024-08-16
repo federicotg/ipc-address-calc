@@ -36,12 +36,16 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class ExchangeTradedFunds implements ETF {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeTradedFunds.class);
 
     private static final String LIST_URI = "https://financialmodelingprep.com/api/v3/etf/list?apikey={0}";
     //private static final String USDEUR = "https://financialmodelingprep.com/api/v3/fx/EURUSD?apikey={0}";
@@ -128,8 +132,7 @@ public class ExchangeTradedFunds implements ETF {
                 throw new IOException(MessageFormat.format("Could not read ETF data: {0} {1}", response.statusCode(), response.body()));
             }
         } catch (IOException | InterruptedException | URISyntaxException ex) {
-            System.err.println(ex.getMessage());
-            ex.printStackTrace(System.err);
+            LOGGER.error("Unexpected error.", ex);
             return Map.of();
         }
     }
