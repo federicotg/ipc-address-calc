@@ -441,12 +441,12 @@ public class BBPP {
             final var difAmount = ForeignExchanges.getForeignExchange(yearCurrency.currecy, "USD")
                     .exchange(new MoneyAmount(dif, yearCurrency.currecy), "USD", YearMonth.of(LocalDate.now()));
             return MessageFormat.format("{0} {1} {2} {3} {4} {5}",
-                    String.valueOf(yearCurrency.year),
-                    yearCurrency.currecy,
-                    includedAmount.toString(),
-                    totalAmount.toString(),
-                    dif.toString(),
-                    format.currency(difAmount, 12));
+                    format.text(String.valueOf(yearCurrency.year), 5),
+                    format.text(yearCurrency.currecy, 5),
+                    format.number(includedAmount, 8),
+                    format.number(totalAmount, 8),
+                    format.number(dif, 8),
+                    format.currency(difAmount, 16));
         }
     }
 
