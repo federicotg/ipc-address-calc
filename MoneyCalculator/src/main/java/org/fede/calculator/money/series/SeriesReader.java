@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,8 @@ public class SeriesReader {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(SeriesReader.class);
 
+    private static final Map<String, String> CURRENCY_CACHE = HashMap.newHashMap(32);
+    
     private static final Map<String, String> CURRENCY_ETF = Map.of(
             "CSPX", ETF.CSPX,
             "RTWO", ETF.RTWO,
@@ -152,9 +155,12 @@ public class SeriesReader {
     }
 
     private static MoneyAmount moneyAmount(BigDecimal value, String currency) {
+        
+        final var curr = CURRENCY_CACHE.computeIfAbsent(currency, k -> currency);
+        
         return value.signum() == 0
-                ? MoneyAmount.zero(currency)
-                : new MoneyAmount(value, currency);
+                ? MoneyAmount.zero(curr)
+                : new MoneyAmount(value, curr);
     }
 
     private static MoneyAmountSeries read(String name) {
