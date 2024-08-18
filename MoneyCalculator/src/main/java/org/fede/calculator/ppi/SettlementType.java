@@ -23,8 +23,9 @@ package org.fede.calculator.ppi;
 public enum SettlementType {
     INMEDIATA("INMEDIATA"),
     A24("A-24HS"),
-    A48("A-48HS"),
-    A72("A-72HS");
+  //  A48("A-48HS"),
+  //  A72("A-72HS")
+    ;
 
     private final String value;
 
