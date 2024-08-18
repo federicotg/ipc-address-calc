@@ -36,7 +36,6 @@ import org.fede.calculator.money.Console;
 import org.fede.calculator.money.Format;
 import static org.fede.calculator.money.InstrumentType.*;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.ppi.SettlementType.*;
 import static org.fede.calculator.ppi.PPIRestAPI.PPIFXFee;
 import static org.fede.calculator.ppi.PPIRestAPI.PPIFXParams;
