@@ -482,7 +482,7 @@ public class ConsoleReports {
 
     private void savingEvolution(String[] args, String paramName) {
         this.appendLine(this.format.title("Savings Evolution"));
-        this.bar.evolution("Savings", this.series.realSavings(this.paramsValue(args, paramName).get("type")), 2200);
+        this.bar.evolution("Savings", this.series.realSavings(this.paramsValue(args, paramName).get("type")), 2400);
     }
 
     private void expenseEvolution(String[] args, String paramName) {
