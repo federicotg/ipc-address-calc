@@ -33,6 +33,7 @@ import java.util.concurrent.Future;
 import java.util.function.Supplier;
 import org.fede.calculator.criptoya.CriptoYaAPI;
 import org.fede.calculator.money.Console;
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.Format;
 import static org.fede.calculator.money.InstrumentType.*;
 import org.fede.calculator.money.MoneyAmount;
@@ -116,7 +117,7 @@ public class PPI implements CCL {
                 //futures.add(this.criptoYaItem("BuenBit DAI (Venta)", new CriptoYaFXParams("Buenbit", "DAI", "USD", "ARS", "ARS"), executor));
                 //futures.add(this.criptoYaItem("Letsbit USDT (Venta)", new CriptoYaFXParams("Letsbit", "USDT", "USD", "ARS", "ARS"), executor));
                 //futures.add(this.criptoYaItem("Letsbit DAI (Venta)", new CriptoYaFXParams("Letsbit", "DAI", "USD", "ARS", "ARS"), executor));
-                futures.add(Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), executor.submit(() -> new MoneyAmount(this.getCriptoYaApi().blueSell(), "ARS"))));
+                futures.add(Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), executor.submit(() -> new MoneyAmount(this.getCriptoYaApi().blueSell(), Currency.ARS))));
             }
 
             var results = new ArrayList<Pair<String, MoneyAmount>>(futures.size());
@@ -181,7 +182,7 @@ public class PPI implements CCL {
     public Map<String, BigDecimal> ccl() {
         try {
             var fx = this.getApi().exchangeRate(new PPIFXParams("AL30C", "AL30", BONOS, INMEDIATA, PPI_PROMO_FEE));
-            return Map.of(fx.currency(), fx.amount());
+            return Map.of(fx.currency().name(), fx.amount());
         } catch (Exception ex) {
             LOGGER.error("Unexpected error.", ex);
             return Map.of();

@@ -45,7 +45,7 @@ public class SimpleAggregation implements Aggregation {
         this.months = -1;
     }
 
-    private void checkCurrency(String expectedCurrency, MoneyAmount lastValue) {
+    private void checkCurrency(Currency expectedCurrency, MoneyAmount lastValue) {
         if (!expectedCurrency.equals(lastValue.getCurrency())) {
             throw new IllegalArgumentException("All money amounts must be in the same currency before aggregating them.");
         }
@@ -83,7 +83,7 @@ public class SimpleAggregation implements Aggregation {
     private MoneyAmountSeries aggregate(MoneyAmountSeries series, final Function<SequencedCollection<MoneyAmount>, MoneyAmount> aggregationFunction) {
         final SequencedCollection<MoneyAmount> lastValues = new ArrayList<>();
 
-        final String seriesCurrency = series.getCurrency();
+        final Currency seriesCurrency = series.getCurrency();
 
         MoneyAmountSeries result = new SortedMapMoneyAmountSeries(seriesCurrency);
         for (var ym = series.getFrom(); ym.compareTo(Inflation.USD_INFLATION.getTo()) <= 0; ym = ym.next()) {

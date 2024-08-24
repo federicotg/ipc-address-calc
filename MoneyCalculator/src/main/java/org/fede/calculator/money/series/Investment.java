@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.MathConstants.C;
 
@@ -177,7 +178,7 @@ public class Investment {
         return new MoneyAmount(
                 Optional.ofNullable(this.getComment())
                         .map(c -> this.ibkrCost())
-                        .orElseGet(this::ppiCost), this.getIn().getCurrency());
+                        .orElseGet(this::ppiCost), Currency.valueOf(this.getIn().getCurrency()));
     }
 
     private BigDecimal ccl() {

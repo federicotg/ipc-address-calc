@@ -31,7 +31,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public interface Inflation extends Series {
 
-    public static final Inflation USD_INFLATION = new CPIInflation(SeriesReader.readIndexSeries("index/bls.json"), "USD");
+    public static final Inflation USD_INFLATION = new CPIInflation(SeriesReader.readIndexSeries("index/bls.json"), Currency.USD);
 
     /**
      * Ajusta por inflación un monto.
@@ -85,7 +85,7 @@ public interface Inflation extends Series {
      */
     MoneyAmountSeries adjust(MoneyAmount amount, int referenceYear, int referenceMonth);
 
-    String getCurrency();
+    Currency getCurrency();
 
     default Investment real(Investment investment) {
         return this.real(investment, this.getTo());
@@ -111,17 +111,17 @@ public interface Inflation extends Series {
         InvestmentEvent answer = new InvestmentEvent();
         YearMonth start = YearMonth.of(in.getDate());
         MoneyAmount adjusted = this.adjust(in.getMoneyAmount(), start, moment);
-        answer.setCurrency(adjusted.getCurrency());
+        answer.setCurrency(adjusted.getCurrency().name());
         answer.setAmount(adjusted.getAmount());
         answer.setDate(in.getDate());
         Optional.ofNullable(in.getTransferFee())
-                .map(f -> new MoneyAmount(f, in.getCurrency()))
+                .map(f -> new MoneyAmount(f, Currency.valueOf(in.getCurrency())))
                 .map(ma -> this.adjust(ma, start, moment))
                 .map(MoneyAmount::getAmount)
                 .ifPresent(answer::setTransferFee);
         answer.setFee(
                 this.adjust(
-                        new MoneyAmount(in.getFee(), in.getCurrency()),
+                        new MoneyAmount(in.getFee(), Currency.valueOf(in.getCurrency())),
                         start,
                         moment).getAmount());
         answer.setFx(in.getFx());

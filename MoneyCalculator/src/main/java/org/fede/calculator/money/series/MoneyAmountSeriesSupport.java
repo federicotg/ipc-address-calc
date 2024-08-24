@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -31,9 +32,9 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
  */
 public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements MoneyAmountSeries {
 
-    private final String currency;
+    private final Currency currency;
 
-    protected MoneyAmountSeriesSupport(String currency) {
+    protected MoneyAmountSeriesSupport(Currency currency) {
         this.currency = currency;
     }
 
@@ -43,7 +44,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     }
 
     @Override
-    public final String getCurrency() {
+    public final Currency getCurrency() {
         return currency;
     }
 
@@ -57,7 +58,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     }
 
     @Override
-    public final MoneyAmountSeries exchangeInto(String currency) {
+    public final MoneyAmountSeries exchangeInto(Currency currency) {
         return ForeignExchanges.getForeignExchange(this.getCurrency(), currency).exchange(this, currency);
     }
 

@@ -30,7 +30,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class MonthlyInvestmentSavingsAdjuster {
 
-    private static final MoneyAmount ZERO = MoneyAmount.zero("USD");
+    private static final MoneyAmount ZERO = MoneyAmount.zero(Currency.USD);
 
     private final Map<YearMonth, MoneyAmount> differences;
 
@@ -59,18 +59,18 @@ public class MonthlyInvestmentSavingsAdjuster {
                 .stream()
                 .filter(i -> i.getOut() == null || YearMonth.of(i.getOut().getDate()).compareTo(ym) > 0)
                 .map(i -> this.eomPriceUSD(i, ym).subtract(this.buyPriceUSD(i, ym), MathConstants.C))
-                .reduce(BigDecimal.ZERO, BigDecimal::add), "USD");
+                .reduce(BigDecimal.ZERO, BigDecimal::add), Currency.USD);
     }
 
     private BigDecimal buyPriceUSD(Investment i, YearMonth ym) {
         return ForeignExchanges.getForeignExchange(i.getIn().getCurrency(), "USD")
-                .exchange(i.getInitialMoneyAmount(), "USD", ym)
+                .exchange(i.getInitialMoneyAmount(), Currency.USD, ym)
                 .getAmount();
     }
 
     private BigDecimal eomPriceUSD(Investment i, YearMonth ym) {
         return ForeignExchanges.getForeignExchange(i.getCurrency(), "USD")
-                .exchange(i.getInvestment().getMoneyAmount(), "USD", ym)
+                .exchange(i.getInvestment().getMoneyAmount(), Currency.USD, ym)
                 .getAmount();
     }
 }

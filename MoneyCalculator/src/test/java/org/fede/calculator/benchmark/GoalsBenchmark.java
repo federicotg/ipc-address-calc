@@ -18,6 +18,7 @@ package org.fede.calculator.benchmark;
 
 import java.math.BigDecimal;
 import org.fede.calculator.money.Bar;
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.Format;
 import org.fede.calculator.money.Goal;
 import org.fede.calculator.money.MoneyAmount;
@@ -45,7 +46,7 @@ public class GoalsBenchmark {
         var format = new Format();
         
         new Goal(console, format, new Series(), new Bar(console, format), 2.25d)
-                .goal(100000, 36, BigDecimal.TWO, 65, BigDecimal.ZERO, 45, 200, new MoneyAmount(new BigDecimal("0"),"USD"), new MoneyAmount(new BigDecimal("250000"), "USD"), "all", 3, 0.8d, 5);
+                .goal(100000, 36, BigDecimal.TWO, 65, BigDecimal.ZERO, 45, 200, new MoneyAmount(new BigDecimal("0"), Currency.USD), new MoneyAmount(new BigDecimal("250000"), Currency.USD), "all", 3, 0.8d, 5);
     }
 
    

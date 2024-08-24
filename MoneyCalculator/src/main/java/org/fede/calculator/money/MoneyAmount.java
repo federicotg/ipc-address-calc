@@ -26,11 +26,15 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author fede
  */
-public record MoneyAmount(BigDecimal amount, String currency) {
+public record MoneyAmount(BigDecimal amount, Currency currency) {
 
-    private static final Map<String, MoneyAmount> ZERO_AMOUNTS = new ConcurrentHashMap<>();
+    private static final Map<Currency, MoneyAmount> ZERO_AMOUNTS = new ConcurrentHashMap<>();
 
     public static MoneyAmount zero(String currency) {
+        return zero(Currency.valueOf(currency));
+    }
+    
+    public static MoneyAmount zero(Currency currency) {
         return ZERO_AMOUNTS.computeIfAbsent(currency, c -> new MoneyAmount(BigDecimal.ZERO, c));
     }
 
@@ -43,6 +47,10 @@ public record MoneyAmount(BigDecimal amount, String currency) {
     }
 
     public MoneyAmount exchange(String newCurrency, BigDecimal exchangeRate) {
+        return this.exchange(Currency.valueOf(newCurrency), exchangeRate);
+    }
+    
+    public MoneyAmount exchange(Currency newCurrency, BigDecimal exchangeRate) {
         if (this.isZero()) {
             return MoneyAmount.zero(newCurrency);
         }
@@ -57,13 +65,13 @@ public record MoneyAmount(BigDecimal amount, String currency) {
                         .compareTo(this.amount.setScale(5, HALF_UP)) == 0;
     }
 
-    public void assertCurrency(String currency) {
+    public void assertCurrency(Currency currency) {
         if (!this.currency.equals(currency)) {
             throw new IllegalArgumentException("Unexpected currency.  " + this.currency + " is not " + currency);
         }
     }
 
-    public String getCurrency() {
+    public Currency getCurrency() {
         return this.currency;
     }
 

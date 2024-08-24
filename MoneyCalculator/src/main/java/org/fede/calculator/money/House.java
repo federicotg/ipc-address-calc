@@ -43,7 +43,7 @@ public class House {
     private static final BigDecimal REALTOR_FEE = new BigDecimal("0.045");
     private static final BigDecimal STAMP_TAX = new BigDecimal("0.018");
     private static final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
 
     private final Console console;
     private final Format format;
@@ -67,11 +67,11 @@ public class House {
                 C);
 
         final var start = YearMonth.of(2010, 8);
-        final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalTransactionCost, "USD"),
+        final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalTransactionCost, Currency.USD),
                 start,
                 limit);
 
-        final var initialCostSeries = new SortedMapMoneyAmountSeries("USD");
+        final var initialCostSeries = new SortedMapMoneyAmountSeries(Currency.USD);
         initialCostSeries.putAmount(start, realInitialCost);
         initialCostSeries.putAmount(YearMonth.of(2010, 9), ZERO_USD);
         initialCostSeries.putAmount(YearMonth.of(2010, 10), ZERO_USD);
@@ -138,7 +138,7 @@ public class House {
                 C);
 
         final var start = YearMonth.of(2010, 8);
-        final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalInitialCost, "USD"),
+        final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalInitialCost, Currency.USD),
                 start,
                 limit);
 
@@ -150,7 +150,7 @@ public class House {
                 nominalInitialCost
                         .add(nominalTransactionCost, C)
                         .multiply(ONE.add(rate, C).pow(years.intValue(), C), C)
-                        .subtract(nominalInitialCost, C), "USD");
+                        .subtract(nominalInitialCost, C), Currency.USD);
 
         final var totalRealExpense = realExpensesInUSD.add(opportunityCost);
 
@@ -171,7 +171,7 @@ public class House {
                 this.format.currency(monthlyCost),
                 this.format.percent(monthlyCost.divide(realInitialCost.getAmount(), C)),
                 this.format.currency(getMoneyAmountForeignExchange("USD", "ARS")
-                        .apply(new MoneyAmount(monthlyCost, "USD"), limit)
+                        .apply(new MoneyAmount(monthlyCost, Currency.USD), limit)
                         .getAmount())));
 
         final var yearlyCost = totalRealExpense.getAmount().divide(years, C);

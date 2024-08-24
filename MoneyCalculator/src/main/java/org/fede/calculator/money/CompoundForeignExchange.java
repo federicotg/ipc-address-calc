@@ -53,29 +53,29 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, int referenceYear, int referenceMonth) {
+    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth) {
         return this.second.exchange(
                 this.first.exchange(amount, this.getFirstTargetCurrency(amount.getCurrency()), referenceYear, referenceMonth), targetCurrency, referenceYear, referenceMonth);
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, Date moment) {
+    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) {
         return this.second.exchange(this.first.exchange(amount, this.getFirstTargetCurrency(amount.getCurrency()), moment), targetCurrency, moment);
     }
 
-    private String getFirstTargetCurrency(String currency) {
-        return currency.equals(this.first.getTargetCurrency())
+    private Currency getFirstTargetCurrency(Currency currency) {
+        return currency ==this.first.getTargetCurrency()
                 ? this.first.getSourceCurrency()
                 : this.first.getTargetCurrency();
     }
 
     @Override
-    public MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency) {
+    public MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) {
         return this.second.exchange(this.first.exchange(series, this.getFirstTargetCurrency(series.getCurrency())), targetCurrency);
     }
 
     @Override
-    public MoneyAmountSeries exchange(MoneyAmount amount, String targetCurrency) {
+    public MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) {
         return this.second.exchange(this.first.exchange(amount, this.getFirstTargetCurrency(amount.getCurrency())), targetCurrency);
     }
 
@@ -92,12 +92,12 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
     }
 
     @Override
-    public String getTargetCurrency() {
+    public Currency getTargetCurrency() {
         return this.second.getTargetCurrency();
     }
 
     @Override
-    public String getSourceCurrency() {
+    public Currency getSourceCurrency() {
         return this.first.getSourceCurrency();
     }
 

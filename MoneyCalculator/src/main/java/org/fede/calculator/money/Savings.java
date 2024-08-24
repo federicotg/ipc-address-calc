@@ -20,7 +20,6 @@ import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.text.MessageFormat.format;
-import java.text.NumberFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -45,7 +44,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class Savings {
 
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
 
     private final Format format;
     private final Series series;
@@ -188,18 +187,18 @@ public class Savings {
                 String.valueOf(limit.getYear()))));
 
         this.console.appendLine("\tIncome: ",
-                averageRealUSDIncome.getCurrency(),
+                averageRealUSDIncome.getCurrency().name(),
                 " ",
                 this.format.currency(averageRealUSDIncome.getAmount()));
 
         final var savingPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.5"), C), averageRealUSDIncome.getCurrency());
 
         this.console.appendLine("50% saving: ",
-                averageRealUSDIncome.getCurrency(),
+                averageRealUSDIncome.getCurrency().name(),
                 " ",
                 this.format.currency(savingPct.getAmount()),
                 " / ",
-                this.format.currency(ForeignExchanges.getMoneyAmountForeignExchange(savingPct.getCurrency(), "ARS").apply(savingPct, limit).getAmount()));
+                this.format.currency(ForeignExchanges.getMoneyAmountForeignExchange(savingPct.getCurrency().name(), "ARS").apply(savingPct, limit).getAmount()));
 
         this.console.appendLine(format("Saved salaries {0}",
                 this.series.realSavings(null).getAmount(limit).getAmount()
@@ -651,7 +650,7 @@ public class Savings {
                 : this.series.realIncome();
 
         final var barSize = ars
-                ? Math.round((float) (baseBarSize - 10) / ForeignExchanges.USD_ARS.exchange(new MoneyAmount(ONE, "ARS"), "USD", Inflation.USD_INFLATION.getTo()).getAmount().floatValue())
+                ? Math.round((float) (baseBarSize - 10) / ForeignExchanges.USD_ARS.exchange(new MoneyAmount(ONE, Currency.ARS), Currency.USD, Inflation.USD_INFLATION.getTo()).getAmount().floatValue())
                 : baseBarSize;
 
         this.bar.evolution(format("Average {0}-month income {1}", months, ars ? "ARS" : "USD"),

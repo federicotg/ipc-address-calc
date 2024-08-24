@@ -28,9 +28,9 @@ public class InvestmentCostStrategy {
 
     private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
     
-    private final String currency;
+    private final Currency currency;
 
-    public InvestmentCostStrategy(String currency) {
+    public InvestmentCostStrategy(Currency currency) {
         this.currency = currency;
     }
 
@@ -41,7 +41,7 @@ public class InvestmentCostStrategy {
         final var investedAmount = inv.getInitialMoneyAmount().getAmount();
 
         //post sell fee
-        final var presentValue = ForeignExchanges.getMoneyAmountForeignExchange(inv.getMoneyAmount().getCurrency(), this.currency)
+        final var presentValue = ForeignExchanges.getMoneyAmountForeignExchange(inv.getMoneyAmount().getCurrency().name(), this.currency.name())
                 .apply(inv.getMoneyAmount(), Inflation.USD_INFLATION.getTo())
                 .getAmount();
 

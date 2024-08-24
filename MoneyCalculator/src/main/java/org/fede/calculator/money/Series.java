@@ -137,19 +137,19 @@ public class Series {
 
     private MoneyAmountSeries investingExpenses() {
 
-        final var zero = MoneyAmount.zero("USD");
+        final var zero = MoneyAmount.zero(Currency.USD);
         Map<YearMonth, MoneyAmount> buyFeesBymonth
                 = this.getInvestments()
                         .stream()
                         .filter(Investment::isETF)
-                        .map(inv -> ForeignExchanges.exchange(inv, "USD"))
+                        .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                         .map(inv -> Inflation.USD_INFLATION.real(inv))
                         .collect(
                                 Collectors.groupingBy(
                                         i -> YearMonth.of(i.getIn().getDate()),
                                         Collectors.reducing(zero, Investment::getCost, MoneyAmount::add)));
 
-        final var expenseSeries = new SortedMapMoneyAmountSeries("USD");
+        final var expenseSeries = new SortedMapMoneyAmountSeries(Currency.USD);
 
         for (YearMonth ym = YearMonth.of(2016, 1); ym.monthsUntil(Inflation.USD_INFLATION.getTo()) >= 0; ym = ym.next()) {
             expenseSeries.putAmount(ym, buyFeesBymonth.getOrDefault(ym, zero));
