@@ -166,7 +166,7 @@ public class SeriesReader {
 
             JSONSeries series = OM.readValue(is, JSONSeries.class);
 
-            final Currency currency = Currency.valueOf(series.currency());
+            final Currency currency = series.currency();
             final var maSeries = new SortedMapMoneyAmountSeries(currency);
 
             for (JSONDataPoint dp : series.data()) {

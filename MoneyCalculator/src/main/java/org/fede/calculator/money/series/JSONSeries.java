@@ -17,6 +17,7 @@
 package org.fede.calculator.money.series;
 
 import java.util.List;
+import org.fede.calculator.money.Currency;
 
 /**
  * Gold:
@@ -34,7 +35,7 @@ import java.util.List;
  * @author fede
  */
 public record JSONSeries(
-        String currency,
+        Currency currency,
         List<JSONDataPoint> data,
         String interpolation) {
 
