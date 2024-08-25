@@ -283,7 +283,7 @@ public class BBPP {
     private MoneyAmountSeries getBBPPExpenseSeries() {
         if (this.bbppExpenseSeries == null) {
             this.bbppExpenseSeries = SeriesReader.readSeries("expense/bbpp.json")
-                    .exchangeInto("USD");
+                    .exchangeInto(Currency.USD);
         }
         return this.bbppExpenseSeries;
     }

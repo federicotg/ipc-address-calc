@@ -646,7 +646,7 @@ public class Savings {
         }
 
         final var s = ars
-                ? this.series.realIncome().exchangeInto("ARS")
+                ? this.series.realIncome().exchangeInto(Currency.ARS)
                 : this.series.realIncome();
 
         final var barSize = ars

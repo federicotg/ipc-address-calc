@@ -64,7 +64,4 @@ public interface MoneyAmountSeries extends Series {
 
     MoneyAmountSeries exchangeInto(Currency currency);
     
-    default MoneyAmountSeries exchangeInto(String currency){
-        return this.exchangeInto(Currency.valueOf(currency));
-    }
 }

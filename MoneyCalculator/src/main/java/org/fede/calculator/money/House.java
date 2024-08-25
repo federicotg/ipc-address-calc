@@ -87,7 +87,7 @@ public class House {
                         .map(SeriesReader::readSeries),
                 Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
-                .map(expenses -> expenses.exchangeInto("USD"))
+                .map(expenses -> expenses.exchangeInto(Currency.USD))
                 .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit))
                 .get();
 
@@ -111,7 +111,7 @@ public class House {
                 Stream.of("expense/inmobiliario-43.json", "expense/seguro.json", "expense/reparaciones.json").map(SeriesReader::readSeries),
                 Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
-                .map(expenses -> expenses.exchangeInto("USD"))
+                .map(expenses -> expenses.exchangeInto(Currency.USD))
                 .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit))
                 .map(s -> s.map((ym, amount) -> this.limit(timeLimit, ym, amount)))
                 .map(MoneyAmountSeries::moneyAmountStream)
@@ -170,7 +170,7 @@ public class House {
         this.console.appendLine(format("\tMensual USD {0} {1} - ARS {2}",
                 this.format.currency(monthlyCost),
                 this.format.percent(monthlyCost.divide(realInitialCost.getAmount(), C)),
-                this.format.currency(getMoneyAmountForeignExchange("USD", "ARS")
+                this.format.currency(getMoneyAmountForeignExchange(Currency.USD, Currency.ARS)
                         .apply(new MoneyAmount(monthlyCost, Currency.USD), limit)
                         .getAmount())));
 

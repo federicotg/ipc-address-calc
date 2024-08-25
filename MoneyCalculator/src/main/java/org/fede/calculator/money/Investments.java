@@ -111,8 +111,8 @@ public class Investments {
         this.cashInvestments = new CashInvestmentBuilder(()
                 -> SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
                         .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
-                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
+                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto(Currency.USD))
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(Currency.USD)));
     }
 
     public void cashInv(boolean nominal) {
@@ -552,7 +552,7 @@ public class Investments {
     }
 
     private MoneyAmount asUSD(MoneyAmount ma, YearMonth ym) {
-        return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency().name(), "USD").apply(ma, ym);
+        return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), Currency.USD).apply(ma, ym);
     }
 
     private MoneyAmount accum(List<Investment> investments, YearMonth yearMonth, Function<Investment, MoneyAmount> extractor) {
