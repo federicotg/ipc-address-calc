@@ -3,6 +3,7 @@ package org.fede.calculator.money.series;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
 import java.util.StringJoiner;
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
 
 /*
@@ -48,7 +49,7 @@ public class InvestmentAsset {
 
     @JsonIgnore
     public MoneyAmount getMoneyAmount() {
-        return new MoneyAmount(this.getAmount(), this.getCurrency());
+        return new MoneyAmount(this.getAmount(), Currency.valueOf(this.getCurrency()));
     }
 
     @Override

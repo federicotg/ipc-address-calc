@@ -112,7 +112,7 @@ public class InvestmentDetails {
     }
 
     public InvestmentDetails asReal() {
-        if (!"USD".equals(this.getCurrentAmount().getCurrency())) {
+        if (Currency.USD != this.getCurrentAmount().getCurrency()) {
             throw new IllegalArgumentException("No way to turn into real " + this.getCurrentAmount().getCurrency() + ".");
         }
 

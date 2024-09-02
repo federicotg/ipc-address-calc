@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +40,7 @@ import org.fede.calculator.fmp.CachedETF;
 import org.fede.calculator.service.ETF;
 import org.fede.calculator.fmp.ExchangeTradedFundData;
 import org.fede.calculator.fmp.ExchangeTradedFunds;
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.ppi.CachedCCL;
 import org.fede.calculator.ppi.PPI;
 import org.slf4j.Logger;
@@ -54,8 +54,7 @@ public class SeriesReader {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(SeriesReader.class);
 
-    private static final Map<String, String> CURRENCY_CACHE = HashMap.newHashMap(32);
-    
+   
     private static final Map<String, String> CURRENCY_ETF = Map.of(
             "CSPX", ETF.CSPX,
             "RTWO", ETF.RTWO,
@@ -154,13 +153,11 @@ public class SeriesReader {
         return MACACHE.computeIfAbsent(name, (seriesName) -> read(seriesName));
     }
 
-    private static MoneyAmount moneyAmount(BigDecimal value, String currency) {
-        
-        final var curr = CURRENCY_CACHE.computeIfAbsent(currency, k -> currency);
+    private static MoneyAmount moneyAmount(BigDecimal value, Currency currency) {
         
         return value.signum() == 0
-                ? MoneyAmount.zero(curr)
-                : new MoneyAmount(value, curr);
+                ? MoneyAmount.zero(currency)
+                : new MoneyAmount(value, currency);
     }
 
     private static MoneyAmountSeries read(String name) {
@@ -169,7 +166,7 @@ public class SeriesReader {
 
             JSONSeries series = OM.readValue(is, JSONSeries.class);
 
-            final String currency = series.currency();
+            final Currency currency = series.currency();
             final var maSeries = new SortedMapMoneyAmountSeries(currency);
 
             for (JSONDataPoint dp : series.data()) {
@@ -184,7 +181,7 @@ public class SeriesReader {
             while (ym.monthsUntil(last) > 0) {
                 YearMonth next = ym.next();
                 if (!maSeries.hasValue(next)) {
-                    maSeries.putAmount(next, strategy.interpolate(maSeries.getAmount(ym), ym, currency));
+                    maSeries.putAmount(next, strategy.interpolate(maSeries.getAmount(ym), ym, currency.name()));
                 }
                 ym = ym.next();
             }

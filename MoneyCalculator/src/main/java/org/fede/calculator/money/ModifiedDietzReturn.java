@@ -190,7 +190,7 @@ public class ModifiedDietzReturn {
 
         final var ym = YearMonth.of(ie.getDate());
         final var fx = ie.getFx() != null
-                ? new MoneyAmount(ie.getAmount().multiply(ie.getFx(), C), "USD")
+                ? new MoneyAmount(ie.getAmount().multiply(ie.getFx(), C), Currency.USD)
                 : ForeignExchanges.getMoneyAmountForeignExchange(ie.getCurrency(), currency).apply(ie.getMoneyAmount(), ym);
 
         return nominal

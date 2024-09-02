@@ -36,7 +36,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class Expenses {
 
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
 
     private final Series series;
     private final Console console;

@@ -70,7 +70,7 @@ public class Investments {
 
     private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
 
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
 
     private static final Map<String, String> ETF_NAME = Map.of(
             "CSPX", "iShares Core S&P 500",
@@ -111,8 +111,8 @@ public class Investments {
         this.cashInvestments = new CashInvestmentBuilder(()
                 -> SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
                         .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
-                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
+                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto(Currency.USD))
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(Currency.USD)));
     }
 
     public void cashInv(boolean nominal) {
@@ -135,7 +135,7 @@ public class Investments {
             boolean nominal) {
         this.console.appendLine(this.format.title(format("{0} Investment Results", nominal ? "Nominal" : "Real")));
 
-        final var ics = new InvestmentCostStrategy("USD");
+        final var ics = new InvestmentCostStrategy(Currency.USD);
 
         final var mw = 13;
         final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, 10, 1, 24};
@@ -219,15 +219,15 @@ public class Investments {
             return BigDecimal.ZERO;
         }
 
-        final var amount = new MoneyAmount(ONE, symbol);
+        final var amount = new MoneyAmount(ONE, Currency.valueOf(symbol));
         final var startYm = YearMonth.of(Math.max(2019, year) - 1, 12).max(from);
         final var endYm = year == 0
                 ? to
                 : YearMonth.of(year, 12).min(to);
 
         final var fx = ForeignExchanges.getForeignExchange(symbol, "USD");
-        var startValue = fx.exchange(amount, "USD", startYm);
-        var endValue = fx.exchange(amount, "USD", endYm);
+        var startValue = fx.exchange(amount, Currency.USD, startYm);
+        var endValue = fx.exchange(amount, Currency.USD, endYm);
         if (!nominal) {
             startValue = Inflation.USD_INFLATION.adjust(startValue, startYm, Inflation.USD_INFLATION.getTo());
             endValue = Inflation.USD_INFLATION.adjust(endValue, endYm, Inflation.USD_INFLATION.getTo());
@@ -493,10 +493,10 @@ public class Investments {
                 .reduce((left, right) -> left.max(right))
                 .get();
 
-        final var investmentSeries = new SortedMapMoneyAmountSeries("USD");
-        final var costSeries = new SortedMapMoneyAmountSeries("USD");
-        final var totalValuesSeries = new SortedMapMoneyAmountSeries("USD");
-        final var taxesValuesSeries = new SortedMapMoneyAmountSeries("USD");
+        final var investmentSeries = new SortedMapMoneyAmountSeries(Currency.USD);
+        final var costSeries = new SortedMapMoneyAmountSeries(Currency.USD);
+        final var totalValuesSeries = new SortedMapMoneyAmountSeries(Currency.USD);
+        final var taxesValuesSeries = new SortedMapMoneyAmountSeries(Currency.USD);
 
         var ym = start;
         while (ym.compareTo(end) <= 0) {
@@ -552,7 +552,7 @@ public class Investments {
     }
 
     private MoneyAmount asUSD(MoneyAmount ma, YearMonth ym) {
-        return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, ym);
+        return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), Currency.USD).apply(ma, ym);
     }
 
     private MoneyAmount accum(List<Investment> investments, YearMonth yearMonth, Function<Investment, MoneyAmount> extractor) {

@@ -69,8 +69,8 @@ public class PortfolioReturns {
         this.cashInvestments = new CashInvestmentBuilder(()
                 -> SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
                         .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
-                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto("USD"))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto("USD")));
+                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto(Currency.USD))
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(Currency.USD)));
     }
 
     private static LocalDate min(LocalDate d1, LocalDate d2) {

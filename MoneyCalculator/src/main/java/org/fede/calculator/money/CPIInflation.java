@@ -27,9 +27,9 @@ import org.fede.calculator.money.series.YearMonth;
 public final class CPIInflation extends BaseInflation {
 
     private final IndexSeries series;
-    private final String currency;
+    private final Currency currency;
 
-    public CPIInflation(IndexSeries cpiSeries, String currency) {
+    public CPIInflation(IndexSeries cpiSeries, Currency currency) {
         this.series = cpiSeries;
         this.currency = currency;
     }
@@ -43,7 +43,7 @@ public final class CPIInflation extends BaseInflation {
     }
 
     @Override
-    public String getCurrency() {
+    public Currency getCurrency() {
         return this.currency;
     }
 

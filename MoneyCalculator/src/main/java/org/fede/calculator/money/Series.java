@@ -137,19 +137,19 @@ public class Series {
 
     private MoneyAmountSeries investingExpenses() {
 
-        final var zero = MoneyAmount.zero("USD");
+        final var zero = MoneyAmount.zero(Currency.USD);
         Map<YearMonth, MoneyAmount> buyFeesBymonth
                 = this.getInvestments()
                         .stream()
                         .filter(Investment::isETF)
-                        .map(inv -> ForeignExchanges.exchange(inv, "USD"))
+                        .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                         .map(inv -> Inflation.USD_INFLATION.real(inv))
                         .collect(
                                 Collectors.groupingBy(
                                         i -> YearMonth.of(i.getIn().getDate()),
                                         Collectors.reducing(zero, Investment::getCost, MoneyAmount::add)));
 
-        final var expenseSeries = new SortedMapMoneyAmountSeries("USD");
+        final var expenseSeries = new SortedMapMoneyAmountSeries(Currency.USD);
 
         for (YearMonth ym = YearMonth.of(2016, 1); ym.monthsUntil(Inflation.USD_INFLATION.getTo()) >= 0; ym = ym.next()) {
             expenseSeries.putAmount(ym, buyFeesBymonth.getOrDefault(ym, zero));
@@ -219,7 +219,7 @@ public class Series {
 
             this.realNetSavings = this.savingsSeries()
                     .map(new SimpleAggregation(2)::change)
-                    .map(series -> series.exchangeInto("USD"))
+                    .map(series -> series.exchangeInto(Currency.USD))
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
                     .reduce(MoneyAmountSeries::add)
                     .get()
@@ -231,7 +231,7 @@ public class Series {
     public MoneyAmountSeries incomeSource(String name) {
         return USD_INFLATION.adjust(
                 readSeries("income/" + name + ".json")
-                        .exchangeInto("USD"),
+                        .exchangeInto(Currency.USD),
                 Inflation.USD_INFLATION.getTo());
     }
 
@@ -246,7 +246,7 @@ public class Series {
                     readSeries("income/other.json"),
                     readSeries("income/despegar.json"),
                     readSeries("income/despegar-split.json"))
-                    .map(is -> is.exchangeInto("USD"))
+                    .map(is -> is.exchangeInto(Currency.USD))
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
                     .toList();
         }
@@ -312,7 +312,7 @@ public class Series {
     }
 
     private MoneyAmountSeries readSeriesInUSD(String prefix, String fileName) {
-        return SeriesReader.readSeries(prefix.concat(fileName).concat(".json")).exchangeInto("USD");
+        return SeriesReader.readSeries(prefix.concat(fileName).concat(".json")).exchangeInto(Currency.USD);
     }
 
     public List<BBPPYear> bbppSeries() {

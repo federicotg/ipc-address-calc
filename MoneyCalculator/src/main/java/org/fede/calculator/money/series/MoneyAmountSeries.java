@@ -21,6 +21,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;  
 import java.util.stream.Stream;
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
 
 /**
@@ -45,7 +46,7 @@ public interface MoneyAmountSeries extends Series {
     
     void putAmount(YearMonth ym, MoneyAmount amount);
 
-    String getCurrency();
+    Currency getCurrency();
 
     void forEach(BiConsumer<YearMonth, MoneyAmount> consumer);
     
@@ -61,5 +62,6 @@ public interface MoneyAmountSeries extends Series {
     
     MoneyAmountSeries add(MoneyAmountSeries other);
 
-    MoneyAmountSeries exchangeInto(String currency);
+    MoneyAmountSeries exchangeInto(Currency currency);
+    
 }

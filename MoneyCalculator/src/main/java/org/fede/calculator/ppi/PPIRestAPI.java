@@ -35,6 +35,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Properties;
 import java.util.function.Supplier;
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.InstrumentType;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
@@ -264,7 +265,7 @@ public class PPIRestAPI {
                 .multiply(netUSD, MathConstants.C);
         final var arsPrice = this.marketData(params.tickerARS(), params.type(), params.settlement()).price()
                 .multiply(netSecond, MathConstants.C);
-        return new MoneyAmount(arsPrice.divide(usdPrice, MathConstants.C), params.currency());
+        return new MoneyAmount(arsPrice.divide(usdPrice, MathConstants.C), Currency.valueOf(params.currency()));
     }
 
     private BigDecimal secondFee(PPIFXFee fees, String currency) {

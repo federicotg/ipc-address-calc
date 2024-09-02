@@ -64,7 +64,7 @@ public class Positions {
 
     private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
 
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero("USD");
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
 
     private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
 
@@ -143,7 +143,7 @@ public class Positions {
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, "USD"))
+                .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
                 .collect(groupingBy(Investment::getCurrency))
                 .values()
@@ -237,7 +237,7 @@ public class Positions {
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, "USD"))
+                .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(Inflation.USD_INFLATION::real)
                 .map(Investment::getInitialMoneyAmount)
                 .reduce(ZERO_USD, MoneyAmount::add);
@@ -246,7 +246,7 @@ public class Positions {
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, "USD"))
+                .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(Investment::getInitialMoneyAmount)
                 .reduce(ZERO_USD, MoneyAmount::add);
 
@@ -258,13 +258,13 @@ public class Positions {
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
-                .map(i -> ForeignExchanges.exchange(i, "USD"))
+                .map(i -> ForeignExchanges.exchange(i, Currency.USD))
                 .map(this::sellFee)
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
 
     private MoneyAmount sellFee(Investment i) {
-        return new MoneyAmount(FEE_STRATEGIES.get(this.feeStrategyKey(i)).apply(this.currentValueUSD(i).getAmount()), "USD");
+        return new MoneyAmount(FEE_STRATEGIES.get(this.feeStrategyKey(i)).apply(this.currentValueUSD(i).getAmount()), Currency.USD);
     }
 
     private MoneyAmount capitalGainsTaxAmount() {
@@ -301,7 +301,7 @@ public class Positions {
 
         final var initialUSDAmount = Optional.ofNullable(i.getIn().getFx())
                 .map(fx -> i.getInitialMoneyAmount().getAmount().multiply(fx, C))
-                .map(usd -> new MoneyAmount(usd, "USD"))
+                .map(usd -> new MoneyAmount(usd, Currency.USD))
                 .orElseGet(i::getInitialMoneyAmount);
 
         return this.currentValueUSD(i)
@@ -361,16 +361,17 @@ public class Positions {
         this.console.appendLine(this.format.text("Curr.", 8),
                 ETF_NAME.keySet().stream()
                         .sorted()
+                        .map(Currency::valueOf)
                         .map(this::currentPice)
                         .collect(joining()));
     }
 
-    private MoneyAmount current(String currency) {
+    private MoneyAmount current(Currency currency) {
         final var ma = new MoneyAmount(ONE, currency);
-        return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), "USD").apply(ma, Inflation.USD_INFLATION.getTo());
+        return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency().name(), "USD").apply(ma, Inflation.USD_INFLATION.getTo());
     }
 
-    private String currentPice(String currency) {
+    private String currentPice(Currency currency) {
         return Ansi.colorize(this.format.currency(this.current(currency).getAmount(), 9), Attribute.WHITE_TEXT());
     }
 
@@ -379,7 +380,7 @@ public class Positions {
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, "USD"))
+                .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
                 .collect(groupingBy(i -> new CurrencyAndGroupKey(i.getCurrency(), groupingFunction.apply(i))))
                 .entrySet()
@@ -404,7 +405,7 @@ public class Positions {
         return Optional.ofNullable(positionsByGroup.get(key))
                 .map(Position::getAveragePrice)
                 .map(MoneyAmount::getAmount)
-                .map(avgPrice -> this.colorized(avgPrice, averagesByGroup.get(new CurrencyAndGroupKey(key.currency(), AVERAGE_KEY)).getAveragePrice().getAmount(), this.current(key.currency()).getAmount()))
+                .map(avgPrice -> this.colorized(avgPrice, averagesByGroup.get(new CurrencyAndGroupKey(key.currency(), AVERAGE_KEY)).getAveragePrice().getAmount(), this.current(Currency.valueOf(key.currency())).getAmount()))
                 .orElseGet(() -> this.format.text("", 9));
     }
 
@@ -513,7 +514,7 @@ public class Positions {
                 .stream()
                 .filter(Investment::isCurrent)
                 .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, "USD"))
+                .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
                 .collect(groupingBy(classifier,
                         mapping(func, reducing(ZERO_USD, MoneyAmount::add))));
@@ -532,7 +533,7 @@ public class Positions {
         return new Position(
                 ETF_NAME.get(symbol),
                 position,
-                ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD").apply(new MoneyAmount(ONE, symbol), now),
+                ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD").apply(new MoneyAmount(ONE, Currency.valueOf(symbol)), now),
                 investments.stream()
                         .map(i -> i.getIn().getMoneyAmount())
                         .reduce(ZERO_USD, MoneyAmount::add),
@@ -547,7 +548,7 @@ public class Positions {
                                 .map(InvestmentEvent::getAmount)
                                 .reduce(ZERO, BigDecimal::add)
                                 .divide(position, C),
-                        "USD"));
+                        Currency.USD));
     }
 
     public void portfolio(String type, String subtype, int year, int month) {
@@ -579,7 +580,7 @@ public class Positions {
                         .collect(groupingBy(
                                 Pair::first,
                                 groupingBy(
-                                        p -> p.second().get().getCurrency(),
+                                        p -> p.second().get().getCurrency().name(),
                                         mapping(
                                                 p -> p.second().get(),
                                                 reducing(MoneyAmount::add)))));
@@ -669,7 +670,7 @@ public class Positions {
                 .filter(predicate)
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getMoneyAmount)
-                .map(investedAmount -> getMoneyAmountForeignExchange(investedAmount.getCurrency(), reportCurrency).apply(investedAmount, limit))
+                .map(investedAmount -> getMoneyAmountForeignExchange(investedAmount.getCurrency().name(), reportCurrency).apply(investedAmount, limit))
                 .reduce(MoneyAmount::add);
     }
 
@@ -706,7 +707,7 @@ public class Positions {
                 getMoneyAmountForeignExchange(
                         p.currency(), 
                         reportCurrency)
-                        .apply(new MoneyAmount(p.amount(), p.currency()), 
+                        .apply(new MoneyAmount(p.amount(), Currency.valueOf(p.currency())), 
                                 USD_INFLATION.getTo()).getAmount());
     }
 

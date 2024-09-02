@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Optional;
 import java.util.StringJoiner;
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
 
 /*
@@ -82,12 +83,12 @@ public class InvestmentEvent {
     
     @JsonIgnore
     public MoneyAmount getMoneyAmount() {
-        return new MoneyAmount(this.getAmount(), this.getCurrency());
+        return new MoneyAmount(this.getAmount(), Currency.valueOf(this.getCurrency()));
     }
 
     @JsonIgnore
     public MoneyAmount getFeeMoneyAmount() {
-        return new MoneyAmount(this.getFee(), this.getCurrency());
+        return new MoneyAmount(this.getFee(), Currency.valueOf(this.getCurrency()));
     }
     
     @Override

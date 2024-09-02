@@ -31,6 +31,7 @@ import java.net.http.HttpResponse;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.function.Supplier;
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MathConstants;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
@@ -123,7 +124,7 @@ public class CriptoYaAPI {
     public MoneyAmount exchangeRate(CriptoYaFXParams params) throws URISyntaxException, IOException, InterruptedException {
         return new MoneyAmount(
                 this.sellCoin(params.exchange(), params.coin(), params.fiatTo(), ONE)
-                        .divide(this.buyCoin(params.exchange(), params.coin(), params.fiatFrom(), ONE), C), params.currency());
+                        .divide(this.buyCoin(params.exchange(), params.coin(), params.fiatFrom(), ONE), C), Currency.valueOf(params.currency()));
     }
 
     public BigDecimal buyCoin(String exchange, String coin, String fiat, BigDecimal amount) throws URISyntaxException, IOException, InterruptedException {

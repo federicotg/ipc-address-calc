@@ -27,13 +27,13 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public interface ForeignExchange extends Series {
 
-    default MoneyAmount exchange(MoneyAmount amount, String targetCurrency, YearMonth ym){
+    default MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, YearMonth ym) {
         return this.exchange(amount, targetCurrency, ym.getYear(), ym.getMonth());
     }
-    
-    MoneyAmount exchange(MoneyAmount amount, String targetCurrency, int referenceYear, int referenceMonth);
 
-    MoneyAmount exchange(MoneyAmount amount, String targetCurrency, Date moment);
+    MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth);
+
+    MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment);
 
     /**
      * Convierte cada money amount de la serie a la moneda especificada según el
@@ -46,7 +46,7 @@ public interface ForeignExchange extends Series {
      * @return
      * @throws NoSeriesDataFoundException
      */
-    MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency);
+    MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency);
 
     /**
      * Convierte el money amount especificado en la serie de valores donde en
@@ -59,10 +59,10 @@ public interface ForeignExchange extends Series {
      * @return
      * @throws NoSeriesDataFoundException
      */
-    MoneyAmountSeries exchange(MoneyAmount amount, String targetCurrency);
+    MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency);
 
-    String getTargetCurrency();
+    Currency getTargetCurrency();
 
-    String getSourceCurrency();
+    Currency getSourceCurrency();
 
 }

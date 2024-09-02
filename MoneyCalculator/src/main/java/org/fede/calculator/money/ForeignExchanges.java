@@ -31,6 +31,7 @@ import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
+import static org.fede.calculator.money.Currency.*;
 
 /**
  *
@@ -40,96 +41,95 @@ public class ForeignExchanges {
 
     private static final Map<FromTo, BiFunction<MoneyAmount, YearMonth, MoneyAmount>> FX_FUNCTION_CACHE = new ConcurrentHashMap<>();
 
-    private static final Map<String, ForeignExchange> IDENTITY_FX = new ConcurrentHashMap<>();
+    private static final Map<Currency, ForeignExchange> IDENTITY_FX = new ConcurrentHashMap<>();
 
-    private static final Map<String, String> INTERMEDIATE_FOREIGN_EXCHANGES = Map.of(
-            "UVA", "ARS",
-            "CONAAFA", "ARS",
-            "CAPLUSA", "ARS",
-            "CONBALA", "ARS",
-            "LECAP", "ARS",
-            "MEUD", "EUR",
-            "CSPX", "USD",
-            "IWDA", "USD",
-            "DAI", "USD",
-            "ARS", "USD");
+    private static final Map<Currency, Currency> INTERMEDIATE_FOREIGN_EXCHANGES = Map.of(
+            UVA, ARS,
+            CONAAFA, ARS,
+            CAPLUSA, ARS,
+            CONBALA, ARS,
+            LECAP, ARS,
+            MEUD, EUR,
+            CSPX, USD,
+            IWDA, USD,
+            DAI, USD,
+            ARS, USD);
 
     private static final Map<FromTo, ForeignExchange> DIRECT_FOREIGN_EXCHANGES;
 
-    private static final String USD = "USD";
-
+    //private static final String USD = "USD";
     public static final ForeignExchange USD_ARS = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/peso-dolar-libre.json"),
             USD,
-            "ARS");
+            ARS);
 
     public static final ForeignExchange USD_LETE = new SimpleForeignExchange(
-            () -> IndexSeriesSupport.CONSTANT_SERIES, "USD", "LETE");
+            () -> IndexSeriesSupport.CONSTANT_SERIES, USD, LETE);
 
     public static final ForeignExchange USD_EUR = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/USD-EUR.json"),
-            "EUR",
+            EUR,
             USD);
 
     public static final ForeignExchange USD_DAI = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/USD-DAI.json"),
-            "DAI",
+            DAI,
             USD);
 
     public static final ForeignExchange ARS_LECAP = new SimpleForeignExchange(
             () -> IndexSeriesSupport.CONSTANT_SERIES,
-            "LECAP",
-            "ARS");
+            LECAP,
+            ARS);
 
     public static final ForeignExchange ARS_CONAAFA = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json"),
-            "CONAAFA",
-            "ARS");
+            CONAAFA,
+            ARS);
 
     public static final ForeignExchange ARS_CONBALA = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json"),
-            "CONBALA",
-            "ARS");
+            CONBALA,
+            ARS);
 
     public static final ForeignExchange ARS_CAPLUSA = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json"),
-            "CAPLUSA",
-            "ARS");
+            CAPLUSA,
+            ARS);
 
     public static final ForeignExchange ARS_UVA = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/UVA-peso.json"),
-            "UVA",
-            "ARS");
+            UVA,
+            ARS);
 
     public static final ForeignExchange USD_AY24 = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/AY24-USD.json"),
-            "AY24", USD);
+            AY24, USD);
 
     public static final ForeignExchange USD_CSPX = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/CSPX-USD.json"),
-            "CSPX", USD);
+            CSPX, USD);
 
     public static final ForeignExchange USD_EIMI = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/EIMI-USD.json"),
-            "EIMI", USD);
+            EIMI, USD);
 
     public static final ForeignExchange USD_XRSU = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/XRSU-USD.json"),
-            "XRSU", USD);
+            XRSU, USD);
 
     public static final ForeignExchange USD_RTWO = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/RTWO-USD.json"),
-            "RTWO", USD);
+            RTWO, USD);
 
     public static final ForeignExchange USD_IWDA = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/IWDA-USD.json"),
-            "IWDA", USD);
+            IWDA, USD);
 
     public static final ForeignExchange EUR_MEUD = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/MEUD-EUR.json"),
-            "MEUD", "EUR");
+            MEUD, EUR);
 
-    private static void map(Map<FromTo, ForeignExchange> temporalMap, String from, String to, ForeignExchange fx) {
+    private static void map(Map<FromTo, ForeignExchange> temporalMap, Currency from, Currency to, ForeignExchange fx) {
         temporalMap.put(new FromTo(from, to), fx);
         temporalMap.put(new FromTo(to, from), fx);
     }
@@ -138,28 +138,32 @@ public class ForeignExchanges {
 
         final Map<FromTo, ForeignExchange> temporalMap = new HashMap<>();
         // direct conversions
-        map(temporalMap, "ARS", USD, USD_ARS);
-        map(temporalMap, "LETE", USD, USD_LETE);
-        map(temporalMap, USD, "EUR", USD_EUR);
-        map(temporalMap, USD, "DAI", USD_DAI);
-        map(temporalMap, "ARS", "CONAAFA", ARS_CONAAFA);
-        map(temporalMap, "ARS", "CONBALA", ARS_CONBALA);
-        map(temporalMap, "ARS", "CAPLUSA", ARS_CAPLUSA);
-        map(temporalMap, "ARS", "LECAP", ARS_LECAP);
-        map(temporalMap, "ARS", "UVA", ARS_UVA);
-        map(temporalMap, USD, "AY24", USD_AY24);
-        map(temporalMap, USD, "CSPX", USD_CSPX);
-        map(temporalMap, USD, "IWDA", USD_IWDA);
-        map(temporalMap, "EUR", "MEUD", EUR_MEUD);
-        map(temporalMap, USD, "XRSU", USD_XRSU);
-        map(temporalMap, USD, "RTWO", USD_RTWO);
-        map(temporalMap, USD, "EIMI", USD_EIMI);
+        map(temporalMap, ARS, USD, USD_ARS);
+        map(temporalMap, LETE, USD, USD_LETE);
+        map(temporalMap, USD, EUR, USD_EUR);
+        map(temporalMap, USD, DAI, USD_DAI);
+        map(temporalMap, ARS, CONAAFA, ARS_CONAAFA);
+        map(temporalMap, ARS, CONBALA, ARS_CONBALA);
+        map(temporalMap, ARS, CAPLUSA, ARS_CAPLUSA);
+        map(temporalMap, ARS, LECAP, ARS_LECAP);
+        map(temporalMap, ARS, UVA, ARS_UVA);
+        map(temporalMap, USD, AY24, USD_AY24);
+        map(temporalMap, USD, CSPX, USD_CSPX);
+        map(temporalMap, USD, IWDA, USD_IWDA);
+        map(temporalMap, EUR, MEUD, EUR_MEUD);
+        map(temporalMap, USD, XRSU, USD_XRSU);
+        map(temporalMap, USD, RTWO, USD_RTWO);
+        map(temporalMap, USD, EIMI, USD_EIMI);
 
         DIRECT_FOREIGN_EXCHANGES = Collections.unmodifiableMap(temporalMap);
 
     }
 
     public static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(String from, String to) {
+        return getMoneyAmountForeignExchange(Currency.valueOf(from), Currency.valueOf(to));
+    }
+
+    public static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(Currency from, Currency to) {
         return FX_FUNCTION_CACHE.computeIfAbsent(new FromTo(from, to), ForeignExchanges::getMoneyAmountForeignExchange);
     }
 
@@ -168,6 +172,10 @@ public class ForeignExchanges {
     }
 
     public static ForeignExchange getForeignExchange(String from, String to) {
+        return getForeignExchange(Currency.valueOf(from), Currency.valueOf(to));
+    }
+    
+    public static ForeignExchange getForeignExchange(Currency from, Currency to) {
 
         if (from.equals(to)) {
             return IDENTITY_FX.computeIfAbsent(to, ForeignExchanges::getIdentityForeignExchange);
@@ -178,7 +186,7 @@ public class ForeignExchanges {
             return answer;
         }
 
-        String intermediate = INTERMEDIATE_FOREIGN_EXCHANGES.get(from);
+        Currency intermediate = INTERMEDIATE_FOREIGN_EXCHANGES.get(from);
         if (intermediate == null) {
             intermediate = INTERMEDIATE_FOREIGN_EXCHANGES.get(to);
         }
@@ -194,11 +202,11 @@ public class ForeignExchanges {
         );
     }
 
-    public static ForeignExchange getIdentityForeignExchange(String currency) {
+    public static ForeignExchange getIdentityForeignExchange(Currency currency) {
         return new SimpleForeignExchange(() -> IndexSeriesSupport.CONSTANT_SERIES, currency, currency);
     }
 
-    public static Investment exchange(Investment investment, String targetCurrency) {
+    public static Investment exchange(Investment investment, Currency targetCurrency) {
 
         Investment answer = new Investment();
 
@@ -207,7 +215,7 @@ public class ForeignExchanges {
 
         if (investment.getType().equals(InvestmentType.USD)) {
             InvestmentEvent usdIn = new InvestmentEvent();
-            usdIn.setCurrency(targetCurrency);
+            usdIn.setCurrency(targetCurrency.name());
             usdIn.setDate(investment.getInitialDate());
             usdIn.setAmount(investment.getInvestment().getAmount());
             answer.setIn(usdIn);
@@ -229,35 +237,37 @@ public class ForeignExchanges {
 
     }
 
-    private static InvestmentEvent exchangeInto(InvestmentEvent in, String currency) {
+    private static InvestmentEvent exchangeInto(InvestmentEvent in, Currency currency) {
         if (in == null) {
             return null;
         }
-        ForeignExchange fx = ForeignExchanges.getForeignExchange(in.getCurrency(), currency);
+        ForeignExchange fx = ForeignExchanges.getForeignExchange(Currency.valueOf(in.getCurrency()), currency);
 
-        final var fee = new MoneyAmount(in.getFee(), in.getCurrency());
+        final var fee = new MoneyAmount(in.getFee(), Currency.valueOf(in.getCurrency()));
 
         InvestmentEvent answer = new InvestmentEvent();
         MoneyAmount ma = fx(in.getFx(), fx, in.getMoneyAmount(), currency, in.getDate());
         answer.setAmount(ma.getAmount());
-        answer.setCurrency(ma.getCurrency());
+        answer.setCurrency(ma.getCurrency().name());
         answer.setDate(in.getDate());
         answer.setFee(fx(in.getFx(), fx, fee, currency, in.getDate()).getAmount());
         answer.setTransferFee(
                 Optional.ofNullable(in.getTransferFee())
-                        .map(trfee -> fx(in.getFx(), fx, new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).getAmount())
+                        .map(trfee -> fx(in.getFx(), fx, new MoneyAmount(trfee, Currency.valueOf(in.getCurrency())), currency, in.getDate()).getAmount())
                         .orElse(null));
         answer.setFx(in.getFx());
         return answer;
     }
 
-    private static MoneyAmount fx(BigDecimal optionalFxRate, ForeignExchange fx, MoneyAmount ma, String currency, Date date) {
-        if (!"USD".equals(currency) || optionalFxRate == null) {
+    private static MoneyAmount fx(BigDecimal optionalFxRate, ForeignExchange fx, MoneyAmount ma, Currency currency, Date date) {
+        if (USD != currency || optionalFxRate == null) {
 
             return fx.exchange(ma, currency, date);
         }
-        return new MoneyAmount(ma.getAmount().multiply(optionalFxRate, MathConstants.C), "USD");
+        return new MoneyAmount(ma.getAmount().multiply(optionalFxRate, MathConstants.C), USD);
     }
-    
-    private record FromTo(String from, String to){}
+
+    private record FromTo(Currency from, Currency to) {
+
+    }
 }

@@ -22,6 +22,7 @@ import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.stream.Stream;
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
 
 /**
@@ -32,7 +33,7 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
     private final SequencedMap<YearMonth, MoneyAmount> values;
 
-    public SortedMapMoneyAmountSeries(final String currency) {
+    public SortedMapMoneyAmountSeries(final Currency currency) {
         super(currency);
         this.values = new TreeMap<>(YearMonth::compareTo);
     }

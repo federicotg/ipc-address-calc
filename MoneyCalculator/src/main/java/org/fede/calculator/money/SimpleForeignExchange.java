@@ -38,13 +38,13 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     private IndexSeries exchangeRatesSeries;
 
-    private final String fromCurrency;
+    private final Currency fromCurrency;
 
-    private final String targetCurrency;
+    private final Currency targetCurrency;
 
     public SimpleForeignExchange(Supplier<IndexSeries> exchangeRatesSeriesSupplier,
-            String fromCurrency,
-            String targetCurrency) {
+            Currency fromCurrency,
+            Currency targetCurrency) {
         this.exchangeRatesSeriesSupplier = exchangeRatesSeriesSupplier;
         this.fromCurrency = fromCurrency;
         this.targetCurrency = targetCurrency;
@@ -68,7 +68,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, int year, int month) {
+    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int year, int month) {
         if (amount.getCurrency().equals(targetCurrency)) {
             return amount;
         }
@@ -84,7 +84,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     }
 
     @Override
-    public MoneyAmountSeries exchange(MoneyAmountSeries series, String targetCurrency) {
+    public MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency) {
 
         YearMonth from = this.getSeries().maximumFrom(series);
         YearMonth to = series.getTo();
@@ -120,13 +120,13 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, String targetCurrency, Date moment) {
+    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) {
         final var ym = YearMonth.of(moment);      
         return this.exchange(amount, targetCurrency, ym.getYear(), ym.getMonth());
     }
 
     @Override
-    public MoneyAmountSeries exchange(MoneyAmount amount, String targetCurrency) {
+    public MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) {
 
         final int fromYear = this.getFrom().getYear();
         final int fromMonth = this.getFrom().getMonth();
@@ -166,12 +166,12 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     }
 
     @Override
-    public String getTargetCurrency() {
+    public Currency getTargetCurrency() {
         return targetCurrency;
     }
 
     @Override
-    public String getSourceCurrency() {
+    public Currency getSourceCurrency() {
         return this.fromCurrency;
     }
 

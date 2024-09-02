@@ -406,7 +406,7 @@ public class ConsoleReports {
             final var api = new CriptoYaAPI(new SingleHttpClientSupplier());
             final var initialAmount = new BigDecimal(3000);
 
-            this.console.appendLine(MessageFormat.format("Sending {0}", this.format.currency(new MoneyAmount(initialAmount, "USD"), 10)));
+            this.console.appendLine(MessageFormat.format("Sending {0}", this.format.currency(new MoneyAmount(initialAmount, Currency.USD), 10)));
             final var blueFee = BigDecimal.ONE.add(feePct);
             Stream.of(
                     Pair.of("USD > Letsbit > USDT > TRON > Kraken", api.lbRoute(initialAmount)),
