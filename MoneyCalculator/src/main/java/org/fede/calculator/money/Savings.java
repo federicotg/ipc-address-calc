@@ -124,7 +124,7 @@ public class Savings {
                         cashMa.getAmount(),
                         eq.getAmountOrElseZero(ym).getAmount(),
                         bo.getAmountOrElseZero(ym).getAmount(),
-                        2200
+                        2400
                         )));
 
         this.cashEquityBondsRef("Savings Distribution Evolution");
@@ -290,7 +290,7 @@ public class Savings {
         final var maSeries = List.of(unlp, lifia, despARS, despUSD, other);
 
         unlp.map((ym, ma) -> ZERO_USD.max(ma))
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, maSeries, colorList), 3750)));
+                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, maSeries, colorList), 4000)));
 
         new References(console, format).refs(
                 title,
@@ -639,10 +639,10 @@ public class Savings {
 
     public void incomeAverageEvolution(int months, boolean ars) {
         this.console.appendLine(this.format.title(format("Average {0}-month income evolution", months)));
-        int baseBarSize = 40;
+        int baseBarSize = 50;
 
         if (months < 6) {
-            baseBarSize = 50;
+            baseBarSize = 66;
         }
 
         final var s = ars
