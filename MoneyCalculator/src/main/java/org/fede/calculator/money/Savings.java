@@ -282,7 +282,7 @@ public class Savings {
         final var agg = new SimpleAggregation();
 
         final var unlp = agg.sum(this.series.incomeSource("unlp"));
-        final var other = agg.sum(this.series.incomeSource("other"));
+        final var other = agg.sum(this.series.incomeSource("other-usd").add(this.series.incomeSource("other-ars")));
         final var lifia = agg.sum(this.series.incomeSource("lifia"));
         final var despARS = agg.sum(this.series.incomeSource("despegar"));
         final var despUSD = agg.sum(this.series.incomeSource("despegar-split"));
@@ -308,7 +308,7 @@ public class Savings {
         final var agg = new SimpleAggregation();
 
         final var unlp = agg.sum(this.series.incomeSource("unlp"));
-        final var other = agg.sum(this.series.incomeSource("other"));
+        final var other = agg.sum(this.series.incomeSource("other-usd").add(this.series.incomeSource("other-ars")));
         final var lifia = agg.sum(this.series.incomeSource("lifia"));
         final var despARS = agg.sum(this.series.incomeSource("despegar"));
         final var despUSD = agg.sum(this.series.incomeSource("despegar-split"));
