@@ -117,7 +117,6 @@ public class Savings {
         final var bo = this.series.realSavings("BO");
 
         //final var nf = NumberFormat.getCurrencyInstance();
-
         cash.forEach((ym, cashMa) -> this.console.appendLine(
                 this.bar.bar(
                         ym,
@@ -125,7 +124,7 @@ public class Savings {
                         eq.getAmountOrElseZero(ym).getAmount(),
                         bo.getAmountOrElseZero(ym).getAmount(),
                         2400
-                        )));
+                )));
 
         this.cashEquityBondsRef("Savings Distribution Evolution");
 
@@ -242,7 +241,7 @@ public class Savings {
     public void incomeAverageBySource(int months, boolean pct) {
 
         final var title = format("Average {0}-month income by source", months);
-        final var colorList = List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK(), Attribute.GREEN_BACK());
+        final var colorList = List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK(), Attribute.GREEN_BACK(), Attribute.WHITE_BACK());
         this.console.appendLine(this.format.title(title));
 
         final var agg = new SimpleAggregation(months);
@@ -251,24 +250,40 @@ public class Savings {
         final var lifia = agg.average(this.series.incomeSource("lifia"));
         final var despARS = agg.average(this.series.incomeSource("despegar"));
         final var despUSD = agg.average(this.series.incomeSource("despegar-split"));
+        final var other = agg.average(this.series.incomeSource("other-ars").add(this.series.incomeSource("other-usd")));
 
         if (pct) {
             unlp.map((ym, ma) -> ZERO_USD.max(ma))
                     .forEach((ym, savingMa) -> this.console.appendLine(
                     this.bar.percentBar(
                             ym,
-                            this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList))));
+                            this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD, other), colorList))));
         } else {
+            var scale = switch (months) {
+                case 1 ->
+                    200;
+                case 2, 3 ->
+                    140;
+                case 4, 5, 6 ->
+                    90;
+                case 7, 8, 9, 10 ->
+                    60;
+                case 11 ->
+                    50;
+                default ->
+                    45;
+            };
+
             unlp.map((ym, ma) -> ZERO_USD.max(ma))
                     .forEach((ym, savingMa) -> this.console.appendLine(
                     this.bar.genericBar(
                             ym,
-                            this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD), colorList),
-                            40)));
+                            this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD, other), colorList),
+                            scale)));
         }
         new References(console, format).refs(
                 title,
-                List.of("UNLP", "LIFIA", "Despegar ARS", "Despegar USD"),
+                List.of("UNLP", "LIFIA", "Despegar ARS", "Despegar USD", "Other'"),
                 colorList);
 
     }
