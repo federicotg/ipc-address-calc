@@ -386,7 +386,6 @@ public class ConsoleReports {
 
                 getAction(args, me, format, bar, series, console).run();
                 me.appendLine("");
-
             }
             console.printReport();
         } catch (Exception ex) {
@@ -672,7 +671,7 @@ public class ConsoleReports {
                 .filter(inv -> inv.getOut() == null || YearMonth.of(inv.getOut().getDate()).year() > year)
                 .collect(
                         Collectors.groupingBy(
-                                inv -> inv.getCurrency(),
+                                Investment::getCurrency,
                                 Collectors.mapping(
                                         inv -> inv.getInvestment().getAmount(),
                                         Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))))
