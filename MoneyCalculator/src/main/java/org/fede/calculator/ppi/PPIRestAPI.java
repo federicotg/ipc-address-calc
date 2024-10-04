@@ -74,7 +74,7 @@ public class PPIRestAPI {
 
     public PPIRestAPI(Supplier<HttpClient> clientSupplier) throws FileNotFoundException, IOException, URISyntaxException, InterruptedException {
 
-        try (var is = new FileInputStream(new File(System.getenv("HOME") + File.separator + "Sync" + File.separator + "ppi-secrets.properties"))) {
+        try (var is = new FileInputStream(new File(System.getenv("HOME") + File.separator + "Documents" + File.separator + "ppi-secrets.properties"))) {
             this.config = new Properties();
             this.config.load(is);
         }

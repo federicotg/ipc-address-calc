@@ -141,7 +141,7 @@ public class SeriesReader {
     }
 
     public static <T> T read(String name, TypeReference<T> typeReference) {
-        try (InputStream in = new BufferedInputStream(new FileInputStream(new File(System.getProperty("user.home") + "/Sync/app-resources/" + name)));) {
+        try (InputStream in = new BufferedInputStream(new FileInputStream(new File(System.getProperty("user.home") + "/Documents/app-resources/" + name)));) {
             return OM.readValue(in, typeReference);
         } catch (IOException ioEx) {
             LOGGER.error("Unexpected error.", ioEx);
@@ -162,7 +162,7 @@ public class SeriesReader {
 
     private static MoneyAmountSeries read(String name) {
 
-        try (InputStream is = new BufferedInputStream(new FileInputStream(System.getProperty("user.home") + "/Sync/app-resources/" + name))) {
+        try (InputStream is = new BufferedInputStream(new FileInputStream(System.getProperty("user.home") + "/Documents/app-resources/" + name))) {
 
             JSONSeries series = OM.readValue(is, JSONSeries.class);
 

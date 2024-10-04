@@ -63,7 +63,7 @@ public class ExchangeTradedFunds implements ETF {
             Supplier<HttpClient> clientSupplier) throws IOException {
         this.clientSupplier = clientSupplier;
         this.om = om;
-        try (var is = new FileInputStream(new File(System.getenv("HOME") + File.separator + "Sync" + File.separator + "ppi-secrets.properties"))) {
+        try (var is = new FileInputStream(new File(System.getenv("HOME") + File.separator + "Documents" + File.separator + "ppi-secrets.properties"))) {
             this.config = new Properties();
             this.config.load(is);
         }
