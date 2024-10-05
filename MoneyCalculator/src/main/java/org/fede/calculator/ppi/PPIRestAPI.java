@@ -39,6 +39,7 @@ import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.InstrumentType;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
+import org.fede.calculator.money.series.SeriesReader;
 
 /**
  *
@@ -74,7 +75,7 @@ public class PPIRestAPI {
 
     public PPIRestAPI(Supplier<HttpClient> clientSupplier) throws FileNotFoundException, IOException, URISyntaxException, InterruptedException {
 
-        try (var is = new FileInputStream(new File(System.getenv("HOME") + File.separator + "Documents" + File.separator + "ppi-secrets.properties"))) {
+        try (var is = new FileInputStream(new File(SeriesReader.SECRETS))) {
             this.config = new Properties();
             this.config.load(is);
         }

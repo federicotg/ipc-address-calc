@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.fede.calculator.money.series.SeriesReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +64,7 @@ public class ExchangeTradedFunds implements ETF {
             Supplier<HttpClient> clientSupplier) throws IOException {
         this.clientSupplier = clientSupplier;
         this.om = om;
-        try (var is = new FileInputStream(new File(System.getenv("HOME") + File.separator + "Documents" + File.separator + "ppi-secrets.properties"))) {
+        try (var is = new FileInputStream(new File(SeriesReader.SECRETS))) {
             this.config = new Properties();
             this.config.load(is);
         }

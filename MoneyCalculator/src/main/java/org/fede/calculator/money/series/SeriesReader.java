@@ -51,10 +51,13 @@ import org.slf4j.LoggerFactory;
  * @author fede
  */
 public class SeriesReader {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(SeriesReader.class);
 
-   
+    public static final String APP_RESOURCES = System.getProperty("user.home") + File.separator + "Documents" + File.separator + "app-resources" + File.separator;
+
+    public static final String SECRETS = System.getenv("HOME") + File.separator + "Documents" + File.separator + "ppi-secrets.properties";
+    
     private static final Map<String, String> CURRENCY_ETF = Map.of(
             "CSPX", ETF.CSPX,
             "RTWO", ETF.RTWO,
@@ -141,7 +144,7 @@ public class SeriesReader {
     }
 
     public static <T> T read(String name, TypeReference<T> typeReference) {
-        try (InputStream in = new BufferedInputStream(new FileInputStream(new File(System.getProperty("user.home") + "/Documents/app-resources/" + name)));) {
+        try (InputStream in = new BufferedInputStream(new FileInputStream(new File(APP_RESOURCES + name)));) {
             return OM.readValue(in, typeReference);
         } catch (IOException ioEx) {
             LOGGER.error("Unexpected error.", ioEx);
@@ -154,7 +157,7 @@ public class SeriesReader {
     }
 
     private static MoneyAmount moneyAmount(BigDecimal value, Currency currency) {
-        
+
         return value.signum() == 0
                 ? MoneyAmount.zero(currency)
                 : new MoneyAmount(value, currency);
@@ -162,7 +165,7 @@ public class SeriesReader {
 
     private static MoneyAmountSeries read(String name) {
 
-        try (InputStream is = new BufferedInputStream(new FileInputStream(System.getProperty("user.home") + "/Documents/app-resources/" + name))) {
+        try (InputStream is = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name))) {
 
             JSONSeries series = OM.readValue(is, JSONSeries.class);
 
