@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.function.Supplier;
 
 /**
@@ -30,7 +31,10 @@ public class SingleHttpClientSupplier implements Supplier<HttpClient> {
     @Override
     public HttpClient get() {
         if (this.client == null) {
-            this.client = HttpClient.newHttpClient();
+            this.client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(5))
+                    .build();
+            
         }
         return this.client;
     }
