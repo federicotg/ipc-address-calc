@@ -77,6 +77,8 @@ public class ConsoleReports {
     private static final String BAD_RETURN_YEARS = "3";
     private static final String BAD_YEAR_SPENDING = "0.85";
     private static final String SAVE_CASH_YEARS_BEFORE_RETIREMENT = "6";
+    
+    public static final int SCALE = 2500;
 
     private static boolean nominal(Map<String, String> params) {
         return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
@@ -481,7 +483,7 @@ public class ConsoleReports {
 
     private void savingEvolution(String[] args, String paramName) {
         this.appendLine(this.format.title("Savings Evolution"));
-        this.bar.evolution("Savings", this.series.realSavings(this.paramsValue(args, paramName).get("type")), 2400);
+        this.bar.evolution("Savings", this.series.realSavings(this.paramsValue(args, paramName).get("type")), ConsoleReports.SCALE);
     }
 
     private void expenseEvolution(String[] args, String paramName) {

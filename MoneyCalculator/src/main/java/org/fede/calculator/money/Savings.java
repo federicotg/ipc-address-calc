@@ -123,7 +123,7 @@ public class Savings {
                         cashMa.getAmount(),
                         eq.getAmountOrElseZero(ym).getAmount(),
                         bo.getAmountOrElseZero(ym).getAmount(),
-                        2400
+                        ConsoleReports.SCALE
                 )));
 
         this.cashEquityBondsRef("Savings Distribution Evolution");
