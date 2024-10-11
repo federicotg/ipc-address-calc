@@ -513,7 +513,7 @@ public class ConsoleReports {
 
         this.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
         this.bar.evolution(format("{0}-month Savings Change", months - 1), new SimpleAggregation(months)
-                .change(this.series.realSavings(null)), 60 * months);
+                .change(this.series.realSavings(null)), 100 * months);
     }
 
     private void expensesChange(String[] args, String name) {
