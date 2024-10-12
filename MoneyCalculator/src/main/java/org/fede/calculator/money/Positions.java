@@ -624,7 +624,7 @@ public class Positions {
 
     public void listStockByType() {
 
-        final var reportCurrency = "USD";
+        final var reportCurrency = USD;
         final var limit = USD_INFLATION.getTo();
         final var limitStr = String.valueOf(limit.getMonth()) + "/" + String.valueOf(limit.getYear());
 
@@ -636,7 +636,7 @@ public class Positions {
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(
                         this::assetAllocation,
-                        mapping(inv -> getMoneyAmountForeignExchange(inv.getInvestment().getCurrency(), reportCurrency).apply(inv.getInvestment().getMoneyAmount(), limit)
+                        mapping(inv -> getMoneyAmountForeignExchange(Currency.valueOf(inv.getInvestment().getCurrency()), reportCurrency).apply(inv.getInvestment().getMoneyAmount(), limit)
                         .getAmount()
                         .setScale(MathConstants.SCALE, MathConstants.RM),
                                 reducing(ZERO, BigDecimal::add))))
@@ -666,25 +666,25 @@ public class Positions {
 
     }
 
-    private Optional<MoneyAmount> total(Predicate<Investment> predicate, String reportCurrency, YearMonth limit) {
+    private Optional<MoneyAmount> total(Predicate<Investment> predicate, Currency reportCurrency, YearMonth limit) {
         return this.series.getInvestments().stream()
                 .filter(predicate)
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getMoneyAmount)
-                .map(investedAmount -> getMoneyAmountForeignExchange(investedAmount.getCurrency().name(), reportCurrency).apply(investedAmount, limit))
+                .map(investedAmount -> getMoneyAmountForeignExchange(investedAmount.getCurrency(), reportCurrency).apply(investedAmount, limit))
                 .reduce(MoneyAmount::add);
     }
 
     public void groupedInvestments() {
-        final var reportCurrency = "USD";
+        final var reportCurrency = USD;
         final var limit = USD_INFLATION.getTo();
 
-        this.console.appendLine("Inversiones Actuales Agrupadas en ", reportCurrency, " ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()));
+        this.console.appendLine("Inversiones Actuales Agrupadas en ", reportCurrency.name(), " ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()));
 
         final var total = this.total(Investment::isCurrent, reportCurrency, limit);
         this.series.getInvestments().stream()
                 .filter(Investment::isCurrent)
-                .collect(groupingBy(in -> new InvestmentTypeAndCurrency(in.getType(), in.getCurrency()),
+                .collect(groupingBy(in -> new InvestmentTypeAndCurrency(in.getType(), Currency.valueOf(in.getCurrency())),
                         mapping(inv -> inv.getMoneyAmount().getAmount(),
                                 reducing(ZERO, BigDecimal::add))))
                 .entrySet()
@@ -700,7 +700,7 @@ public class Positions {
                 .ifPresent(this.console::appendLine);
     }
 
-    private InvestmentTypeCurrencyAndAmount fx(InvestmentTypeCurrencyAndAmount p, String reportCurrency) {
+    private InvestmentTypeCurrencyAndAmount fx(InvestmentTypeCurrencyAndAmount p, Currency reportCurrency) {
 
         return new InvestmentTypeCurrencyAndAmount(
                 p.type(), 
@@ -708,7 +708,7 @@ public class Positions {
                 getMoneyAmountForeignExchange(
                         p.currency(), 
                         reportCurrency)
-                        .apply(new MoneyAmount(p.amount(), Currency.valueOf(p.currency())), 
+                        .apply(new MoneyAmount(p.amount(), p.currency()), 
                                 USD_INFLATION.getTo()).getAmount());
     }
 

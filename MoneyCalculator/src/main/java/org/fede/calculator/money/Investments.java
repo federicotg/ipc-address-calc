@@ -368,7 +368,7 @@ public class Investments {
 
         var i = 0;
         this.console.appendLine(
-                this.format.text(d.getInvestmentCurrency(), colWidths[i++]),
+                this.format.text(d.getInvestmentCurrency().name(), colWidths[i++]),
                 this.format.text(DateTimeFormatter.ISO_LOCAL_DATE.format(d.getInvestmentDate()), colWidths[i++]),
                 this.format.currency(d.getInvestmentPrice(), colWidths[i++]),
                 this.format.currency(d.getInvestedAmount().getAmount(), colWidths[i++]),
@@ -723,7 +723,7 @@ public class Investments {
 
         this.series.getInvestments().stream()
                 .filter(Investment::isCurrent)
-                .collect(groupingBy(inv -> new InvestmentTypeAndCurrency(inv.getType(), inv.getCurrency()), mapper))
+                .collect(groupingBy(inv -> new InvestmentTypeAndCurrency(inv.getType(), Currency.valueOf(inv.getCurrency())), mapper))
                 .entrySet()
                 .stream()
                 .map(e -> new InvestmentTypeCurrencyAndAmount(e.getKey(), e.getValue()))

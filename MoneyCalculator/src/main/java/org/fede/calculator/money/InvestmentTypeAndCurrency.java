@@ -7,5 +7,5 @@ import org.fede.calculator.money.series.InvestmentType;
  *
  * @author federicogentile
  */
-public record InvestmentTypeAndCurrency(InvestmentType type, String currency){}
+public record InvestmentTypeAndCurrency(InvestmentType type, Currency currency){}
 

@@ -28,7 +28,7 @@ import java.time.temporal.ChronoUnit;
 public class InvestmentDetails {
 
     private final boolean nominal;
-    private String investmentCurrency;
+    private Currency investmentCurrency;
     private BigDecimal investmentQuantity;
     private LocalDate investmentDate;
     private YearMonth investmentYM;
@@ -60,11 +60,11 @@ public class InvestmentDetails {
         this.investedAmount = investedAmount;
     }
 
-    public String getInvestmentCurrency() {
+    public Currency getInvestmentCurrency() {
         return investmentCurrency;
     }
 
-    public void setInvestmentCurrency(String investmentCurrency) {
+    public void setInvestmentCurrency(Currency investmentCurrency) {
         this.investmentCurrency = investmentCurrency;
     }
 

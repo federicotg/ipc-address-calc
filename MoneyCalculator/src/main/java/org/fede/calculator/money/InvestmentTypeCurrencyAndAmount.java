@@ -24,7 +24,7 @@ import org.fede.calculator.money.series.InvestmentType;
  *
  * @author federicogentile
  */
-public record InvestmentTypeCurrencyAndAmount(InvestmentType type, String currency, BigDecimal amount) {
+public record InvestmentTypeCurrencyAndAmount(InvestmentType type, Currency currency, BigDecimal amount) {
 
     public InvestmentTypeCurrencyAndAmount(InvestmentTypeAndCurrency tc, BigDecimal amount) {
         this(tc.type(), tc.currency(), amount);
