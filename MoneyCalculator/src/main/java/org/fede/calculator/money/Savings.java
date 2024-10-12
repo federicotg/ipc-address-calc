@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -197,7 +198,7 @@ public class Savings {
                 " ",
                 this.format.currency(savingPct.getAmount()),
                 " / ",
-                this.format.currency(ForeignExchanges.getMoneyAmountForeignExchange(savingPct.getCurrency().name(), "ARS").apply(savingPct, limit).getAmount()));
+                this.format.currency(ForeignExchanges.getMoneyAmountForeignExchange(savingPct.getCurrency(), ARS).apply(savingPct, limit).getAmount()));
 
         this.console.appendLine(format("Saved salaries {0}",
                 this.series.realSavings(null).getAmount(limit).getAmount()

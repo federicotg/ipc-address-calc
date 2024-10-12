@@ -52,6 +52,7 @@ import static java.util.stream.Collectors.joining;
 import static org.fede.calculator.money.MathConstants.C;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -653,7 +654,7 @@ public class Investments {
 
     public void monthly(boolean nominal) {
 
-        final var currency = "USD";
+        final var currency = USD;
         final var etfs = this.getInvestments()
                 .filter(Investment::isETF)
                 .toList();

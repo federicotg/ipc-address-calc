@@ -18,6 +18,7 @@
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
+import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.ModifiedDietzReturn;
 import org.fede.calculator.money.Series;
 import org.junit.After;
@@ -64,7 +65,7 @@ public class MDRTest {
         var from = LocalDate.of(2019, Month.JULY, 1);
         var to = LocalDate.of(2019, Month.JULY, 31);
         
-        var mdr = new ModifiedDietzReturn(this.series.getInvestments(), "USD", false, from, to).get().getMoneyWeighted();
+        var mdr = new ModifiedDietzReturn(this.series.getInvestments(), USD, false, from, to).get().getMoneyWeighted();
         
         assertEquals(1, mdr.compareTo(BigDecimal.ZERO));
         

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.YearMonth;
@@ -43,7 +44,7 @@ public class ModifiedDietzReturn {
     private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
 
     private final List<Investment> investments;
-    private final String currency;
+    private final Currency currency;
     private final boolean nominal;
     private final LocalDate initialMoment;
     private final LocalDate finalMoment;
@@ -99,10 +100,10 @@ public class ModifiedDietzReturn {
     }
 
     public ModifiedDietzReturn(List<Investment> investments, boolean nominal) {
-        this(investments, "USD", nominal);
+        this(investments, USD, nominal);
     }
 
-    public ModifiedDietzReturn(List<Investment> investments, String currency, boolean nominal) {
+    public ModifiedDietzReturn(List<Investment> investments, Currency currency, boolean nominal) {
         this(investments,
                 currency,
                 nominal,
@@ -118,10 +119,10 @@ public class ModifiedDietzReturn {
     }
 
     public ModifiedDietzReturn(List<Investment> investments, boolean nominal, LocalDate initialMoment, LocalDate finalMoment) {
-        this(investments, "USD", nominal, initialMoment, finalMoment);
+        this(investments, USD, nominal, initialMoment, finalMoment);
     }
 
-    public ModifiedDietzReturn(List<Investment> investments, String currency, boolean nominal, LocalDate initialMoment, LocalDate finalMoment) {
+    public ModifiedDietzReturn(List<Investment> investments, Currency currency, boolean nominal, LocalDate initialMoment, LocalDate finalMoment) {
         this.investments = investments;
         this.currency = currency;
         this.zeroAmount = MoneyAmount.zero(this.currency);
@@ -191,7 +192,7 @@ public class ModifiedDietzReturn {
         final var ym = YearMonth.of(ie.getDate());
         final var fx = ie.getFx() != null
                 ? new MoneyAmount(ie.getAmount().multiply(ie.getFx(), C), Currency.USD)
-                : ForeignExchanges.getMoneyAmountForeignExchange(ie.getCurrency(), currency).apply(ie.getMoneyAmount(), ym);
+                : ForeignExchanges.getMoneyAmountForeignExchange(Currency.valueOf(ie.getCurrency()), currency).apply(ie.getMoneyAmount(), ym);
 
         return nominal
                 ? fx.getAmount()
@@ -204,7 +205,7 @@ public class ModifiedDietzReturn {
                 .stream()
                 .filter(i -> i.isCurrent(toDate))
                 .map(Investment::getInvestment)
-                .map(asset -> ForeignExchanges.getMoneyAmountForeignExchange(asset.getCurrency(), currency).apply(asset.getMoneyAmount(), ym))
+                .map(asset -> ForeignExchanges.getMoneyAmountForeignExchange(Currency.valueOf(asset.getCurrency()), currency).apply(asset.getMoneyAmount(), ym))
                 .map(ma -> nominal ? ma : Inflation.USD_INFLATION.adjust(ma, ym, Inflation.USD_INFLATION.getTo()))
                 .reduce(this.zeroAmount, MoneyAmount::add)
                 .max(this.zeroAmount);

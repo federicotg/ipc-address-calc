@@ -44,6 +44,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.reducing;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
@@ -368,7 +369,7 @@ public class Positions {
 
     private MoneyAmount current(Currency currency) {
         final var ma = new MoneyAmount(ONE, currency);
-        return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency().name(), "USD").apply(ma, Inflation.USD_INFLATION.getTo());
+        return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), USD).apply(ma, Inflation.USD_INFLATION.getTo());
     }
 
     private String currentPice(Currency currency) {

@@ -23,6 +23,7 @@ import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.series.YearMonth;
 
 /**
@@ -47,7 +48,7 @@ public class PortfolioItem {
         this.amount = amount;
         this.type = type;
 
-        this.dollarAmount = ForeignExchanges.getMoneyAmountForeignExchange(this.amount.getCurrency().name(), "USD")
+        this.dollarAmount = ForeignExchanges.getMoneyAmountForeignExchange(this.amount.getCurrency(), USD)
                 .apply(this.amount, ym);
 
     }

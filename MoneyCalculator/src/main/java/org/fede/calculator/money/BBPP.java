@@ -35,6 +35,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import static org.fede.calculator.money.Currency.ARS;
+import static org.fede.calculator.money.Currency.EUR;
+import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import org.fede.calculator.money.series.BBPPItem;
 import org.fede.calculator.money.series.BBPPYear;
@@ -150,23 +153,23 @@ public class BBPP {
                 "EUR", (MoneyAmount item) -> item.getAmount().multiply(bbpp.eur(), C),
                 "USD", (MoneyAmount item) -> item.getAmount().multiply(bbpp.usd(), C),
                 "LETE", (MoneyAmount item) -> item.getAmount().multiply(bbpp.usd(), C),
-                "XRSU", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency().name(), "USD")
+                "XRSU", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.usd(), C),
-                "RTWO", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency().name(), "USD")
+                "RTWO", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.usd(), C),
-                "CSPX", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency().name(), "USD")
+                "CSPX", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.usd(), C),
-                "EIMI", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency().name(), "USD")
+                "EIMI", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.usd(), C),
-                "MEUD", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency().name(), "EUR")
+                "MEUD", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(),EUR)
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.eur(), C));
@@ -236,7 +239,7 @@ public class BBPP {
 
         final var usdFxYearMonth = Inflation.USD_INFLATION.getTo().min(YearMonth.of(ym.getYear() + 1, 6));
 
-        result.usdTaxAmount = getMoneyAmountForeignExchange("ARS", "USD")
+        result.usdTaxAmount = getMoneyAmountForeignExchange(ARS, USD)
                 .apply(new MoneyAmount(result.taxAmount, Currency.ARS), usdFxYearMonth);
 
         result.allInvested = this.series.getInvestments()
@@ -244,7 +247,7 @@ public class BBPP {
                 .filter(i -> i.isCurrent(date))
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getMoneyAmount)
-                .map(ma -> getMoneyAmountForeignExchange(ma.getCurrency().name(), "USD").apply(ma, ym))
+                .map(ma -> getMoneyAmountForeignExchange(ma.getCurrency(), USD).apply(ma, ym))
                 .reduce(ZERO_USD, MoneyAmount::add);
 
         final var incomeMonths = Stream.concat(

@@ -39,6 +39,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.reducing;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
@@ -124,7 +125,7 @@ public class PortfolioReturns {
 
         return returnTypeFunction.apply(new ModifiedDietzReturn(
                 inv,
-                "USD",
+                USD,
                 nominal));
 
     }
@@ -183,7 +184,7 @@ public class PortfolioReturns {
                 .boxed()
                 .collect(Collectors.toMap(
                         year -> year,
-                        year -> returnTypeFunction.apply(new ModifiedDietzReturn(inv, "USD", nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)))));
+                        year -> returnTypeFunction.apply(new ModifiedDietzReturn(inv, USD, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)))));
     }
 
     public void returns(boolean nominal, boolean withCash, int startYear, boolean timeWeighted) {
