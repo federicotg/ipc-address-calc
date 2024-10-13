@@ -74,7 +74,7 @@ public class ConsoleReports {
     private static final String AGE = "100";
 
     // https://fred.stlouisfed.org/series/EXPINF30YR
-    private static final String INFLATION = "2.33724";
+    private static final String INFLATION = "2.31951";
     private static final String CASH = "0";
     private static final String EXPECTED_RETRUNS = "all";
     private static final String BBPP = "0.5";
