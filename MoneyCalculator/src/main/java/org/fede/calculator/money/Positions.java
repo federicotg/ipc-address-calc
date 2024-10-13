@@ -44,7 +44,16 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.reducing;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import static org.fede.calculator.money.Currency.AY24;
+import static org.fede.calculator.money.Currency.CSPX;
+import static org.fede.calculator.money.Currency.EIMI;
+import static org.fede.calculator.money.Currency.LECAP;
+import static org.fede.calculator.money.Currency.LETE;
+import static org.fede.calculator.money.Currency.MEUD;
+import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.USD;
+import static org.fede.calculator.money.Currency.UVA;
+import static org.fede.calculator.money.Currency.XRSU;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
@@ -76,12 +85,12 @@ public class Positions {
             "lse", new InteractiveBrokersTieredLondonUSDFeeStrategy()
     );
 
-    private static final Map<String, String> ETF_NAME = Map.of(
-            "CSPX", "iShares Core S&P 500",
-            "EIMI", "iShares Core MSCI EM IMI",
-            "XRSU", "Xtrackers Russell 2000",
-            "RTWO", "L&G Russell 2000 Small Cap Quality",
-            "MEUD", "Amundi Stoxx Europe 600"
+    private static final Map<Currency, String> ETF_NAME = Map.of(
+            CSPX, "iShares Core S&P 500",
+            EIMI, "iShares Core MSCI EM IMI",
+            XRSU, "Xtrackers Russell 2000",
+            RTWO, "L&G Russell 2000 Small Cap Quality",
+            MEUD, "Amundi Stoxx Europe 600"
     );
 
     private static final Map<String, Function<Investment, String>> GROUPINGS = Map.of(
@@ -286,7 +295,7 @@ public class Positions {
 
     private String feeStrategyKey(Investment i) {
         if (i.getComment() == null) {
-            return "PPI_" + (i.getCurrency().equals("MEUD") ? "EUR" : "USD");
+            return "PPI_" + (i.getCurrency().equals(MEUD) ? "EUR" : "USD");
         }
         return i.getComment();
     }
@@ -362,7 +371,6 @@ public class Positions {
         this.console.appendLine(this.format.text("Curr.", 8),
                 ETF_NAME.keySet().stream()
                         .sorted()
-                        .map(Currency::valueOf)
                         .map(this::currentPice)
                         .collect(joining()));
     }
@@ -427,7 +435,7 @@ public class Positions {
 
     private String exchangeClassifier(Investment i) {
         if (i.getComment() == null) {
-            return i.getCurrency().equals("MEUD")
+            return i.getCurrency().equals(MEUD)
                     ? "Saxo €"
                     : "Saxo $";
         }
@@ -650,8 +658,8 @@ public class Positions {
     }
 
     private String assetAllocation(Investment investment) {
-        final Set<String> equities = Set.of("CSPX", "EIMI", "MEUD", "XRSU", "RTWO");
-        final Set<String> bonds = Set.of("LECAP", "LETE", "UVA", "AY24");
+        final Set<Currency> equities = Set.of(CSPX, EIMI, MEUD, XRSU, RTWO);
+        final Set<Currency> bonds = Set.of(LECAP, LETE, UVA, AY24);
 
         if (equities.contains(investment.getInvestment().getCurrency())) {
             return "EQ";
