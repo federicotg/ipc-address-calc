@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import static java.util.stream.Collectors.toMap;
+import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.SeenPrice;
@@ -43,7 +44,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
 
     private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
     
-    private static final TypeReference<Map<String, List<SeenPrice>>> TR = new TypeReference<Map<String, List<SeenPrice>>>() {
+    private static final TypeReference<Map<Currency, List<SeenPrice>>> TR = new TypeReference<Map<Currency, List<SeenPrice>>>() {
     };
 
     private static final DateTimeFormatter DMY = DateTimeFormatter.ofPattern("dd-MM-yyyy");
@@ -61,10 +62,10 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
                 .divide(i.getInvestment().getAmount(), MathConstants.C);
     }
 
-    private final String benchmark;
+    private final Currency benchmark;
     private final Map<String, BigDecimal> seenUSDPrices;
 
-    public BenchmarkInvestmentMapper(String benchmark, List<Investment> investments) {
+    public BenchmarkInvestmentMapper(Currency benchmark, List<Investment> investments) {
         this.benchmark = benchmark;
         this.seenUSDPrices = investments.stream()
                 .filter(i -> i.getCurrency().equals(benchmark))
@@ -74,7 +75,6 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
                 SeriesReader.read("index/seen-prices.json", TR).getOrDefault(benchmark, Collections.emptyList())
                         .stream()
                         .collect(toMap(SeenPrice::dmy, SeenPrice::price)));
-
     }
 
     @Override
@@ -93,7 +93,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
             final var fxFactor = Optional.ofNullable(t.getIn().getFx()).orElse(ONE);
             var usdInvested = t.getIn().getAmount().multiply(fxFactor, C);
             asset.setAmount(usdInvested.divide(price, C));
-        } else if (this.benchmark.equals("USD")) {
+        } else if (this.benchmark.equals(USD)) {
             final var fxFactor = Optional.ofNullable(t.getIn().getFx()).orElse(ONE);
             var usdInvested = t.getIn().getAmount().multiply(fxFactor, C);
             asset.setAmount(usdInvested);

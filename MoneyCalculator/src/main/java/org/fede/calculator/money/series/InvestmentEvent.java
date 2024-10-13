@@ -35,7 +35,7 @@ public class InvestmentEvent {
     private Date date;
     private BigDecimal amount;
     private BigDecimal fee;
-    private String currency;
+    private Currency currency;
     private BigDecimal transferFee;
     private BigDecimal fx;
 
@@ -64,11 +64,11 @@ public class InvestmentEvent {
         this.amount = amount;
     }
 
-    public String getCurrency() {
+    public Currency getCurrency() {
         return currency;
     }
 
-    public void setCurrency(String currency) {
+    public void setCurrency(Currency currency) {
         this.currency = currency;
     }
 
@@ -83,12 +83,12 @@ public class InvestmentEvent {
     
     @JsonIgnore
     public MoneyAmount getMoneyAmount() {
-        return new MoneyAmount(this.getAmount(), Currency.valueOf(this.getCurrency()));
+        return new MoneyAmount(this.getAmount(), this.getCurrency());
     }
 
     @JsonIgnore
     public MoneyAmount getFeeMoneyAmount() {
-        return new MoneyAmount(this.getFee(), Currency.valueOf(this.getCurrency()));
+        return new MoneyAmount(this.getFee(), this.getCurrency());
     }
     
     @Override

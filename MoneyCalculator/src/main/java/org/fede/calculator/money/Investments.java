@@ -52,7 +52,13 @@ import static java.util.stream.Collectors.joining;
 import static org.fede.calculator.money.MathConstants.C;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import static org.fede.calculator.money.Currency.CSPX;
+import static org.fede.calculator.money.Currency.EIMI;
+import static org.fede.calculator.money.Currency.IWDA;
+import static org.fede.calculator.money.Currency.MEUD;
+import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.USD;
+import static org.fede.calculator.money.Currency.XRSU;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -73,13 +79,13 @@ public class Investments {
 
     private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
 
-    private static final Map<String, String> ETF_NAME = Map.of(
-            "CSPX", "iShares Core S&P 500",
-            "EIMI", "iShares Core MSCI EM IMI",
-            "XRSU", "Xtrackers Russell 2000",
-            "RTWO", "Russell 2000 Q. Factor",
-            "MEUD", "Amundi Stoxx Europe 600",
-            "IWDA", "iShares Core MSCI World"
+    private static final Map<Currency, String> ETF_NAME = Map.of(
+            CSPX, "iShares Core S&P 500",
+            EIMI, "iShares Core MSCI EM IMI",
+            XRSU, "Xtrackers Russell 2000",
+            RTWO, "Russell 2000 Q. Factor",
+            MEUD, "Amundi Stoxx Europe 600",
+            IWDA, "iShares Core MSCI World"
     );
 
     private static final AnsiFormat DIM = new AnsiFormat(Attribute.DIM());
@@ -159,7 +165,7 @@ public class Investments {
 
     }
 
-    private List<Investment> benchmark(List<Investment> etfs, String benchmark) {
+    private List<Investment> benchmark(List<Investment> etfs, Currency benchmark) {
 
         final var allEtfs = this.getInvestments()
                 .filter(Investment::isETF)
@@ -179,9 +185,9 @@ public class Investments {
                 .filter(everyone)
                 .toList();
 
-        final var cspxBenchmarkSeries = benchmark(etfs, "CSPX");
-        final var iwdaBenchmarkSeries = benchmark(etfs, "IWDA");
-        final var cashBenchmarkSeries = benchmark(etfs, "USD");
+        final var cspxBenchmarkSeries = benchmark(etfs, CSPX);
+        final var iwdaBenchmarkSeries = benchmark(etfs, IWDA);
+        final var cashBenchmarkSeries = benchmark(etfs, USD);
 
         this.investmentReport(everyone, nominal);
         this.yearMatrix(etfs, cspxBenchmarkSeries, iwdaBenchmarkSeries, cashBenchmarkSeries, nominal);
@@ -194,7 +200,7 @@ public class Investments {
                         .mapToObj(y -> y == 0 ? "Total" : this.format.text(String.valueOf(y), 9))
                         .collect(joining()));
 
-        Stream.of("CSPX", "EIMI", "XRSU", "RTWO", "MEUD", "IWDA")
+        Stream.of(CSPX, EIMI, XRSU, RTWO, MEUD, IWDA)
                 .map(symbol -> Pair.of(symbol, this.annualRealReturn(symbol, 0, nominal)))
                 .sorted(Comparator.comparing(Pair::second, Comparator.reverseOrder()))
                 .map(p -> this.row(p.first(), nominal))
@@ -202,7 +208,7 @@ public class Investments {
 
     }
 
-    private String row(String symbol, boolean nominal) {
+    private String row(Currency symbol, boolean nominal) {
         return format("{0}{1}",
                 this.format.text(ETF_NAME.get(symbol), 25),
                 this.range()
@@ -211,7 +217,7 @@ public class Investments {
         );
     }
 
-    private BigDecimal annualRealReturn(String symbol, int year, boolean nominal) {
+    private BigDecimal annualRealReturn(Currency symbol, int year, boolean nominal) {
 
         final var from = Inflation.USD_INFLATION.getFrom();
         final var to = Inflation.USD_INFLATION.getTo();
@@ -220,13 +226,13 @@ public class Investments {
             return BigDecimal.ZERO;
         }
 
-        final var amount = new MoneyAmount(ONE, Currency.valueOf(symbol));
+        final var amount = new MoneyAmount(ONE, symbol);
         final var startYm = YearMonth.of(Math.max(2019, year) - 1, 12).max(from);
         final var endYm = year == 0
                 ? to
                 : YearMonth.of(year, 12).min(to);
 
-        final var fx = ForeignExchanges.getForeignExchange(symbol, "USD");
+        final var fx = ForeignExchanges.getForeignExchange(symbol, USD);
         var startValue = fx.exchange(amount, Currency.USD, startYm);
         var endValue = fx.exchange(amount, Currency.USD, endYm);
         if (!nominal) {
@@ -267,7 +273,7 @@ public class Investments {
 
         this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Modified Dietz Returns"));
 
-        this.console.appendLine(this.format.text(" ", 28), titleRow);
+        this.console.appendLine(this.format.text(" ", 16), titleRow);
         matrix
                 .entrySet()
                 .stream()
@@ -326,7 +332,7 @@ public class Investments {
         final var useBenchmarks = !iwdaList.isEmpty() && !cspxList.isEmpty();
 
         return Stream.concat(
-                Stream.of(this.format.text(ETF_NAME.getOrDefault(name, name), 25, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
+                Stream.of(this.format.text(ETF_NAME.getOrDefault(name, name), 12, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
                 IntStream.range(0, rowData.size())
                         .mapToObj(i -> new LabelAndMDR(i, rowData.get(i)))
                         .map(pair -> coloredPercent(pair.mdr(), color(name, pair.mdr(), useBenchmarks ? iwdaList.get(Integer.parseInt(pair.label())) : null, useBenchmarks ? cspxList.get(Integer.parseInt(pair.label())) : null))))
@@ -576,7 +582,7 @@ public class Investments {
                 .map(YearMonth::prev)
                 .orElseGet(Inflation.USD_INFLATION::getTo);
 
-        Function<Investment, String> classifier = i -> i.getType().toString().concat(" ").concat(i.getCurrency());
+        Function<Investment, String> classifier = i -> i.getType().toString().concat(" ").concat(i.getCurrency().name());
 
         Predicate<Investment> filterPredicate = i -> Objects.isNull(type) || i.getType().toString().equals(type);
         Comparator<Investment> comparator = comparing(Investment::getInitialDate, naturalOrder());
@@ -681,9 +687,9 @@ public class Investments {
                     st,
                     fn).get().getMoneyWeighted(), C);
 
-            final var cspx = ONE.add(new ModifiedDietzReturn(this.benchmark(etfs, "CSPX"), currency, nominal, st, fn).get().getMoneyWeighted(), C);
-            final var iwda = ONE.add(new ModifiedDietzReturn(this.benchmark(etfs, "IWDA"), currency, nominal, st, fn).get().getMoneyWeighted(), C);
-            final var cash = ONE.add(new ModifiedDietzReturn(this.benchmark(etfs, "USD"), currency, nominal, st, fn).get().getMoneyWeighted(), C);
+            final var cspx = ONE.add(new ModifiedDietzReturn(this.benchmark(etfs, CSPX), currency, nominal, st, fn).get().getMoneyWeighted(), C);
+            final var iwda = ONE.add(new ModifiedDietzReturn(this.benchmark(etfs, IWDA), currency, nominal, st, fn).get().getMoneyWeighted(), C);
+            final var cash = ONE.add(new ModifiedDietzReturn(this.benchmark(etfs, USD), currency, nominal, st, fn).get().getMoneyWeighted(), C);
 
             final var month = YearMonth.of(Date.from(fn.atStartOfDay().toInstant(ZoneOffset.ofHours(-3))));
 
@@ -723,7 +729,7 @@ public class Investments {
 
         this.series.getInvestments().stream()
                 .filter(Investment::isCurrent)
-                .collect(groupingBy(inv -> new InvestmentTypeAndCurrency(inv.getType(), Currency.valueOf(inv.getCurrency())), mapper))
+                .collect(groupingBy(inv -> new InvestmentTypeAndCurrency(inv.getType(), inv.getCurrency()), mapper))
                 .entrySet()
                 .stream()
                 .map(e -> new InvestmentTypeCurrencyAndAmount(e.getKey(), e.getValue()))

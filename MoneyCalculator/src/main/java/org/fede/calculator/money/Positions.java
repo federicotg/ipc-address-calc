@@ -280,7 +280,7 @@ public class Positions {
     }
 
     private MoneyAmount currentValueUSD(Investment i) {
-        return ForeignExchanges.getMoneyAmountForeignExchange(i.getCurrency(), "USD")
+        return ForeignExchanges.getMoneyAmountForeignExchange(i.getCurrency(), USD)
                 .apply(i.getInvestment().getMoneyAmount(), Inflation.USD_INFLATION.getTo());
     }
 
@@ -343,7 +343,7 @@ public class Positions {
                         .map(CurrencyAndGroupKey::currency)
                         .distinct()
                         .sorted()
-                        .map(currency -> this.format.text(currency, 9))
+                        .map(currency -> this.format.text(currency.name(), 9))
                         .collect(joining()));
 
         positionByGroup.keySet().stream()
@@ -406,7 +406,7 @@ public class Positions {
         return Optional.ofNullable(positionsByGroup.get(key))
                 .map(Position::getAveragePrice)
                 .map(MoneyAmount::getAmount)
-                .map(avgPrice -> this.colorized(avgPrice, averagesByGroup.get(new CurrencyAndGroupKey(key.currency(), AVERAGE_KEY)).getAveragePrice().getAmount(), this.current(Currency.valueOf(key.currency())).getAmount()))
+                .map(avgPrice -> this.colorized(avgPrice, averagesByGroup.get(new CurrencyAndGroupKey(key.currency(), AVERAGE_KEY)).getAveragePrice().getAmount(), this.current(key.currency()).getAmount()))
                 .orElseGet(() -> this.format.text("", 9));
     }
 
@@ -534,11 +534,11 @@ public class Positions {
         return new Position(
                 ETF_NAME.get(symbol),
                 position,
-                ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD").apply(new MoneyAmount(ONE, Currency.valueOf(symbol)), now),
+                ForeignExchanges.getMoneyAmountForeignExchange(symbol, USD).apply(new MoneyAmount(ONE, symbol), now),
                 investments.stream()
                         .map(i -> i.getIn().getMoneyAmount())
                         .reduce(ZERO_USD, MoneyAmount::add),
-                ForeignExchanges.getMoneyAmountForeignExchange(symbol, "USD")
+                ForeignExchanges.getMoneyAmountForeignExchange(symbol, USD)
                         .apply(investments.stream()
                                 .map(Investment::getMoneyAmount)
                                 .reduce(MoneyAmount.zero(symbol), MoneyAmount::add),
@@ -636,7 +636,7 @@ public class Positions {
                 .filter(Investment::isCurrent)
                 .collect(groupingBy(
                         this::assetAllocation,
-                        mapping(inv -> getMoneyAmountForeignExchange(Currency.valueOf(inv.getInvestment().getCurrency()), reportCurrency).apply(inv.getInvestment().getMoneyAmount(), limit)
+                        mapping(inv -> getMoneyAmountForeignExchange(inv.getInvestment().getCurrency(), reportCurrency).apply(inv.getInvestment().getMoneyAmount(), limit)
                         .getAmount()
                         .setScale(MathConstants.SCALE, MathConstants.RM),
                                 reducing(ZERO, BigDecimal::add))))
@@ -684,7 +684,7 @@ public class Positions {
         final var total = this.total(Investment::isCurrent, reportCurrency, limit);
         this.series.getInvestments().stream()
                 .filter(Investment::isCurrent)
-                .collect(groupingBy(in -> new InvestmentTypeAndCurrency(in.getType(), Currency.valueOf(in.getCurrency())),
+                .collect(groupingBy(in -> new InvestmentTypeAndCurrency(in.getType(), in.getCurrency()),
                         mapping(inv -> inv.getMoneyAmount().getAmount(),
                                 reducing(ZERO, BigDecimal::add))))
                 .entrySet()
@@ -724,7 +724,7 @@ public class Positions {
                 this.bar.pctBar(total.map(tot -> subtotal.divide(tot.getAmount(), C)).orElse(ZERO)));
     }
 
-    private record CurrencyAndGroupKey(String currency, String groupKey) {}
+    private record CurrencyAndGroupKey(Currency currency, String groupKey) {}
     private record DescriptionAndMoneyAmount(String description, MoneyAmount amount) {}
 
 }

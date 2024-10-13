@@ -86,7 +86,7 @@ public class Investment {
     }
 
     @JsonIgnore
-    public String getInitialCurrency() {
+    public Currency getInitialCurrency() {
         return this.getIn().getCurrency();
     }
 
@@ -101,7 +101,7 @@ public class Investment {
     }
 
     @JsonIgnore
-    public String getCurrency() {
+    public Currency getCurrency() {
         return this.getInvestment().getCurrency();
     }
 
@@ -178,7 +178,7 @@ public class Investment {
         return new MoneyAmount(
                 Optional.ofNullable(this.getComment())
                         .map(c -> this.ibkrCost())
-                        .orElseGet(this::ppiCost), Currency.valueOf(this.getIn().getCurrency()));
+                        .orElseGet(this::ppiCost), this.getIn().getCurrency());
     }
 
     private BigDecimal ccl() {

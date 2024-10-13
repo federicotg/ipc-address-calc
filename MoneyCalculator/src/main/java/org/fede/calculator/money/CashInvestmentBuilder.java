@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
@@ -88,7 +89,7 @@ public class CashInvestmentBuilder {
     private void sellInvestment(Investment inv, YearMonth ym) {
         final var out = new InvestmentEvent();
         out.setAmount(inv.getInvestment().getAmount());
-        out.setCurrency("USD");
+        out.setCurrency(USD);
         out.setDate(ym.asDate());
         out.setFee(BigDecimal.ZERO);
         out.setTransferFee(BigDecimal.ZERO);
@@ -98,7 +99,7 @@ public class CashInvestmentBuilder {
     private Investment newInvestment(BigDecimal amount, YearMonth ym) {
         final var in = new InvestmentEvent();
         in.setAmount(amount);
-        in.setCurrency("USD");
+        in.setCurrency(USD);
         in.setDate(Date.from(
                 LocalDate.of(ym.getYear(), ym.getMonth(), 1)
                         .atTime(12, 01)
@@ -108,7 +109,7 @@ public class CashInvestmentBuilder {
 
         final var asset = new InvestmentAsset();
         asset.setAmount(amount);
-        asset.setCurrency("USD");
+        asset.setCurrency(USD);
 
         final var inv = new Investment();
         inv.setIn(in);

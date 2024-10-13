@@ -48,6 +48,11 @@ import org.fede.calculator.ppi.PPI;
 import org.fede.calculator.fmp.CachedETF;
 import org.fede.calculator.service.ETF;
 import org.fede.calculator.fmp.ExchangeTradedFunds;
+import static org.fede.calculator.money.Currency.CSPX;
+import static org.fede.calculator.money.Currency.EIMI;
+import static org.fede.calculator.money.Currency.MEUD;
+import static org.fede.calculator.money.Currency.RTWO;
+import static org.fede.calculator.money.Currency.XRSU;
 import org.fede.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,13 +125,13 @@ public class ConsoleReports {
             return true;
         }
         if ("r2k".equalsIgnoreCase(type)) {
-            return i.getCurrency().equals("XRSU") || i.getCurrency().equals("RTWO");
+            return i.getCurrency().equals("XRSU") || i.getCurrency().equals(RTWO);
         }
         if ("exus".equalsIgnoreCase(type)) {
-            return i.getCurrency().equals("EIMI") || i.getCurrency().equals("MEUD");
+            return i.getCurrency().equals("EIMI") || i.getCurrency().equals(MEUD);
         }
 
-        return i.getCurrency().equalsIgnoreCase(type);
+        return i.getCurrency().name().equalsIgnoreCase(type);
     }
 
     private static Runnable getAction(String[] args, ConsoleReports me, Format format, Bar bar, Series series, Console console) {
@@ -687,10 +692,10 @@ public class ConsoleReports {
     private String assetRow(Investment inv) {
 
         final var isins = Map.of(
-                "EIMI", "IE00BKM4GZ66",
-                "XRSU", "IE00BJZ2DD79",
-                "CSPX", "IE00B5BMR087",
-                "MEUD", "LU0908500753");
+                EIMI, "IE00BKM4GZ66",
+                XRSU, "IE00BJZ2DD79",
+                CSPX, "IE00B5BMR087",
+                MEUD, "LU0908500753");
 
         final DateTimeFormatter mdy = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
 
@@ -700,7 +705,7 @@ public class ConsoleReports {
         numberFormat.setMinimumFractionDigits(2);
 
         return List.of("A",
-                inv.getInvestment().getCurrency(),
+                inv.getInvestment().getCurrency().name(),
                 isins.get(inv.getInvestment().getCurrency()),
                 "USD",
                 mdy.format(inv.getIn().getDate().toInstant()),

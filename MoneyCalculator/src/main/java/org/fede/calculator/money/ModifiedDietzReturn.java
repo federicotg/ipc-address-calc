@@ -192,7 +192,7 @@ public class ModifiedDietzReturn {
         final var ym = YearMonth.of(ie.getDate());
         final var fx = ie.getFx() != null
                 ? new MoneyAmount(ie.getAmount().multiply(ie.getFx(), C), Currency.USD)
-                : ForeignExchanges.getMoneyAmountForeignExchange(Currency.valueOf(ie.getCurrency()), currency).apply(ie.getMoneyAmount(), ym);
+                : ForeignExchanges.getMoneyAmountForeignExchange(ie.getCurrency(), currency).apply(ie.getMoneyAmount(), ym);
 
         return nominal
                 ? fx.getAmount()
@@ -205,7 +205,7 @@ public class ModifiedDietzReturn {
                 .stream()
                 .filter(i -> i.isCurrent(toDate))
                 .map(Investment::getInvestment)
-                .map(asset -> ForeignExchanges.getMoneyAmountForeignExchange(Currency.valueOf(asset.getCurrency()), currency).apply(asset.getMoneyAmount(), ym))
+                .map(asset -> ForeignExchanges.getMoneyAmountForeignExchange(asset.getCurrency(), currency).apply(asset.getMoneyAmount(), ym))
                 .map(ma -> nominal ? ma : Inflation.USD_INFLATION.adjust(ma, ym, Inflation.USD_INFLATION.getTo()))
                 .reduce(this.zeroAmount, MoneyAmount::add)
                 .max(this.zeroAmount);

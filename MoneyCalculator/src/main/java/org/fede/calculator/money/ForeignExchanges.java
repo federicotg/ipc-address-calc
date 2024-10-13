@@ -215,7 +215,7 @@ public class ForeignExchanges {
 
         if (investment.getType().equals(InvestmentType.USD)) {
             InvestmentEvent usdIn = new InvestmentEvent();
-            usdIn.setCurrency(targetCurrency.name());
+            usdIn.setCurrency(targetCurrency);
             usdIn.setDate(investment.getInitialDate());
             usdIn.setAmount(investment.getInvestment().getAmount());
             answer.setIn(usdIn);
@@ -241,19 +241,19 @@ public class ForeignExchanges {
         if (in == null) {
             return null;
         }
-        ForeignExchange fx = ForeignExchanges.getForeignExchange(Currency.valueOf(in.getCurrency()), currency);
+        ForeignExchange fx = ForeignExchanges.getForeignExchange(in.getCurrency(), currency);
 
-        final var fee = new MoneyAmount(in.getFee(), Currency.valueOf(in.getCurrency()));
+        final var fee = new MoneyAmount(in.getFee(), in.getCurrency());
 
         InvestmentEvent answer = new InvestmentEvent();
         MoneyAmount ma = fx(in.getFx(), fx, in.getMoneyAmount(), currency, in.getDate());
         answer.setAmount(ma.getAmount());
-        answer.setCurrency(ma.getCurrency().name());
+        answer.setCurrency(ma.getCurrency());
         answer.setDate(in.getDate());
         answer.setFee(fx(in.getFx(), fx, fee, currency, in.getDate()).getAmount());
         answer.setTransferFee(
                 Optional.ofNullable(in.getTransferFee())
-                        .map(trfee -> fx(in.getFx(), fx, new MoneyAmount(trfee, Currency.valueOf(in.getCurrency())), currency, in.getDate()).getAmount())
+                        .map(trfee -> fx(in.getFx(), fx, new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).getAmount())
                         .orElse(null));
         answer.setFx(in.getFx());
         return answer;

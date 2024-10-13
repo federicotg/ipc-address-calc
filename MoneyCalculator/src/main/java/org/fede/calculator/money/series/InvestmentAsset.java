@@ -28,14 +28,14 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public class InvestmentAsset {
 
-    private String currency;
+    private Currency currency;
     private BigDecimal amount;
 
-    public String getCurrency() {
+    public Currency getCurrency() {
         return currency;
     }
 
-    public void setCurrency(String currency) {
+    public void setCurrency(Currency currency) {
         this.currency = currency;
     }
 
@@ -49,7 +49,7 @@ public class InvestmentAsset {
 
     @JsonIgnore
     public MoneyAmount getMoneyAmount() {
-        return new MoneyAmount(this.getAmount(), Currency.valueOf(this.getCurrency()));
+        return new MoneyAmount(this.getAmount(), this.getCurrency());
     }
 
     @Override

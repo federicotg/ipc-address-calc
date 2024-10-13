@@ -36,8 +36,15 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.Currency.ARS;
+import static org.fede.calculator.money.Currency.CSPX;
+import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.EUR;
+import static org.fede.calculator.money.Currency.LECAP;
+import static org.fede.calculator.money.Currency.LETE;
+import static org.fede.calculator.money.Currency.MEUD;
+import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.USD;
+import static org.fede.calculator.money.Currency.XRSU;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import org.fede.calculator.money.series.BBPPItem;
 import org.fede.calculator.money.series.BBPPYear;
@@ -127,11 +134,11 @@ public class BBPP {
 
     }
 
-    private BBPPItem toArs(BBPPItem i, Map<String, Function<MoneyAmount, BigDecimal>> arsFunction) {
+    private BBPPItem toArs(BBPPItem i, Map<Currency, Function<MoneyAmount, BigDecimal>> arsFunction) {
         if (arsFunction.containsKey(i.currency())) {
             return new BBPPItem(i.name(),
-                    arsFunction.get(i.currency()).apply(new MoneyAmount(i.value(), Currency.valueOf(i.currency()))),
-                    i.holding(), i.domestic(), i.exempt(), "ARS");
+                    arsFunction.get(i.currency()).apply(new MoneyAmount(i.value(), i.currency())),
+                    i.holding(), i.domestic(), i.exempt(), ARS);
         }
         return i;
     }
@@ -148,28 +155,28 @@ public class BBPP {
 
         final var ym = YearMonth.of(year, 12);
 
-        final Map<String, Function<MoneyAmount, BigDecimal>> arsFunction = Map.of("ARS", (MoneyAmount item) -> item.getAmount(),
-                "LECAP", (MoneyAmount item) -> item.getAmount(),
-                "EUR", (MoneyAmount item) -> item.getAmount().multiply(bbpp.eur(), C),
-                "USD", (MoneyAmount item) -> item.getAmount().multiply(bbpp.usd(), C),
-                "LETE", (MoneyAmount item) -> item.getAmount().multiply(bbpp.usd(), C),
-                "XRSU", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
+        final Map<Currency, Function<MoneyAmount, BigDecimal>> arsFunction = Map.of(ARS, (MoneyAmount item) -> item.getAmount(),
+                LECAP, (MoneyAmount item) -> item.getAmount(),
+                EUR, (MoneyAmount item) -> item.getAmount().multiply(bbpp.eur(), C),
+                USD, (MoneyAmount item) -> item.getAmount().multiply(bbpp.usd(), C),
+                LETE, (MoneyAmount item) -> item.getAmount().multiply(bbpp.usd(), C),
+                XRSU, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.usd(), C),
-                "RTWO", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
+                RTWO, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.usd(), C),
-                "CSPX", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
+                CSPX, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.usd(), C),
-                "EIMI", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
+                EIMI, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.usd(), C),
-                "MEUD", (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(),EUR)
+                MEUD, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(),EUR)
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.eur(), C));
@@ -183,7 +190,7 @@ public class BBPP {
                 .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        bbpp.items().add(new BBPPItem("ONs", ons, ONE, true, false, "ARS"));
+        bbpp.items().add(new BBPPItem("ONs", ons, ONE, true, false, ARS));
 
         return new BBPPYear(bbpp.year(), bbpp.brakets(), bbpp.minimum(), bbpp.usd(), bbpp.eur(), bbpp.tax(),
                 bbpp.items()
@@ -331,20 +338,20 @@ public class BBPP {
     }
 
     private BBPPItem toARS(BBPPItem item, BigDecimal usdValue, BigDecimal eurValue) {
-        if (item.currency().equals("ARS")) {
+        if (item.currency().equals(ARS)) {
             return item;
         }
 
         final var value = switch (item.currency()) {
-            case "USD" ->
+            case USD ->
                 item.value().multiply(usdValue, C);
-            case "EUR" ->
+            case EUR ->
                 item.value().multiply(eurValue, C);
             default ->
                 item.value();
         };
 
-        return new BBPPItem(item.name(), value, item.holding(), item.domestic(), item.exempt(), "ARS");
+        return new BBPPItem(item.name(), value, item.holding(), item.domestic(), item.exempt(), ARS);
 
     }
 
@@ -416,7 +423,7 @@ public class BBPP {
 
         final var lastYear = YearMonth.of(LocalDate.now()).year();
 
-        Stream.of("CSPX", "EIMI", "XRSU", "MEUD", "RTWO")
+        Stream.of(CSPX, EIMI, XRSU, MEUD, RTWO)
                 .flatMap(currency -> IntStream.range(2019, lastYear).boxed().map(y -> new YearCurrency(y, currency)))
                 .map(this::status)
                 .sorted(Comparator.comparing(BBPPStatus::yearCurrency))
@@ -425,7 +432,7 @@ public class BBPP {
 
     }
 
-    public record YearCurrency(int year, String currecy) implements Comparable<YearCurrency> {
+    public record YearCurrency(int year, Currency currecy) implements Comparable<YearCurrency> {
 
         @Override
         public int compareTo(YearCurrency o) {
@@ -441,11 +448,11 @@ public class BBPP {
         public String toString(Format format) {
 
             final var dif = includedAmount.subtract(totalAmount, C);
-            final var difAmount = ForeignExchanges.getForeignExchange(yearCurrency.currecy, "USD")
-                    .exchange(new MoneyAmount(dif, Currency.valueOf(yearCurrency.currecy)), Currency.USD, YearMonth.of(LocalDate.now()));
+            final var difAmount = ForeignExchanges.getForeignExchange(yearCurrency.currecy, USD)
+                    .exchange(new MoneyAmount(dif, yearCurrency.currecy), Currency.USD, YearMonth.of(LocalDate.now()));
             return MessageFormat.format("{0} {1} {2} {3} {4} {5}",
                     format.text(String.valueOf(yearCurrency.year), 5),
-                    format.text(yearCurrency.currecy, 5),
+                    format.text(yearCurrency.currecy.name(), 5),
                     format.number(includedAmount, 8),
                     format.number(totalAmount, 8),
                     format.number(dif, 8),

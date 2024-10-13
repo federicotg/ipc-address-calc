@@ -17,6 +17,7 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
+import org.fede.calculator.money.Currency;
 
 /**
  * {
@@ -31,6 +32,6 @@ public record BBPPItem(
         BigDecimal holding,
         boolean domestic,
         boolean exempt,
-        String currency) {
+        Currency currency) {
 
 }

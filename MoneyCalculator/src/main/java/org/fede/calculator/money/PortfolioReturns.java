@@ -253,13 +253,13 @@ public class PortfolioReturns {
                 max(yearStart, investmentStart),
                 to.plusDays(1));
 
-        final var usdInvested = getMoneyAmountForeignExchange(i.getCurrency(), "USD")
+        final var usdInvested = getMoneyAmountForeignExchange(i.getCurrency(), USD)
                 .apply(i.getMoneyAmount(), YearMonth.of(to.getYear(), to.getMonthValue()));
 
         return new DayDollars(
                 year,
                 i.getType(),
-                i.getCurrency(),
+                i.getCurrency().name(),
                 usdInvested.getAmount().multiply(BigDecimal.valueOf(daysInvestedInYear), C));
 
     }
@@ -292,8 +292,8 @@ public class PortfolioReturns {
 
     }
 
-    public void mdrByCurrencyReport(String currency) {
-        this.console.appendLine(this.format.subtitle(currency));
+    public void mdrByCurrencyReport(Currency currency) {
+        this.console.appendLine(this.format.subtitle(currency.name()));
         this.modifiedDietzReturn(i -> i.getCurrency().equals(currency), false, true, ModifiedDietzReturn::get);
     }
 
