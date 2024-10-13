@@ -37,6 +37,7 @@ import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -271,9 +272,15 @@ public class Investments {
                 .map(y -> this.format.text(y, 9))
                 .collect(joining());
 
+        final var nameColWidth = ETF_NAME.values()
+                .stream()
+                .mapToInt(String::length)
+                .max()
+                .orElse(12);
+        
         this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Modified Dietz Returns"));
 
-        this.console.appendLine(this.format.text(" ", 16), titleRow);
+        this.console.appendLine(this.format.text(" ", nameColWidth+4), titleRow);
         matrix
                 .entrySet()
                 .stream()
@@ -331,8 +338,14 @@ public class Investments {
 
         final var useBenchmarks = !iwdaList.isEmpty() && !cspxList.isEmpty();
 
+        Map<String, String> currencies = ETF_NAME.keySet()
+                .stream()
+                .collect(Collectors.toMap(Currency::name, ETF_NAME::get));
+        
+        final var nameColWidth = currencies.values().stream().mapToInt(String::length).max().orElse(12);
+        
         return Stream.concat(
-                Stream.of(this.format.text(ETF_NAME.getOrDefault(name, name), 12, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
+                Stream.of(this.format.text(currencies.getOrDefault(name, name), nameColWidth, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
                 IntStream.range(0, rowData.size())
                         .mapToObj(i -> new LabelAndMDR(i, rowData.get(i)))
                         .map(pair -> coloredPercent(pair.mdr(), color(name, pair.mdr(), useBenchmarks ? iwdaList.get(Integer.parseInt(pair.label())) : null, useBenchmarks ? cspxList.get(Integer.parseInt(pair.label())) : null))))
