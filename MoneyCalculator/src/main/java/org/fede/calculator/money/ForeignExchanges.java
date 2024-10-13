@@ -159,9 +159,6 @@ public class ForeignExchanges {
 
     }
 
-    public static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(String from, String to) {
-        return getMoneyAmountForeignExchange(Currency.valueOf(from), Currency.valueOf(to));
-    }
 
     public static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(Currency from, Currency to) {
         return FX_FUNCTION_CACHE.computeIfAbsent(new FromTo(from, to), ForeignExchanges::getMoneyAmountForeignExchange);
@@ -171,9 +168,6 @@ public class ForeignExchanges {
         return (amount, ym) -> getForeignExchange(fromTo.from(), fromTo.to()).exchange(amount, fromTo.to(), ym);
     }
 
-    public static ForeignExchange getForeignExchange(String from, String to) {
-        return getForeignExchange(Currency.valueOf(from), Currency.valueOf(to));
-    }
     
     public static ForeignExchange getForeignExchange(Currency from, Currency to) {
 
