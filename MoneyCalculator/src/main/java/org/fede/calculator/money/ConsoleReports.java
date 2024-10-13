@@ -383,6 +383,7 @@ public class ConsoleReports {
                         entry("expenses-evo", "type=(full|taxes|insurance|phone|services|home|entertainment) m=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)"),
                         entry("dca", "type=(q*|h|y|m)"),
+                        entry("etf", ""),
                         entry("pos", "nominal=false")
                 );
 
