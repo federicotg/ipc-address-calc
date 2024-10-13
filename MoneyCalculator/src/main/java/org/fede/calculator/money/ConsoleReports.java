@@ -125,10 +125,10 @@ public class ConsoleReports {
             return true;
         }
         if ("r2k".equalsIgnoreCase(type)) {
-            return i.getCurrency().equals("XRSU") || i.getCurrency().equals(RTWO);
+            return i.getCurrency().equals(XRSU) || i.getCurrency().equals(RTWO);
         }
         if ("exus".equalsIgnoreCase(type)) {
-            return i.getCurrency().equals("EIMI") || i.getCurrency().equals(MEUD);
+            return i.getCurrency().equals(EIMI) || i.getCurrency().equals(MEUD);
         }
 
         return i.getCurrency().name().equalsIgnoreCase(type);

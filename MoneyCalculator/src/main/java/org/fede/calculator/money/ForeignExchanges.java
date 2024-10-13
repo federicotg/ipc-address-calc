@@ -167,7 +167,6 @@ public class ForeignExchanges {
     private static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(FromTo fromTo) {
         return (amount, ym) -> getForeignExchange(fromTo.from(), fromTo.to()).exchange(amount, fromTo.to(), ym);
     }
-
     
     public static ForeignExchange getForeignExchange(Currency from, Currency to) {
 

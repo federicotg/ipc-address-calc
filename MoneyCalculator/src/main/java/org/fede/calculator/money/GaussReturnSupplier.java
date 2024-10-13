@@ -51,7 +51,5 @@ public class GaussReturnSupplier implements Supplier<double[]> {
                 .toArray();
     
     }
-    
-    
 
 }
