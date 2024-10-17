@@ -37,7 +37,6 @@ import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,13 +52,7 @@ import static java.util.stream.Collectors.joining;
 import static org.fede.calculator.money.MathConstants.C;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import static org.fede.calculator.money.Currency.CSPX;
-import static org.fede.calculator.money.Currency.EIMI;
-import static org.fede.calculator.money.Currency.IWDA;
-import static org.fede.calculator.money.Currency.MEUD;
-import static org.fede.calculator.money.Currency.RTWO;
-import static org.fede.calculator.money.Currency.USD;
-import static org.fede.calculator.money.Currency.XRSU;
+import static org.fede.calculator.money.Currency.*;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -421,7 +414,7 @@ public class Investments {
         }
     }
 
-    private void invEvo(String title, String currency, boolean nominal, boolean pct) {
+    private void invEvo(String title, Currency currency, boolean nominal, boolean pct) {
 
         this.console.appendLine(this.format.title(format(title, nominal ? "Nominal" : "Real")));
 
@@ -467,11 +460,11 @@ public class Investments {
         return this.bar.percentBar(ym, elements);
     }
 
-    public void invEvo(String currency, boolean nominal) {
+    public void invEvo(Currency currency, boolean nominal) {
         this.invEvo("===< {0} Investment Evolution >===", currency, nominal, false);
     }
 
-    public void invEvoPct(String currency, boolean nominal) {
+    public void invEvoPct(Currency currency, boolean nominal) {
 
         this.invEvo("===< {0} Investment Evolution Percent >===", currency, nominal, true);
     }
@@ -480,18 +473,18 @@ public class Investments {
         this.console.appendLine("");
         this.console.appendLine("References:");
         this.console.appendLine(Ansi.colorize(" ", Attribute.WHITE_BACK()),
-                ": investment, ",
+                "investment ",
                 Ansi.colorize(" ", Attribute.YELLOW_BACK()),
-                ": cost, ",
+                "cost ",
                 Ansi.colorize(" ", Attribute.GREEN_BACK()),
-                ": profit, ",
+                "profit ",
                 Ansi.colorize(" ", Attribute.RED_BACK()),
-                ": loss, ",
+                "loss ",
                 Ansi.colorize(" ", Attribute.CYAN_BACK()),
-                ": tax.");
+                "tax");
     }
 
-    private Map<String, MoneyAmountSeries> investmentEvolution(String currency, boolean nominal) {
+    private Map<String, MoneyAmountSeries> investmentEvolution(Currency currency, boolean nominal) {
 
         final var inv = this.getInvestments()
                 .filter(Investment::isETF)
@@ -635,24 +628,24 @@ public class Investments {
                 .evo(totalFunction, startFunction, endFunction, this::classifier, i -> true, comparator, this.getAllInvestments(), pct);
     }
 
-    private static final Map<String, String> PF_CATEGORIES = Map.ofEntries(
-            Map.entry("USD", "USD Bank"),
-            Map.entry("UVA", "UVA Bank"),
-            Map.entry("ARS", "ARS Bank"));
+    private static final Map<Currency, String> PF_CATEGORIES = Map.ofEntries(
+            Map.entry(USD, "USD Bank"),
+            Map.entry(UVA, "UVA Bank"),
+            Map.entry(ARS, "ARS Bank"));
 
-    private static final Map<String, String> CATEGORIES = Map.ofEntries(
-            Map.entry("CSPX", "Global Eq."),
-            Map.entry("EIMI", "Global Eq."),
-            Map.entry("MEUD", "Global Eq."),
-            Map.entry("XRSU", "Global Eq."),
-            Map.entry("RTWO", "Global Eq."),
-            Map.entry("CONAAFA", "Dom. Eq."),
-            Map.entry("CONBALA", "Dom. Bonds"),
-            Map.entry("CAPLUSA", "Dom. Bonds"),
-            Map.entry("LECAP", "Dom. Bonds"),
-            Map.entry("LETE", "Dom. Bonds"),
-            Map.entry("AY24", "Dom. Bonds"),
-            Map.entry("ARS", "ARS Cash"));
+    private static final Map<Currency, String> CATEGORIES = Map.ofEntries(
+            Map.entry(CSPX, "Global Eq."),
+            Map.entry(EIMI, "Global Eq."),
+            Map.entry(MEUD, "Global Eq."),
+            Map.entry(XRSU, "Global Eq."),
+            Map.entry(RTWO, "Global Eq."),
+            Map.entry(CONAAFA, "Dom. Eq."),
+            Map.entry(CONBALA, "Dom. Bonds"),
+            Map.entry(CAPLUSA, "Dom. Bonds"),
+            Map.entry(LECAP, "Dom. Bonds"),
+            Map.entry(LETE, "Dom. Bonds"),
+            Map.entry(AY24, "Dom. Bonds"),
+            Map.entry(ARS, "ARS Cash"));
 
     private String classifier(Investment i) {
 

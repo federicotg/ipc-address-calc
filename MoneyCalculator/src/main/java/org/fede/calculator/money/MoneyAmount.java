@@ -19,8 +19,11 @@ package org.fede.calculator.money;
 import java.math.BigDecimal;
 import static java.math.RoundingMode.HALF_UP;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -28,14 +31,21 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public record MoneyAmount(BigDecimal amount, Currency currency) {
 
-    private static final Map<Currency, MoneyAmount> ZERO_AMOUNTS = new ConcurrentHashMap<>();
+    private static final Map<Currency, MoneyAmount> ZERO_AMOUNTS = Arrays.stream(Currency.values())
+            .map(c -> new MoneyAmount(BigDecimal.ZERO, c))
+            .collect(Collectors.toMap(
+                    MoneyAmount::currency,
+                    Function.identity(),
+                    (a, b) -> a,
+                    () -> new EnumMap<>(Currency.class)
+            ));
 
     public static MoneyAmount zero(String currency) {
         return zero(Currency.valueOf(currency));
     }
-    
+
     public static MoneyAmount zero(Currency currency) {
-        return ZERO_AMOUNTS.computeIfAbsent(currency, c -> new MoneyAmount(BigDecimal.ZERO, c));
+        return ZERO_AMOUNTS.get(currency);
     }
 
     public MoneyAmount adjust(BigDecimal divisor, BigDecimal factor) {
@@ -49,7 +59,7 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
     public MoneyAmount exchange(String newCurrency, BigDecimal exchangeRate) {
         return this.exchange(Currency.valueOf(newCurrency), exchangeRate);
     }
-    
+
     public MoneyAmount exchange(Currency newCurrency, BigDecimal exchangeRate) {
         if (this.isZero()) {
             return MoneyAmount.zero(newCurrency);
@@ -113,7 +123,7 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
         }
         return other;
     }
-    
+
     public MoneyAmount min(MoneyAmount other) {
         this.assertCurrency(other.getCurrency());
 

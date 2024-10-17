@@ -722,7 +722,7 @@ public class ConsoleReports {
 
     private void invEvoPct(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-        final var currency = params.get("currency");
+        final var currency = Optional.ofNullable(params.get("type")).map(Currency::valueOf).orElse(null);
         new Investments(console, format, bar, series).invEvoPct(currency, nominal(params));
     }
 
@@ -742,7 +742,7 @@ public class ConsoleReports {
 
     private void invEvo(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-        final var currency = params.get("type");
+        final var currency = Optional.ofNullable(params.get("type")).map(Currency::valueOf).orElse(null);
         final var nominal = nominal(params);
         new Investments(console, format, bar, series).invEvo(currency, nominal);
     }

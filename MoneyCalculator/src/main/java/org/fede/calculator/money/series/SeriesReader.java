@@ -184,7 +184,7 @@ public class SeriesReader {
             while (ym.monthsUntil(last) > 0) {
                 YearMonth next = ym.next();
                 if (!maSeries.hasValue(next)) {
-                    maSeries.putAmount(next, strategy.interpolate(maSeries.getAmount(ym), ym, currency.name()));
+                    maSeries.putAmount(next, strategy.interpolate(maSeries.getAmount(ym), ym, currency));
                 }
                 ym = ym.next();
             }

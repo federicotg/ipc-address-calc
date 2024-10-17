@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.money.series;
 
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.NoSeriesDataFoundException;
@@ -28,29 +29,29 @@ public enum InterpolationStrategy {
 
     NO_INTERPOLATION {
         @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
+        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, Currency currency) {
             throw new NoSeriesDataFoundException("No value for specified year and month.");
         }
     }, LAST_VALUE_INTERPOLATION {
         @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
+        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, Currency currency) {
             return lastValue;
         }
     }, ZERO_VALUE_INTERPOLATION {
         @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
+        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, Currency currency) {
             return MoneyAmount.zero(currency);
         }
     }, USD_INFLATION_INTERPOLATION {
         @Override
-        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
+        public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, Currency currency) {
             return inflationInterpolation(Inflation.USD_INFLATION, lastValue, lastValueYearMonth, currency);
         }
     };
 
-    public abstract MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency);
+    public abstract MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, Currency currency);
 
-    protected MoneyAmount inflationInterpolation(Inflation inflation, MoneyAmount lastValue, YearMonth lastValueYearMonth, String currency) {
+    protected MoneyAmount inflationInterpolation(Inflation inflation, MoneyAmount lastValue, YearMonth lastValueYearMonth, Currency currency) {
         YearMonth nextYm = lastValueYearMonth.next();
         return inflation.adjust(
                 lastValue, 
