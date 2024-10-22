@@ -31,31 +31,18 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public record YearMonth(int year, int month) implements Comparable<YearMonth> {
 
-    private static final Map<Integer, Map<Integer, YearMonth>> POOL = new ConcurrentHashMap<>(128, 0.75f);
+    //private static final Map<Integer, Map<Integer, YearMonth>> POOL = new ConcurrentHashMap<>(128, 0.75f);
 
     public static YearMonth of(LocalDate day) {
         return of(day.getYear(), day.getMonthValue());
     }
 
     public static YearMonth of(Date day) {
-        LocalDate date = day.toInstant().atZone(ZoneOffset.UTC).toLocalDate();
-        return of(date);
+        return of(day.toInstant().atZone(ZoneOffset.UTC).toLocalDate());
     }
 
     public static YearMonth of(int year, int month) {
-
-        Map<Integer, YearMonth> yearMap;
-
-        if ((yearMap = POOL.get(year)) == null) {
-            yearMap = new ConcurrentHashMap<>(16, 0.75f);
-            POOL.put(year, yearMap);
-        }
-        YearMonth ym;
-        if ((ym = yearMap.get(month)) == null) {
-            ym = new YearMonth(year, month);
-            yearMap.put(month, ym);
-        }
-        return ym;
+        return new YearMonth(year, month);
     }
 
     @Override

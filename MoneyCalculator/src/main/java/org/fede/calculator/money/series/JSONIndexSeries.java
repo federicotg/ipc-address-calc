@@ -19,7 +19,7 @@ package org.fede.calculator.money.series;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.SequencedCollection;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class JSONIndexSeries extends IndexSeriesSupport {
 
-    private final Map<Integer, Map<Integer, BigDecimal>> data;
+    private final Map<YearMonth, BigDecimal> data;
     private final YearMonth from;
     private final YearMonth to;
 
@@ -37,21 +37,19 @@ public class JSONIndexSeries extends IndexSeriesSupport {
         JSONDataPoint last = data.getLast();
         this.to = YearMonth.of(last.year(), last.month());
 
-        this.data = new ConcurrentHashMap<>();
-        for (var dp : data) {
-            var yearMap = this.data.computeIfAbsent(dp.year(), y -> new ConcurrentHashMap<>());
-            yearMap.put(dp.month(), dp.value());
-        }
+        this.data = data.stream()
+                .collect(Collectors.toMap(dp -> YearMonth.of(dp.year(), dp.month()), JSONDataPoint::value));
+        
     }
 
     @Override
     public BigDecimal getIndex(int year, int month) {
 
-        if (YearMonth.of(year, month).compareTo(this.getTo()) > 0) {
-            return this.data.get(this.to.getYear()).get(this.getTo().getMonth());
+        var ym = YearMonth.of(year, month);
+        if (ym.compareTo(this.getTo()) > 0) {
+            return this.data.get(this.to);
         }
-
-        return this.data.get(year).get(month);
+        return this.data.get(ym);
 
     }
 
@@ -67,12 +65,7 @@ public class JSONIndexSeries extends IndexSeriesSupport {
 
     public void put(YearMonth ym, BigDecimal value) {
 
-        var y = this.data.get(ym.year());
-        if (y == null) {
-            y = new ConcurrentHashMap<>();
-            this.data.put(ym.year(), y);
-        }
-        y.put(ym.month(), value);
+        this.data.put(ym, value);
 
     }
 

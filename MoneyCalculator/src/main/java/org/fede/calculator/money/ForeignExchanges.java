@@ -83,23 +83,19 @@ public class ForeignExchanges {
 
     public static final ForeignExchange ARS_CONAAFA = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/CONAAFA_AR-peso.json"),
-            CONAAFA,
-            ARS);
+            CONAAFA, ARS);
 
     public static final ForeignExchange ARS_CONBALA = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/CONBALA_AR-peso.json"),
-            CONBALA,
-            ARS);
+            CONBALA, ARS);
 
     public static final ForeignExchange ARS_CAPLUSA = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/CAPLUSA_AR-peso.json"),
-            CAPLUSA,
-            ARS);
+            CAPLUSA, ARS);
 
     public static final ForeignExchange ARS_UVA = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/UVA-peso.json"),
-            UVA,
-            ARS);
+            UVA, ARS);
 
     public static final ForeignExchange USD_AY24 = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/AY24-USD.json"),
@@ -206,7 +202,7 @@ public class ForeignExchanges {
         answer.setId(investment.getId());
         answer.setComment(investment.getComment());
 
-        if (investment.getType().equals(InvestmentType.USD)) {
+        if (investment.getType() == InvestmentType.USD) {
             InvestmentEvent usdIn = new InvestmentEvent();
             usdIn.setCurrency(targetCurrency);
             usdIn.setDate(investment.getInitialDate());

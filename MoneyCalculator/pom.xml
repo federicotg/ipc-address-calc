@@ -76,7 +76,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.5.1</version>
                 <configuration>
                     <forkCount>1C</forkCount>
                     <reuseForks>true</reuseForks>
@@ -106,7 +106,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.5.8</version>
+            <version>1.5.11</version>
         </dependency>
         
         <dependency>
