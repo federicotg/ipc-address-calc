@@ -35,7 +35,7 @@ public class By {
                 year.run();
             default ->
                 otherwise.run();
-        };
+        }
 
     }
 
