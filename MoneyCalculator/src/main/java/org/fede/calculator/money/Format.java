@@ -23,8 +23,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *
@@ -33,24 +31,25 @@ import java.util.Map;
 public class Format {
 
     private static final BigDecimal ONE_THOUSAND = BigDecimal.ONE.movePointRight(3);
+    private static final BigDecimal ONE_MILLION = BigDecimal.ONE.movePointRight(6);
+
     private static final AnsiFormat PROFIT_FORMAT = new AnsiFormat(Attribute.GREEN_TEXT());
     private static final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
     private static final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
 
-    private final Map<Integer, String> rightAlignedFormat = new HashMap<>();
-    private final Map<Integer, String> leftAlignedFormat = new HashMap<>();
-    
     public Format() {
         PERCENT_FORMAT.setMinimumFractionDigits(2);
         PERCENT_FORMAT.setMaximumFractionDigits(2);
     }
-    
-    private String getRightAlignedFormat(int width){
-        return rightAlignedFormat.computeIfAbsent(width, w -> "%".concat(String.valueOf(w)).concat("s"));
+
+    private String getRightAlignedFormat(int width) {
+        //return rightAlignedFormat.computeIfAbsent(width, w -> "%".concat(String.valueOf(w)).concat("s"));
+        return "%" + String.valueOf(width) + "s";
     }
-    
-    private String getLeftAlignedFormat(int width){
-        return leftAlignedFormat.computeIfAbsent(width, w -> "%-".concat(String.valueOf(w)).concat("s"));
+
+    private String getLeftAlignedFormat(int width) {
+        //return leftAlignedFormat.computeIfAbsent(width, w -> "%-".concat(String.valueOf(w)).concat("s"));
+        return "%-" + String.valueOf(width) + "s";
     }
 
     public String text(String value, int width, AnsiFormat fmt) {
@@ -76,16 +75,19 @@ public class Format {
     public String number2(BigDecimal value) {
         return format("{0,number,0.##}", value);
     }
-    
+
     public String numberLong(BigDecimal value) {
         return format("{0,number,0.0000}", value);
     }
-    
+
     public String currencyShort(BigDecimal value) {
-        if(value.abs().compareTo(ONE_THOUSAND) < 0){
+        if (value.abs().compareTo(ONE_THOUSAND) < 0) {
             return format("{0,number,0}", value.setScale(0, RoundingMode.HALF_UP));
         }
-        return format("{0,number,0.#}k", value.movePointLeft(3).setScale(1, RoundingMode.HALF_UP));
+        if (value.abs().compareTo(ONE_MILLION) < 0) {
+            return format("{0,number,0.#}k", value.movePointLeft(3).setScale(1, RoundingMode.HALF_UP));
+        }
+        return format("{0,number,0.#}m", value.movePointLeft(6).setScale(1, RoundingMode.HALF_UP));
     }
 
     public String number(BigDecimal value, int width) {
@@ -114,16 +116,16 @@ public class Format {
     public String title(String text) {
 
         return "\n"
-                .concat(Ansi.colorize(text, Attribute.BRIGHT_WHITE_TEXT(), Attribute.BOLD()))
-                .concat("\n");
+                + Ansi.colorize(text, Attribute.BRIGHT_WHITE_TEXT(), Attribute.BOLD())
+                + "\n";
 
     }
 
     public String subtitle(String title) {
 
         return "\n\t"
-                .concat(Ansi.colorize(format(" {0} ", title), Attribute.BOLD()))
-                .concat("\n");
+                + Ansi.colorize(format(" {0} ", title), Attribute.BOLD())
+                + "\n";
 
     }
 }
