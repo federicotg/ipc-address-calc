@@ -173,16 +173,27 @@ public class Goal {
             double badYearSpending,
             int saveCashYears) {
 
-        final var spendingandSaving = new Savings(this.format, this.series, this.bar, this.console)
+        final var spendingAndSaving = new Savings(this.format, this.series, this.bar, this.console)
                 .averageSpendingAndSaving(averageIncomeSpendingMonths);
 
-        final var monthlyDeposit = spendingandSaving.saving().getAmount();
-        final var monthlyWithdraw = spendingandSaving.spending().getAmount()
+        final var monthlyDeposit = spendingAndSaving.saving().getAmount();
+        final var monthlyWithdraw = spendingAndSaving.spending().getAmount()
                 .subtract(new BigDecimal(pension), C);
 
-        this.goal(trials, monthlyDeposit, monthlyWithdraw, inflation, retirementAge, extraCash, age, 
-                pension, todaySavings, invested, expected, badReturnYears,
-                badYearSpending, saveCashYears
+        this.goal(trials, 
+                monthlyDeposit, 
+                monthlyWithdraw, 
+                inflation, 
+                retirementAge, 
+                extraCash, 
+                age, 
+                pension, 
+                todaySavings, 
+                invested, 
+                expected, 
+                badReturnYears,
+                badYearSpending,
+                saveCashYears
                 );
     }
 
