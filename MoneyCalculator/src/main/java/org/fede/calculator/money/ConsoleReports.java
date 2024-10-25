@@ -220,6 +220,9 @@ public class ConsoleReports {
             case "p-chart" ->
                 () -> me.portfolioChart(args, "p-chart");
 
+            case "p-chart-series" -> 
+                () -> new Positions(console, format, series, bar).portfolioChartSeries();
+
             case "p-evo" ->
                 () -> me.portfolioEvo(args, "p-evo");
 

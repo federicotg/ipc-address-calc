@@ -574,10 +574,22 @@ public class Positions {
                                 .divide(position, C),
                         Currency.USD));
     }
+    
+    public void portfolioChartSeries() {
+    
+        var from = YearMonth.of(2001, 10);
+        var to = YearMonth.of(new Date());
+        
+        for(var y = from; y.compareTo(to) <=0;y = y.next()){
+            this.portfolioChart("full", "all", y.year(), y.month());
+        }
+    }
 
     public void portfolioChart(String type, String subtype, int year, int month) {
         try {
 
+            final var ym = YearMonth.of(year, month);
+            
             final var items = this.portfolioItems(subtype, year, month);
 
             DefaultPieDataset<String> ds = new DefaultPieDataset<>();
@@ -593,7 +605,9 @@ public class Positions {
             final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
             pctFormat.setMinimumFractionDigits(2);
 
-            JFreeChart portfolio = ChartFactory.createPieChart("Portfolio", ds);
+            JFreeChart portfolio = ChartFactory.createPieChart(
+                    MessageFormat.format("Portfolio {0}", ym.monthString()), 
+                    ds);
             var lg = new StandardPieSectionLabelGenerator("{0} {2}",
                     NumberFormat.getInstance(Locale.of("es", "AR")),
                     pctFormat);
@@ -601,8 +615,11 @@ public class Positions {
             var p = (PiePlot) portfolio.getPlot();
 
             p.setLabelGenerator(lg);
-
-            ChartUtils.saveChartAsPNG(new File("portfolio.png"), portfolio, 1200, 900);
+            ChartUtils.saveChartAsPNG(
+                    new File(MessageFormat.format("portfolio-{0}.png", ym.monthString())),
+                    portfolio,
+                    1200,
+                    900);
         } catch (IOException ioEx) {
             LOGGER.error("Error writting chart.", ioEx);
         }
