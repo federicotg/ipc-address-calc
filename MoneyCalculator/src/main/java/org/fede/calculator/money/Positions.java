@@ -18,11 +18,15 @@ package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -31,6 +35,7 @@ import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -65,12 +70,22 @@ import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtils;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.data.general.DefaultPieDataset;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class Positions {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Positions.class);
 
     private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
 
@@ -449,13 +464,13 @@ public class Positions {
         final Function<Investment, String> yearClassifier = i -> String.valueOf(YearMonth.of(i.getInitialDate()).getYear());
         final Function<Investment, String> brokerClassifier = i -> i.getComment() == null ? "PPI " : "IBKR";
         final Function<Investment, String> anyClassifier = i -> "All ";
-      //  final Function<Investment, String> etfClassifier = Investment::getCurrency;
-      //  final Function<Investment, String> currencyClassifier = i -> "gettex".equals(i.getComment()) ? "EUR" : "USD";
+        //  final Function<Investment, String> etfClassifier = Investment::getCurrency;
+        //  final Function<Investment, String> currencyClassifier = i -> "gettex".equals(i.getComment()) ? "EUR" : "USD";
 
         this.cost(yearClassifier, nominal);
         this.cost(brokerClassifier, nominal);
-    //    this.cost(etfClassifier, nominal);
-    //    this.cost(currencyClassifier, nominal);
+        //    this.cost(etfClassifier, nominal);
+        //    this.cost(currencyClassifier, nominal);
         this.cost(this::exchangeClassifier, nominal);
         this.cost(anyClassifier, nominal);
 
@@ -560,8 +575,61 @@ public class Positions {
                         Currency.USD));
     }
 
+    public void portfolioChart(String type, String subtype, int year, int month) {
+        try {
+
+            final var items = this.portfolioItems(subtype, year, month);
+
+            DefaultPieDataset<String> ds = new DefaultPieDataset<>();
+
+            for (var item : items) {
+                ds.setValue(
+                        Investments.ETF_NAME.getOrDefault(
+                                item.getAmount().getCurrency(),
+                                item.getAmount().getCurrency().name()),
+                        item.getDollarAmount().amount());
+            }
+
+            final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
+            pctFormat.setMinimumFractionDigits(2);
+
+            JFreeChart portfolio = ChartFactory.createPieChart("Portfolio", ds);
+            var lg = new StandardPieSectionLabelGenerator("{0} {2}",
+                    NumberFormat.getInstance(Locale.of("es", "AR")),
+                    pctFormat);
+
+            var p = (PiePlot) portfolio.getPlot();
+
+            p.setLabelGenerator(lg);
+
+            ChartUtils.saveChartAsPNG(new File("portfolio.png"), portfolio, 1200, 900);
+        } catch (IOException ioEx) {
+            LOGGER.error("Error writting chart.", ioEx);
+        }
+
+    }
+
     public void portfolio(String type, String subtype, int year, int month) {
 
+        final var items = this.portfolioItems(subtype, year, month);
+
+        final var total = items.stream()
+                .map(PortfolioItem::getDollarAmount)
+                .reduce(ZERO_USD, MoneyAmount::add);
+
+        final var pct = "pct".equals(type);
+
+        items.stream()
+                .map(i -> pct ? i.asPercentReport(total) : i.asReport(total))
+                .forEach(this.console::appendLine);
+
+        if (!pct) {
+            this.console.appendLine("--------------------------------------");
+            this.console.appendLine(format("Total {0}", this.format.currency(total.getAmount())));
+        }
+    }
+
+    private List<PortfolioItem> portfolioItems(String subtype, int year, int month) {
         final var ym = YearMonth.of(year, month);
 
         final Map<String, Map<String, Optional<MoneyAmount>>> grouped
@@ -594,27 +662,13 @@ public class Positions {
                                                 p -> p.second().get(),
                                                 reducing(MoneyAmount::add)))));
 
-        final var items = grouped
+        return grouped
                 .entrySet()
                 .stream()
                 .flatMap(e -> this.item(e.getKey(), e.getValue(), ym))
                 .sorted(comparing((PortfolioItem::getDollarAmount), comparing(MoneyAmount::getAmount)).reversed())
                 .toList();
 
-        final var total = items.stream()
-                .map(PortfolioItem::getDollarAmount)
-                .reduce(ZERO_USD, MoneyAmount::add);
-
-        final var pct = "pct".equals(type);
-
-        items.stream()
-                .map(i -> pct ? i.asPercentReport(total) : i.asReport(total))
-                .forEach(this.console::appendLine);
-
-        if (!pct) {
-            this.console.appendLine("--------------------------------------");
-            this.console.appendLine(format("Total {0}", this.format.currency(total.getAmount())));
-        }
     }
 
     private Stream<PortfolioItem> item(String type, Map<String, Optional<MoneyAmount>> amounts, YearMonth ym) {
@@ -703,7 +757,6 @@ public class Positions {
                 .map(pair -> this.formatReport(total, pair.amount(), pair.type()))
                 .forEach(this.console::appendLine);
 
-
         total.map(t -> format("-----------------------------\n{0}{1}", this.format.text("Total", 5), this.format.currency(t, 16)))
                 .ifPresent(this.console::appendLine);
     }
@@ -711,19 +764,19 @@ public class Positions {
     private InvestmentTypeCurrencyAndAmount fx(InvestmentTypeCurrencyAndAmount p, Currency reportCurrency) {
 
         return new InvestmentTypeCurrencyAndAmount(
-                p.type(), 
-                reportCurrency, 
+                p.type(),
+                reportCurrency,
                 getMoneyAmountForeignExchange(
-                        p.currency(), 
+                        p.currency(),
                         reportCurrency)
-                        .apply(new MoneyAmount(p.amount(), p.currency()), 
+                        .apply(new MoneyAmount(p.amount(), p.currency()),
                                 USD_INFLATION.getTo()).getAmount());
     }
 
     private String formatReport(Optional<MoneyAmount> total, BigDecimal subtotal, InvestmentType type) {
         return this.formatReport(total, subtotal, type.toString());
     }
-    
+
     private String formatReport(Optional<MoneyAmount> total, BigDecimal subtotal, String type) {
 
         return format("{0}{1}{2}",
@@ -732,7 +785,12 @@ public class Positions {
                 this.bar.pctBar(total.map(tot -> subtotal.divide(tot.getAmount(), C)).orElse(ZERO)));
     }
 
-    private record CurrencyAndGroupKey(Currency currency, String groupKey) {}
-    private record DescriptionAndMoneyAmount(String description, MoneyAmount amount) {}
+    private record CurrencyAndGroupKey(Currency currency, String groupKey) {
+
+    }
+
+    private record DescriptionAndMoneyAmount(String description, MoneyAmount amount) {
+
+    }
 
 }

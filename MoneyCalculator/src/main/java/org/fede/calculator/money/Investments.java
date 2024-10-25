@@ -73,7 +73,7 @@ public class Investments {
 
     private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
 
-    private static final Map<Currency, String> ETF_NAME = Map.of(
+    public static final Map<Currency, String> ETF_NAME = Map.of(
             CSPX, "iShares Core S&P 500",
             EIMI, "iShares Core MSCI EM IMI",
             XRSU, "Xtrackers Russell 2000",

@@ -58,8 +58,6 @@ import static org.fede.calculator.money.Currency.XRSU;
 import org.fede.util.Pair;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.chart.ChartUtils;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
@@ -219,6 +217,9 @@ public class ConsoleReports {
             case "p" ->
                 () -> me.portfolio(args, "p");
 
+            case "p-chart" ->
+                () -> me.portfolioChart(args, "p-chart");
+
             case "p-evo" ->
                 () -> me.portfolioEvo(args, "p-evo");
 
@@ -309,8 +310,8 @@ public class ConsoleReports {
             case "etf" ->
                 () -> me.etf();
 
-            case "chart" ->
-                () -> me.chart();
+            case "savings-evo-chart" ->
+                () -> me.savingsEvoChart();
 
             default ->
                 () -> console.appendLine("Unknown parameter.");
@@ -378,6 +379,7 @@ public class ConsoleReports {
                         entry("income", "by=(year|half|quarter) months=12"),
                         entry("savings", "by=(year|half|quarter)"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
+                        entry("p-chart", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
                         entry("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
@@ -395,6 +397,7 @@ public class ConsoleReports {
                         entry("expenses-change", "type=(full|tracked*) m=12"),
                         entry("expenses-evo", "type=(full|taxes|insurance|phone|services|home|entertainment) m=12"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)"),
+                        entry("savings-evo-chart", ""),
                         entry("dca", "type=(q*|h|y|m)"),
                         entry("etf", ""),
                         entry("pos", "nominal=false")
@@ -661,6 +664,21 @@ public class ConsoleReports {
                 .portfolio(type, subtype, year, month);
 
     }
+    private void portfolioChart(String[] args, String name) {
+
+        final var params = this.paramsValue(args, name);
+        final var type = params.getOrDefault("type", "full");
+        final var subtype = params.getOrDefault("subtype", "all");
+        final var year = Optional.ofNullable(params.get("y"))
+                .map(Integer::parseInt)
+                .orElseGet(USD_INFLATION.getTo()::getYear);
+        final var month = Optional.ofNullable(params.get("m"))
+                .map(Integer::parseInt)
+                .orElseGet(USD_INFLATION.getTo()::getMonth);
+        new Positions(console, format, series, bar)
+                .portfolioChart(type, subtype, year, month);
+
+    }
 
     private void returns(String[] args, String paranName, PortfolioReturns pr) {
 
@@ -798,33 +816,28 @@ public class ConsoleReports {
         }
     }
 
-    private void chart() {
+    private void savingsEvoChart() {
         try {
-            var savings = this.series.realSavings(null);
-            TimeSeries ts = new TimeSeries("Savings");
-
+            final var savings = this.series.realSavings(null);
+            final TimeSeries ts = new TimeSeries("Savings");
+            final var to = Inflation.USD_INFLATION.getTo();
             savings.forEach((ym, ma) -> {
-                if (ym.compareTo(Inflation.USD_INFLATION.getTo()) <= 0) {
+                if (ym.compareTo(to) <= 0) {
                     ts.add(
                             new Day(ym.asToDate()),
                             ma.amount().intValue());
                 }
             });
 
-            JFreeChart lineChartObject = ChartFactory.createTimeSeriesChart(
-                    "Savings",
+            JFreeChart realSavingsChart = ChartFactory.createTimeSeriesChart(
+                    "Real Savings",
                     "Date",
                     "Real USD",
                     new TimeSeriesCollection(ts));
 
-            int width = 1200;
-            /* Width of the image */
-            int height = 768;
-            /* Height of the image */
-            File lineChart = new File("LineChart.png");
-            ChartUtils.saveChartAsPNG(lineChart, lineChartObject, width, height);
+            ChartUtils.saveChartAsPNG(new File("real_savings.png"), realSavingsChart, 1200, 900);
         } catch (IOException ioEx) {
-            LOGGER.error("Error wrotting chart.", ioEx);
+            LOGGER.error("Error writting chart.", ioEx);
         }
     }
 
