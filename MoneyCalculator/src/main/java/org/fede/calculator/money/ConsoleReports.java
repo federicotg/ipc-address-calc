@@ -61,6 +61,9 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.chart.ChartUtils;
+import org.jfree.data.time.Day;
+import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.TimeSeriesCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -798,22 +801,27 @@ public class ConsoleReports {
     private void chart() {
         try {
             var savings = this.series.realSavings(null);
+            TimeSeries ts = new TimeSeries("Savings");
 
-            DefaultCategoryDataset ds = new DefaultCategoryDataset();
+            savings.forEach((ym, ma) -> {
+                if (ym.compareTo(Inflation.USD_INFLATION.getTo()) <= 0) {
+                    ts.add(
+                            new Day(ym.asToDate()),
+                            ma.amount().intValue());
+                }
+            });
 
-            savings.forEach((ym, ma) -> ds.addValue(ma.amount().intValue(), ym.toString(), "Savings"));
+            JFreeChart lineChartObject = ChartFactory.createTimeSeriesChart(
+                    "Savings",
+                    "Date",
+                    "Real USD",
+                    new TimeSeriesCollection(ts));
 
-            JFreeChart lineChartObject = ChartFactory.createLineChart(
-                    "Schools Vs Years", "Year",
-                    "Schools Count",
-                    ds, PlotOrientation.VERTICAL,
-                    true, true, false);
-
-            int width = 640;
+            int width = 1200;
             /* Width of the image */
-            int height = 480;
+            int height = 768;
             /* Height of the image */
-            File lineChart = new File("LineChart.jpeg");
+            File lineChart = new File("LineChart.png");
             ChartUtils.saveChartAsPNG(lineChart, lineChartObject, width, height);
         } catch (IOException ioEx) {
             LOGGER.error("Error wrotting chart.", ioEx);
