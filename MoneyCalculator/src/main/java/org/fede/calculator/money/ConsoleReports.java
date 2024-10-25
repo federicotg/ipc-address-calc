@@ -19,6 +19,8 @@ package org.fede.calculator.money;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
@@ -54,6 +56,11 @@ import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.XRSU;
 import org.fede.util.Pair;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.chart.ChartUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +89,7 @@ public class ConsoleReports {
     private static final String BAD_RETURN_YEARS = "3";
     private static final String BAD_YEAR_SPENDING = "0.85";
     private static final String SAVE_CASH_YEARS_BEFORE_RETIREMENT = "6";
-    
+
     public static final int SCALE = 2500;
 
     private static boolean nominal(Map<String, String> params) {
@@ -298,6 +305,9 @@ public class ConsoleReports {
 
             case "etf" ->
                 () -> me.etf();
+
+            case "chart" ->
+                () -> me.chart();
 
             default ->
                 () -> console.appendLine("Unknown parameter.");
@@ -782,6 +792,31 @@ public class ConsoleReports {
                             format.numberLong(etfs.get(ETF.MEUS).price().divide(etfs.get(ETF.MEUD).price(), MathConstants.C))));
         } catch (Exception ex) {
             LOGGER.error("Error reading ETFs ", ex);
+        }
+    }
+
+    private void chart() {
+        try {
+            var savings = this.series.realSavings(null);
+
+            DefaultCategoryDataset ds = new DefaultCategoryDataset();
+
+            savings.forEach((ym, ma) -> ds.addValue(ma.amount().intValue(), ym.toString(), "Savings"));
+
+            JFreeChart lineChartObject = ChartFactory.createLineChart(
+                    "Schools Vs Years", "Year",
+                    "Schools Count",
+                    ds, PlotOrientation.VERTICAL,
+                    true, true, false);
+
+            int width = 640;
+            /* Width of the image */
+            int height = 480;
+            /* Height of the image */
+            File lineChart = new File("LineChart.jpeg");
+            ChartUtils.saveChartAsPNG(lineChart, lineChartObject, width, height);
+        } catch (IOException ioEx) {
+            LOGGER.error("Error wrotting chart.", ioEx);
         }
     }
 
