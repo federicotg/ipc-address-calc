@@ -64,4 +64,8 @@ public interface MoneyAmountSeries extends Series {
 
     MoneyAmountSeries exchangeInto(Currency currency);
     
+    String getName();
+    
+    void setName(String name);
+    
 }

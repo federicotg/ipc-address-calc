@@ -124,7 +124,7 @@ public class Series {
                             Pair::first,
                             mapping(p -> this.asRealUSDSeries("expense/", p.second()),
                                     Collectors.toList())));
-            this.realUSDExpensesByType.put("investing", 
+            this.realUSDExpensesByType.put("investing",
                     List.of(
                             this.investingExpenses(),
                             this.asRealUSDSeries("expense/", "atlantico"),
@@ -133,6 +133,43 @@ public class Series {
         }
 
         return realUSDExpensesByType;
+    }
+
+    public List<MoneyAmountSeries> getRealUSDExpenses() {
+
+        return Stream.concat(
+                Stream.of(
+                        "bbpp",
+                        "inmobiliario-43",
+                        "monotributo-angeles",
+                        "monotributo",
+                        "municipal-43",
+                        "contadora",
+                        "celular-a",
+                        "celular-f",
+                        "telefono-43",
+                        "emergencia",
+                        "ioma",
+                        "seguro",
+                        "gas",
+                        "luz",
+                        "cablevision",
+                        "cafe",
+                        "other",
+                        "other-usd",
+                        "reparaciones",
+                        "limpieza",
+                        "expensas",
+                        "netflix",
+                        "netflix-usd",
+                        "viajes",
+                        "xbox",
+                        "atlantico", 
+                        "itau-uy")
+                        .map(p -> this.asRealUSDSeries("expense/", p)),
+                 Stream.of(this.investingExpenses()))
+                .collect(Collectors.toList());
+
     }
 
     private MoneyAmountSeries investingExpenses() {
@@ -149,7 +186,7 @@ public class Series {
                                         i -> YearMonth.of(i.getIn().getDate()),
                                         Collectors.reducing(zero, Investment::getCost, MoneyAmount::add)));
 
-        final var expenseSeries = new SortedMapMoneyAmountSeries(Currency.USD);
+        final var expenseSeries = new SortedMapMoneyAmountSeries(Currency.USD, "investing");
 
         for (YearMonth ym = YearMonth.of(2016, 1); ym.monthsUntil(Inflation.USD_INFLATION.getTo()) >= 0; ym = ym.next()) {
             expenseSeries.putAmount(ym, buyFeesBymonth.getOrDefault(ym, zero));
@@ -308,8 +345,7 @@ public class Series {
     }
 
     private MoneyAmountSeries asRealUSDSeries(String prefix, String fileName) {
-        var limit = USD_INFLATION.getTo();
-        return USD_INFLATION.adjust(this.readSeriesInUSD(prefix, fileName), limit);
+        return USD_INFLATION.adjust(this.readSeriesInUSD(prefix, fileName), USD_INFLATION.getTo());
     }
 
     private MoneyAmountSeries readSeriesInUSD(String prefix, String fileName) {

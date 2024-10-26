@@ -55,6 +55,7 @@ import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.XRSU;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.util.Pair;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -220,7 +221,7 @@ public class ConsoleReports {
             case "p-chart" ->
                 () -> me.portfolioChart(args, "p-chart");
 
-            case "p-chart-series" -> 
+            case "p-chart-series" ->
                 () -> me.portfolioChartSeries(args, "p-chart-series");
 
             case "p-evo" ->
@@ -259,6 +260,8 @@ public class ConsoleReports {
             case "expenses-change" ->
                 () -> me.expensesChange(args, "expenses-change");
 
+            case "expenses-chart" ->
+                () -> me.expensesChart(args, "expenses-chart");
             case "goal" ->
                 () -> me.goal(args, "goal");
 
@@ -313,7 +316,7 @@ public class ConsoleReports {
             case "etf" ->
                 () -> me.etf();
 
-            case "savings-evo-chart" ->
+            case "savings-chart" ->
                 () -> me.savingsEvoChart();
 
             default ->
@@ -400,8 +403,9 @@ public class ConsoleReports {
                         entry("expenses", "by=(year|half|quarter) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
                         entry("expenses-change", "type=(full|tracked*) m=12"),
                         entry("expenses-evo", "type=(full|taxes|insurance|phone|services|home|entertainment) m=12"),
+                        entry("expenses-chart", "m=0 g=false"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)"),
-                        entry("savings-evo-chart", ""),
+                        entry("savings-chart", ""),
                         entry("dca", "type=(q*|h|y|m)"),
                         entry("etf", ""),
                         entry("pos", "nominal=false")
@@ -668,23 +672,26 @@ public class ConsoleReports {
                 .portfolio(type, subtype, year, month);
 
     }
+
     private void portfolioChart(String[] args, String name) {
-
-        final var params = this.paramsValue(args, name);
-        final var type = params.getOrDefault("type", "full");
-        final var subtype = params.getOrDefault("subtype", "all");
-        final var year = Optional.ofNullable(params.get("y"))
-                .map(Integer::parseInt)
-                .orElseGet(USD_INFLATION.getTo()::getYear);
-        final var month = Optional.ofNullable(params.get("m"))
-                .map(Integer::parseInt)
-                .orElseGet(USD_INFLATION.getTo()::getMonth);
-        new Positions(console, format, series, bar)
-                .portfolioChart(type, subtype, year, month);
-
+        try {
+            final var params = this.paramsValue(args, name);
+            final var type = params.getOrDefault("type", "full");
+            final var subtype = params.getOrDefault("subtype", "all");
+            final var year = Optional.ofNullable(params.get("y"))
+                    .map(Integer::parseInt)
+                    .orElseGet(USD_INFLATION.getTo()::getYear);
+            final var month = Optional.ofNullable(params.get("m"))
+                    .map(Integer::parseInt)
+                    .orElseGet(USD_INFLATION.getTo()::getMonth);
+            new Positions(console, format, series, bar)
+                    .portfolioChart(type, subtype, year, month);
+        } catch (IOException ioEx) {
+            LOGGER.error("Error writting chart.", ioEx);
+        }
     }
-    
-     private void portfolioChartSeries(String[] args, String name) {
+
+    private void portfolioChartSeries(String[] args, String name) {
 
         final var params = this.paramsValue(args, name);
         final var subtype = params.getOrDefault("subtype", "all");
@@ -831,27 +838,84 @@ public class ConsoleReports {
 
     private void savingsEvoChart() {
         try {
-            final var savings = this.series.realSavings(null);
-            final TimeSeries ts = new TimeSeries("Savings");
-            final var to = Inflation.USD_INFLATION.getTo();
-            savings.forEach((ym, ma) -> {
-                if (ym.compareTo(to) <= 0) {
-                    ts.add(
-                            new Day(ym.asToDate()),
-                            ma.amount().intValue());
-                }
-            });
-
             JFreeChart realSavingsChart = ChartFactory.createTimeSeriesChart(
                     "Real Savings",
                     "Date",
                     "Real USD",
-                    new TimeSeriesCollection(ts));
+                    new TimeSeriesCollection(this.asTimeSeries(this.series.realSavings(null))));
 
             ChartUtils.saveChartAsPNG(new File("real_savings.png"), realSavingsChart, 1200, 900);
         } catch (IOException ioEx) {
             LOGGER.error("Error writting chart.", ioEx);
         }
+    }
+
+    public void expensesChart(String[] args, String paramName) {
+
+        var params = this.paramsValue(args, paramName);
+
+        var m = Integer.parseInt(params.getOrDefault("m", "0"));
+        var grouped = Boolean.parseBoolean(params.getOrDefault("g", "true"));
+        var expenseSeries = grouped
+                ? this.series.getRealUSDExpensesByType()
+                        .entrySet()
+                        .stream()
+                        .map(e -> this.sum(e.getKey(), e.getValue()))
+                        .toList()
+                : this.series.getRealUSDExpenses();
+
+        if (m > 0) {
+            var avg = new SimpleAggregation(m);
+            expenseSeries = expenseSeries.stream().map(avg::average).toList();
+        }
+
+        var chartName = "Expenses";
+        if (m > 0) {
+            chartName = "Average " + m + " months " + chartName;
+        }
+        if (grouped) {
+            chartName = "Grouped " + chartName;
+        }
+
+        try {
+            var collection = new TimeSeriesCollection();
+            expenseSeries
+                    .stream()
+                    .map(this::asTimeSeries)
+                    .forEach(collection::addSeries);
+            ChartUtils.saveChartAsPNG(
+                    new File("expenses_" + (grouped ? "grouped" : "") + "_" + m + ".png"),
+                    ChartFactory.createTimeSeriesChart(
+                            chartName,
+                            "Date",
+                            "Real USD",
+                            collection),
+                    1200,
+                    900);
+        } catch (IOException ioEx) {
+            LOGGER.error("Error writting chart.", ioEx);
+        }
+
+    }
+
+    private TimeSeries asTimeSeries(MoneyAmountSeries s) {
+        final TimeSeries ts = new TimeSeries(s.getName());
+        final var to = Inflation.USD_INFLATION.getTo();
+        s.forEach((ym, ma) -> {
+            if (ym.compareTo(to) <= 0) {
+                ts.add(
+                        new Day(ym.asToDate()),
+                        ma.amount());
+            }
+        });
+        return ts;
+
+    }
+
+    private MoneyAmountSeries sum(String name, List<MoneyAmountSeries> series) {
+        var s = series.stream().reduce(MoneyAmountSeries::add).get();
+        s.setName(name);
+        return s;
     }
 
 }

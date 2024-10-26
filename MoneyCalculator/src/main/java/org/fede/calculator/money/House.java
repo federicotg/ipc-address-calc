@@ -71,7 +71,7 @@ public class House {
                 start,
                 limit);
 
-        final var initialCostSeries = new SortedMapMoneyAmountSeries(Currency.USD);
+        final var initialCostSeries = new SortedMapMoneyAmountSeries(Currency.USD, "costs");
         initialCostSeries.putAmount(start, realInitialCost);
         initialCostSeries.putAmount(YearMonth.of(2010, 9), ZERO_USD);
         initialCostSeries.putAmount(YearMonth.of(2010, 10), ZERO_USD);

@@ -98,7 +98,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         final int toYear = to.getYear();
         final int toMonth = to.getMonth();
 
-        final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(targetCurrency);
+        final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(targetCurrency, series.getName());
 
         for (int m = fromMonth; m <= (fromYear == toYear ? toMonth : 12); m++) {
             //first year
@@ -133,7 +133,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         final int toYear = this.getTo().getYear();
         final int toMonth = this.getTo().getMonth();
 
-        final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(targetCurrency);
+        final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(targetCurrency, targetCurrency.name()+" series");
 
         for (int m = fromMonth; m <= 12; m++) {
             //first year

@@ -33,9 +33,11 @@ import org.fede.calculator.money.NoSeriesDataFoundException;
 public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements MoneyAmountSeries {
 
     private final Currency currency;
+    private String name;
 
-    protected MoneyAmountSeriesSupport(Currency currency) {
+    protected MoneyAmountSeriesSupport(Currency currency, String name) {
         this.currency = currency;
+        this.name = name;
     }
 
     @Override
@@ -168,4 +170,16 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     }
 
     protected abstract boolean hasValue(YearMonth moment);
+
+    @Override
+    public String getName() {
+        return this.name;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    
 }

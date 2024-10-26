@@ -85,7 +85,7 @@ public class SimpleAggregation implements Aggregation {
 
         final Currency seriesCurrency = series.getCurrency();
 
-        MoneyAmountSeries result = new SortedMapMoneyAmountSeries(seriesCurrency);
+        MoneyAmountSeries result = new SortedMapMoneyAmountSeries(seriesCurrency, series.getName());
         for (var ym = series.getFrom(); ym.compareTo(Inflation.USD_INFLATION.getTo()) <= 0; ym = ym.next()) {
             var amount = series.getAmountOrElseZero(ym);
             checkCurrency(seriesCurrency, amount);

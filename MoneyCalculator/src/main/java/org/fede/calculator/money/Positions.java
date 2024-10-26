@@ -576,55 +576,54 @@ public class Positions {
     }
 
     public void portfolioChartSeries(String subtype) {
-
-        var from = YearMonth.of(2001, 10);
-        var to = YearMonth.of(new Date());
-
-        for (var y = from; y.compareTo(to) <= 0; y = y.next()) {
-            this.portfolioChart("full", subtype, y.year(), y.month());
-        }
-    }
-
-    public void portfolioChart(String type, String subtype, int year, int month) {
         try {
+            var from = YearMonth.of(2001, 10);
+            var to = YearMonth.of(new Date());
 
-            final var ym = YearMonth.of(year, month);
-
-            final var items = this.portfolioItems(subtype, year, month);
-
-            if (items.stream().map(PortfolioItem::getAmount).anyMatch(Predicate.not(MoneyAmount::isZero))) {
-
-                DefaultPieDataset<String> ds = new DefaultPieDataset<>();
-
-                for (var item : items) {
-                    ds.setValue(
-                            Investments.ETF_NAME.getOrDefault(
-                                    item.getAmount().getCurrency(),
-                                    item.getAmount().getCurrency().name()),
-                            item.getDollarAmount().amount());
-                }
-
-                final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
-                pctFormat.setMinimumFractionDigits(2);
-
-                JFreeChart portfolio = ChartFactory.createPieChart(
-                        MessageFormat.format("Portfolio {0}", ym.monthString()),
-                        ds);
-                var lg = new StandardPieSectionLabelGenerator("{0} {2}",
-                        NumberFormat.getInstance(Locale.of("es", "AR")),
-                        pctFormat);
-
-                var p = (PiePlot) portfolio.getPlot();
-
-                p.setLabelGenerator(lg);
-                ChartUtils.saveChartAsPNG(
-                        new File(MessageFormat.format("portfolio-{0}.png", ym.monthString())),
-                        portfolio,
-                        1200,
-                        900);
+            for (var y = from; y.compareTo(to) <= 0; y = y.next()) {
+                this.portfolioChart("full", subtype, y.year(), y.month());
             }
         } catch (IOException ioEx) {
             LOGGER.error("Error writting chart.", ioEx);
+        }
+    }
+
+    public void portfolioChart(String type, String subtype, int year, int month) throws IOException {
+
+        final var ym = YearMonth.of(year, month);
+
+        final var items = this.portfolioItems(subtype, year, month);
+
+        if (items.stream().map(PortfolioItem::getAmount).anyMatch(Predicate.not(MoneyAmount::isZero))) {
+
+            DefaultPieDataset<String> ds = new DefaultPieDataset<>();
+
+            for (var item : items) {
+                ds.setValue(
+                        Investments.ETF_NAME.getOrDefault(
+                                item.getAmount().getCurrency(),
+                                item.getAmount().getCurrency().name()),
+                        item.getDollarAmount().amount());
+            }
+
+            final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
+            pctFormat.setMinimumFractionDigits(2);
+
+            JFreeChart portfolio = ChartFactory.createPieChart(
+                    MessageFormat.format("Portfolio {0}", ym.monthString()),
+                    ds);
+            var lg = new StandardPieSectionLabelGenerator("{0} {2}",
+                    NumberFormat.getInstance(Locale.of("es", "AR")),
+                    pctFormat);
+
+            var p = (PiePlot) portfolio.getPlot();
+
+            p.setLabelGenerator(lg);
+            ChartUtils.saveChartAsPNG(
+                    new File(MessageFormat.format("portfolio-{0}.png", ym.monthString())),
+                    portfolio,
+                    1200,
+                    900);
         }
 
     }

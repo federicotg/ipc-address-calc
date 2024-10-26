@@ -33,14 +33,14 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
     private final SequencedMap<YearMonth, MoneyAmount> values;
 
-    public SortedMapMoneyAmountSeries(final Currency currency) {
-        super(currency);
+    public SortedMapMoneyAmountSeries(final Currency currency, String name) {
+        super(currency, name);
         this.values = new TreeMap<>(YearMonth::compareTo);
     }
 
     @Override
     protected MoneyAmountSeries createNew() {
-        return new SortedMapMoneyAmountSeries(this.getCurrency());
+        return new SortedMapMoneyAmountSeries(this.getCurrency(), this.getName());
     }
 
     @Override

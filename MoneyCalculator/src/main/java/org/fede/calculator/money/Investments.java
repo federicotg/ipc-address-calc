@@ -506,10 +506,10 @@ public class Investments {
                 .reduce((left, right) -> left.max(right))
                 .get();
 
-        final var investmentSeries = new SortedMapMoneyAmountSeries(Currency.USD);
-        final var costSeries = new SortedMapMoneyAmountSeries(Currency.USD);
-        final var totalValuesSeries = new SortedMapMoneyAmountSeries(Currency.USD);
-        final var taxesValuesSeries = new SortedMapMoneyAmountSeries(Currency.USD);
+        final var investmentSeries = new SortedMapMoneyAmountSeries(Currency.USD, "investment");
+        final var costSeries = new SortedMapMoneyAmountSeries(Currency.USD, "costs");
+        final var totalValuesSeries = new SortedMapMoneyAmountSeries(Currency.USD,"total");
+        final var taxesValuesSeries = new SortedMapMoneyAmountSeries(Currency.USD,"taxes");
 
         var ym = start;
         while (ym.compareTo(end) <= 0) {
