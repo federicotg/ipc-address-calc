@@ -383,6 +383,7 @@ public class ConsoleReports {
                         entry("savings", "by=(year|half|quarter)"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
                         entry("p-chart", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
+                        entry("p-chart-series", ""),
                         entry("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
