@@ -221,7 +221,7 @@ public class ConsoleReports {
                 () -> me.portfolioChart(args, "p-chart");
 
             case "p-chart-series" -> 
-                () -> new Positions(console, format, series, bar).portfolioChartSeries();
+                () -> me.portfolioChartSeries(args, "p-chart-series");
 
             case "p-evo" ->
                 () -> me.portfolioEvo(args, "p-evo");
@@ -383,7 +383,7 @@ public class ConsoleReports {
                         entry("savings", "by=(year|half|quarter)"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
                         entry("p-chart", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                        entry("p-chart-series", ""),
+                        entry("p-chart-series", "subtype=(all*|equity|bond|commodity|cash)"),
                         entry("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
@@ -681,6 +681,15 @@ public class ConsoleReports {
                 .orElseGet(USD_INFLATION.getTo()::getMonth);
         new Positions(console, format, series, bar)
                 .portfolioChart(type, subtype, year, month);
+
+    }
+    
+     private void portfolioChartSeries(String[] args, String name) {
+
+        final var params = this.paramsValue(args, name);
+        final var subtype = params.getOrDefault("subtype", "all");
+        new Positions(console, format, series, bar)
+                .portfolioChartSeries(subtype);
 
     }
 
