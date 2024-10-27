@@ -18,12 +18,10 @@ package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
-import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
@@ -65,17 +63,13 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.chart.PieChart;
+import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtils;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
-import org.jfree.chart.plot.PiePlot;
-import org.jfree.data.general.DefaultPieDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -576,55 +570,50 @@ public class Positions {
     }
 
     public void portfolioChartSeries(String subtype) {
-        try {
-            var from = YearMonth.of(2001, 10);
-            var to = YearMonth.of(new Date());
 
-            for (var y = from; y.compareTo(to) <= 0; y = y.next()) {
-                this.portfolioChart("full", subtype, y.year(), y.month());
-            }
-        } catch (IOException ioEx) {
-            LOGGER.error("Error writting chart.", ioEx);
+        var from = YearMonth.of(2001, 10);
+        var to = YearMonth.of(new Date());
+
+        final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
+        pctFormat.setMinimumFractionDigits(2);
+
+        var chart = new PieChart(pctFormat, NumberFormat.getCurrencyInstance(Locale.of("es", "AR")), false);
+
+        for (var y = from; y.compareTo(to) <= 0; y = y.next()) {
+            this.portfolioChart(chart, subtype, y.year(), y.month());
         }
+
     }
 
-    public void portfolioChart(String type, String subtype, int year, int month) throws IOException {
-
+    private void portfolioChart(PieChart chart, String subtype, int year, int month) {
         final var ym = YearMonth.of(year, month);
 
         final var items = this.portfolioItems(subtype, year, month);
 
         if (items.stream().map(PortfolioItem::getAmount).anyMatch(Predicate.not(MoneyAmount::isZero))) {
 
-            DefaultPieDataset<String> ds = new DefaultPieDataset<>();
-
-            for (var item : items) {
-                ds.setValue(
-                        Investments.ETF_NAME.getOrDefault(
-                                item.getAmount().getCurrency(),
-                                item.getAmount().getCurrency().name()),
-                        item.getDollarAmount().amount());
-            }
-
             final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
             pctFormat.setMinimumFractionDigits(2);
 
-            JFreeChart portfolio = ChartFactory.createPieChart(
-                    MessageFormat.format("Portfolio {0}", ym.monthString()),
-                    ds);
-            var lg = new StandardPieSectionLabelGenerator("{0} {2}",
-                    NumberFormat.getInstance(Locale.of("es", "AR")),
-                    pctFormat);
-
-            var p = (PiePlot) portfolio.getPlot();
-
-            p.setLabelGenerator(lg);
-            ChartUtils.saveChartAsPNG(
-                    new File(MessageFormat.format("portfolio-{0}.png", ym.monthString())),
-                    portfolio,
-                    1200,
-                    900);
+            chart
+                    .create(
+                            MessageFormat.format("Portfolio {0}", ym.monthString()),
+                            items.stream()
+                                    .map(item -> new PieItem(
+                                    Investments.ETF_NAME.getOrDefault(item.getAmount().getCurrency(), item.getAmount().getCurrency().name()),
+                                    item.getDollarAmount().amount())).toList(),
+                            MessageFormat.format("portfolio-{0}.png", ym.monthString()));
         }
+
+    }
+
+    public void portfolioChart(String subtype, int year, int month) throws IOException {
+
+        final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
+        pctFormat.setMinimumFractionDigits(2);
+
+        var chart = new PieChart(pctFormat, NumberFormat.getCurrencyInstance(Locale.of("es", "AR")), false);
+        this.portfolioChart(chart, subtype, year, month);
 
     }
 

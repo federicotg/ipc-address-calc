@@ -128,6 +128,16 @@ public class ConsoleReports {
                 .inv("all".equalsIgnoreCase(type) ? x -> true : x -> this.investmentFilter(x, type), nominal(params));
 
     }
+    
+    private void invGainsChart(String[] args, String paramName) {
+
+        //final var params = this.paramsValue(args, paramName);
+
+        //final var type = params.getOrDefault("type", "all");
+
+        new Investments(this.console, this.format, this.bar, this.series)
+                .invGainsChart();
+    }
 
     private boolean investmentFilter(Investment i, String type) {
         if ("all".equalsIgnoreCase(type)) {
@@ -157,6 +167,9 @@ public class ConsoleReports {
 
             case "inv" ->
                 () -> me.invReport(args, "inv");
+
+            case "gains-chart" ->
+                () -> me.invGainsChart(args, "gains-chart");
 
             case "savings" ->
                 () -> me.savings(args, "savings");
@@ -385,11 +398,12 @@ public class ConsoleReports {
                         entry("income", "by=(year|half|quarter) months=12"),
                         entry("savings", "by=(year|half|quarter)"),
                         entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                        entry("p-chart", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
+                        entry("p-chart", "subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
                         entry("p-chart-series", "subtype=(all*|equity|bond|commodity|cash)"),
                         entry("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
                         entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
+                        entry("gains-chart", ""),
                         entry("inv-evo", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         entry("mdr", "nominal=false cash=true start=1999 tw=false"),
@@ -676,7 +690,7 @@ public class ConsoleReports {
     private void portfolioChart(String[] args, String name) {
         try {
             final var params = this.paramsValue(args, name);
-            final var type = params.getOrDefault("type", "full");
+            //final var type = params.getOrDefault("type", "full");
             final var subtype = params.getOrDefault("subtype", "all");
             final var year = Optional.ofNullable(params.get("y"))
                     .map(Integer::parseInt)
@@ -685,7 +699,7 @@ public class ConsoleReports {
                     .map(Integer::parseInt)
                     .orElseGet(USD_INFLATION.getTo()::getMonth);
             new Positions(console, format, series, bar)
-                    .portfolioChart(type, subtype, year, month);
+                    .portfolioChart(subtype, year, month);
         } catch (IOException ioEx) {
             LOGGER.error("Error writting chart.", ioEx);
         }

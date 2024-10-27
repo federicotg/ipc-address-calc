@@ -39,6 +39,7 @@ import static java.util.Comparator.reverseOrder;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -53,6 +54,8 @@ import static org.fede.calculator.money.MathConstants.C;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.Currency.*;
+import org.fede.calculator.money.chart.PieChart;
+import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -126,6 +129,30 @@ public class Investments {
 
     private void investmentReport(final Predicate<Investment> everyone, boolean nominal) {
         this.investmentReport(this.getInvestments(), everyone, Investment::isETF, Investment::isCurrent, nominal);
+    }
+
+    public void invGainsChart() {
+
+        Map<Integer, BigDecimal> gainsByYear = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isCurrent)
+                .filter(Investment::isETF)
+                .map(new InvestmentCostStrategy(Currency.USD)::details)
+                .map(InvestmentDetails::asReal)
+                .collect(
+                        Collectors.groupingBy(detail -> detail.getInvestmentDate().getYear(),
+                                Collectors.reducing(
+                                        BigDecimal.ZERO,
+                                        detail -> detail.getGrossCapitalGains().amount(),
+                                        BigDecimal::add)));
+
+        final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
+        pctFormat.setMinimumFractionDigits(2);
+
+        var chart = new PieChart(pctFormat, NumberFormat.getCurrencyInstance(Locale.of("es", "AR")), true);
+        chart.create("Gains by Year",
+                gainsByYear.entrySet().stream().map(e -> new PieItem(String.valueOf(e.getKey()), e.getValue())).toList(),
+                "gains-by-year.png");
     }
 
     private void investmentReport(
@@ -270,10 +297,10 @@ public class Investments {
                 .mapToInt(String::length)
                 .max()
                 .orElse(12);
-        
+
         this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Modified Dietz Returns"));
 
-        this.console.appendLine(this.format.text(" ", nameColWidth+4), titleRow);
+        this.console.appendLine(this.format.text(" ", nameColWidth + 4), titleRow);
         matrix
                 .entrySet()
                 .stream()
@@ -334,9 +361,9 @@ public class Investments {
         Map<String, String> currencies = ETF_NAME.keySet()
                 .stream()
                 .collect(Collectors.toMap(Currency::name, ETF_NAME::get));
-        
+
         final var nameColWidth = currencies.values().stream().mapToInt(String::length).max().orElse(12);
-        
+
         return Stream.concat(
                 Stream.of(this.format.text(currencies.getOrDefault(name, name), nameColWidth, ETF_COLOR.getOrDefault(name, BRIGHT_WHITE_TEXT))),
                 IntStream.range(0, rowData.size())
@@ -447,7 +474,6 @@ public class Investments {
         });
 
         //this.console.appendLine(format(title, nominal ? "Nominal" : "Real"));
-
         this.ref();
 
     }
@@ -508,8 +534,8 @@ public class Investments {
 
         final var investmentSeries = new SortedMapMoneyAmountSeries(Currency.USD, "investment");
         final var costSeries = new SortedMapMoneyAmountSeries(Currency.USD, "costs");
-        final var totalValuesSeries = new SortedMapMoneyAmountSeries(Currency.USD,"total");
-        final var taxesValuesSeries = new SortedMapMoneyAmountSeries(Currency.USD,"taxes");
+        final var totalValuesSeries = new SortedMapMoneyAmountSeries(Currency.USD, "total");
+        final var taxesValuesSeries = new SortedMapMoneyAmountSeries(Currency.USD, "taxes");
 
         var ym = start;
         while (ym.compareTo(end) <= 0) {
