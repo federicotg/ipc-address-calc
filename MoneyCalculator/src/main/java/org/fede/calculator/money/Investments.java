@@ -146,11 +146,8 @@ public class Investments {
                                         detail -> detail.getGrossCapitalGains().amount(),
                                         BigDecimal::add)));
 
-        final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
-        pctFormat.setMinimumFractionDigits(2);
-
-        var chart = new PieChart(pctFormat, NumberFormat.getCurrencyInstance(Locale.of("es", "AR")), true);
-        chart.create("Gains by Year",
+        new PieChart(true).create(
+                "Gains by Year",
                 gainsByYear.entrySet().stream().map(e -> new PieItem(String.valueOf(e.getKey()), e.getValue())).toList(),
                 "gains-by-year.png");
     }

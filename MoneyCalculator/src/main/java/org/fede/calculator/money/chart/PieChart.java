@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
@@ -40,8 +41,12 @@ public class PieChart {
 
     private final PieSectionLabelGenerator labelGenerator;
 
-    public PieChart(NumberFormat pctFormat, NumberFormat currencyFormat, boolean showAbsoluteValue) {
+    public PieChart(boolean showAbsoluteValue) {
+        this(NumberFormat.getPercentInstance(Locale.of("es", "AR")), NumberFormat.getCurrencyInstance(Locale.of("es", "AR")), showAbsoluteValue);
+    }
 
+    public PieChart(NumberFormat pctFormat, NumberFormat currencyFormat, boolean showAbsoluteValue) {
+        pctFormat.setMinimumFractionDigits(2);
         this.labelGenerator = new StandardPieSectionLabelGenerator(
                 showAbsoluteValue ? "{0} {1} {2}" : "{0} {2}",
                 currencyFormat,
@@ -60,6 +65,9 @@ public class PieChart {
             JFreeChart portfolio = ChartFactory.createPieChart(
                     chartTitle,
                     ds);
+
+            portfolio.setAntiAlias(true);
+            portfolio.setTextAntiAlias(true);
 
             var p = (PiePlot) portfolio.getPlot();
 

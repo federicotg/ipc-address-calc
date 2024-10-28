@@ -570,10 +570,7 @@ public class Positions {
         var from = YearMonth.of(2001, 10);
         var to = YearMonth.of(new Date());
 
-        final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
-        pctFormat.setMinimumFractionDigits(2);
-
-        var chart = new PieChart(pctFormat, NumberFormat.getCurrencyInstance(Locale.of("es", "AR")), false);
+        var chart = new PieChart(false);
 
         for (var y = from; y.compareTo(to) <= 0; y = y.next()) {
             this.portfolioChart(chart, subtype, y.year(), y.month());
@@ -605,11 +602,7 @@ public class Positions {
 
     public void portfolioChart(String subtype, int year, int month) throws IOException {
 
-        final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
-        pctFormat.setMinimumFractionDigits(2);
-
-        var chart = new PieChart(pctFormat, NumberFormat.getCurrencyInstance(Locale.of("es", "AR")), false);
-        this.portfolioChart(chart, subtype, year, month);
+        this.portfolioChart(new PieChart(false), subtype, year, month);
 
     }
 

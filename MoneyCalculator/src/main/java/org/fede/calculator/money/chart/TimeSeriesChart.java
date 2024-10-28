@@ -23,6 +23,7 @@ import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
+import org.jfree.chart.JFreeChart;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -43,7 +44,7 @@ public class TimeSeriesChart {
             var collection = new TimeSeriesCollection();
             for (var s : series) {
                 final TimeSeries ts = new TimeSeries(s.getName());
-                
+
                 s.forEach((ym, ma) -> {
                     if (ym.compareTo(to) <= 0) {
                         ts.add(new Day(ym.asToDate()), ma.amount());
@@ -51,13 +52,17 @@ public class TimeSeriesChart {
                 });
                 collection.addSeries(ts);
             }
+
+            JFreeChart chart = ChartFactory.createTimeSeriesChart(
+                    chartName,
+                    "Date",
+                    "USD",
+                    collection);
+            chart.setAntiAlias(true);
+            chart.setTextAntiAlias(true);
             ChartUtils.saveChartAsPNG(
                     new File(filename),
-                    ChartFactory.createTimeSeriesChart(
-                            chartName,
-                            "Date",
-                            "USD",
-                            collection),
+                    chart,
                     1200,
                     900);
         } catch (IOException ex) {
