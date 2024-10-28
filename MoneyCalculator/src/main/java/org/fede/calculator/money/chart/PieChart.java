@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.money.chart;
 
+import static java.awt.Color.WHITE;
+import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -62,16 +64,19 @@ public class PieChart {
                 ds.setValue(item.label(), item.value());
             }
 
-            JFreeChart portfolio = ChartFactory.createPieChart(
-                    chartTitle,
-                    ds);
-
-            var p = (PiePlot) portfolio.getPlot();
-
+            JFreeChart chart = ChartFactory.createPieChart(chartTitle, ds);
+            chart.setBorderVisible(false);
+            var p = (PiePlot) chart.getPlot();
+            p.setOutlineVisible(false);
+            p.setBackgroundPaint(WHITE);
+            p.setLabelFont(new Font("SansSerif", Font.PLAIN, 16));
             p.setLabelGenerator(this.labelGenerator);
+            p.setLabelBackgroundPaint(WHITE);
+            p.setLabelOutlinePaint(WHITE);
+            p.setLabelShadowPaint(WHITE);
             ChartUtils.saveChartAsPNG(
                     new File(fileName),
-                    portfolio,
+                    chart,
                     1200,
                     900);
         } catch (IOException ex) {

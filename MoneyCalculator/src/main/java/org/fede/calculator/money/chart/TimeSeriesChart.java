@@ -24,6 +24,7 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.AxisLocation;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -58,6 +59,7 @@ public class TimeSeriesChart {
                     "Date",
                     "USD",
                     collection);
+            chart.getXYPlot().setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
 
             ChartUtils.saveChartAsPNG(
                     new File(filename),

@@ -22,16 +22,12 @@ import java.time.ZoneOffset;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
  * @author fede
  */
 public record YearMonth(int year, int month) implements Comparable<YearMonth> {
-
-    //private static final Map<Integer, Map<Integer, YearMonth>> POOL = new ConcurrentHashMap<>(128, 0.75f);
 
     public static YearMonth of(LocalDate day) {
         return of(day.getYear(), day.getMonthValue());
