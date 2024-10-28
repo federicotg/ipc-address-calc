@@ -70,16 +70,12 @@ import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class Positions {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Positions.class);
 
     private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
 

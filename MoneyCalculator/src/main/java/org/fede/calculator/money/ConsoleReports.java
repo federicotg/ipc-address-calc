@@ -19,7 +19,6 @@ package org.fede.calculator.money;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
@@ -55,14 +54,9 @@ import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.XRSU;
+import org.fede.calculator.money.chart.TimeSeriesChart;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.util.Pair;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.ChartUtils;
-import org.jfree.data.time.Day;
-import org.jfree.data.time.TimeSeries;
-import org.jfree.data.time.TimeSeriesCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,13 +122,11 @@ public class ConsoleReports {
                 .inv("all".equalsIgnoreCase(type) ? x -> true : x -> this.investmentFilter(x, type), nominal(params));
 
     }
-    
+
     private void invGainsChart(String[] args, String paramName) {
 
         //final var params = this.paramsValue(args, paramName);
-
         //final var type = params.getOrDefault("type", "all");
-
         new Investments(this.console, this.format, this.bar, this.series)
                 .invGainsChart();
     }
@@ -851,17 +843,13 @@ public class ConsoleReports {
     }
 
     private void savingsEvoChart() {
-        try {
-            JFreeChart realSavingsChart = ChartFactory.createTimeSeriesChart(
-                    "Real Savings",
-                    "Date",
-                    "Real USD",
-                    new TimeSeriesCollection(this.asTimeSeries(this.series.realSavings(null))));
 
-            ChartUtils.saveChartAsPNG(new File("real_savings.png"), realSavingsChart, 1200, 900);
-        } catch (IOException ioEx) {
-            LOGGER.error("Error writting chart.", ioEx);
-        }
+        var s = this.series.realSavings(null);
+        s.setName("Real");
+        var nominal = this.series.nominalSavings();
+        nominal.setName("Nominal");
+        new TimeSeriesChart().create("Savings", List.of(s, nominal), "savings.png");
+
     }
 
     public void expensesChart(String[] args, String paramName) {
@@ -890,39 +878,7 @@ public class ConsoleReports {
         if (grouped) {
             chartName = "Grouped " + chartName;
         }
-
-        try {
-            var collection = new TimeSeriesCollection();
-            expenseSeries
-                    .stream()
-                    .map(this::asTimeSeries)
-                    .forEach(collection::addSeries);
-            ChartUtils.saveChartAsPNG(
-                    new File("expenses_" + (grouped ? "grouped" : "") + "_" + m + ".png"),
-                    ChartFactory.createTimeSeriesChart(
-                            chartName,
-                            "Date",
-                            "Real USD",
-                            collection),
-                    1200,
-                    900);
-        } catch (IOException ioEx) {
-            LOGGER.error("Error writting chart.", ioEx);
-        }
-
-    }
-
-    private TimeSeries asTimeSeries(MoneyAmountSeries s) {
-        final TimeSeries ts = new TimeSeries(s.getName());
-        final var to = Inflation.USD_INFLATION.getTo();
-        s.forEach((ym, ma) -> {
-            if (ym.compareTo(to) <= 0) {
-                ts.add(
-                        new Day(ym.asToDate()),
-                        ma.amount());
-            }
-        });
-        return ts;
+        new TimeSeriesChart().create(chartName, expenseSeries, "expenses_" + (grouped ? "grouped" : "") + "_" + m + ".png");
 
     }
 
