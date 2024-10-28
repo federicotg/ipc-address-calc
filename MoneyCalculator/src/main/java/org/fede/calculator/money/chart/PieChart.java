@@ -66,9 +66,6 @@ public class PieChart {
                     chartTitle,
                     ds);
 
-            portfolio.setAntiAlias(true);
-            portfolio.setTextAntiAlias(true);
-
             var p = (PiePlot) portfolio.getPlot();
 
             p.setLabelGenerator(this.labelGenerator);

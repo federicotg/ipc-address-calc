@@ -58,8 +58,7 @@ public class TimeSeriesChart {
                     "Date",
                     "USD",
                     collection);
-            chart.setAntiAlias(true);
-            chart.setTextAntiAlias(true);
+
             ChartUtils.saveChartAsPNG(
                     new File(filename),
                     chart,
