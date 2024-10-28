@@ -130,6 +130,12 @@ public class ConsoleReports {
         new Investments(this.console, this.format, this.bar, this.series)
                 .invGainsChart();
     }
+    
+        private void brokerChart(String[] args, String paramName) {
+
+        new Investments(this.console, this.format, this.bar, this.series)
+                .brokerChart();
+    }
 
     private boolean investmentFilter(Investment i, String type) {
         if ("all".equalsIgnoreCase(type)) {
@@ -162,6 +168,9 @@ public class ConsoleReports {
 
             case "gains-chart" ->
                 () -> me.invGainsChart(args, "gains-chart");
+                
+            case "broker-chart" ->
+                () -> me.brokerChart(args, "broker-chart");
 
             case "savings" ->
                 () -> me.savings(args, "savings");

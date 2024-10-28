@@ -39,7 +39,6 @@ import static java.util.Comparator.reverseOrder;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -774,4 +773,34 @@ public class Investments {
         }
     }
 
+    public void brokerChart() {
+        Map<String, List<Investment>> byBroker = this.getInvestments()
+                .filter(Investment::isETF)
+                .filter(Investment::isCurrent)
+                .collect(Collectors.groupingBy(i -> i.getComment() == null ? "PPI" : "IBKR"));
+
+        new PieChart(true).create(
+                "Investments By Broker",
+                byBroker.entrySet().stream().flatMap(e -> this.brokerItem(e.getKey(), e.getValue())).toList(),
+                "brokers.png");
+
+    }
+
+    private Stream<PieItem> brokerItem(String broker, List<Investment> investments) {
+
+        final var now = Inflation.USD_INFLATION.getTo();
+
+        var invested = investments.stream().map(Investment::getInitialMoneyAmount)
+                .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), USD).apply(ma, now))
+                .reduce(MoneyAmount::add).map(MoneyAmount::amount).get();
+
+        var currentValue = investments.stream().map(Investment::getMoneyAmount)
+                .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), USD).apply(ma, now))
+                .reduce(MoneyAmount::add).map(MoneyAmount::amount).get();
+
+        return Stream.of(
+                new PieItem("Invested " + broker, invested),
+                new PieItem("Current " + broker, currentValue));
+
+    }
 }
