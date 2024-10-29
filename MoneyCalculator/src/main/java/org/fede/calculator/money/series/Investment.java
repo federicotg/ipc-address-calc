@@ -226,7 +226,7 @@ public class Investment {
     }
 
     public boolean isETF() {
-        return this.getType().equals(InvestmentType.ETF);
+        return this.getType() == InvestmentType.ETF;
     }
 
 }
