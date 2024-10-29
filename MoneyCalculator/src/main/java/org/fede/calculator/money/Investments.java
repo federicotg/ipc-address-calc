@@ -790,16 +790,23 @@ public class Investments {
 
         final var now = Inflation.USD_INFLATION.getTo();
 
-        var invested = investments.stream().map(Investment::getInitialMoneyAmount)
-                .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), USD).apply(ma, now))
+        var invested = investments.stream()
+                .map(Investment::getRealUSDInitialMoneyAmount)
                 .reduce(MoneyAmount::add).map(MoneyAmount::amount).get();
 
-        var currentValue = investments.stream().map(Investment::getMoneyAmount)
+        var currentValue = investments.stream()
+                .map(Investment::getMoneyAmount)
                 .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), USD).apply(ma, now))
+                .reduce(MoneyAmount::add).map(MoneyAmount::amount).get();
+        
+        
+        var costValue = investments.stream()
+                .map(Investment::getRealUSDCost)
                 .reduce(MoneyAmount::add).map(MoneyAmount::amount).get();
 
         return Stream.of(
                 new PieItem("Invested " + broker, invested),
+                new PieItem("Cost " + broker, costValue),
                 new PieItem("Gains " + broker, currentValue.subtract(invested)));
 
     }

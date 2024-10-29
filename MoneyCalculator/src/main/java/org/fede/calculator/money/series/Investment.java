@@ -26,6 +26,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import org.fede.calculator.money.Currency;
+import static org.fede.calculator.money.Currency.USD;
+import org.fede.calculator.money.ForeignExchanges;
+import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.MathConstants.C;
 
@@ -98,6 +101,12 @@ public class Investment {
     @JsonIgnore
     public MoneyAmount getMoneyAmount() {
         return this.getInvestment().getMoneyAmount();
+    }
+    
+    @JsonIgnore
+    public MoneyAmount getRealUSDInitialMoneyAmount() {
+        
+        return this.getIn().getRealUSDMoneyAmount();
     }
 
     @JsonIgnore
@@ -174,6 +183,16 @@ public class Investment {
                 && sellDate.isAfter(reference);
     }
 
+    public MoneyAmount getRealUSDCost() {
+        final var now = Inflation.USD_INFLATION.getTo();
+
+        return Inflation.USD_INFLATION.adjust(
+                ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD)
+                        .apply(this.getCost(), YearMonth.of(this.getInitialDate())),
+                YearMonth.of(this.getInitialDate()),
+                now);
+    }
+    
     public MoneyAmount getCost() {
         return new MoneyAmount(
                 Optional.ofNullable(this.getComment())

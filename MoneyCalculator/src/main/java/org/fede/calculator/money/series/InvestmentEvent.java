@@ -7,6 +7,9 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.StringJoiner;
 import org.fede.calculator.money.Currency;
+import static org.fede.calculator.money.Currency.USD;
+import org.fede.calculator.money.ForeignExchanges;
+import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
 
 /*
@@ -46,7 +49,6 @@ public class InvestmentEvent {
     public void setTransferFee(BigDecimal transferFee) {
         this.transferFee = transferFee;
     }
-    
 
     public Date getDate() {
         return date;
@@ -80,7 +82,7 @@ public class InvestmentEvent {
     public void setFee(BigDecimal fee) {
         this.fee = fee;
     }
-    
+
     @JsonIgnore
     public MoneyAmount getMoneyAmount() {
         return new MoneyAmount(this.getAmount(), this.getCurrency());
@@ -90,7 +92,7 @@ public class InvestmentEvent {
     public MoneyAmount getFeeMoneyAmount() {
         return new MoneyAmount(this.getFee(), this.getCurrency());
     }
-    
+
     @Override
     public String toString() {
         return new StringJoiner(", ", this.getClass().getSimpleName() + " [", "]")
@@ -106,6 +108,16 @@ public class InvestmentEvent {
 
     public void setFx(BigDecimal fx) {
         this.fx = fx;
+    }
+
+    public MoneyAmount getRealUSDMoneyAmount() {
+        final var now = Inflation.USD_INFLATION.getTo();
+
+        return Inflation.USD_INFLATION.adjust(
+                ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD)
+                        .apply(this.getMoneyAmount(), YearMonth.of(this.getDate())),
+                YearMonth.of(this.getDate()),
+                now);
     }
 
 }
