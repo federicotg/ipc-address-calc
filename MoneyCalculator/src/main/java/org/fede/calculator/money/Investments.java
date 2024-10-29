@@ -132,9 +132,10 @@ public class Investments {
 
     public void invGainsChart() {
 
+        var now = new Date();
         Map<Integer, BigDecimal> gainsByYear = this.series.getInvestments()
                 .stream()
-                .filter(Investment::isCurrent)
+                .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(new InvestmentCostStrategy(Currency.USD)::details)
                 .map(InvestmentDetails::asReal)
@@ -754,9 +755,9 @@ public class Investments {
 
         final NumberFormat sixDigits = NumberFormat.getNumberInstance();
         sixDigits.setMinimumFractionDigits(6);
-
+        var now = new Date();
         this.series.getInvestments().stream()
-                .filter(Investment::isCurrent)
+                .filter(investment -> investment.isCurrent(now))
                 .collect(groupingBy(inv -> new InvestmentTypeAndCurrency(inv.getType(), inv.getCurrency()), mapper))
                 .entrySet()
                 .stream()
@@ -774,9 +775,10 @@ public class Investments {
     }
 
     public void brokerChart() {
+        var now = new Date();
         Map<String, List<Investment>> byBroker = this.getInvestments()
                 .filter(Investment::isETF)
-                .filter(Investment::isCurrent)
+                .filter(investment -> investment.isCurrent(now))
                 .collect(Collectors.groupingBy(i -> i.getComment() == null ? "PPI" : "IBKR"));
 
         new PieChart(true).create(

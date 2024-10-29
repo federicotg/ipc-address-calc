@@ -121,6 +121,7 @@ public class Positions {
 
     public void positions(boolean nominal) {
 
+        final var now = new Date();
         this.console.appendLine(this.format.title("Positions Without Fees"));
 
         final var descWidth = 36;
@@ -156,7 +157,7 @@ public class Positions {
 
         final var positions = this.series.getInvestments()
                 .stream()
-                .filter(Investment::isCurrent)
+                .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
@@ -213,15 +214,14 @@ public class Positions {
 
         this.console.appendLine(this.format.subtitle("Costs"));
 
-        final var capitalGainsTax = this.capitalGainsTaxAmount();
+        final var capitalGainsTax = this.capitalGainsTaxAmount(now);
 
-        final var sellFee = this.sellFee();
+        final var sellFee = this.sellFee(now);
 
         final var wealthTax = wealthTax(nominal);
+        final var cost = this.by(nominal, i -> "*", Investment::getCost, now).values().stream().findFirst().get();
 
-        final var cost = this.by(nominal, i -> "*", Investment::getCost).values().stream().findFirst().get();
-
-        final var inflationCost = nominal ? this.inflationCost() : ZERO_USD;
+        final var inflationCost = nominal ? this.inflationCost(now) : ZERO_USD;
 
         final var totalCost = sellFee.add(inflationCost.add(cost.add(wealthTax.add(capitalGainsTax))));
 
@@ -236,8 +236,8 @@ public class Positions {
         taxes.stream().filter(p -> !p.amount().isZero()).forEach(tax -> this.printTaxLine(tax, totalCost));
 
         this.console.appendLine(this.format.subtitle("Fees"));
-        this.costs(nominal);
-        this.annualCost(nominal);
+        this.costs(nominal, now);
+        this.annualCost(nominal, now);
     }
 
     private void printTaxLine(DescriptionAndMoneyAmount tax, MoneyAmount totalPnL) {
@@ -247,10 +247,11 @@ public class Positions {
                 this.format.percent(tax.amount().getAmount().divide(totalPnL.getAmount(), C), 10)));
     }
 
-    private MoneyAmount inflationCost() {
+    private MoneyAmount inflationCost(Date now) {
+        
         final var real = this.series.getInvestments()
                 .stream()
-                .filter(Investment::isCurrent)
+                .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(Inflation.USD_INFLATION::real)
@@ -259,7 +260,7 @@ public class Positions {
 
         final var nominal = this.series.getInvestments()
                 .stream()
-                .filter(Investment::isCurrent)
+                .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(Investment::getInitialMoneyAmount)
@@ -268,10 +269,10 @@ public class Positions {
         return real.subtract(nominal);
     }
 
-    private MoneyAmount sellFee() {
+    private MoneyAmount sellFee(Date now) {
         return this.series.getInvestments()
                 .stream()
-                .filter(Investment::isCurrent)
+                .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(i -> ForeignExchanges.exchange(i, Currency.USD))
                 .map(this::sellFee)
@@ -282,11 +283,11 @@ public class Positions {
         return new MoneyAmount(FEE_STRATEGIES.get(this.feeStrategyKey(i)).apply(this.currentValueUSD(i).getAmount()), Currency.USD);
     }
 
-    private MoneyAmount capitalGainsTaxAmount() {
+    private MoneyAmount capitalGainsTaxAmount(Date now) {
 
         return this.series.getInvestments()
                 .stream()
-                .filter(Investment::isCurrent)
+                .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(this::unrealizedUSDCapitalGains)
                 .reduce(ZERO_USD, MoneyAmount::add);
@@ -330,27 +331,29 @@ public class Positions {
     public void dca(boolean nominal, String type) {
 
         this.console.appendLine(this.format.title((nominal ? "Nominal" : "Real") + " Dollar Cost Average"));
-
+        var now = new Date();
         final var classifier = GROUPINGS.get(type);
-        this.dca(nominal, classifier);
+        this.dca(nominal, classifier, now);
 
         this.console.appendLine(this.format.subtitle("Costs"));
-        this.cost(classifier, nominal);
+        this.cost(classifier, nominal, now);
 
-        this.annualCost(nominal);
+        this.annualCost(nominal, now);
     }
 
-    private void dca(boolean nominal, Function<Investment, String> groupingFunction) {
+    private void dca(boolean nominal, Function<Investment, String> groupingFunction, Date now) {
 
         final var averagesByGroup = this.positionsBy(
                 this.series.getInvestments(),
                 (i) -> AVERAGE_KEY,
-                nominal);
+                nominal,
+                now);
 
         final var positionByGroup = this.positionsBy(
                 this.series.getInvestments(),
                 groupingFunction,
-                nominal);
+                nominal,
+                now);
 
         this.console.appendLine(this.format.text("", 11),
                 positionByGroup.keySet().stream()
@@ -389,10 +392,10 @@ public class Positions {
         return Ansi.colorize(this.format.currency(this.current(currency).getAmount(), 9), Attribute.WHITE_TEXT());
     }
 
-    private Map<CurrencyAndGroupKey, Position> positionsBy(List<Investment> investments, Function<Investment, String> groupingFunction, boolean nominal) {
+    private Map<CurrencyAndGroupKey, Position> positionsBy(List<Investment> investments, Function<Investment, String> groupingFunction, boolean nominal, Date now) {
         return investments
                 .stream()
-                .filter(Investment::isCurrent)
+                .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
@@ -449,7 +452,7 @@ public class Positions {
                 : "IBKR €";
     }
 
-    private void costs(boolean nominal) {
+    private void costs(boolean nominal, Date now) {
 
         final Function<Investment, String> yearClassifier = i -> String.valueOf(YearMonth.of(i.getInitialDate()).getYear());
         final Function<Investment, String> brokerClassifier = i -> i.getComment() == null ? "PPI " : "IBKR";
@@ -457,19 +460,19 @@ public class Positions {
         //  final Function<Investment, String> etfClassifier = Investment::getCurrency;
         //  final Function<Investment, String> currencyClassifier = i -> "gettex".equals(i.getComment()) ? "EUR" : "USD";
 
-        this.cost(yearClassifier, nominal);
-        this.cost(brokerClassifier, nominal);
+        this.cost(yearClassifier, nominal, now);
+        this.cost(brokerClassifier, nominal, now);
         //    this.cost(etfClassifier, nominal);
         //    this.cost(currencyClassifier, nominal);
-        this.cost(this::exchangeClassifier, nominal);
-        this.cost(anyClassifier, nominal);
+        this.cost(this::exchangeClassifier, nominal, now);
+        this.cost(anyClassifier, nominal, now);
 
     }
 
-    private void cost(Function<Investment, String> classifier, boolean nominal) {
+    private void cost(Function<Investment, String> classifier, boolean nominal, Date now) {
 
-        final var inv = this.by(nominal, classifier, Investment::getInitialMoneyAmount);
-        final var cost = this.by(nominal, classifier, Investment::getCost);
+        final var inv = this.by(nominal, classifier, Investment::getInitialMoneyAmount, now);
+        final var cost = this.by(nominal, classifier, Investment::getCost, now);
         final var totalInv = inv.values().stream().map(MoneyAmount::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         inv
                 .keySet()
@@ -480,16 +483,16 @@ public class Positions {
 
     }
 
-    private void annualCost(boolean nominal) {
+    private void annualCost(boolean nominal, Date now) {
 
         final Function<Investment, String> any = i -> "all";
 
-        final var totalCost = this.by(nominal, any, Investment::getCost)
+        final var totalCost = this.by(nominal, any, Investment::getCost, now)
                 .values()
                 .stream()
                 .map(MoneyAmount::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        final var totalInv = this.by(nominal, any, Investment::getInitialMoneyAmount)
+        final var totalInv = this.by(nominal, any, Investment::getInitialMoneyAmount, now)
                 .values()
                 .stream()
                 .map(MoneyAmount::getAmount)
@@ -497,7 +500,7 @@ public class Positions {
 
         final var startDate = this.series.getInvestments()
                 .stream()
-                .filter(Investment::isCurrent)
+                .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(Investment::getInitialDate)
                 .min(Comparator.naturalOrder())
@@ -523,10 +526,10 @@ public class Positions {
                 this.format.percent(m2.get(label).getAmount().divide(m1.get(label).getAmount(), C), 8));
     }
 
-    private Map<String, MoneyAmount> by(boolean nominal, Function<Investment, String> classifier, Function<Investment, MoneyAmount> func) {
+    private Map<String, MoneyAmount> by(boolean nominal, Function<Investment, String> classifier, Function<Investment, MoneyAmount> func, Date now) {
         return this.series.getInvestments()
                 .stream()
-                .filter(Investment::isCurrent)
+                .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))

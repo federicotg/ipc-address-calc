@@ -143,10 +143,10 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
         var current = this.getFrom();
         int valueHash = 13;
         while (current.compareTo(this.getTo()) <= 0) {
-            valueHash += 37*Objects.hash(this.getAmount(current), current);
+            valueHash += 37 * Objects.hash(this.getAmount(current), current);
             current = current.next();
         }
-        
+
         return 37 * Objects.hash(this.getCurrency(), this.getFrom(), this.getTo()) + valueHash;
     }
 
@@ -180,6 +180,5 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     public void setName(String name) {
         this.name = name;
     }
-    
-    
+
 }

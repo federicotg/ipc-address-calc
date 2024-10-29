@@ -57,7 +57,7 @@ public class SeriesReader {
     public static final String APP_RESOURCES = System.getProperty("user.home") + File.separator + "Documents" + File.separator + "app-resources" + File.separator;
 
     public static final String SECRETS = APP_RESOURCES + "ppi-secrets.properties";
-    
+
     private static final Map<String, String> CURRENCY_ETF = Map.of(
             "CSPX", ETF.CSPX,
             "RTWO", ETF.RTWO,

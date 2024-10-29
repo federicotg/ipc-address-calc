@@ -64,7 +64,7 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
     }
 
     private Currency getFirstTargetCurrency(Currency currency) {
-        return currency ==this.first.getTargetCurrency()
+        return currency == this.first.getTargetCurrency()
                 ? this.first.getSourceCurrency()
                 : this.first.getTargetCurrency();
     }
