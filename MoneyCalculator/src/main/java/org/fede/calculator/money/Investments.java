@@ -800,7 +800,7 @@ public class Investments {
 
         return Stream.of(
                 new PieItem("Invested " + broker, invested),
-                new PieItem("Current " + broker, currentValue));
+                new PieItem("Gains " + broker, currentValue.subtract(invested)));
 
     }
 }
