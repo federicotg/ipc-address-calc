@@ -102,10 +102,10 @@ public class Investment {
     public MoneyAmount getMoneyAmount() {
         return this.getInvestment().getMoneyAmount();
     }
-    
+
     @JsonIgnore
     public MoneyAmount getRealUSDInitialMoneyAmount() {
-        
+
         return this.getIn().getRealUSDMoneyAmount();
     }
 
@@ -185,14 +185,16 @@ public class Investment {
 
     public MoneyAmount getRealUSDCost() {
         final var now = Inflation.USD_INFLATION.getTo();
+        final var then = YearMonth.of(this.getInitialDate());
+        final var cost = this.getCost();
 
         return Inflation.USD_INFLATION.adjust(
-                ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD)
-                        .apply(this.getCost(), YearMonth.of(this.getInitialDate())),
-                YearMonth.of(this.getInitialDate()),
+                ForeignExchanges.getMoneyAmountForeignExchange(cost.currency(), USD)
+                        .apply(cost, then),
+                then,
                 now);
     }
-    
+
     public MoneyAmount getCost() {
         return new MoneyAmount(
                 Optional.ofNullable(this.getComment())
@@ -222,8 +224,8 @@ public class Investment {
         return this.getIn().getFee()
                 .add(this.getIn().getTransferFee(), C);
     }
-    
-    public boolean isETF(){
+
+    public boolean isETF() {
         return this.getType().equals(InvestmentType.ETF);
     }
 
