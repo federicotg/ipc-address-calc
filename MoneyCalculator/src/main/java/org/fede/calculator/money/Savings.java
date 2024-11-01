@@ -284,7 +284,7 @@ public class Savings {
         }
         new References(console, format).refs(
                 title,
-                List.of("UNLP", "LIFIA", "Despegar ARS", "Despegar USD", "Other'"),
+                List.of("UNLP", "LIFIA", "Despegar ARS", "Despegar USD", "Other"),
                 colorList);
 
     }
