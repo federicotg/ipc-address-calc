@@ -62,15 +62,19 @@ public class Group {
             comparisonSeries.forEachNonZero((ym, ma) -> comparisonByYear.merge(classifier.apply(ym), ma, MoneyAmount::add));
         }
 
-        byYear.entrySet().stream()
+        byYear.entrySet()
+                .stream()
                 .sorted(Comparator.comparing(Map.Entry::getKey))
-                .forEach(e -> this.console.appendLine(format("{0} {1} {2} {3}",
-                e.getKey(),
-                this.format.currency(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), C), 11),
-                Optional.ofNullable(comparisonByYear.get(e.getKey()))
-                        .map(comp -> this.format.text(this.format.percent(e.getValue().getAmount().divide(comp.getAmount(), C).movePointRight(2)), 5))
-                        .orElse(""),
-                this.bar.bar(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), C), months < 7 ? 80: 50))));
+                .forEach(e -> this.console.appendLine(
+                format("{0}{1}{2} {3}",
+                        this.format.text(e.getKey(), 9),
+                        this.format.currency(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), C), 10),
+                        Optional.ofNullable(comparisonByYear.get(e.getKey()))
+                                .map(comp -> this.format.percent(e.getValue().getAmount().divide(comp.getAmount(), C), 10))
+                                .orElse(""),
+                        this.bar.bar(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), C), months < 7 ? 80 : 50))
+        )
+                );
     }
 
 }
