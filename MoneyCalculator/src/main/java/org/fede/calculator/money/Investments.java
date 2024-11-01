@@ -470,7 +470,6 @@ public class Investments {
                             : this.bar(ym, elements, ConsoleReports.SCALE));
         });
 
-        //this.console.appendLine(format(title, nominal ? "Nominal" : "Real"));
         this.ref();
 
     }

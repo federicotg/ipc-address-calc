@@ -19,6 +19,7 @@ package org.fede.calculator.money.chart;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import org.fede.calculator.money.ConsoleReports;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.jfree.chart.ChartFactory;
@@ -62,7 +63,7 @@ public class TimeSeriesChart {
             chart.getXYPlot().setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
 
             ChartUtils.saveChartAsPNG(
-                    new File(filename),
+                    new File(ConsoleReports.CHARTS_PREFIX + filename),
                     chart,
                     1200,
                     900);

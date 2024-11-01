@@ -54,14 +54,10 @@ public class Expenses {
 
         this.console.appendLine(this.format.title("Expenses Change"));
 
-        final var s = "full".equals(type)
-                ? this.series.realExpense()
-                : this.series.realExpenses(null);
-
         this.bar.evolution(format("{0}-month average expenses change", months),
                 new SimpleAggregation(2)
                         .change(new SimpleAggregation(months)
-                                .average(s)), 1);
+                                .average(this.series.realExpenses(null))), 1);
     }
 
     public void expenses(Map<String, String> params) {

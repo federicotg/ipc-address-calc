@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
+import org.fede.calculator.money.ConsoleReports;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
@@ -75,7 +76,7 @@ public class PieChart {
             p.setLabelOutlinePaint(WHITE);
             p.setLabelShadowPaint(WHITE);
             ChartUtils.saveChartAsPNG(
-                    new File(fileName),
+                    new File(ConsoleReports.CHARTS_PREFIX+fileName),
                     chart,
                     1200,
                     900);

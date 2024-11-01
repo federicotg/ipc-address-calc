@@ -19,6 +19,7 @@ package org.fede.calculator.money;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
@@ -86,6 +87,8 @@ public class ConsoleReports {
     private static final String BAD_YEAR_SPENDING = "0.85";
     private static final String SAVE_CASH_YEARS_BEFORE_RETIREMENT = "6";
 
+    public static final String CHARTS_PREFIX = System.getProperty("user.home") + File.separator + "Pictures" + File.separator + "chart-";
+
     public static final int SCALE = 2500;
 
     private static boolean nominal(Map<String, String> params) {
@@ -130,8 +133,8 @@ public class ConsoleReports {
         new Investments(this.console, this.format, this.bar, this.series)
                 .invGainsChart();
     }
-    
-        private void brokerChart(String[] args, String paramName) {
+
+    private void brokerChart(String[] args, String paramName) {
 
         new Investments(this.console, this.format, this.bar, this.series)
                 .brokerChart();
@@ -168,7 +171,7 @@ public class ConsoleReports {
 
             case "gains-chart" ->
                 () -> me.invGainsChart(args, "gains-chart");
-                
+
             case "broker-chart" ->
                 () -> me.brokerChart(args, "broker-chart");
 
@@ -417,7 +420,7 @@ public class ConsoleReports {
                         entry("savings-avg-pct", "m=12"),
                         entry("expenses", "by=(year|half|quarter|month) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
                         entry("expenses-change", "type=(full|tracked*) m=12"),
-                        entry("expenses-evo", "type=(full|taxes|insurance|phone|services|home|entertainment) m=12"),
+                        entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) m=12"),
                         entry("expenses-chart", "m=0 g=false"),
                         entry("savings-evo", "type=(BO|LIQ|EQ)"),
                         entry("savings-chart", ""),
