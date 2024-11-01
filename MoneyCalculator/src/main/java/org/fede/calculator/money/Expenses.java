@@ -126,7 +126,7 @@ public class Expenses {
     }
 
     private void monthlyExpenses() {
-        new Group(console, format, bar).group("Monthly expenses", this.series.realExpense(), null, YearMonth::monthString, 3);
+        new Group(console, format, bar).group("Monthly expenses", this.series.realExpense(), null, YearMonth::monthString, 1);
     }
 
     private void yearlyExpenses() {
@@ -134,7 +134,7 @@ public class Expenses {
     }
 
     private void halfExpenses() {
-        new Group(console, format, bar).group("Half expenses", this.series.realExpense(), null, YearMonth::half, 3);
+        new Group(console, format, bar).group("Half expenses", this.series.realExpense(), null, YearMonth::half, 6);
     }
 
     public void expenseBySource(int months) {

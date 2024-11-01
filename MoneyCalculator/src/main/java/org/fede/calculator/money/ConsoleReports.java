@@ -415,7 +415,7 @@ public class ConsoleReports {
                         entry("bbppstatus", ""),
                         entry("savings-net-change", "m=12"),
                         entry("savings-avg-pct", "m=12"),
-                        entry("expenses", "by=(year|half|quarter) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
+                        entry("expenses", "by=(year|half|quarter|month) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
                         entry("expenses-change", "type=(full|tracked*) m=12"),
                         entry("expenses-evo", "type=(full|taxes|insurance|phone|services|home|entertainment) m=12"),
                         entry("expenses-chart", "m=0 g=false"),
