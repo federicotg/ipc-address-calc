@@ -35,6 +35,8 @@ import java.util.stream.Stream;
 import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.chart.PieChart;
+import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
@@ -408,6 +410,17 @@ public class Savings {
         return new SimpleAggregation(years * 12)
                 .average(this.series.realNetSavings())
                 .getAmount(USD_INFLATION.getTo());
+    }
+
+    public void savingRate(int year) {
+        var income = this.yearIncome(year).amount();
+        var savings = this.yearSavings(year).amount();
+        new PieChart(true).create(
+                "Saving Rate "+year,
+                List.of(
+                        new PieItem("Expenses", income.subtract(savings)),
+                        new PieItem("Savings", savings)),
+                "saving-rate-" + year + ".png");
     }
 
     public void yearSavingsIncomeTable() {

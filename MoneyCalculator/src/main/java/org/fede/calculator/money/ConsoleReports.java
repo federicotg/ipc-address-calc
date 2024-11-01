@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -195,6 +196,9 @@ public class ConsoleReports {
 
             case "savings-avg" ->
                 () -> me.netAvgSavingSpent(args, "savings-avg");
+
+            case "savings-rate" ->
+                () -> me.savingRateChart(args, "savings-rate");
 
             case "savings-dist" ->
                 new Savings(format, series, bar, console)::savingsDistributionEvolution;
@@ -397,6 +401,7 @@ public class ConsoleReports {
                         entry("income-table", ""),
                         entry("income-year-table", ""),
                         entry("savings-dist", ""),
+                        entry("savings-rate", "y=*now"),
                         entry("savings-dist-pct", ""),
                         entry("income-avg-change", "m=12"),
                         entry("income", "by=(year|half|quarter) months=12"),
@@ -486,6 +491,11 @@ public class ConsoleReports {
 
     private void income(String[] args) {
         new Savings(format, series, bar, console).income(this.paramsValue(args, "income"));
+    }
+
+    private void savingRateChart(String[] args, String param) {
+        var year = Integer.parseInt(this.paramsValue(args, param).getOrDefault("y", String.valueOf(LocalDate.now().getYear())));
+        new Savings(format, series, bar, console).savingRate(year);
     }
 
     private void house(String[] args, String paramName) {
