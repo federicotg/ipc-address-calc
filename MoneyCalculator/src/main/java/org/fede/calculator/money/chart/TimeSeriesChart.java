@@ -42,18 +42,8 @@ public class TimeSeriesChart {
 
     public void create(String chartName, List<MoneyAmountSeries> series, String filename) {
         try {
-            final var to = Inflation.USD_INFLATION.getTo();
             var collection = new TimeSeriesCollection();
-            for (var s : series) {
-                final TimeSeries ts = new TimeSeries(s.getName());
-
-                s.forEach((ym, ma) -> {
-                    if (ym.compareTo(to) <= 0) {
-                        ts.add(new Day(ym.asToDate()), ma.amount());
-                    }
-                });
-                collection.addSeries(ts);
-            }
+            series.stream().map(MoneyAmountSeries::asTimeSeries).forEach(collection::addSeries);
 
             JFreeChart chart = ChartFactory.createTimeSeriesChart(
                     chartName,
@@ -66,7 +56,10 @@ public class TimeSeriesChart {
                     new File(ConsoleReports.CHARTS_PREFIX + filename),
                     chart,
                     1200,
-                    900);
+                    900,
+                    null,
+                    true,
+                    9);
         } catch (IOException ex) {
             LOGGER.error("Error generating time series chart.", ex);
         }

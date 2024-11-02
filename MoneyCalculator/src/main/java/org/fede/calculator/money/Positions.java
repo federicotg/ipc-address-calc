@@ -76,13 +76,9 @@ import static org.fede.util.Pair.of;
  */
 public class Positions {
 
-    private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
+    private final BigDecimal capitalGainsTaxRate = new BigDecimal("0.15");
 
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
-
-    private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
-
-    private static final Map<String, Function<BigDecimal, BigDecimal>> FEE_STRATEGIES = Map.of(
+    private final Map<String, Function<BigDecimal, BigDecimal>> feeStrategies = Map.of(
             "PPI_USD", new PPIGlobalUSDFeeStrategy(),
             "PPI_EUR", new PPIGlobalEURFeeStrategy(),
             "gettex", new InteractiveBrokersTieredEuronextEURFeeStrategy(),
@@ -96,12 +92,6 @@ public class Positions {
             RTWO, "L&G Russell 2000 Small Cap Quality",
             MEUD, "Amundi Stoxx Europe 600"
     );
-
-    private static final Map<String, Function<Investment, String>> GROUPINGS = Map.of(
-            "h", i -> YearMonth.of(i.getInitialDate()).half(),
-            "y", i -> Integer.toString(YearMonth.of(i.getInitialDate()).getYear()),
-            "m", i -> YearMonth.of(i.getInitialDate()).monthString(),
-            "q", i -> YearMonth.of(i.getInitialDate()).quarter());
 
     private static final String AVERAGE_KEY = "Avg.";
 
@@ -168,17 +158,17 @@ public class Positions {
         final var totalMarketValue = positions
                 .stream()
                 .map(Position::getMarketValue)
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
 
         final var totalCostBasis = positions
                 .stream()
                 .map(Position::getCostBasis)
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
 
         final var totalPnL = positions
                 .stream()
                 .map(Position::getUnrealizedPnL)
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
 
         positions
                 .stream()
@@ -218,7 +208,7 @@ public class Positions {
         final var wealthTax = wealthTax(nominal);
         final var cost = this.by(nominal, i -> "*", Investment::getCost, now).values().stream().findFirst().get();
 
-        final var inflationCost = nominal ? this.inflationCost(now) : ZERO_USD;
+        final var inflationCost = nominal ? this.inflationCost(now) : MoneyAmount.zero(Currency.USD);
 
         final var totalCost = sellFee.add(inflationCost.add(cost.add(wealthTax.add(capitalGainsTax))));
 
@@ -253,7 +243,7 @@ public class Positions {
                 .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(Inflation.USD_INFLATION::real)
                 .map(Investment::getInitialMoneyAmount)
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
 
         final var nominal = this.series.getInvestments()
                 .stream()
@@ -261,7 +251,7 @@ public class Positions {
                 .filter(Investment::isETF)
                 .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(Investment::getInitialMoneyAmount)
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
 
         return real.subtract(nominal);
     }
@@ -273,11 +263,11 @@ public class Positions {
                 .filter(Investment::isETF)
                 .map(i -> ForeignExchanges.exchange(i, Currency.USD))
                 .map(this::sellFee)
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
     }
 
     private MoneyAmount sellFee(Investment i) {
-        return new MoneyAmount(FEE_STRATEGIES.get(this.feeStrategyKey(i)).apply(this.currentValueUSD(i).getAmount()), Currency.USD);
+        return new MoneyAmount(feeStrategies.get(this.feeStrategyKey(i)).apply(this.currentValueUSD(i).getAmount()), Currency.USD);
     }
 
     private MoneyAmount capitalGainsTaxAmount(Date now) {
@@ -287,7 +277,7 @@ public class Positions {
                 .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(this::unrealizedUSDCapitalGains)
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
 
     }
 
@@ -307,7 +297,7 @@ public class Positions {
         final var now = YearMonth.of(LocalDate.now());
         return this.series.getExpense("bbpp", nominal)
                 .filter((ym, map) -> ym.compareTo(now) <= 0)
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
     }
 
     private MoneyAmount unrealizedUSDCapitalGains(Investment i) {
@@ -320,15 +310,21 @@ public class Positions {
         return this.currentValueUSD(i)
                 .subtract(this.sellFee(i))
                 .subtract(initialUSDAmount)
-                .max(ZERO_USD)
-                .adjust(ONE, CAPITAL_GAINS_TAX_RATE);
+                .max(MoneyAmount.zero(Currency.USD))
+                .adjust(ONE, capitalGainsTaxRate);
     }
 
     public void dca(boolean nominal, String type) {
 
+        final Map<String, Function<Investment, String>> groupings = Map.of(
+                "h", i -> YearMonth.of(i.getInitialDate()).half(),
+                "y", i -> Integer.toString(YearMonth.of(i.getInitialDate()).getYear()),
+                "m", i -> YearMonth.of(i.getInitialDate()).monthString(),
+                "q", i -> YearMonth.of(i.getInitialDate()).quarter());
+
         this.console.appendLine(this.format.title((nominal ? "Nominal" : "Real") + " Dollar Cost Average"));
         var now = new Date();
-        final var classifier = GROUPINGS.get(type);
+        final var classifier = groupings.get(type);
         this.dca(nominal, classifier, now);
 
         this.console.appendLine(this.format.subtitle("Costs"));
@@ -501,7 +497,7 @@ public class Positions {
                 .map(Investment::getInitialDate)
                 .min(Comparator.naturalOrder())
                 .map(Date::toInstant)
-                .map(i -> LocalDate.ofInstant(i, SYSTEM_DEFAULT_ZONE_ID))
+                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
                 .get();
 
         final var days = ChronoUnit.DAYS.between(startDate, LocalDate.now());
@@ -530,7 +526,7 @@ public class Positions {
                 .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
                 .collect(groupingBy(classifier,
-                        mapping(func, reducing(ZERO_USD, MoneyAmount::add))));
+                        mapping(func, reducing(MoneyAmount.zero(Currency.USD), MoneyAmount::add))));
     }
 
     private Position position(List<Investment> investments) {
@@ -549,7 +545,7 @@ public class Positions {
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, USD).apply(new MoneyAmount(ONE, symbol), now),
                 investments.stream()
                         .map(i -> i.getIn().getMoneyAmount())
-                        .reduce(ZERO_USD, MoneyAmount::add),
+                        .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add),
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, USD)
                         .apply(investments.stream()
                                 .map(Investment::getMoneyAmount)
@@ -608,7 +604,7 @@ public class Positions {
 
         final var total = items.stream()
                 .map(PortfolioItem::getDollarAmount)
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
 
         final var pct = "pct".equals(type);
 

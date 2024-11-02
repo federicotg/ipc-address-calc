@@ -37,8 +37,6 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class Evolution<T> {
 
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
-
     private final Console console;
     private final Bar bar;
 
@@ -143,7 +141,7 @@ public class Evolution<T> {
                 .filter(i -> startFunction.apply(i).compareTo(yearMonth) <= 0)
                 .filter(i -> endFunction.apply(i).compareTo(yearMonth) >= 0)
                 .map(i -> extractor.apply(i, yearMonth))
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
     }
 
     private String bar(YearMonth ym, List<AmountAndColor> elements, int scale) {

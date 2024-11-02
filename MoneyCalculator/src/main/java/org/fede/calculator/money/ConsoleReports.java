@@ -127,9 +127,6 @@ public class ConsoleReports {
     }
 
     private void invGainsChart() {
-
-        //final var params = this.paramsValue(args, paramName);
-        //final var type = params.getOrDefault("type", "all");
         new Investments(this.console, this.format, this.bar, this.series)
                 .invGainsChart();
     }

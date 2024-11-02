@@ -54,7 +54,7 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class PortfolioReturns {
     
-    private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
+    //private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
 
     private final Series series;
     private final Console console;
@@ -87,7 +87,7 @@ public class PortfolioReturns {
     }
 
     private boolean after(Date d, int year, Month m, int day) {
-        return LocalDate.ofInstant(d.toInstant(), SYSTEM_DEFAULT_ZONE_ID).isAfter(LocalDate.of(year, m, day));
+        return LocalDate.ofInstant(d.toInstant(), ZoneId.systemDefault()).isAfter(LocalDate.of(year, m, day));
     }
 
     private Map<Integer, ModifiedDietzReturnResult> mdrByYear(Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction) {
@@ -102,13 +102,13 @@ public class PortfolioReturns {
         final var from = inv.stream()
                 .map(Investment::getInitialDate)
                 .map(Date::toInstant)
-                .map(i -> LocalDate.ofInstant(i, SYSTEM_DEFAULT_ZONE_ID))
+                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
                 .reduce(PortfolioReturns::min)
                 .get();
 
         final var to = inv.stream()
                 .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate).map(Date::toInstant).orElseGet(Instant::now))
-                .map(i -> LocalDate.ofInstant(i, SYSTEM_DEFAULT_ZONE_ID))
+                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
                 .reduce(PortfolioReturns::max)
                 .get();
 
@@ -143,13 +143,13 @@ public class PortfolioReturns {
         final var from = inv.stream()
                 .map(Investment::getInitialDate)
                 .map(Date::toInstant)
-                .map(i -> LocalDate.ofInstant(i, SYSTEM_DEFAULT_ZONE_ID))
+                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
                 .reduce(PortfolioReturns::min)
                 .get();
 
         final var to = inv.stream()
                 .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate).map(Date::toInstant).orElseGet(Instant::now))
-                .map(i -> LocalDate.ofInstant(i, SYSTEM_DEFAULT_ZONE_ID))
+                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
                 .reduce(PortfolioReturns::max)
                 .get();
 
@@ -231,7 +231,6 @@ public class PortfolioReturns {
     private String summaryItem(ModifiedDietzReturnResult r) {
         return MessageFormat.format("{0} ({1})", this.format.percent(r.getMoneyWeighted()),
                 this.format.percent(r.getAnnualizedMoneyWeighted()));
-
     }
 
     private DayDollars dayDollarsInYear(int year, Investment i) {
@@ -239,12 +238,12 @@ public class PortfolioReturns {
         final var yearStart = LocalDate.of(year, Month.JANUARY, 1);
         final var yearEnd = LocalDate.of(year, Month.DECEMBER, 31);
 
-        final var investmentStart = LocalDate.ofInstant(i.getIn().getDate().toInstant(), SYSTEM_DEFAULT_ZONE_ID);
+        final var investmentStart = LocalDate.ofInstant(i.getIn().getDate().toInstant(), ZoneId.systemDefault());
 
         final var investmentEnd = Optional.ofNullable(i.getOut())
                 .map(InvestmentEvent::getDate)
                 .map(Date::toInstant)
-                .map(instant -> LocalDate.ofInstant(instant, SYSTEM_DEFAULT_ZONE_ID))
+                .map(instant -> LocalDate.ofInstant(instant, ZoneId.systemDefault()))
                 .orElseGet(LocalDate::now);
 
         final var to = min(yearEnd, investmentEnd);

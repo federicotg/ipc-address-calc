@@ -29,6 +29,8 @@ import java.util.Date;
  */
 public record YearMonth(int year, int month) implements Comparable<YearMonth> {
 
+    private static final Comparator<YearMonth> CMP = Comparator.comparing(YearMonth::year).thenComparing(YearMonth::month);
+    
     public static YearMonth of(LocalDate day) {
         return of(day.getYear(), day.getMonthValue());
     }
@@ -43,7 +45,7 @@ public record YearMonth(int year, int month) implements Comparable<YearMonth> {
 
     @Override
     public int compareTo(YearMonth o) {
-        return Comparator.comparing(YearMonth::year).thenComparing(YearMonth::month).compare(this, o);
+        return CMP.compare(this, o);
     }
 
     public int getYear() {

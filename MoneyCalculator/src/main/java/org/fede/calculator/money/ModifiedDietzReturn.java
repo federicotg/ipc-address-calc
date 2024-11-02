@@ -40,8 +40,6 @@ import static org.fede.calculator.money.MathConstants.C;
  * @author fede
  */
 public class ModifiedDietzReturn {
-    
-    private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
 
     private final List<Investment> investments;
     private final Currency currency;
@@ -76,7 +74,7 @@ public class ModifiedDietzReturn {
     }
 
     private static LocalDate asLocalDate(Instant i) {
-        return LocalDate.ofInstant(i, SYSTEM_DEFAULT_ZONE_ID);
+        return LocalDate.ofInstant(i, ZoneId.systemDefault());
     }
 
     private static LocalDate asLocalDate(Date d) {
@@ -248,9 +246,9 @@ public class ModifiedDietzReturn {
 
             var next = ym.next();
 
-            final var st = LocalDate.ofInstant(ym.asToDate().toInstant(), SYSTEM_DEFAULT_ZONE_ID).plusDays(1);
+            final var st = LocalDate.ofInstant(ym.asToDate().toInstant(), ZoneId.systemDefault()).plusDays(1);
 
-            final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), SYSTEM_DEFAULT_ZONE_ID);
+            final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), ZoneId.systemDefault());
 
             monthyMDR.add(new ModifiedDietzReturn(
                     this.investments,

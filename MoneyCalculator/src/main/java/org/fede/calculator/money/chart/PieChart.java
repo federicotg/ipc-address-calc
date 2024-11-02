@@ -79,7 +79,10 @@ public class PieChart {
                     new File(ConsoleReports.CHARTS_PREFIX+fileName),
                     chart,
                     1200,
-                    900);
+                    900,
+                    null,
+                    true,
+                    9);
         } catch (IOException ex) {
             LOGGER.error("Error generating pie chart.", ex);
         }

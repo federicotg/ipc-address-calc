@@ -25,15 +25,15 @@ import java.util.function.Function;
  */
 public class InteractiveBrokersTieredXETRAFeeStrategy implements Function<BigDecimal, BigDecimal> {
 
-    private static final BigDecimal IBKR_TIERED_EUR_FEE = new BigDecimal("0.0005");
-    private static final BigDecimal IBKR_TIERED_EUR_MIN_FEE = new BigDecimal("1.25");
-    private static final BigDecimal IBKR_TIERED_EUR_MAX_FEE = new BigDecimal("29");
-    private static final BigDecimal EXCHANGE_FEE = new BigDecimal("0.000048");
-    private static final BigDecimal MIN_EXCHANGE_FEE = new BigDecimal("0.6");
-    private static final BigDecimal MAX_EXCHANGE_FEE = new BigDecimal("48");
-    private static final BigDecimal VARIABLE_CLEARING_FEE = new BigDecimal("0.00001");
-    private static final BigDecimal MAX_VARIABLE_CLEARING_FEE = new BigDecimal("5");
-    private static final BigDecimal CLEARING_FEE = new BigDecimal("0.01");
+    private final BigDecimal IBKR_TIERED_EUR_FEE = new BigDecimal("0.0005");
+    private final BigDecimal IBKR_TIERED_EUR_MIN_FEE = new BigDecimal("1.25");
+    private final BigDecimal IBKR_TIERED_EUR_MAX_FEE = new BigDecimal("29");
+    private final BigDecimal EXCHANGE_FEE = new BigDecimal("0.000048");
+    private final BigDecimal MIN_EXCHANGE_FEE = new BigDecimal("0.6");
+    private final BigDecimal MAX_EXCHANGE_FEE = new BigDecimal("48");
+    private final BigDecimal VARIABLE_CLEARING_FEE = new BigDecimal("0.00001");
+    private final BigDecimal MAX_VARIABLE_CLEARING_FEE = new BigDecimal("5");
+    private final BigDecimal CLEARING_FEE = new BigDecimal("0.01");
 
     @Override
     public BigDecimal apply(BigDecimal t) {

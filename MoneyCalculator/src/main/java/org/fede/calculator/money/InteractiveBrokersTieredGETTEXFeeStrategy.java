@@ -25,9 +25,9 @@ import java.util.function.Function;
  */
 public class InteractiveBrokersTieredGETTEXFeeStrategy implements Function<BigDecimal, BigDecimal> {
 
-    private static final BigDecimal IBKR_TIERED_EUR_FEE = new BigDecimal("0.0005");
-    private static final BigDecimal IBKR_TIERED_EUR_MIN_FEE = new BigDecimal("1.25");
-    private static final BigDecimal IBKR_TIERED_EUR_MAX_FEE = new BigDecimal("29");
+    private final BigDecimal IBKR_TIERED_EUR_FEE = new BigDecimal("0.0005");
+    private final BigDecimal IBKR_TIERED_EUR_MIN_FEE = new BigDecimal("1.25");
+    private final BigDecimal IBKR_TIERED_EUR_MAX_FEE = new BigDecimal("29");
 
     @Override
     public BigDecimal apply(BigDecimal t) {

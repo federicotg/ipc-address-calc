@@ -71,9 +71,7 @@ public class Investments {
 
     private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
 
-    private static final BigDecimal CAPITAL_GAINS_TAX_RATE = new BigDecimal("0.15");
-
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
+    private static final Comparator<Investment> COMPARATOR = comparing(Investment::getInitialDate, naturalOrder());
 
     public static final Map<Currency, String> ETF_NAME = Map.of(
             CSPX, "iShares Core S&P 500",
@@ -576,10 +574,10 @@ public class Investments {
                 .subtract(invested.apply(i));
 
         if (capitalGains.getAmount().signum() > 0) {
-            return capitalGains.adjust(ONE, CAPITAL_GAINS_TAX_RATE);
+            return capitalGains.adjust(ONE, new BigDecimal("0.15"));
         }
 
-        return ZERO_USD;
+        return MoneyAmount.zero(Currency.USD);
     }
 
     private MoneyAmount asUSD(MoneyAmount ma, Date d) {
@@ -596,7 +594,7 @@ public class Investments {
                 .filter(i -> YearMonth.of(i.getIn().getDate()).compareTo(yearMonth) <= 0)
                 .filter(i -> i.isCurrent(yearMonth.asToDate()))
                 .map(extractor)
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
     }
 
     public void portfolioEvo(String type, boolean pct) {
@@ -613,12 +611,11 @@ public class Investments {
         Function<Investment, String> classifier = i -> i.getType().toString().concat(" ").concat(i.getCurrency().name());
 
         Predicate<Investment> filterPredicate = i -> Objects.isNull(type) || i.getType().toString().equals(type);
-        Comparator<Investment> comparator = comparing(Investment::getInitialDate, naturalOrder());
 
         final var list = this.getAllInvestments();
 
         new Evolution<Investment>(this.console, this.bar)
-                .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, comparator, list, pct);
+                .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, COMPARATOR, list, pct);
     }
 
     private Stream<Investment> getInvestments() {
@@ -644,10 +641,8 @@ public class Investments {
                 .map(YearMonth::prev)
                 .orElseGet(Inflation.USD_INFLATION::getTo);
 
-        Comparator<Investment> comparator = comparing(Investment::getInitialDate, naturalOrder());
-
         new Evolution<Investment>(this.console, this.bar)
-                .evo(totalFunction, startFunction, endFunction, this::classifier, i -> true, comparator, this.getAllInvestments(), pct);
+                .evo(totalFunction, startFunction, endFunction, this::classifier, i -> true, COMPARATOR, this.getAllInvestments(), pct);
     }
 
     private static final Map<Currency, String> PF_CATEGORIES = Map.ofEntries(
@@ -799,8 +794,7 @@ public class Investments {
                 .map(Investment::getMoneyAmount)
                 .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), USD).apply(ma, now))
                 .reduce(MoneyAmount::add).map(MoneyAmount::amount).get();
-        
-        
+
         var costValue = investments.stream()
                 .map(Investment::getRealUSDCost)
                 .reduce(MoneyAmount::add).map(MoneyAmount::amount).get();

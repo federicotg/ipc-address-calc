@@ -176,7 +176,7 @@ public class BBPP {
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.usd(), C),
-                MEUD, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(),EUR)
+                MEUD, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), EUR)
                         .apply(item, ym)
                         .getAmount()
                         .multiply(bbpp.eur(), C));
@@ -434,11 +434,12 @@ public class BBPP {
 
     public record YearCurrency(int year, Currency currecy) implements Comparable<YearCurrency> {
 
+        private static final Comparator<YearCurrency> CMP = Comparator.comparingInt(YearCurrency::year)
+                .thenComparing(Comparator.comparing(YearCurrency::currecy));
+
         @Override
         public int compareTo(YearCurrency o) {
-            return Comparator.comparingInt(YearCurrency::year)
-                    .thenComparing(Comparator.comparing(YearCurrency::currecy))
-                    .compare(this, o);
+            return CMP.compare(this, o);
         }
 
     }

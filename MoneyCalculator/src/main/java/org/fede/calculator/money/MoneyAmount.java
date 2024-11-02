@@ -40,10 +40,6 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
                     () -> new EnumMap<>(Currency.class)
             ));
 
-    public static MoneyAmount zero(String currency) {
-        return zero(Currency.valueOf(currency));
-    }
-
     public static MoneyAmount zero(Currency currency) {
         return ZERO_AMOUNTS.get(currency);
     }

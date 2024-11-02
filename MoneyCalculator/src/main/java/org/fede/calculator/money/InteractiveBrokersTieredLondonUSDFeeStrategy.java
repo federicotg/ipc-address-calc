@@ -25,15 +25,15 @@ import java.util.function.Function;
  */
 public class InteractiveBrokersTieredLondonUSDFeeStrategy implements Function<BigDecimal, BigDecimal> {
 
-    private static final BigDecimal GBPUSD = new BigDecimal("1.21");
+    private final BigDecimal GBPUSD = new BigDecimal("1.21");
 
-    private static final BigDecimal IBKR_TIERED_USD_FEE = new BigDecimal("0.0005");
-    private static final BigDecimal IBKR_TIERED_USD_MIN_FEE = new BigDecimal("1.7");
-    private static final BigDecimal IBKR_TIERED_USD_MAX_FEE = new BigDecimal("39");
+    private final BigDecimal IBKR_TIERED_USD_FEE = new BigDecimal("0.0005");
+    private final BigDecimal IBKR_TIERED_USD_MIN_FEE = new BigDecimal("1.7");
+    private final BigDecimal IBKR_TIERED_USD_MAX_FEE = new BigDecimal("39");
 
-    private static final BigDecimal EXCHANGE_FEE = new BigDecimal("0.000045");
-    private static final BigDecimal MIN_EXCHANGE_FEE = new BigDecimal("0.1").multiply(GBPUSD, MathConstants.C);
-    private static final BigDecimal CLEARING_FEE = new BigDecimal("0.06").multiply(GBPUSD, MathConstants.C);
+    private final BigDecimal EXCHANGE_FEE = new BigDecimal("0.000045");
+    private final BigDecimal MIN_EXCHANGE_FEE = new BigDecimal("0.1").multiply(GBPUSD, MathConstants.C);
+    private final BigDecimal CLEARING_FEE = new BigDecimal("0.06").multiply(GBPUSD, MathConstants.C);
 
     @Override
     public BigDecimal apply(BigDecimal t) {

@@ -23,7 +23,10 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 import org.fede.calculator.money.Currency;
+import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
+import org.jfree.data.time.Day;
+import org.jfree.data.time.TimeSeries;
 
 /**
  *
@@ -91,6 +94,17 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
     @Override
     public Stream<YearMonth> yearMonthStream() {
         return this.values.sequencedKeySet().stream();
+    }
+
+    @Override
+    public TimeSeries asTimeSeries() {
+        final var to = Inflation.USD_INFLATION.getTo();
+        final TimeSeries ts = new TimeSeries(this.getName());
+        this.values.sequencedEntrySet()
+                .stream()
+                .filter(e -> e.getKey().compareTo(to) <= 0)
+                .forEach(e -> ts.add(new Day(e.getKey().asToDate()), e.getValue().amount()));
+        return ts;
     }
 
 }

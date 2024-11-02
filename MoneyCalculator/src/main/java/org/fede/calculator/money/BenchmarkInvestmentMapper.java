@@ -41,8 +41,6 @@ import static org.fede.calculator.money.MathConstants.C;
  * @author fede
  */
 public class BenchmarkInvestmentMapper implements Function<Investment, Investment> {
-
-    private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
     
     private static final TypeReference<Map<Currency, List<SeenPrice>>> TR = new TypeReference<Map<Currency, List<SeenPrice>>>() {
     };
@@ -50,7 +48,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
     private static final DateTimeFormatter DMY = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private static String dmy(Investment i) {
-        return DMY.format(LocalDate.ofInstant(i.getInitialDate().toInstant(), SYSTEM_DEFAULT_ZONE_ID));
+        return DMY.format(LocalDate.ofInstant(i.getInitialDate().toInstant(), ZoneId.systemDefault()));
     }
 
     private static BigDecimal price(Investment i) {

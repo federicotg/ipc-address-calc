@@ -36,8 +36,6 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class Expenses {
 
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
-
     private final Series series;
     private final Console console;
     private final Bar bar;
@@ -100,13 +98,13 @@ public class Expenses {
     private MoneyAmount aggregate(List<MoneyAmountSeries> mas, Function<MoneyAmountSeries, MoneyAmount> aggregation) {
         return mas.stream()
                 .map(aggregation)
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
     }
 
     private MoneyAmount lastMonths(MoneyAmountSeries s, int months) {
 
         var ym = USD_INFLATION.getTo();
-        var amount = ZERO_USD;
+        var amount = MoneyAmount.zero(Currency.USD);
 
         for (var i = 0; i < months; i++) {
             amount = amount.add(s.getAmountOrElseZero(ym));
@@ -179,7 +177,7 @@ public class Expenses {
 
         final var oldestSeries = ss.stream().min(Comparator.comparing(MoneyAmountSeries::getFrom)).get();
 
-        oldestSeries.map((ym, ma) -> ZERO_USD.max(ma))
+        oldestSeries.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
                 .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, ss, colorList), 8)));
 
         new References(console, format).refs(title, labels, colorList);
@@ -189,7 +187,7 @@ public class Expenses {
     private List<AmountAndColor> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
 
         return IntStream.range(0, series.size())
-                .mapToObj(i -> new AmountAndColor(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
+                .mapToObj(i -> new AmountAndColor(MoneyAmount.zero(Currency.USD).max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
                 .toList();
     }
 
