@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
-import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
@@ -110,7 +109,6 @@ public class Positions {
     private final Format format;
     private final Series series;
     private final Bar bar;
-    //private final boolean withFee;
 
     public Positions(Console console, Format format, Series series, Bar bar) {
         this.console = console;
@@ -199,7 +197,6 @@ public class Positions {
                 this.format.percent(p.getUnrealizedPnL().getAmount().divide(p.getCostBasis().getAmount(), C), pnlPctWidth)))
                 .forEach(this.console::appendLine);
 
-        //this.console.appendLine(separator);
         this.console.appendLine(MessageFormat.format(fmt,
                 this.format.text("Total", descWidth),
                 this.format.text("", posWidth),
@@ -248,7 +245,7 @@ public class Positions {
     }
 
     private MoneyAmount inflationCost(Date now) {
-        
+
         final var real = this.series.getInvestments()
                 .stream()
                 .filter(investment -> investment.isCurrent(now))
@@ -325,7 +322,6 @@ public class Positions {
                 .subtract(initialUSDAmount)
                 .max(ZERO_USD)
                 .adjust(ONE, CAPITAL_GAINS_TAX_RATE);
-
     }
 
     public void dca(boolean nominal, String type) {
@@ -578,7 +574,6 @@ public class Positions {
         for (var y = from; y.compareTo(to) <= 0; y = y.next()) {
             this.portfolioChart(chart, subtype, y.year(), y.month());
         }
-
     }
 
     private void portfolioChart(PieChart chart, String subtype, int year, int month) {
@@ -593,20 +588,18 @@ public class Positions {
 
             chart
                     .create(
-                            MessageFormat.format("Portfolio {0}", ym.monthString()),
+                            MessageFormat.format("Portfolio {1} {0}", ym.monthString(), subtype),
                             items.stream()
                                     .map(item -> new PieItem(
                                     Investments.ETF_NAME.getOrDefault(item.getAmount().getCurrency(), item.getAmount().getCurrency().name()),
                                     item.getDollarAmount().amount())).toList(),
-                            MessageFormat.format("portfolio-{0}.png", ym.monthString()));
+                            MessageFormat.format("portfolio-{1}-{0}.png", ym.monthString(), subtype));
         }
 
     }
 
-    public void portfolioChart(String subtype, int year, int month) throws IOException {
-
+    public void portfolioChart(String subtype, int year, int month) {
         this.portfolioChart(new PieChart(false), subtype, year, month);
-
     }
 
     public void portfolio(String type, String subtype, int year, int month) {

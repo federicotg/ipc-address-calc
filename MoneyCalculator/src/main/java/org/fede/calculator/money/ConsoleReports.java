@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
@@ -127,7 +126,7 @@ public class ConsoleReports {
 
     }
 
-    private void invGainsChart(String[] args, String paramName) {
+    private void invGainsChart() {
 
         //final var params = this.paramsValue(args, paramName);
         //final var type = params.getOrDefault("type", "all");
@@ -135,7 +134,7 @@ public class ConsoleReports {
                 .invGainsChart();
     }
 
-    private void brokerChart(String[] args, String paramName) {
+    private void brokerChart() {
 
         new Investments(this.console, this.format, this.bar, this.series)
                 .brokerChart();
@@ -171,10 +170,10 @@ public class ConsoleReports {
                 () -> me.invReport(args, "inv");
 
             case "gains-chart" ->
-                () -> me.invGainsChart(args, "gains-chart");
+                () -> me.invGainsChart();
 
             case "broker-chart" ->
-                () -> me.brokerChart(args, "broker-chart");
+                () -> me.brokerChart();
 
             case "savings" ->
                 () -> me.savings(args, "savings");
@@ -298,6 +297,9 @@ public class ConsoleReports {
             case "ibkr" ->
                 () -> me.ibkrCSV();
 
+            case "all-charts" ->
+                () -> me.allCharts();
+
             case "ibkrpos" ->
                 () -> me.ibkrPositions(Integer.parseInt(me.paramsValue(args, "ibkrpos").getOrDefault("year", "2024")));
 
@@ -389,6 +391,8 @@ public class ConsoleReports {
                         entry("bbpp-evo", ""),
                         entry("routes", ""),
                         entry("balances", ""),
+                        entry("all-charts", ""),
+                        entry("broker-chart", ""),
                         entry("cash", ""),
                         entry("bench", ""),
                         entry("ibkr", ""),
@@ -702,21 +706,17 @@ public class ConsoleReports {
     }
 
     private void portfolioChart(String[] args, String name) {
-        try {
-            final var params = this.paramsValue(args, name);
-            //final var type = params.getOrDefault("type", "full");
-            final var subtype = params.getOrDefault("subtype", "all");
-            final var year = Optional.ofNullable(params.get("y"))
-                    .map(Integer::parseInt)
-                    .orElseGet(USD_INFLATION.getTo()::getYear);
-            final var month = Optional.ofNullable(params.get("m"))
-                    .map(Integer::parseInt)
-                    .orElseGet(USD_INFLATION.getTo()::getMonth);
-            new Positions(console, format, series, bar)
-                    .portfolioChart(subtype, year, month);
-        } catch (IOException ioEx) {
-            LOGGER.error("Error writting chart.", ioEx);
-        }
+        final var params = this.paramsValue(args, name);
+        //final var type = params.getOrDefault("type", "full");
+        final var subtype = params.getOrDefault("subtype", "all");
+        final var year = Optional.ofNullable(params.get("y"))
+                .map(Integer::parseInt)
+                .orElseGet(USD_INFLATION.getTo()::getYear);
+        final var month = Optional.ofNullable(params.get("m"))
+                .map(Integer::parseInt)
+                .orElseGet(USD_INFLATION.getTo()::getMonth);
+        new Positions(console, format, series, bar)
+                .portfolioChart(subtype, year, month);
     }
 
     private void portfolioChartSeries(String[] args, String name) {
@@ -880,6 +880,11 @@ public class ConsoleReports {
 
         var m = Integer.parseInt(params.getOrDefault("m", "0"));
         var grouped = Boolean.parseBoolean(params.getOrDefault("g", "true"));
+        this.expensesChart(m, grouped);
+    }
+
+    private void expensesChart(int m, boolean grouped) {
+
         var expenseSeries = grouped
                 ? this.series.getRealUSDExpensesByType()
                         .entrySet()
@@ -910,4 +915,14 @@ public class ConsoleReports {
         return s;
     }
 
+    private void allCharts() {
+        this.brokerChart();
+        this.expensesChart(12, true);
+        this.savingsEvoChart();
+        new Savings(format, series, bar, console).savingRate(LocalDate.now().getYear());
+        new Positions(console, format, series, bar)
+                .portfolioChart("all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+        new Positions(console, format, series, bar)
+                .portfolioChart("equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+    }
 }
