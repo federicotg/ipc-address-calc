@@ -57,7 +57,6 @@ public class ForeignExchanges {
 
     private static final Map<FromTo, ForeignExchange> DIRECT_FOREIGN_EXCHANGES;
 
-    //private static final String USD = "USD";
     public static final ForeignExchange USD_ARS = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/peso-dolar-libre.json"),
             USD,

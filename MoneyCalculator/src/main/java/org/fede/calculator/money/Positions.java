@@ -449,13 +449,9 @@ public class Positions {
         final Function<Investment, String> yearClassifier = i -> String.valueOf(YearMonth.of(i.getInitialDate()).getYear());
         final Function<Investment, String> brokerClassifier = i -> i.getComment() == null ? "PPI " : "IBKR";
         final Function<Investment, String> anyClassifier = i -> "All ";
-        //  final Function<Investment, String> etfClassifier = Investment::getCurrency;
-        //  final Function<Investment, String> currencyClassifier = i -> "gettex".equals(i.getComment()) ? "EUR" : "USD";
 
         this.cost(yearClassifier, nominal, now);
         this.cost(brokerClassifier, nominal, now);
-        //    this.cost(etfClassifier, nominal);
-        //    this.cost(currencyClassifier, nominal);
         this.cost(this::exchangeClassifier, nominal, now);
         this.cost(anyClassifier, nominal, now);
 

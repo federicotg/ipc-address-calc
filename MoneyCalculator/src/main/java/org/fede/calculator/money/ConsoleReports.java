@@ -32,7 +32,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import static java.util.Map.entry;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -360,8 +359,8 @@ public class ConsoleReports {
 
             if (params.isEmpty() || params.contains("help")) {
 
-                final var help = Map.ofEntries(
-                        entry("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} bbpp={5} pension={6} exp={7} m={8} srr={9} bys={10} crr={11}",
+                Stream.of(
+                        new CmdParam("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} bbpp={5} pension={6} exp={7} m={8} srr={9} bys={10} crr={11}",
                                 TRIALS,
                                 RETIREMENT,
                                 AGE,
@@ -374,68 +373,66 @@ public class ConsoleReports {
                                 BAD_RETURN_YEARS,
                                 BAD_YEAR_SPENDING,
                                 SAVE_CASH_YEARS_BEFORE_RETIREMENT)),
-                        entry("savings-change", "m=1"),
-                        entry("i", ""),
-                        entry("ti", ""),
-                        entry("gi", ""),
-                        entry("pa", ""),
-                        entry("house-evo", ""),
-                        entry("expenses-src", "m=12"),
-                        entry("p-type-evo", ""),
-                        entry("p-type-evo-pct", ""),
-                        entry("condo", ""),
-                        entry("ccl", ""),
-                        entry("bbpp-evo", ""),
-                        entry("routes", ""),
-                        entry("balances", ""),
-                        entry("all-charts", ""),
-                        entry("broker-chart", ""),
-                        entry("cash", ""),
-                        entry("bench", ""),
-                        entry("ibkr", ""),
-                        entry("mdr-by-currency", ""),
-                        entry("income-src", "m=12"),
-                        entry("income-src-pct", "m=12"),
-                        entry("income-acc", ""),
-                        entry("income-acc-pct", ""),
-                        entry("savings-avg", "m=12"),
-                        entry("income-table", ""),
-                        entry("income-year-table", ""),
-                        entry("savings-dist", ""),
-                        entry("savings-rate", "y=*now"),
-                        entry("savings-dist-pct", ""),
-                        entry("income-avg-change", "m=12"),
-                        entry("income", "by=(year|half|quarter) months=12"),
-                        entry("savings", "by=(year|half|quarter)"),
-                        entry("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                        entry("p-chart", "subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                        entry("p-chart-series", "subtype=(all*|equity|bond|commodity|cash)"),
-                        entry("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
-                        entry("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
-                        entry("inv", "type=(all|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
-                        entry("gains-chart", ""),
-                        entry("inv-evo", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                        entry("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                        entry("mdr", "nominal=false cash=true start=1999 tw=false"),
-                        entry("saved-salaries-evo", "months=12"),
-                        entry("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
-                        entry("income-evo", "months=12 ars=false"),
-                        entry("bbpp", "year=2023"),
-                        entry("bbppstatus", ""),
-                        entry("savings-net-change", "m=12"),
-                        entry("savings-avg-pct", "m=12"),
-                        entry("expenses", "by=(year|half|quarter|month) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
-                        entry("expenses-change", "type=(full|tracked*) m=12"),
-                        entry("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) m=12"),
-                        entry("expenses-chart", "m=0 g=false"),
-                        entry("savings-evo", "type=(BO|LIQ|EQ)"),
-                        entry("savings-chart", ""),
-                        entry("dca", "type=(q*|h|y|m)"),
-                        entry("etf", ""),
-                        entry("pos", "nominal=false")
-                );
-
-                help.entrySet().stream().map(e -> format(" - {0} {1}", e.getKey(), e.getValue()))
+                        new CmdParam("savings-change", "m=1"),
+                        new CmdParam("i"),
+                        new CmdParam("ti"),
+                        new CmdParam("gi"),
+                        new CmdParam("pa"),
+                        new CmdParam("house-evo"),
+                        new CmdParam("expenses-src", "m=12"),
+                        new CmdParam("p-type-evo"),
+                        new CmdParam("p-type-evo-pct"),
+                        new CmdParam("condo"),
+                        new CmdParam("ccl"),
+                        new CmdParam("bbpp-evo"),
+                        new CmdParam("routes"),
+                        new CmdParam("balances"),
+                        new CmdParam("all-charts"),
+                        new CmdParam("broker-chart"),
+                        new CmdParam("cash"),
+                        new CmdParam("bench"),
+                        new CmdParam("ibkr"),
+                        new CmdParam("mdr-by-currency"),
+                        new CmdParam("income-src", "m=12"),
+                        new CmdParam("income-src-pct", "m=12"),
+                        new CmdParam("income-acc"),
+                        new CmdParam("income-acc-pct"),
+                        new CmdParam("savings-avg", "m=12"),
+                        new CmdParam("income-table"),
+                        new CmdParam("income-year-table"),
+                        new CmdParam("savings-dist") ,
+                        new CmdParam("savings-rate", "y=*now"),
+                        new CmdParam("savings-dist-pct"),
+                        new CmdParam("income-avg-change", "m=12"),
+                        new CmdParam("income", "by=(year|half|quarter) months=12"),
+                        new CmdParam("savings", "by=(year|half|quarter)"),
+                        new CmdParam("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
+                        new CmdParam("p-chart", "subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
+                        new CmdParam("p-chart-series", "subtype=(all*|equity|bond|commodity|cash)"),
+                        new CmdParam("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
+                        new CmdParam("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
+                        new CmdParam("inv", "type=(all|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
+                        new CmdParam("gains-chart"),
+                        new CmdParam("inv-evo", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
+                        new CmdParam("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
+                        new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false"),
+                        new CmdParam("saved-salaries-evo", "months=12"),
+                        new CmdParam("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
+                        new CmdParam("income-evo", "months=12 ars=false"),
+                        new CmdParam("bbpp", "year=2023"),
+                        new CmdParam("bbppstatus"),
+                        new CmdParam("savings-net-change", "m=12"),
+                        new CmdParam("savings-avg-pct", "m=12"),
+                        new CmdParam("expenses", "by=(year|half|quarter|month) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
+                        new CmdParam("expenses-change", "type=(full|tracked*) m=12"),
+                        new CmdParam("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) m=12"),
+                        new CmdParam("expenses-chart", "m=0 g=false"),
+                        new CmdParam("savings-evo", "type=(BO|LIQ|EQ)"),
+                        new CmdParam("savings-chart"),
+                        new CmdParam("dca", "type=(q*|h|y|m)"),
+                        new CmdParam("etf"),
+                        new CmdParam("pos", "nominal=false")
+                ).map(param -> format(" - {0} {1}", param.name, param.argsDesc))
                         .sorted()
                         .forEach(me::appendLine);
             } else {
@@ -601,7 +598,6 @@ public class ConsoleReports {
 
     private void goal(String[] args, String paramName) {
 
-        // trials=100000 period=20 retirement=63 age=97 w=1000 d=850 inflation=3 cash=-50000 sp500=true tax=true bbpp=2.25
         this.appendLine(this.format.title("Goals"));
 
         final var params = this.paramsValue(args, paramName);
@@ -921,5 +917,20 @@ public class ConsoleReports {
                 .portfolioChart("all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
         new Positions(console, format, series, bar)
                 .portfolioChart("equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+    }
+
+    public static record CmdParam(String name, String argsDesc) {
+
+        public CmdParam(String name, String argsDesc) {
+            this.name = name;
+            this.argsDesc = argsDesc;
+        }
+
+        
+        public CmdParam(String name) {
+            this(name, "");
+        }
+
+        
     }
 }
