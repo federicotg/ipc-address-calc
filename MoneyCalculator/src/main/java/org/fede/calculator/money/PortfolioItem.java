@@ -32,13 +32,9 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class PortfolioItem {
 
-    private static final BigDecimal ONE_PERCENT = BigDecimal.ONE.movePointLeft(2);
+    private final BigDecimal ONE_PERCENT = BigDecimal.ONE.movePointLeft(2);
 
-    private static final NumberFormat PERCENT = NumberFormat.getPercentInstance();
-
-    static {
-        PERCENT.setMinimumFractionDigits(2);
-    }
+    private final NumberFormat PERCENT = NumberFormat.getPercentInstance();
 
     private final MoneyAmount amount;
     private final String type;
@@ -47,6 +43,7 @@ public class PortfolioItem {
     public PortfolioItem(MoneyAmount amount, String type, YearMonth ym) {
         this.amount = amount;
         this.type = type;
+        PERCENT.setMinimumFractionDigits(2);
 
         this.dollarAmount = ForeignExchanges.getMoneyAmountForeignExchange(this.amount.getCurrency(), USD)
                 .apply(this.amount, ym);
@@ -79,7 +76,7 @@ public class PortfolioItem {
     }
 
     public String asReport(MoneyAmount total) {
-        
+
         final var pct = this.getDollarAmount().getAmount().divide(total.getAmount(), MathConstants.C);
         return MessageFormat.format("{0} {1} {2} {3} {4}",
                 String.format("%-8s", this.type),

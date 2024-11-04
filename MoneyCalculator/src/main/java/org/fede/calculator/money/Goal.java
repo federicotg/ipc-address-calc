@@ -40,17 +40,17 @@ import org.fede.calculator.money.series.SeriesReader;
  */
 public class Goal {
 
-    private static final TypeReference<Map<String, ExpectedReturnGroup>> TR = new TypeReference<Map<String, ExpectedReturnGroup>>() {
+    private final TypeReference<Map<String, ExpectedReturnGroup>> TR = new TypeReference<Map<String, ExpectedReturnGroup>>() {
     };
 
-    private static final BigDecimal MONTHS_IN_A_YEAR = new BigDecimal("12");
+    private final BigDecimal MONTHS_IN_A_YEAR = new BigDecimal("12");
 
-    private static final BigDecimal SELL_FEE = new BigDecimal("0.00726").multiply(new BigDecimal("0.5"), C)
+    private final BigDecimal SELL_FEE = new BigDecimal("0.00726").multiply(new BigDecimal("0.5"), C)
             .add(new BigDecimal("0.00056").multiply(new BigDecimal("0.5"), C));
 
-    private static final BigDecimal CAPITAL_GAINS_TAX_PCT = new BigDecimal("0.15");
+    private final BigDecimal CAPITAL_GAINS_TAX_PCT = new BigDecimal("0.15");
 
-    private static final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("400");
+    private final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("400");
 
 
     private final double bbppTaxRate;

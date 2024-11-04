@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.Map;
+import org.fede.calculator.money.ConsoleReports;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * @author fede
  */
 public class CachedETF implements ETF {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(CachedETF.class);
 
     private final ObjectMapper om;
@@ -47,7 +48,7 @@ public class CachedETF implements ETF {
     public Map<String, ExchangeTradedFundData> etfs() {
 
         try {
-            var path = Path.of(System.getProperty("user.home") + "/etfs_tmp.json");
+            var path = Path.of(ConsoleReports.CACHE_DIR + "/etfs_tmp.json");
             if (Files.exists(path)) {
                 var cachedData = this.om.readValue(Files.readAllBytes(path), CachedETFData.class);
                 if (!cachedData.expired()) {

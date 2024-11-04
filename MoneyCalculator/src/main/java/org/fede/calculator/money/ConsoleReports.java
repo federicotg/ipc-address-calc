@@ -87,7 +87,9 @@ public class ConsoleReports {
     private static final String SAVE_CASH_YEARS_BEFORE_RETIREMENT = "6";
 
     public static final String CHARTS_PREFIX = System.getProperty("user.home") + File.separator + "Pictures" + File.separator + "chart-";
-
+    public static final String CACHE_DIR = System.getProperty("user.home") + "/Downloads";
+    
+    
     public static final int SCALE = 2500;
 
     private static boolean nominal(Map<String, String> params) {

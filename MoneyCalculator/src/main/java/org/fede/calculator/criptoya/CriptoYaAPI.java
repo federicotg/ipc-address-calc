@@ -42,12 +42,12 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public class CriptoYaAPI {
 
-    private static final String API = "https://criptoya.com";
+    private final String API = "https://criptoya.com";
 
-    private static final TypeReference<Map<String, Map<String, Map<String, BigDecimal>>>> FEES_TR = new TypeReference<Map<String, Map<String, Map<String, BigDecimal>>>>() {
+    private final TypeReference<Map<String, Map<String, Map<String, BigDecimal>>>> FEES_TR = new TypeReference<Map<String, Map<String, Map<String, BigDecimal>>>>() {
     };
 
-    private static final TypeReference<Map<String, DollarItem>> FX_TR = new TypeReference<Map<String, DollarItem>>() {
+    private final TypeReference<Map<String, DollarItem>> FX_TR = new TypeReference<Map<String, DollarItem>>() {
     };
 
     private final ObjectMapper jsonMapper;

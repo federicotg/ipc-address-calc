@@ -69,9 +69,9 @@ import org.fede.util.Pair;
  */
 public class Investments {
 
-    private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
+    private final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
 
-    private static final Comparator<Investment> COMPARATOR = comparing(Investment::getInitialDate, naturalOrder());
+    private final Comparator<Investment> COMPARATOR = comparing(Investment::getInitialDate, naturalOrder());
 
     public static final Map<Currency, String> ETF_NAME = Map.of(
             CSPX, "iShares Core S&P 500",
@@ -82,8 +82,8 @@ public class Investments {
             IWDA, "iShares Core MSCI World"
     );
 
-    private static final AnsiFormat DIM = new AnsiFormat(Attribute.DIM());
-    private static final Map<String, AnsiFormat> ETF_COLOR = Map.of(
+    private final AnsiFormat DIM = new AnsiFormat(Attribute.DIM());
+    private final Map<String, AnsiFormat> ETF_COLOR = Map.of(
             "CSPX", DIM,
             "EIMI", DIM,
             "RTWO", DIM,
@@ -93,10 +93,29 @@ public class Investments {
             "Cash", DIM
     );
 
-    private static final AnsiFormat BRIGHT_WHITE_TEXT = new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT());
-    private static final AnsiFormat GREEN_TEXT = new AnsiFormat(Attribute.GREEN_TEXT());
-    private static final AnsiFormat YELLOW_TEXT = new AnsiFormat(Attribute.YELLOW_TEXT());
-    private static final AnsiFormat RED_TEXT = new AnsiFormat(Attribute.RED_TEXT());
+    private final Map<Currency, String> PF_CATEGORIES = Map.ofEntries(
+            Map.entry(USD, "USD Bank"),
+            Map.entry(UVA, "UVA Bank"),
+            Map.entry(ARS, "ARS Bank"));
+
+    private final Map<Currency, String> CATEGORIES = Map.ofEntries(
+            Map.entry(CSPX, "Global Eq."),
+            Map.entry(EIMI, "Global Eq."),
+            Map.entry(MEUD, "Global Eq."),
+            Map.entry(XRSU, "Global Eq."),
+            Map.entry(RTWO, "Global Eq."),
+            Map.entry(CONAAFA, "Dom. Eq."),
+            Map.entry(CONBALA, "Dom. Bonds"),
+            Map.entry(CAPLUSA, "Dom. Bonds"),
+            Map.entry(LECAP, "Dom. Bonds"),
+            Map.entry(LETE, "Dom. Bonds"),
+            Map.entry(AY24, "Dom. Bonds"),
+            Map.entry(ARS, "ARS Cash"));
+
+    private final AnsiFormat BRIGHT_WHITE_TEXT = new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT());
+    private final AnsiFormat GREEN_TEXT = new AnsiFormat(Attribute.GREEN_TEXT());
+    private final AnsiFormat YELLOW_TEXT = new AnsiFormat(Attribute.YELLOW_TEXT());
+    private final AnsiFormat RED_TEXT = new AnsiFormat(Attribute.RED_TEXT());
 
     private final Console console;
     private final Format format;
@@ -644,25 +663,6 @@ public class Investments {
         new Evolution<Investment>(this.console, this.bar)
                 .evo(totalFunction, startFunction, endFunction, this::classifier, i -> true, COMPARATOR, this.getAllInvestments(), pct);
     }
-
-    private static final Map<Currency, String> PF_CATEGORIES = Map.ofEntries(
-            Map.entry(USD, "USD Bank"),
-            Map.entry(UVA, "UVA Bank"),
-            Map.entry(ARS, "ARS Bank"));
-
-    private static final Map<Currency, String> CATEGORIES = Map.ofEntries(
-            Map.entry(CSPX, "Global Eq."),
-            Map.entry(EIMI, "Global Eq."),
-            Map.entry(MEUD, "Global Eq."),
-            Map.entry(XRSU, "Global Eq."),
-            Map.entry(RTWO, "Global Eq."),
-            Map.entry(CONAAFA, "Dom. Eq."),
-            Map.entry(CONBALA, "Dom. Bonds"),
-            Map.entry(CAPLUSA, "Dom. Bonds"),
-            Map.entry(LECAP, "Dom. Bonds"),
-            Map.entry(LETE, "Dom. Bonds"),
-            Map.entry(AY24, "Dom. Bonds"),
-            Map.entry(ARS, "ARS Cash"));
 
     private String classifier(Investment i) {
 

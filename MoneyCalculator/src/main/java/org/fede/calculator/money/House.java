@@ -35,15 +35,15 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class House {
 
-    private static final BigDecimal IVA = new BigDecimal("1.21");
-    private static final BigDecimal NOTARY_FEE = new BigDecimal("0.02")
+    private final BigDecimal IVA = new BigDecimal("1.21");
+    private final BigDecimal NOTARY_FEE = new BigDecimal("0.02")
             .multiply(IVA, C);
-    private static final BigDecimal COEFFICIENT = new BigDecimal("0.1223");
+    private final BigDecimal COEFFICIENT = new BigDecimal("0.1223");
 
-    private static final BigDecimal REALTOR_FEE = new BigDecimal("0.045");
-    private static final BigDecimal STAMP_TAX = new BigDecimal("0.018");
-    private static final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
+    private final BigDecimal REALTOR_FEE = new BigDecimal("0.045");
+    private final BigDecimal STAMP_TAX = new BigDecimal("0.018");
+    private final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
+    private final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
 
     private final Console console;
     private final Format format;

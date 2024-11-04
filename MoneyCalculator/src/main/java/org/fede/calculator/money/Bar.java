@@ -42,12 +42,12 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class Bar {
 
-    private static final BigDecimal ONE_PERCENT = BigDecimal.ONE.movePointLeft(2);
-    private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
-    private static final AnsiFormat RED = new AnsiFormat(Attribute.RED_BACK(), Attribute.WHITE_TEXT());
-    private static final AnsiFormat GREEN = new AnsiFormat(Attribute.GREEN_BACK(), Attribute.WHITE_TEXT());
+    private final BigDecimal ONE_PERCENT = BigDecimal.ONE.movePointLeft(2);
+    private final BigDecimal HUNDRED = BigDecimal.valueOf(100);
+    private final AnsiFormat RED = new AnsiFormat(Attribute.RED_BACK(), Attribute.WHITE_TEXT());
+    private final AnsiFormat GREEN = new AnsiFormat(Attribute.GREEN_BACK(), Attribute.WHITE_TEXT());
     
-    private static final Set<String> DARK_COLORS = Set.of(
+    private final Set<String> DARK_COLORS = Set.of(
             Attribute.BLACK_BACK().toString(),
             Attribute.BRIGHT_BLACK_BACK().toString(),
             Attribute.RED_BACK().toString(),

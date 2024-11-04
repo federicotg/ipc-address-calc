@@ -30,12 +30,12 @@ import java.text.NumberFormat;
  */
 public class Format {
 
-    private static final BigDecimal ONE_THOUSAND = BigDecimal.ONE.movePointRight(3);
-    private static final BigDecimal ONE_MILLION = BigDecimal.ONE.movePointRight(6);
+    private final BigDecimal ONE_THOUSAND = BigDecimal.ONE.movePointRight(3);
+    private final BigDecimal ONE_MILLION = BigDecimal.ONE.movePointRight(6);
 
-    private static final AnsiFormat PROFIT_FORMAT = new AnsiFormat(Attribute.GREEN_TEXT());
-    private static final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
-    private static final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
+    private final AnsiFormat PROFIT_FORMAT = new AnsiFormat(Attribute.GREEN_TEXT());
+    private final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
+    private final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
 
     public Format() {
         PERCENT_FORMAT.setMinimumFractionDigits(2);

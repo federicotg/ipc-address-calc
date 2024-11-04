@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.Map;
+import org.fede.calculator.money.ConsoleReports;
 import org.fede.calculator.service.CCL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * @author fede
  */
 public class CachedCCL implements CCL {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(CachedCCL.class);
 
     private final ObjectMapper om;
@@ -46,9 +47,9 @@ public class CachedCCL implements CCL {
 
     @Override
     public Map<String, BigDecimal> ccl() {
-    
+
         try {
-            var path = Path.of(System.getProperty("user.home") + "/ccl_tmp.json");
+            var path = Path.of(ConsoleReports.CACHE_DIR + "/ccl_tmp.json");
             if (Files.exists(path)) {
                 var cachedData = this.om.readValue(Files.readAllBytes(path), CachedCCLData.class);
                 if (!cachedData.expired()) {

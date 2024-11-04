@@ -26,9 +26,9 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class PPIGlobalEURFeeStrategy implements Function<BigDecimal, BigDecimal> {
 
-    private static final BigDecimal FEE_RATE = new BigDecimal("0.006");
-    private static final BigDecimal FEE_TAX_RATE = new BigDecimal("0.21");
-    private static final BigDecimal FX_FEE_RATE = new BigDecimal("0.0025");
+    private final BigDecimal FEE_RATE = new BigDecimal("0.006");
+    private final BigDecimal FEE_TAX_RATE = new BigDecimal("0.21");
+    private final BigDecimal FX_FEE_RATE = new BigDecimal("0.0025");
 
     @Override
     public BigDecimal apply(BigDecimal presentValue) {

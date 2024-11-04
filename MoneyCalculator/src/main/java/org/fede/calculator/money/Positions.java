@@ -85,15 +85,7 @@ public class Positions {
             "lse", new InteractiveBrokersTieredLondonUSDFeeStrategy()
     );
 
-    private static final Map<Currency, String> ETF_NAME = Map.of(
-            CSPX, "iShares Core S&P 500",
-            EIMI, "iShares Core MSCI EM IMI",
-            XRSU, "Xtrackers Russell 2000",
-            RTWO, "L&G Russell 2000 Small Cap Quality",
-            MEUD, "Amundi Stoxx Europe 600"
-    );
-
-    private static final String AVERAGE_KEY = "Avg.";
+    private final String AVERAGE_KEY = "Avg.";
 
     private final Console console;
     private final Format format;
@@ -369,7 +361,7 @@ public class Positions {
                 .forEach(this.console::appendLine);
 
         this.console.appendLine(this.format.text("Curr.", 8),
-                ETF_NAME.keySet().stream()
+                Investments.ETF_NAME.keySet().stream()
                         .sorted()
                         .map(this::currentPice)
                         .collect(joining()));
@@ -536,7 +528,7 @@ public class Positions {
         final var now = YearMonth.of(new Date());
 
         return new Position(
-                ETF_NAME.get(symbol),
+                Investments.ETF_NAME.get(symbol),
                 position,
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, USD).apply(new MoneyAmount(ONE, symbol), now),
                 investments.stream()

@@ -79,7 +79,7 @@ public class BBPP {
         private MoneyAmount taxedTotalUSD;
     }
 
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
+    //private final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
 
     private final Format format;
     private final Series series;
@@ -255,7 +255,7 @@ public class BBPP {
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getMoneyAmount)
                 .map(ma -> getMoneyAmountForeignExchange(ma.getCurrency(), USD).apply(ma, ym))
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
 
         final var incomeMonths = Stream.concat(
                 IntStream.range(6, 12).mapToObj(m -> YearMonth.of(year, m)),
@@ -282,7 +282,7 @@ public class BBPP {
         result.year = year;
         result.usdPaidAmount = this.getBBPPExpenseSeries()
                 .filter((yearMonth, ma) -> incomeMonths.contains(yearMonth))
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
 
         result.minimum = new MoneyAmount(bbpp.minimum().divide(bbpp.usd(), C), Currency.USD);
         result.taxedTotalUSD = new MoneyAmount(result.taxedTotal.divide(bbpp.usd(), C), Currency.USD);

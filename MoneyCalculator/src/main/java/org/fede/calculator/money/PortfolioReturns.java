@@ -54,8 +54,6 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class PortfolioReturns {
     
-    //private static final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
-
     private final Series series;
     private final Console console;
     private final Format format;

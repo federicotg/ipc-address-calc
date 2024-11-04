@@ -47,24 +47,24 @@ import org.fede.calculator.money.series.SeriesReader;
  */
 public class PPIRestAPI {
 
-    private static final String PPI_API = "https://clientapi.portfoliopersonal.com";
-    private static final String LOGIN = "{0}/api/{1}/Account/LoginApi";
-    private static final String REFRESH_TOKEN = "{0}/api/{1}/Account/RefreshToken";
-    private static final String CURRENT_MARKET_DATA = "{0}/api/{1}/MarketData/Current?ticker={2}&type={3}&settlement={4}";
-    private static final String BALANCES_AND_POSITIONS = "{0}/api/{1}/Account/BalancesAndPositions?accountNumber={2}";
-    private static final String CASH_BALANCE = "{0}/api/{1}/Account/AvailableBalance?accountNumber={2}";
+    private final String PPI_API = "https://clientapi.portfoliopersonal.com";
+    private final String LOGIN = "{0}/api/{1}/Account/LoginApi";
+    private final String REFRESH_TOKEN = "{0}/api/{1}/Account/RefreshToken";
+    private final String CURRENT_MARKET_DATA = "{0}/api/{1}/MarketData/Current?ticker={2}&type={3}&settlement={4}";
+    private final String BALANCES_AND_POSITIONS = "{0}/api/{1}/Account/BalancesAndPositions?accountNumber={2}";
+    private final String CASH_BALANCE = "{0}/api/{1}/Account/AvailableBalance?accountNumber={2}";
 
-    private static final String VERSION = "1.0";
-    private static final String AUTHORIZED_CLIENT_HEADER = "AuthorizedClient";
-    private static final String CLIENT_KEY_HEADER = "ClientKey";
-    private static final String API_KEY_HEADER = "ApiKey";
-    private static final String API_SECRET_HEADER = "ApiSecret";
-    private static final String TOKEN_FILE_PATH = "ppi.token";
-    private static final String AUTHORIZATION_HEADER_NAME = "Authorization";
+    private final String VERSION = "1.0";
+    private final String AUTHORIZED_CLIENT_HEADER = "AuthorizedClient";
+    private final String CLIENT_KEY_HEADER = "ClientKey";
+    private final String API_KEY_HEADER = "ApiKey";
+    private final String API_SECRET_HEADER = "ApiSecret";
+    private final String TOKEN_FILE_PATH = "ppi.token";
+    private final String AUTHORIZATION_HEADER_NAME = "Authorization";
 
-    private static final TypeReference<List<PPIBalance>> BALANCE_TR = new TypeReference<List<PPIBalance>>() {
+    private final TypeReference<List<PPIBalance>> BALANCE_TR = new TypeReference<List<PPIBalance>>() {
     };
-    private static final TypeReference<List<PPIPosition>> POSITIONS_TR = new TypeReference<List<PPIPosition>>() {
+    private final TypeReference<List<PPIPosition>> POSITIONS_TR = new TypeReference<List<PPIPosition>>() {
     };
 
     private final Properties config;
