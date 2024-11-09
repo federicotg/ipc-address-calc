@@ -54,8 +54,9 @@ public class TimeSeriesChart {
                     "Date",
                     "USD",
                     collection);
-            chart.getXYPlot().setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
-            var renderer = chart.getXYPlot().getRenderer();
+            var xyPlot = chart.getXYPlot();
+            xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
+            var renderer = xyPlot.getRenderer();
             ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
             renderer.setDefaultStroke(new BasicStroke(3.0f));
             chart.getLegend().setItemFont(new Font("SansSerif", Font.PLAIN, 16));
