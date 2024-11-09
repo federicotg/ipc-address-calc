@@ -64,7 +64,7 @@ public class TimeSeriesChart {
             ChartUtils.saveChartAsPNG(
                     new File(ConsoleReports.CHARTS_PREFIX + filename),
                     chart,
-                    1200,
+                    1600,
                     900,
                     null,
                     true,
