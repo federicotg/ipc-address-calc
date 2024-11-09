@@ -140,6 +140,7 @@ public class Series {
                     of("entertainment", "netflix"),
                     of("entertainment", "netflix-usd"),
                     of("entertainment", "viajes"),
+                    of("entertainment", "viajes-usd"),
                     of("entertainment", "xbox"))
                     .collect(groupingBy(
                             Pair::first,
