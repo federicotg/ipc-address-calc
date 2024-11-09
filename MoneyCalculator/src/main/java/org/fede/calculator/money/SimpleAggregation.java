@@ -33,7 +33,7 @@ import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
  */
 public class SimpleAggregation implements Aggregation {
 
-    private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(MathConstants.SCALE, MathConstants.RM);
+    //private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(MathConstants.SCALE, MathConstants.RM);
 
     private final int months;
 
@@ -53,13 +53,13 @@ public class SimpleAggregation implements Aggregation {
 
     private MoneyAmount avg(SequencedCollection<MoneyAmount> lastValues) {
         return new MoneyAmount(
-                lastValues.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add)
+                lastValues.stream().map(MoneyAmount::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add)
                         .divide(new BigDecimal(lastValues.size()), MathConstants.C), lastValues.getFirst().getCurrency());
     }
 
     private MoneyAmount sum(SequencedCollection<MoneyAmount> lastValues) {
         return new MoneyAmount(
-                lastValues.stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add),
+                lastValues.stream().map(MoneyAmount::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add),
                 lastValues.getFirst().getCurrency());
     }
 
@@ -71,7 +71,7 @@ public class SimpleAggregation implements Aggregation {
 
         final var last = lastValues.getLast().getAmount();
         if (last.signum() == 0) {
-            return ZERO;
+            return BigDecimal.ZERO;
         }
         return lastValues.getFirst()
                 .getAmount()

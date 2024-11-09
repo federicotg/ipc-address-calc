@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.money.chart;
 
+import java.awt.BasicStroke;
+import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -26,6 +28,8 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.renderer.AbstractRenderer;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -51,7 +55,11 @@ public class TimeSeriesChart {
                     "USD",
                     collection);
             chart.getXYPlot().setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
-
+            var renderer = chart.getXYPlot().getRenderer();
+            ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
+            renderer.setDefaultStroke(new BasicStroke(3.0f));
+            chart.getLegend().setItemFont(new Font("SansSerif", Font.PLAIN, 16));
+            
             ChartUtils.saveChartAsPNG(
                     new File(ConsoleReports.CHARTS_PREFIX + filename),
                     chart,

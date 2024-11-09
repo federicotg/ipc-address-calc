@@ -32,7 +32,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class SimpleForeignExchange extends SeriesSupport implements ForeignExchange {
 
-    private static final BigDecimal ONE = BigDecimal.ONE.setScale(MathConstants.SCALE, MathConstants.RM);
+    //private static final BigDecimal ONE = BigDecimal.ONE;//.setScale(MathConstants.SCALE, MathConstants.RM);
 
     private final Supplier<IndexSeries> exchangeRatesSeriesSupplier;
 
@@ -77,7 +77,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         }
 
         if (this.fromCurrency.equals(targetCurrency)) {
-            return amount.exchange(targetCurrency, ONE.divide(getSeries().getIndex(year, month), MathConstants.C));
+            return amount.exchange(targetCurrency, BigDecimal.ONE.divide(getSeries().getIndex(year, month), MathConstants.C));
         }
 
         throw new IllegalArgumentException("Unknown currency.");

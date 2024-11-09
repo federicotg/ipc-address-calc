@@ -65,16 +65,19 @@ public class PieChart {
                 ds.setValue(item.label(), item.value());
             }
 
+            var font = new Font("SansSerif", Font.PLAIN, 16);
             JFreeChart chart = ChartFactory.createPieChart(chartTitle, ds);
             chart.setBorderVisible(false);
             var p = (PiePlot) chart.getPlot();
             p.setOutlineVisible(false);
             p.setBackgroundPaint(WHITE);
-            p.setLabelFont(new Font("SansSerif", Font.PLAIN, 16));
+            p.setLabelFont(font);
             p.setLabelGenerator(this.labelGenerator);
             p.setLabelBackgroundPaint(WHITE);
             p.setLabelOutlinePaint(WHITE);
             p.setLabelShadowPaint(WHITE);
+            chart.getLegend().setItemFont(font);
+            
             ChartUtils.saveChartAsPNG(
                     new File(ConsoleReports.CHARTS_PREFIX+fileName),
                     chart,
