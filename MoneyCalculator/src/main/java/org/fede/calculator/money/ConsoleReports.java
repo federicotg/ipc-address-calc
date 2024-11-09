@@ -126,17 +126,6 @@ public class ConsoleReports {
 
     }
 
-    private void invGainsChart() {
-        new Investments(this.console, this.format, this.bar, this.series)
-                .invGainsChart();
-    }
-
-    private void brokerChart() {
-
-        new Investments(this.console, this.format, this.bar, this.series)
-                .brokerDetailedChart();
-    }
-
     private boolean investmentFilter(Investment i, String type) {
         if ("all".equalsIgnoreCase(type)) {
             return true;
@@ -166,12 +155,10 @@ public class ConsoleReports {
             case "inv" ->
                 () -> me.invReport(args, "inv");
 
-           // case "gains-chart" ->
-           //     () -> me.invGainsChart();
-
-           // case "broker-chart" ->
-           //     () -> me.brokerChart();
-
+            // case "gains-chart" ->
+            //     () -> me.invGainsChart();
+            // case "broker-chart" ->
+            //     () -> me.brokerChart();
             case "savings" ->
                 () -> me.savings(args, "savings");
 
@@ -235,12 +222,10 @@ public class ConsoleReports {
             case "p" ->
                 () -> me.portfolio(args, "p");
 
-           // case "p-chart" ->
-           //     () -> me.portfolioChart(args, "p-chart");
-
-            case "p-chart-series" ->
-                () -> me.portfolioChartSeries(args, "p-chart-series");
-
+            // case "p-chart" ->
+            //     () -> me.portfolioChart(args, "p-chart");
+            //case "p-chart-series" ->
+            //     () -> me.portfolioChartSeries(args, "p-chart-series");
             case "p-evo" ->
                 () -> me.portfolioEvo(args, "p-evo");
 
@@ -336,9 +321,8 @@ public class ConsoleReports {
             case "etf" ->
                 () -> me.etf();
 
-          //  case "savings-chart" ->
-          //      () -> me.savingsEvoChart();
-
+            //  case "savings-chart" ->
+            //      () -> me.savingsEvoChart();
             default ->
                 () -> console.appendLine("Unknown parameter.");
 
@@ -699,29 +683,27 @@ public class ConsoleReports {
 
     }
 
-    private void portfolioChart(String[] args, String name) {
-        final var params = this.paramsValue(args, name);
-        //final var type = params.getOrDefault("type", "full");
-        final var subtype = params.getOrDefault("subtype", "all");
-        final var year = Optional.ofNullable(params.get("y"))
-                .map(Integer::parseInt)
-                .orElseGet(USD_INFLATION.getTo()::getYear);
-        final var month = Optional.ofNullable(params.get("m"))
-                .map(Integer::parseInt)
-                .orElseGet(USD_INFLATION.getTo()::getMonth);
-        new Positions(console, format, series, bar)
-                .portfolioChart(subtype, year, month);
-    }
-
-    private void portfolioChartSeries(String[] args, String name) {
-
-        final var params = this.paramsValue(args, name);
-        final var subtype = params.getOrDefault("subtype", "all");
-        new Positions(console, format, series, bar)
-                .portfolioChartSeries(subtype);
-
-    }
-
+//    private void portfolioChart(String[] args, String name) {
+//        final var params = this.paramsValue(args, name);
+//        //final var type = params.getOrDefault("type", "full");
+//        final var subtype = params.getOrDefault("subtype", "all");
+//        final var year = Optional.ofNullable(params.get("y"))
+//                .map(Integer::parseInt)
+//                .orElseGet(USD_INFLATION.getTo()::getYear);
+//        final var month = Optional.ofNullable(params.get("m"))
+//                .map(Integer::parseInt)
+//                .orElseGet(USD_INFLATION.getTo()::getMonth);
+//        new Positions(console, format, series, bar)
+//                .portfolioChart(subtype, year, month);
+//    }
+//    private void portfolioChartSeries(String[] args, String name) {
+//
+//        final var params = this.paramsValue(args, name);
+//        final var subtype = params.getOrDefault("subtype", "all");
+//        new Positions(console, format, series, bar)
+//                .portfolioChartSeries(subtype);
+//
+//    }
     private void returns(String[] args, String paranName, PortfolioReturns pr) {
 
         final var params = this.paramsValue(args, paranName);
@@ -868,15 +850,14 @@ public class ConsoleReports {
 
     }
 
-    public void expensesChart(String[] args, String paramName) {
-
-        var params = this.paramsValue(args, paramName);
-
-        var m = Integer.parseInt(params.getOrDefault("m", "0"));
-        var grouped = Boolean.parseBoolean(params.getOrDefault("g", "true"));
-        this.expensesChart(m, grouped);
-    }
-
+//    public void expensesChart(String[] args, String paramName) {
+//
+//        var params = this.paramsValue(args, paramName);
+//
+//        var m = Integer.parseInt(params.getOrDefault("m", "0"));
+//        var grouped = Boolean.parseBoolean(params.getOrDefault("g", "true"));
+//        this.expensesChart(m, grouped);
+//    }
     private void expensesChart(int m, boolean grouped) {
 
         var expenseSeries = grouped
