@@ -768,6 +768,20 @@ public class Investments {
         }
     }
 
+    public void brokerDetailedChart() {
+        var now = new Date();
+        Map<String, List<Investment>> byBroker = this.getInvestments()
+                .filter(Investment::isETF)
+                .filter(investment -> investment.isCurrent(now))
+                .collect(Collectors.groupingBy(i -> i.getComment() == null ? "PPI" : "IBKR"));
+
+        new PieChart(true).create(
+                "Investments By Broker",
+                byBroker.entrySet().stream().flatMap(e -> this.brokerDetailedItem(e.getKey(), e.getValue())).toList(),
+                "brokers-detail.png");
+
+    }
+
     public void brokerChart() {
         var now = new Date();
         Map<String, List<Investment>> byBroker = this.getInvestments()
@@ -782,7 +796,7 @@ public class Investments {
 
     }
 
-    private Stream<PieItem> brokerItem(String broker, List<Investment> investments) {
+    private Stream<PieItem> brokerDetailedItem(String broker, List<Investment> investments) {
 
         final var now = Inflation.USD_INFLATION.getTo();
 
@@ -803,6 +817,20 @@ public class Investments {
                 new PieItem("Invested " + broker, invested),
                 new PieItem("Cost " + broker, costValue),
                 new PieItem("Gains " + broker, currentValue.subtract(invested)));
+
+    }
+
+    private Stream<PieItem> brokerItem(String broker, List<Investment> investments) {
+
+        final var now = Inflation.USD_INFLATION.getTo();
+
+        var currentValue = investments.stream()
+                .map(Investment::getMoneyAmount)
+                .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), USD).apply(ma, now))
+                .reduce(MoneyAmount::add).map(MoneyAmount::amount).get();
+
+        return Stream.of(
+                new PieItem("Current Value " + broker, currentValue));
 
     }
 }

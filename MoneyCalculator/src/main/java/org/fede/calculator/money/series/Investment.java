@@ -25,14 +25,12 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
-import org.fede.calculator.money.ConsoleReports;
 import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.MathConstants.C;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -190,8 +188,6 @@ public class Investment {
         final var then = YearMonth.of(this.getInitialDate());
         final var cost = this.getCost();
 
-        var logger = LoggerFactory.getLogger(ConsoleReports.class);
-
         MoneyAmount ma = null;
         if (this.getIn().getCurrency() != USD && this.getIn().getFx() != null) {
 
@@ -200,9 +196,6 @@ public class Investment {
                             .add(this.getIn().getTransferFee()),
                             this.getIn().getCurrency())
                             .adjust(BigDecimal.ONE, this.getIn().getFx()).amount(), Currency.USD);
-            logger.error("fee {} transfer {} curr {}  fx {} => new ma {}",
-                    this.getIn().getFeeMoneyAmount(),
-                    this.getIn().getTransferFee(), this.getIn().getCurrency(), this.getIn().getFx(), ma);
 
         } else {
             ma = ForeignExchanges.getMoneyAmountForeignExchange(cost.currency(), USD)
