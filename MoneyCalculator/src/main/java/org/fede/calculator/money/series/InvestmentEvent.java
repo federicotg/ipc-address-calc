@@ -6,11 +6,13 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Optional;
 import java.util.StringJoiner;
+import org.fede.calculator.money.ConsoleReports;
 import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
+import org.slf4j.LoggerFactory;
 
 /*
  * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
@@ -112,10 +114,21 @@ public class InvestmentEvent {
 
     public MoneyAmount getRealUSDMoneyAmount() {
         final var now = Inflation.USD_INFLATION.getTo();
+        final var toUSD = ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD);
+        MoneyAmount ma = null;
+        //var logger = LoggerFactory.getLogger(ConsoleReports.class);
+
+        if (this.getCurrency() != Currency.USD && this.fx != null) {
+            ma = new MoneyAmount(this.getMoneyAmount().adjust(BigDecimal.ONE, this.fx).amount(), Currency.USD);
+
+            //logger.error("ma {} curr {}  fx {} => new ma {}", this.getMoneyAmount(), this.currency, this.fx, ma);
+        } else {
+            ma = toUSD.apply(this.getMoneyAmount(), YearMonth.of(this.getDate()));
+        }
 
         return Inflation.USD_INFLATION.adjust(
-                ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD)
-                        .apply(this.getMoneyAmount(), YearMonth.of(this.getDate())),
+                toUSD
+                        .apply(ma, YearMonth.of(this.getDate())),
                 YearMonth.of(this.getDate()),
                 now);
     }
