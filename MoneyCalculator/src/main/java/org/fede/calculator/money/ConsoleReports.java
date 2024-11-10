@@ -54,6 +54,8 @@ import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.XRSU;
+import org.fede.calculator.money.chart.PieChart;
+import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.chart.TimeSeriesChart;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.util.Pair;
@@ -884,6 +886,24 @@ public class ConsoleReports {
 
     }
 
+    private void expensePieChart(int months) {
+        final Aggregation agg = new SimpleAggregation(months);
+        var now = Inflation.USD_INFLATION.getTo();
+        var series = this.series.getRealUSDExpensesByType()
+                .entrySet()
+                .stream()
+                .map(e -> this.sum(e.getKey(), e.getValue()))
+                .map(agg::sum)
+                .map(s -> new PieItem(s.getName(), s.getAmountOrElseZero(now).amount()))
+                .toList();
+        new PieChart(true)
+                .create(
+                        MessageFormat.format("Total {0}-month Expenses", months),
+                        series,
+                        "expenses_" + months + "_months.png");
+
+    }
+
     private MoneyAmountSeries sum(String name, List<MoneyAmountSeries> series) {
         var s = series.stream().reduce(MoneyAmountSeries::add).get();
         s.setName(name);
@@ -896,6 +916,9 @@ public class ConsoleReports {
         inv.brokerDetailedChart();
         inv.invGainsChart();
         this.expensesChart(12, true);
+        this.expensePieChart(12);
+        this.expensePieChart(24);
+        this.expensePieChart(48);
         this.savingsEvoChart();
         new Savings(format, series, bar, console).savingRate(LocalDate.now().getYear());
         final var pos = new Positions(console, format, series, bar);
@@ -913,6 +936,5 @@ public class ConsoleReports {
         public CmdParam(String name) {
             this(name, "");
         }
-
     }
 }

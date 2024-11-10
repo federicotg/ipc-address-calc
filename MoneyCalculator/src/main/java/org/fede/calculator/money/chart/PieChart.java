@@ -21,6 +21,8 @@ import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import org.fede.calculator.money.ConsoleReports;
@@ -61,9 +63,10 @@ public class PieChart {
         try {
             DefaultPieDataset<String> ds = new DefaultPieDataset<>();
 
-            for (var item : items) {
-                ds.setValue(item.label(), item.value());
-            }
+            items
+                    .stream()
+                    .sorted(Comparator.comparing((PieItem i) -> i.value().intValue(), Comparator.reverseOrder()))
+                    .forEach(item -> ds.setValue(item.label(), item.value()));
 
             var font = new Font("SansSerif", Font.PLAIN, 16);
             JFreeChart chart = ChartFactory.createPieChart(chartTitle, ds);
@@ -77,9 +80,9 @@ public class PieChart {
             p.setLabelOutlinePaint(WHITE);
             p.setLabelShadowPaint(WHITE);
             chart.getLegend().setItemFont(font);
-            
+
             ChartUtils.saveChartAsPNG(
-                    new File(ConsoleReports.CHARTS_PREFIX+fileName),
+                    new File(ConsoleReports.CHARTS_PREFIX + fileName),
                     chart,
                     1200,
                     900,
