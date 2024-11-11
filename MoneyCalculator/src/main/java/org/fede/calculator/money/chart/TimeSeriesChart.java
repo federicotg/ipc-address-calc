@@ -30,16 +30,12 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.data.time.TimeSeriesCollection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class TimeSeriesChart {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TimeSeriesChart.class);
 
     private final Font font;
     private final Stroke stroke;

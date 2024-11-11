@@ -32,16 +32,12 @@ import org.jfree.chart.labels.PieSectionLabelGenerator;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.PiePlot;
 import org.jfree.data.general.DefaultPieDataset;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class PieChart {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PieChart.class);
 
     private final Font font;
     private final PieSectionLabelGenerator labelGenerator;
