@@ -32,8 +32,6 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class SimpleForeignExchange extends SeriesSupport implements ForeignExchange {
 
-    //private static final BigDecimal ONE = BigDecimal.ONE;//.setScale(MathConstants.SCALE, MathConstants.RM);
-
     private final Supplier<IndexSeries> exchangeRatesSeriesSupplier;
 
     private IndexSeries exchangeRatesSeries;

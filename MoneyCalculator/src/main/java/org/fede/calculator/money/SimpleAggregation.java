@@ -33,8 +33,6 @@ import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
  */
 public class SimpleAggregation implements Aggregation {
 
-    //private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(MathConstants.SCALE, MathConstants.RM);
-
     private final int months;
 
     public SimpleAggregation(int months) {
@@ -93,21 +91,11 @@ public class SimpleAggregation implements Aggregation {
             if (months > -1 && lastValues.size() > months) {
                 lastValues.removeLast();
             }
-            result.putAmount(ym, aggregationFunction.apply((lastValues)));
+            result.putAmount(ym, aggregationFunction.apply(lastValues));
         }
 
         return result;
 
-//        
-//        return series.map((yearMonth, amount) -> {
-//            checkCurrency(seriesCurrency, amount);
-//
-//            lastValues.addFirst(amount);
-//            if (months > -1 && lastValues.size() > months) {
-//                lastValues.removeLast();
-//            }
-//            return aggregationFunction.apply((lastValues));
-//        });
     }
 
     @Override

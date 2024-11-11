@@ -583,10 +583,6 @@ public class Positions {
 
     }
 
-    public void portfolioChart(String subtype, int year, int month) throws IOException {
-        this.portfolioChart(new PieChart(false), subtype, year, month);
-    }
-
     public void portfolio(String type, String subtype, int year, int month) {
 
         final var items = this.portfolioItems(subtype, year, month);

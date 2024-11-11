@@ -487,108 +487,107 @@ public class Savings {
         return String.format("%12s", value);
     }
 
+    private void otherwise() {
+        this.console.appendLine(this.format.title("Historical Real USD Savings Stats"));
+
+        final var limit = USD_INFLATION.getTo();
+
+        final var totalSavings = this.series.realSavings(null).getAmount(limit);
+
+        // total income
+        final var totalIncome = this.series.realIncome()
+                .moneyAmountStream()
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+
+        final var months = this.series.realIncome().getFrom().monthsUntil(limit);
+
+        final var avgSalary = totalIncome.getAmount().divide(BigDecimal.valueOf(months), C);
+
+        this.console.appendLine(format("Income USD {0}\nSavings USD {1} {2}\nAverage salary {3}\nSaved salaries {4}",
+                this.format.currency(totalIncome.getAmount()),
+                this.format.currency(totalSavings.getAmount()),
+                this.format.percent(totalSavings.getAmount().divide(totalIncome.getAmount(), C)),
+                this.format.currency(avgSalary),
+                totalSavings.getAmount().divide(avgSalary, C)));
+
+        //ingreso promedio de N meses
+        final var agg = new SimpleAggregation(YearMonth.of(2012, 1).monthsUntil(USD_INFLATION.getTo()));
+
+        final var averageIncome = agg.average(this.series.realIncome()).getAmount(USD_INFLATION.getTo());
+
+        // ahorro promedio de N meses
+        final var averagNetSavings = agg.average(this.series.realNetSavings()).getAmount(USD_INFLATION.getTo());
+
+        final var m = totalSavings.getAmount().divide(averageIncome.subtract(averagNetSavings).getAmount(), C);
+
+        final var MONTHS_IN_ONE_YEAR = BigDecimal.valueOf(12);
+
+        final var yearAndMonth = m.divideAndRemainder(MONTHS_IN_ONE_YEAR, C);
+
+        final var avgIncome = averageIncome.subtract(averagNetSavings).getAmount();
+
+        this.console.appendLine(format("Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
+                yearAndMonth[0],
+                yearAndMonth[1].setScale(0, MathConstants.RM),
+                this.format.percent(ONE.subtract(averagNetSavings.getAmount().divide(averageIncome.getAmount(), C), C)),
+                avgIncome));
+
+        final var unlp = SeriesReader.readSeries("income/unlp.json");
+        final var despegar = SeriesReader.readSeries("income/despegar.json");
+
+        final var totalYears = Math.round((double) unlp.getFrom().next().monthsUntil(unlp.getTo()) / 12.0d);
+        final var simultaneousYears = Math.round((double) despegar.getFrom().monthsUntil(unlp.getTo()) / 12.0d);
+
+        final var simultaneousPercent = new BigDecimal("0.82").divide(new BigDecimal("30"), MathConstants.C);
+
+        final var yearsLeft = 1978 + 65 - LocalDate.now().getYear();
+
+        this.console.appendLine(format("Retirement: {0} last 120 average salaries plus {1} best UNLP salary.",
+                this.format.percent(BigDecimal.valueOf(totalYears).multiply(new BigDecimal("0.015"), MathConstants.C)),
+                this.format.percent(simultaneousPercent
+                        .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
+
+        this.console.appendLine(format("Projected: {0} last 120 average salaries plus {1} best UNLP salary.",
+                this.format.percent(BigDecimal.valueOf(totalYears + yearsLeft).multiply(new BigDecimal("0.015"), MathConstants.C)),
+                this.format.percent(simultaneousPercent
+                        .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
+
+        final long daysWorked = Duration.between(LocalDateTime.of(2015, Month.DECEMBER, 22, 0, 0, 0), LocalDateTime.now()).toDays();
+        final long yearsWorked = daysWorked / 365 + ((daysWorked % 365 > 180) ? 1 : 0);
+
+        final var contingency = BigDecimal.valueOf(yearsWorked)
+                .multiply(new BigDecimal(2900))
+                .add(new BigDecimal(100000));
+
+        final var contingencyMonths = contingency.divide(avgIncome, C).setScale(0, MathConstants.RM);
+
+        final var contingencyYearsAndmonths = contingencyMonths.divideAndRemainder(MONTHS_IN_ONE_YEAR, C);
+
+        this.console.appendLine(format("Contingency: USD {0,number,currency}, {1,number} years and {2,number} months of income.",
+                contingency,
+                contingencyYearsAndmonths[0],
+                contingencyYearsAndmonths[1].setScale(0, MathConstants.RM)));
+
+        final var contingencyDate = LocalDateTime.now().plusMonths(contingencyMonths.longValue());
+        final var retiementDate = LocalDateTime.of(1978 + 65, Month.MARCH, 13, 23, 59, 59);
+
+        final long gapYears = Math.ceilDiv(Duration.between(contingencyDate, retiementDate).toDays(), 365l);
+
+        this.console.appendLine(format("Gap is {0,number} years.", gapYears));
+
+        final var currentIliquidAssets = new MoneyAmount(new BigDecimal("72000"), Currency.USD);
+
+        final var futureIliquidAssets = new MoneyAmount(new BigDecimal("212500"), Currency.USD);
+
+        this.console.appendLine(format("Est. net worth is {0,number,currency}.", totalSavings.add(currentIliquidAssets).amount()));
+
+        this.console.appendLine(format("Future est. net worth is {0,number,currency}.", totalSavings.add(futureIliquidAssets).amount()));
+
+    }
+
     public void savings(Map<String, String> params) {
 
-        Runnable otherwise = () -> {
-
-            this.console.appendLine(this.format.title("Historical Real USD Savings Stats"));
-
-            final var limit = USD_INFLATION.getTo();
-
-            final var totalSavings = this.series.realSavings(null).getAmount(limit);
-
-            // total income
-            final var totalIncome = this.series.realIncome()
-                    .moneyAmountStream()
-                    .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
-
-            final var months = this.series.realIncome().getFrom().monthsUntil(limit);
-
-            final var avgSalary = totalIncome.getAmount().divide(BigDecimal.valueOf(months), C);
-
-            this.console.appendLine(format("Income USD {0}\nSavings USD {1} {2}\nAverage salary {3}\nSaved salaries {4}",
-                    this.format.currency(totalIncome.getAmount()),
-                    this.format.currency(totalSavings.getAmount()),
-                    this.format.percent(totalSavings.getAmount().divide(totalIncome.getAmount(), C)),
-                    this.format.currency(avgSalary),
-                    totalSavings.getAmount().divide(avgSalary, C)));
-
-            //ingreso promedio de N meses
-            final var agg = new SimpleAggregation(YearMonth.of(2012, 1).monthsUntil(USD_INFLATION.getTo()));
-
-            final var averageIncome = agg.average(this.series.realIncome()).getAmount(USD_INFLATION.getTo());
-
-            // ahorro promedio de N meses
-            final var averagNetSavings = agg.average(this.series.realNetSavings()).getAmount(USD_INFLATION.getTo());
-
-            final var m = totalSavings.getAmount().divide(averageIncome.subtract(averagNetSavings).getAmount(), C);
-
-            final var MONTHS_IN_ONE_YEAR = BigDecimal.valueOf(12);
-
-            final var yearAndMonth = m.divideAndRemainder(MONTHS_IN_ONE_YEAR, C);
-
-            final var avgIncome = averageIncome.subtract(averagNetSavings).getAmount();
-
-            this.console.appendLine(format("Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
-                    yearAndMonth[0],
-                    yearAndMonth[1].setScale(0, MathConstants.RM),
-                    this.format.percent(ONE.subtract(averagNetSavings.getAmount().divide(averageIncome.getAmount(), C), C)),
-                    avgIncome));
-
-            final var unlp = SeriesReader.readSeries("income/unlp.json");
-            final var despegar = SeriesReader.readSeries("income/despegar.json");
-
-            final var totalYears = Math.round((double) unlp.getFrom().next().monthsUntil(unlp.getTo()) / 12.0d);
-            final var simultaneousYears = Math.round((double) despegar.getFrom().monthsUntil(unlp.getTo()) / 12.0d);
-
-            final var simultaneousPercent = new BigDecimal("0.82").divide(new BigDecimal("30"), MathConstants.C);
-
-            final var yearsLeft = 1978 + 65 - LocalDate.now().getYear();
-
-            this.console.appendLine(format("Retirement: {0} last 120 average salaries plus {1} best UNLP salary.",
-                    this.format.percent(BigDecimal.valueOf(totalYears).multiply(new BigDecimal("0.015"), MathConstants.C)),
-                    this.format.percent(simultaneousPercent
-                            .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
-
-            this.console.appendLine(format("Projected: {0} last 120 average salaries plus {1} best UNLP salary.",
-                    this.format.percent(BigDecimal.valueOf(totalYears + yearsLeft).multiply(new BigDecimal("0.015"), MathConstants.C)),
-                    this.format.percent(simultaneousPercent
-                            .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
-
-            final long daysWorked = Duration.between(LocalDateTime.of(2015, Month.DECEMBER, 22, 0, 0, 0), LocalDateTime.now()).toDays();
-            final long yearsWorked = daysWorked / 365 + ((daysWorked % 365 > 180) ? 1 : 0);
-
-            final var contingency = BigDecimal.valueOf(yearsWorked)
-                    .multiply(new BigDecimal(2900))
-                    .add(new BigDecimal(100000));
-
-            final var contingencyMonths = contingency.divide(avgIncome, C).setScale(0, MathConstants.RM);
-
-            final var contingencyYearsAndmonths = contingencyMonths.divideAndRemainder(MONTHS_IN_ONE_YEAR, C);
-
-            this.console.appendLine(format("Contingency: USD {0,number,currency}, {1,number} years and {2,number} months of income.",
-                    contingency,
-                    contingencyYearsAndmonths[0],
-                    contingencyYearsAndmonths[1].setScale(0, MathConstants.RM)));
-
-            final var contingencyDate = LocalDateTime.now().plusMonths(contingencyMonths.longValue());
-            final var retiementDate = LocalDateTime.of(1978 + 65, Month.MARCH, 13, 23, 59, 59);
-
-            final long gapYears = Math.ceilDiv(Duration.between(contingencyDate, retiementDate).toDays(), 365l);
-
-            this.console.appendLine(format("Gap is {0,number} years.", gapYears));
-
-            final var currentIliquidAssets = new MoneyAmount(new BigDecimal("72000"), Currency.USD);
-
-            final var futureIliquidAssets = new MoneyAmount(new BigDecimal("212500"), Currency.USD);
-
-            this.console.appendLine(format("Est. net worth is {0,number,currency}.", totalSavings.add(currentIliquidAssets).amount()));
-
-            this.console.appendLine(format("Future est. net worth is {0,number,currency}.", totalSavings.add(futureIliquidAssets).amount()));
-
-        };
-
-        new By().by(params, this::quarterSavings, this::halfSavings, this::yearlySavings, otherwise);
+        new By().by(params, this::quarterSavings, this::halfSavings, this::yearlySavings, this::otherwise);
     }
 
     private void quarterSavings() {

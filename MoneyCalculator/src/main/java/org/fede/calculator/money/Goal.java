@@ -229,7 +229,6 @@ public class Goal {
                 .mapToDouble(year -> Math.pow(inflationRate, year))
                 .toArray();
 
-        //this.nHighestAtRetirement(inflationFactors, 2, retirementYear, startingYear);
         final var deposit = monthlyDeposit.multiply(MONTHS_IN_A_YEAR, C).doubleValue();
 
         final var withdraw = (monthlyWithdraw

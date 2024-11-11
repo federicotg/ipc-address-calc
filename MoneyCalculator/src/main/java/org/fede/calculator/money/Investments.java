@@ -773,10 +773,6 @@ public class Investments {
         }
     }
 
-    public void brokerDetailedChart() throws IOException {
-        this.brokerDetailedChart(new PieChart(true));
-    }
-
     public void brokerDetailedChart(PieChart chart) throws IOException {
         var now = new Date();
         Map<String, List<Investment>> byBroker = this.getInvestments()
@@ -788,10 +784,6 @@ public class Investments {
                 "Investments By Broker",
                 byBroker.entrySet().stream().flatMap(e -> this.brokerDetailedItem(e.getKey(), e.getValue())).toList(),
                 "brokers-detail.png");
-    }
-
-    public void brokerChart() throws IOException {
-        this.brokerChart(new PieChart(true));
     }
 
     public void brokerChart(PieChart chart) throws IOException {

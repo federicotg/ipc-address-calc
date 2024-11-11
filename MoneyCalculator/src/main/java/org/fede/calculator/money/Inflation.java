@@ -70,8 +70,6 @@ public interface Inflation extends Series {
         return this.adjust(series, ym.getYear(), ym.getMonth());
     }
 
-    MoneyAmountSeries adjust(MoneyAmountSeries series, Date moment);
-
     /**
      * Calcula el valor ajustado por inflación del monto especificado en cada
      * mes que se pueda.

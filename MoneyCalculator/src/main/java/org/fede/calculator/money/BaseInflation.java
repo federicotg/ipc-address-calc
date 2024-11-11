@@ -95,12 +95,7 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
 
     }
 
-    @Override
-    public final MoneyAmountSeries adjust(MoneyAmountSeries series, Date moment) {
-        final var ym = YearMonth.of(moment);
-        return this.adjust(series, ym.year(), ym.month() + 1);
-    }
-
+ 
     @Override
     public final MoneyAmount adjust(MoneyAmount amount, Date from, Date to) {
         final var fromYm = YearMonth.of(from);
