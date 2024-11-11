@@ -560,7 +560,7 @@ public class Positions {
         }
     }
 
-    private void portfolioChart(PieChart chart, String subtype, int year, int month) {
+    public void portfolioChart(PieChart chart, String subtype, int year, int month) {
         final var ym = YearMonth.of(year, month);
 
         final var items = this.portfolioItems(subtype, year, month);

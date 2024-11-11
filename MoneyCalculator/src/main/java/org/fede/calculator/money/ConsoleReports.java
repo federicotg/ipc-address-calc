@@ -157,10 +157,6 @@ public class ConsoleReports {
             case "inv" ->
                 () -> me.invReport(args, "inv");
 
-            // case "gains-chart" ->
-            //     () -> me.invGainsChart();
-            // case "broker-chart" ->
-            //     () -> me.brokerChart();
             case "savings" ->
                 () -> me.savings(args, "savings");
 
@@ -224,10 +220,6 @@ public class ConsoleReports {
             case "p" ->
                 () -> me.portfolio(args, "p");
 
-            // case "p-chart" ->
-            //     () -> me.portfolioChart(args, "p-chart");
-            //case "p-chart-series" ->
-            //     () -> me.portfolioChartSeries(args, "p-chart-series");
             case "p-evo" ->
                 () -> me.portfolioEvo(args, "p-evo");
 
@@ -264,8 +256,6 @@ public class ConsoleReports {
             case "expenses-change" ->
                 () -> me.expensesChange(args, "expenses-change");
 
-            //case "expenses-chart" ->
-            //    () -> me.expensesChart(args, "expenses-chart");
             case "goal" ->
                 () -> me.goal(args, "goal");
 
@@ -323,8 +313,6 @@ public class ConsoleReports {
             case "etf" ->
                 () -> me.etf();
 
-            //  case "savings-chart" ->
-            //      () -> me.savingsEvoChart();
             default ->
                 () -> console.appendLine("Unknown parameter.");
 
@@ -375,7 +363,6 @@ public class ConsoleReports {
                         new CmdParam("routes"),
                         new CmdParam("balances"),
                         new CmdParam("all-charts"),
-                        //new CmdParam("broker-chart"),
                         new CmdParam("cash"),
                         new CmdParam("bench"),
                         new CmdParam("ibkr"),
@@ -394,12 +381,9 @@ public class ConsoleReports {
                         new CmdParam("income", "by=(year|half|quarter) months=12"),
                         new CmdParam("savings", "by=(year|half|quarter)"),
                         new CmdParam("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                        //new CmdParam("p-chart", "subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                        //new CmdParam("p-chart-series", "subtype=(all*|equity|bond|commodity|cash)"),
                         new CmdParam("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
                         new CmdParam("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
                         new CmdParam("inv", "type=(all|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
-                        //new CmdParam("gains-chart"),
                         new CmdParam("inv-evo", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         new CmdParam("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false"),
@@ -413,9 +397,7 @@ public class ConsoleReports {
                         new CmdParam("expenses", "by=(year|half|quarter|month) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
                         new CmdParam("expenses-change", "type=(full|tracked*) m=12"),
                         new CmdParam("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) m=12"),
-                        //new CmdParam("expenses-chart", "m=0 g=false"),
                         new CmdParam("savings-evo", "type=(BO|LIQ|EQ)"),
-                        //new CmdParam("savings-chart"),
                         new CmdParam("dca", "type=(q*|h|y|m)"),
                         new CmdParam("etf"),
                         new CmdParam("pos", "nominal=false")
@@ -685,27 +667,6 @@ public class ConsoleReports {
 
     }
 
-//    private void portfolioChart(String[] args, String name) {
-//        final var params = this.paramsValue(args, name);
-//        //final var type = params.getOrDefault("type", "full");
-//        final var subtype = params.getOrDefault("subtype", "all");
-//        final var year = Optional.ofNullable(params.get("y"))
-//                .map(Integer::parseInt)
-//                .orElseGet(USD_INFLATION.getTo()::getYear);
-//        final var month = Optional.ofNullable(params.get("m"))
-//                .map(Integer::parseInt)
-//                .orElseGet(USD_INFLATION.getTo()::getMonth);
-//        new Positions(console, format, series, bar)
-//                .portfolioChart(subtype, year, month);
-//    }
-//    private void portfolioChartSeries(String[] args, String name) {
-//
-//        final var params = this.paramsValue(args, name);
-//        final var subtype = params.getOrDefault("subtype", "all");
-//        new Positions(console, format, series, bar)
-//                .portfolioChartSeries(subtype);
-//
-//    }
     private void returns(String[] args, String paranName, PortfolioReturns pr) {
 
         final var params = this.paramsValue(args, paranName);
@@ -852,14 +813,6 @@ public class ConsoleReports {
 
     }
 
-//    public void expensesChart(String[] args, String paramName) {
-//
-//        var params = this.paramsValue(args, paramName);
-//
-//        var m = Integer.parseInt(params.getOrDefault("m", "0"));
-//        var grouped = Boolean.parseBoolean(params.getOrDefault("g", "true"));
-//        this.expensesChart(m, grouped);
-//    }
     private void expensesChart(int m, boolean grouped) {
 
         var expenseSeries = grouped
@@ -886,20 +839,20 @@ public class ConsoleReports {
 
     }
 
-    private void expensePieChart(int months) {
+    private void expensePieChart(int months, PieChart chart) {
         final Aggregation agg = new SimpleAggregation(months);
         var now = Inflation.USD_INFLATION.getTo();
-        var series = this.series.getRealUSDExpensesByType()
+        var pieSeries = this.series.getRealUSDExpensesByType()
                 .entrySet()
                 .stream()
                 .map(e -> this.sum(e.getKey(), e.getValue()))
                 .map(agg::sum)
                 .map(s -> new PieItem(s.getName(), s.getAmountOrElseZero(now).amount()))
                 .toList();
-        new PieChart(true)
+        chart
                 .create(
                         MessageFormat.format("Total {0}-month Expenses", months),
-                        series,
+                        pieSeries,
                         "expenses_" + months + "_months.png");
 
     }
@@ -912,18 +865,24 @@ public class ConsoleReports {
 
     private void allCharts() {
         final var inv = new Investments(this.console, this.format, this.bar, this.series);
-        inv.brokerChart();
-        inv.brokerDetailedChart();
-        inv.invGainsChart();
+        final var absoluteValuePieChart = new PieChart(true);
+
+        inv.brokerChart(absoluteValuePieChart);
+        inv.brokerDetailedChart(absoluteValuePieChart);
+        inv.invGainsChart(absoluteValuePieChart);
         this.expensesChart(12, true);
-        this.expensePieChart(12);
-        this.expensePieChart(24);
-        this.expensePieChart(48);
+
+        this.expensePieChart(12, absoluteValuePieChart);
+        this.expensePieChart(24, absoluteValuePieChart);
+        this.expensePieChart(48, absoluteValuePieChart);
         this.savingsEvoChart();
         new Savings(format, series, bar, console).savingRate(LocalDate.now().getYear());
         final var pos = new Positions(console, format, series, bar);
-        pos.portfolioChart("all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-        pos.portfolioChart("equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+
+        final var percentValuePieChart = new PieChart(false);
+
+        pos.portfolioChart(percentValuePieChart, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+        pos.portfolioChart(percentValuePieChart, "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
     }
 
     public static record CmdParam(String name, String argsDesc) {

@@ -47,8 +47,7 @@ import org.fede.calculator.money.series.YearMonth;
  */
 public class Savings {
 
-   // private static final MoneyAmount MoneyAmount.zero(Currency.USD) = MoneyAmount.zero(Currency.USD);
-
+    // private static final MoneyAmount MoneyAmount.zero(Currency.USD) = MoneyAmount.zero(Currency.USD);
     private final Format format;
     private final Series series;
     private final Bar bar;
@@ -416,7 +415,7 @@ public class Savings {
         var income = this.yearIncome(year).amount();
         var savings = this.yearSavings(year).amount();
         new PieChart(true).create(
-                "Saving Rate "+year,
+                "Saving Rate " + year,
                 List.of(
                         new PieItem("Expenses", income.subtract(savings)),
                         new PieItem("Savings", savings)),

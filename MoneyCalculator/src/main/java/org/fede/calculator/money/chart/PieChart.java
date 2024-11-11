@@ -47,7 +47,10 @@ public class PieChart {
     private final PieSectionLabelGenerator labelGenerator;
 
     public PieChart(boolean showAbsoluteValue) {
-        this(NumberFormat.getPercentInstance(Locale.of("es", "AR")), NumberFormat.getCurrencyInstance(Locale.of("es", "AR")), showAbsoluteValue);
+        this(
+                NumberFormat.getPercentInstance(Locale.of("es", "AR")), 
+                NumberFormat.getCurrencyInstance(Locale.of("es", "AR")), 
+                showAbsoluteValue);
     }
 
     public PieChart(NumberFormat pctFormat, NumberFormat currencyFormat, boolean showAbsoluteValue) {

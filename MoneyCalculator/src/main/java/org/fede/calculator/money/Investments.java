@@ -148,6 +148,10 @@ public class Investments {
     }
 
     public void invGainsChart() {
+        this.invGainsChart(new PieChart(true));
+    }
+
+    public void invGainsChart(PieChart chart) {
 
         var now = new Date();
         Map<Integer, BigDecimal> gainsByYear = this.series.getInvestments()
@@ -163,7 +167,7 @@ public class Investments {
                                         detail -> detail.getGrossCapitalGains().amount(),
                                         BigDecimal::add)));
 
-        new PieChart(true).create(
+        chart.create(
                 "Gains by Year",
                 gainsByYear.entrySet().stream().map(e -> new PieItem(String.valueOf(e.getKey()), e.getValue())).toList(),
                 "gains-by-year.png");
@@ -769,27 +773,34 @@ public class Investments {
     }
 
     public void brokerDetailedChart() {
+        this.brokerDetailedChart(new PieChart(true));
+    }
+
+    public void brokerDetailedChart(PieChart chart) {
         var now = new Date();
         Map<String, List<Investment>> byBroker = this.getInvestments()
                 .filter(Investment::isETF)
                 .filter(investment -> investment.isCurrent(now))
                 .collect(Collectors.groupingBy(i -> i.getComment() == null ? "PPI" : "IBKR"));
 
-        new PieChart(true).create(
+        chart.create(
                 "Investments By Broker",
                 byBroker.entrySet().stream().flatMap(e -> this.brokerDetailedItem(e.getKey(), e.getValue())).toList(),
                 "brokers-detail.png");
-
     }
 
     public void brokerChart() {
+        this.brokerChart(new PieChart(true));
+    }
+
+    public void brokerChart(PieChart chart) {
         var now = new Date();
         Map<String, List<Investment>> byBroker = this.getInvestments()
                 .filter(Investment::isETF)
                 .filter(investment -> investment.isCurrent(now))
                 .collect(Collectors.groupingBy(i -> i.getComment() == null ? "PPI" : "IBKR"));
 
-        new PieChart(true).create(
+        chart.create(
                 "Investments By Broker",
                 byBroker.entrySet().stream().flatMap(e -> this.brokerItem(e.getKey(), e.getValue())).toList(),
                 "brokers.png");
