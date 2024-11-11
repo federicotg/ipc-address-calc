@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
@@ -177,9 +178,6 @@ public class ConsoleReports {
 
             case "savings-avg" ->
                 () -> me.netAvgSavingSpent(args, "savings-avg");
-
-            case "savings-rate" ->
-                () -> me.savingRateChart(args, "savings-rate");
 
             case "savings-dist" ->
                 new Savings(format, series, bar, console)::savingsDistributionEvolution;
@@ -375,7 +373,6 @@ public class ConsoleReports {
                         new CmdParam("income-table"),
                         new CmdParam("income-year-table"),
                         new CmdParam("savings-dist"),
-                        new CmdParam("savings-rate", "y=*now"),
                         new CmdParam("savings-dist-pct"),
                         new CmdParam("income-avg-change", "m=12"),
                         new CmdParam("income", "by=(year|half|quarter) months=12"),
@@ -458,11 +455,6 @@ public class ConsoleReports {
 
     private void income(String[] args) {
         new Savings(format, series, bar, console).income(this.paramsValue(args, "income"));
-    }
-
-    private void savingRateChart(String[] args, String param) {
-        var year = Integer.parseInt(this.paramsValue(args, param).getOrDefault("y", String.valueOf(LocalDate.now().getYear())));
-        new Savings(format, series, bar, console).savingRate(year);
     }
 
     private void house(String[] args, String paramName) {
@@ -803,7 +795,7 @@ public class ConsoleReports {
         }
     }
 
-    private void savingsEvoChart() {
+    private void savingsEvoChart() throws IOException {
 
         var s = this.series.realSavings(null);
         s.setName("Real");
@@ -813,7 +805,7 @@ public class ConsoleReports {
 
     }
 
-    private void expensesChart(int m, boolean grouped) {
+    private void expensesChart(int m, boolean grouped) throws IOException {
 
         var expenseSeries = grouped
                 ? this.series.getRealUSDExpensesByType()
@@ -839,7 +831,7 @@ public class ConsoleReports {
 
     }
 
-    private void expensePieChart(int months, PieChart chart) {
+    private void expensePieChart(int months, PieChart chart) throws IOException {
         final Aggregation agg = new SimpleAggregation(months);
         var now = Inflation.USD_INFLATION.getTo();
         var pieSeries = this.series.getRealUSDExpensesByType()
@@ -864,25 +856,28 @@ public class ConsoleReports {
     }
 
     private void allCharts() {
-        final var inv = new Investments(this.console, this.format, this.bar, this.series);
-        final var absoluteValuePieChart = new PieChart(true);
+        try {
+            final var inv = new Investments(this.console, this.format, this.bar, this.series);
+            final var pos = new Positions(console, format, series, bar);
+            final var savings = new Savings(format, series, bar, console);
+            final var absoluteValuePieChart = new PieChart(true);
+            final var percentValuePieChart = new PieChart(false);
 
-        inv.brokerChart(absoluteValuePieChart);
-        inv.brokerDetailedChart(absoluteValuePieChart);
-        inv.invGainsChart(absoluteValuePieChart);
-        this.expensesChart(12, true);
+            inv.brokerChart(absoluteValuePieChart);
+            inv.brokerDetailedChart(absoluteValuePieChart);
+            inv.invGainsChart(absoluteValuePieChart);
+            this.expensesChart(12, true);
+            this.expensePieChart(12, absoluteValuePieChart);
+            this.expensePieChart(24, absoluteValuePieChart);
+            this.expensePieChart(48, absoluteValuePieChart);
+            this.savingsEvoChart();
+            savings.savingRate(LocalDate.now().getYear());
+            pos.portfolioChart(percentValuePieChart, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            pos.portfolioChart(percentValuePieChart, "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
 
-        this.expensePieChart(12, absoluteValuePieChart);
-        this.expensePieChart(24, absoluteValuePieChart);
-        this.expensePieChart(48, absoluteValuePieChart);
-        this.savingsEvoChart();
-        new Savings(format, series, bar, console).savingRate(LocalDate.now().getYear());
-        final var pos = new Positions(console, format, series, bar);
-
-        final var percentValuePieChart = new PieChart(false);
-
-        pos.portfolioChart(percentValuePieChart, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-        pos.portfolioChart(percentValuePieChart, "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+        } catch (IOException ex) {
+            LOGGER.error("Error generating chart.", ex);
+        }
     }
 
     public static record CmdParam(String name, String argsDesc) {

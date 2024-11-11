@@ -21,7 +21,6 @@ import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -44,16 +43,20 @@ public class PieChart {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PieChart.class);
 
+    private final Font font;
     private final PieSectionLabelGenerator labelGenerator;
+    private final Comparator<PieItem> largerFirst;
 
     public PieChart(boolean showAbsoluteValue) {
         this(
-                NumberFormat.getPercentInstance(Locale.of("es", "AR")), 
-                NumberFormat.getCurrencyInstance(Locale.of("es", "AR")), 
+                NumberFormat.getPercentInstance(Locale.of("es", "AR")),
+                NumberFormat.getCurrencyInstance(Locale.of("es", "AR")),
                 showAbsoluteValue);
     }
 
     public PieChart(NumberFormat pctFormat, NumberFormat currencyFormat, boolean showAbsoluteValue) {
+        font = new Font("SansSerif", Font.PLAIN, 16);
+        this.largerFirst = Comparator.comparing((PieItem i) -> i.value().intValue(), Comparator.reverseOrder());
         pctFormat.setMinimumFractionDigits(2);
         this.labelGenerator = new StandardPieSectionLabelGenerator(
                 showAbsoluteValue ? "{0} {1} {2}" : "{0} {2}",
@@ -61,39 +64,36 @@ public class PieChart {
                 pctFormat);
     }
 
-    public void create(String chartTitle, List<PieItem> items, String fileName) {
+    public void create(String chartTitle, List<PieItem> items, String fileName) throws IOException {
 
-        try {
-            DefaultPieDataset<String> ds = new DefaultPieDataset<>();
+        DefaultPieDataset<String> ds = new DefaultPieDataset<>();
 
-            items
-                    .stream()
-                    .sorted(Comparator.comparing((PieItem i) -> i.value().intValue(), Comparator.reverseOrder()))
-                    .forEach(item -> ds.setValue(item.label(), item.value()));
+        items
+                .stream()
+                .sorted(this.largerFirst)
+                .forEach(item -> ds.setValue(item.label(), item.value()));
 
-            var font = new Font("SansSerif", Font.PLAIN, 16);
-            JFreeChart chart = ChartFactory.createPieChart(chartTitle, ds);
-            chart.setBorderVisible(false);
-            var p = (PiePlot) chart.getPlot();
-            p.setOutlineVisible(false);
-            p.setBackgroundPaint(WHITE);
-            p.setLabelFont(font);
-            p.setLabelGenerator(this.labelGenerator);
-            p.setLabelBackgroundPaint(WHITE);
-            p.setLabelOutlinePaint(WHITE);
-            p.setLabelShadowPaint(WHITE);
-            chart.getLegend().setItemFont(font);
+        JFreeChart chart = ChartFactory.createPieChart(chartTitle, ds);
+        chart.setBorderVisible(false);
+        var p = (PiePlot) chart.getPlot();
+        p.setOutlineVisible(false);
+        p.setBackgroundPaint(WHITE);
+        p.setLabelFont(this.font);
+        p.setLabelGenerator(this.labelGenerator);
+        p.setLabelBackgroundPaint(WHITE);
+        p.setLabelOutlinePaint(WHITE);
+        p.setLabelShadowPaint(WHITE);
+        chart.getLegend().setItemFont(this.font);
 
-            ChartUtils.saveChartAsPNG(
-                    new File(ConsoleReports.CHARTS_PREFIX + fileName),
-                    chart,
-                    1200,
-                    900,
-                    null,
-                    true,
-                    9);
-        } catch (IOException ex) {
-            LOGGER.error("Error generating pie chart.", ex);
-        }
+        ChartUtils.saveChartAsPNG(
+                new File(ConsoleReports.CHARTS_PREFIX + fileName),
+                chart,
+                1200,
+                900,
+                null,
+                true,
+                9);
+
     }
+
 }

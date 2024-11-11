@@ -19,6 +19,7 @@ package org.fede.calculator.money;
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
+import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
@@ -147,11 +148,11 @@ public class Investments {
         this.investmentReport(this.getInvestments(), everyone, Investment::isETF, Investment::isCurrent, nominal);
     }
 
-    public void invGainsChart() {
+    public void invGainsChart() throws IOException {
         this.invGainsChart(new PieChart(true));
     }
 
-    public void invGainsChart(PieChart chart) {
+    public void invGainsChart(PieChart chart) throws IOException {
 
         var now = new Date();
         Map<Integer, BigDecimal> gainsByYear = this.series.getInvestments()
@@ -772,11 +773,11 @@ public class Investments {
         }
     }
 
-    public void brokerDetailedChart() {
+    public void brokerDetailedChart() throws IOException {
         this.brokerDetailedChart(new PieChart(true));
     }
 
-    public void brokerDetailedChart(PieChart chart) {
+    public void brokerDetailedChart(PieChart chart) throws IOException {
         var now = new Date();
         Map<String, List<Investment>> byBroker = this.getInvestments()
                 .filter(Investment::isETF)
@@ -789,11 +790,11 @@ public class Investments {
                 "brokers-detail.png");
     }
 
-    public void brokerChart() {
+    public void brokerChart() throws IOException {
         this.brokerChart(new PieChart(true));
     }
 
-    public void brokerChart(PieChart chart) {
+    public void brokerChart(PieChart chart) throws IOException {
         var now = new Date();
         Map<String, List<Investment>> byBroker = this.getInvestments()
                 .filter(Investment::isETF)

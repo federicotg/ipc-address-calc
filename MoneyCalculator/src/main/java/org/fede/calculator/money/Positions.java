@@ -18,6 +18,7 @@ package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
+import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.ONE;
@@ -548,7 +549,7 @@ public class Positions {
                         Currency.USD));
     }
 
-    public void portfolioChartSeries(String subtype) {
+    public void portfolioChartSeries(String subtype) throws IOException {
 
         var from = YearMonth.of(2001, 10);
         var to = YearMonth.of(new Date());
@@ -560,7 +561,7 @@ public class Positions {
         }
     }
 
-    public void portfolioChart(PieChart chart, String subtype, int year, int month) {
+    public void portfolioChart(PieChart chart, String subtype, int year, int month) throws IOException {
         final var ym = YearMonth.of(year, month);
 
         final var items = this.portfolioItems(subtype, year, month);
@@ -582,7 +583,7 @@ public class Positions {
 
     }
 
-    public void portfolioChart(String subtype, int year, int month) {
+    public void portfolioChart(String subtype, int year, int month) throws IOException {
         this.portfolioChart(new PieChart(false), subtype, year, month);
     }
 

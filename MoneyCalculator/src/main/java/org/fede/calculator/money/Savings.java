@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import com.diogonunes.jcolor.Attribute;
+import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.text.MessageFormat.format;
@@ -411,7 +412,7 @@ public class Savings {
                 .getAmount(USD_INFLATION.getTo());
     }
 
-    public void savingRate(int year) {
+    public void savingRate(int year) throws IOException {
         var income = this.yearIncome(year).amount();
         var savings = this.yearSavings(year).amount();
         new PieChart(true).create(
@@ -576,6 +577,14 @@ public class Savings {
             final long gapYears = Math.ceilDiv(Duration.between(contingencyDate, retiementDate).toDays(), 365l);
 
             this.console.appendLine(format("Gap is {0,number} years.", gapYears));
+
+            final var currentIliquidAssets = new MoneyAmount(new BigDecimal("72000"), Currency.USD);
+
+            final var futureIliquidAssets = new MoneyAmount(new BigDecimal("212500"), Currency.USD);
+
+            this.console.appendLine(format("Est. net worth is {0,number,currency}.", totalSavings.add(currentIliquidAssets).amount()));
+
+            this.console.appendLine(format("Future est. net worth is {0,number,currency}.", totalSavings.add(futureIliquidAssets).amount()));
 
         };
 

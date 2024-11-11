@@ -18,6 +18,7 @@ package org.fede.calculator.money.chart;
 
 import java.awt.BasicStroke;
 import java.awt.Font;
+import java.awt.Stroke;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -40,33 +41,38 @@ public class TimeSeriesChart {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TimeSeriesChart.class);
 
-    public void create(String chartName, List<MoneyAmountSeries> series, String filename) {
-        try {
-            var collection = new TimeSeriesCollection();
-            series.stream().map(MoneyAmountSeries::asTimeSeries).forEach(collection::addSeries);
+    private final Font font;
+    private final Stroke stroke;
 
-            JFreeChart chart = ChartFactory.createTimeSeriesChart(
-                    chartName,
-                    "Date",
-                    "USD",
-                    collection);
-            var xyPlot = chart.getXYPlot();
-            xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
-            var renderer = xyPlot.getRenderer();
-            ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
-            renderer.setDefaultStroke(new BasicStroke(3.0f));
-            chart.getLegend().setItemFont(new Font("SansSerif", Font.PLAIN, 16));
-            
-            ChartUtils.saveChartAsPNG(
-                    new File(ConsoleReports.CHARTS_PREFIX + filename),
-                    chart,
-                    1600,
-                    900,
-                    null,
-                    true,
-                    9);
-        } catch (IOException ex) {
-            LOGGER.error("Error generating time series chart.", ex);
-        }
+    public TimeSeriesChart() {
+        this.font = new Font("SansSerif", Font.PLAIN, 16);
+        this.stroke = new BasicStroke(3.0f);
+    }
+
+    public void create(String chartName, List<MoneyAmountSeries> series, String filename) throws IOException {
+        var collection = new TimeSeriesCollection();
+        series.stream().map(MoneyAmountSeries::asTimeSeries).forEach(collection::addSeries);
+
+        JFreeChart chart = ChartFactory.createTimeSeriesChart(
+                chartName,
+                "Date",
+                "USD",
+                collection);
+        var xyPlot = chart.getXYPlot();
+        xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
+        var renderer = xyPlot.getRenderer();
+        ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
+        renderer.setDefaultStroke(this.stroke);
+        chart.getLegend().setItemFont(this.font);
+
+        ChartUtils.saveChartAsPNG(
+                new File(ConsoleReports.CHARTS_PREFIX + filename),
+                chart,
+                1600,
+                900,
+                null,
+                true,
+                9);
+
     }
 }
