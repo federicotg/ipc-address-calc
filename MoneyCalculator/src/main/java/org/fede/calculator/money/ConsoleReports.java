@@ -28,6 +28,7 @@ import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -55,10 +56,13 @@ import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.XRSU;
+import org.fede.calculator.money.chart.BarChart;
+import org.fede.calculator.money.chart.CategoryDatasetItem;
 import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.chart.TimeSeriesChart;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -874,6 +878,7 @@ public class ConsoleReports {
             savings.savingRate(LocalDate.now().getYear());
             pos.portfolioChart(percentValuePieChart, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChart(percentValuePieChart, "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            this.recentETFChangeChart();
 
         } catch (IOException ex) {
             LOGGER.error("Error generating chart.", ex);
@@ -891,4 +896,29 @@ public class ConsoleReports {
             this(name, "");
         }
     }
+
+    private void recentETFChangeChart() throws IOException {
+
+        final var now = Inflation.USD_INFLATION.getTo();
+        final var prev = now.prev();
+        final var prev2 = prev.prev();
+
+        final var values = Map.of(
+                CSPX, SeriesReader.readSeries("saving/ahorros-cspx.json"),
+                EIMI, SeriesReader.readSeries("saving/ahorros-eimi.json"),
+                MEUD, SeriesReader.readSeries("saving/ahorros-meud.json"),
+                RTWO, SeriesReader.readSeries("saving/ahorros-rtwo.json"),
+                XRSU, SeriesReader.readSeries("saving/ahorros-xrsu.json"));
+
+        final List<CategoryDatasetItem> l = new ArrayList<>(15);
+        for (var currency : List.of(CSPX, MEUD, EIMI, XRSU, RTWO)) {
+            final var fx = ForeignExchanges.getMoneyAmountForeignExchange(currency, Currency.USD);
+            Stream.of(prev2, prev, now)
+                    .map(moment -> new CategoryDatasetItem(currency, moment.monthString(), fx.apply(values.get(currency).getAmount(moment), moment).amount()))
+                    .forEach(l::add);
+        }
+        new BarChart().create("Recent Change", "ETF", l, "recent-etf-change.png");
+
+    }
+
 }

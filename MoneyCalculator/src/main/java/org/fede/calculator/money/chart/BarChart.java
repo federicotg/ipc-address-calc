@@ -23,39 +23,38 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import org.fede.calculator.money.ConsoleReports;
-import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.renderer.AbstractRenderer;
-import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.category.DefaultCategoryDataset;
 
 /**
  *
  * @author fede
  */
-public class TimeSeriesChart {
+public class BarChart {
 
     private final Font font;
     private final Stroke stroke;
 
-    public TimeSeriesChart() {
+    public BarChart() {
         this.font = new Font("SansSerif", Font.PLAIN, 16);
         this.stroke = new BasicStroke(3.0f);
     }
 
-    public void create(String chartName, List<MoneyAmountSeries> series, String filename) throws IOException {
-        var collection = new TimeSeriesCollection();
-        series.stream().map(MoneyAmountSeries::asTimeSeries).forEach(collection::addSeries);
-        JFreeChart chart = ChartFactory.createTimeSeriesChart(
-                chartName,
-                "Date",
-                "USD",
-                collection);
-        var xyPlot = chart.getXYPlot();
-        xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
-        var renderer = xyPlot.getRenderer();
+    public void create(String chartName, String categoriesName, List<CategoryDatasetItem> items, String filename) throws IOException {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+        for (var item : items) {
+            dataset.addValue(item.value(), item.yearMonth(), item.currency().name());
+        }
+
+        JFreeChart chart = ChartFactory.createBarChart(chartName, categoriesName, "USD", dataset);
+        var plot = chart.getCategoryPlot();
+        plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
+        var renderer = plot.getRenderer();
         ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
         renderer.setDefaultStroke(this.stroke);
         chart.getLegend().setItemFont(this.font);
@@ -68,6 +67,6 @@ public class TimeSeriesChart {
                 null,
                 true,
                 9);
-
     }
+
 }
