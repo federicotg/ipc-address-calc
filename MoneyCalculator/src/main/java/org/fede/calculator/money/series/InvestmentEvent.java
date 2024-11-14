@@ -6,13 +6,11 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Optional;
 import java.util.StringJoiner;
-import org.fede.calculator.money.ConsoleReports;
 import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
-import org.slf4j.LoggerFactory;
 
 /*
  * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>

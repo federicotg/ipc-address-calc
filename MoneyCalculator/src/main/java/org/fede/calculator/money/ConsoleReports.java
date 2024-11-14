@@ -878,7 +878,9 @@ public class ConsoleReports {
             savings.savingRate(LocalDate.now().getYear());
             pos.portfolioChart(percentValuePieChart, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChart(percentValuePieChart, "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-            this.recentETFChangeChart();
+            this.recentETFChangeChart(1);
+            this.recentETFChangeChart(12);
+            this.recentETFChangeChart(24);
 
         } catch (IOException ex) {
             LOGGER.error("Error generating chart.", ex);
@@ -897,12 +899,10 @@ public class ConsoleReports {
         }
     }
 
-    private void recentETFChangeChart() throws IOException {
+    private void recentETFChangeChart(int months) throws IOException {
 
         final var now = Inflation.USD_INFLATION.getTo();
-        final var prev = now.prev();
-        final var prev2 = prev.prev();
-
+        final var prev = YearMonth.of(now.year() - (months / 12), now.month() - (months % 12));
         final var values = Map.of(
                 CSPX, SeriesReader.readSeries("saving/ahorros-cspx.json"),
                 EIMI, SeriesReader.readSeries("saving/ahorros-eimi.json"),
@@ -910,14 +910,15 @@ public class ConsoleReports {
                 RTWO, SeriesReader.readSeries("saving/ahorros-rtwo.json"),
                 XRSU, SeriesReader.readSeries("saving/ahorros-xrsu.json"));
 
-        final List<CategoryDatasetItem> l = new ArrayList<>(15);
+        final List<CategoryDatasetItem> l = new ArrayList<>(values.size() * 2);
         for (var currency : List.of(CSPX, MEUD, EIMI, XRSU, RTWO)) {
             final var fx = ForeignExchanges.getMoneyAmountForeignExchange(currency, Currency.USD);
-            Stream.of(prev2, prev, now)
+            Stream.of(prev, now)
                     .map(moment -> new CategoryDatasetItem(currency, moment.monthString(), fx.apply(values.get(currency).getAmount(moment), moment).amount()))
                     .forEach(l::add);
         }
-        new BarChart().create("Recent Change", "ETF", l, "recent-etf-change.png");
+        new BarChart()
+                .create(MessageFormat.format("{0}-Month Change", months), "ETF", l, months + "-months-change.png");
 
     }
 

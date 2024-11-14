@@ -52,11 +52,10 @@ public enum InterpolationStrategy {
     public abstract MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, Currency currency);
 
     protected MoneyAmount inflationInterpolation(Inflation inflation, MoneyAmount lastValue, YearMonth lastValueYearMonth, Currency currency) {
-        YearMonth nextYm = lastValueYearMonth.next();
         return inflation.adjust(
                 lastValue, 
                 lastValueYearMonth,
-                nextYm);
+                lastValueYearMonth.next());
     }
 
 }
