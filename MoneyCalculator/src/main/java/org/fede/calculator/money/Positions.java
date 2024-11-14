@@ -362,7 +362,9 @@ public class Positions {
                 .forEach(this.console::appendLine);
 
         this.console.appendLine(this.format.text("Curr.", 8),
-                Investments.ETF_NAME.keySet().stream()
+                Investments.ETF_NAME.keySet()
+                        .stream()
+                        .filter(c -> c != Currency.IWDA)
                         .sorted()
                         .map(this::currentPice)
                         .collect(joining()));

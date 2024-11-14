@@ -153,7 +153,7 @@ public class BBPP {
                 .findAny()
                 .get();
 
-        final var ym = YearMonth.of(year, 12);
+        final var ym = Inflation.USD_INFLATION.getTo().min(YearMonth.of(year, 12));
 
         final Map<Currency, Function<MoneyAmount, BigDecimal>> arsFunction = Map.of(ARS, (MoneyAmount item) -> item.getAmount(),
                 LECAP, (MoneyAmount item) -> item.getAmount(),
