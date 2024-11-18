@@ -131,7 +131,6 @@ public class BBPP {
                 this.format.percent(bbpp.taxAmount.divide(bbpp.totalAmount, C), 9),
                 this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.allInvested.getAmount(), C), 9),
                 this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.yearRealIncome, C), 9)));
-
     }
 
     private BBPPItem toArs(BBPPItem i, Map<Currency, Function<MoneyAmount, BigDecimal>> arsFunction) {
@@ -183,8 +182,8 @@ public class BBPP {
 
         final var ons = this.series.getInvestments()
                 .stream()
-                .filter(i -> i.isCurrent(date))
                 .filter(i -> BONO == i.getType())
+                .filter(i -> i.isCurrent(date))
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getMoneyAmount)
                 .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
@@ -407,10 +406,12 @@ public class BBPP {
                 .map(BBPPItem::value).findFirst()
                 .orElse(BigDecimal.ZERO);
 
+        final var ym = YearMonth.of(yc.year, 12).asToDate();
+        
         final var totalAmount = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
-                .filter(inv -> inv.isCurrent(YearMonth.of(yc.year, 12).asToDate()))
+                .filter(inv -> inv.isCurrent(ym))
                 .filter(inv -> inv.getCurrency().equals(yc.currecy))
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getAmount)
@@ -424,12 +425,11 @@ public class BBPP {
         final var lastYear = YearMonth.of(LocalDate.now()).year();
 
         Stream.of(CSPX, EIMI, XRSU, MEUD, RTWO)
-                .flatMap(currency -> IntStream.range(2019, lastYear).boxed().map(y -> new YearCurrency(y, currency)))
+                .flatMap(currency -> IntStream.range(2019, lastYear).mapToObj(y -> new YearCurrency(y, currency)))
                 .map(this::status)
                 .sorted(Comparator.comparing(BBPPStatus::yearCurrency))
                 .map(status -> status.toString(this.format))
                 .forEach(console::appendLine);
-
     }
 
     public record YearCurrency(int year, Currency currecy) implements Comparable<YearCurrency> {
