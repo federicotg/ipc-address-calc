@@ -38,8 +38,8 @@ import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.SingleHttpClientSupplier;
 import org.fede.calculator.fmp.CachedETF;
 import org.fede.calculator.service.ETF;
-import org.fede.calculator.fmp.ExchangeTradedFundData;
-import org.fede.calculator.fmp.ExchangeTradedFunds;
+import org.fede.calculator.fmp.FMPPriceData;
+import org.fede.calculator.fmp.FinancialModelingPrep;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.ppi.CachedCCL;
 import org.fede.calculator.ppi.PPI;
@@ -76,7 +76,7 @@ public class SeriesReader {
 
     private static final Map<String, MoneyAmountSeries> MACACHE = new ConcurrentHashMap<>();
 
-    private static Map<String, ExchangeTradedFundData> ETFS;
+    private static Map<String, FMPPriceData> ETFS;
 
     private static Map<String, BigDecimal> CCL;
 
@@ -118,13 +118,13 @@ public class SeriesReader {
         return CACHE.computeIfAbsent(name, SeriesReader::createIndexSeries);
     }
 
-    private static Map<String, ExchangeTradedFundData> etfs() {
+    private static Map<String, FMPPriceData> etfs() {
         if (ETFS == null) {
             try {
                 var om = new ObjectMapper()
                         .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
                         .registerModule(new JavaTimeModule());
-                ETFS = new CachedETF(om, new ExchangeTradedFunds(om, new SingleHttpClientSupplier())).etfs();
+                ETFS = new CachedETF(om, new FinancialModelingPrep(om, new SingleHttpClientSupplier())).etfs();
             } catch (IOException ex) {
                 LOGGER.error("Unexpected error.", ex);
                 ETFS = Map.of();

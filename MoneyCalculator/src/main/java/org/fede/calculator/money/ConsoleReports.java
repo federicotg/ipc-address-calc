@@ -50,7 +50,7 @@ import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.ppi.PPI;
 import org.fede.calculator.fmp.CachedETF;
 import org.fede.calculator.service.ETF;
-import org.fede.calculator.fmp.ExchangeTradedFunds;
+import org.fede.calculator.fmp.FinancialModelingPrep;
 import static org.fede.calculator.money.Currency.CSPX;
 import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.MEUD;
@@ -314,6 +314,9 @@ public class ConsoleReports {
 
             case "etf" ->
                 () -> me.etf();
+
+            case "lti" ->
+                () -> me.ltiReport();
 
             default ->
                 () -> console.appendLine("Unknown parameter.");
@@ -781,7 +784,7 @@ public class ConsoleReports {
             var om = new ObjectMapper()
                     .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
                     .registerModule(new JavaTimeModule());
-            var etfs = new CachedETF(om, new ExchangeTradedFunds(om, new SingleHttpClientSupplier())).etfs();
+            var etfs = new CachedETF(om, new FinancialModelingPrep(om, new SingleHttpClientSupplier())).etfs();
 
             etfs.values()
                     .stream()
@@ -920,6 +923,43 @@ public class ConsoleReports {
         new BarChart()
                 .create(MessageFormat.format("{0}-Month Change", months), "ETF", l, months + "-months-change.png");
 
+    }
+
+    private void ltiReport() {
+        try {
+            var om = new ObjectMapper()
+                    .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
+                    .registerModule(new JavaTimeModule());
+
+            var desp = new FinancialModelingPrep(om, new SingleHttpClientSupplier()).quote("DESP");
+
+            if (desp == null) {
+                this.console.appendLine("No price for DESP");
+
+            } else {
+                this.console.appendLine(this.format.title("LTI"));
+
+                this.console.appendLine(this.ltiLine(2025, desp.price(), 454, 4867));
+                this.console.appendLine(this.ltiLine(2026, desp.price(), 344, 3540));
+                this.console.appendLine(this.ltiLine(2027, desp.price(), 101, 1238));
+                this.console.appendLine(this.ltiLine(2028, desp.price(), 101, 1238));
+            }
+        } catch (IOException ioEx) {
+            LOGGER.error("Error reading DESP quote. ", ioEx);
+        }
+
+    }
+
+    private String ltiLine(int year, BigDecimal despPrice, int phantom, int cash) {
+        return MessageFormat.format("{0} {1}",
+                YearMonth.of(year, 1).monthString(),
+                this.format.currency(this.gross(despPrice, phantom, cash), 16)
+        );
+    }
+
+    private MoneyAmount gross(BigDecimal desp, int phantom, int cash) {
+        return new MoneyAmount(new BigDecimal(cash), Currency.USD)
+                .add(new MoneyAmount(desp.multiply(new BigDecimal(phantom)), Currency.USD));
     }
 
 }

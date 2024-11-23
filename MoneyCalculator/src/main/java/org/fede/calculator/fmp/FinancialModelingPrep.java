@@ -18,6 +18,7 @@ package org.fede.calculator.fmp;
 
 import org.fede.calculator.service.ETF;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +31,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -37,6 +39,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.fede.calculator.money.series.SeriesReader;
+import org.fede.calculator.service.StockQuote;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,13 +47,17 @@ import org.slf4j.LoggerFactory;
  *
  * @author fede
  */
-public class ExchangeTradedFunds implements ETF {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeTradedFunds.class);
+public class FinancialModelingPrep implements ETF, StockQuote {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FinancialModelingPrep.class);
 
     private static final String LIST_URI = "https://financialmodelingprep.com/api/v3/etf/list?apikey={0}";
-    //private static final String USDEUR = "https://financialmodelingprep.com/api/v3/fx/EURUSD?apikey={0}";
+    private static final String QUOTE_URI = "https://financialmodelingprep.com/api/v3/quote-short/{1}?apikey={0}";
 
+    private static final TypeReference<List<FMPPriceData>> QUOTE = new TypeReference<List<FMPPriceData>>() {
+    };
+
+//private static final String USDEUR = "https://financialmodelingprep.com/api/v3/fx/EURUSD?apikey={0}";
     private static final Set<String> ETFS = Set.of(MEUS, CSPX, EIMI, XRSU, MEUD, IWDA, RTWO);
 
 //    private static final TypeReference<List<ForeignExchange>> FX_TR = new TypeReference<List<ForeignExchange>>() {
@@ -59,7 +66,7 @@ public class ExchangeTradedFunds implements ETF {
     private final ObjectMapper om;
     private final Properties config;
 
-    public ExchangeTradedFunds(
+    public FinancialModelingPrep(
             ObjectMapper om,
             Supplier<HttpClient> clientSupplier) throws IOException {
         this.clientSupplier = clientSupplier;
@@ -77,7 +84,6 @@ public class ExchangeTradedFunds implements ETF {
                 .version(HttpClient.Version.HTTP_1_1);
 
     }
-
 
 //    private ForeignExchange usdEur() throws IOException, URISyntaxException, InterruptedException {
 //
@@ -99,7 +105,7 @@ public class ExchangeTradedFunds implements ETF {
 //
 //    }
     @Override
-    public Map<String, ExchangeTradedFundData> etfs() {
+    public Map<String, FMPPriceData> etfs() {
         try {
             final var apiKey = this.config.getProperty("fmg.apikey");
 
@@ -112,13 +118,13 @@ public class ExchangeTradedFunds implements ETF {
 
             if (response.statusCode() == 200) {
 
-                var etfs = new ArrayList<ExchangeTradedFundData>(ETFS.size());
+                var etfs = new ArrayList<FMPPriceData>(ETFS.size());
 
                 try (var jsonParser = om.getFactory().createParser(response.body())) {
                     JsonToken token = jsonParser.nextToken();
                     while (token != null && etfs.size() < ETFS.size()) {
                         if (token == JsonToken.START_OBJECT) {
-                            var etf = jsonParser.readValueAs(ExchangeTradedFundData.class);
+                            var etf = jsonParser.readValueAs(FMPPriceData.class);
                             if (ETFS.contains(etf.symbol())) {
                                 etfs.add(etf);
                             }
@@ -127,7 +133,7 @@ public class ExchangeTradedFunds implements ETF {
                     }
                 }
 
-                return etfs.stream().collect(Collectors.toMap(ExchangeTradedFundData::symbol, Function.identity()));
+                return etfs.stream().collect(Collectors.toMap(FMPPriceData::symbol, Function.identity()));
 
             } else {
                 throw new IOException(MessageFormat.format("Could not read ETF data: {0} {1}", response.statusCode(), response.body()));
@@ -136,6 +142,32 @@ public class ExchangeTradedFunds implements ETF {
             LOGGER.error("Unexpected error.", ex);
             return Map.of();
         }
+    }
+
+    @Override
+    public FMPPriceData quote(String symbol) {
+        try {
+
+            final var apiKey = this.config.getProperty("fmg.apikey");
+
+            final var req = this.requestBuilderFor(MessageFormat.format(QUOTE_URI, apiKey, symbol))
+                    .GET()
+                    .build();
+
+            HttpResponse<InputStream> response = this.clientSupplier.get()
+                    .send(req, HttpResponse.BodyHandlers.ofInputStream());
+
+            if (response.statusCode() == 200) {
+
+                return this.om.readValue(response.body(), QUOTE).stream().findAny().orElse(null);
+            }
+            return null;
+
+        } catch (IOException | InterruptedException | URISyntaxException ex) {
+            LOGGER.error("Unexpected error.", ex);
+            return null;
+        }
+
     }
 
 }

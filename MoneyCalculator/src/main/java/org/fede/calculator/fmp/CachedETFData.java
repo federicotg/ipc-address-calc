@@ -27,7 +27,7 @@ import java.util.Map;
  *
  * @author fede
  */
-public record CachedETFData(LocalDateTime created, Map<String, ExchangeTradedFundData> data) {
+public record CachedETFData(LocalDateTime created, Map<String, FMPPriceData> data) {
 
     public boolean expired() {
 

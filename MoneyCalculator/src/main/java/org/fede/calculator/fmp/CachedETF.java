@@ -45,7 +45,7 @@ public class CachedETF implements ETF {
     }
 
     @Override
-    public Map<String, ExchangeTradedFundData> etfs() {
+    public Map<String, FMPPriceData> etfs() {
 
         try {
             var path = Path.of(ConsoleReports.CACHE_DIR + "/etfs_tmp.json");

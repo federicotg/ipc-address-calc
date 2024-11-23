@@ -14,14 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.fmp;
+package org.fede.calculator.service;
 
-import java.math.BigDecimal;
+import org.fede.calculator.fmp.FMPPriceData;
 
 /**
  *
  * @author fede
  */
-public record ExchangeTradedFundData(String symbol, String name, BigDecimal price, String exchange, String exchangeShortName, String type) {
-    
+public interface StockQuote {
+    FMPPriceData quote(String symbol);
 }
