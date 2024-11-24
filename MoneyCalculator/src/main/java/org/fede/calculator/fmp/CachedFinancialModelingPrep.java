@@ -79,7 +79,7 @@ public class CachedFinancialModelingPrep implements ETF, StockQuote {
         return this.getData(
                 "quotes_" + symbol + "_tmp",
                 () -> Map.of(symbol, this.service.quote(symbol)),
-                Exchange.LSE)
+                Exchange.NYSE)
                 .get(symbol);
     }
 
