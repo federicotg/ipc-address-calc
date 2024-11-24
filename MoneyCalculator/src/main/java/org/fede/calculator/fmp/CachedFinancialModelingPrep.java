@@ -24,7 +24,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.function.Supplier;
 import org.fede.calculator.money.ConsoleReports;
+import org.fede.calculator.service.StockQuote;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,23 +34,21 @@ import org.slf4j.LoggerFactory;
  *
  * @author fede
  */
-public class CachedETF implements ETF {
+public class CachedFinancialModelingPrep implements ETF, StockQuote {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CachedETF.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CachedFinancialModelingPrep.class);
 
     private final ObjectMapper om;
-    private final ETF etf;
+    private final FinancialModelingPrep service;
 
-    public CachedETF(ObjectMapper om, ETF etf) {
+    public CachedFinancialModelingPrep(ObjectMapper om, FinancialModelingPrep service) {
         this.om = om;
-        this.etf = etf;
+        this.service = service;
     }
 
-    @Override
-    public Map<String, FMPPriceData> etfs() {
-
+    private Map<String, FMPPriceData> getData(String cacheName, Supplier<Map<String, FMPPriceData>> valueSupplier, Exchange exchange) {
         try {
-            var path = Path.of(ConsoleReports.CACHE_DIR + "/etfs_tmp.json");
+            var path = Path.of(ConsoleReports.CACHE_DIR + "/" + cacheName + ".json");
             if (Files.exists(path)) {
                 var cachedData = this.om.readValue(Files.readAllBytes(path), CachedETFData.class);
                 if (!cachedData.expired()) {
@@ -56,15 +56,31 @@ public class CachedETF implements ETF {
                 }
             }
 
-            var data = this.etf.etfs();
-            Files.write(path, this.om.writeValueAsBytes(new CachedETFData(LocalDateTime.now(), data)), StandardOpenOption.CREATE);
+            var data = valueSupplier.get();
+            Files.write(path, this.om.writeValueAsBytes(new CachedETFData(exchange, LocalDateTime.now(), data)), StandardOpenOption.CREATE);
             return data;
 
         } catch (IOException ex) {
             LOGGER.error("Unexpected error.", ex);
             return Map.of();
         }
+    }
 
+    @Override
+    public Map<String, FMPPriceData> etfs() {
+
+        return this.getData("etfs_tmp",
+                () -> this.service.etfs(),
+                Exchange.LSE);
+    }
+
+    @Override
+    public FMPPriceData quote(String symbol) {
+        return this.getData(
+                "quotes_" + symbol + "_tmp",
+                () -> Map.of(symbol, this.service.quote(symbol)),
+                Exchange.LSE)
+                .get(symbol);
     }
 
 }

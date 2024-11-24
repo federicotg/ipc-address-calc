@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.SingleHttpClientSupplier;
-import org.fede.calculator.fmp.CachedETF;
+import org.fede.calculator.fmp.CachedFinancialModelingPrep;
 import org.fede.calculator.service.ETF;
 import org.fede.calculator.fmp.FMPPriceData;
 import org.fede.calculator.fmp.FinancialModelingPrep;
@@ -124,7 +124,7 @@ public class SeriesReader {
                 var om = new ObjectMapper()
                         .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
                         .registerModule(new JavaTimeModule());
-                ETFS = new CachedETF(om, new FinancialModelingPrep(om, new SingleHttpClientSupplier())).etfs();
+                ETFS = new CachedFinancialModelingPrep(om, new FinancialModelingPrep(om, new SingleHttpClientSupplier())).etfs();
             } catch (IOException ex) {
                 LOGGER.error("Unexpected error.", ex);
                 ETFS = Map.of();

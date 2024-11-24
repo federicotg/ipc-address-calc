@@ -16,31 +16,40 @@
  */
 package org.fede.calculator.fmp;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.DayOfWeek;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Map;
 
 /**
  *
  * @author fede
  */
-public record CachedETFData(Exchange exchange, LocalDateTime created, Map<String, FMPPriceData> data) {
+public enum Exchange {
 
-    public boolean expired() {
-
-        if (this.exchange.isTrading(ZonedDateTime.now())) {
-            // trading: 15 minutes
-            return Duration.between(this.created, LocalDateTime.now()).toMinutes() > 15;
+    LSE {
+        @Override
+        public boolean isTrading(ZonedDateTime zdt) {
+            return this.isTrading(zdt, "Europe/London", 8, 16);
         }
 
-        // not trading right now
-        if (this.exchange.isTrading(this.created.atZone(ZoneId.systemDefault()))) {
-            return true;
-        } else {
-            return Duration.between(this.created, LocalDateTime.now()).toHours() > 12;
+    }, NYSE {
+        @Override
+        public boolean isTrading(ZonedDateTime zdt) {
+            return this.isTrading(zdt, "America/New_York", 9, 16);
         }
+
+    };
+
+    public abstract boolean isTrading(ZonedDateTime zdt);
+
+    protected final boolean isTrading(ZonedDateTime zdt, String zoneId, int initialHour, int finalHour) {
+        final var localTime = zdt.withZoneSameInstant(ZoneId.of(zoneId));
+
+        return localTime.getDayOfWeek() != DayOfWeek.SATURDAY
+                && localTime.getDayOfWeek() != DayOfWeek.SUNDAY
+                && localTime.getHour() >= initialHour
+                && localTime.getHour() <= finalHour;
+
     }
 
 }

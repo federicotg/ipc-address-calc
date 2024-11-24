@@ -48,7 +48,7 @@ import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.ppi.PPI;
-import org.fede.calculator.fmp.CachedETF;
+import org.fede.calculator.fmp.CachedFinancialModelingPrep;
 import org.fede.calculator.service.ETF;
 import org.fede.calculator.fmp.FinancialModelingPrep;
 import static org.fede.calculator.money.Currency.CSPX;
@@ -784,7 +784,7 @@ public class ConsoleReports {
             var om = new ObjectMapper()
                     .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
                     .registerModule(new JavaTimeModule());
-            var etfs = new CachedETF(om, new FinancialModelingPrep(om, new SingleHttpClientSupplier())).etfs();
+            var etfs = new CachedFinancialModelingPrep(om, new FinancialModelingPrep(om, new SingleHttpClientSupplier())).etfs();
 
             etfs.values()
                     .stream()
@@ -931,14 +931,18 @@ public class ConsoleReports {
                     .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
                     .registerModule(new JavaTimeModule());
 
-            var desp = new FinancialModelingPrep(om, new SingleHttpClientSupplier()).quote("DESP");
+            var desp = new CachedFinancialModelingPrep(
+                    om,
+                    new FinancialModelingPrep(
+                            om,
+                            new SingleHttpClientSupplier()))
+                    .quote("DESP");
 
             if (desp == null) {
                 this.console.appendLine("No price for DESP");
 
             } else {
                 this.console.appendLine(this.format.title("LTI"));
-
                 this.console.appendLine(this.ltiLine(2025, desp.price(), 454, 4867));
                 this.console.appendLine(this.ltiLine(2026, desp.price(), 344, 3540));
                 this.console.appendLine(this.ltiLine(2027, desp.price(), 101, 1238));
