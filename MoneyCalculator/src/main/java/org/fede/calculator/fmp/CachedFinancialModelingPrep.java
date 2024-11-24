@@ -48,7 +48,7 @@ public class CachedFinancialModelingPrep implements ETF, StockQuote {
 
     private Map<String, FMPPriceData> getData(String cacheName, Supplier<Map<String, FMPPriceData>> valueSupplier, Exchange exchange) {
         try {
-            var path = Path.of(ConsoleReports.CACHE_DIR + "/" + cacheName + ".json");
+            final var path = Path.of(ConsoleReports.CACHE_DIR + "/" + cacheName + ".json");
             if (Files.exists(path)) {
                 var cachedData = this.om.readValue(Files.readAllBytes(path), CachedETFData.class);
                 if (!cachedData.expired()) {
