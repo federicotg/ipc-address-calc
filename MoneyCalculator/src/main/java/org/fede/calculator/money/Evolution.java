@@ -74,37 +74,37 @@ public class Evolution<T> {
 
         final var refs = new HashSet<String>();
 
+        final var colorList = List.of(
+                Attribute.BLUE_BACK(),
+                Attribute.CYAN_BACK(),
+                Attribute.GREEN_BACK(),
+                Attribute.MAGENTA_BACK(),
+                Attribute.RED_BACK(),
+                Attribute.YELLOW_BACK(),
+                Attribute.WHITE_BACK(),
+                Attribute.BRIGHT_BLUE_BACK(),
+                Attribute.BRIGHT_CYAN_BACK(),
+                Attribute.BRIGHT_GREEN_BACK(),
+                Attribute.BRIGHT_MAGENTA_BACK(),
+                Attribute.BRIGHT_YELLOW_BACK(),
+                Attribute.BRIGHT_RED_BACK(),
+                Attribute.BACK_COLOR(48),
+                Attribute.BACK_COLOR(16),
+                Attribute.BACK_COLOR(32)
+        );
+
+        final Map<String, List<T>> grouped = inv
+                .stream()
+                .collect(Collectors.groupingBy(classifier));
+
         var ym = start;
         while (ym.compareTo(end) <= 0) {
 
             final var moment = ym;
 
-            final Map<String, List<T>> grouped = inv
-                    .stream()
-                    .collect(Collectors.groupingBy(classifier));
-
             final Map<String, MoneyAmount> totals = grouped.entrySet()
                     .stream()
                     .collect(toMap(Map.Entry::getKey, e -> this.accum(e.getValue(), moment, totalFunction, startFunction, endFunction)));
-
-            final var colorList = List.of(
-                    Attribute.BLUE_BACK(),
-                    Attribute.CYAN_BACK(),
-                    Attribute.GREEN_BACK(),
-                    Attribute.MAGENTA_BACK(),
-                    Attribute.RED_BACK(),
-                    Attribute.YELLOW_BACK(),
-                    Attribute.WHITE_BACK(),
-                    Attribute.BRIGHT_BLUE_BACK(),
-                    Attribute.BRIGHT_CYAN_BACK(),
-                    Attribute.BRIGHT_GREEN_BACK(),
-                    Attribute.BRIGHT_MAGENTA_BACK(),
-                    Attribute.BRIGHT_YELLOW_BACK(),
-                    Attribute.BRIGHT_RED_BACK(),
-                    Attribute.BACK_COLOR(48),
-                    Attribute.BACK_COLOR(16),
-                    Attribute.BACK_COLOR(32)
-                    );
 
             final var typeList = totals.keySet().stream().sorted().toList();
 
