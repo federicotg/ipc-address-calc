@@ -42,27 +42,6 @@ import static org.fede.util.Pair.of;
  */
 public class Series {
 
-    private static final List<Pair<String, String>> SAVINGS_SERIES_NAMES = List.of(
-            of("BO", "ahorros-ay24"),
-            of("BO", "ahorros-conbala"),
-            of("BO", "ahorros-uva"),
-            of("BO", "ahorros-dolar-ON"),
-            of("BO", "ahorros-lecap"),
-            of("BO", "ahorros-lete"),
-            of("BO", "ahorros-caplusa"),
-            of("LIQ", "ahorros-dolar-banco"),
-            of("LIQ", "ahorros-dolar-pf"),
-            of("LIQ", "ahorros-peso"),
-            of("LIQ", "ahorros-dolar-liq"),
-            of("LIQ", "ahorros-euro"),
-            of("LIQ", "ahorros-dai"),
-            of("EQ", "ahorros-cspx"),
-            of("EQ", "ahorros-eimi"),
-            of("EQ", "ahorros-rtwo"),
-            of("EQ", "ahorros-meud"),
-            of("EQ", "ahorros-conaafa"),
-            of("EQ", "ahorros-xrsu"));
-
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
 
@@ -314,7 +293,7 @@ public class Series {
     }
 
     public MoneyAmountSeries nominalSavings() {
-        return SAVINGS_SERIES_NAMES.stream()
+        return this.savingsSeriesNames()
                 .map(Pair::second)
                 .map(name -> this.readSeriesInUSD("saving/", name))
                 .reduce(MoneyAmountSeries::add)
@@ -325,8 +304,7 @@ public class Series {
 
         if (this.realUSDSavingsByType == null) {
 
-            this.realUSDSavingsByType = SAVINGS_SERIES_NAMES
-                    .stream()
+            this.realUSDSavingsByType = this.savingsSeriesNames()
                     .collect(groupingBy(
                             Pair::first,
                             mapping(p -> this.asRealUSDSeries(p.second()),
@@ -366,6 +344,29 @@ public class Series {
 
     public List<BBPPYear> bbppSeries() {
         return SeriesReader.read("bbpp.json", BBPP_TR);
+    }
+    
+    private Stream<Pair<String, String>> savingsSeriesNames(){
+        return Stream.of(
+            of("BO", "ahorros-ay24"),
+            of("BO", "ahorros-conbala"),
+            of("BO", "ahorros-uva"),
+            of("BO", "ahorros-dolar-ON"),
+            of("BO", "ahorros-lecap"),
+            of("BO", "ahorros-lete"),
+            of("BO", "ahorros-caplusa"),
+            of("LIQ", "ahorros-dolar-banco"),
+            of("LIQ", "ahorros-dolar-pf"),
+            of("LIQ", "ahorros-peso"),
+            of("LIQ", "ahorros-dolar-liq"),
+            of("LIQ", "ahorros-euro"),
+            of("LIQ", "ahorros-dai"),
+            of("EQ", "ahorros-cspx"),
+            of("EQ", "ahorros-eimi"),
+            of("EQ", "ahorros-rtwo"),
+            of("EQ", "ahorros-meud"),
+            of("EQ", "ahorros-conaafa"),
+            of("EQ", "ahorros-xrsu"));
     }
 
 }
