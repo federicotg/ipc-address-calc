@@ -38,6 +38,13 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
         }
 
         @Override
+        public BigDecimal getIndex(YearMonth ym) {
+            return BigDecimal.ONE;
+        }
+
+        
+        
+        @Override
         public BigDecimal getIndex(int year, int month) {
             return BigDecimal.ONE;
         }

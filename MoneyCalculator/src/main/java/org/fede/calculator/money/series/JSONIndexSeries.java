@@ -39,18 +39,22 @@ public class JSONIndexSeries extends IndexSeriesSupport {
 
         this.data = data.stream()
                 .collect(Collectors.toMap(dp -> YearMonth.of(dp.year(), dp.month()), JSONDataPoint::value));
-        
+
     }
 
     @Override
-    public BigDecimal getIndex(int year, int month) {
-
-        var ym = YearMonth.of(year, month);
+    public BigDecimal getIndex(YearMonth ym) {
         if (ym.compareTo(this.getTo()) > 0) {
             return this.data.get(this.to);
         }
         return this.data.get(ym);
 
+    }
+
+    @Override
+    public BigDecimal getIndex(int year, int month) {
+
+        return this.getIndex(YearMonth.of(year, month));
     }
 
     @Override
