@@ -91,7 +91,7 @@ public class SeriesReader {
 
         final var now = YearMonth.of(LocalDate.now());
 
-        if (indexSeries.getIndex(now.year(), now.month()).signum() == 0) {
+        if (indexSeries.getIndex(now).signum() == 0) {
 
             var matcher = INDEX_SERIES_NAME.matcher(name);
             if (matcher.find()) {

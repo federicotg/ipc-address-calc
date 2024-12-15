@@ -635,7 +635,7 @@ public class Savings {
         var limit = s.getTo();
 
         while (ym.compareTo(limit) <= 0) {
-            this.percentEvolutionReport(ym, s.getIndex(ym.getYear(), ym.getMonth()));
+            this.percentEvolutionReport(ym, s.getIndex(ym));
             ym = ym.next();
         }
     }

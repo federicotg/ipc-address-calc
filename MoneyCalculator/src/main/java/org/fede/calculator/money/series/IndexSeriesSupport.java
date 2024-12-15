@@ -65,8 +65,7 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
 
     @Override
     public final BigDecimal getIndex(Date day) {
-        final var ym = YearMonth.of(day);
-        return this.getIndex(ym.year(), ym.month());
+        return this.getIndex(YearMonth.of(day));
     }
 
     @Override
@@ -80,8 +79,8 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
 
             boolean equal = this.getFrom().equals(other.getFrom()) && this.getTo().equals(other.getTo());
             while (equal && i < months) {
-                equal &= this.getIndex(ym.getYear(), ym.getMonth()).compareTo(
-                        other.getIndex(ym.getYear(), ym.getMonth())) == 0;
+                equal &= this.getIndex(ym).compareTo(
+                        other.getIndex(ym)) == 0;
                 ym = ym.next();
             }
             return equal;
@@ -101,7 +100,7 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
             final int months = this.getFrom().monthsUntil(this.getTo());
             YearMonth ym = this.getFrom();
             for (int i = 0; i < months; i++) {
-                this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getIndex(ym.getYear(), ym.getMonth()));
+                this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getIndex(ym));
                 ym = ym.next();
             }
         }
