@@ -34,6 +34,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -680,9 +681,10 @@ public class ConsoleReports {
 
     private void ibkrCSV() {
 
-        this.series.getInvestments().stream()
+        this.series.getInvestments()
+                .stream()
                 .filter(Investment::isETF)
-                .filter(inv -> inv.getComment() == null)
+                .filter(inv -> Objects.isNull(inv.getComment()))
                 .map(this::assetRow)
                 .forEach(this::appendLine);
     }
@@ -692,7 +694,7 @@ public class ConsoleReports {
         this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
-                .filter(inv -> inv.getComment() != null)
+                .filter(inv -> Objects.nonNull(inv.getComment()))
                 .filter(inv -> YearMonth.of(inv.getInitialDate()).year() <= year)
                 .filter(inv -> inv.getOut() == null || YearMonth.of(inv.getOut().getDate()).year() > year)
                 .collect(

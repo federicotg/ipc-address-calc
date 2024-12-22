@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import static java.math.BigDecimal.ZERO;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -91,8 +92,8 @@ public class CashInvestmentBuilder {
         out.setAmount(inv.getInvestment().getAmount());
         out.setCurrency(USD);
         out.setDate(ym.asDate());
-        out.setFee(BigDecimal.ZERO);
-        out.setTransferFee(BigDecimal.ZERO);
+        out.setFee(ZERO);
+        out.setTransferFee(ZERO);
         inv.setOut(out);
     }
 
@@ -104,8 +105,8 @@ public class CashInvestmentBuilder {
                 LocalDate.of(ym.getYear(), ym.getMonth(), 1)
                         .atTime(12, 01)
                         .toInstant(ZoneOffset.UTC)));
-        in.setFee(BigDecimal.ZERO);
-        in.setTransferFee(BigDecimal.ZERO);
+        in.setFee(ZERO);
+        in.setTransferFee(ZERO);
 
         final var asset = new InvestmentAsset();
         asset.setAmount(amount);
@@ -123,7 +124,7 @@ public class CashInvestmentBuilder {
                 .filter(i -> i.getOut() == null)
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(ZERO, BigDecimal::add);
     }
 
 }
