@@ -27,6 +27,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toMap;
+import static org.fede.calculator.money.Currency.USD;
 import java.util.stream.IntStream;
 import org.fede.calculator.money.series.YearMonth;
 
@@ -141,7 +142,7 @@ public class Evolution<T> {
                 .filter(i -> startFunction.apply(i).compareTo(yearMonth) <= 0)
                 .filter(i -> endFunction.apply(i).compareTo(yearMonth) >= 0)
                 .map(i -> extractor.apply(i, yearMonth))
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
     }
 
     private String bar(YearMonth ym, List<AmountAndColor> elements, int scale) {

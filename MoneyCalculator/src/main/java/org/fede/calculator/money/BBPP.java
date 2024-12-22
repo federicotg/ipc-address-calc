@@ -246,7 +246,7 @@ public class BBPP {
         final var usdFxYearMonth = Inflation.USD_INFLATION.getTo().min(YearMonth.of(ym.getYear() + 1, 6));
 
         result.usdTaxAmount = getMoneyAmountForeignExchange(ARS, USD)
-                .apply(new MoneyAmount(result.taxAmount, Currency.ARS), usdFxYearMonth);
+                .apply(new MoneyAmount(result.taxAmount, ARS), usdFxYearMonth);
 
         result.allInvested = this.series.getInvestments()
                 .stream()
@@ -254,7 +254,7 @@ public class BBPP {
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getMoneyAmount)
                 .map(ma -> getMoneyAmountForeignExchange(ma.getCurrency(), USD).apply(ma, ym))
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
         final var incomeMonths = Stream.concat(
                 IntStream.range(6, 12).mapToObj(m -> YearMonth.of(year, m)),
@@ -281,10 +281,10 @@ public class BBPP {
         result.year = year;
         result.usdPaidAmount = this.getBBPPExpenseSeries()
                 .filter((yearMonth, ma) -> incomeMonths.contains(yearMonth))
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
-        result.minimum = new MoneyAmount(bbpp.minimum().divide(bbpp.usd(), C), Currency.USD);
-        result.taxedTotalUSD = new MoneyAmount(result.taxedTotal.divide(bbpp.usd(), C), Currency.USD);
+        result.minimum = new MoneyAmount(bbpp.minimum().divide(bbpp.usd(), C), USD);
+        result.taxedTotalUSD = new MoneyAmount(result.taxedTotal.divide(bbpp.usd(), C), USD);
 
         return result;
     }
@@ -292,7 +292,7 @@ public class BBPP {
     private MoneyAmountSeries getBBPPExpenseSeries() {
         if (this.bbppExpenseSeries == null) {
             this.bbppExpenseSeries = SeriesReader.readSeries("expense/bbpp.json")
-                    .exchangeInto(Currency.USD);
+                    .exchangeInto(USD);
         }
         return this.bbppExpenseSeries;
     }
@@ -337,7 +337,7 @@ public class BBPP {
     }
 
     private BBPPItem toARS(BBPPItem item, BigDecimal usdValue, BigDecimal eurValue) {
-        if (item.currency().equals(ARS)) {
+        if (item.currency() == ARS) {
             return item;
         }
 
@@ -363,7 +363,7 @@ public class BBPP {
                 .filter(BBPPItem::domestic)
                 .filter(Predicate.not(BBPPItem::exempt))
                 .map(i -> i.value().multiply(i.holding(), C))
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .reduce(ZERO, BigDecimal::add)
                 .multiply(new BigDecimal("1.05"), C);
 
         final var foreign = bbpp.items()
@@ -373,7 +373,7 @@ public class BBPP {
                 .filter(Predicate.not(BBPPItem::exempt))
                 .map(i -> this.toARS(i, bbpp.usd(), bbpp.eur()))
                 .map(i -> i.value().multiply(i.holding(), C))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(ZERO, BigDecimal::add);
 
         this.console.appendLine(MessageFormat.format(
                 "Total de bienes sujeto a impuesto {0}",
@@ -402,9 +402,9 @@ public class BBPP {
                 .stream()
                 .filter(bbpp -> bbpp.year() == yc.year)
                 .flatMap(bbpp -> bbpp.items().stream())
-                .filter(bbppItem -> bbppItem.currency().equals(yc.currecy))
+                .filter(bbppItem -> bbppItem.currency() == yc.currency)
                 .map(BBPPItem::value).findFirst()
-                .orElse(BigDecimal.ZERO);
+                .orElse(ZERO);
 
         final var ym = YearMonth.of(yc.year, 12).asToDate();
         
@@ -412,10 +412,10 @@ public class BBPP {
                 .stream()
                 .filter(Investment::isETF)
                 .filter(inv -> inv.isCurrent(ym))
-                .filter(inv -> inv.getCurrency().equals(yc.currecy))
+                .filter(inv -> inv.getCurrency() == yc.currency)
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(ZERO, BigDecimal::add);
 
         return new BBPPStatus(yc, includedAmount, totalAmount);
     }
@@ -432,10 +432,10 @@ public class BBPP {
                 .forEach(console::appendLine);
     }
 
-    public record YearCurrency(int year, Currency currecy) implements Comparable<YearCurrency> {
+    public record YearCurrency(int year, Currency currency) implements Comparable<YearCurrency> {
 
         private static final Comparator<YearCurrency> CMP = Comparator.comparingInt(YearCurrency::year)
-                .thenComparing(Comparator.comparing(YearCurrency::currecy));
+                .thenComparing(Comparator.comparing(YearCurrency::currency));
 
         @Override
         public int compareTo(YearCurrency o) {
@@ -449,11 +449,11 @@ public class BBPP {
         public String toString(Format format) {
 
             final var dif = includedAmount.subtract(totalAmount, C);
-            final var difAmount = ForeignExchanges.getForeignExchange(yearCurrency.currecy, USD)
-                    .exchange(new MoneyAmount(dif, yearCurrency.currecy), Currency.USD, YearMonth.of(LocalDate.now()));
+            final var difAmount = ForeignExchanges.getForeignExchange(yearCurrency.currency, USD)
+                    .exchange(new MoneyAmount(dif, yearCurrency.currency), USD, YearMonth.of(LocalDate.now()));
             return MessageFormat.format("{0} {1} {2} {3} {4} {5}",
                     format.text(String.valueOf(yearCurrency.year), 5),
-                    format.text(yearCurrency.currecy.name(), 5),
+                    format.text(yearCurrency.currency.name(), 5),
                     format.number(includedAmount, 8),
                     format.number(totalAmount, 8),
                     format.number(dif, 8),
