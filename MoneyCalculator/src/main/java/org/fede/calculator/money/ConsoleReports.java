@@ -56,6 +56,7 @@ import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.XRSU;
+import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.chart.BarChart;
 import org.fede.calculator.money.chart.CategoryDatasetItem;
 import org.fede.calculator.money.chart.PieChart;
@@ -138,10 +139,10 @@ public class ConsoleReports {
             return true;
         }
         if ("r2k".equalsIgnoreCase(type)) {
-            return i.getCurrency().equals(XRSU) || i.getCurrency().equals(RTWO);
+            return i.getCurrency() == XRSU || i.getCurrency() == RTWO;
         }
         if ("exus".equalsIgnoreCase(type)) {
-            return i.getCurrency().equals(EIMI) || i.getCurrency().equals(MEUD);
+            return i.getCurrency() == EIMI || i.getCurrency() == MEUD;
         }
 
         return i.getCurrency().name().equalsIgnoreCase(type);
@@ -431,7 +432,7 @@ public class ConsoleReports {
             final var api = new CriptoYaAPI(new SingleHttpClientSupplier());
             final var initialAmount = new BigDecimal(3000);
 
-            this.console.appendLine(MessageFormat.format("Sending {0}", this.format.currency(new MoneyAmount(initialAmount, Currency.USD), 10)));
+            this.console.appendLine(MessageFormat.format("Sending {0}", this.format.currency(new MoneyAmount(initialAmount, USD), 10)));
             final var blueFee = BigDecimal.ONE.add(feePct);
             Stream.of(
                     Pair.of("USD > Letsbit > USDT > TRON > Kraken", api.lbRoute(initialAmount)),
@@ -759,7 +760,9 @@ public class ConsoleReports {
 
     private void invEvo(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-        final var currency = Optional.ofNullable(params.get("type")).map(Currency::valueOf).orElse(null);
+        final var currency = Optional.ofNullable(params.get("type"))
+                .map(Currency::valueOf)
+                .orElse(null);
         final var nominal = nominal(params);
         new Investments(console, format, bar, series).invEvo(currency, nominal);
     }
@@ -915,7 +918,7 @@ public class ConsoleReports {
 
         final List<CategoryDatasetItem> l = new ArrayList<>(values.size() * 2);
         for (var currency : List.of(CSPX, MEUD, EIMI, XRSU, RTWO)) {
-            final var fx = ForeignExchanges.getMoneyAmountForeignExchange(currency, Currency.USD);
+            final var fx = ForeignExchanges.getMoneyAmountForeignExchange(currency, USD);
             Stream.of(prev, now)
                     .map(moment -> new CategoryDatasetItem(currency, moment.monthString(), fx.apply(values.get(currency).getAmount(moment), moment).amount()))
                     .forEach(l::add);
@@ -943,7 +946,10 @@ public class ConsoleReports {
 
             } else {
                 this.console.appendLine(this.format.title("LTI"));
-                this.console.appendLine(this.ltiLine(2025, desp.price(), 454, 4867));
+                
+                this.console.appendLine(this.ltiLine(2023, new BigDecimal("5.941"), 113, 1354));
+                this.console.appendLine(this.ltiLine(2024, new BigDecimal("7.556"), 352, 3588));
+                this.console.appendLine(this.ltiLine(2025, new BigDecimal("16.307"), 454, 4867));
                 this.console.appendLine(this.ltiLine(2026, desp.price(), 344, 3540));
                 this.console.appendLine(this.ltiLine(2027, desp.price(), 101, 1238));
                 this.console.appendLine(this.ltiLine(2028, desp.price(), 101, 1238));
@@ -962,8 +968,8 @@ public class ConsoleReports {
     }
 
     private MoneyAmount gross(BigDecimal desp, int phantom, int cash) {
-        return new MoneyAmount(new BigDecimal(cash), Currency.USD)
-                .add(new MoneyAmount(desp.multiply(new BigDecimal(phantom)), Currency.USD));
+        return new MoneyAmount(new BigDecimal(cash), USD)
+                .add(new MoneyAmount(desp.multiply(new BigDecimal(phantom)), USD));
     }
 
 }
