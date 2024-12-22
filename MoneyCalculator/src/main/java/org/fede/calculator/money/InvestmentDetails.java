@@ -20,6 +20,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.fede.calculator.money.series.YearMonth;
 import java.time.temporal.ChronoUnit;
+import static java.math.BigDecimal.ZERO;
+import static java.math.BigDecimal.ONE;
+import static org.fede.calculator.money.Currency.USD;
 
 /**
  *
@@ -89,17 +92,17 @@ public class InvestmentDetails {
         final var days = days(this.investmentDate);
 
         if (days == 0l) {
-            return BigDecimal.ZERO;
+            return ZERO;
         }
 
         final var cumulativeProfit = this.getGrossCapitalGainsPercent();
 
         final double x = Math.pow(
-                BigDecimal.ONE.add(cumulativeProfit).doubleValue(),
+                ONE.add(cumulativeProfit).doubleValue(),
                 365.0d / (double) days) - 1.0d;
 
         if (Double.isNaN(x)) {
-            return BigDecimal.ZERO;
+            return ZERO;
         }
 
         return BigDecimal.valueOf(x);
@@ -112,7 +115,7 @@ public class InvestmentDetails {
     }
 
     public InvestmentDetails asReal() {
-        if (Currency.USD != this.getCurrentAmount().getCurrency()) {
+        if (USD != this.getCurrentAmount().getCurrency()) {
             throw new IllegalArgumentException("No way to turn into real " + this.getCurrentAmount().getCurrency() + ".");
         }
 

@@ -189,7 +189,7 @@ public class ModifiedDietzReturn {
 
         final var ym = YearMonth.of(ie.getDate());
         final var fx = ie.getFx() != null
-                ? new MoneyAmount(ie.getAmount().multiply(ie.getFx(), C), Currency.USD)
+                ? new MoneyAmount(ie.getAmount().multiply(ie.getFx(), C), USD)
                 : ForeignExchanges.getMoneyAmountForeignExchange(ie.getCurrency(), currency).apply(ie.getMoneyAmount(), ym);
 
         return nominal
@@ -223,14 +223,14 @@ public class ModifiedDietzReturn {
                 .reduce(ZERO, BigDecimal::add);
 
         if (v0.isZero() && adjustedCashFlowSum.signum() == 0) {
-            return new ModifiedDietzReturnResult(ZERO, BigDecimal.ZERO);
+            return new ModifiedDietzReturnResult(ZERO, ZERO);
         }
 
         final var result = v1.getAmount()
                 .subtract(v0.getAmount(), C)
                 .subtract(cashFlowSum, C)
                 .divide(v0.getAmount().add(adjustedCashFlowSum, C), C)
-                .max(BigDecimal.ONE.negate());
+                .max(ONE.negate());
 
         return new ModifiedDietzReturnResult(result, annualized(result));
 
@@ -269,7 +269,7 @@ public class ModifiedDietzReturn {
     private BigDecimal annualized(BigDecimal value) {
 
         if (this.daysBetween == 0) {
-            return BigDecimal.ZERO;
+            return ZERO;
         }
 
         return BigDecimal.valueOf(Math.pow(1.0d + value.doubleValue(), 365.0d / (double) this.daysBetween) - 1.0d);

@@ -54,6 +54,7 @@ import static org.fede.calculator.money.Currency.LECAP;
 import static org.fede.calculator.money.Currency.LETE;
 import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.RTWO;
+import static org.fede.calculator.money.Currency.IWDA;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.Currency.UVA;
 import static org.fede.calculator.money.Currency.XRSU;
@@ -140,7 +141,7 @@ public class Positions {
                 .stream()
                 .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
+                .map(inv -> ForeignExchanges.exchange(inv, USD))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
                 .collect(groupingBy(Investment::getCurrency))
                 .values()
@@ -151,17 +152,17 @@ public class Positions {
         final var totalMarketValue = positions
                 .stream()
                 .map(Position::getMarketValue)
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
         final var totalCostBasis = positions
                 .stream()
                 .map(Position::getCostBasis)
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
         final var totalPnL = positions
                 .stream()
                 .map(Position::getUnrealizedPnL)
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
         positions
                 .stream()
@@ -201,7 +202,7 @@ public class Positions {
         final var wealthTax = wealthTax(nominal);
         final var cost = this.by(nominal, i -> "*", Investment::getCost, now).values().stream().findFirst().get();
 
-        final var inflationCost = nominal ? this.inflationCost(now) : MoneyAmount.zero(Currency.USD);
+        final var inflationCost = nominal ? this.inflationCost(now) : MoneyAmount.zero(USD);
 
         final var totalCost = sellFee.add(inflationCost.add(cost.add(wealthTax.add(capitalGainsTax))));
 
@@ -233,18 +234,18 @@ public class Positions {
                 .stream()
                 .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
+                .map(inv -> ForeignExchanges.exchange(inv, USD))
                 .map(Inflation.USD_INFLATION::real)
                 .map(Investment::getInitialMoneyAmount)
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
         final var nominal = this.series.getInvestments()
                 .stream()
                 .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
+                .map(inv -> ForeignExchanges.exchange(inv, USD))
                 .map(Investment::getInitialMoneyAmount)
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
         return real.subtract(nominal);
     }
@@ -254,9 +255,9 @@ public class Positions {
                 .stream()
                 .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
-                .map(i -> ForeignExchanges.exchange(i, Currency.USD))
+                .map(i -> ForeignExchanges.exchange(i, USD))
                 .map(this::sellFee)
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
     }
 
     private MoneyAmount sellFee(Investment i) {
@@ -270,7 +271,7 @@ public class Positions {
                 .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(this::unrealizedUSDCapitalGains)
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
     }
 
@@ -281,7 +282,7 @@ public class Positions {
 
     private String feeStrategyKey(Investment i) {
         if (i.getComment() == null) {
-            return "PPI_" + (i.getCurrency().equals(MEUD) ? "EUR" : "USD");
+            return "PPI_" + (i.getCurrency() == MEUD ? "EUR" : "USD");
         }
         return i.getComment();
     }
@@ -290,20 +291,20 @@ public class Positions {
         final var now = YearMonth.of(LocalDate.now());
         return this.series.getExpense("bbpp", nominal)
                 .filter((ym, map) -> ym.compareTo(now) <= 0)
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
     }
 
     private MoneyAmount unrealizedUSDCapitalGains(Investment i) {
 
         final var initialUSDAmount = Optional.ofNullable(i.getIn().getFx())
                 .map(fx -> i.getInitialMoneyAmount().getAmount().multiply(fx, C))
-                .map(usd -> new MoneyAmount(usd, Currency.USD))
+                .map(usd -> new MoneyAmount(usd, USD))
                 .orElseGet(i::getInitialMoneyAmount);
 
         return this.currentValueUSD(i)
                 .subtract(this.sellFee(i))
                 .subtract(initialUSDAmount)
-                .max(MoneyAmount.zero(Currency.USD))
+                .max(MoneyAmount.zero(USD))
                 .adjust(ONE, capitalGainsTaxRate);
     }
 
@@ -364,7 +365,7 @@ public class Positions {
         this.console.appendLine(this.format.text("Curr.", 8),
                 Investments.ETF_NAME.keySet()
                         .stream()
-                        .filter(c -> c != Currency.IWDA)
+                        .filter(c -> c != IWDA)
                         .sorted()
                         .map(this::currentPice)
                         .collect(joining()));
@@ -384,7 +385,7 @@ public class Positions {
                 .stream()
                 .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
+                .map(inv -> ForeignExchanges.exchange(inv, USD))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
                 .collect(groupingBy(i -> new CurrencyAndGroupKey(i.getCurrency(), groupingFunction.apply(i))))
                 .entrySet()
@@ -430,7 +431,7 @@ public class Positions {
 
     private String exchangeClassifier(Investment i) {
         if (i.getComment() == null) {
-            return i.getCurrency().equals(MEUD)
+            return i.getCurrency() == MEUD
                     ? "Saxo €"
                     : "Saxo $";
         }
@@ -456,7 +457,7 @@ public class Positions {
 
         final var inv = this.by(nominal, classifier, Investment::getInitialMoneyAmount, now);
         final var cost = this.by(nominal, classifier, Investment::getCost, now);
-        final var totalInv = inv.values().stream().map(MoneyAmount::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        final var totalInv = inv.values().stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add);
         inv
                 .keySet()
                 .stream()
@@ -474,12 +475,12 @@ public class Positions {
                 .values()
                 .stream()
                 .map(MoneyAmount::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(ZERO, BigDecimal::add);
         final var totalInv = this.by(nominal, any, Investment::getInitialMoneyAmount, now)
                 .values()
                 .stream()
                 .map(MoneyAmount::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(ZERO, BigDecimal::add);
 
         final var startDate = this.series.getInvestments()
                 .stream()
@@ -514,10 +515,10 @@ public class Positions {
                 .stream()
                 .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
+                .map(inv -> ForeignExchanges.exchange(inv, USD))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
                 .collect(groupingBy(classifier,
-                        mapping(func, reducing(MoneyAmount.zero(Currency.USD), MoneyAmount::add))));
+                        mapping(func, reducing(MoneyAmount.zero(USD), MoneyAmount::add))));
     }
 
     private Position position(List<Investment> investments) {
@@ -536,7 +537,7 @@ public class Positions {
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, USD).apply(new MoneyAmount(ONE, symbol), now),
                 investments.stream()
                         .map(i -> i.getIn().getMoneyAmount())
-                        .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add),
+                        .reduce(MoneyAmount.zero(USD), MoneyAmount::add),
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, USD)
                         .apply(investments.stream()
                                 .map(Investment::getMoneyAmount)
@@ -548,7 +549,7 @@ public class Positions {
                                 .map(InvestmentEvent::getAmount)
                                 .reduce(ZERO, BigDecimal::add)
                                 .divide(position, C),
-                        Currency.USD));
+                        USD));
     }
 
     public void portfolioChartSeries(String subtype) throws IOException {
@@ -591,7 +592,7 @@ public class Positions {
 
         final var total = items.stream()
                 .map(PortfolioItem::getDollarAmount)
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
         final var pct = "pct".equals(type);
 
