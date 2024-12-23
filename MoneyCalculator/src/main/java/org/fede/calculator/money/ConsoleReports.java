@@ -931,7 +931,7 @@ public class ConsoleReports {
     }
 
     private void ltiReport() {
-        try {
+        /*try {
             var om = new ObjectMapper()
                     .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
                     .registerModule(new JavaTimeModule());
@@ -946,19 +946,20 @@ public class ConsoleReports {
             if (desp == null) {
                 this.console.appendLine("No price for DESP");
 
-            } else {
+            } else {*/
                 this.console.appendLine(this.format.title("LTI"));
                 
+                var dealPrice = new BigDecimal("19.50");
                 this.console.appendLine(this.ltiLine(2023, new BigDecimal("5.941"), 113, 1354));
                 this.console.appendLine(this.ltiLine(2024, new BigDecimal("7.556"), 352, 3588));
                 this.console.appendLine(this.ltiLine(2025, new BigDecimal("16.307"), 454, 4867));
-                this.console.appendLine(this.ltiLine(2026, desp.price(), 344, 3540));
-                this.console.appendLine(this.ltiLine(2027, desp.price(), 101, 1238));
-                this.console.appendLine(this.ltiLine(2028, desp.price(), 101, 1238));
-            }
+                this.console.appendLine(this.ltiLine(2026, dealPrice, 344, 3540));
+                this.console.appendLine(this.ltiLine(2027, dealPrice, 101, 1238));
+                this.console.appendLine(this.ltiLine(2028, dealPrice, 101, 1238));
+           /* }
         } catch (IOException ioEx) {
             LOGGER.error("Error reading DESP quote. ", ioEx);
-        }
+        }*/
 
     }
 
