@@ -611,7 +611,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         new BBPP(format, series, console)
-                .bbpp(Integer.parseInt(params.getOrDefault("year", "2023")));
+                .bbpp(Integer.parseInt(params.getOrDefault("year", "2024")));
     }
 
     private void averageSavedSalaries(String[] args, String name) {
