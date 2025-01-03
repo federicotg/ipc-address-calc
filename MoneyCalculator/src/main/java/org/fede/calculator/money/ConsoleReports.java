@@ -910,7 +910,9 @@ public class ConsoleReports {
     private void recentETFChangeChart(int months) throws IOException {
 
         final var now = Inflation.USD_INFLATION.getTo();
-        final var prev = YearMonth.of(now.year() - (months / 12), now.month() - (months % 12));
+        final var prev = months == 1
+                ? now.prev()
+                : YearMonth.of(now.year() - (months / 12), now.month() - (months % 12));
         final var values = Map.of(
                 CSPX, SeriesReader.readSeries("saving/ahorros-cspx.json"),
                 EIMI, SeriesReader.readSeries("saving/ahorros-eimi.json"),
@@ -931,47 +933,30 @@ public class ConsoleReports {
     }
 
     private void ltiReport() {
-        /*try {
-            var om = new ObjectMapper()
-                    .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
-                    .registerModule(new JavaTimeModule());
+        this.console.appendLine(this.format.title("LTI"));
 
-            var desp = new CachedFinancialModelingPrep(
-                    om,
-                    new FinancialModelingPrep(
-                            om,
-                            new SingleHttpClientSupplier()))
-                    .quote("DESP");
-
-            if (desp == null) {
-                this.console.appendLine("No price for DESP");
-
-            } else {*/
-                this.console.appendLine(this.format.title("LTI"));
-                
-                var dealPrice = new BigDecimal("19.50");
-                this.console.appendLine(this.ltiLine(2023, new BigDecimal("5.941"), 113, 1354));
-                this.console.appendLine(this.ltiLine(2024, new BigDecimal("7.556"), 352, 3588));
-                this.console.appendLine(this.ltiLine(2025, new BigDecimal("16.307"), 454, 4867));
-                this.console.appendLine(this.ltiLine(2026, dealPrice, 344, 3540));
-                this.console.appendLine(this.ltiLine(2027, dealPrice, 101, 1238));
-                this.console.appendLine(this.ltiLine(2028, dealPrice, 101, 1238));
-           /* }
-        } catch (IOException ioEx) {
-            LOGGER.error("Error reading DESP quote. ", ioEx);
-        }*/
-
+        var dealPrice = new BigDecimal("19.50");
+        this.console.appendLine(this.ltiLine(2023, new BigDecimal("5.941"), 113, 1354));
+        this.console.appendLine(this.ltiLine(2024, new BigDecimal("7.556"), 352, 3588));
+        this.console.appendLine(this.ltiLine(2025, new BigDecimal("16.3011123971"), 454, new BigDecimal("4866.52")));
+        this.console.appendLine(this.ltiLine(2026, dealPrice, 344, 3540));
+        this.console.appendLine(this.ltiLine(2027, dealPrice, 101, 1238));
+        this.console.appendLine(this.ltiLine(2028, dealPrice, 101, 1238));
     }
 
     private String ltiLine(int year, BigDecimal despPrice, int phantom, int cash) {
+        return this.ltiLine(year, despPrice, phantom, new BigDecimal(cash));
+    }
+
+    private String ltiLine(int year, BigDecimal despPrice, int phantom, BigDecimal cash) {
         return MessageFormat.format("{0} {1}",
                 YearMonth.of(year, 1).monthString(),
                 this.format.currency(this.gross(despPrice, phantom, cash), 16)
         );
     }
 
-    private MoneyAmount gross(BigDecimal desp, int phantom, int cash) {
-        return new MoneyAmount(new BigDecimal(cash), USD)
+    private MoneyAmount gross(BigDecimal desp, int phantom, BigDecimal cash) {
+        return new MoneyAmount(cash, USD)
                 .add(new MoneyAmount(desp.multiply(new BigDecimal(phantom)), USD));
     }
 
