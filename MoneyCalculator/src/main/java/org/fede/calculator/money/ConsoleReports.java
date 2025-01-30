@@ -530,7 +530,7 @@ public class ConsoleReports {
                 ? this.series.realExpense()
                 : this.series.realExpenses(type);
 
-        this.bar.evolution(format("Average {0}-month expenses.", months), new SimpleAggregation(months).average(s), 18);
+        this.bar.evolution(format("Average {0}-month expenses.", months), new SimpleAggregation(months).average(s), 30);
     }
 
     private void savingChange(String[] args, String paramName) {

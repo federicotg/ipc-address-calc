@@ -32,7 +32,7 @@ public class SingleHttpClientSupplier implements Supplier<HttpClient> {
     public HttpClient get() {
         if (this.client == null) {
             this.client = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofSeconds(5))
+                    .connectTimeout(Duration.ofSeconds(15))
                     .build();
             
         }
