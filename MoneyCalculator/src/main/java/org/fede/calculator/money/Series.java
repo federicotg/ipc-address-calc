@@ -115,7 +115,7 @@ public class Series {
                     of("other", "other"),
                     of("other", "other-usd"),
                     of("home", "reparaciones"),
-                    of("home", "limpieza"),
+                    of("services", "limpieza"),
                     of("home", "expensas"),
                     of("entertainment", "netflix"),
                     of("entertainment", "netflix-usd"),

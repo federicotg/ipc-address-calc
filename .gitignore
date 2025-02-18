@@ -1,7 +1,2 @@
-/MoneyCalculator/target/
-/Calculadoras/target/
-/Calculadoras/nbproject/
-MoneyCalculator/.classpath
-MoneyCalculator/.project
-LaPlataAddressCalculator/target/
-/MoneyCalculator/nbproject/
+**/.DS_Store
+**/target
