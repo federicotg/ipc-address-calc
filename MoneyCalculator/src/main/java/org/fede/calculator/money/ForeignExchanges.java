@@ -116,6 +116,10 @@ public class ForeignExchanges {
             () -> SeriesReader.readIndexSeries("index/RTWO-USD.json"),
             RTWO, USD);
 
+    public static final ForeignExchange USD_XUSE = new SimpleForeignExchange(
+            () -> SeriesReader.readIndexSeries("index/XUSE-USD.json"),
+            XUSE, USD);
+
     public static final ForeignExchange USD_IWDA = new SimpleForeignExchange(
             () -> SeriesReader.readIndexSeries("index/IWDA-USD.json"),
             IWDA, USD);
@@ -148,6 +152,7 @@ public class ForeignExchanges {
         map(temporalMap, EUR, MEUD, EUR_MEUD);
         map(temporalMap, USD, XRSU, USD_XRSU);
         map(temporalMap, USD, RTWO, USD_RTWO);
+        map(temporalMap, USD, XUSE, USD_XUSE);
         map(temporalMap, USD, EIMI, USD_EIMI);
 
         DIRECT_FOREIGN_EXCHANGES = Collections.unmodifiableMap(temporalMap);

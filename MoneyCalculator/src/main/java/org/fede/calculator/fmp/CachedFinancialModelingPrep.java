@@ -26,7 +26,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.function.Supplier;
 import org.fede.calculator.money.ConsoleReports;
-import org.fede.calculator.service.StockQuote;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author fede
  */
-public class CachedFinancialModelingPrep implements ETF, StockQuote {
+public class CachedFinancialModelingPrep implements ETF {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CachedFinancialModelingPrep.class);
 
@@ -74,13 +73,5 @@ public class CachedFinancialModelingPrep implements ETF, StockQuote {
                 Exchange.LSE);
     }
 
-    @Override
-    public FMPPriceData quote(String symbol) {
-        return this.getData(
-                "quotes_" + symbol + "_tmp",
-                () -> Map.of(symbol, this.service.quote(symbol)),
-                Exchange.NYSE)
-                .get(symbol);
-    }
 
 }

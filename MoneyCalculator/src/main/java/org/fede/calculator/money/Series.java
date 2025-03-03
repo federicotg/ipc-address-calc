@@ -222,6 +222,7 @@ public class Series {
                 "ahorros-dai",
                 "ahorros-cspx",
                 "ahorros-rtwo",
+                "ahorros-xuse",
                 "ahorros-eimi",
                 "ahorros-meud",
                 "ahorros-conaafa",
@@ -366,6 +367,7 @@ public class Series {
             of("EQ", "ahorros-cspx"),
             of("EQ", "ahorros-eimi"),
             of("EQ", "ahorros-rtwo"),
+            of("EQ", "ahorros-xuse"),
             of("EQ", "ahorros-meud"),
             of("EQ", "ahorros-conaafa"),
             of("EQ", "ahorros-xrsu"));

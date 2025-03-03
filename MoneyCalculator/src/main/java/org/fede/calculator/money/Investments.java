@@ -63,6 +63,7 @@ import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
+import org.jfree.data.time.TimeTableXYDataset;
 
 /**
  *
@@ -641,6 +642,14 @@ public class Investments {
         new Evolution<Investment>(this.console, this.bar)
                 .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, COMPARATOR, list, pct);
     }
+    
+    
+//    public void portfolioEvoChart(){
+//        
+//        TimeTableXYDataset ds = new TimeTableXYDataset();
+//        ds.
+//        
+//    }
 
     private Stream<Investment> getInvestments() {
 

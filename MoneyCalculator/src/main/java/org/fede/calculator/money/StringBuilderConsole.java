@@ -42,10 +42,10 @@ public class StringBuilderConsole implements Console {
 
     @Override
     public void printReport() throws IOException {
-        var os = new BufferedOutputStream(System.out);
-        os.write(this.out.toString().getBytes());
-        os.flush();
-        os.close();
+        try (java.io.BufferedOutputStream os = new BufferedOutputStream(System.out)) {
+            os.write(this.out.toString().getBytes());
+            os.flush();
+        }
     }
 
 }
