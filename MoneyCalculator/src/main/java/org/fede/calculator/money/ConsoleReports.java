@@ -886,6 +886,9 @@ public class ConsoleReports {
             savings.savingRate(LocalDate.now().getYear());
             pos.portfolioChart(percentValuePieChart, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChart(percentValuePieChart, "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            pos.portfolioChartByGeography(percentValuePieChart, "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            pos.portfolioChartByGeography(absoluteValuePieChart, "amounts", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+
             this.recentETFChangeChart(1);
             this.recentETFChangeChart(12);
             this.recentETFChangeChart(24);

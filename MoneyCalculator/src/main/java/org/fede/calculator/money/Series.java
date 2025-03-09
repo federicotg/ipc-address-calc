@@ -78,6 +78,7 @@ public class Series {
                     "consorcio-bomba",
                     "consorcio-gasto-administrativo",
                     "consorcio-limpieza",
+                    "consorcio-internet",
                     "consorcio-luz",
                     "consorcio-matafuegos",
                     "consorcio-reparaciones",

@@ -564,6 +564,48 @@ public class Positions {
         }
     }
 
+    public void portfolioChartByGeography(PieChart chart, String type, int year, int month) throws IOException {
+        final var ym = YearMonth.of(year, month);
+
+        final var us = new PieItem(
+                "USA",
+                this.lastUSDAmount("ahorros-cspx", ym)
+                        .add(this.lastUSDAmount("ahorros-rtwo", ym))
+                        .add(this.lastUSDAmount("ahorros-xrsu", ym))
+                        .amount());
+
+        final var exUS = new PieItem(
+                "Developed ex USA",
+                this.lastUSDAmount("ahorros-xuse", ym)
+                        .add(this.lastUSDAmount("ahorros-meud", ym)).amount());
+
+        final var em = new PieItem("Emerging", this.lastUSDAmount("ahorros-eimi", ym).amount());
+
+        final var cash = new PieItem(
+                "Cash",
+                this.lastUSDAmount("ahorros-dolar-banco", ym)
+                        .add(this.lastUSDAmount("ahorros-dolar-liq", ym))
+                        .add(this.lastUSDAmount("ahorros-peso", ym))
+                        .add(this.lastUSDAmount("ahorros-euro", ym))
+                        .amount());
+
+        final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
+        pctFormat.setMinimumFractionDigits(2);
+
+        chart
+                .create(
+                        MessageFormat.format("Portfolio {0}", ym.monthString()),
+                        List.of(cash, us, exUS, em),
+                        MessageFormat.format("portfolio-geo-{1}-{0}.png", ym.monthString(), type));
+
+    }
+
+    private MoneyAmount lastUSDAmount(String seriesName, YearMonth ym) {
+        var amount = this.lastAmount(seriesName, ym).get();
+        return ForeignExchanges.getMoneyAmountForeignExchange(amount.getCurrency(), USD)
+                .apply(amount, ym);
+    }
+
     public void portfolioChart(PieChart chart, String subtype, int year, int month) throws IOException {
         final var ym = YearMonth.of(year, month);
 
@@ -629,7 +671,8 @@ public class Positions {
                         of("EQUITY", this.lastAmount("ahorros-rtwo", ym)),
                         of("EQUITY", this.lastAmount("ahorros-meud", ym)),
                         of("EQUITY", this.lastAmount("ahorros-conaafa", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-xrsu", ym)))
+                        of("EQUITY", this.lastAmount("ahorros-xrsu", ym)),
+                        of("EQUITY", this.lastAmount("ahorros-xuse", ym)))
                         .filter(p -> "all".equals(subtype) || p.first().equalsIgnoreCase(subtype))
                         .collect(groupingBy(
                                 Pair::first,

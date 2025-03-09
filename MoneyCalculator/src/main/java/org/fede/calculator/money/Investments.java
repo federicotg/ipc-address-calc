@@ -58,12 +58,13 @@ import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
+import org.fede.calculator.money.series.InvestmentType;
+import static org.fede.calculator.money.series.InvestmentType.USD_CASH;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
-import org.jfree.data.time.TimeTableXYDataset;
 
 /**
  *
@@ -81,7 +82,8 @@ public class Investments {
             XRSU, "Xtrackers Russell 2000",
             RTWO, "Russell 2000 Q. Factor",
             MEUD, "Amundi Stoxx Europe 600",
-            IWDA, "iShares Core MSCI World"
+            IWDA, "iShares Core MSCI World",
+            XUSE, "iShares MSCI World ex-US"
     );
 
     private final AnsiFormat DIM = new AnsiFormat(Attribute.DIM());
@@ -90,6 +92,7 @@ public class Investments {
             "EIMI", DIM,
             "RTWO", DIM,
             "XRSU", DIM,
+            "XUSE", DIM,
             "MEUD", DIM,
             "IWDA", DIM,
             "Cash", DIM
@@ -104,6 +107,7 @@ public class Investments {
             Map.entry(CSPX, "Global Eq."),
             Map.entry(EIMI, "Global Eq."),
             Map.entry(MEUD, "Global Eq."),
+            Map.entry(XUSE, "Global Eq."),
             Map.entry(XRSU, "Global Eq."),
             Map.entry(RTWO, "Global Eq."),
             Map.entry(CONAAFA, "Dom. Eq."),
@@ -633,8 +637,17 @@ public class Investments {
                 .map(YearMonth::prev)
                 .orElseGet(Inflation.USD_INFLATION::getTo);
 
-        Function<Investment, String> classifier = i -> i.getType().toString().concat(" ").concat(i.getCurrency().name());
-
+        Function<Investment, String> classifier = i
+                -> switch (i.getType()) {
+            case ETF, FCI ->
+                i.getCurrency().name();
+            case BONO ->
+                i.getType().name();
+            case PF ->
+                i.getType().toString().concat(" ").concat(i.getCurrency().name());
+            case USD, USD_CASH ->
+                "USD Cash";
+        };
         Predicate<Investment> filterPredicate = i -> Objects.isNull(type) || i.getType().toString().equals(type);
 
         final var list = this.getAllInvestments();
@@ -642,14 +655,6 @@ public class Investments {
         new Evolution<Investment>(this.console, this.bar)
                 .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, COMPARATOR, list, pct);
     }
-    
-    
-//    public void portfolioEvoChart(){
-//        
-//        TimeTableXYDataset ds = new TimeTableXYDataset();
-//        ds.
-//        
-//    }
 
     private Stream<Investment> getInvestments() {
 
