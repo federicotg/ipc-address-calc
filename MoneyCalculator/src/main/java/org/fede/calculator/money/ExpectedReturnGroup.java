@@ -28,16 +28,16 @@ public record ExpectedReturnGroup(
         ExpectedReturn inflation) {
 
     public double weightedMu() {
-        return this.usLargeCap().mu() * 0.7d
+        return this.usLargeCap().mu() * 0.65d
                 + this.usSmallCap().mu() * 0.1d
-                + this.eu().mu() * 0.1d
+                + this.eu().mu() * 0.15d
                 + this.em().mu() * 0.1d;
     }
 
     public double weightedSigma() {
-        return this.usLargeCap().sigma() * 0.7d
+        return this.usLargeCap().sigma() * 0.65d
                 + this.usSmallCap().sigma() * 0.1d
-                + this.eu().sigma() * 0.1d
+                + this.eu().sigma() * 0.15d
                 + this.em().sigma() * 0.1d;
     }
 

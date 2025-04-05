@@ -176,7 +176,7 @@ public class Series {
 
     }
 
-    private MoneyAmountSeries investingExpenses() {
+    private MoneyAmountSeries investingExpensesOri() {
 
         final var zero = MoneyAmount.zero(Currency.USD);
         Map<YearMonth, MoneyAmount> buyFeesBymonth
@@ -194,6 +194,54 @@ public class Series {
 
         for (YearMonth ym = YearMonth.of(2016, 1); ym.monthsUntil(Inflation.USD_INFLATION.getTo()) >= 0; ym = ym.next()) {
             expenseSeries.putAmount(ym, buyFeesBymonth.getOrDefault(ym, zero));
+        }
+
+        return expenseSeries;
+
+    }
+
+    private record Cost(YearMonth ym, MoneyAmount amount) {
+
+    }
+
+    ;
+    
+     private MoneyAmountSeries investingExpenses() {
+
+        List<Cost> buyCost
+                = this.getInvestments()
+                        .stream()
+                        .filter(Investment::isETF)
+                        .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
+                        .map(inv -> Inflation.USD_INFLATION.real(inv))
+                        .map(i -> new Cost(YearMonth.of(i.getIn().getDate()), i.getCost()))
+                        .toList();
+
+        List<Cost> sellCost
+                = this.getInvestments()
+                        .stream()
+                        .filter(Investment::isETF)
+                        .filter(i -> i.getOut() != null)
+                        .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
+                        .map(inv -> Inflation.USD_INFLATION.real(inv))
+                        .map(i
+                                -> new Cost(
+                                YearMonth.of(i.getOut().getDate()),
+                                i.getOut().getFeeMoneyAmount()
+                                        .add(new MoneyAmount(i.getOut().getTransferFee(), i.getOut().getCurrency()))))
+                        .toList();
+
+        final var zero = MoneyAmount.zero(Currency.USD);
+        var feesByMonth = Stream.concat(buyCost.stream(), sellCost.stream())
+                .collect(
+                        Collectors.groupingBy(
+                                Cost::ym,
+                                Collectors.reducing(zero, Cost::amount, MoneyAmount::add)));
+
+        final var expenseSeries = new SortedMapMoneyAmountSeries(Currency.USD, "investing");
+
+        for (YearMonth ym = YearMonth.of(2016, 1); ym.monthsUntil(Inflation.USD_INFLATION.getTo()) >= 0; ym = ym.next()) {
+            expenseSeries.putAmount(ym, feesByMonth.getOrDefault(ym, zero));
         }
 
         return expenseSeries;
@@ -349,29 +397,29 @@ public class Series {
     public List<BBPPYear> bbppSeries() {
         return SeriesReader.read("bbpp.json", BBPP_TR);
     }
-    
-    private Stream<Pair<String, String>> savingsSeriesNames(){
+
+    private Stream<Pair<String, String>> savingsSeriesNames() {
         return Stream.of(
-            of("BO", "ahorros-ay24"),
-            of("BO", "ahorros-conbala"),
-            of("BO", "ahorros-uva"),
-            of("BO", "ahorros-dolar-ON"),
-            of("BO", "ahorros-lecap"),
-            of("BO", "ahorros-lete"),
-            of("BO", "ahorros-caplusa"),
-            of("LIQ", "ahorros-dolar-banco"),
-            of("LIQ", "ahorros-dolar-pf"),
-            of("LIQ", "ahorros-peso"),
-            of("LIQ", "ahorros-dolar-liq"),
-            of("LIQ", "ahorros-euro"),
-            of("LIQ", "ahorros-dai"),
-            of("EQ", "ahorros-cspx"),
-            of("EQ", "ahorros-eimi"),
-            of("EQ", "ahorros-rtwo"),
-            of("EQ", "ahorros-xuse"),
-            of("EQ", "ahorros-meud"),
-            of("EQ", "ahorros-conaafa"),
-            of("EQ", "ahorros-xrsu"));
+                of("BO", "ahorros-ay24"),
+                of("BO", "ahorros-conbala"),
+                of("BO", "ahorros-uva"),
+                of("BO", "ahorros-dolar-ON"),
+                of("BO", "ahorros-lecap"),
+                of("BO", "ahorros-lete"),
+                of("BO", "ahorros-caplusa"),
+                of("LIQ", "ahorros-dolar-banco"),
+                of("LIQ", "ahorros-dolar-pf"),
+                of("LIQ", "ahorros-peso"),
+                of("LIQ", "ahorros-dolar-liq"),
+                of("LIQ", "ahorros-euro"),
+                of("LIQ", "ahorros-dai"),
+                of("EQ", "ahorros-cspx"),
+                of("EQ", "ahorros-eimi"),
+                of("EQ", "ahorros-rtwo"),
+                of("EQ", "ahorros-xuse"),
+                of("EQ", "ahorros-meud"),
+                of("EQ", "ahorros-conaafa"),
+                of("EQ", "ahorros-xrsu"));
     }
 
 }

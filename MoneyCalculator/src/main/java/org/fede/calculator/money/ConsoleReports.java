@@ -92,8 +92,8 @@ public class ConsoleReports {
     private static final String BBPP = "0.5";
     private static final String PENSION = "150";
     private static final String BAD_RETURN_YEARS = "3";
-    private static final String BAD_YEAR_SPENDING = "0.85";
-    private static final String SAVE_CASH_YEARS_BEFORE_RETIREMENT = "6";
+    //private static final String BAD_YEAR_SPENDING = "0.85";
+    //private static final String SAVE_CASH_YEARS_BEFORE_RETIREMENT = "6";
 
     public static final String CHARTS_PREFIX = System.getProperty("user.home") + File.separator + "Pictures" + File.separator + "chart-";
     public static final String CACHE_DIR = System.getProperty("user.home") + "/Downloads";
@@ -342,7 +342,7 @@ public class ConsoleReports {
             if (params.isEmpty() || params.contains("help")) {
 
                 Stream.of(
-                        new CmdParam("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} bbpp={5} pension={6} exp={7} m={8} srr={9} bys={10} crr={11}",
+                        new CmdParam("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} bbpp={5} pension={6} exp={7} m={8} srr={9}",
                                 TRIALS,
                                 RETIREMENT,
                                 AGE,
@@ -352,9 +352,8 @@ public class ConsoleReports {
                                 PENSION,
                                 EXPECTED_RETRUNS,
                                 36,
-                                BAD_RETURN_YEARS,
-                                BAD_YEAR_SPENDING,
-                                SAVE_CASH_YEARS_BEFORE_RETIREMENT)),
+                                BAD_RETURN_YEARS
+                                )),
                         new CmdParam("savings-change", "m=1"),
                         new CmdParam("i"),
                         new CmdParam("ti"),
@@ -574,7 +573,7 @@ public class ConsoleReports {
 
         final var trials = Integer.parseInt(params.getOrDefault("trials", TRIALS));
         final var inflation = new BigDecimal(params.getOrDefault("inflation", INFLATION));
-        final var badYearSpending = new BigDecimal(params.getOrDefault("bys", BAD_YEAR_SPENDING)).doubleValue();
+        //final var badYearSpending = new BigDecimal(params.getOrDefault("bys", BAD_YEAR_SPENDING)).doubleValue();
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", RETIREMENT));
         final var age = Integer.parseInt(params.getOrDefault("age", AGE));
         final var months = Integer.parseInt(params.getOrDefault(MONTHS_PARAM, "36"));
@@ -582,7 +581,7 @@ public class ConsoleReports {
         final var expected = params.getOrDefault("exp", EXPECTED_RETRUNS);
         final var pension = Integer.parseInt(params.getOrDefault("pension", PENSION));
         final var badReturnYears = Integer.parseInt(params.getOrDefault("srr", BAD_RETURN_YEARS));
-        final var saveCashYears = Integer.parseInt(params.getOrDefault("crr", SAVE_CASH_YEARS_BEFORE_RETIREMENT));
+        //final var saveCashYears = Integer.parseInt(params.getOrDefault("crr", SAVE_CASH_YEARS_BEFORE_RETIREMENT));
         final var bbppTax = Double.parseDouble(params.getOrDefault("bbpp", BBPP)) / 100.0d;
 
         final var goal = new Goal(this.console, this.format, this.series, this.bar, bbppTax);
@@ -602,9 +601,7 @@ public class ConsoleReports {
                 todaySavings,
                 invested,
                 expected,
-                badReturnYears,
-                badYearSpending,
-                saveCashYears);
+                badReturnYears);
     }
 
     private void bbpp(String[] args, String paramName) {
@@ -884,11 +881,17 @@ public class ConsoleReports {
             this.expensePieChart(48, absoluteValuePieChart);
             this.savingsEvoChart();
             savings.savingRate(LocalDate.now().getYear());
-            pos.portfolioChart(percentValuePieChart, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-            pos.portfolioChart(percentValuePieChart, "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+
+            pos.portfolioChart(absoluteValuePieChart, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            pos.portfolioChart(absoluteValuePieChart, "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            
             pos.portfolioChartByGeography(percentValuePieChart, "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChartByGeography(absoluteValuePieChart, "amounts", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
 
+            pos.portfolioChartByGeographyBreakUSA(percentValuePieChart, "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            pos.portfolioChartByGeographyBreakUSA(absoluteValuePieChart, "amounts", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+
+            
             this.recentETFChangeChart(1);
             this.recentETFChangeChart(12);
             this.recentETFChangeChart(24);

@@ -575,11 +575,11 @@ public class Positions {
                         .amount());
 
         final var exUS = new PieItem(
-                "Developed ex USA",
+                "MSCI World ex USA",
                 this.lastUSDAmount("ahorros-xuse", ym)
                         .add(this.lastUSDAmount("ahorros-meud", ym)).amount());
 
-        final var em = new PieItem("Emerging", this.lastUSDAmount("ahorros-eimi", ym).amount());
+        final var em = new PieItem("MSCI Emerging Markets IMI", this.lastUSDAmount("ahorros-eimi", ym).amount());
 
         final var cash = new PieItem(
                 "Cash",
@@ -597,6 +597,47 @@ public class Positions {
                         MessageFormat.format("Portfolio {0}", ym.monthString()),
                         List.of(cash, us, exUS, em),
                         MessageFormat.format("portfolio-geo-{1}-{0}.png", ym.monthString(), type));
+
+    }
+
+    public void portfolioChartByGeographyBreakUSA(PieChart chart, String type, int year, int month) throws IOException {
+        final var ym = YearMonth.of(year, month);
+
+        final var sp500 = new PieItem(
+                "S&P 500",
+                this.lastUSDAmount("ahorros-cspx", ym)
+                        .amount());
+
+        final var r2k = new PieItem(
+                "Russell 2000",
+                this.lastUSDAmount("ahorros-rtwo", ym)
+                        .add(this.lastUSDAmount("ahorros-xrsu", ym))
+                        .amount()
+        );
+
+        final var exUS = new PieItem(
+                "MSCI World ex USA",
+                this.lastUSDAmount("ahorros-xuse", ym)
+                        .add(this.lastUSDAmount("ahorros-meud", ym)).amount());
+
+        final var em = new PieItem("MSCI Emerging Markets IMI", this.lastUSDAmount("ahorros-eimi", ym).amount());
+
+        final var cash = new PieItem(
+                "Cash",
+                this.lastUSDAmount("ahorros-dolar-banco", ym)
+                        .add(this.lastUSDAmount("ahorros-dolar-liq", ym))
+                        .add(this.lastUSDAmount("ahorros-peso", ym))
+                        .add(this.lastUSDAmount("ahorros-euro", ym))
+                        .amount());
+
+        final var pctFormat = NumberFormat.getPercentInstance(Locale.of("es", "AR"));
+        pctFormat.setMinimumFractionDigits(2);
+
+        chart
+                .create(
+                        MessageFormat.format("Portfolio {0}", ym.monthString()),
+                        List.of(cash, sp500, r2k, exUS, em),
+                        MessageFormat.format("portfolio-geo-break-{1}-{0}.png", ym.monthString(), type));
 
     }
 
