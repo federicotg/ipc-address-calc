@@ -16,9 +16,6 @@
  */
 package org.fede.calculator.money;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -26,6 +23,8 @@ import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -36,6 +35,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
@@ -49,9 +50,6 @@ import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.ppi.PPI;
-import org.fede.calculator.fmp.CachedFinancialModelingPrep;
-import org.fede.calculator.service.ETF;
-import org.fede.calculator.fmp.FinancialModelingPrep;
 import static org.fede.calculator.money.Currency.CSPX;
 import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.MEUD;
@@ -63,6 +61,7 @@ import org.fede.calculator.money.chart.CategoryDatasetItem;
 import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.chart.TimeSeriesChart;
+import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
@@ -314,11 +313,11 @@ public class ConsoleReports {
             case "bench" ->
                 () -> me.benchmark(args, "bench");
 
-            case "etf" ->
-                () -> me.etf();
-
             case "lti" ->
                 () -> me.ltiReport();
+
+            case "ppi" ->
+                () -> me.ppiTransfer();
 
             default ->
                 () -> console.appendLine("Unknown parameter.");
@@ -353,7 +352,7 @@ public class ConsoleReports {
                                 EXPECTED_RETRUNS,
                                 36,
                                 BAD_RETURN_YEARS
-                                )),
+                        )),
                         new CmdParam("savings-change", "m=1"),
                         new CmdParam("i"),
                         new CmdParam("ti"),
@@ -773,37 +772,6 @@ public class ConsoleReports {
         new Investments(console, format, bar, series).portfolioEvo(type, "p-evo-pct".equalsIgnoreCase(paramName));
     }
 
-    private String currecySymbol(String etf) {
-        if (etf.equals(ETF.MEUD)) {
-            return "€";
-        }
-        return "$";
-    }
-
-    private void etf() {
-
-        try {
-            var om = new ObjectMapper()
-                    .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE)
-                    .registerModule(new JavaTimeModule());
-            var etfs = new CachedFinancialModelingPrep(om, new FinancialModelingPrep(om, new SingleHttpClientSupplier())).etfs();
-
-            etfs.values()
-                    .stream()
-                    .map(etf -> MessageFormat.format("{0} {2} {1}", format.text(etf.symbol(), 8), etf.price(), this.currecySymbol(etf.symbol())))
-                    .sorted()
-                    .forEach(console::appendLine);
-
-            this.console.appendLine(
-                    MessageFormat.format(
-                            "{0} $ {1}",
-                            format.text("USD/EUR", 8),
-                            format.numberLong(etfs.get(ETF.MEUS).price().divide(etfs.get(ETF.MEUD).price(), MathConstants.C))));
-        } catch (Exception ex) {
-            LOGGER.error("Error reading ETFs ", ex);
-        }
-    }
-
     private void savingsEvoChart() throws IOException {
 
         var s = this.series.realSavings(null);
@@ -884,14 +852,13 @@ public class ConsoleReports {
 
             pos.portfolioChart(absoluteValuePieChart, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChart(absoluteValuePieChart, "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-            
+
             pos.portfolioChartByGeography(percentValuePieChart, "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChartByGeography(absoluteValuePieChart, "amounts", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
 
             pos.portfolioChartByGeographyBreakUSA(percentValuePieChart, "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChartByGeographyBreakUSA(absoluteValuePieChart, "amounts", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
 
-            
             this.recentETFChangeChart(1);
             this.recentETFChangeChart(12);
             this.recentETFChangeChart(24);
@@ -964,6 +931,139 @@ public class ConsoleReports {
     private MoneyAmount gross(BigDecimal desp, int phantom, BigDecimal cash) {
         return new MoneyAmount(cash, USD)
                 .add(new MoneyAmount(desp.multiply(new BigDecimal(phantom)), USD));
+    }
+
+    private void ppiTransfer() {
+
+        final var initialYm = YearMonth.of(2025, 4);
+        final var finalYm = YearMonth.of(2025, 4);
+        final var itauFees = 1l;
+
+        final var initialBalance = Inflation.USD_INFLATION.adjust(
+                new MoneyAmount(
+                        new BigDecimal("7681.76") //itau
+                                .add(new BigDecimal("16.66")), //ibkr
+                        USD),
+                initialYm,
+                finalYm);
+
+        final var currentBalance = new MoneyAmount(
+                        new BigDecimal("10524.05") //itau
+                                .add(new BigDecimal("55.03")), //ibkr
+                        USD);
+        final var iva = new BigDecimal("1.21");
+
+        final Function<InvestmentEvent, MoneyAmount> grossSaleMapper
+                = (InvestmentEvent e) -> e.getRealUSDMoneyAmount()
+                        .add(e.getRealUSDFeeMoneyAmount().adjust(BigDecimal.ONE, iva))
+                        .add(e.getRealUSDTransferFeeMoneyAmount());
+
+        final SoldAndBought<MoneyAmount> netAmountSummary
+                = this.summarize(
+                        grossSaleMapper,
+                        InvestmentEvent::getRealUSDMoneyAmount,
+                        MoneyAmount.zero(USD),
+                        MoneyAmount::add);
+
+        final Function<InvestmentEvent, MoneyAmount> feeMapper = e -> e.getRealUSDTransferFeeMoneyAmount().add(e.getRealUSDFeeMoneyAmount().adjust(BigDecimal.ONE, iva));
+        
+        final SoldAndBought<MoneyAmount> feeSummary
+                = this.summarize(
+                        feeMapper,
+                        feeMapper,
+                        MoneyAmount.zero(USD),
+                        MoneyAmount::add);
+
+        final Function<InvestmentEvent, Long> countMapper = e -> 1l;
+        
+        final SoldAndBought<Long> quantitySummary
+                = this.summarize(
+                        countMapper,
+                        countMapper,
+                        0l,
+                        (x, y) -> x + y);
+
+        final var fees = feeSummary.sold.add(feeSummary.bought);
+
+        this.console.appendLine(this.format.title("Resultado"));
+
+        this.console.appendLine(this.format.subtitle("Cantidad"));
+        this.console.appendLine("Sold ", quantitySummary.sold.toString());
+        this.console.appendLine("Bought ", quantitySummary.bought.toString());
+
+        this.console.appendLine(this.format.subtitle("Comisiones"));
+        this.console.appendLine("Sold ", this.format.currency(feeSummary.sold, 16));
+        this.console.appendLine("Bought ", this.format.currency(feeSummary.bought, 16));
+        this.console.appendLine("Total:", this.format.currencyPL(fees.getAmount().negate(), 16),
+                " ",
+                this.format.percent(fees.amount().divide(netAmountSummary.sold.amount(), C), 6)
+        );
+
+        final var balance = netAmountSummary.sold.subtract(netAmountSummary.bought);
+
+        this.console.appendLine(this.format.subtitle("Monto Neto"));
+        this.console.appendLine("Sold ", this.format.currency(netAmountSummary.sold, 16));
+        this.console.appendLine("Bought ", this.format.currency(netAmountSummary.bought, 16));
+        this.console.appendLine("Saldo:", this.format.currencyPL(balance.amount(), 16));
+
+        final var finalBalance = currentBalance
+                .subtract(balance)
+                .subtract(initialBalance)
+                // sumo fees mensuales de Itau
+                .add(new MoneyAmount(new BigDecimal("7.00").multiply(BigDecimal.valueOf(itauFees)), USD));
+
+        this.console.appendLine(this.format.subtitle("PnL"));
+        this.console.appendLine("Inicial ", this.format.currency(initialBalance, 16));
+        this.console.appendLine("Final ", this.format.currency(currentBalance, 16));
+        this.console.appendLine("Saldo:", this.format.currencyPL(finalBalance.amount(), 16),
+                " ",
+                this.format.percent(finalBalance.amount().divide(netAmountSummary.sold.amount(), C), 6)
+        );
+
+        this.console.appendLine(this.format.subtitle("Resultado"));
+
+        final var spread = finalBalance.add(fees);
+
+        this.console.appendLine("Spread aproximado:", this.format.currencyPL(spread.amount(), 16),
+                " ",
+                this.format.percent(spread.amount().divide(netAmountSummary.sold.amount(), C), 6)
+        );
+
+    }
+
+    private <T> SoldAndBought<T> summarize(
+            Function<InvestmentEvent, T> sellMapper,
+            Function<InvestmentEvent, T> buyMapper,
+            T identity,
+            BinaryOperator<T> reduction) {
+        final var limitDate = LocalDateTime.of(2025, Month.APRIL, 2, 0, 0, 0, 0);
+
+        return new SoldAndBought<>(
+                this.series.getInvestments()
+                        .stream()
+                        .filter(Investment::isETF)
+                        .map(Investment::getOut)
+                        .filter(Objects::nonNull)
+                        .map(sellMapper)
+                        .reduce(identity, reduction),
+                this.series.getInvestments()
+                        .stream()
+                        .filter(Investment::isETF)
+                        .filter(Investment::isCurrent)
+                        .map(Investment::getIn)
+                        .filter(e
+                                -> e.getDate()
+                                .toInstant()
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDateTime()
+                                .isAfter(limitDate))
+                        .map(buyMapper)
+                        .reduce(identity, reduction));
+
+    }
+
+    public record SoldAndBought<T>(T sold, T bought) {
+
     }
 
 }

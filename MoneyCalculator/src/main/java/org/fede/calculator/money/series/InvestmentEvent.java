@@ -110,18 +110,45 @@ public class InvestmentEvent {
         this.fx = fx;
     }
 
-    public MoneyAmount getRealUSDMoneyAmount() {
+    public MoneyAmount getRealUSDTransferFeeMoneyAmount() {
+        return this.real(new MoneyAmount(this.getTransferFee(), this.getCurrency()));
+    }
+    
+    public MoneyAmount getRealUSDFeeMoneyAmount() {
+        return this.real(this.getFeeMoneyAmount());
+
+//        final var now = Inflation.USD_INFLATION.getTo();
+//        final var toUSD = ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD);
+//        MoneyAmount ma = null;
+//        //var logger = LoggerFactory.getLogger(ConsoleReports.class);
+//
+//        if (this.getCurrency() != Currency.USD && this.fx != null) {
+//            ma = new MoneyAmount(this.getFeeMoneyAmount().adjust(BigDecimal.ONE, this.fx).amount(), Currency.USD);
+//
+//            //logger.error("ma {} curr {}  fx {} => new ma {}", this.getMoneyAmount(), this.currency, this.fx, ma);
+//        } else {
+//            ma = toUSD.apply(this.getFeeMoneyAmount(), YearMonth.of(this.getDate()));
+//        }
+//
+//        return Inflation.USD_INFLATION.adjust(
+//                toUSD
+//                        .apply(ma, YearMonth.of(this.getDate())),
+//                YearMonth.of(this.getDate()),
+//                now);
+    }
+
+    private MoneyAmount real(MoneyAmount nominal) {
         final var now = Inflation.USD_INFLATION.getTo();
         final var toUSD = ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD);
         MoneyAmount ma = null;
         //var logger = LoggerFactory.getLogger(ConsoleReports.class);
 
         if (this.getCurrency() != Currency.USD && this.fx != null) {
-            ma = new MoneyAmount(this.getMoneyAmount().adjust(BigDecimal.ONE, this.fx).amount(), Currency.USD);
+            ma = new MoneyAmount(nominal.adjust(BigDecimal.ONE, this.fx).amount(), Currency.USD);
 
             //logger.error("ma {} curr {}  fx {} => new ma {}", this.getMoneyAmount(), this.currency, this.fx, ma);
         } else {
-            ma = toUSD.apply(this.getMoneyAmount(), YearMonth.of(this.getDate()));
+            ma = toUSD.apply(nominal, YearMonth.of(this.getDate()));
         }
 
         return Inflation.USD_INFLATION.adjust(
@@ -129,6 +156,31 @@ public class InvestmentEvent {
                         .apply(ma, YearMonth.of(this.getDate())),
                 YearMonth.of(this.getDate()),
                 now);
+
+    }
+
+    public MoneyAmount getRealUSDMoneyAmount() {
+
+        return this.real(this.getMoneyAmount());
+
+//        final var now = Inflation.USD_INFLATION.getTo();
+//        final var toUSD = ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD);
+//        MoneyAmount ma = null;
+//        //var logger = LoggerFactory.getLogger(ConsoleReports.class);
+//
+//        if (this.getCurrency() != Currency.USD && this.fx != null) {
+//            ma = new MoneyAmount(this.getMoneyAmount().adjust(BigDecimal.ONE, this.fx).amount(), Currency.USD);
+//
+//            //logger.error("ma {} curr {}  fx {} => new ma {}", this.getMoneyAmount(), this.currency, this.fx, ma);
+//        } else {
+//            ma = toUSD.apply(this.getMoneyAmount(), YearMonth.of(this.getDate()));
+//        }
+//
+//        return Inflation.USD_INFLATION.adjust(
+//                toUSD
+//                        .apply(ma, YearMonth.of(this.getDate())),
+//                YearMonth.of(this.getDate()),
+//                now);
     }
 
 }

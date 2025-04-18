@@ -25,10 +25,6 @@ import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
 import java.util.Date;
@@ -77,15 +73,6 @@ import static org.fede.util.Pair.of;
  * @author fede
  */
 public class Positions {
-
-    private final BigDecimal capitalGainsTaxRate = new BigDecimal("0.15");
-
-    private final Map<String, Function<BigDecimal, BigDecimal>> feeStrategies = Map.of(
-            "PPI_USD", new PPIGlobalUSDFeeStrategy(),
-            "PPI_EUR", new PPIGlobalEURFeeStrategy(),
-            "gettex", new InteractiveBrokersTieredEuronextEURFeeStrategy(),
-            "lse", new InteractiveBrokersTieredLondonUSDFeeStrategy()
-    );
 
     private final String AVERAGE_KEY = "Avg.";
 
@@ -193,119 +180,6 @@ public class Positions {
                 this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
-        this.console.appendLine(this.format.subtitle("Costs"));
-
-        final var capitalGainsTax = this.capitalGainsTaxAmount(now);
-
-        final var sellFee = this.sellFee(now);
-
-        final var wealthTax = wealthTax(nominal);
-        final var cost = this.by(nominal, i -> "*", Investment::getCost, now).values().stream().findFirst().get();
-
-        final var inflationCost = nominal ? this.inflationCost(now) : MoneyAmount.zero(USD);
-
-        final var totalCost = sellFee.add(inflationCost.add(cost.add(wealthTax.add(capitalGainsTax))));
-
-        final var taxes = List.of(
-                new DescriptionAndMoneyAmount("Buy Cost", cost),
-                new DescriptionAndMoneyAmount("Wealth Tax", wealthTax),
-                new DescriptionAndMoneyAmount("Sell Fee", sellFee),
-                new DescriptionAndMoneyAmount("Tax", capitalGainsTax),
-                new DescriptionAndMoneyAmount("Inflation Cost", inflationCost),
-                new DescriptionAndMoneyAmount("Total Cost", totalCost));
-
-        taxes.stream().filter(p -> !p.amount().isZero()).forEach(tax -> this.printTaxLine(tax, totalCost));
-
-        this.console.appendLine(this.format.subtitle("Fees"));
-        this.costs(nominal, now);
-        this.annualCost(nominal, now);
-    }
-
-    private void printTaxLine(DescriptionAndMoneyAmount tax, MoneyAmount totalPnL) {
-        this.console.appendLine(MessageFormat.format("{0} {1} {2}",
-                this.format.text(tax.description(), 14),
-                this.format.currency(tax.amount().getAmount(), 12),
-                this.format.percent(tax.amount().getAmount().divide(totalPnL.getAmount(), C), 10)));
-    }
-
-    private MoneyAmount inflationCost(Date now) {
-
-        final var real = this.series.getInvestments()
-                .stream()
-                .filter(investment -> investment.isCurrent(now))
-                .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, USD))
-                .map(Inflation.USD_INFLATION::real)
-                .map(Investment::getInitialMoneyAmount)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
-
-        final var nominal = this.series.getInvestments()
-                .stream()
-                .filter(investment -> investment.isCurrent(now))
-                .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, USD))
-                .map(Investment::getInitialMoneyAmount)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
-
-        return real.subtract(nominal);
-    }
-
-    private MoneyAmount sellFee(Date now) {
-        return this.series.getInvestments()
-                .stream()
-                .filter(investment -> investment.isCurrent(now))
-                .filter(Investment::isETF)
-                .map(i -> ForeignExchanges.exchange(i, USD))
-                .map(this::sellFee)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
-    }
-
-    private MoneyAmount sellFee(Investment i) {
-        return new MoneyAmount(feeStrategies.get(this.feeStrategyKey(i)).apply(this.currentValueUSD(i).getAmount()), Currency.USD);
-    }
-
-    private MoneyAmount capitalGainsTaxAmount(Date now) {
-
-        return this.series.getInvestments()
-                .stream()
-                .filter(investment -> investment.isCurrent(now))
-                .filter(Investment::isETF)
-                .map(this::unrealizedUSDCapitalGains)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
-
-    }
-
-    private MoneyAmount currentValueUSD(Investment i) {
-        return ForeignExchanges.getMoneyAmountForeignExchange(i.getCurrency(), USD)
-                .apply(i.getInvestment().getMoneyAmount(), Inflation.USD_INFLATION.getTo());
-    }
-
-    private String feeStrategyKey(Investment i) {
-        if (i.getComment() == null) {
-            return "PPI_" + (i.getCurrency() == MEUD ? "EUR" : "USD");
-        }
-        return i.getComment();
-    }
-
-    private MoneyAmount wealthTax(boolean nominal) {
-        final var now = YearMonth.of(LocalDate.now());
-        return this.series.getExpense("bbpp", nominal)
-                .filter((ym, map) -> ym.compareTo(now) <= 0)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
-    }
-
-    private MoneyAmount unrealizedUSDCapitalGains(Investment i) {
-
-        final var initialUSDAmount = Optional.ofNullable(i.getIn().getFx())
-                .map(fx -> i.getInitialMoneyAmount().getAmount().multiply(fx, C))
-                .map(usd -> new MoneyAmount(usd, USD))
-                .orElseGet(i::getInitialMoneyAmount);
-
-        return this.currentValueUSD(i)
-                .subtract(this.sellFee(i))
-                .subtract(initialUSDAmount)
-                .max(MoneyAmount.zero(USD))
-                .adjust(ONE, capitalGainsTaxRate);
     }
 
     public void dca(boolean nominal, String type) {
@@ -321,10 +195,6 @@ public class Positions {
         final var classifier = groupings.get(type);
         this.dca(nominal, classifier, now);
 
-        this.console.appendLine(this.format.subtitle("Costs"));
-        this.cost(classifier, nominal, now);
-
-        this.annualCost(nominal, now);
     }
 
     private void dca(boolean nominal, Function<Investment, String> groupingFunction, Date now) {
@@ -427,98 +297,6 @@ public class Positions {
         return Ansi.colorize(
                 this.format.currency(avgPrice, 9),
                 color);
-    }
-
-    private String exchangeClassifier(Investment i) {
-        if (i.getComment() == null) {
-            return i.getCurrency() == MEUD
-                    ? "Saxo €"
-                    : "Saxo $";
-        }
-        return i.getComment().equals("lse")
-                ? "IBKR $"
-                : "IBKR €";
-    }
-
-    private void costs(boolean nominal, Date now) {
-
-        final Function<Investment, String> yearClassifier = i -> String.valueOf(YearMonth.of(i.getInitialDate()).getYear());
-        final Function<Investment, String> brokerClassifier = i -> i.getComment() == null ? "PPI " : "IBKR";
-        final Function<Investment, String> anyClassifier = i -> "All ";
-
-        this.cost(yearClassifier, nominal, now);
-        this.cost(brokerClassifier, nominal, now);
-        this.cost(this::exchangeClassifier, nominal, now);
-        this.cost(anyClassifier, nominal, now);
-
-    }
-
-    private void cost(Function<Investment, String> classifier, boolean nominal, Date now) {
-
-        final var inv = this.by(nominal, classifier, Investment::getInitialMoneyAmount, now);
-        final var cost = this.by(nominal, classifier, Investment::getCost, now);
-        final var totalInv = inv.values().stream().map(MoneyAmount::getAmount).reduce(ZERO, BigDecimal::add);
-        inv
-                .keySet()
-                .stream()
-                .sorted()
-                .forEach(e -> this.costReport(e, inv, cost, totalInv));
-        this.console.appendLine("");
-
-    }
-
-    private void annualCost(boolean nominal, Date now) {
-
-        final Function<Investment, String> any = i -> "all";
-
-        final var totalCost = this.by(nominal, any, Investment::getCost, now)
-                .values()
-                .stream()
-                .map(MoneyAmount::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-        final var totalInv = this.by(nominal, any, Investment::getInitialMoneyAmount, now)
-                .values()
-                .stream()
-                .map(MoneyAmount::getAmount)
-                .reduce(ZERO, BigDecimal::add);
-
-        final var startDate = this.series.getInvestments()
-                .stream()
-                .filter(investment -> investment.isCurrent(now))
-                .filter(Investment::isETF)
-                .map(Investment::getInitialDate)
-                .min(Comparator.naturalOrder())
-                .map(Date::toInstant)
-                .map(i -> LocalDate.ofInstant(i, ZoneId.systemDefault()))
-                .get();
-
-        final var days = ChronoUnit.DAYS.between(startDate, LocalDate.now());
-
-        this.console.appendLine(MessageFormat.format("{0} {1}",
-                "Cost per year",
-                this.format.percent(
-                        new BigDecimal("0.00104").add(
-                                new BigDecimal(Math.pow(totalCost.divide(totalInv, C).add(ONE, C).doubleValue(), 365.0d / (double) days) - 1.0d))), C));
-
-    }
-
-    private void costReport(String label, Map<String, MoneyAmount> m1, Map<String, MoneyAmount> m2, BigDecimal totalinv) {
-        this.console.appendLine(label,
-                this.format.currency(m1.get(label).getAmount(), 13),
-                this.format.percent(m1.get(label).getAmount().divide(totalinv, C), 9),
-                this.format.currency(m2.get(label).getAmount(), 11),
-                this.format.percent(m2.get(label).getAmount().divide(m1.get(label).getAmount(), C), 8));
-    }
-
-    private Map<String, MoneyAmount> by(boolean nominal, Function<Investment, String> classifier, Function<Investment, MoneyAmount> func, Date now) {
-        return this.series.getInvestments()
-                .stream()
-                .filter(investment -> investment.isCurrent(now))
-                .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, USD))
-                .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
-                .collect(groupingBy(classifier,
-                        mapping(func, reducing(MoneyAmount.zero(USD), MoneyAmount::add))));
     }
 
     private Position position(List<Investment> investments) {
@@ -850,8 +628,5 @@ public class Positions {
 
     }
 
-    private record DescriptionAndMoneyAmount(String description, MoneyAmount amount) {
-
-    }
-
+  
 }
