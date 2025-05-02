@@ -948,8 +948,9 @@ public class ConsoleReports {
                 finalYm);
 
         final var currentBalance = new MoneyAmount(
-                        new BigDecimal("10524.05") //itau
-                                .add(new BigDecimal("55.03")), //ibkr
+                        new BigDecimal("683.76") //itau
+                                .add(new BigDecimal("20219.81"))// ppi
+                                .add(new BigDecimal("41.46")), //ibkr
                         USD);
         final var iva = new BigDecimal("1.21");
 

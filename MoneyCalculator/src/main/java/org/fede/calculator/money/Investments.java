@@ -58,19 +58,22 @@ import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
-import org.fede.calculator.money.series.InvestmentType;
 import static org.fede.calculator.money.series.InvestmentType.USD_CASH;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class Investments {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Investments.class);
 
     private final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
 
@@ -214,19 +217,38 @@ public class Investments {
 
         final var allEtfs = this.getInvestments()
                 .filter(Investment::isETF)
+                // .filter(Investment::isCurrent)
                 .toList();
 
         final var mapper = new BenchmarkInvestmentMapper(benchmark, allEtfs);
 
         return etfs.stream()
+                .sorted(Comparator.comparing(Investment::getInitialDate))
                 .map(mapper)
+                //.peek(benchmark == CSPX ? this::print : s -> {
+                //})
                 .toList();
+    }
+
+    private void print(Investment i) {
+        LOGGER.debug("{} {} {} {} {}",
+                YearMonth.of(i.getIn().getDate()).monthString(),
+                this.format.currency(i.getIn().getMoneyAmount(), 15),
+                this.format.currency(i.getInvestment().getMoneyAmount(), 15),
+                i.getOut() != null
+                ? YearMonth.of(i.getOut().getDate()).monthString()
+                : "",
+                i.getOut() != null
+                ? this.format.currency(i.getOut().getMoneyAmount(), 15)
+                : ""
+        );
     }
 
     public void inv(final Predicate<Investment> everyone, boolean nominal) {
 
         final var etfs = this.getInvestments()
                 .filter(Investment::isETF)
+                //.filter(Investment::isCurrent)
                 .filter(everyone)
                 .toList();
 

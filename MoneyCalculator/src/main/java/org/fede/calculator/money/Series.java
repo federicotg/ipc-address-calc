@@ -21,6 +21,8 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
@@ -176,63 +178,35 @@ public class Series {
 
     }
 
-    private MoneyAmountSeries investingExpensesOri() {
+    private MoneyAmountSeries investingExpenses() {
 
-        final var zero = MoneyAmount.zero(Currency.USD);
-        Map<YearMonth, MoneyAmount> buyFeesBymonth
+        final List<Cost> buyCost
                 = this.getInvestments()
                         .stream()
                         .filter(Investment::isETF)
                         .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
-                        .map(inv -> Inflation.USD_INFLATION.real(inv))
-                        .collect(
-                                Collectors.groupingBy(
-                                        i -> YearMonth.of(i.getIn().getDate()),
-                                        Collectors.reducing(zero, Investment::getCost, MoneyAmount::add)));
-
-        final var expenseSeries = new SortedMapMoneyAmountSeries(Currency.USD, "investing");
-
-        for (YearMonth ym = YearMonth.of(2016, 1); ym.monthsUntil(Inflation.USD_INFLATION.getTo()) >= 0; ym = ym.next()) {
-            expenseSeries.putAmount(ym, buyFeesBymonth.getOrDefault(ym, zero));
-        }
-
-        return expenseSeries;
-
-    }
-
-    private record Cost(YearMonth ym, MoneyAmount amount) {
-
-    }
-
-    ;
-    
-     private MoneyAmountSeries investingExpenses() {
-
-        List<Cost> buyCost
-                = this.getInvestments()
-                        .stream()
-                        .filter(Investment::isETF)
-                        .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
-                        .map(inv -> Inflation.USD_INFLATION.real(inv))
+                        .map(Inflation.USD_INFLATION::real)
                         .map(i -> new Cost(YearMonth.of(i.getIn().getDate()), i.getCost()))
                         .toList();
 
-        List<Cost> sellCost
+        final var iva = new BigDecimal(1.21);
+
+        final List<Cost> sellCost
                 = this.getInvestments()
                         .stream()
                         .filter(Investment::isETF)
                         .filter(i -> i.getOut() != null)
                         .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
-                        .map(inv -> Inflation.USD_INFLATION.real(inv))
+                        .map(Inflation.USD_INFLATION::real)
                         .map(i
                                 -> new Cost(
                                 YearMonth.of(i.getOut().getDate()),
-                                i.getOut().getFeeMoneyAmount()
+                                i.getOut().getFeeMoneyAmount().adjust(BigDecimal.ONE, iva)
                                         .add(new MoneyAmount(i.getOut().getTransferFee(), i.getOut().getCurrency()))))
                         .toList();
 
         final var zero = MoneyAmount.zero(Currency.USD);
-        var feesByMonth = Stream.concat(buyCost.stream(), sellCost.stream())
+        final var feesByMonth = Stream.concat(buyCost.stream(), sellCost.stream())
                 .collect(
                         Collectors.groupingBy(
                                 Cost::ym,

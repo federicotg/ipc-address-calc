@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,20 +36,31 @@ import org.fede.calculator.money.series.SeenPrice;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.series.InvestmentEvent;
 
 /**
  *
  * @author fede
  */
 public class BenchmarkInvestmentMapper implements Function<Investment, Investment> {
-    
+
     private static final TypeReference<Map<Currency, List<SeenPrice>>> TR = new TypeReference<Map<Currency, List<SeenPrice>>>() {
     };
 
     private static final DateTimeFormatter DMY = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private static String dmy(Investment i) {
-        return DMY.format(LocalDate.ofInstant(i.getInitialDate().toInstant(), ZoneId.systemDefault()));
+        //return DMY.format(LocalDate.ofInstant(i.getInitialDate().toInstant(), ZoneId.systemDefault()));
+        return dmy(i.getInitialDate());
+    }
+
+    private static String sellDmy(Investment i) {
+        //return DMY.format(LocalDate.ofInstant(i.getInitialDate().toInstant(), ZoneId.systemDefault()));
+        return dmy(i.getOut().getDate());
+    }
+
+    private static String dmy(Date d) {
+        return DMY.format(LocalDate.ofInstant(d.toInstant(), ZoneId.systemDefault()));
     }
 
     private static BigDecimal price(Investment i) {
@@ -91,7 +103,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
             final var fxFactor = Optional.ofNullable(t.getIn().getFx()).orElse(ONE);
             var usdInvested = t.getIn().getAmount().multiply(fxFactor, C);
             asset.setAmount(usdInvested.divide(price, C));
-        } else if (this.benchmark.equals(USD)) {
+        } else if (this.benchmark == USD) {
             final var fxFactor = Optional.ofNullable(t.getIn().getFx()).orElse(ONE);
             var usdInvested = t.getIn().getAmount().multiply(fxFactor, C);
             asset.setAmount(usdInvested);
@@ -102,7 +114,34 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
         var answer = new Investment();
         answer.setIn(t.getIn());
         answer.setInvestment(asset);
-        answer.setOut(t.getOut());
+
+        if (t.getOut() != null) {
+            if (this.benchmark == USD) {
+                var out = new InvestmentEvent();
+                out.setCurrency(USD);
+                out.setAmount(asset.getAmount());
+                out.setDate(t.getOut().getDate());
+                out.setTransferFee(t.getOut().getTransferFee());
+                out.setFee(t.getOut().getFee());
+                out.setFx(t.getOut().getFx());
+                answer.setOut(out);
+            } else {
+                var out = new InvestmentEvent();
+                out.setCurrency(USD);
+                var sellPrice = this.seenUSDPrices.get(sellDmy(t));
+                if (sellPrice == null) {
+                    var fx = ForeignExchanges.getMoneyAmountForeignExchange(asset.getCurrency(), USD);
+                    out.setAmount(fx.apply(asset.getMoneyAmount(), YearMonth.of(t.getOut().getDate())).getAmount());
+                } else {
+                    out.setAmount(asset.getAmount().multiply(sellPrice, C));
+                }
+                out.setDate(t.getOut().getDate());
+                out.setTransferFee(t.getOut().getTransferFee());
+                out.setFee(t.getOut().getFee());
+                out.setFx(t.getOut().getFx());
+                answer.setOut(out);
+            }
+        }
         answer.setType(t.getType());
         answer.setComment(t.getComment());
         answer.setId(t.getId());

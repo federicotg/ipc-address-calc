@@ -51,13 +51,17 @@ public class SimpleAggregation implements Aggregation {
 
     private MoneyAmount avg(SequencedCollection<MoneyAmount> lastValues) {
         return new MoneyAmount(
-                lastValues.stream().map(MoneyAmount::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add)
+                lastValues.stream()
+                        .map(MoneyAmount::getAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
                         .divide(new BigDecimal(lastValues.size()), MathConstants.C), lastValues.getFirst().getCurrency());
     }
 
     private MoneyAmount sum(SequencedCollection<MoneyAmount> lastValues) {
         return new MoneyAmount(
-                lastValues.stream().map(MoneyAmount::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add),
+                lastValues.stream()
+                        .map(MoneyAmount::getAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add),
                 lastValues.getFirst().getCurrency());
     }
 
