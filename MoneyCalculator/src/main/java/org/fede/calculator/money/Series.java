@@ -21,8 +21,6 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
@@ -279,15 +277,15 @@ public class Series {
 
             final var limit = USD_INFLATION.getTo();
 
-            final var adjuster = new MonthlyInvestmentSavingsAdjuster(this);
+            //final var adjuster = new MonthlyInvestmentSavingsAdjuster(this);
 
             this.realNetSavings = this.savingsSeries()
                     .map(new SimpleAggregation(2)::change)
                     .map(series -> series.exchangeInto(Currency.USD))
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
                     .reduce(MoneyAmountSeries::add)
-                    .get()
-                    .map((ym, ma) -> ma.subtract(USD_INFLATION.adjust(adjuster.difference(ym), ym, limit)));
+                    .get();
+                    //.map((ym, ma) -> ma.subtract(USD_INFLATION.adjust(adjuster.difference(ym), ym, limit)));
         }
         return this.realNetSavings;
     }

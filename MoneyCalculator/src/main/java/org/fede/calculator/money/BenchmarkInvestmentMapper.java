@@ -50,12 +50,10 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
     private static final DateTimeFormatter DMY = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private static String dmy(Investment i) {
-        //return DMY.format(LocalDate.ofInstant(i.getInitialDate().toInstant(), ZoneId.systemDefault()));
         return dmy(i.getInitialDate());
     }
 
     private static String sellDmy(Investment i) {
-        //return DMY.format(LocalDate.ofInstant(i.getInitialDate().toInstant(), ZoneId.systemDefault()));
         return dmy(i.getOut().getDate());
     }
 

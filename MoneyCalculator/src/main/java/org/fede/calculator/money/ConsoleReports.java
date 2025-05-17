@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -97,7 +98,7 @@ public class ConsoleReports {
     public static final String CHARTS_PREFIX = System.getProperty("user.home") + File.separator + "Pictures" + File.separator + "chart-";
     public static final String CACHE_DIR = System.getProperty("user.home") + "/Downloads";
 
-    public static final int SCALE = 2500;
+    public static final int SCALE = 2800;
 
     private static boolean nominal(Map<String, String> params) {
         return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
@@ -403,7 +404,6 @@ public class ConsoleReports {
                         new CmdParam("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) m=12"),
                         new CmdParam("savings-evo", "type=(BO|LIQ|EQ)"),
                         new CmdParam("dca", "type=(q*|h|y|m)"),
-                        new CmdParam("etf"),
                         new CmdParam("pos", "nominal=false")
                 ).map(param -> format(" - {0} {1}", param.name, param.argsDesc))
                         .sorted()
@@ -912,9 +912,11 @@ public class ConsoleReports {
         this.console.appendLine(this.ltiLine(2023, new BigDecimal("5.941"), 113, 1354));
         this.console.appendLine(this.ltiLine(2024, new BigDecimal("7.556"), 352, 3588));
         this.console.appendLine(this.ltiLine(2025, new BigDecimal("16.3011123971"), 454, new BigDecimal("4866.52")));
-        this.console.appendLine(this.ltiLine(2026, dealPrice, 344, 3540));
-        this.console.appendLine(this.ltiLine(2027, dealPrice, 101, 1238));
-        this.console.appendLine(this.ltiLine(2028, dealPrice, 101, 1238));
+        this.console.appendLine(this.ltiLine(2026, dealPrice, 430, 4639));
+        this.console.appendLine(this.ltiLine(2027, dealPrice, 191, 2337));
+        this.console.appendLine(this.ltiLine(2028, dealPrice, 192, 2337));
+        this.console.appendLine(this.ltiLine(2029, dealPrice, 90, 1100));
+
     }
 
     private String ltiLine(int year, BigDecimal despPrice, int phantom, int cash) {
@@ -935,23 +937,6 @@ public class ConsoleReports {
 
     private void ppiTransfer() {
 
-        final var initialYm = YearMonth.of(2025, 4);
-        final var finalYm = YearMonth.of(2025, 4);
-        final var itauFees = 1l;
-
-        final var initialBalance = Inflation.USD_INFLATION.adjust(
-                new MoneyAmount(
-                        new BigDecimal("7681.76") //itau
-                                .add(new BigDecimal("16.66")), //ibkr
-                        USD),
-                initialYm,
-                finalYm);
-
-        final var currentBalance = new MoneyAmount(
-                        new BigDecimal("683.76") //itau
-                                .add(new BigDecimal("20219.81"))// ppi
-                                .add(new BigDecimal("41.46")), //ibkr
-                        USD);
         final var iva = new BigDecimal("1.21");
 
         final Function<InvestmentEvent, MoneyAmount> grossSaleMapper
@@ -967,7 +952,7 @@ public class ConsoleReports {
                         MoneyAmount::add);
 
         final Function<InvestmentEvent, MoneyAmount> feeMapper = e -> e.getRealUSDTransferFeeMoneyAmount().add(e.getRealUSDFeeMoneyAmount().adjust(BigDecimal.ONE, iva));
-        
+
         final SoldAndBought<MoneyAmount> feeSummary
                 = this.summarize(
                         feeMapper,
@@ -976,7 +961,7 @@ public class ConsoleReports {
                         MoneyAmount::add);
 
         final Function<InvestmentEvent, Long> countMapper = e -> 1l;
-        
+
         final SoldAndBought<Long> quantitySummary
                 = this.summarize(
                         countMapper,
@@ -1007,28 +992,49 @@ public class ConsoleReports {
         this.console.appendLine("Bought ", this.format.currency(netAmountSummary.bought, 16));
         this.console.appendLine("Saldo:", this.format.currencyPL(balance.amount(), 16));
 
-        final var finalBalance = currentBalance
-                .subtract(balance)
-                .subtract(initialBalance)
-                // sumo fees mensuales de Itau
-                .add(new MoneyAmount(new BigDecimal("7.00").multiply(BigDecimal.valueOf(itauFees)), USD));
+        this.console.appendLine(this.format.subtitle("Tax"));
 
-        this.console.appendLine(this.format.subtitle("PnL"));
-        this.console.appendLine("Inicial ", this.format.currency(initialBalance, 16));
-        this.console.appendLine("Final ", this.format.currency(currentBalance, 16));
-        this.console.appendLine("Saldo:", this.format.currencyPL(finalBalance.amount(), 16),
-                " ",
-                this.format.percent(finalBalance.amount().divide(netAmountSummary.sold.amount(), C), 6)
+        this.console.appendLine(this.format.currency(this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .filter(i -> i.getOut() != null)
+                .map(i -> i.getOut().getMoneyAmount().subtract(this.cost(i)))
+                //.peek(m -> this.console.appendLine(this.format.currency(m, 20)))
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
+                .adjust(BigDecimal.ONE, new BigDecimal("0.15")), 20));
+
+        this.console.appendLine(this.format.subtitle("Detail"));
+
+        
+        this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .filter(i -> i.getOut() != null)
+                .sorted(Comparator.comparing(i -> i.getOut().getDate()))
+                .map(this::sellReport)
+                .forEach(this.console::appendLine);
+
+    }
+
+    private String sellReport(Investment i) {
+
+        return MessageFormat.format("{0} {1} {2}",
+                DateTimeFormatter.ISO_DATE.format(
+                        LocalDate.ofInstant(i.getOut().getDate().toInstant(), ZoneId.systemDefault())),
+                i.getCurrency(),
+                this.format.currency(i.getOut().getMoneyAmount(), 12)
         );
+    }
 
-        this.console.appendLine(this.format.subtitle("Resultado"));
-
-        final var spread = finalBalance.add(fees);
-
-        this.console.appendLine("Spread aproximado:", this.format.currencyPL(spread.amount(), 16),
-                " ",
-                this.format.percent(spread.amount().divide(netAmountSummary.sold.amount(), C), 6)
-        );
+    private MoneyAmount cost(Investment i) {
+        if (i.getIn().getFx() != null) {
+            return new MoneyAmount(
+                    i.getIn().getFx()
+                            .multiply(i.getIn().getAmount().add(i.getIn().getFee()), C),
+                    USD
+            );
+        }
+        return i.getIn().getMoneyAmount().add(i.getIn().getFeeMoneyAmount());
 
     }
 

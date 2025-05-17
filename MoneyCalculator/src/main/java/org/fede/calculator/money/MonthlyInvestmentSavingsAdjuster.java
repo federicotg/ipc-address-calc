@@ -37,17 +37,16 @@ public class MonthlyInvestmentSavingsAdjuster {
 
     public MonthlyInvestmentSavingsAdjuster(Series series) {
 
-        final Map<YearMonth, List<Investment>> groupedByYeaMonth = series.getInvestments()
+        final Map<YearMonth, List<Investment>> groupedByYearMonth = series.getInvestments()
                 .stream()
                 .filter(i -> i.isETF() || i.getType() == InvestmentType.FCI)
                 .collect(Collectors.groupingBy(i -> YearMonth.of(i.getInitialDate())));
 
-        this.differences = groupedByYeaMonth.entrySet()
+        this.differences = groupedByYearMonth.entrySet()
                 .stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         e -> this.differences(e.getKey(), e.getValue())));
-
     }
 
     public MoneyAmount difference(YearMonth ym) {
