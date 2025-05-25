@@ -169,7 +169,7 @@ public class Positions {
                 .forEach(this.console::appendLine);
 
         this.console.appendLine(MessageFormat.format(fmt,
-                this.format.text("Total", descWidth),
+                this.format.text("Unrealized", descWidth),
                 this.format.text("", posWidth),
                 this.format.text("", lastWidth),
                 this.format.currency(totalCostBasis.getAmount(), costWidth),
@@ -180,6 +180,29 @@ public class Positions {
                 this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
+        var realized = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .filter(investment -> investment.getOut() != null)
+                .map(inv -> ForeignExchanges.exchange(inv, USD))
+                .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
+                .map(i -> new BoughtSold(i.getInitialMoneyAmount(), i.getOut().getMoneyAmount()))
+                .map(BoughtSold::capitalGain)
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+
+        this.console.appendLine(MessageFormat.format(" Realized {0}", this.format.currencyPL(
+                realized.amount(), 110)));
+
+        this.console.appendLine(MessageFormat.format(" Total {0}", this.format.currencyPL(
+                realized.add(totalPnL).getAmount(), 113)));
+
+    }
+
+    private record BoughtSold(MoneyAmount bought, MoneyAmount sold) {
+
+        public MoneyAmount capitalGain() {
+            return this.sold.subtract(bought);
+        }
     }
 
     public void dca(boolean nominal, String type) {
@@ -628,5 +651,4 @@ public class Positions {
 
     }
 
-  
 }

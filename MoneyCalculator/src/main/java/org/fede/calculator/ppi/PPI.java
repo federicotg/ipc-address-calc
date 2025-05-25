@@ -117,7 +117,7 @@ public class PPI implements CCL {
                 //futures.add(this.criptoYaItem("BuenBit DAI (Venta)", new CriptoYaFXParams("Buenbit", "DAI", "USD", "ARS", "ARS"), executor));
                 //futures.add(this.criptoYaItem("Letsbit USDT (Venta)", new CriptoYaFXParams("Letsbit", "USDT", "USD", "ARS", "ARS"), executor));
                 //futures.add(this.criptoYaItem("Letsbit DAI (Venta)", new CriptoYaFXParams("Letsbit", "DAI", "USD", "ARS", "ARS"), executor));
-                futures.add(Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), executor.submit(() -> new MoneyAmount(this.getCriptoYaApi().blueSell(), Currency.ARS))));
+                futures.add(Pair.of(this.blue("Blue (Venta)", LABEL_WIDTH), executor.submit(() -> new MoneyAmount(this.getCriptoYaApi().usdSell(), Currency.ARS))));
             }
 
             var results = new ArrayList<Pair<String, MoneyAmount>>(futures.size());

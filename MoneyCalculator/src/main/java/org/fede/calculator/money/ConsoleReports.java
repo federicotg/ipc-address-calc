@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -94,6 +93,8 @@ public class ConsoleReports {
     private static final String BAD_RETURN_YEARS = "3";
     //private static final String BAD_YEAR_SPENDING = "0.85";
     //private static final String SAVE_CASH_YEARS_BEFORE_RETIREMENT = "6";
+
+    private static final DateTimeFormatter DTF = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault());
 
     public static final String CHARTS_PREFIX = System.getProperty("user.home") + File.separator + "Pictures" + File.separator + "chart-";
     public static final String CACHE_DIR = System.getProperty("user.home") + "/Downloads";
@@ -424,12 +425,12 @@ public class ConsoleReports {
 
         try {
 
-            final var fee = this.paramsValue(args, param).getOrDefault("fee", "3");
+            final var fee = this.paramsValue(args, param).getOrDefault("fee", "0");
 
             final var feePct = new BigDecimal(fee).movePointLeft(2);
 
             final var api = new CriptoYaAPI(new SingleHttpClientSupplier());
-            final var initialAmount = new BigDecimal(3000);
+            final var initialAmount = new BigDecimal(10000);
 
             this.console.appendLine(MessageFormat.format("Sending {0}", this.format.currency(new MoneyAmount(initialAmount, USD), 10)));
             final var blueFee = BigDecimal.ONE.add(feePct);
@@ -994,18 +995,53 @@ public class ConsoleReports {
 
         this.console.appendLine(this.format.subtitle("Tax"));
 
-        this.console.appendLine(this.format.currency(this.series.getInvestments()
-                .stream()
-                .filter(Investment::isETF)
-                .filter(i -> i.getOut() != null)
-                .map(i -> i.getOut().getMoneyAmount().subtract(this.cost(i)))
-                //.peek(m -> this.console.appendLine(this.format.currency(m, 20)))
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
-                .adjust(BigDecimal.ONE, new BigDecimal("0.15")), 20));
+        //bna comprador
+        final Map<String, BigDecimal> bnaFX = Map.of(
+                "2025-04-03", new BigDecimal("1054.5"),
+                "2025-04-08", new BigDecimal("1056"),
+                "2025-04-14", new BigDecimal("1180"),
+                "2025-04-24", new BigDecimal("1140"),
+                "2025-05-01", new BigDecimal("1140"),
+                "2025-05-09", new BigDecimal("1100"),
+                "2025-05-16", new BigDecimal("1110"),
+                "2025-05-23", new BigDecimal("1100")
+        );
+
+        final var capitalGainsTaxRate = new BigDecimal("0.15");
+
+        this.console.appendLine(this.format.currency(
+                this.series.getInvestments()
+                        .stream()
+                        .filter(Investment::isETF)
+                        .filter(i -> i.getOut() != null)
+                        .map(i -> i.getOut().getMoneyAmount().subtract(this.cost(i)))
+                        //.peek(m -> this.console.appendLine(this.format.currency(m, 20)))
+                        .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
+                        .adjust(BigDecimal.ONE, capitalGainsTaxRate), 20));
+
+        this.console.appendLine(this.format.currency(
+                this.series.getInvestments()
+                        .stream()
+                        .filter(Investment::isETF)
+                        .filter(i -> i.getOut() != null)
+                        .map(i
+                                -> i.getOut()
+                                .getMoneyAmount()
+                                .subtract(this.cost(i))
+                                .adjust(BigDecimal.ONE, bnaFX.get(DTF.format(i.getOut().getDate().toInstant()))))
+                        .map(adjustedAmount -> new MoneyAmount(adjustedAmount.getAmount(), Currency.ARS))
+                        //.peek(m -> this.console.appendLine(this.format.currency(m, 20)))
+                        .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add)
+                        .adjust(BigDecimal.ONE, capitalGainsTaxRate),
+                20));
 
         this.console.appendLine(this.format.subtitle("Detail"));
 
-        
+        this.console.appendLine(MessageFormat.format("{0} {1} {2} {3}",
+                "Date      ",
+                "Curr.   ",
+                "Amount      ",
+                "Capital Gain"));
         this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
@@ -1018,11 +1054,12 @@ public class ConsoleReports {
 
     private String sellReport(Investment i) {
 
-        return MessageFormat.format("{0} {1} {2}",
+        return MessageFormat.format("{0} {1} {2} {3}",
                 DateTimeFormatter.ISO_DATE.format(
                         LocalDate.ofInstant(i.getOut().getDate().toInstant(), ZoneId.systemDefault())),
                 i.getCurrency(),
-                this.format.currency(i.getOut().getMoneyAmount(), 12)
+                this.format.currency(i.getOut().getMoneyAmount(), 16),
+                this.format.currency(i.getOut().getMoneyAmount().subtract(this.cost(i)), 16)
         );
     }
 
@@ -1030,12 +1067,28 @@ public class ConsoleReports {
         if (i.getIn().getFx() != null) {
             return new MoneyAmount(
                     i.getIn().getFx()
-                            .multiply(i.getIn().getAmount().add(i.getIn().getFee()), C),
+                            .multiply(i.getIn().getAmount().add(this.withVAT(i, i.getIn().getFee()), C)),
                     USD
             );
         }
-        return i.getIn().getMoneyAmount().add(i.getIn().getFeeMoneyAmount());
+        return i.getIn().getMoneyAmount().add(this.withVAT(i, i.getIn().getFeeMoneyAmount()));
 
+    }
+
+    private BigDecimal withVAT(Investment i, BigDecimal fee) {
+        if (i.getComment() == null) {
+            // ppi
+            return fee.multiply(new BigDecimal("1.21"), C);
+        }
+        return fee;
+    }
+
+    private MoneyAmount withVAT(Investment i, MoneyAmount fee) {
+        if (i.getComment() == null) {
+            // ppi
+            return fee.adjust(BigDecimal.ONE, new BigDecimal("1.21"));
+        }
+        return fee;
     }
 
     private <T> SoldAndBought<T> summarize(

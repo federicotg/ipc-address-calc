@@ -73,10 +73,12 @@ public class CriptoYaAPI {
 
     }
 
-    public BigDecimal blueSell() throws URISyntaxException, IOException, InterruptedException {
+    public BigDecimal usdSell() throws URISyntaxException, IOException, InterruptedException {
 
+        final var usdType = "ahorro";
+        
         if (this.dollarCache != null) {
-            return this.dollarCache.get("blue").getBid();
+            return this.dollarCache.get(usdType).getBid();
         }
 
         final var req = this.requestBuilderFor(MessageFormat.format("{0}/api/dolar", API))
@@ -90,7 +92,7 @@ public class CriptoYaAPI {
 
             this.dollarCache = this.jsonMapper.readValue(response.body(), FX_TR);
 
-            return this.dollarCache.get("blue").getBid();
+            return this.dollarCache.get(usdType).getBid();
 
         } else {
             throw new IOException(MessageFormat.format("Could not read criptoya data: {0} {1}", response.statusCode(), response.body()));
@@ -179,7 +181,7 @@ public class CriptoYaAPI {
     public BigDecimal bbRoute(BigDecimal initialAmount) throws URISyntaxException, IOException, InterruptedException {
         return initialAmount
                 .divide(this.buyCoin("buenbit", "DAI", "USD", initialAmount), MathConstants.C)
-                .subtract(this.fee("Buenbit", "DAI", "ERC20"))
+                .subtract(this.fee("Buenbit", "DAI", "ETHEREUM"))
                 .divide(new BigDecimal("1.002"), MathConstants.C);
     }
 
@@ -193,7 +195,7 @@ public class CriptoYaAPI {
     public BigDecimal arsLbRoute(BigDecimal initialAmount, BigDecimal blueFee) throws URISyntaxException, IOException, InterruptedException {
         return initialAmount
                 .divide(blueFee, MathConstants.C)
-                .multiply(this.blueSell(), MathConstants.C)
+                .multiply(this.usdSell(), MathConstants.C)
                 .divide(this.buyCoin("letsbit", "usdt", "ars", initialAmount), MathConstants.C)
                 .subtract(this.fee("Letsbit", "USDT", "TRON"))
                 .divide(new BigDecimal("1.002"), MathConstants.C);
@@ -202,25 +204,25 @@ public class CriptoYaAPI {
     public BigDecimal arsLbDaiRoute(BigDecimal initialAmount, BigDecimal blueFee) throws URISyntaxException, IOException, InterruptedException {
         return initialAmount
                 .divide(blueFee, MathConstants.C)
-                .multiply(this.blueSell(), MathConstants.C)
+                .multiply(this.usdSell(), MathConstants.C)
                 .divide(this.buyCoin("letsbit", "dai", "ars", initialAmount), MathConstants.C)
-                .subtract(this.fee("Letsbit", "DAI", "ERC20"))
+                .subtract(this.fee("Letsbit", "DAI", "ETHEREUM"))
                 .divide(new BigDecimal("1.002"), MathConstants.C);
     }
 
     public BigDecimal arsBbRoute(BigDecimal initialAmount, BigDecimal blueFee) throws URISyntaxException, IOException, InterruptedException {
         return initialAmount
                 .divide(blueFee, MathConstants.C)
-                .multiply(this.blueSell(), MathConstants.C)
+                .multiply(this.usdSell(), MathConstants.C)
                 .divide(this.buyCoin("buenbit", "dai", "ars", initialAmount), MathConstants.C)
-                .subtract(this.fee("Buenbit", "DAI", "ERC20"))
+                .subtract(this.fee("Buenbit", "DAI", "ETHEREUM"))
                 .divide(new BigDecimal("1.002"), MathConstants.C);
     }
 
     public BigDecimal arsBbPolygonRoute(BigDecimal initialAmount, BigDecimal blueFee) throws URISyntaxException, IOException, InterruptedException {
         return initialAmount
                 .divide(blueFee, MathConstants.C)
-                .multiply(this.blueSell(), MathConstants.C)
+                .multiply(this.usdSell(), MathConstants.C)
                 .divide(this.buyCoin("buenbit", "USDT", "ars", initialAmount), MathConstants.C)
                 .subtract(this.fee("Buenbit", "USDT", "POLYGON"))
                 .divide(new BigDecimal("1.002"), MathConstants.C);
