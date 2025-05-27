@@ -186,7 +186,14 @@ public class Positions {
                 .filter(investment -> investment.getOut() != null)
                 .map(inv -> ForeignExchanges.exchange(inv, USD))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
-                .map(i -> new BoughtSold(i.getInitialMoneyAmount(), i.getOut().getMoneyAmount()))
+                .map(i -> 
+                        new BoughtSold(
+                                i.getInitialMoneyAmount()
+                                        .add(i.getIn().getFeeMoneyAmount()
+                                                .adjust(ONE, i.getComment() == null 
+                                                        ? new BigDecimal("1.21")
+                                                        : ONE)),
+                                i.getOut().getMoneyAmount()))
                 .map(BoughtSold::capitalGain)
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 

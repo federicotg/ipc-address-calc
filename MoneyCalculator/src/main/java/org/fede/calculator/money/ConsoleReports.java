@@ -61,6 +61,7 @@ import org.fede.calculator.money.chart.CategoryDatasetItem;
 import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.chart.TimeSeriesChart;
+import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
@@ -319,7 +320,7 @@ public class ConsoleReports {
                 () -> me.ltiReport();
 
             case "ppi" ->
-                () -> me.ppiTransfer();
+                () -> me.ppiTransfer(args, "ppi");
 
             default ->
                 () -> console.appendLine("Unknown parameter.");
@@ -936,13 +937,14 @@ public class ConsoleReports {
                 .add(new MoneyAmount(desp.multiply(new BigDecimal(phantom)), USD));
     }
 
-    private void ppiTransfer() {
+    private void ppiTransfer(String[] args, String name) {
 
-        final var iva = new BigDecimal("1.21");
+        final var params = this.paramsValue(args, name);
+        final var type = params.getOrDefault("type", "full");
 
         final Function<InvestmentEvent, MoneyAmount> grossSaleMapper
                 = (InvestmentEvent e) -> e.getRealUSDMoneyAmount()
-                        .add(e.getRealUSDFeeMoneyAmount().adjust(BigDecimal.ONE, iva))
+                        .add(e.getRealUSDFeeMoneyAmount())
                         .add(e.getRealUSDTransferFeeMoneyAmount());
 
         final SoldAndBought<MoneyAmount> netAmountSummary
@@ -952,7 +954,7 @@ public class ConsoleReports {
                         MoneyAmount.zero(USD),
                         MoneyAmount::add);
 
-        final Function<InvestmentEvent, MoneyAmount> feeMapper = e -> e.getRealUSDTransferFeeMoneyAmount().add(e.getRealUSDFeeMoneyAmount().adjust(BigDecimal.ONE, iva));
+        final Function<InvestmentEvent, MoneyAmount> feeMapper = e -> e.getRealUSDTransferFeeMoneyAmount().add(e.getRealUSDFeeMoneyAmount());
 
         final SoldAndBought<MoneyAmount> feeSummary
                 = this.summarize(
@@ -997,14 +999,14 @@ public class ConsoleReports {
 
         //bna comprador
         final Map<String, BigDecimal> bnaFX = Map.of(
-                "2025-04-03", new BigDecimal("1054.5"),
-                "2025-04-08", new BigDecimal("1056"),
-                "2025-04-14", new BigDecimal("1180"),
-                "2025-04-24", new BigDecimal("1140"),
-                "2025-05-01", new BigDecimal("1140"),
-                "2025-05-09", new BigDecimal("1100"),
-                "2025-05-16", new BigDecimal("1110"),
-                "2025-05-23", new BigDecimal("1100")
+                "2025-04-03", new BigDecimal("1075"),
+                "2025-04-08", new BigDecimal("1076.25"),
+                "2025-04-14", new BigDecimal("1198"),
+                "2025-04-24", new BigDecimal("1174"),
+                "2025-05-01", new BigDecimal("1170"),
+                "2025-05-09", new BigDecimal("1136"),
+                "2025-05-16", new BigDecimal("1142"),
+                "2025-05-23", new BigDecimal("1133.5")
         );
 
         final var capitalGainsTaxRate = new BigDecimal("0.15");
@@ -1024,42 +1026,144 @@ public class ConsoleReports {
                         .stream()
                         .filter(Investment::isETF)
                         .filter(i -> i.getOut() != null)
-                        .map(i
-                                -> i.getOut()
-                                .getMoneyAmount()
-                                .subtract(this.cost(i))
-                                .adjust(BigDecimal.ONE, bnaFX.get(DTF.format(i.getOut().getDate().toInstant()))))
-                        .map(adjustedAmount -> new MoneyAmount(adjustedAmount.getAmount(), Currency.ARS))
-                        //.peek(m -> this.console.appendLine(this.format.currency(m, 20)))
+                        .map(i -> this.capitalGainARS(i, bnaFX))
                         .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add)
                         .adjust(BigDecimal.ONE, capitalGainsTaxRate),
                 20));
 
         this.console.appendLine(this.format.subtitle("Detail"));
 
-        this.console.appendLine(MessageFormat.format("{0} {1} {2} {3}",
-                "Date      ",
-                "Curr.   ",
-                "Amount      ",
-                "Capital Gain"));
-        this.series.getInvestments()
-                .stream()
-                .filter(Investment::isETF)
-                .filter(i -> i.getOut() != null)
-                .sorted(Comparator.comparing(i -> i.getOut().getDate()))
-                .map(this::sellReport)
-                .forEach(this.console::appendLine);
+        this.console.appendLine(MessageFormat.format("{0} {1} {2} {3} {4} {5} {6} {7}",
+                this.format.text("  Date", 10),
+                this.format.text("Curr.", 5),
+                this.format.text("Cant.", 8),
+                this.format.text("   Amount", 18),
+                this.format.text("   Fee", 16),
+                this.format.text("   CG USD", 16),
+                this.format.text("     TC", 16),
+                this.format.text("   CG ARS", 20)
+        ));
+
+        final Function<Investment, InvestmentGroup> classifier = switch (type) {
+            case "group" ->
+                (Investment i) -> new InvestmentGroup(i.getCurrency(), DTF.format(i.getOut().getDate().toInstant()));
+            case "groupall" ->
+                (Investment i) -> new InvestmentGroup(i.getCurrency(), "");
+            default ->
+                null;
+        };
+
+        if (classifier != null) {
+
+            Map<InvestmentGroup, Investment> grouped
+                    = this.series.getInvestments()
+                            .stream()
+                            .filter(Investment::isETF)
+                            .filter(i -> i.getOut() != null)
+                            .collect(Collectors.groupingBy(
+                                    classifier,
+                                    Collectors.reducing(null, this::union)
+                            ));
+
+            grouped.values()
+                    .stream()
+                    .sorted(Comparator.comparing((Investment i) -> i.getOut().getDate())
+                            .thenComparing(Comparator.comparing((Investment i) -> i.getCurrency())))
+                    .map(e -> this.sellReport(e, bnaFX))
+                    .forEach(this.console::appendLine);
+        } else {
+            this.series.getInvestments()
+                    .stream()
+                    .filter(Investment::isETF)
+                    .filter(i -> i.getOut() != null)
+                    .sorted(Comparator.comparing((Investment i) -> i.getOut().getDate())
+                            .thenComparing(Comparator.comparing((Investment i) -> i.getCurrency())))
+                    .map(i -> this.sellReport(i, bnaFX))
+                    .forEach(this.console::appendLine);
+        }
+    }
+
+    private record InvestmentGroup(Currency currency, String date) {
 
     }
 
-    private String sellReport(Investment i) {
+    private Investment union(Investment left, Investment right) {
 
-        return MessageFormat.format("{0} {1} {2} {3}",
+        if (left == null) {
+            return right;
+        }
+        if (right == null) {
+            return left;
+        }
+
+        var res = new Investment();
+        res.setIn(this.union(left.getIn(), right.getIn()));
+        res.setOut(this.union(left.getOut(), right.getOut()));
+
+        var c1 = left.getComment();
+        var c2 = right.getComment();
+
+        if (c1 == null && c2 == null) {
+            res.setComment(null);
+        } else {
+            res.setComment(c1 == null ? c2 : c1);
+        }
+        res.setId(left.getId());
+        res.setType(left.getType());
+        res.setInvestment(this.union(left.getInvestment(), right.getInvestment()));
+        return res;
+    }
+
+    private InvestmentAsset union(InvestmentAsset left, InvestmentAsset right) {
+
+        InvestmentAsset res = new InvestmentAsset();
+
+        res.setAmount(left.getAmount().add(right.getAmount()));
+        res.setCurrency(left.getCurrency());
+
+        return res;
+    }
+
+    private InvestmentEvent union(InvestmentEvent left, InvestmentEvent right) {
+
+        var res = new InvestmentEvent();
+
+        res.setAmount(left.getAmount().add(right.getAmount()));
+        res.setCurrency(left.getCurrency());
+        res.setDate(left.getDate().compareTo(right.getDate()) <= 0?left.getDate():right.getDate() );
+        res.setFee(left.getFee().add(right.getFee()));
+        res.setFx(left.getFx());
+
+        if (left.getTransferFee() == null) {
+            res.setTransferFee(right.getTransferFee());
+        } else if (right.getTransferFee() == null) {
+            res.setTransferFee(left.getTransferFee());
+        } else {
+            res.setTransferFee(left.getTransferFee().add(right.getTransferFee()));
+        }
+        return res;
+    }
+
+    private MoneyAmount capitalGainARS(Investment i, Map<String, BigDecimal> bnaFX) {
+        return new MoneyAmount(i.getOut()
+                .getMoneyAmount()
+                .subtract(this.cost(i))
+                .adjust(BigDecimal.ONE, bnaFX.get(DTF.format(i.getOut().getDate().toInstant()))).getAmount(),
+                Currency.ARS);
+    }
+
+    private String sellReport(Investment i, Map<String, BigDecimal> bnaFX) {
+
+        return MessageFormat.format("{0} {1} {2} {3} {4} {5} {6} {7}",
                 DateTimeFormatter.ISO_DATE.format(
                         LocalDate.ofInstant(i.getOut().getDate().toInstant(), ZoneId.systemDefault())),
                 i.getCurrency(),
-                this.format.currency(i.getOut().getMoneyAmount(), 16),
-                this.format.currency(i.getOut().getMoneyAmount().subtract(this.cost(i)), 16)
+                this.format.number(i.getInvestment().getAmount(), 8),
+                this.format.currency(i.getOut().getMoneyAmount(), 18),
+                this.format.currency(i.getOut().getFeeMoneyAmount(), 16),
+                this.format.currency(i.getOut().getMoneyAmount().subtract(this.cost(i)), 16),
+                this.format.currency(new MoneyAmount(bnaFX.get(DTF.format(i.getOut().getDate().toInstant())), Currency.ARS), 16),
+                this.format.currency(this.capitalGainARS(i, bnaFX), 20)
         );
     }
 
@@ -1067,28 +1171,17 @@ public class ConsoleReports {
         if (i.getIn().getFx() != null) {
             return new MoneyAmount(
                     i.getIn().getFx()
-                            .multiply(i.getIn().getAmount().add(this.withVAT(i, i.getIn().getFee()), C)),
+                            .multiply(
+                                    i.getIn().getAmount()
+                                            .add(i.getIn().getFee()
+                                                    .multiply(new BigDecimal("1.21"), C)
+                                            ),
+                                    C),
                     USD
             );
         }
-        return i.getIn().getMoneyAmount().add(this.withVAT(i, i.getIn().getFeeMoneyAmount()));
-
-    }
-
-    private BigDecimal withVAT(Investment i, BigDecimal fee) {
-        if (i.getComment() == null) {
-            // ppi
-            return fee.multiply(new BigDecimal("1.21"), C);
-        }
-        return fee;
-    }
-
-    private MoneyAmount withVAT(Investment i, MoneyAmount fee) {
-        if (i.getComment() == null) {
-            // ppi
-            return fee.adjust(BigDecimal.ONE, new BigDecimal("1.21"));
-        }
-        return fee;
+        return i.getIn().getMoneyAmount()
+                .add(i.getIn().getFeeMoneyAmount().adjust(BigDecimal.ONE, new BigDecimal("1.21")));
     }
 
     private <T> SoldAndBought<T> summarize(
