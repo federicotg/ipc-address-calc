@@ -591,15 +591,15 @@ public class Savings {
                 contingencyYearsAndmonths[1].setScale(0, MathConstants.RM)));
 
         final var contingencyDate = LocalDateTime.now().plusMonths(contingencyMonths.longValue());
-        final var retiementDate = LocalDateTime.of(1978 + 65, Month.MARCH, 13, 23, 59, 59);
+        final var retirementDate = LocalDateTime.of(1978 + 65, Month.MARCH, 13, 23, 59, 59);
 
-        final long gapYears = Math.ceilDiv(Duration.between(contingencyDate, retiementDate).toDays(), 365l);
+        final long gapYears = Math.ceilDiv(Duration.between(contingencyDate, retirementDate).toDays(), 365l);
 
         this.console.appendLine(format("Gap is {0,number} years.", gapYears));
 
-        final var currentIliquidAssets = new MoneyAmount(new BigDecimal("72000"), Currency.USD);
+        final var currentIliquidAssets = new MoneyAmount(new BigDecimal("50000"), Currency.USD);
 
-        final var futureIliquidAssets = new MoneyAmount(new BigDecimal("212500"), Currency.USD);
+        final var futureIliquidAssets = new MoneyAmount(new BigDecimal("160000"), Currency.USD);
 
         this.console.appendLine(format("Est. net worth is {0,number,currency}.", totalSavings.add(currentIliquidAssets).amount()));
 

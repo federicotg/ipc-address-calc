@@ -325,7 +325,7 @@ public class PortfolioReturns {
                 .flatMap(Optional::stream)
                 .sorted(comparing(DayDollars::amount).reversed())
                 .map(d -> format("\t{0} {1}",
-                String.format("%-11s", d.getType()),
+                String.format("%-13s", d.getType()),
                 this.bar.pctBar(d.amount(), total)))
                 .forEach(this.console::appendLine);
 

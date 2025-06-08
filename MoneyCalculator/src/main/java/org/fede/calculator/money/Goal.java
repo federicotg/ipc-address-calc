@@ -51,8 +51,6 @@ public class Goal {
     private final BigDecimal CAPITAL_GAINS_TAX_PCT = new BigDecimal("0.15");
 
     private final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("400");
-
-
     private final double bbppTaxRate;
     private final Console console;
     private final Format format;
@@ -117,7 +115,7 @@ public class Goal {
             amount += d;
             
         }
-
+        
         final var cgtPct = CAPITAL_GAINS_TAX_PCT.doubleValue();
 
         // withdrawing
@@ -250,6 +248,7 @@ public class Goal {
         final var bbppMin = this.series.bbppSeries()
                 .stream()
                 .map(bbpp -> bbpp.minimum().divide(bbpp.usd(), MathConstants.C))
+                //.peek(m->console.appendLine(m.toString()))
                 .mapToDouble(BigDecimal::doubleValue)
                 .average()
                 .orElse(30000d);
