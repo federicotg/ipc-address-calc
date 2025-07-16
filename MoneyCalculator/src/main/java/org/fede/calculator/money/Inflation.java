@@ -101,28 +101,28 @@ public interface Inflation extends Series {
         return answer;
     }
 
-    private InvestmentEvent real(InvestmentEvent in, YearMonth moment) {
-        if (in == null) {
+    private InvestmentEvent real(InvestmentEvent event, YearMonth moment) {
+        if (event == null) {
             return null;
         }
 
         InvestmentEvent answer = new InvestmentEvent();
-        YearMonth start = YearMonth.of(in.getDate());
-        MoneyAmount adjusted = this.adjust(in.getMoneyAmount(), start, moment);
+        YearMonth start = YearMonth.of(event.getDate());
+        MoneyAmount adjusted = this.adjust(event.getMoneyAmount(), start, moment);
         answer.setCurrency(adjusted.getCurrency());
         answer.setAmount(adjusted.getAmount());
-        answer.setDate(in.getDate());
-        Optional.ofNullable(in.getTransferFee())
-                .map(f -> new MoneyAmount(f, in.getCurrency()))
+        answer.setDate(event.getDate());
+        Optional.ofNullable(event.getTransferFee())
+                .map(f -> new MoneyAmount(f, event.getCurrency()))
                 .map(ma -> this.adjust(ma, start, moment))
                 .map(MoneyAmount::getAmount)
                 .ifPresent(answer::setTransferFee);
         answer.setFee(
                 this.adjust(
-                        new MoneyAmount(in.getFee(), in.getCurrency()),
+                        new MoneyAmount(event.getFee(), event.getCurrency()),
                         start,
                         moment).getAmount());
-        answer.setFx(in.getFx());
+        answer.setFx(event.getFx());
         return answer;
     }
 

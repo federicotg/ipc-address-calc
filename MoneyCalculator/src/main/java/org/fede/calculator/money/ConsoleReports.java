@@ -30,6 +30,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -87,7 +88,7 @@ public class ConsoleReports {
 
     // https://fred.stlouisfed.org/series/EXPINF30YR
     private static final String INFLATION = "2.42913";
-    private static final String CASH = "200000";// est
+    private static final String CASH = "0";// est
     private static final String EXPECTED_RETRUNS = "all";
     private static final String BBPP = "0.5";
     private static final String PENSION = "150";
@@ -297,6 +298,8 @@ public class ConsoleReports {
 
             case "dca" ->
                 () -> me.dca(args, "dca");
+            case "invested" ->
+                () -> me.invested(args, "invested");
 
             case "ccl" ->
                 () -> new PPI(console, format, new SingleHttpClientSupplier()).dollar();
@@ -393,6 +396,7 @@ public class ConsoleReports {
                         new CmdParam("inv", "type=(all|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
                         new CmdParam("inv-evo", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         new CmdParam("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
+                        new CmdParam("invested", "type=(long|all|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q|h|y|all) nominal=false"), 
                         new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false"),
                         new CmdParam("saved-salaries-evo", "months=12"),
                         new CmdParam("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
@@ -403,7 +407,7 @@ public class ConsoleReports {
                         new CmdParam("savings-avg-pct", "m=12"),
                         new CmdParam("expenses", "by=(year|half|quarter|month) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
                         new CmdParam("expenses-change", "type=(full|tracked*) m=12"),
-                        new CmdParam("expenses-evo", "type=(taxes|insurance|phone|services|home|entertainment) m=12"),
+                        new CmdParam("expenses-evo", "type=(full|taxes|insurance|phone|services|home|entertainment) m=12"),
                         new CmdParam("savings-evo", "type=(BO|LIQ|EQ)"),
                         new CmdParam("dca", "type=(q*|h|y|m)"),
                         new CmdParam("pos", "nominal=false")
@@ -758,6 +762,15 @@ public class ConsoleReports {
                 .dca(nominal(params), type);
     }
 
+    private void invested(String[] args, String paramName) {
+        final var params = this.paramsValue(args, paramName);
+
+        final var group = params.getOrDefault("group", "q");
+        final var type = params.getOrDefault("type", "long");
+        new Positions(this.console, this.format, this.series, this.bar)
+                .invested(nominal(params), type, group);
+    }
+
     private void invEvo(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
         final var currency = Optional.ofNullable(params.get("type"))
@@ -1021,14 +1034,20 @@ public class ConsoleReports {
                         .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
                         .adjust(BigDecimal.ONE, capitalGainsTaxRate), 20));
 
+        final var arsTax = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .filter(i -> i.getOut() != null)
+                .map(i -> this.capitalGainARS(i, bnaFX))
+                .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add)
+                .adjust(BigDecimal.ONE, capitalGainsTaxRate);
+
         this.console.appendLine(this.format.currency(
-                this.series.getInvestments()
-                        .stream()
-                        .filter(Investment::isETF)
-                        .filter(i -> i.getOut() != null)
-                        .map(i -> this.capitalGainARS(i, bnaFX))
-                        .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add)
-                        .adjust(BigDecimal.ONE, capitalGainsTaxRate),
+                arsTax,
+                20));
+
+        this.console.appendLine("Current ", this.format.currency(
+                ForeignExchanges.getForeignExchange(Currency.ARS, USD).exchange(arsTax, USD, new Date()),
                 20));
 
         this.console.appendLine(this.format.subtitle("Detail"));
@@ -1130,7 +1149,7 @@ public class ConsoleReports {
 
         res.setAmount(left.getAmount().add(right.getAmount()));
         res.setCurrency(left.getCurrency());
-        res.setDate(left.getDate().compareTo(right.getDate()) <= 0?left.getDate():right.getDate() );
+        res.setDate(left.getDate().compareTo(right.getDate()) <= 0 ? left.getDate() : right.getDate());
         res.setFee(left.getFee().add(right.getFee()));
         res.setFx(left.getFx());
 
@@ -1191,6 +1210,8 @@ public class ConsoleReports {
             BinaryOperator<T> reduction) {
         final var limitDate = LocalDateTime.of(2025, Month.APRIL, 2, 0, 0, 0, 0);
 
+        final var lastBuyDate = LocalDateTime.of(2025, Month.JUNE, 30, 0, 0, 0, 0);
+
         return new SoldAndBought<>(
                 this.series.getInvestments()
                         .stream()
@@ -1210,6 +1231,12 @@ public class ConsoleReports {
                                 .atZone(ZoneId.systemDefault())
                                 .toLocalDateTime()
                                 .isAfter(limitDate))
+                        .filter(e
+                                -> e.getDate()
+                                .toInstant()
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDateTime()
+                                .isBefore(lastBuyDate))
                         .map(buyMapper)
                         .reduce(identity, reduction));
 

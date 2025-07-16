@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.joining;
@@ -64,6 +65,11 @@ import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
+import static org.fede.calculator.money.series.InvestmentType.ETF;
+import static org.fede.calculator.money.series.InvestmentType.FCI;
+import static org.fede.calculator.money.series.InvestmentType.PF;
+import static org.fede.calculator.money.series.InvestmentType.BONO;
+
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
@@ -186,14 +192,14 @@ public class Positions {
                 .filter(investment -> investment.getOut() != null)
                 .map(inv -> ForeignExchanges.exchange(inv, USD))
                 .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
-                .map(i -> 
-                        new BoughtSold(
-                                i.getInitialMoneyAmount()
-                                        .add(i.getIn().getFeeMoneyAmount()
-                                                .adjust(ONE, i.getComment() == null 
-                                                        ? new BigDecimal("1.21")
-                                                        : ONE)),
-                                i.getOut().getMoneyAmount()))
+                .map(i
+                        -> new BoughtSold(
+                        i.getInitialMoneyAmount()
+                                .add(i.getIn().getFeeMoneyAmount()
+                                        .adjust(ONE, i.getComment() == null
+                                                ? new BigDecimal("1.21")
+                                                : ONE)),
+                        i.getOut().getMoneyAmount()))
                 .map(BoughtSold::capitalGain)
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
@@ -225,6 +231,11 @@ public class Positions {
         final var classifier = groupings.get(type);
         this.dca(nominal, classifier, now);
 
+    }
+
+    public void invested(boolean nominal, String type, String group) {
+        this.console.appendLine(this.format.subtitle("Inv"));
+        this.netInvested(nominal, type, group);
     }
 
     private void dca(boolean nominal, Function<Investment, String> groupingFunction, Date now) {
@@ -270,7 +281,69 @@ public class Positions {
                         .map(this::currentPice)
                         .collect(joining()));
     }
+    
+    private void netInvested(boolean nominal, String type, String group) {
 
+        final Map<String, Function<CashFlow, String>> groupings = Map.of(
+                "h", i -> YearMonth.of(i.date()).half(),
+                "y", i -> Integer.toString(YearMonth.of(i.date()).getYear()),
+                "m", i -> YearMonth.of(i.date()).monthString(),
+                "q", i -> YearMonth.of(i.date()).quarter(),
+                "all", i -> ""
+        
+        );
+
+        Predicate<Investment> filter = switch (type){
+            case "long" -> this::isLong;
+            case "etf" -> (Investment i) -> i.getType() == InvestmentType.ETF;
+            case "fci" ->  (Investment i) -> i.getType() == InvestmentType.FCI;
+            case "pf" -> (Investment i) -> i.getType() == InvestmentType.PF;
+            case "pfusd" -> (Investment i) -> i.getType() == InvestmentType.PF && i.getCurrency() == USD;
+            case "pfars" -> (Investment i) -> i.getType() == InvestmentType.PF && i.getCurrency() == Currency.ARS;
+            case "all" -> i -> true;
+            default -> (Investment i) -> i.getCurrency().name().equals(type);
+        };
+        
+        final Function<CashFlow, String> groupingFunction = groupings.get(group);
+        
+        final Map<String, BigDecimal> grouped = this.series.getInvestments()
+                .stream()
+                .filter(filter)
+                .map(inv -> ForeignExchanges.exchange(inv, USD))
+                .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
+                .flatMap(i
+                        -> i.getOut() == null
+                ? Stream.of(new CashFlow(i.getIn().getDate(), i.getIn().getAmount()))
+                : Stream.of(
+                        new CashFlow(i.getOut().getDate(), i.getOut().getAmount().negate()),
+                        new CashFlow(i.getIn().getDate(), i.getIn().getAmount())
+                ))
+                .collect(Collectors.groupingBy(
+                        groupingFunction,
+                        Collectors.mapping(CashFlow::amount,
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                        )));
+
+        grouped.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(e -> this.console.appendLine(
+                e.getKey() + " " + this.format.currencyPL(e.getValue(), 20)
+        ));
+    }
+
+    private boolean isLong(Investment i){
+        return i.getType() == ETF 
+                || i.getType() == FCI 
+                || i.getType() == BONO
+                || i.getCurrency() == UVA
+                || (i.getType() == PF && i.getCurrency() == USD);
+    }
+    
+    private record CashFlow(Date date, BigDecimal amount) {
+
+    };
+    
     private MoneyAmount current(Currency currency) {
         final var ma = new MoneyAmount(ONE, currency);
         return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), USD).apply(ma, Inflation.USD_INFLATION.getTo());

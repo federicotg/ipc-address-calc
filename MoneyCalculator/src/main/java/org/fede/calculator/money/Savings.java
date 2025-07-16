@@ -330,7 +330,7 @@ public class Savings {
         final var maSeries = List.of(unlp, lifia, despARS, despUSD, other);
 
         unlp.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, maSeries, colorList), 4000)));
+                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, maSeries, colorList), 4500)));
 
         new References(console, format).refs(
                 title,

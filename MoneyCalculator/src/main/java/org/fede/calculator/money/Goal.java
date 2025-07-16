@@ -50,6 +50,13 @@ public class Goal {
 
     private final BigDecimal CAPITAL_GAINS_TAX_PCT = new BigDecimal("0.15");
 
+    private final Map<Integer, BigDecimal> EXTRA_INCOME = Map.of(
+            //2034, new BigDecimal("0"), // 56
+            //2035, new BigDecimal("0"), // 57
+            //2041, new BigDecimal("0"), // 63
+            2042, new BigDecimal("300000") // 64
+    );
+
     private final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("400");
     private final double bbppTaxRate;
     private final Console console;
@@ -109,15 +116,11 @@ public class Goal {
             final var d = deposit[i - startingYear];
 
             amount -= bbpp;
-
             amount = amount * returns[i - startingYear];
-
-            amount += d;
-            
+            amount += d + EXTRA_INCOME.getOrDefault(i, BigDecimal.ZERO).doubleValue();
         }
-        
-        final var cgtPct = CAPITAL_GAINS_TAX_PCT.doubleValue();
 
+        final var cgtPct = CAPITAL_GAINS_TAX_PCT.doubleValue();
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
@@ -130,14 +133,8 @@ public class Goal {
             effectiveTaxPct = gainTaxPct / gainPct;
             capitalGainsTaxFactor = 1.0d / (1.0d - effectiveTaxPct);
 
-            final var lastYearReturn = returns[i - startingYear - 1];
-
-            // withdrawal strategy: bad year => withdraw less.
-            var thisYearWithdrawal = Math.min(
-                    withdrawal[i - startingYear], 
-                    withdrawal[i - startingYear] * lastYearReturn);
-
-            if (cashAmount >= thisYearWithdrawal && lastYearReturn < 1.0d) {
+            var thisYearWithdrawal = withdrawal[i - startingYear];
+            if (cashAmount >= thisYearWithdrawal) {
                 // usar cash 
                 cashAmount -= thisYearWithdrawal;
             } else {
@@ -149,6 +146,12 @@ public class Goal {
             amount -= bbpp * capitalGainsTaxFactor;
             // yearly returns
             amount *= returns[i - startingYear];
+
+            //if (cashAmount >= thisYearWithdrawal) {
+            //    amount += EXTRA_INCOME.getOrDefault(i, BigDecimal.ZERO).doubleValue();
+            //} else {
+            cashAmount += EXTRA_INCOME.getOrDefault(i, BigDecimal.ZERO).doubleValue();
+            //}
         }
         return amount + cashAmount;
     }
@@ -173,17 +176,17 @@ public class Goal {
         final var monthlyWithdraw = spendingAndSaving.spending().getAmount()
                 .subtract(new BigDecimal(pension), C);
 
-        this.goal(trials, 
-                monthlyDeposit, 
-                monthlyWithdraw, 
-                inflation, 
-                retirementAge, 
-                extraCash, 
-                age, 
-                pension, 
-                todaySavings, 
-                invested, 
-                expected, 
+        this.goal(trials,
+                monthlyDeposit,
+                monthlyWithdraw,
+                inflation,
+                retirementAge,
+                extraCash,
+                age,
+                pension,
+                todaySavings,
+                invested,
+                expected,
                 badReturnYears);
     }
 
