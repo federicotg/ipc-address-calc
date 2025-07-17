@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -32,7 +31,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,7 +38,6 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import java.util.stream.Stream;
@@ -275,9 +272,6 @@ public class ConsoleReports {
             case "bbpp-evo" ->
                 new BBPP(format, series, console)::bbppEvolution;
 
-            case "ibkr" ->
-                () -> me.ibkrCSV();
-
             case "all-charts" ->
                 () -> me.allCharts();
 
@@ -360,6 +354,7 @@ public class ConsoleReports {
                                 BAD_RETURN_YEARS
                         )),
                         new CmdParam("savings-change", "m=1"),
+                        new CmdParam("savings-change-pct", "m=1"),
                         new CmdParam("i"),
                         new CmdParam("ti"),
                         new CmdParam("gi"),
@@ -376,7 +371,6 @@ public class ConsoleReports {
                         new CmdParam("all-charts"),
                         new CmdParam("cash"),
                         new CmdParam("bench"),
-                        new CmdParam("ibkr"),
                         new CmdParam("mdr-by-currency"),
                         new CmdParam("income-src", "m=12"),
                         new CmdParam("income-src-pct", "m=12"),
@@ -388,15 +382,15 @@ public class ConsoleReports {
                         new CmdParam("savings-dist"),
                         new CmdParam("savings-dist-pct"),
                         new CmdParam("income-avg-change", "m=12"),
-                        new CmdParam("income", "by=(year|half|quarter) months=12"),
-                        new CmdParam("savings", "by=(year|half|quarter)"),
+                        new CmdParam("income", "by=(year|half|quarter*) months=12"),
+                        new CmdParam("savings", "by=(year|half|quarter*)"),
                         new CmdParam("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
                         new CmdParam("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
-                        new CmdParam("p-evo-pct", "type=(all|ETF|BONO|PF|FCI)"),
-                        new CmdParam("inv", "type=(all|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
-                        new CmdParam("inv-evo", "type=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                        new CmdParam("inv-evo-pct", "curency=(all|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                        new CmdParam("invested", "type=(long|all|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q|h|y|all) nominal=false"), 
+                        new CmdParam("p-evo-pct", "type=(all*|ETF|BONO|PF|FCI)"),
+                        new CmdParam("inv", "type=(all*|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
+                        new CmdParam("inv-evo", "type=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
+                        new CmdParam("inv-evo-pct", "curency=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
+                        new CmdParam("invested", "type=(long*|all*|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all) nominal=false"), 
                         new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false"),
                         new CmdParam("saved-salaries-evo", "months=12"),
                         new CmdParam("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
@@ -405,9 +399,9 @@ public class ConsoleReports {
                         new CmdParam("bbppstatus"),
                         new CmdParam("savings-net-change", "m=12"),
                         new CmdParam("savings-avg-pct", "m=12"),
-                        new CmdParam("expenses", "by=(year|half|quarter|month) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
-                        new CmdParam("expenses-change", "type=(full|tracked*) m=12"),
-                        new CmdParam("expenses-evo", "type=(full|taxes|insurance|phone|services|home|entertainment) m=12"),
+                        new CmdParam("expenses", "by=(year|half|quarter*|month) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
+                        new CmdParam("expenses-change", "m=12"),
+                        new CmdParam("expenses-evo", "type=(full|taxes|insurance|services|home|entertainment) m=12"),
                         new CmdParam("savings-evo", "type=(BO|LIQ|EQ)"),
                         new CmdParam("dca", "type=(q*|h|y|m)"),
                         new CmdParam("pos", "nominal=false")
@@ -550,8 +544,7 @@ public class ConsoleReports {
 
         var params = this.paramsValue(args, name);
         final var months = months(params);
-        final var type = params.getOrDefault("type", "tracked");
-        new Expenses(series, console, bar, format).expensesChange(type, months);
+        new Expenses(series, console, bar, format).expensesChange(months);
     }
 
     private void incomeAverageEvolution(String[] args, String paramName) {
@@ -681,15 +674,6 @@ public class ConsoleReports {
 
     }
 
-    private void ibkrCSV() {
-
-        this.series.getInvestments()
-                .stream()
-                .filter(Investment::isETF)
-                .filter(inv -> Objects.isNull(inv.getComment()))
-                .map(this::assetRow)
-                .forEach(this::appendLine);
-    }
 
     private void ibkrPositions(int year) {
 
@@ -712,35 +696,6 @@ public class ConsoleReports {
                 .forEach(console::appendLine);
     }
 
-    private String assetRow(Investment inv) {
-
-        final var isins = Map.of(
-                EIMI, "IE00BKM4GZ66",
-                XRSU, "IE00BJZ2DD79",
-                CSPX, "IE00B5BMR087",
-                MEUD, "LU0908500753");
-
-        final DateTimeFormatter mdy = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault());
-
-        final var numberFormat = NumberFormat.getInstance(Locale.US);
-        numberFormat.setGroupingUsed(false);
-        numberFormat.setMaximumFractionDigits(2);
-        numberFormat.setMinimumFractionDigits(2);
-
-        return List.of("A",
-                inv.getInvestment().getCurrency().name(),
-                isins.get(inv.getInvestment().getCurrency()),
-                "USD",
-                mdy.format(inv.getIn().getDate().toInstant()),
-                "BUY",
-                "Investment",
-                "ETF",
-                numberFormat.format(inv.getInvestment().getAmount()),
-                numberFormat.format(inv.getIn().getAmount().divide(inv.getInvestment().getAmount(), C)),
-                numberFormat.format(inv.getIn().getFeeMoneyAmount().getAmount()))
-                .stream()
-                .collect(joining(","));
-    }
 
     private void invEvoPct(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);

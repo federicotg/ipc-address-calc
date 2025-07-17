@@ -48,7 +48,7 @@ public class Expenses {
         this.format = format;
     }
 
-    public void expensesChange(String type, int months) {
+    public void expensesChange(int months) {
 
         this.console.appendLine(this.format.title("Expenses Change"));
 
