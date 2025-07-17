@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import static java.text.MessageFormat.format;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -64,7 +63,7 @@ public class Group {
 
         byYear.entrySet()
                 .stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .sorted(Map.Entry.comparingByKey())
                 .forEach(e -> this.console.appendLine(
                 format("{0}{1}{2} {3}",
                         this.format.text(e.getKey(), 9),

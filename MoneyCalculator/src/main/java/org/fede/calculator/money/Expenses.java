@@ -165,7 +165,7 @@ public class Expenses {
         final var seriesGroups = source;
 
         final var ss = seriesGroups.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .sorted(Map.Entry.comparingByKey())
                 .map(e -> e.getValue().stream().reduce(MoneyAmountSeries::add).get())
                 .map(agg::average)
                 .toList();

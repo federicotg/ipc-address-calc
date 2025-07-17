@@ -170,7 +170,7 @@ public class PortfolioReturns {
         this.mdrByYear(inv, from, to, nominal, returnTypeFunction)
                 .entrySet()
                 .stream()
-                .sorted(comparing(Map.Entry::getKey))
+                .sorted(Map.Entry.comparingByKey())
                 .map(lineFunction)
                 .forEach(this.console::appendLine);
 
@@ -307,7 +307,7 @@ public class PortfolioReturns {
                         groupingBy(DayDollars::getType, reducing(DayDollars::combine))))
                 .entrySet()
                 .stream()
-                .sorted(comparing(Map.Entry::getKey))
+                .sorted(Map.Entry.comparingByKey())
                 .forEach(e -> this.allocationYear(e.getKey(), e.getValue(), mdrByYear));
     }
 
