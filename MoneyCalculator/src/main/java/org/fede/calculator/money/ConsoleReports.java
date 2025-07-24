@@ -52,6 +52,7 @@ import static org.fede.calculator.money.Currency.CSPX;
 import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.RTWO;
+import static org.fede.calculator.money.Currency.XUSE;
 import static org.fede.calculator.money.Currency.XRSU;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.chart.BarChart;
@@ -365,6 +366,7 @@ public class ConsoleReports {
                         new CmdParam("p-type-evo-pct"),
                         new CmdParam("condo"),
                         new CmdParam("ccl"),
+                        new CmdParam("lti"),
                         new CmdParam("bbpp-evo"),
                         new CmdParam("routes"),
                         new CmdParam("balances"),
@@ -859,12 +861,15 @@ public class ConsoleReports {
         final var values = Map.of(
                 CSPX, SeriesReader.readSeries("saving/ahorros-cspx.json"),
                 EIMI, SeriesReader.readSeries("saving/ahorros-eimi.json"),
-                MEUD, SeriesReader.readSeries("saving/ahorros-meud.json"),
+                //MEUD, SeriesReader.readSeries("saving/ahorros-meud.json"),
+                XUSE, 
+                    SeriesReader.readSeries("saving/ahorros-xuse.json")
+                    .add(SeriesReader.readSeries("saving/ahorros-meud.json")),
                 RTWO, SeriesReader.readSeries("saving/ahorros-rtwo.json"),
                 XRSU, SeriesReader.readSeries("saving/ahorros-xrsu.json"));
 
         final List<CategoryDatasetItem> l = new ArrayList<>(values.size() * 2);
-        for (var currency : List.of(CSPX, MEUD, EIMI, XRSU, RTWO)) {
+        for (var currency : List.of(CSPX, XUSE, EIMI, XRSU, RTWO)) {
             final var fx = ForeignExchanges.getMoneyAmountForeignExchange(currency, USD);
             Stream.of(prev, now)
                     .map(moment -> new CategoryDatasetItem(currency, moment.monthString(), fx.apply(values.get(currency).getAmount(moment), moment).amount()))

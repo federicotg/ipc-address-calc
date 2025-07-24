@@ -93,45 +93,49 @@ public class Series {
 
     public Map<String, List<MoneyAmountSeries>> getRealUSDExpensesByType() {
 
+        // categories 
+        // ESSENTIAL,
+        // DISCRETIONARY, 
+        // IRREGULAR
         if (this.realUSDExpensesByType == null) {
 
             this.realUSDExpensesByType = Stream.of(
-                    of("taxes", "bbpp"),
-                    of("taxes", "inmobiliario-43"),
-                    of("taxes", "monotributo-angeles"),
-                    of("taxes", "monotributo"),
-                    of("taxes", "municipal-43"),
-                    of("taxes", "contadora"),
-                    of("services", "celular-a"),
-                    of("services", "celular-f"),
-                    of("services", "telefono-43"),
-                    of("insurance", "emergencia"),
-                    of("insurance", "ioma"),
-                    of("insurance", "seguro"),
-                    of("services", "gas"),
-                    of("services", "luz"),
-                    of("services", "santander"),
-                    of("services", "cablevision"),
-                    of("other", "cafe"),
-                    of("other", "other"),
-                    of("other", "other-usd"),
-                    of("home", "reparaciones"),
-                    of("services", "limpieza"),
-                    of("home", "expensas"),
-                    of("entertainment", "netflix"),
-                    of("entertainment", "netflix-usd"),
-                    of("entertainment", "viajes"),
-                    of("entertainment", "viajes-usd"),
-                    of("entertainment", "xbox"))
+                    of("1-ESSENTIAL", "bbpp"),
+                    of("1-ESSENTIAL", "inmobiliario-43"),
+                    of("1-ESSENTIAL", "monotributo-angeles"),
+                    of("1-ESSENTIAL", "monotributo"),
+                    of("1-ESSENTIAL", "municipal-43"),
+                    of("1-ESSENTIAL", "contadora"),
+                    of("2-DISCRETIONARY", "celular-a"),
+                    of("2-DISCRETIONARY", "celular-f"),
+                    of("2-DISCRETIONARY", "telefono-43"),
+                    of("1-ESSENTIAL", "emergencia"),
+                    of("1-ESSENTIAL", "ioma"),
+                    of("1-ESSENTIAL", "seguro"),
+                    of("1-ESSENTIAL", "gas"),
+                    of("1-ESSENTIAL", "luz"),
+                    of("2-DISCRETIONARY", "santander"),
+                    of("2-DISCRETIONARY", "cablevision"),
+                    of("2-DISCRETIONARY", "cafe"),
+                    of("3-IRREGULAR", "other"),
+                    of("3-IRREGULAR", "other-usd"),
+                    of("3-IRREGULAR", "reparaciones"),
+                    of("2-DISCRETIONARY", "limpieza"),
+                    of("1-ESSENTIAL", "expensas"),
+                    of("2-DISCRETIONARY", "netflix"),
+                    of("2-DISCRETIONARY", "netflix-usd"),
+                    of("2-DISCRETIONARY", "viajes"),
+                    of("2-DISCRETIONARY", "viajes-usd"),
+                    of("2-DISCRETIONARY", "xbox"),
+                    of("2-DISCRETIONARY", "atlantico"),
+                    of("2-DISCRETIONARY", "itau-uy"))
                     .collect(groupingBy(
                             Pair::first,
                             mapping(p -> this.asRealUSDSeries("expense/", p.second()),
                                     Collectors.toList())));
-            this.realUSDExpensesByType.put("investing",
+            this.realUSDExpensesByType.put("3-IRREGULAR",
                     List.of(
-                            this.investingExpenses(),
-                            this.asRealUSDSeries("expense/", "atlantico"),
-                            this.asRealUSDSeries("expense/", "itau-uy")
+                            this.investingExpenses()
                     ));
         }
 
@@ -175,7 +179,7 @@ public class Series {
                 .collect(Collectors.toList());
 
     }
-
+    
     private MoneyAmountSeries investingExpenses() {
 
         final List<Cost> buyCost
@@ -278,14 +282,13 @@ public class Series {
             final var limit = USD_INFLATION.getTo();
 
             //final var adjuster = new MonthlyInvestmentSavingsAdjuster(this);
-
             this.realNetSavings = this.savingsSeries()
                     .map(new SimpleAggregation(2)::change)
                     .map(series -> series.exchangeInto(Currency.USD))
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
                     .reduce(MoneyAmountSeries::add)
                     .get();
-                    //.map((ym, ma) -> ma.subtract(USD_INFLATION.adjust(adjuster.difference(ym), ym, limit)));
+            //.map((ym, ma) -> ma.subtract(USD_INFLATION.adjust(adjuster.difference(ym), ym, limit)));
         }
         return this.realNetSavings;
     }
@@ -342,8 +345,10 @@ public class Series {
                 .reduce(MoneyAmountSeries::add)
                 .get();
     }
-
+    
     public MoneyAmountSeries realExpenses(String type) {
+        
+        
 
         return this.getRealUSDExpensesByType().entrySet()
                 .stream()

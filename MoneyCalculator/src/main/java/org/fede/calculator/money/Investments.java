@@ -559,7 +559,7 @@ public class Investments {
 
         final var inv = this.getInvestments()
                 .filter(Investment::isETF)
-                .filter(i -> Objects.isNull(currency) || Objects.equals(currency, i.getCurrency()))
+                .filter(i -> Objects.isNull(currency) || currency == i.getCurrency())
                 .sorted(comparing(Investment::getInitialDate, Comparator.naturalOrder()))
                 .toList();
 
