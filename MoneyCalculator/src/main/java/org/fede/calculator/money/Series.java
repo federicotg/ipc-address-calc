@@ -133,10 +133,9 @@ public class Series {
                             Pair::first,
                             mapping(p -> this.asRealUSDSeries("expense/", p.second()),
                                     Collectors.toList())));
-            this.realUSDExpensesByType.put("3-IRREGULAR",
-                    List.of(
-                            this.investingExpenses()
-                    ));
+            this.realUSDExpensesByType.get("3-IRREGULAR").add(
+                    this.investingExpenses()
+            );
         }
 
         return realUSDExpensesByType;
@@ -179,7 +178,7 @@ public class Series {
                 .collect(Collectors.toList());
 
     }
-    
+
     private MoneyAmountSeries investingExpenses() {
 
         final List<Cost> buyCost
@@ -345,10 +344,8 @@ public class Series {
                 .reduce(MoneyAmountSeries::add)
                 .get();
     }
-    
+
     public MoneyAmountSeries realExpenses(String type) {
-        
-        
 
         return this.getRealUSDExpensesByType().entrySet()
                 .stream()
