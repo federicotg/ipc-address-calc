@@ -20,8 +20,8 @@ import com.diogonunes.jcolor.Attribute;
 import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import static org.fede.calculator.money.Format.format;
 import java.text.MessageFormat;
-import static java.text.MessageFormat.format;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -89,8 +89,8 @@ public class Savings {
 
         this.savingsRefs(title);
 
-        final var may = YearMonth.of(2025, 5);
-        final var apr = YearMonth.of(2025, 4);
+        //final var may = YearMonth.of(2025, 5);
+        //final var apr = YearMonth.of(2025, 4);
         //this.debug(apr);
         //this.debug(may);
 
@@ -198,7 +198,7 @@ public class Savings {
 
     private void income(int months) {
         final var limit = USD_INFLATION.getTo();
-        final var averageRealUSDIncome = this.series.getIncomeSeries()
+        final var averageRealUSDIncome = this.series.getRegularIncomeSeries()
                 .stream()
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(new SimpleAggregation(months)::average)
@@ -215,9 +215,13 @@ public class Savings {
                 " ",
                 this.format.currency(averageRealUSDIncome.getAmount()));
 
-        final var savingPct = new MoneyAmount(averageRealUSDIncome.getAmount().multiply(new BigDecimal("0.5"), C), averageRealUSDIncome.getCurrency());
+        final var savingRate = new BigDecimal("0.66");
+        
+        final var savingPct = new MoneyAmount(
+                averageRealUSDIncome.getAmount().multiply(savingRate, C), 
+                averageRealUSDIncome.getCurrency());
 
-        this.console.appendLine("50% saving: ",
+        this.console.appendLine(format.percent(savingRate)," saving: ",
                 averageRealUSDIncome.getCurrency().name(),
                 " ",
                 this.format.currency(savingPct.getAmount()),
@@ -286,7 +290,7 @@ public class Savings {
         } else {
             var scale = switch (months) {
                 case 1 ->
-                    200;
+                    170;
                 case 2, 3 ->
                     140;
                 case 4, 5, 6 ->
@@ -597,13 +601,18 @@ public class Savings {
 
         this.console.appendLine(format("Gap is {0,number} years.", gapYears));
 
-        final var currentIliquidAssets = new MoneyAmount(new BigDecimal("50000"), Currency.USD);
+        final var currentIlliquidAssets = new MoneyAmount(new BigDecimal("75000"), Currency.USD);// 50% 43 y d80
 
-        final var futureIliquidAssets = new MoneyAmount(new BigDecimal("160000"), Currency.USD);
+        final var futureIlliquidAssets = new MoneyAmount(new BigDecimal("137500"), Currency.USD);// 50% 47 53 moreno colon
 
-        this.console.appendLine(format("Est. net worth is {0,number,currency}.", totalSavings.add(currentIliquidAssets).amount()));
+        // 50% caja, severance y deuda casa
+        final var futureCash = new MoneyAmount(new BigDecimal("195320"), Currency.USD);
 
-        this.console.appendLine(format("Future est. net worth is {0,number,currency}.", totalSavings.add(futureIliquidAssets).amount()));
+        this.console.appendLine(format("Future est. net worth is {0,number,currency}.",
+                totalSavings
+                        .add(currentIlliquidAssets)
+                        .add(futureCash)
+                        .add(futureIlliquidAssets).amount()));
 
     }
 
@@ -688,7 +697,7 @@ public class Savings {
         this.console.appendLine(this.format.title(title));
 
         final var savings = new SimpleAggregation(months).average(this.series.realSavings(null));
-        final var income = new SimpleAggregation(months).average(this.series.realIncome());
+        final var income = new SimpleAggregation(months).average(this.series.realRegularIncome());
 
         this.bar.evolution(title,
                 income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).getAmount().divide(ONE.max(ma.getAmount()), C), ma.getCurrency())),

@@ -234,9 +234,9 @@ public class Investment {
     }
 
     private BigDecimal ibkrCost() {
-        return this.getIn().getFee()
-                .add(this.getIn().getTransferFee(), C);
-    }
+            return this.getIn().getFee()
+                    .add(this.getIn().getTransferFee(), C);
+        }
 
     public boolean isETF() {
         return this.getType() == InvestmentType.ETF;

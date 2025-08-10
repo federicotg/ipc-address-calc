@@ -85,7 +85,7 @@ public class ConsoleReports {
     private static final String AGE = "95";
 
     // https://fred.stlouisfed.org/series/EXPINF30YR
-    private static final String INFLATION = "2.42913";
+    private static final String INFLATION = "2.44367";
     private static final String CASH = "0";// est
     private static final String EXPECTED_RETRUNS = "all";
     private static final String BBPP = "0.5";
@@ -144,7 +144,7 @@ public class ConsoleReports {
             return i.getCurrency() == XRSU || i.getCurrency() == RTWO;
         }
         if ("exus".equalsIgnoreCase(type)) {
-            return i.getCurrency() == EIMI || i.getCurrency() == MEUD;
+            return i.getCurrency() == EIMI || i.getCurrency() == MEUD || i.getCurrency() == Currency.XUSE;
         }
 
         return i.getCurrency().name().equalsIgnoreCase(type);
@@ -392,7 +392,7 @@ public class ConsoleReports {
                         new CmdParam("inv", "type=(all*|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
                         new CmdParam("inv-evo", "type=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         new CmdParam("inv-evo-pct", "curency=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                        new CmdParam("invested", "type=(long*|all*|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all) nominal=false"), 
+                        new CmdParam("invested", "type=(long*|all*|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all) nominal=false"),
                         new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false"),
                         new CmdParam("saved-salaries-evo", "months=12"),
                         new CmdParam("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
@@ -676,7 +676,6 @@ public class ConsoleReports {
 
     }
 
-
     private void ibkrPositions(int year) {
 
         this.series.getInvestments()
@@ -697,7 +696,6 @@ public class ConsoleReports {
                 .sorted()
                 .forEach(console::appendLine);
     }
-
 
     private void invEvoPct(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
@@ -862,9 +860,9 @@ public class ConsoleReports {
                 CSPX, SeriesReader.readSeries("saving/ahorros-cspx.json"),
                 EIMI, SeriesReader.readSeries("saving/ahorros-eimi.json"),
                 //MEUD, SeriesReader.readSeries("saving/ahorros-meud.json"),
-                XUSE, 
-                    SeriesReader.readSeries("saving/ahorros-xuse.json")
-                    .add(SeriesReader.readSeries("saving/ahorros-meud.json")),
+                XUSE,
+                SeriesReader.readSeries("saving/ahorros-xuse.json")
+                        .add(SeriesReader.readSeries("saving/ahorros-meud.json")),
                 RTWO, SeriesReader.readSeries("saving/ahorros-rtwo.json"),
                 XRSU, SeriesReader.readSeries("saving/ahorros-xrsu.json"));
 

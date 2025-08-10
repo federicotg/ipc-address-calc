@@ -136,7 +136,7 @@ public class Expenses {
 
     }
 
-    public void expenseBySource(int months, Map<String, List<MoneyAmountSeries>> source) {
+    private void expenseBySource(int months, Map<String, List<MoneyAmountSeries>> source) {
 
         final var title = format("Average {0}-month expenses by source", months);
 
@@ -144,20 +144,7 @@ public class Expenses {
                 Attribute.BLUE_BACK(),
                 Attribute.RED_BACK(),
                 Attribute.YELLOW_BACK(),
-                Attribute.GREEN_BACK(),
-                Attribute.MAGENTA_BACK(),
-                Attribute.BLACK_BACK(),
-                Attribute.WHITE_BACK(),
-                Attribute.CYAN_BACK(),
-                Attribute.BRIGHT_BLUE_BACK(),
-                Attribute.BRIGHT_RED_BACK(),
-                Attribute.BRIGHT_YELLOW_BACK(),
-                Attribute.BRIGHT_GREEN_BACK(),
-                Attribute.BRIGHT_MAGENTA_BACK(),
-                Attribute.BRIGHT_BLACK_BACK(),
-                Attribute.BRIGHT_WHITE_BACK(),
-                Attribute.BRIGHT_CYAN_BACK()
-        );
+                Attribute.GREEN_BACK());
         this.console.appendLine(this.format.title(title));
 
         final var agg = new SimpleAggregation(months);
@@ -177,8 +164,15 @@ public class Expenses {
 
         final var oldestSeries = ss.stream().min(Comparator.comparing(MoneyAmountSeries::getFrom)).get();
 
+        final var scale = switch(months){
+            case 1 -> 80;
+            case 2 -> 60;
+            case 3 -> 40;
+            default -> 20;
+        };
+        
         oldestSeries.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, ss, colorList), 15)));
+                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, ss, colorList), scale)));
 
         new References(console, format).refs(title, labels, colorList);
 

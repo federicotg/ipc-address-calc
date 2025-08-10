@@ -42,6 +42,11 @@ import static org.fede.util.Pair.of;
  */
 public class Series {
 
+    private static final String OTHER = "3-OTHER";
+    private static final String ESSENTIAL = "1-ESSENTIAL";
+    private static final String DISCRETIONARY = "2-DISCRETIONARY";
+    private static final String IRREGULAR = "4-IRREGULAR";
+
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
 
@@ -93,48 +98,46 @@ public class Series {
 
     public Map<String, List<MoneyAmountSeries>> getRealUSDExpensesByType() {
 
-        // categories 
-        // ESSENTIAL,
-        // DISCRETIONARY, 
-        // IRREGULAR
         if (this.realUSDExpensesByType == null) {
 
             this.realUSDExpensesByType = Stream.of(
-                    of("1-ESSENTIAL", "bbpp"),
-                    of("1-ESSENTIAL", "inmobiliario-43"),
-                    of("1-ESSENTIAL", "monotributo-angeles"),
-                    of("1-ESSENTIAL", "monotributo"),
-                    of("1-ESSENTIAL", "municipal-43"),
-                    of("1-ESSENTIAL", "contadora"),
-                    of("2-DISCRETIONARY", "celular-a"),
-                    of("2-DISCRETIONARY", "celular-f"),
-                    of("2-DISCRETIONARY", "telefono-43"),
-                    of("1-ESSENTIAL", "emergencia"),
-                    of("1-ESSENTIAL", "ioma"),
-                    of("1-ESSENTIAL", "seguro"),
-                    of("1-ESSENTIAL", "gas"),
-                    of("1-ESSENTIAL", "luz"),
-                    of("2-DISCRETIONARY", "santander"),
-                    of("2-DISCRETIONARY", "cablevision"),
-                    of("2-DISCRETIONARY", "cafe"),
-                    of("3-IRREGULAR", "other"),
-                    of("3-IRREGULAR", "other-usd"),
-                    of("3-IRREGULAR", "reparaciones"),
-                    of("2-DISCRETIONARY", "limpieza"),
-                    of("1-ESSENTIAL", "expensas"),
-                    of("2-DISCRETIONARY", "netflix"),
-                    of("2-DISCRETIONARY", "netflix-usd"),
-                    of("2-DISCRETIONARY", "viajes"),
-                    of("2-DISCRETIONARY", "viajes-usd"),
-                    of("2-DISCRETIONARY", "xbox"),
-                    of("2-DISCRETIONARY", "atlantico"),
-                    of("2-DISCRETIONARY", "itau-uy"))
+                    of(ESSENTIAL, "bbpp"),
+                    of(ESSENTIAL, "inmobiliario-43"),
+                    of(ESSENTIAL, "monotributo-angeles"),
+                    of(ESSENTIAL, "monotributo"),
+                    of(ESSENTIAL, "municipal-43"),
+                    of(ESSENTIAL, "contadora"),
+                    of(DISCRETIONARY, "celular-a"),
+                    of(DISCRETIONARY, "celular-f"),
+                    of(DISCRETIONARY, "telefono-43"),
+                    of(ESSENTIAL, "emergencia"),
+                    of(ESSENTIAL, "ioma"),
+                    of(ESSENTIAL, "seguro"),
+                    of(ESSENTIAL, "gas"),
+                    of(ESSENTIAL, "luz"),
+                    of(DISCRETIONARY, "santander"),
+                    of(DISCRETIONARY, "cablevision"),
+                    of(DISCRETIONARY, "cafe"),
+                    of(IRREGULAR, "other"),
+                    of(IRREGULAR, "other-usd"),
+                    of(IRREGULAR, "reparaciones"),
+                    of(DISCRETIONARY, "limpieza"),
+                    of(ESSENTIAL, "expensas"),
+                    of(DISCRETIONARY, "netflix"),
+                    of(DISCRETIONARY, "netflix-usd"),
+                    of(DISCRETIONARY, "viajes"),
+                    of(DISCRETIONARY, "viajes-usd"),
+                    of(DISCRETIONARY, "xbox"),
+                    of(DISCRETIONARY, "atlantico"),
+                    of(DISCRETIONARY, "itau-uy"))
                     .collect(groupingBy(
                             Pair::first,
                             mapping(p -> this.asRealUSDSeries("expense/", p.second()),
                                     Collectors.toList())));
-            this.realUSDExpensesByType.get("3-IRREGULAR").add(
+            this.realUSDExpensesByType.get(IRREGULAR).add(
                     this.investingExpenses()
+            );
+            this.realUSDExpensesByType.put(OTHER, List.of(this.realOtherExpenses())
             );
         }
 
@@ -273,6 +276,16 @@ public class Series {
         }
         return this.realIncome;
     }
+    
+    public MoneyAmountSeries realRegularIncome() {
+        if (this.realIncome == null) {
+            this.realIncome = this.getRegularIncomeSeries()
+                    .stream()
+                    .reduce(MoneyAmountSeries::add)
+                    .get();
+        }
+        return this.realIncome;
+    }
 
     public MoneyAmountSeries realNetSavings() {
 
@@ -317,6 +330,24 @@ public class Series {
         }
         return this.incomeSeries;
     }
+    
+    public List<MoneyAmountSeries> getRegularIncomeSeries() {
+
+        if (this.incomeSeries == null) {
+
+            final var limit = USD_INFLATION.getTo();
+            this.incomeSeries = Stream.of(
+                    readSeries("income/lifia.json"),
+                    readSeries("income/unlp.json"),
+                    readSeries("income/despegar.json"),
+                    readSeries("income/despegar-split.json"))
+                    .map(is -> is.exchangeInto(Currency.USD))
+                    .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
+                    .toList();
+        }
+        return this.incomeSeries;
+    }
+    
 
     public MoneyAmountSeries nominalSavings() {
         return this.savingsSeriesNames()
@@ -345,11 +376,25 @@ public class Series {
                 .get();
     }
 
+    public MoneyAmountSeries realOtherExpenses() {
+
+        final var income = this.realIncome();
+        final var netSaving = this.realNetSavings();
+        final var spending = this.realExpenses(null);
+
+        final var negativeFactor = BigDecimal.ONE.negate();
+
+        return income
+                .add(spending.map((ym, ma) -> ma.adjust(BigDecimal.ONE, negativeFactor)))
+                .add(netSaving.map((ym, ma) -> ma.adjust(BigDecimal.ONE, negativeFactor)));
+    }
+
     public MoneyAmountSeries realExpenses(String type) {
 
         return this.getRealUSDExpensesByType().entrySet()
                 .stream()
                 .filter(e -> type == null || e.getKey().equals(type))
+                .filter(e -> !e.getKey().equals(OTHER))
                 .map(Map.Entry::getValue)
                 .flatMap(Collection::stream)
                 .reduce(MoneyAmountSeries::add)

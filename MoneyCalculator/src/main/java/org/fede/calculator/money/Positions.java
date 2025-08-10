@@ -186,7 +186,7 @@ public class Positions {
                 this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
-        var realized = this.series.getInvestments()
+        final var realizedList = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
                 .filter(investment -> investment.getOut() != null)
@@ -200,11 +200,22 @@ public class Positions {
                                                 ? new BigDecimal("1.21")
                                                 : ONE)),
                         i.getOut().getMoneyAmount()))
+                .toList();
+
+        final var realized = realizedList
+                .stream()
                 .map(BoughtSold::capitalGain)
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
-        this.console.appendLine(MessageFormat.format(" Realized {0}", this.format.currencyPL(
-                realized.amount(), 110)));
+        final var realizedInvested = realizedList.stream()
+                .map(BoughtSold::bought)
+                .map(MoneyAmount::amount)
+                .reduce(ZERO, BigDecimal::add);
+
+        final var gainPct = realized.getAmount().divide(realizedInvested, C);
+
+        this.console.appendLine(MessageFormat.format(" Realized {0} {1}", this.format.currencyPL(
+                realized.amount(), 110), this.format.percent(gainPct, 8)));
 
         this.console.appendLine(MessageFormat.format(" Total {0}", this.format.currencyPL(
                 realized.add(totalPnL).getAmount(), 113)));
@@ -281,7 +292,7 @@ public class Positions {
                         .map(this::currentPice)
                         .collect(joining()));
     }
-    
+
     private void netInvested(boolean nominal, String type, String group) {
 
         final Map<String, Function<CashFlow, String>> groupings = Map.of(
@@ -290,22 +301,29 @@ public class Positions {
                 "m", i -> YearMonth.of(i.date()).monthString(),
                 "q", i -> YearMonth.of(i.date()).quarter(),
                 "all", i -> ""
-        
         );
 
-        Predicate<Investment> filter = switch (type){
-            case "long" -> this::isLong;
-            case "etf" -> (Investment i) -> i.getType() == InvestmentType.ETF;
-            case "fci" ->  (Investment i) -> i.getType() == InvestmentType.FCI;
-            case "pf" -> (Investment i) -> i.getType() == InvestmentType.PF;
-            case "pfusd" -> (Investment i) -> i.getType() == InvestmentType.PF && i.getCurrency() == USD;
-            case "pfars" -> (Investment i) -> i.getType() == InvestmentType.PF && i.getCurrency() == Currency.ARS;
-            case "all" -> i -> true;
-            default -> (Investment i) -> i.getCurrency().name().equals(type);
+        Predicate<Investment> filter = switch (type) {
+            case "long" ->
+                this::isLong;
+            case "etf" ->
+                (Investment i) -> i.getType() == InvestmentType.ETF;
+            case "fci" ->
+                (Investment i) -> i.getType() == InvestmentType.FCI;
+            case "pf" ->
+                (Investment i) -> i.getType() == InvestmentType.PF;
+            case "pfusd" ->
+                (Investment i) -> i.getType() == InvestmentType.PF && i.getCurrency() == USD;
+            case "pfars" ->
+                (Investment i) -> i.getType() == InvestmentType.PF && i.getCurrency() == Currency.ARS;
+            case "all" ->
+                i -> true;
+            default ->
+                (Investment i) -> i.getCurrency().name().equals(type);
         };
-        
+
         final Function<CashFlow, String> groupingFunction = groupings.get(group);
-        
+
         final Map<String, BigDecimal> grouped = this.series.getInvestments()
                 .stream()
                 .filter(filter)
@@ -332,17 +350,19 @@ public class Positions {
         ));
     }
 
-    private boolean isLong(Investment i){
-        return i.getType() == ETF 
-                || i.getType() == FCI 
+    private boolean isLong(Investment i) {
+        return i.getType() == ETF
+                || i.getType() == FCI
                 || i.getType() == BONO
                 || i.getCurrency() == UVA
                 || (i.getType() == PF && i.getCurrency() == USD);
     }
-    
+
     private record CashFlow(Date date, BigDecimal amount) {
 
-    };
+    }
+
+    ;
     
     private MoneyAmount current(Currency currency) {
         final var ma = new MoneyAmount(ONE, currency);

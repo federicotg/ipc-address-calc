@@ -21,7 +21,7 @@ import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import static java.text.MessageFormat.format;
+import java.text.MessageFormat;
 import java.text.NumberFormat;
 
 /**
@@ -58,6 +58,10 @@ public class Format {
 
     public String text(String value, int width) {
         return String.format(this.getLeftAlignedFormat(width), value);
+    }
+    
+    public static String format(String pattern, Object... o){
+        return new MessageFormat(pattern).format(o);
     }
 
     public String currency(BigDecimal value) {

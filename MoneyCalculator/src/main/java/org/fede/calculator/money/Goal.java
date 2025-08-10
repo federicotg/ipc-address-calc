@@ -21,7 +21,7 @@ import com.diogonunes.jcolor.Attribute;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
-import static java.text.MessageFormat.format;
+import static org.fede.calculator.money.Format.format;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
