@@ -99,8 +99,9 @@ public class ConsoleReports {
     public static final String CHARTS_PREFIX = System.getProperty("user.home") + File.separator + "Pictures" + File.separator + "chart-";
     public static final String CACHE_DIR = System.getProperty("user.home") + "/Downloads";
 
-    public static final int SCALE = 2800;
-
+    public static final int SCALE = 3000;
+    public static final BigDecimal CAPITAL_GAINS_RATE = new BigDecimal("0.15");
+    
     private static boolean nominal(Map<String, String> params) {
         return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
     }
@@ -814,6 +815,8 @@ public class ConsoleReports {
             inv.brokerDetailedChart(absoluteValuePieChart);
             inv.invGainsChart(absoluteValuePieChart);
             this.expensesChart(12, true);
+            this.expensesChart(6, true);
+            this.expensesChart(3, true);            
             this.expensePieChart(12, absoluteValuePieChart);
             this.expensePieChart(24, absoluteValuePieChart);
             this.expensePieChart(48, absoluteValuePieChart);

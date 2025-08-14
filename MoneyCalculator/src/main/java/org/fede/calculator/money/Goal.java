@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
+import static org.fede.calculator.money.ConsoleReports.CAPITAL_GAINS_RATE;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.C;
 import static org.fede.calculator.money.MathConstants.RM;
@@ -48,7 +49,7 @@ public class Goal {
     private final BigDecimal SELL_FEE = new BigDecimal("0.00726").multiply(new BigDecimal("0.5"), C)
             .add(new BigDecimal("0.00056").multiply(new BigDecimal("0.5"), C));
 
-    private final BigDecimal CAPITAL_GAINS_TAX_PCT = new BigDecimal("0.15");
+    //private final BigDecimal CAPITAL_GAINS_TAX_PCT = new BigDecimal("0.15");
 
     private final Map<Integer, BigDecimal> EXTRA_INCOME = Map.of(
             //2034, new BigDecimal("0"), // 56
@@ -120,7 +121,7 @@ public class Goal {
             amount += d + EXTRA_INCOME.getOrDefault(i, BigDecimal.ZERO).doubleValue();
         }
 
-        final var cgtPct = CAPITAL_GAINS_TAX_PCT.doubleValue();
+        final var cgtPct = CAPITAL_GAINS_RATE.doubleValue();
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
@@ -263,7 +264,7 @@ public class Goal {
                 formattedWithdrawal,
                 this.bbppTaxRate * 100.0d,
                 bbppMin,
-                CAPITAL_GAINS_TAX_PCT,
+                CAPITAL_GAINS_RATE,
                 HEALTH_MONTHLY_COST,
                 pension,
                 inflation,

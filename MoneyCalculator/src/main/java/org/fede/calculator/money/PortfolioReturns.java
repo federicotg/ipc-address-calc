@@ -256,7 +256,7 @@ public class PortfolioReturns {
         return new DayDollars(
                 year,
                 i.getType(),
-                i.getCurrency().name(),
+                i.getCurrency(),
                 usdInvested.getAmount().multiply(BigDecimal.valueOf(daysInvestedInYear), C));
 
     }

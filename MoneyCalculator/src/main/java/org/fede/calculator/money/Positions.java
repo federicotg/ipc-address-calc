@@ -25,6 +25,7 @@ import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
+import java.util.Comparator;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
 import java.util.Date;
@@ -44,6 +45,8 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.reducing;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import static org.fede.calculator.money.ConsoleReports.CAPITAL_GAINS_RATE;
+import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Currency.AY24;
 import static org.fede.calculator.money.Currency.CSPX;
 import static org.fede.calculator.money.Currency.EIMI;
@@ -142,20 +145,25 @@ public class Positions {
                 .map(this::position)
                 .toList();
 
+        final var nominalPositions = this.series.getInvestments()
+                .stream()
+                .filter(investment -> investment.isCurrent(now))
+                .filter(Investment::isETF)
+                .map(inv -> ForeignExchanges.exchange(inv, USD))
+                .collect(groupingBy(Investment::getCurrency))
+                .values()
+                .stream()
+                .map(this::position)
+                .toList();
+
         final var totalMarketValue = positions
                 .stream()
                 .map(Position::getMarketValue)
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
-        final var totalCostBasis = positions
-                .stream()
-                .map(Position::getCostBasis)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+        final var totalCostBasis = this.costBasis(positions);
 
-        final var totalPnL = positions
-                .stream()
-                .map(Position::getUnrealizedPnL)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+        final var totalPnL = this.unrealizedPnL(positions);
 
         positions
                 .stream()
@@ -220,6 +228,78 @@ public class Positions {
         this.console.appendLine(MessageFormat.format(" Total {0}", this.format.currencyPL(
                 realized.add(totalPnL).getAmount(), 113)));
 
+        this.console.appendLine(format.subtitle("EGR"));
+
+        this.egrReportLine(" Average", nominalPositions);
+
+        final var n = 10;
+
+        final var oldestNPositions = this.series.getInvestments()
+                .stream()
+                .filter(investment -> investment.isCurrent(now))
+                .filter(Investment::isETF)
+                .sorted(Comparator.comparing(Investment::getInitialDate))
+                .limit(n)
+                .map(inv -> ForeignExchanges.exchange(inv, USD))
+                .collect(groupingBy(Investment::getCurrency))
+                .values()
+                .stream()
+                .map(this::position)
+                .toList();
+
+        this.egrReportLine(" Oldest " + n, oldestNPositions);
+
+        final var oldestNPositionsByCurrency = this.series.getInvestments()
+                .stream()
+                .filter(investment -> investment.isCurrent(now))
+                .filter(Investment::isETF)
+                .map(inv -> ForeignExchanges.exchange(inv, USD))
+                .collect(groupingBy(Investment::getCurrency));
+
+        oldestNPositionsByCurrency.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(e
+                        -> this.egrReportLine(
+                        " Oldest " + n + " " + e.getKey().name(),
+                        List.of(this.position(e.getValue()
+                                .stream()
+                                .sorted(Comparator.comparing(Investment::getInitialDate))
+                                .limit(n).toList()
+                        ))));
+
+    }
+
+    private void egrReportLine(String title, List<Position> positions) {
+        final int w = 20;
+        final var egrFirstInFirstOut = this.egr(positions);
+
+        this.console.appendLine(format.text(title + " EGR", w), this.format.percent(
+                egrFirstInFirstOut, 6),
+                format.text(" Tax", 5),
+                this.format.percent(
+                        egrFirstInFirstOut.multiply(CAPITAL_GAINS_RATE), 6));
+
+    }
+
+    // EGR = ratio de ganancia embebida
+    private BigDecimal egr(List<Position> positions) {
+        return unrealizedPnL(positions).getAmount()
+                .divide(costBasis(positions).amount(), C);
+    }
+
+    private MoneyAmount unrealizedPnL(List<Position> positions) {
+        return positions
+                .stream()
+                .map(Position::getUnrealizedPnL)
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+    }
+
+    private MoneyAmount costBasis(List<Position> positions) {
+
+        return positions
+                .stream()
+                .map(Position::getCostBasis)
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
     }
 
     private record BoughtSold(MoneyAmount bought, MoneyAmount sold) {
@@ -307,15 +387,15 @@ public class Positions {
             case "long" ->
                 this::isLong;
             case "etf" ->
-                (Investment i) -> i.getType() == InvestmentType.ETF;
+                (Investment i) -> i.getType() == ETF;
             case "fci" ->
-                (Investment i) -> i.getType() == InvestmentType.FCI;
+                (Investment i) -> i.getType() == FCI;
             case "pf" ->
-                (Investment i) -> i.getType() == InvestmentType.PF;
+                (Investment i) -> i.getType() == PF;
             case "pfusd" ->
-                (Investment i) -> i.getType() == InvestmentType.PF && i.getCurrency() == USD;
+                (Investment i) -> i.getType() == PF && i.getCurrency() == USD;
             case "pfars" ->
-                (Investment i) -> i.getType() == InvestmentType.PF && i.getCurrency() == Currency.ARS;
+                (Investment i) -> i.getType() == PF && i.getCurrency() == ARS;
             case "all" ->
                 i -> true;
             default ->
@@ -339,7 +419,7 @@ public class Positions {
                 .collect(Collectors.groupingBy(
                         groupingFunction,
                         Collectors.mapping(CashFlow::amount,
-                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                                Collectors.reducing(ZERO, BigDecimal::add)
                         )));
 
         grouped.entrySet()
@@ -362,8 +442,6 @@ public class Positions {
 
     }
 
-    ;
-    
     private MoneyAmount current(Currency currency) {
         final var ma = new MoneyAmount(ONE, currency);
         return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), USD).apply(ma, Inflation.USD_INFLATION.getTo());
@@ -680,8 +758,8 @@ public class Positions {
         if (equities.contains(investment.getInvestment().getCurrency())) {
             return "EQ";
         }
-        if (investment.getType().equals(InvestmentType.BONO)
-                || investment.getType().equals(InvestmentType.PF)
+        if (investment.getType() == BONO
+                || investment.getType() == PF
                 || bonds.contains(investment.getInvestment().getCurrency())) {
             return "BO";
         }

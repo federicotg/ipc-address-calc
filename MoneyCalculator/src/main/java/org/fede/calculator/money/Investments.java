@@ -53,6 +53,7 @@ import static java.util.stream.Collectors.joining;
 import static org.fede.calculator.money.MathConstants.C;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import static org.fede.calculator.money.ConsoleReports.CAPITAL_GAINS_RATE;
 import static org.fede.calculator.money.Currency.*;
 import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
@@ -625,7 +626,7 @@ public class Investments {
                 .subtract(invested.apply(i));
 
         if (capitalGains.getAmount().signum() > 0) {
-            return capitalGains.adjust(ONE, new BigDecimal("0.15"));
+            return capitalGains.adjust(ONE, CAPITAL_GAINS_RATE);
         }
 
         return MoneyAmount.zero(Currency.USD);

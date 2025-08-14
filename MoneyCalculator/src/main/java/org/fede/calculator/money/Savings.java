@@ -158,7 +158,7 @@ public class Savings {
     private void cashEquityBondsRef(String title) {
         new References(console, format).refs(
                 this.format.title(title),
-                List.of("Cash", "equity", "bonds"),
+                List.of("Cash", "Equity", "Bonds"),
                 List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK()));
     }
 
@@ -696,7 +696,7 @@ public class Savings {
         final var title = format("Average {0}-month real USD saved salaries", months);
         this.console.appendLine(this.format.title(title));
 
-        final var savings = new SimpleAggregation(months).average(this.series.realSavings(null));
+        final var savings = this.series.realSavings(null);
         final var income = new SimpleAggregation(months).average(this.series.realRegularIncome());
 
         this.bar.evolution(title,

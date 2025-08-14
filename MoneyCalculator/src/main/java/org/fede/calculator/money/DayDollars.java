@@ -24,7 +24,7 @@ import org.fede.calculator.money.series.InvestmentType;
  *
  * @author federico
  */
-public record DayDollars(int year, InvestmentType type, String currency, BigDecimal amount) {
+public record DayDollars(int year, InvestmentType type, Currency currency, BigDecimal amount) {
 
     public DayDollars combine(DayDollars other) {
         return new DayDollars(year, type, currency, amount.add(other.amount, MathConstants.C));
