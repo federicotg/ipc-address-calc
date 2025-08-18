@@ -270,15 +270,16 @@ public class Positions {
     }
 
     private void egrReportLine(String title, List<Position> positions) {
-        final int w = 20;
-        final var egrFirstInFirstOut = this.egr(positions);
-
-        this.console.appendLine(format.text(title + " EGR", w), this.format.percent(
-                egrFirstInFirstOut, 6),
+        final var egr = this.egr(positions);
+        final var tax = egr.multiply(CAPITAL_GAINS_RATE);
+        
+        this.console.appendLine(
+                format.text(title + " EGR", 20), 
+                this.format.percent(egr, 6),
                 format.text(" Tax", 5),
-                this.format.percent(
-                        egrFirstInFirstOut.multiply(CAPITAL_GAINS_RATE), 6));
-
+                this.format.percent(tax, 6),
+                ". Saving on $2.5k/mo: ",
+                format.currency(new BigDecimal("2500").multiply(tax, C), 9));
     }
 
     // EGR = ratio de ganancia embebida

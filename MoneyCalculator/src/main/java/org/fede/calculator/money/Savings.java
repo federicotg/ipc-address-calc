@@ -279,7 +279,8 @@ public class Savings {
         final var lifia = agg.average(this.series.incomeSource("lifia"));
         final var despARS = agg.average(this.series.incomeSource("despegar"));
         final var despUSD = agg.average(this.series.incomeSource("despegar-split"));
-        final var other = agg.average(this.series.incomeSource("other-ars").add(this.series.incomeSource("other-usd")));
+        final var other = agg.average(this.series.incomeSource("other-ars")
+                .add(this.series.incomeSource("other-usd")));
 
         if (pct) {
             unlp.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))

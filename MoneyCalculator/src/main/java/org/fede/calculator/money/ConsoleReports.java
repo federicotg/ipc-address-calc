@@ -101,7 +101,7 @@ public class ConsoleReports {
 
     public static final int SCALE = 3000;
     public static final BigDecimal CAPITAL_GAINS_RATE = new BigDecimal("0.15");
-    
+
     private static boolean nominal(Map<String, String> params) {
         return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
     }
@@ -400,6 +400,7 @@ public class ConsoleReports {
                         new CmdParam("income-evo", "months=12 ars=false"),
                         new CmdParam("bbpp", "year=2023"),
                         new CmdParam("bbppstatus"),
+                        new CmdParam("ppi", "type=group|groupall|full*"),
                         new CmdParam("savings-net-change", "m=12"),
                         new CmdParam("savings-avg-pct", "m=12"),
                         new CmdParam("expenses", "by=(year|half|quarter*|month) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
@@ -816,7 +817,7 @@ public class ConsoleReports {
             inv.invGainsChart(absoluteValuePieChart);
             this.expensesChart(12, true);
             this.expensesChart(6, true);
-            this.expensesChart(3, true);            
+            this.expensesChart(3, true);
             this.expensePieChart(12, absoluteValuePieChart);
             this.expensePieChart(24, absoluteValuePieChart);
             this.expensePieChart(48, absoluteValuePieChart);
@@ -836,6 +837,11 @@ public class ConsoleReports {
             this.recentETFChangeChart(12);
             this.recentETFChangeChart(24);
 
+            this.savingsChart(3);
+            this.savingsChart(6);
+            this.savingsChart(24);
+            this.savingsChart(12);
+
         } catch (IOException ex) {
             LOGGER.error("Error generating chart.", ex);
         }
@@ -851,6 +857,21 @@ public class ConsoleReports {
         public CmdParam(String name) {
             this(name, "");
         }
+    }
+
+    private void savingsChart(int m) throws IOException {
+
+        var s = new SimpleAggregation(m)
+                .average(this.series.realNetSavings());
+        s.setName(m + " months");
+
+        new TimeSeriesChart().create(
+                "Savings Average " + m + " months",
+                List.of(s),
+                "savings-avg-" + (m < 10
+                        ? ("0" + m)
+                        : ("" + m)) + ".png");
+
     }
 
     private void recentETFChangeChart(int months) throws IOException {
@@ -937,22 +958,7 @@ public class ConsoleReports {
                         MoneyAmount.zero(USD),
                         MoneyAmount::add);
 
-        final Function<InvestmentEvent, Long> countMapper = e -> 1l;
-
-        final SoldAndBought<Long> quantitySummary
-                = this.summarize(
-                        countMapper,
-                        countMapper,
-                        0l,
-                        (x, y) -> x + y);
-
         final var fees = feeSummary.sold.add(feeSummary.bought);
-
-        this.console.appendLine(this.format.title("Resultado"));
-
-        this.console.appendLine(this.format.subtitle("Cantidad"));
-        this.console.appendLine("Sold ", quantitySummary.sold.toString());
-        this.console.appendLine("Bought ", quantitySummary.bought.toString());
 
         this.console.appendLine(this.format.subtitle("Comisiones"));
         this.console.appendLine("Sold ", this.format.currency(feeSummary.sold, 16));
@@ -962,12 +968,8 @@ public class ConsoleReports {
                 this.format.percent(fees.amount().divide(netAmountSummary.sold.amount(), C), 6)
         );
 
-        final var balance = netAmountSummary.sold.subtract(netAmountSummary.bought);
-
         this.console.appendLine(this.format.subtitle("Monto Neto"));
         this.console.appendLine("Sold ", this.format.currency(netAmountSummary.sold, 16));
-        this.console.appendLine("Bought ", this.format.currency(netAmountSummary.bought, 16));
-        this.console.appendLine("Saldo:", this.format.currencyPL(balance.amount(), 16));
 
         this.console.appendLine(this.format.subtitle("Tax"));
 
@@ -983,17 +985,20 @@ public class ConsoleReports {
                 "2025-05-23", new BigDecimal("1133.5")
         );
 
-        final var capitalGainsTaxRate = new BigDecimal("0.15");
-
-        this.console.appendLine(this.format.currency(
-                this.series.getInvestments()
+        final var taxAmount
+                = this.series.getInvestments()
                         .stream()
                         .filter(Investment::isETF)
                         .filter(i -> i.getOut() != null)
                         .map(i -> i.getOut().getMoneyAmount().subtract(this.cost(i)))
                         //.peek(m -> this.console.appendLine(this.format.currency(m, 20)))
                         .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
-                        .adjust(BigDecimal.ONE, capitalGainsTaxRate), 20));
+                        .adjust(BigDecimal.ONE, CAPITAL_GAINS_RATE);
+
+        this.console.appendLine(this.format.currency(taxAmount, 20),
+                " ",
+                this.format.percent(taxAmount.amount().divide(netAmountSummary.sold.amount(), C))
+        );
 
         final var arsTax = this.series.getInvestments()
                 .stream()
@@ -1001,15 +1006,19 @@ public class ConsoleReports {
                 .filter(i -> i.getOut() != null)
                 .map(i -> this.capitalGainARS(i, bnaFX))
                 .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add)
-                .adjust(BigDecimal.ONE, capitalGainsTaxRate);
+                .adjust(BigDecimal.ONE, CAPITAL_GAINS_RATE);
 
         this.console.appendLine(this.format.currency(
                 arsTax,
                 20));
 
-        this.console.appendLine("Current ", this.format.currency(
-                ForeignExchanges.getForeignExchange(Currency.ARS, USD).exchange(arsTax, USD, new Date()),
-                20));
+        final var currentTaxAmount = ForeignExchanges.getForeignExchange(Currency.ARS, USD).exchange(arsTax, USD, new Date());
+        this.console.appendLine(
+                "Current ",
+                this.format.currency(currentTaxAmount, 15),
+                " ",
+                this.format.percent(currentTaxAmount.amount().divide(netAmountSummary.sold.amount(), C))
+        );
 
         this.console.appendLine(this.format.subtitle("Detail"));
 
