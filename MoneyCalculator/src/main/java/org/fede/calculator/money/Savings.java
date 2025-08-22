@@ -66,13 +66,13 @@ public class Savings {
 
         return switch (months) {
             case 1, 2, 3 ->
-                100;
+                400;
             case 4, 5, 6 ->
-                65;
+                200;
             case 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 ->
-                50;
+                100;
             default ->
-                40;
+                50;
         };
     }
 
@@ -93,7 +93,6 @@ public class Savings {
         //final var apr = YearMonth.of(2025, 4);
         //this.debug(apr);
         //this.debug(may);
-
     }
 
     private void debug(YearMonth m) {
@@ -216,12 +215,12 @@ public class Savings {
                 this.format.currency(averageRealUSDIncome.getAmount()));
 
         final var savingRate = new BigDecimal("0.66");
-        
+
         final var savingPct = new MoneyAmount(
-                averageRealUSDIncome.getAmount().multiply(savingRate, C), 
+                averageRealUSDIncome.getAmount().multiply(savingRate, C),
                 averageRealUSDIncome.getCurrency());
 
-        this.console.appendLine(format.percent(savingRate)," saving: ",
+        this.console.appendLine(format.percent(savingRate), " saving: ",
                 averageRealUSDIncome.getCurrency().name(),
                 " ",
                 this.format.currency(savingPct.getAmount()),
@@ -289,20 +288,7 @@ public class Savings {
                             ym,
                             this.independenSeries(ym, List.of(unlp, lifia, despARS, despUSD, other), colorList))));
         } else {
-            var scale = switch (months) {
-                case 1 ->
-                    170;
-                case 2, 3 ->
-                    140;
-                case 4, 5, 6 ->
-                    90;
-                case 7, 8, 9, 10 ->
-                    60;
-                case 11 ->
-                    50;
-                default ->
-                    45;
-            };
+            var scale = this.incomeScale(months);
 
             unlp.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
                     .forEach((ym, savingMa) -> this.console.appendLine(
@@ -316,6 +302,23 @@ public class Savings {
                 List.of("UNLP", "LIFIA", "Despegar ARS", "Despegar USD", "Other"),
                 colorList);
 
+    }
+
+    public int incomeScale(int months) {
+        return switch (months) {
+            case 1 ->
+                400;
+            case 2, 3 ,4 ->
+                220;
+            case 5, 6 ->
+                120;
+            case 7, 8, 9, 10 ->
+                90;
+            case 11 ->
+                80;
+            default ->
+                75;
+        };
     }
 
     public void incomeAccumBySource() {
@@ -335,7 +338,7 @@ public class Savings {
         final var maSeries = List.of(unlp, lifia, despARS, despUSD, other);
 
         unlp.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, maSeries, colorList), 4500)));
+                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, maSeries, colorList), 5300)));
 
         new References(console, format).refs(
                 title,
@@ -442,7 +445,7 @@ public class Savings {
     public void savingRate(int year) throws IOException {
         var income = this.yearIncome(year).amount();
         var savings = this.yearSavings(year).amount();
-        new PieChart(true).create(
+        new PieChart(true, true).create(
                 "Saving Rate " + year,
                 List.of(
                         new PieItem("Expenses", income.subtract(savings)),
@@ -607,7 +610,7 @@ public class Savings {
         final var futureIlliquidAssets = new MoneyAmount(new BigDecimal("137500"), Currency.USD);// 50% 47 53 moreno colon
 
         // 50% caja, severance y deuda casa
-        final var futureCash = new MoneyAmount(new BigDecimal("195320"), Currency.USD);
+        final var futureCash = new MoneyAmount(new BigDecimal("69320"), Currency.USD);
 
         this.console.appendLine(format("Future est. net worth is {0,number,currency}.",
                 totalSavings
@@ -707,11 +710,8 @@ public class Savings {
 
     public void incomeAverageEvolution(int months, boolean ars) {
         this.console.appendLine(this.format.title(format("Average {0}-month income evolution", months)));
-        int baseBarSize = 50;
 
-        if (months < 6) {
-            baseBarSize = 66;
-        }
+        final var baseBarSize = this.incomeScale(months);
 
         final var s = ars
                 ? this.series.realIncome().exchangeInto(Currency.ARS)

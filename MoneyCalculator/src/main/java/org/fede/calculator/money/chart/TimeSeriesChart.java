@@ -21,6 +21,7 @@ import java.awt.Font;
 import java.awt.Stroke;
 import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.List;
 import org.fede.calculator.money.ConsoleReports;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -28,14 +29,20 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.axis.LogarithmicAxis;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.data.time.TimeSeriesCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class TimeSeriesChart {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TimeSeriesChart.class);
 
     private final Font font;
     private final Stroke stroke;
@@ -45,29 +52,47 @@ public class TimeSeriesChart {
         this.stroke = new BasicStroke(3.0f);
     }
 
-    public void create(String chartName, List<MoneyAmountSeries> series, String filename) throws IOException {
-        var collection = new TimeSeriesCollection();
-        series.stream().map(MoneyAmountSeries::asTimeSeries).forEach(collection::addSeries);
-        JFreeChart chart = ChartFactory.createTimeSeriesChart(
-                chartName,
-                "Date",
-                "USD",
-                collection);
-        var xyPlot = chart.getXYPlot();
-        xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
-        var renderer = xyPlot.getRenderer();
-        ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
-        renderer.setDefaultStroke(this.stroke);
-        chart.getLegend().setItemFont(this.font);
+    public void create(
+            String chartName,
+            List<MoneyAmountSeries> series,
+            String filename) {
+        this.create(chartName, series, filename, false);
+    }
 
-        ChartUtils.saveChartAsPNG(
-                new File(ConsoleReports.CHARTS_PREFIX + filename),
-                chart,
-                1600,
-                900,
-                null,
-                true,
-                9);
+    public void create(
+            String chartName,
+            List<MoneyAmountSeries> series,
+            String filename,
+            boolean logScale) {
+        try {
+            var collection = new TimeSeriesCollection();
+            series.stream().map(MoneyAmountSeries::asTimeSeries).forEach(collection::addSeries);
+            JFreeChart chart = ChartFactory.createTimeSeriesChart(
+                    chartName,
+                    "Date",
+                    "USD",
+                    collection);
+            var xyPlot = chart.getXYPlot();
+            xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
+            if (logScale) {
+                LogarithmicAxis yAxis = new LogarithmicAxis("USD");
+                yAxis.setNumberFormatOverride(NumberFormat.getCurrencyInstance());
+                xyPlot.setRangeAxis(yAxis);
+            } else {
+                ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride(NumberFormat.getCurrencyInstance());
+            }
+            var renderer = xyPlot.getRenderer();
+            ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
+            renderer.setDefaultStroke(this.stroke);
+            chart.getLegend().setItemFont(this.font);
 
+            ChartUtils.saveChartAsPNG(
+                    new File(ConsoleReports.CHARTS_PREFIX + filename),
+                    chart,
+                    1600,
+                    900);
+        } catch (IOException ioEx) {
+            LOGGER.error("Error.", ioEx);
+        }
     }
 }

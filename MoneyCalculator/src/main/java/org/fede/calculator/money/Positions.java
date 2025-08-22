@@ -537,7 +537,7 @@ public class Positions {
         var from = YearMonth.of(2001, 10);
         var to = YearMonth.of(new Date());
 
-        var chart = new PieChart(false);
+        var chart = new PieChart(false, true);
 
         for (var y = from; y.compareTo(to) <= 0; y = y.next()) {
             this.portfolioChart(chart, subtype, y.year(), y.month());

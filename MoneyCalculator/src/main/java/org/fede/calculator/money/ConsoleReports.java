@@ -99,7 +99,7 @@ public class ConsoleReports {
     public static final String CHARTS_PREFIX = System.getProperty("user.home") + File.separator + "Pictures" + File.separator + "chart-";
     public static final String CACHE_DIR = System.getProperty("user.home") + "/Downloads";
 
-    public static final int SCALE = 3000;
+    public static final int SCALE = 3300;
     public static final BigDecimal CAPITAL_GAINS_RATE = new BigDecimal("0.15");
 
     private static boolean nominal(Map<String, String> params) {
@@ -239,10 +239,10 @@ public class ConsoleReports {
                 () -> new Investments(console, format, bar, series).portfolioTypeEvo(true);
 
             case "pa" ->
-                () -> new PortfolioReturns(series, console, format, bar).portfolioAllocation();
+                new PortfolioReturns(series, console, format, bar)::portfolioAllocation;
 
             case "house-evo" ->
-                () -> new House(console, format, bar).houseCostsEvolution();
+                new House(console, format, bar)::houseCostsEvolution;
 
             case "house" ->
                 () -> me.house(args, "house");
@@ -269,13 +269,13 @@ public class ConsoleReports {
                 () -> me.bbpp(args, "bbpp");
 
             case "bbppstatus" ->
-                () -> new BBPP(format, series, console).status();
+                new BBPP(format, series, console)::status;
 
             case "bbpp-evo" ->
                 new BBPP(format, series, console)::bbppEvolution;
 
             case "all-charts" ->
-                () -> me.allCharts();
+                me::allCharts;
 
             case "ibkrpos" ->
                 () -> me.ibkrPositions(Integer.parseInt(me.paramsValue(args, "ibkrpos").getOrDefault("year", "2024")));
@@ -298,16 +298,16 @@ public class ConsoleReports {
                 () -> me.invested(args, "invested");
 
             case "ccl" ->
-                () -> new PPI(console, format, new SingleHttpClientSupplier()).dollar();
+                new PPI(console, format, new SingleHttpClientSupplier())::dollar;
 
             case "routes" ->
                 () -> me.routes(args, "routes");
 
             case "balances" ->
-                () -> new PPI(console, format, new SingleHttpClientSupplier()).balances();
+                new PPI(console, format, new SingleHttpClientSupplier())::balances;
 
             case "cash" ->
-                () -> new PPI(console, format, new SingleHttpClientSupplier()).cashBalance();
+                new PPI(console, format, new SingleHttpClientSupplier())::cashBalance;
 
             case "inv-evo-pct" ->
                 () -> me.invEvoPct(args, "inv-evo-pct");
@@ -316,7 +316,7 @@ public class ConsoleReports {
                 () -> me.benchmark(args, "bench");
 
             case "lti" ->
-                () -> me.ltiReport();
+                me::ltiReport;
 
             case "ppi" ->
                 () -> me.ppiTransfer(args, "ppi");
@@ -541,7 +541,7 @@ public class ConsoleReports {
 
         this.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
         this.bar.evolution(format("{0}-month Savings Change", months - 1), new SimpleAggregation(months)
-                .change(this.series.realSavings(null)), 100 * months);
+                .change(this.series.realSavings(null)), 240 * months);
     }
 
     private void expensesChange(String[] args, String name) {
@@ -583,7 +583,6 @@ public class ConsoleReports {
         final var expected = params.getOrDefault("exp", EXPECTED_RETRUNS);
         final var pension = Integer.parseInt(params.getOrDefault("pension", PENSION));
         final var badReturnYears = Integer.parseInt(params.getOrDefault("srr", BAD_RETURN_YEARS));
-        //final var saveCashYears = Integer.parseInt(params.getOrDefault("crr", SAVE_CASH_YEARS_BEFORE_RETIREMENT));
         final var bbppTax = Double.parseDouble(params.getOrDefault("bbpp", BBPP)) / 100.0d;
 
         final var goal = new Goal(this.console, this.format, this.series, this.bar, bbppTax);
@@ -750,7 +749,7 @@ public class ConsoleReports {
         s.setName("Real");
         var nominal = this.series.nominalSavings();
         nominal.setName("Nominal");
-        new TimeSeriesChart().create("Savings", List.of(s, nominal), "savings.png");
+        new TimeSeriesChart().create("Savings", List.of(s, nominal), "savings.png", true);
 
     }
 
@@ -809,29 +808,32 @@ public class ConsoleReports {
             final var inv = new Investments(this.console, this.format, this.bar, this.series);
             final var pos = new Positions(console, format, series, bar);
             final var savings = new Savings(format, series, bar, console);
-            final var absoluteValuePieChart = new PieChart(true);
-            final var percentValuePieChart = new PieChart(false);
 
-            inv.brokerChart(absoluteValuePieChart);
-            inv.brokerDetailedChart(absoluteValuePieChart);
-            inv.invGainsChart(absoluteValuePieChart);
+            inv.brokerChart(new PieChart(true));
+            inv.brokerDetailedChart(new PieChart(true));
+            inv.invGainsChart(new PieChart(true));
             this.expensesChart(12, true);
             this.expensesChart(6, true);
             this.expensesChart(3, true);
-            this.expensePieChart(12, absoluteValuePieChart);
-            this.expensePieChart(24, absoluteValuePieChart);
-            this.expensePieChart(48, absoluteValuePieChart);
+            this.expensePieChart(12, new PieChart(true));
+            this.expensePieChart(24, new PieChart(true));
+            this.expensePieChart(48, new PieChart(true));
             this.savingsEvoChart();
-            savings.savingRate(LocalDate.now().getYear());
 
-            pos.portfolioChart(absoluteValuePieChart, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-            pos.portfolioChart(absoluteValuePieChart, "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            final var thisYear = LocalDate.now().getYear();
+            
+            for (var i = 2007; i <= thisYear; i++) {
+                savings.savingRate(i);
+            }
 
-            pos.portfolioChartByGeography(percentValuePieChart, "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-            pos.portfolioChartByGeography(absoluteValuePieChart, "amounts", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            pos.portfolioChart(new PieChart(true), "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            pos.portfolioChart(new PieChart(true), "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
 
-            pos.portfolioChartByGeographyBreakUSA(percentValuePieChart, "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-            pos.portfolioChartByGeographyBreakUSA(absoluteValuePieChart, "amounts", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            pos.portfolioChartByGeography(new PieChart(false), "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            pos.portfolioChartByGeography(new PieChart(true), "amounts", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+
+            pos.portfolioChartByGeographyBreakUSA(new PieChart(false), "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            pos.portfolioChartByGeographyBreakUSA(new PieChart(true), "amounts", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
 
             this.recentETFChangeChart(1);
             this.recentETFChangeChart(12);
