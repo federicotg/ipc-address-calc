@@ -157,6 +157,13 @@ public class ConsoleReports {
             case "i" ->
                 new Investments(console, format, bar, series)::investments;
 
+            case "pf" ->
+                () -> new Investments(console, format, bar, series).invPF(
+                Boolean.parseBoolean(me.paramsValue(args, "pf").getOrDefault("detail", "false")),
+                Boolean.parseBoolean(me.paramsValue(args, "pf").getOrDefault("nominal", "false"))
+                
+                );
+
             case "gi" ->
                 new Positions(console, format, series, bar)::groupedInvestments;
 
@@ -376,6 +383,7 @@ public class ConsoleReports {
                         new CmdParam("bench"),
                         new CmdParam("mdr-by-currency"),
                         new CmdParam("income-src", "m=12"),
+                        new CmdParam("pf", "detail=false nominal=false"),
                         new CmdParam("income-src-pct", "m=12"),
                         new CmdParam("income-acc"),
                         new CmdParam("income-acc-pct"),
@@ -821,12 +829,21 @@ public class ConsoleReports {
             this.savingsEvoChart();
 
             final var thisYear = LocalDate.now().getYear();
-            
-            for (var i = 2007; i <= thisYear; i++) {
-                savings.savingRate(i);
-            }
 
-            pos.portfolioChart(new PieChart(true), "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            //for (var i = 2007; i < thisYear; i++) {
+            //    savings.savingRate(i);
+            //}
+            savings.savingRate(thisYear);
+
+            var portfolioChartByLabel = new PieChart(true, true);
+            //var ym = YearMonth.of(1999, 11);
+            //while (ym.compareTo(USD_INFLATION.getTo()) < 0) {
+            //    pos.portfolioChart(portfolioChartByLabel, "all", ym.year(), ym.month());
+            //    ym = ym.next();
+            //}
+
+            pos.portfolioChart(portfolioChartByLabel, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+
             pos.portfolioChart(new PieChart(true), "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
 
             pos.portfolioChartByGeography(new PieChart(false), "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());

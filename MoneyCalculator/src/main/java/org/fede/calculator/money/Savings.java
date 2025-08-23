@@ -450,7 +450,9 @@ public class Savings {
                 List.of(
                         new PieItem("Expenses", income.subtract(savings)),
                         new PieItem("Savings", savings)),
-                "saving-rate-" + year + ".png");
+                "saving-rate-" + year + ".png",
+                year == LocalDate.now().getYear()
+                );
     }
 
     public void yearSavingsIncomeTable() {

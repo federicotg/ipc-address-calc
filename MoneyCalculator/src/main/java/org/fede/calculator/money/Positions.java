@@ -626,10 +626,10 @@ public class Positions {
         return ForeignExchanges.getMoneyAmountForeignExchange(amount.getCurrency(), USD)
                 .apply(amount, ym);
     }
-
+    
     public void portfolioChart(PieChart chart, String subtype, int year, int month) throws IOException {
         final var ym = YearMonth.of(year, month);
-
+        final var now = YearMonth.of(new Date());
         final var items = this.portfolioItems(subtype, year, month);
 
         if (items.stream().map(PortfolioItem::getAmount).anyMatch(Predicate.not(MoneyAmount::isZero))) {
@@ -644,7 +644,10 @@ public class Positions {
                                     .map(item -> new PieItem(
                                     Investments.ETF_NAME.getOrDefault(item.getAmount().getCurrency(), item.getAmount().getCurrency().name()),
                                     item.getDollarAmount().amount())).toList(),
-                            MessageFormat.format("portfolio-{1}-{0}.png", ym.monthString(), subtype));
+                            MessageFormat.format("portfolio-{1}-{0}.png", ym.monthString(), subtype),
+                            // overwrite if ym is now
+                            now.compareTo(ym) == 0
+                            );
         }
 
     }

@@ -67,7 +67,11 @@ public class BarChart {
             ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
             renderer.setDefaultStroke(this.stroke);
             chart.getLegend().setItemFont(this.font);
+
             ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(NumberFormat.getCurrencyInstance());
+
+            plot.getRangeAxis().setLabelFont(this.font);
+            plot.getRangeAxis().setTickLabelFont(this.font);
 
             ChartUtils.saveChartAsPNG(
                     new File(ConsoleReports.CHARTS_PREFIX + filename),

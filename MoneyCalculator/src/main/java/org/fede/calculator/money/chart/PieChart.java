@@ -47,9 +47,10 @@ public class PieChart {
     private final PieSectionLabelGenerator labelGenerator;
     private final Comparator<PieItem> largerFirst;
 
-     public PieChart(boolean showAbsoluteValue) {
-         this(showAbsoluteValue, false);
-     }
+    public PieChart(boolean showAbsoluteValue) {
+        this(showAbsoluteValue, false);
+    }
+
     public PieChart(boolean showAbsoluteValue, boolean byLabel) {
         this(
                 NumberFormat.getPercentInstance(Locale.of("es", "AR")),
@@ -72,33 +73,40 @@ public class PieChart {
     }
 
     public void create(String chartTitle, List<PieItem> items, String fileName) {
+        this.create(chartTitle, items, fileName, true);
+    }
+
+    public void create(String chartTitle, List<PieItem> items, String fileName, boolean overwrite) {
         try {
 
-            DefaultPieDataset<String> ds = new DefaultPieDataset<>();
+            var file = new File(ConsoleReports.CHARTS_PREFIX + fileName);
+            if (overwrite || !file.exists()) {
 
-            items
-                    .stream()
-                    .sorted(this.largerFirst)
-                    .forEach(item -> ds.setValue(item.label(), item.value()));
+                DefaultPieDataset<String> ds = new DefaultPieDataset<>();
 
-            JFreeChart chart = ChartFactory.createPieChart(chartTitle, ds);
-            chart.setBorderVisible(false);
-            var p = (PiePlot) chart.getPlot();
-            p.setOutlineVisible(false);
-            p.setBackgroundPaint(WHITE);
-            p.setLabelFont(this.font);
-            p.setLabelGenerator(this.labelGenerator);
-            p.setLabelBackgroundPaint(WHITE);
-            p.setLabelOutlinePaint(WHITE);
-            p.setLabelShadowPaint(WHITE);
-            chart.getLegend().setItemFont(this.font);
+                items
+                        .stream()
+                        .sorted(this.largerFirst)
+                        .forEach(item -> ds.setValue(item.label(), item.value()));
 
-            ChartUtils.saveChartAsPNG(
-                    new File(ConsoleReports.CHARTS_PREFIX + fileName),
-                    chart,
-                    1200,
-                    900);
+                JFreeChart chart = ChartFactory.createPieChart(chartTitle, ds);
+                chart.setBorderVisible(false);
+                var p = (PiePlot) chart.getPlot();
+                p.setOutlineVisible(false);
+                p.setBackgroundPaint(WHITE);
+                p.setLabelFont(this.font);
+                p.setLabelGenerator(this.labelGenerator);
+                p.setLabelBackgroundPaint(WHITE);
+                p.setLabelOutlinePaint(WHITE);
+                p.setLabelShadowPaint(WHITE);
+                chart.getLegend().setItemFont(this.font);
 
+                ChartUtils.saveChartAsPNG(
+                        file,
+                        chart,
+                        1200,
+                        900);
+            }
         } catch (IOException ioEx) {
             LOGGER.error("Error.", ioEx);
         }

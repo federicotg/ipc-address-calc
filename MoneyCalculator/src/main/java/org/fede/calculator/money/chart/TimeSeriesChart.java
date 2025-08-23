@@ -17,6 +17,7 @@
 package org.fede.calculator.money.chart;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Stroke;
 import java.io.File;
@@ -48,7 +49,7 @@ public class TimeSeriesChart {
     private final Stroke stroke;
 
     public TimeSeriesChart() {
-        this.font = new Font("SansSerif", Font.PLAIN, 16);
+        this.font = new Font("SansSerif", Font.PLAIN, 18);
         this.stroke = new BasicStroke(3.0f);
     }
 
@@ -74,6 +75,10 @@ public class TimeSeriesChart {
                     collection);
             var xyPlot = chart.getXYPlot();
             xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
+            xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
+            xyPlot.setRangeGridlinePaint(Color.BLACK);
+            xyPlot.setDomainGridlinePaint(Color.BLACK);
+            
             if (logScale) {
                 LogarithmicAxis yAxis = new LogarithmicAxis("USD");
                 yAxis.setNumberFormatOverride(NumberFormat.getCurrencyInstance());
@@ -81,6 +86,11 @@ public class TimeSeriesChart {
             } else {
                 ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride(NumberFormat.getCurrencyInstance());
             }
+            
+            xyPlot.getRangeAxis().setLabelFont(this.font);
+            xyPlot.getRangeAxis().setTickLabelFont(this.font);
+            
+            
             var renderer = xyPlot.getRenderer();
             ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
             renderer.setDefaultStroke(this.stroke);

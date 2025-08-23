@@ -60,6 +60,15 @@ public class Format {
         return String.format(this.getLeftAlignedFormat(width), value);
     }
     
+    public String center(String text, int width) {
+        if (text == null || width <= text.length()) {
+            return text;
+        }
+        int padding = (width - text.length()) / 2;
+        int remainder = (width - text.length()) % 2; // handle odd widths
+        return " ".repeat(padding) + text + " ".repeat(padding + remainder);
+    }
+    
     public static String format(String pattern, Object... o){
         return new MessageFormat(pattern).format(o);
     }

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
+import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -31,6 +32,7 @@ import static java.time.Month.JANUARY;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -59,6 +61,9 @@ import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
+import static org.fede.calculator.money.series.InvestmentType.BONO;
+import static org.fede.calculator.money.series.InvestmentType.FCI;
+import static org.fede.calculator.money.series.InvestmentType.PF;
 import static org.fede.calculator.money.series.InvestmentType.USD_CASH;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
@@ -229,6 +234,121 @@ public class Investments {
                 //.peek(benchmark == CSPX ? this::print : s -> {
                 //})
                 .toList();
+    }
+
+    public void invPF(boolean detail, boolean nominal) {
+        final var inv
+                = Stream.concat(
+                        this.getInvestments()
+                                .filter(i -> i.getType() == PF || i.getType() == FCI || i.getType() == BONO),
+                        this.getInvestments()
+                                .filter(Investment::isETF)
+                                .filter(Investment::isPast))
+                        .map(i -> ForeignExchanges.exchange(i, USD))
+                        .map(i -> this.asReturn(i, nominal))
+                        .toList();
+
+        if(detail){
+            this.console.appendLine(this.format.subtitle("Investments"));
+        }
+        
+        inv.stream()
+                .filter(i -> detail)
+                .sorted(Comparator.comparing(InvestmentReturn::to))
+                .map(this::cdReportLine)
+                .forEach(this.console::appendLine);
+
+        var cols = Map.of(
+                USD, 9,
+                AY24, 10,
+                LECAP, 10,
+                CONAAFA, 13,
+                CONBALA, 9,
+                MEUD, 11,
+                XRSU, 11,
+                LETE, 9
+                );
+        
+        final var currencies = List.of(ARS, USD, UVA, CSPX, MEUD, XRSU, EIMI, LETE, CONAAFA, CONBALA, CAPLUSA, LECAP, AY24);
+
+        this.console.appendLine(this.format.subtitle("CDs, Bonds, ETFs & FCIs PnL by Year"));
+
+        final var header = this.pfHeader(currencies, cols);
+
+        this.console.appendLine(header);
+        final var thisYear = LocalDate.now().getYear();
+        for (var year = 2001; year <= thisYear; year++) {
+            final int y = year;
+            this.console.appendLine(
+                    this.format.text(String.valueOf(y), 5),
+                    currencies
+                            .stream()
+                            .map(c -> this.pnl(c, y, inv, cols))
+                            .collect(Collectors.joining()));
+        }
+        this.console.appendLine(header);
+
+    }
+
+    private String pfHeader(List<Currency> currencies, Map<Currency, Integer> cols) {
+        return this.format.text("Year", 5)
+                + currencies
+                        .stream()
+                        .map(c -> this.format.center(c.name(), cols.getOrDefault(c, cols.getOrDefault(c, 12))))
+                        .collect(Collectors.joining());
+    }
+    
+    private String pnl(Currency currency, Integer year, List<InvestmentReturn> inv, Map<Currency, Integer> cols) {
+        return inv.stream()
+                .filter(i -> i.currency() == currency)
+                .filter(i -> LocalDate.ofInstant(i.to().toInstant(), SYSTEM_DEFAULT_ZONE_ID).getYear() == year)
+                .map(InvestmentReturn::profit)
+                .reduce(MoneyAmount::add)
+                .map(pnl -> this.format.currencyPL(pnl.amount(), cols.getOrDefault(currency, 12)))
+                .orElse(this.format.text("", cols.getOrDefault(currency, 12)));
+    }
+
+    private String cdReportLine(InvestmentReturn pf) {
+
+        var from = this.format.text(
+                DateTimeFormatter.ISO_LOCAL_DATE.format(
+                        LocalDate.ofInstant(pf.from().toInstant(), SYSTEM_DEFAULT_ZONE_ID)), 12);
+        var to = this.format.text(
+                DateTimeFormatter.ISO_LOCAL_DATE.format(
+                        LocalDate.ofInstant(pf.to().toInstant(), SYSTEM_DEFAULT_ZONE_ID)), 12);
+        var days = this.format.text(String.valueOf(pf.days()), 4);
+        var initial = this.format.currency(pf.initialAmount().amount(), 12);
+        var endAmount = this.format.currency(pf.endAmount().amount(), 12);
+
+        var profitAmount = pf.profit();
+        var profit = this.format.currencyPL(profitAmount.amount(), 12);
+        var profitPct = this.format.percent(profitAmount.amount().divide(pf.initialAmount().amount(), C), 9);
+
+        var currency = this.format.text(pf.currency().name(), 9);
+        return MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}{7}", currency, from, to, days, initial, endAmount, profit, profitPct);
+
+    }
+
+    private InvestmentReturn asReturn(Investment pf, boolean nominal) {
+        var from = pf.getInitialDate();
+        var to = pf.getOut() != null
+                ? pf.getOut().getDate()
+                : new Date();
+        var now = new Date();
+        var realInitialAmount = nominal
+                ? pf.getInitialMoneyAmount()
+                : Inflation.USD_INFLATION.adjust(pf.getInitialMoneyAmount(), from, now);
+        var nominalFinalAmount = pf.getOut() != null
+                ? pf.getOut().getMoneyAmount()
+                : pf.getInitialMoneyAmount();
+
+        var maxInflationDate = to.compareTo(now) > 0 ? now : to;
+        var realFinalAmount = nominal
+                ? nominalFinalAmount
+                : Inflation.USD_INFLATION.adjust(nominalFinalAmount, maxInflationDate, now);
+
+        return new InvestmentReturn(pf.getCurrency(), from, to, realInitialAmount, realFinalAmount);
+
     }
 
     private void print(Investment i) {
