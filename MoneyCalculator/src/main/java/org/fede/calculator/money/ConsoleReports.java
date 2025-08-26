@@ -16,9 +16,12 @@
  */
 package org.fede.calculator.money;
 
+import com.diogonunes.jcolor.AnsiFormat;
+import com.diogonunes.jcolor.Attribute;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
@@ -40,6 +43,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.fede.calculator.criptoya.CriptoYaAPI;
@@ -55,6 +59,7 @@ import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.XUSE;
 import static org.fede.calculator.money.Currency.XRSU;
 import static org.fede.calculator.money.Currency.USD;
+import static org.fede.calculator.money.Series.ESSENTIAL;
 import org.fede.calculator.money.chart.BarChart;
 import org.fede.calculator.money.chart.CategoryDatasetItem;
 import org.fede.calculator.money.chart.PieChart;
@@ -80,27 +85,10 @@ public class ConsoleReports {
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
 
-    private static final String TRIALS = "30000";
-    private static final String RETIREMENT = "65";
-    private static final String AGE = "95";
-
-    // https://fred.stlouisfed.org/series/EXPINF30YR
-    private static final String INFLATION = "2.44367";
-    private static final String CASH = "0";// est
-    private static final String EXPECTED_RETRUNS = "all";
-    private static final String BBPP = "0.5";
-    private static final String PENSION = "150";
-    private static final String BAD_RETURN_YEARS = "3";
-    //private static final String BAD_YEAR_SPENDING = "0.85";
-    //private static final String SAVE_CASH_YEARS_BEFORE_RETIREMENT = "6";
-
     private static final DateTimeFormatter DTF = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault());
 
     public static final String CHARTS_PREFIX = System.getProperty("user.home") + File.separator + "Pictures" + File.separator + "chart-";
     public static final String CACHE_DIR = System.getProperty("user.home") + "/Downloads";
-
-    public static final int SCALE = 3300;
-    public static final BigDecimal CAPITAL_GAINS_RATE = new BigDecimal("0.15");
 
     private static boolean nominal(Map<String, String> params) {
         return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
@@ -158,11 +146,8 @@ public class ConsoleReports {
                 new Investments(console, format, bar, series)::investments;
 
             case "pf" ->
-                () -> new Investments(console, format, bar, series).invPF(
-                Boolean.parseBoolean(me.paramsValue(args, "pf").getOrDefault("detail", "false")),
-                Boolean.parseBoolean(me.paramsValue(args, "pf").getOrDefault("nominal", "false"))
-                
-                );
+                () -> new Investments(console, format, bar, series)
+                        .invPF(me.paramsValueDefaultFalse(args, "pf", "detail"), me.paramsValueDefaultFalse(args, "pf", "nominal"));
 
             case "gi" ->
                 new Positions(console, format, series, bar)::groupedInvestments;
@@ -172,6 +157,9 @@ public class ConsoleReports {
 
             case "inv" ->
                 () -> me.invReport(args, "inv");
+
+            case "fire" ->
+                () -> me.retirementWithdrawals(Integer.parseInt(me.paramsValue(args, "fire").getOrDefault("m", "12")));
 
             case "savings" ->
                 () -> me.savings(args, "savings");
@@ -351,16 +339,16 @@ public class ConsoleReports {
 
                 Stream.of(
                         new CmdParam("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} bbpp={5} pension={6} exp={7} m={8} srr={9}",
-                                TRIALS,
-                                RETIREMENT,
-                                AGE,
-                                INFLATION,
-                                CASH,
-                                BBPP,
-                                PENSION,
-                                EXPECTED_RETRUNS,
-                                36,
-                                BAD_RETURN_YEARS
+                                SeriesReader.readEnvironment().getProperty("goal.trials"),
+                                SeriesReader.readEnvironment().getProperty("goal.retirement"),
+                                SeriesReader.readEnvironment().getProperty("goal.maxage"),
+                                SeriesReader.readPercent("expectedInflation"),
+                                SeriesReader.readEnvironment().getProperty("goal.cash"),
+                                SeriesReader.readEnvironment().getProperty("goal.bbpp"),
+                                SeriesReader.readEnvironment().getProperty("goal.pension"),
+                                SeriesReader.readEnvironment().getProperty("goal.expectedreturns"),
+                                SeriesReader.readInt("goal.months"),
+                                SeriesReader.readEnvironment().getProperty("goal.badreturns")
                         )),
                         new CmdParam("savings-change", "m=1"),
                         new CmdParam("savings-change-pct", "m=1"),
@@ -370,6 +358,7 @@ public class ConsoleReports {
                         new CmdParam("pa"),
                         new CmdParam("house-evo"),
                         new CmdParam("expenses-src", "m=12"),
+                        new CmdParam("fire", "m=12"),
                         new CmdParam("p-type-evo"),
                         new CmdParam("p-type-evo-pct"),
                         new CmdParam("condo"),
@@ -519,7 +508,7 @@ public class ConsoleReports {
 
     private void savingEvolution(String[] args, String paramName) {
         this.appendLine(this.format.title("Savings Evolution"));
-        this.bar.evolution("Savings", this.series.realSavings(this.paramsValue(args, paramName).get("type")), ConsoleReports.SCALE);
+        this.bar.evolution("Savings", this.series.realSavings(this.paramsValue(args, paramName).get("type")), SeriesReader.readInt("scale"));
     }
 
     private void expenseEvolution(String[] args, String paramName) {
@@ -575,23 +564,34 @@ public class ConsoleReports {
                 .collect(toMap(parts -> parts[0], parts -> parts[1]));
     }
 
+    private boolean paramsValueDefaultFalse(
+            String[] args,
+            String paramName,
+            String key) {
+        return Boolean.parseBoolean(this.paramsValue(args, paramName).getOrDefault(key, "false"));
+    }
+
     private void goal(String[] args, String paramName) {
 
         this.appendLine(this.format.title("Goals"));
 
         final var params = this.paramsValue(args, paramName);
 
-        final var trials = Integer.parseInt(params.getOrDefault("trials", TRIALS));
-        final var inflation = new BigDecimal(params.getOrDefault("inflation", INFLATION));
+        final var trials = Integer.parseInt(params.getOrDefault("trials", SeriesReader.readEnvironment().getProperty("goal.trials")));
+
+        final var inflation = Optional.ofNullable(params.get("inflation"))
+                .map(BigDecimal::new)
+                .orElseGet(() -> SeriesReader.readBigDecimal("expectedInflation"));
+
         //final var badYearSpending = new BigDecimal(params.getOrDefault("bys", BAD_YEAR_SPENDING)).doubleValue();
-        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", RETIREMENT));
-        final var age = Integer.parseInt(params.getOrDefault("age", AGE));
-        final var months = Integer.parseInt(params.getOrDefault(MONTHS_PARAM, "36"));
-        final var extraCash = Integer.parseInt(params.getOrDefault("cash", CASH));
-        final var expected = params.getOrDefault("exp", EXPECTED_RETRUNS);
-        final var pension = Integer.parseInt(params.getOrDefault("pension", PENSION));
-        final var badReturnYears = Integer.parseInt(params.getOrDefault("srr", BAD_RETURN_YEARS));
-        final var bbppTax = Double.parseDouble(params.getOrDefault("bbpp", BBPP)) / 100.0d;
+        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", SeriesReader.readEnvironment().getProperty("goal.retirement")));
+        final var age = Integer.parseInt(params.getOrDefault("age", SeriesReader.readEnvironment().getProperty("goal.maxage")));
+        final var months = Integer.parseInt(params.getOrDefault(MONTHS_PARAM, SeriesReader.readEnvironment().getProperty("goal.months")));
+        final var extraCash = Integer.parseInt(params.getOrDefault("cash", SeriesReader.readEnvironment().getProperty("goal.cash")));
+        final var expected = params.getOrDefault("exp", SeriesReader.readEnvironment().getProperty("goal.expectedreturns"));
+        final var pension = Integer.parseInt(params.getOrDefault("pension", SeriesReader.readEnvironment().getProperty("goal.pension")));
+        final var badReturnYears = Integer.parseInt(params.getOrDefault("srr", SeriesReader.readEnvironment().getProperty("goal.badreturns")));
+        final var bbppTax = Double.parseDouble(params.getOrDefault("bbpp", SeriesReader.readEnvironment().getProperty("goal.bbpp"))) / 100.0d;
 
         final var goal = new Goal(this.console, this.format, this.series, this.bar, bbppTax);
 
@@ -617,7 +617,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         new BBPP(format, series, console)
-                .bbpp(Integer.parseInt(params.getOrDefault("year", "2024")));
+                .bbpp(Integer.parseInt(params.getOrDefault("year", SeriesReader.readEnvironment().getProperty("bbpp.year"))));
     }
 
     private void averageSavedSalaries(String[] args, String name) {
@@ -757,7 +757,34 @@ public class ConsoleReports {
         s.setName("Real");
         var nominal = this.series.nominalSavings();
         nominal.setName("Nominal");
-        new TimeSeriesChart().create("Savings", List.of(s, nominal), "savings.png", true);
+        new TimeSeriesChart(true).create("Savings", List.of(s, nominal), "savings.png");
+
+    }
+
+    private void incomeAccChart() {
+
+        final var agg = new SimpleAggregation();
+
+        final var unlp = agg.sum(this.series.incomeSource("unlp"));
+        unlp.setName("UNLP");
+
+        final var other = agg.sum(this.series.incomeSource("other-usd"));
+        other.setName("Other USD");
+
+        final var otherARS = agg.sum(this.series.incomeSource("other-ars"));
+        otherARS.setName("Other ARS");
+
+        final var lifia = agg.sum(this.series.incomeSource("lifia"));
+        lifia.setName("LIFIA");
+
+        final var despARS = agg.sum(this.series.incomeSource("despegar"));
+        despARS.setName("DESP ARS");
+
+        final var despUSD = agg.sum(this.series.incomeSource("despegar-split"));
+        despUSD.setName("DESP USD");
+
+        new TimeSeriesChart()
+                .create("Income", List.of(other, lifia, unlp, despARS, despUSD, otherARS), "income_acc.png");
 
     }
 
@@ -821,6 +848,7 @@ public class ConsoleReports {
             inv.brokerDetailedChart(new PieChart(true));
             inv.invGainsChart(new PieChart(true));
             this.expensesChart(12, true);
+            this.incomeAccChart();
             this.expensesChart(6, true);
             this.expensesChart(3, true);
             this.expensePieChart(12, new PieChart(true));
@@ -1012,7 +1040,7 @@ public class ConsoleReports {
                         .map(i -> i.getOut().getMoneyAmount().subtract(this.cost(i)))
                         //.peek(m -> this.console.appendLine(this.format.currency(m, 20)))
                         .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
-                        .adjust(BigDecimal.ONE, CAPITAL_GAINS_RATE);
+                        .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
 
         this.console.appendLine(this.format.currency(taxAmount, 20),
                 " ",
@@ -1025,7 +1053,7 @@ public class ConsoleReports {
                 .filter(i -> i.getOut() != null)
                 .map(i -> this.capitalGainARS(i, bnaFX))
                 .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add)
-                .adjust(BigDecimal.ONE, CAPITAL_GAINS_RATE);
+                .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
 
         this.console.appendLine(this.format.currency(
                 arsTax,
@@ -1233,6 +1261,213 @@ public class ConsoleReports {
 
     public record SoldAndBought<T>(T sold, T bought) {
 
+    }
+
+    private void retirementWithdrawals(int months) {
+
+        this.console.appendLine(this.format.title("F.I.R.E."));
+
+        final var limit = USD_INFLATION.getTo();
+        final var futureHealth = SeriesReader.readUSD("futureHealth");
+        final var futureRent = SeriesReader.readUSD("futureRent");
+        final var futurePension = SeriesReader.readUSD("futurePension");
+        final var totalSavings = this.series.realSavings(null).getAmount(limit);
+
+        final var essential = this.sumExpenses(ESSENTIAL, months);
+        final var discretionary = this.sumExpenses(Series.DISCRETIONARY, months);
+        final var irregular = this.sumExpenses(Series.IRREGULAR, months);
+        final var other = this.sumExpenses(Series.OTHER, months);
+
+        final var expectedFutureIncome = SeriesReader.readBigDecimal("futureRealState")
+                .add(SeriesReader.readBigDecimal("futureCash"))
+                .add(SeriesReader.readBigDecimal("futureSavings"));
+
+        this.console.appendLine(this.format.subtitle(months + "-Month Average Spending"));
+
+        this.conceptLine("Essential", essential);
+        this.conceptLine("Other", other);
+        this.conceptLine("Future Rent", futureRent);
+        this.conceptLine("Future Health Cost", futureHealth);
+        this.conceptLine("Discretionary", discretionary);
+        this.conceptLine("Irregular", irregular);
+        this.conceptLine("Future Pension", futurePension);
+
+        this.conceptLine("Current Savings", totalSavings);
+        this.conceptLine("Future Income", new MoneyAmount(expectedFutureIncome, USD));
+
+        var expected10YearCAGR = SeriesReader.readPercent("futureGrowth").add(ONE, C);
+        var expectedGrowth = expected10YearCAGR.pow(10, C);
+
+        this.console.appendLine(
+                this.format.text("10 Year Growth", 20),
+                this.format.percent(expectedGrowth.subtract(ONE, C), 10));
+
+        this.console.appendLine(this.format.subtitle("Portfolio Size by Spending and Withdrawal Percent"));
+
+        final var essentialWithoutRent = essential
+                .add(futureHealth)
+                .add(other)
+                .subtract(futurePension);
+        final var essentialWithRent = essentialWithoutRent
+                .add(futureRent);
+        final var everythingWithoutRent = essential
+                .add(futureHealth)
+                .add(other)
+                .subtract(futurePension)
+                .add(discretionary)
+                .add(irregular);
+
+        final var everythingWithRent = everythingWithoutRent
+                .add(futureRent);
+
+        this.conceptLine("Essential - Rent", essentialWithoutRent);
+        this.conceptLine("Everything - Rent", everythingWithoutRent);
+        this.conceptLine("Essential + Rent", essentialWithRent);
+        this.conceptLine("Everything + Rent", everythingWithRent);
+
+        this.console.appendLine("");
+        final var step = new BigDecimal("0.0025");
+        final var percents = Stream.concat(
+                IntStream.range(12, 19)
+                        .mapToObj(i -> new BigDecimal(i).multiply(step, C)),
+                Stream.of(
+                        new BigDecimal("3.66"),
+                        new BigDecimal("3.38"),
+                        new BigDecimal("3.53"),
+                        new BigDecimal("4.42"),
+                        new BigDecimal("4.07"))
+                        .map(v -> v.movePointLeft(2)))
+                .sorted()
+                .toList();
+
+        var alreadyThere = Attribute.GREEN_TEXT();
+        var withGrowth = Attribute.BRIGHT_YELLOW_TEXT();
+        var withGrowthAndIncome = Attribute.YELLOW_TEXT();
+        var farAway = Attribute.RED_TEXT();
+
+        this.console.appendLine(
+                Stream.concat(
+                        Stream.of(this.format.text("Spending", 12)),
+                        percents.stream()
+                                .map(pct -> this.format.center(this.format.percent(pct), 8)))
+                        .collect(Collectors.joining()));
+        Stream.concat(
+                Stream.of(essentialWithRent, essentialWithoutRent, everythingWithRent, everythingWithoutRent)
+                        .map(MoneyAmount::amount),
+                IntStream.range(3, 11)
+                        .map(i -> i * 400)
+                        .mapToObj(BigDecimal::new))
+                .sorted()
+                .map(monthlySpending
+                        -> this.retirementWithdrawalRow(
+                        monthlySpending,
+                        totalSavings,
+                        expectedFutureIncome,
+                        expectedGrowth,
+                        percents,
+                        alreadyThere,
+                        withGrowth,
+                        withGrowthAndIncome,
+                        farAway
+                ))
+                .forEach(this.console::appendLine);
+
+        this.console.appendLine(this.format.subtitle("Failsafe around Prominent Market Peaks"));
+
+        this.refLine("pre-1900", "3.95");
+        this.refLine("1900-1910", "3.38");
+        this.refLine("1911-1928", "3.57");
+        this.refLine("1929", "3.25");
+        this.refLine("1964-69", "3.66");
+        this.refLine("1972/73", "4.07");
+        this.refLine("1999-2000", "3.53");
+        this.refLine("2008/09", "4.42");
+
+        new References(console, format)
+                .refsLabels(
+                        List.of("Savings", "Savings+Growth", "Savings+Growth+Income", "Far Away"),
+                        List.of(alreadyThere,
+                                withGrowth,
+                                withGrowthAndIncome,
+                                farAway));
+
+    }
+
+    private void refLine(String label, String pct) {
+        this.console.appendLine(
+                this.format.text(label, 16),
+                this.format.percent(new BigDecimal(pct).movePointLeft(2), 6));
+    }
+
+    private MoneyAmount sumExpenses(String type, int months) {
+
+        return this.series.getRealUSDExpensesByType()
+                .get(type)
+                .stream()
+                .reduce(MoneyAmountSeries::add)
+                .map(new SimpleAggregation(months)::average)
+                .get()
+                .getAmountOrElseZero(USD_INFLATION.getTo());
+
+    }
+
+    private void conceptLine(String label, MoneyAmount value) {
+        this.console.appendLine(
+                this.format.text(label, 20),
+                this.format.currency(value, 12));
+    }
+
+    private String retirementWithdrawalRow(
+            BigDecimal monthlySpending,
+            MoneyAmount currentSavings,
+            BigDecimal expectedFutureSavings,
+            BigDecimal expected10YearGrowth,
+            List<BigDecimal> percents,
+            Attribute alreadyThere,
+            Attribute withGrowth,
+            Attribute withGrowthAndIncome,
+            Attribute farAway) {
+        var annualSpending = monthlySpending.multiply(new BigDecimal(12l), C);
+        return this.format.text(this.format.currency(monthlySpending), 12)
+                + percents.stream()
+                        .map(percent -> annualSpending.divide(percent, C))
+                        .map(portfolioLevel -> this.coloredAmount(
+                        portfolioLevel,
+                        currentSavings,
+                        expectedFutureSavings,
+                        expected10YearGrowth,
+                        alreadyThere,
+                        withGrowth,
+                        withGrowthAndIncome,
+                        farAway))
+                        .collect(Collectors.joining());
+
+    }
+
+    private String coloredAmount(
+            BigDecimal amount,
+            MoneyAmount currentSavings,
+            BigDecimal expectedFutureSavings,
+            BigDecimal expected10YearGrowth,
+            Attribute alreadyThere,
+            Attribute withGrowth,
+            Attribute withGrowthAndIncome,
+            Attribute farAway) {
+
+        var cols = 8;
+
+        if (amount.compareTo(currentSavings.amount()) <= 0) {
+            return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(alreadyThere));
+        } else if (amount.compareTo(currentSavings.amount()
+                .multiply(expected10YearGrowth, C)) <= 0) {
+            return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(withGrowth));
+        } else if (amount.compareTo(currentSavings.amount()
+                .multiply(expected10YearGrowth, C)
+                .add(expectedFutureSavings, C)) <= 0) {
+            return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(withGrowthAndIncome));
+        } else {
+            return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(farAway));
+        }
     }
 
 }

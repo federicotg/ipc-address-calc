@@ -47,24 +47,22 @@ public class TimeSeriesChart {
 
     private final Font font;
     private final Stroke stroke;
+    private final boolean logScale;
 
     public TimeSeriesChart() {
+        this(false);
+    }
+    
+    public TimeSeriesChart(boolean logScale) {
         this.font = new Font("SansSerif", Font.PLAIN, 18);
         this.stroke = new BasicStroke(3.0f);
+        this.logScale = logScale;
     }
 
     public void create(
             String chartName,
             List<MoneyAmountSeries> series,
             String filename) {
-        this.create(chartName, series, filename, false);
-    }
-
-    public void create(
-            String chartName,
-            List<MoneyAmountSeries> series,
-            String filename,
-            boolean logScale) {
         try {
             var collection = new TimeSeriesCollection();
             series.stream().map(MoneyAmountSeries::asTimeSeries).forEach(collection::addSeries);

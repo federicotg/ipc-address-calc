@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
-import static org.fede.calculator.money.ConsoleReports.CAPITAL_GAINS_RATE;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.C;
 import static org.fede.calculator.money.MathConstants.RM;
@@ -121,7 +120,7 @@ public class Goal {
             amount += d + EXTRA_INCOME.getOrDefault(i, BigDecimal.ZERO).doubleValue();
         }
 
-        final var cgtPct = CAPITAL_GAINS_RATE.doubleValue();
+        final var cgtPct = SeriesReader.readPercent("capitalGainsTaxRate").doubleValue();
         // withdrawing
         for (var i = retirement; i <= end; i++) {
 
@@ -205,9 +204,11 @@ public class Goal {
             String expected,
             int badReturnYears) {
 
-        final var retirementYear = 1978 + retirementAge;
+        final var birthYear = SeriesReader.readDate("dob").getYear();
+        
+        final var retirementYear = birthYear + retirementAge;
         final int startingYear = USD_INFLATION.getTo().getYear();
-        final var end = 1978 + age;
+        final var end = birthYear + age;
         final var yearsLeft = 2088 - startingYear;
 
         final var cash = todaySavings.getAmount()
@@ -264,7 +265,7 @@ public class Goal {
                 formattedWithdrawal,
                 this.bbppTaxRate * 100.0d,
                 bbppMin,
-                CAPITAL_GAINS_RATE,
+                SeriesReader.readPercent("capitalGainsTaxRate"),
                 HEALTH_MONTHLY_COST,
                 pension,
                 inflation,

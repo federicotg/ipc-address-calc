@@ -43,33 +43,35 @@ public class Format {
     }
 
     private String getRightAlignedFormat(int width) {
-        //return rightAlignedFormat.computeIfAbsent(width, w -> "%".concat(String.valueOf(w)).concat("s"));
         return "%" + String.valueOf(width) + "s";
     }
 
     private String getLeftAlignedFormat(int width) {
-        //return leftAlignedFormat.computeIfAbsent(width, w -> "%-".concat(String.valueOf(w)).concat("s"));
         return "%-" + String.valueOf(width) + "s";
     }
 
     public String text(String value, int width, AnsiFormat fmt) {
-        return Ansi.colorize(text(value, width), fmt);
+        return Ansi.colorize(this.text(value, width), fmt);
     }
 
     public String text(String value, int width) {
         return String.format(this.getLeftAlignedFormat(width), value);
     }
-    
+
+    public String center(String text, int width, AnsiFormat fmt) {
+        return Ansi.colorize(this.center(text, width), fmt);
+    }
+
     public String center(String text, int width) {
         if (text == null || width <= text.length()) {
             return text;
         }
         int padding = (width - text.length()) / 2;
         int remainder = (width - text.length()) % 2; // handle odd widths
-        return " ".repeat(padding) + text + " ".repeat(padding + remainder);
+        return " ".repeat(padding + remainder) + text + " ".repeat(padding);
     }
-    
-    public static String format(String pattern, Object... o){
+
+    public static String format(String pattern, Object... o) {
         return new MessageFormat(pattern).format(o);
     }
 
@@ -128,8 +130,8 @@ public class Format {
 
     public String title(String text) {
 
-        return "\n"
-                + Ansi.colorize(text, Attribute.BRIGHT_WHITE_TEXT(), Attribute.BOLD())
+        return "\n"+
+                this.center(Ansi.colorize(text, Attribute.BRIGHT_WHITE_TEXT(), Attribute.BOLD()), 80)
                 + "\n";
 
     }

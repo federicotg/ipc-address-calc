@@ -45,7 +45,6 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.reducing;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import static org.fede.calculator.money.ConsoleReports.CAPITAL_GAINS_RATE;
 import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Currency.AY24;
 import static org.fede.calculator.money.Currency.CSPX;
@@ -271,7 +270,7 @@ public class Positions {
 
     private void egrReportLine(String title, List<Position> positions) {
         final var egr = this.egr(positions);
-        final var tax = egr.multiply(CAPITAL_GAINS_RATE);
+        final var tax = egr.multiply(SeriesReader.readPercent("capitalGainsTaxRate"));
         
         this.console.appendLine(
                 format.text(title + " EGR", 20), 
@@ -344,12 +343,12 @@ public class Positions {
                 nominal,
                 now);
 
-        this.console.appendLine(this.format.text("", 11),
+        this.console.appendLine(this.format.text("", 8),
                 positionByGroup.keySet().stream()
                         .map(CurrencyAndGroupKey::currency)
                         .distinct()
                         .sorted()
-                        .map(currency -> this.format.text(currency.name(), 9))
+                        .map(currency -> this.format.center(currency.name(), 9))
                         .collect(joining()));
 
         positionByGroup.keySet().stream()

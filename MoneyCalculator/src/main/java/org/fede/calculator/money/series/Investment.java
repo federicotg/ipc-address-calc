@@ -29,8 +29,8 @@ import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
-import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.MoneyAmount;
 
 /**
  *

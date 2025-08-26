@@ -26,11 +26,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
+import java.time.LocalDate;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.Currency;
+import static org.fede.calculator.money.Currency.USD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +49,8 @@ public class SeriesReader {
 
     public static final String SECRETS = APP_RESOURCES + "ppi-secrets.properties";
 
+    private static final String ENV = APP_RESOURCES + "environment.properties";
+
     private static final ObjectMapper OM = new ObjectMapper();
 
     private static final Map<String, JSONIndexSeries> CACHE = new ConcurrentHashMap<>();
@@ -55,6 +60,8 @@ public class SeriesReader {
 
     private static final Map<String, MoneyAmountSeries> MACACHE = new ConcurrentHashMap<>();
 
+    private static Properties ENVIRONMENT = null;
+
     static {
         OM.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
@@ -62,6 +69,39 @@ public class SeriesReader {
     private static JSONIndexSeries createIndexSeries(String name) {
         return new JSONIndexSeries(read(name, INDEX_SERIES_TYPE_REFERENCE));
 
+    }
+
+    public static Properties readEnvironment() {
+        if (ENVIRONMENT == null) {
+            try (var is = new FileInputStream(new File(SeriesReader.ENV))) {
+                ENVIRONMENT = new Properties();
+                ENVIRONMENT.load(is);
+            } catch (IOException ioEx) {
+                LOGGER.error("Error reading env.", ioEx);
+                throw new RuntimeException(ioEx);
+            }
+        }
+        return ENVIRONMENT;
+    }
+
+    public static BigDecimal readBigDecimal(String key) {
+        return new BigDecimal(readEnvironment().getProperty(key));
+    }
+
+    public static int readInt(String key) {
+        return Integer.parseInt(readEnvironment().getProperty(key));
+    }
+
+    public static MoneyAmount readUSD(String key) {
+        return new MoneyAmount(readBigDecimal(key), USD);
+    }
+
+    public static BigDecimal readPercent(String key) {
+        return readBigDecimal(key).movePointLeft(2);
+    }
+
+    public static LocalDate readDate(String key) {
+        return LocalDate.parse(readEnvironment().getProperty(key));
     }
 
     public static IndexSeries readIndexSeries(String name) {

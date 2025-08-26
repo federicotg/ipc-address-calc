@@ -42,10 +42,10 @@ import static org.fede.util.Pair.of;
  */
 public class Series {
 
-    private static final String OTHER = "3-OTHER";
-    private static final String ESSENTIAL = "1-ESSENTIAL";
-    private static final String DISCRETIONARY = "2-DISCRETIONARY";
-    private static final String IRREGULAR = "4-IRREGULAR";
+    public static final String OTHER = "OTHER";
+    public static final String ESSENTIAL = "ESSENTIAL";
+    public static final String DISCRETIONARY = "DISCRETIONARY";
+    public static final String IRREGULAR = "IRREGULAR";
 
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };

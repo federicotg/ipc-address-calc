@@ -32,7 +32,6 @@ import static java.time.Month.JANUARY;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -55,7 +54,6 @@ import static java.util.stream.Collectors.joining;
 import static org.fede.calculator.money.MathConstants.C;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import static org.fede.calculator.money.ConsoleReports.CAPITAL_GAINS_RATE;
 import static org.fede.calculator.money.Currency.*;
 import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
@@ -248,10 +246,10 @@ public class Investments {
                         .map(i -> this.asReturn(i, nominal))
                         .toList();
 
-        if(detail){
+        if (detail) {
             this.console.appendLine(this.format.subtitle("Investments"));
         }
-        
+
         inv.stream()
                 .filter(i -> detail)
                 .sorted(Comparator.comparing(InvestmentReturn::to))
@@ -267,8 +265,8 @@ public class Investments {
                 MEUD, 11,
                 XRSU, 11,
                 LETE, 9
-                );
-        
+        );
+
         final var currencies = List.of(ARS, USD, UVA, CSPX, MEUD, XRSU, EIMI, LETE, CONAAFA, CONBALA, CAPLUSA, LECAP, AY24);
 
         this.console.appendLine(this.format.subtitle("CDs, Bonds, ETFs & FCIs PnL by Year"));
@@ -297,7 +295,7 @@ public class Investments {
                         .map(c -> this.format.center(c.name(), cols.getOrDefault(c, cols.getOrDefault(c, 12))))
                         .collect(Collectors.joining());
     }
-    
+
     private String pnl(Currency currency, Integer year, List<InvestmentReturn> inv, Map<Currency, Integer> cols) {
         return inv.stream()
                 .filter(i -> i.currency() == currency)
@@ -315,7 +313,10 @@ public class Investments {
                         LocalDate.ofInstant(pf.from().toInstant(), SYSTEM_DEFAULT_ZONE_ID)), 12);
         var to = this.format.text(
                 DateTimeFormatter.ISO_LOCAL_DATE.format(
-                        LocalDate.ofInstant(pf.to().toInstant(), SYSTEM_DEFAULT_ZONE_ID)), 12);
+                        LocalDate.ofInstant(pf.to().toInstant(), SYSTEM_DEFAULT_ZONE_ID))
+                + (pf.to().after(new Date()) ? "*" : ""), 
+                12);
+
         var days = this.format.text(String.valueOf(pf.days()), 4);
         var initial = this.format.currency(pf.initialAmount().amount(), 12);
         var endAmount = this.format.currency(pf.endAmount().amount(), 12);
@@ -383,9 +384,10 @@ public class Investments {
         this.console.appendLine(this.format.subtitle(nominal ? "Nominal Returns" : "Real Returns"));
 
         this.console.appendLine(
-                this.format.text("", 28),
+                this.format.text("", 24),
                 this.range()
-                        .mapToObj(y -> y == 0 ? "Total" : this.format.text(String.valueOf(y), 9))
+                        .mapToObj(y -> y == 0 ? "Total" : String.valueOf(y))
+                        .map(value -> this.format.center(value, 8))
                         .collect(joining()));
 
         Stream.of(CSPX, EIMI, XRSU, RTWO, MEUD, IWDA)
@@ -398,9 +400,9 @@ public class Investments {
 
     private String row(Currency symbol, boolean nominal) {
         return format("{0}{1}",
-                this.format.text(ETF_NAME.get(symbol), 25),
+                this.format.text(ETF_NAME.get(symbol), 24),
                 this.range()
-                        .mapToObj(y -> this.format.percent(this.annualRealReturn(symbol, y, nominal), 9))
+                        .mapToObj(y -> this.format.percent(this.annualRealReturn(symbol, y, nominal), 8))
                         .collect(joining())
         );
     }
@@ -456,7 +458,7 @@ public class Investments {
                 .get()
                 .stream()
                 .map(LabelAndMDR::label)
-                .map(y -> this.format.text(y, 9))
+                .map(y -> this.format.center(y, 8))
                 .collect(joining());
 
         final var nameColWidth = ETF_NAME.values()
@@ -467,7 +469,7 @@ public class Investments {
 
         this.console.appendLine(this.format.subtitle((nominal ? "Nominal" : "Real") + " Modified Dietz Returns"));
 
-        this.console.appendLine(this.format.text(" ", nameColWidth + 4), titleRow);
+        this.console.appendLine(this.format.center(" ", nameColWidth), titleRow);
         matrix
                 .entrySet()
                 .stream()
@@ -540,7 +542,7 @@ public class Investments {
     }
 
     private String coloredPercent(ModifiedDietzReturnResult value, AnsiFormat color) {
-        return this.format.text(format.percent(value.getMoneyWeighted(), 9), 9, color);
+        return this.format.text(format.percent(value.getMoneyWeighted(), 8), 8, color);
     }
 
     private AnsiFormat color(String name, ModifiedDietzReturnResult value, ModifiedDietzReturnResult iwda, ModifiedDietzReturnResult cspx) {
@@ -637,7 +639,7 @@ public class Investments {
             this.console.appendLine(
                     pct
                             ? this.pctBar(ym, elements)
-                            : this.bar(ym, elements, ConsoleReports.SCALE));
+                            : this.bar(ym, elements, SeriesReader.readInt("scale")));
         });
 
         this.ref();
@@ -746,7 +748,7 @@ public class Investments {
                 .subtract(invested.apply(i));
 
         if (capitalGains.getAmount().signum() > 0) {
-            return capitalGains.adjust(ONE, CAPITAL_GAINS_RATE);
+            return capitalGains.adjust(ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
         }
 
         return MoneyAmount.zero(Currency.USD);

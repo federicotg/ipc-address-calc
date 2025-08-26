@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toMap;
 import static org.fede.calculator.money.Currency.USD;
 import java.util.stream.IntStream;
+import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 
 /**
@@ -116,7 +117,7 @@ public class Evolution<T> {
             this.console.appendLine(
                     pct
                             ? this.pctBar(ym, elements)
-                            : this.bar(ym, elements, ConsoleReports.SCALE));
+                            : this.bar(ym, elements, SeriesReader.readInt("scale")));
 
             IntStream.range(0, typeList.size())
                     .mapToObj(i -> Ansi.colorize(" ", colorList.get(i)) + typeList.get(i))

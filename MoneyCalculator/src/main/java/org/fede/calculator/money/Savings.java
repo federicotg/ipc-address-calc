@@ -147,7 +147,7 @@ public class Savings {
                         cashMa.getAmount(),
                         eq.getAmountOrElseZero(ym).getAmount(),
                         bo.getAmountOrElseZero(ym).getAmount(),
-                        ConsoleReports.SCALE
+                        SeriesReader.readInt("scale")
                 )));
 
         this.cashEquityBondsRef("Savings Distribution Evolution");
@@ -572,7 +572,7 @@ public class Savings {
 
         final var simultaneousPercent = new BigDecimal("0.82").divide(new BigDecimal("30"), MathConstants.C);
 
-        final var yearsLeft = 1978 + 65 - LocalDate.now().getYear();
+        final var yearsLeft = SeriesReader.readDate("dob").getYear() + 65 - LocalDate.now().getYear();
 
         this.console.appendLine(format("Retirement: {0} last 120 average salaries plus {1} best UNLP salary.",
                 this.format.percent(BigDecimal.valueOf(totalYears).multiply(new BigDecimal("0.015"), MathConstants.C)),
@@ -601,8 +601,7 @@ public class Savings {
                 contingencyYearsAndmonths[1].setScale(0, MathConstants.RM)));
 
         final var contingencyDate = LocalDateTime.now().plusMonths(contingencyMonths.longValue());
-        final var retirementDate = LocalDateTime.of(1978 + 65, Month.MARCH, 13, 23, 59, 59);
-
+        final var retirementDate = SeriesReader.readDate("dob").atTime(23, 59, 59).plusYears(65);
         final long gapYears = Math.ceilDiv(Duration.between(contingencyDate, retirementDate).toDays(), 365l);
 
         this.console.appendLine(format("Gap is {0,number} years.", gapYears));

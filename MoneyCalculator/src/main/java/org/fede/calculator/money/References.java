@@ -41,7 +41,25 @@ public class References {
         this.console.appendLine("References:");
 
         this.console.appendLine(IntStream.range(0, labels.size())
-                .mapToObj(i -> Ansi.colorize(" ", colors.get(i)).concat(labels.get(i)))
+                .mapToObj(i -> Ansi.colorize(" ", colors.get(i)) + labels.get(i))
+                .collect(Collectors.joining(" ", "", "")));
+    }
+
+    public void refsLabels(List<String> labels, List<Attribute> colors) {
+        this.refsLabels(null, labels, colors);
+    }
+
+    public void refsLabels(String title, List<String> labels, List<Attribute> colors) {
+        if (title != null) {
+            this.console.appendLine(this.format.title(title));
+        } else {
+            this.console.appendLine("");
+
+        }
+        this.console.appendLine("References:");
+
+        this.console.appendLine(IntStream.range(0, labels.size())
+                .mapToObj(i -> Ansi.colorize(labels.get(i), colors.get(i)))
                 .collect(Collectors.joining(" ", "", "")));
     }
 }

@@ -35,9 +35,6 @@ import static org.fede.calculator.money.MathConstants.C;
  */
 public class House {
 
-    private final BigDecimal IVA = new BigDecimal("1.21");
-    private final BigDecimal NOTARY_FEE = new BigDecimal("0.02")
-            .multiply(IVA, C);
     private final BigDecimal COEFFICIENT = new BigDecimal("0.1223");
 
     private final BigDecimal REALTOR_FEE = new BigDecimal("0.045");
@@ -60,11 +57,18 @@ public class House {
 
         final var limit = USD_INFLATION.getTo();
 
-        final var nominalInitialCost = new BigDecimal("96000");
-        final var nominalTransactionCost = nominalInitialCost.multiply(REALTOR_FEE.add(STAMP_TAX, C)
-                .add(REGISTER_TAX, C)
-                .add(NOTARY_FEE, C),
-                C);
+        final var nominalInitialCost = SeriesReader.readBigDecimal("houseNominalCost");
+
+        final var ivaFactor = SeriesReader.readPercent("iva").add(ONE, C);
+        final var notaryFee = SeriesReader.readPercent("house.notary").multiply(ivaFactor);
+
+        final var nominalTransactionCost = nominalInitialCost
+                .multiply(REALTOR_FEE
+                        .add(STAMP_TAX)
+                        .add(REGISTER_TAX)
+                        .add(notaryFee));
+        
+        //this.console.appendLine(" "+nominalTransactionCost);
 
         final var start = YearMonth.of(2010, 8);
         final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalTransactionCost, Currency.USD),
@@ -131,12 +135,18 @@ public class House {
     private void buyVsRent(MoneyAmount realExpensesInUSD, BigDecimal rate, YearMonth timeLimit) {
         final var limit = USD_INFLATION.getTo();
 
-        final var nominalInitialCost = new BigDecimal("96000");
-        final var nominalTransactionCost = nominalInitialCost.multiply(REALTOR_FEE.add(STAMP_TAX, C)
-                .add(REGISTER_TAX, C)
-                .add(NOTARY_FEE, C),
-                C);
+        final var ivaFactor = SeriesReader.readPercent("iva").add(ONE, C);
+        final var notaryFee = SeriesReader.readPercent("house.notary").multiply(ivaFactor);
 
+        final var nominalInitialCost = SeriesReader.readBigDecimal("houseNominalCost");
+        final var nominalTransactionCost = nominalInitialCost
+                .multiply(REALTOR_FEE
+                        .add(STAMP_TAX, C)
+                        .add(REGISTER_TAX)
+                        .add(notaryFee));
+
+        //this.console.appendLine(" "+nominalTransactionCost);
+        
         final var start = YearMonth.of(2010, 8);
         final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalInitialCost, Currency.USD),
                 start,
