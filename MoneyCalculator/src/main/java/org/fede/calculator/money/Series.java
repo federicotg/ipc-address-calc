@@ -17,7 +17,7 @@
 package org.fede.calculator.money;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import java.math.BigDecimal;
+import static java.math.BigDecimal.ONE;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -193,7 +193,7 @@ public class Series {
                         .map(i -> new Cost(YearMonth.of(i.getIn().getDate()), i.getCost()))
                         .toList();
 
-        final var iva = new BigDecimal(1.21);
+        final var iva = SeriesReader.readPercent("iva").add(ONE);
 
         final List<Cost> sellCost
                 = this.getInvestments()
@@ -205,7 +205,7 @@ public class Series {
                         .map(i
                                 -> new Cost(
                                 YearMonth.of(i.getOut().getDate()),
-                                i.getOut().getFeeMoneyAmount().adjust(BigDecimal.ONE, iva)
+                                i.getOut().getFeeMoneyAmount().adjust(ONE, iva)
                                         .add(new MoneyAmount(i.getOut().getTransferFee(), i.getOut().getCurrency()))))
                         .toList();
 
@@ -260,9 +260,9 @@ public class Series {
 
     public MoneyAmountSeries realExpense() {
         if (this.realExpense == null) {
-            final var negationFactor = BigDecimal.ONE.negate(MathConstants.C);
+            final var negationFactor = ONE.negate(MathConstants.C);
             this.realExpense = this.realIncome()
-                    .add(this.realNetSavings().map((ym, ma) -> ma.adjust(BigDecimal.ONE, negationFactor)));
+                    .add(this.realNetSavings().map((ym, ma) -> ma.adjust(ONE, negationFactor)));
         }
         return this.realExpense;
     }
@@ -276,7 +276,7 @@ public class Series {
         }
         return this.realIncome;
     }
-    
+
     public MoneyAmountSeries realRegularIncome() {
         if (this.realIncome == null) {
             this.realIncome = this.getRegularIncomeSeries()
@@ -330,7 +330,7 @@ public class Series {
         }
         return this.incomeSeries;
     }
-    
+
     public List<MoneyAmountSeries> getRegularIncomeSeries() {
 
         if (this.incomeSeries == null) {
@@ -347,7 +347,6 @@ public class Series {
         }
         return this.incomeSeries;
     }
-    
 
     public MoneyAmountSeries nominalSavings() {
         return this.savingsSeriesNames()
@@ -382,11 +381,23 @@ public class Series {
         final var netSaving = this.realNetSavings();
         final var spending = this.realExpenses(null);
 
-        final var negativeFactor = BigDecimal.ONE.negate();
+        final var negativeFactor = ONE.negate();
 
         return income
-                .add(spending.map((ym, ma) -> ma.adjust(BigDecimal.ONE, negativeFactor)))
-                .add(netSaving.map((ym, ma) -> ma.adjust(BigDecimal.ONE, negativeFactor)));
+                .add(spending.map((ym, ma) -> ma.adjust(ONE, negativeFactor)))
+                .add(netSaving.map((ym, ma) -> ma.adjust(ONE, negativeFactor)));
+    }
+
+    public MoneyAmountSeries realCash() {
+        return Stream.of(
+                "ahorros-peso",
+                "ahorros-dolar-banco",
+                "ahorros-dolar-liq",
+                "ahorros-euro",
+                "ahorros-dai")
+                .map(this::asRealUSDSeries)
+                .reduce(MoneyAmountSeries::add)
+                .get();
     }
 
     public MoneyAmountSeries realExpenses(String type) {

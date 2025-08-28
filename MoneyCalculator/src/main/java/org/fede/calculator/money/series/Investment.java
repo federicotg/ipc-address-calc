@@ -18,6 +18,7 @@ package org.fede.calculator.money.series;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
+import static java.math.BigDecimal.ONE;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
@@ -38,8 +39,7 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public class Investment {
 
-    private static final BigDecimal IVA = new BigDecimal("1.21");
-
+    //private static final BigDecimal IVA = new BigDecimal("1.21");
     private static final BigDecimal CCL_FEE_FACTOR = BigDecimal.ONE.subtract(new BigDecimal("0.006"), C);
 
     private String id;
@@ -216,8 +216,10 @@ public class Investment {
     }
 
     private BigDecimal ccl() {
+        var iva = SeriesReader.readPercent("iva").add(ONE);
+
         final var totalInvestment = this.getIn().getFee()
-                .multiply(IVA, C)
+                .multiply(iva, C)
                 .add(this.getIn().getAmount());
 
         return totalInvestment
@@ -227,16 +229,17 @@ public class Investment {
     }
 
     private BigDecimal ppiCost() {
+        var iva = SeriesReader.readPercent("iva").add(ONE);
 
         return this.getIn().getFee()
-                .multiply(IVA, C)
+                .multiply(iva, C)
                 .add(Optional.ofNullable(this.getIn().getTransferFee()).orElseGet(this::ccl));
     }
 
     private BigDecimal ibkrCost() {
-            return this.getIn().getFee()
-                    .add(this.getIn().getTransferFee(), C);
-        }
+        return this.getIn().getFee()
+                .add(this.getIn().getTransferFee(), C);
+    }
 
     public boolean isETF() {
         return this.getType() == InvestmentType.ETF;

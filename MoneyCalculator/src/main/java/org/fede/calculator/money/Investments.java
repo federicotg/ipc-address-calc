@@ -27,6 +27,8 @@ import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
 import static java.time.Month.DECEMBER;
 import static java.time.Month.JANUARY;
 import java.time.ZoneId;
@@ -45,19 +47,22 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
-import static org.fede.calculator.money.MathConstants.C;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.Currency.*;
+import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
+import org.fede.calculator.money.chart.TimeSeriesChart;
 import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import static org.fede.calculator.money.series.InvestmentType.BONO;
 import static org.fede.calculator.money.series.InvestmentType.FCI;
@@ -68,8 +73,6 @@ import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -77,9 +80,9 @@ import org.slf4j.LoggerFactory;
  */
 public class Investments {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Investments.class);
-
     private final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
+
+    private static final DateTimeFormatter DTF = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault());
 
     private final Comparator<Investment> COMPARATOR = comparing(Investment::getInitialDate, naturalOrder());
 
@@ -160,32 +163,6 @@ public class Investments {
         this.investmentReport(this.getInvestments(), everyone, Investment::isETF, Investment::isCurrent, nominal);
     }
 
-    public void invGainsChart() throws IOException {
-        this.invGainsChart(new PieChart(true));
-    }
-
-    public void invGainsChart(PieChart chart) throws IOException {
-
-        var now = new Date();
-        Map<Integer, BigDecimal> gainsByYear = this.series.getInvestments()
-                .stream()
-                .filter(investment -> investment.isCurrent(now))
-                .filter(Investment::isETF)
-                .map(new InvestmentCostStrategy(Currency.USD)::details)
-                .map(InvestmentDetails::asReal)
-                .collect(
-                        Collectors.groupingBy(detail -> detail.getInvestmentDate().getYear(),
-                                Collectors.reducing(
-                                        BigDecimal.ZERO,
-                                        detail -> detail.getGrossCapitalGains().amount(),
-                                        BigDecimal::add)));
-
-        chart.create(
-                "Gains by Year",
-                gainsByYear.entrySet().stream().map(e -> new PieItem(String.valueOf(e.getKey()), e.getValue())).toList(),
-                "gains-by-year.png");
-    }
-
     private void investmentReport(
             Stream<Investment> invStream,
             final Predicate<Investment> everyone,
@@ -221,7 +198,6 @@ public class Investments {
 
         final var allEtfs = this.getInvestments()
                 .filter(Investment::isETF)
-                // .filter(Investment::isCurrent)
                 .toList();
 
         final var mapper = new BenchmarkInvestmentMapper(benchmark, allEtfs);
@@ -229,8 +205,6 @@ public class Investments {
         return etfs.stream()
                 .sorted(Comparator.comparing(Investment::getInitialDate))
                 .map(mapper)
-                //.peek(benchmark == CSPX ? this::print : s -> {
-                //})
                 .toList();
     }
 
@@ -314,7 +288,7 @@ public class Investments {
         var to = this.format.text(
                 DateTimeFormatter.ISO_LOCAL_DATE.format(
                         LocalDate.ofInstant(pf.to().toInstant(), SYSTEM_DEFAULT_ZONE_ID))
-                + (pf.to().after(new Date()) ? "*" : ""), 
+                + (pf.to().after(new Date()) ? "*" : ""),
                 12);
 
         var days = this.format.text(String.valueOf(pf.days()), 4);
@@ -350,20 +324,6 @@ public class Investments {
 
         return new InvestmentReturn(pf.getCurrency(), from, to, realInitialAmount, realFinalAmount);
 
-    }
-
-    private void print(Investment i) {
-        LOGGER.debug("{} {} {} {} {}",
-                YearMonth.of(i.getIn().getDate()).monthString(),
-                this.format.currency(i.getIn().getMoneyAmount(), 15),
-                this.format.currency(i.getInvestment().getMoneyAmount(), 15),
-                i.getOut() != null
-                ? YearMonth.of(i.getOut().getDate()).monthString()
-                : "",
-                i.getOut() != null
-                ? this.format.currency(i.getOut().getMoneyAmount(), 15)
-                : ""
-        );
     }
 
     public void inv(final Predicate<Investment> everyone, boolean nominal) {
@@ -996,4 +956,464 @@ public class Investments {
                 new PieItem("Current Value " + broker, currentValue));
 
     }
+
+    public void ppiTransfer(String type) {
+
+        final Function<InvestmentEvent, MoneyAmount> grossSaleMapper
+                = (InvestmentEvent e) -> e.getRealUSDMoneyAmount()
+                        .add(e.getRealUSDFeeMoneyAmount())
+                        .add(e.getRealUSDTransferFeeMoneyAmount());
+
+        final SoldAndBought<MoneyAmount> netAmountSummary
+                = this.summarize(
+                        grossSaleMapper,
+                        InvestmentEvent::getRealUSDMoneyAmount,
+                        MoneyAmount.zero(USD),
+                        MoneyAmount::add);
+
+        final Function<InvestmentEvent, MoneyAmount> feeMapper = e -> e.getRealUSDTransferFeeMoneyAmount().add(e.getRealUSDFeeMoneyAmount());
+
+        final SoldAndBought<MoneyAmount> feeSummary
+                = this.summarize(
+                        feeMapper,
+                        feeMapper,
+                        MoneyAmount.zero(USD),
+                        MoneyAmount::add);
+
+        final var fees = feeSummary.sold.add(feeSummary.bought);
+
+        this.console.appendLine(this.format.subtitle("Comisiones"));
+        this.console.appendLine("Sold ", this.format.currency(feeSummary.sold, 16));
+        this.console.appendLine("Bought ", this.format.currency(feeSummary.bought, 16));
+        this.console.appendLine("Total:", this.format.currencyPL(fees.getAmount().negate(), 16),
+                " ",
+                this.format.percent(fees.amount().divide(netAmountSummary.sold.amount(), C), 6)
+        );
+
+        this.console.appendLine(this.format.subtitle("Monto Neto"));
+        this.console.appendLine("Sold ", this.format.currency(netAmountSummary.sold, 16));
+
+        this.console.appendLine(this.format.subtitle("Tax"));
+
+        //bna comprador
+        final Map<String, BigDecimal> bnaFX = Map.of(
+                "2025-04-03", new BigDecimal("1075"),
+                "2025-04-08", new BigDecimal("1076.25"),
+                "2025-04-14", new BigDecimal("1198"),
+                "2025-04-24", new BigDecimal("1174"),
+                "2025-05-01", new BigDecimal("1170"),
+                "2025-05-09", new BigDecimal("1136"),
+                "2025-05-16", new BigDecimal("1142"),
+                "2025-05-23", new BigDecimal("1133.5")
+        );
+
+        final var taxAmount
+                = this.series.getInvestments()
+                        .stream()
+                        .filter(Investment::isETF)
+                        .filter(i -> i.getOut() != null)
+                        .map(i -> i.getOut().getMoneyAmount().subtract(this.cost(i)))
+                        //.peek(m -> this.console.appendLine(this.format.currency(m, 20)))
+                        .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
+                        .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
+
+        this.console.appendLine(this.format.currency(taxAmount, 20),
+                " ",
+                this.format.percent(taxAmount.amount().divide(netAmountSummary.sold.amount(), C))
+        );
+
+        final var arsTax = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .filter(i -> i.getOut() != null)
+                .map(i -> this.capitalGainARS(i, bnaFX))
+                .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add)
+                .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
+
+        this.console.appendLine(this.format.currency(
+                arsTax,
+                20));
+
+        final var currentTaxAmount = ForeignExchanges.getForeignExchange(Currency.ARS, USD).exchange(arsTax, USD, new Date());
+        this.console.appendLine(
+                "Current ",
+                this.format.currency(currentTaxAmount, 15),
+                " ",
+                this.format.percent(currentTaxAmount.amount().divide(netAmountSummary.sold.amount(), C))
+        );
+
+        this.console.appendLine(this.format.subtitle("Detail"));
+
+        this.console.appendLine(MessageFormat.format("{0} {1} {2} {3} {4} {5} {6} {7}",
+                this.format.text("  Date", 10),
+                this.format.text("Curr.", 5),
+                this.format.text("Cant.", 8),
+                this.format.text("   Amount", 18),
+                this.format.text("   Fee", 16),
+                this.format.text("   CG USD", 16),
+                this.format.text("     TC", 16),
+                this.format.text("   CG ARS", 20)
+        ));
+
+        final Function<Investment, InvestmentGroup> classifier = switch (type) {
+            case "group" ->
+                (Investment i) -> new InvestmentGroup(i.getCurrency(), DTF.format(i.getOut().getDate().toInstant()));
+            case "groupall" ->
+                (Investment i) -> new InvestmentGroup(i.getCurrency(), "");
+            default ->
+                null;
+        };
+
+        if (classifier != null) {
+
+            Map<InvestmentGroup, Investment> grouped
+                    = this.series.getInvestments()
+                            .stream()
+                            .filter(Investment::isETF)
+                            .filter(i -> i.getOut() != null)
+                            .collect(Collectors.groupingBy(
+                                    classifier,
+                                    Collectors.reducing(null, this::union)
+                            ));
+
+            grouped.values()
+                    .stream()
+                    .sorted(Comparator.comparing((Investment i) -> i.getOut().getDate())
+                            .thenComparing(Comparator.comparing((Investment i) -> i.getCurrency())))
+                    .map(e -> this.sellReport(e, bnaFX))
+                    .forEach(this.console::appendLine);
+        } else {
+            this.series.getInvestments()
+                    .stream()
+                    .filter(Investment::isETF)
+                    .filter(i -> i.getOut() != null)
+                    .sorted(Comparator.comparing((Investment i) -> i.getOut().getDate())
+                            .thenComparing(Comparator.comparing((Investment i) -> i.getCurrency())))
+                    .map(i -> this.sellReport(i, bnaFX))
+                    .forEach(this.console::appendLine);
+        }
+    }
+
+    private record InvestmentGroup(Currency currency, String date) {
+
+    }
+
+    private Investment union(Investment left, Investment right) {
+
+        if (left == null) {
+            return right;
+        }
+        if (right == null) {
+            return left;
+        }
+
+        var res = new Investment();
+        res.setIn(this.union(left.getIn(), right.getIn()));
+        res.setOut(this.union(left.getOut(), right.getOut()));
+
+        var c1 = left.getComment();
+        var c2 = right.getComment();
+
+        if (c1 == null && c2 == null) {
+            res.setComment(null);
+        } else {
+            res.setComment(c1 == null ? c2 : c1);
+        }
+        res.setId(left.getId());
+        res.setType(left.getType());
+        res.setInvestment(this.union(left.getInvestment(), right.getInvestment()));
+        return res;
+    }
+
+    private InvestmentAsset union(InvestmentAsset left, InvestmentAsset right) {
+
+        InvestmentAsset res = new InvestmentAsset();
+
+        res.setAmount(left.getAmount().add(right.getAmount()));
+        res.setCurrency(left.getCurrency());
+
+        return res;
+    }
+
+    private InvestmentEvent union(InvestmentEvent left, InvestmentEvent right) {
+
+        if (left == null) {
+            return right;
+        }
+        if (right == null) {
+            return left;
+        }
+
+        var res = new InvestmentEvent();
+
+        res.setAmount(left.getAmount().add(right.getAmount()));
+        res.setCurrency(left.getCurrency());
+        res.setDate(left.getDate().compareTo(right.getDate()) <= 0 ? left.getDate() : right.getDate());
+        res.setFee(left.getFee().add(right.getFee()));
+        res.setFx(left.getFx());
+
+        if (left.getTransferFee() == null) {
+            res.setTransferFee(right.getTransferFee());
+        } else if (right.getTransferFee() == null) {
+            res.setTransferFee(left.getTransferFee());
+        } else {
+            res.setTransferFee(left.getTransferFee().add(right.getTransferFee()));
+        }
+        return res;
+    }
+
+    private MoneyAmount capitalGainARS(Investment i, Map<String, BigDecimal> bnaFX) {
+        return new MoneyAmount(i.getOut()
+                .getMoneyAmount()
+                .subtract(this.cost(i))
+                .adjust(BigDecimal.ONE, bnaFX.get(DTF.format(i.getOut().getDate().toInstant()))).getAmount(),
+                Currency.ARS);
+    }
+
+    private String sellReport(Investment i, Map<String, BigDecimal> bnaFX) {
+
+        return MessageFormat.format("{0} {1} {2} {3} {4} {5} {6} {7}",
+                DateTimeFormatter.ISO_DATE.format(
+                        LocalDate.ofInstant(i.getOut().getDate().toInstant(), ZoneId.systemDefault())),
+                i.getCurrency(),
+                this.format.number(i.getInvestment().getAmount(), 8),
+                this.format.currency(i.getOut().getMoneyAmount(), 18),
+                this.format.currency(i.getOut().getFeeMoneyAmount(), 16),
+                this.format.currency(i.getOut().getMoneyAmount().subtract(this.cost(i)), 16),
+                this.format.currency(new MoneyAmount(bnaFX.get(DTF.format(i.getOut().getDate().toInstant())), Currency.ARS), 16),
+                this.format.currency(this.capitalGainARS(i, bnaFX), 20)
+        );
+    }
+
+    private MoneyAmount cost(Investment i) {
+
+        var iva = SeriesReader.readPercent("iva").add(ONE);
+        if (i.getIn().getFx() != null) {
+            return new MoneyAmount(
+                    i.getIn().getFx()
+                            .multiply(
+                                    i.getIn().getAmount()
+                                            .add(i.getIn().getFee()
+                                                    .multiply(iva, C)
+                                            ),
+                                    C),
+                    USD
+            );
+        }
+        return i.getIn().getMoneyAmount()
+                .add(i.getIn().getFeeMoneyAmount().adjust(BigDecimal.ONE, iva));
+    }
+
+    private <T> SoldAndBought<T> summarize(
+            Function<InvestmentEvent, T> sellMapper,
+            Function<InvestmentEvent, T> buyMapper,
+            T identity,
+            BinaryOperator<T> reduction) {
+        final var limitDate = LocalDateTime.of(2025, Month.APRIL, 2, 0, 0, 0, 0);
+
+        final var lastBuyDate = LocalDateTime.of(2025, Month.JUNE, 30, 0, 0, 0, 0);
+
+        return new SoldAndBought<>(
+                this.series.getInvestments()
+                        .stream()
+                        .filter(Investment::isETF)
+                        .map(Investment::getOut)
+                        .filter(Objects::nonNull)
+                        .map(sellMapper)
+                        .reduce(identity, reduction),
+                this.series.getInvestments()
+                        .stream()
+                        .filter(Investment::isETF)
+                        .filter(Investment::isCurrent)
+                        .map(Investment::getIn)
+                        .filter(e
+                                -> e.getDate()
+                                .toInstant()
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDateTime()
+                                .isAfter(limitDate))
+                        .filter(e
+                                -> e.getDate()
+                                .toInstant()
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDateTime()
+                                .isBefore(lastBuyDate))
+                        .map(buyMapper)
+                        .reduce(identity, reduction));
+
+    }
+
+    public record SoldAndBought<T>(T sold, T bought) {
+
+    }
+
+    public void savedAndInvestedChart() {
+
+        new TimeSeriesChart().create("ETF Real Growth",
+                List.of(
+                        this.accumulatedNetContributions(false, Investment::isETF),
+                        this.portfolioValue(false, Investment::isETF)),
+                "growth-etf-real.png");
+
+        final var realContributions = this.accumulatedNetContributions(false, i -> true);
+
+        new TimeSeriesChart().create("Investments Real Growth",
+                List.of(
+                        realContributions,
+                        this.portfolioValue(false, i -> true)),
+                "growth-all-real.png");
+
+        var savings = this.series.realSavings(null);
+        savings.setName("Real Savings");
+
+        var investments = this.portfolioValue(false, i -> true);
+
+        var uninvested = savings.map((ym, ma) -> ma.subtract(investments.getAmount(ym)));
+        uninvested.setName("Cash");
+        
+        
+        var income = new SimpleAggregation().sum(this.series.realIncome());
+        income.setName("Real Icome");
+
+        
+        new TimeSeriesChart().create("Real Income, Savings & Investments",
+                List.of(
+                        savings,
+                        investments,
+                        income,
+                        uninvested),
+                "savings-investments-real.png");
+    }
+    
+    public void investmentsByCurrencyChart() {
+
+        new TimeSeriesChart().create("Real Investments by Asset Class",
+                List.of(USD, ARS, CSPX, MEUD, XRSU, XUSE, RTWO, EIMI, UVA, LETE, LECAP, CONAAFA, CONBALA, CAPLUSA, AY24)
+                        .stream()
+                        .map(c -> this.currencyInvestment(c.name(), List.of(c)))
+                        .toList(),
+                "investments-by-currency.png");
+
+    }
+
+    public void investmentsByClassChart() {
+
+        var localUSDBonds = List.of(USD, LETE, AY24, CONBALA);
+        var localARSBonds = List.of(ARS, CAPLUSA, LECAP, UVA);
+        var localStocks = List.of(CONAAFA);
+        var globalStocks = List.of(CSPX, MEUD, XRSU, RTWO, XUSE, EIMI);
+
+        var cash = this.series.realCash();
+        cash.setName("Cash");
+        
+
+        new TimeSeriesChart().create("Real Investments by Currency (Grouped)",
+                List.of(
+                        this.currencyInvestment("Local USD Bonds", localUSDBonds),
+                        this.currencyInvestment("Local ARS Bonds", localARSBonds),
+                        this.currencyInvestment("Local Stocks", localStocks),
+                        this.currencyInvestment("Global Stocks", globalStocks),
+                        cash),
+                "investments-by-class.png");
+
+    }
+
+    private MoneyAmountSeries currencyInvestment(String name, List<Currency> currencies) {
+        var res = this.portfolioValue(false, i -> currencies.contains(i.getCurrency()));
+
+        res.setName(name);
+        return res;
+
+    }
+
+    private MoneyAmountSeries portfolioValue(boolean nominal, Predicate<Investment> filter) {
+
+        var start = this.series.getInvestments()
+                .stream()
+                .filter(filter)
+                .map(Investment::getIn)
+                .map(InvestmentEvent::getDate)
+                .map(YearMonth::of)
+                .min(YearMonth::compareTo).get();
+
+        var valueSeries = new SortedMapMoneyAmountSeries(USD, (nominal ? "Nominal" : "Real") + " Investments");
+        final var end = YearMonth.of(new Date());
+
+        valueSeries.putAmount(start.prev(), MoneyAmount.zero(USD));
+
+        for (YearMonth ym = start; ym.compareTo(end) <= 0; ym = ym.next()) {
+
+            final var moment = ym.asToDate();
+            final var momentYm = ym;
+
+            valueSeries.putAmount(ym,
+                    this.series.getInvestments()
+                            .stream()
+                            .filter(filter)
+                            .filter(i -> i.isCurrent(moment))
+                            .map(Investment::getInvestment)
+                            .map(InvestmentAsset::getMoneyAmount)
+                            .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), USD).exchange(ma, USD, moment))
+                            .map(ma -> nominal
+                            ? ma
+                            : Inflation.USD_INFLATION.adjust(ma, momentYm, end))
+                            .reduce(MoneyAmount.zero(USD), MoneyAmount::add));
+        }
+
+        return valueSeries;
+
+    }
+
+    private MoneyAmountSeries accumulatedNetContributions(boolean nominal, Predicate<Investment> filter) {
+
+        Map<YearMonth, InvestmentEvent> contributions = this.series.getInvestments()
+                .stream()
+                .filter(filter)
+                .map(i -> ForeignExchanges.exchange(i, USD))
+                .map(Investment::getIn)
+                .collect(Collectors.groupingBy(
+                        ev -> YearMonth.of(ev.getDate()),
+                        Collectors.reducing(null, this::union)
+                ));
+
+        Map<YearMonth, InvestmentEvent> withdrawals = this.series.getInvestments()
+                .stream()
+                .filter(filter)
+                .filter(i -> i.getOut() != null)
+                .map(i -> ForeignExchanges.exchange(i, USD))
+                .map(Investment::getOut)
+                .collect(Collectors.groupingBy(
+                        ev -> YearMonth.of(ev.getDate()),
+                        Collectors.reducing(null, this::union)
+                ));
+
+        var start = contributions.keySet().stream().min(YearMonth::compareTo).get();
+
+        var accSeries = new SortedMapMoneyAmountSeries(USD, (nominal ? "Nominal" : "Real") + " Contributions");
+        var end = YearMonth.of(new Date());
+
+        var acc = MoneyAmount.zero(USD);
+        accSeries.putAmount(start.prev(), acc);
+
+        Function<InvestmentEvent, MoneyAmount> realFunction = nominal
+                ? InvestmentEvent::getMoneyAmount
+                : InvestmentEvent::getRealUSDMoneyAmount;
+
+        for (YearMonth ym = start; ym.compareTo(end) <= 0; ym = ym.next()) {
+            var contribution = Optional.ofNullable(contributions.get(ym))
+                    .map(realFunction)
+                    .orElse(MoneyAmount.zero(USD));
+
+            var withdrawal = Optional.ofNullable(withdrawals.get(ym))
+                    .map(realFunction)
+                    .orElse(MoneyAmount.zero(USD));
+            acc = acc.add(contribution.subtract(withdrawal))
+                    .max(MoneyAmount.zero(USD));
+
+            accSeries.putAmount(ym, acc);
+        }
+
+        return accSeries;
+    }
+
 }

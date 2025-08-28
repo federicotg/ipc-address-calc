@@ -25,6 +25,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import org.fede.calculator.money.ConsoleReports;
+import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
@@ -104,8 +105,8 @@ public class PieChart {
                 ChartUtils.saveChartAsPNG(
                         file,
                         chart,
-                        1200,
-                        900);
+                        SeriesReader.readInt("chart.piewidth"),
+                        SeriesReader.readInt("chart.height"));
             }
         } catch (IOException ioEx) {
             LOGGER.error("Error.", ioEx);

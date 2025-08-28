@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
 import org.fede.calculator.money.ConsoleReports;
+import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
@@ -76,8 +77,8 @@ public class BarChart {
             ChartUtils.saveChartAsPNG(
                     new File(ConsoleReports.CHARTS_PREFIX + filename),
                     chart,
-                    1600,
-                    900);
+                    SeriesReader.readInt("chart.width"),
+                    SeriesReader.readInt("chart.height"));
 
         } catch (IOException ioEx) {
             LOGGER.error("Error.", ioEx);

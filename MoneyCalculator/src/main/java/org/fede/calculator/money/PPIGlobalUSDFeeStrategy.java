@@ -17,8 +17,10 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import static java.math.BigDecimal.ONE;
 import java.util.function.Function;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.series.SeriesReader;
 
 /**
  *
@@ -27,15 +29,14 @@ import static org.fede.calculator.money.MathConstants.C;
 public class PPIGlobalUSDFeeStrategy implements Function<BigDecimal, BigDecimal> {
 
     private final BigDecimal FEE_RATE = new BigDecimal("0.006");
-    private final BigDecimal FEE_TAX_RATE = new BigDecimal("1.21");
 
     @Override
     public BigDecimal apply(BigDecimal presentValue) {
-        
+        var iva = SeriesReader.readPercent("iva").add(ONE);
         return presentValue
                 .multiply(FEE_RATE, C)
                 .max(BigDecimal.TEN)
-                .multiply(FEE_TAX_RATE, C);
+                .multiply(iva, C);
 
     }
     

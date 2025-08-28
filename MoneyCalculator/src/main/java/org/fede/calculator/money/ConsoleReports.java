@@ -16,29 +16,19 @@
  */
 package org.fede.calculator.money;
 
-import com.diogonunes.jcolor.AnsiFormat;
-import com.diogonunes.jcolor.Attribute;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toMap;
@@ -48,7 +38,6 @@ import java.util.stream.Stream;
 
 import org.fede.calculator.criptoya.CriptoYaAPI;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.ppi.PPI;
@@ -59,17 +48,16 @@ import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.XUSE;
 import static org.fede.calculator.money.Currency.XRSU;
 import static org.fede.calculator.money.Currency.USD;
-import static org.fede.calculator.money.Series.ESSENTIAL;
 import org.fede.calculator.money.chart.BarChart;
 import org.fede.calculator.money.chart.CategoryDatasetItem;
 import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
+import org.fede.calculator.money.chart.ScatterXYChart;
 import org.fede.calculator.money.chart.TimeSeriesChart;
-import org.fede.calculator.money.series.InvestmentAsset;
-import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
+import org.jfree.data.xy.XYSeries;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,8 +72,6 @@ public class ConsoleReports {
     private static final String MONTHS_PARAM = "m";
 
     private static final Pattern PARAM_SEPARATOR = Pattern.compile("=");
-
-    private static final DateTimeFormatter DTF = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault());
 
     public static final String CHARTS_PREFIX = System.getProperty("user.home") + File.separator + "Pictures" + File.separator + "chart-";
     public static final String CACHE_DIR = System.getProperty("user.home") + "/Downloads";
@@ -147,7 +133,7 @@ public class ConsoleReports {
 
             case "pf" ->
                 () -> new Investments(console, format, bar, series)
-                        .invPF(me.paramsValueDefaultFalse(args, "pf", "detail"), me.paramsValueDefaultFalse(args, "pf", "nominal"));
+                .invPF(me.paramsValueDefaultFalse(args, "pf", "detail"), me.paramsValueDefaultFalse(args, "pf", "nominal"));
 
             case "gi" ->
                 new Positions(console, format, series, bar)::groupedInvestments;
@@ -159,7 +145,8 @@ public class ConsoleReports {
                 () -> me.invReport(args, "inv");
 
             case "fire" ->
-                () -> me.retirementWithdrawals(Integer.parseInt(me.paramsValue(args, "fire").getOrDefault("m", "12")));
+                () -> new Fire(format, series, console)
+                .retirementWithdrawals(Integer.parseInt(me.paramsValue(args, "fire").getOrDefault("m", "12")));
 
             case "savings" ->
                 () -> me.savings(args, "savings");
@@ -314,7 +301,8 @@ public class ConsoleReports {
                 me::ltiReport;
 
             case "ppi" ->
-                () -> me.ppiTransfer(args, "ppi");
+                () -> new Investments(console, format, bar, series)
+                .ppiTransfer(me.paramsValue(args, "ppi").getOrDefault("type", "full"));
 
             default ->
                 () -> console.appendLine("Unknown parameter.");
@@ -325,7 +313,7 @@ public class ConsoleReports {
     public static void main(String[] args) {
         try {
 
-            final var console = new ByteArrayConsole();
+            final var console = new FastConsole();
             final var format = new Format();
             final var bar = new Bar(console, format);
             final var series = new Series();
@@ -583,7 +571,6 @@ public class ConsoleReports {
                 .map(BigDecimal::new)
                 .orElseGet(() -> SeriesReader.readBigDecimal("expectedInflation"));
 
-        //final var badYearSpending = new BigDecimal(params.getOrDefault("bys", BAD_YEAR_SPENDING)).doubleValue();
         final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", SeriesReader.readEnvironment().getProperty("goal.retirement")));
         final var age = Integer.parseInt(params.getOrDefault("age", SeriesReader.readEnvironment().getProperty("goal.maxage")));
         final var months = Integer.parseInt(params.getOrDefault(MONTHS_PARAM, SeriesReader.readEnvironment().getProperty("goal.months")));
@@ -846,7 +833,6 @@ public class ConsoleReports {
 
             inv.brokerChart(new PieChart(true));
             inv.brokerDetailedChart(new PieChart(true));
-            inv.invGainsChart(new PieChart(true));
             this.expensesChart(12, true);
             this.incomeAccChart();
             this.expensesChart(6, true);
@@ -858,17 +844,9 @@ public class ConsoleReports {
 
             final var thisYear = LocalDate.now().getYear();
 
-            //for (var i = 2007; i < thisYear; i++) {
-            //    savings.savingRate(i);
-            //}
             savings.savingRate(thisYear);
 
             var portfolioChartByLabel = new PieChart(true, true);
-            //var ym = YearMonth.of(1999, 11);
-            //while (ym.compareTo(USD_INFLATION.getTo()) < 0) {
-            //    pos.portfolioChart(portfolioChartByLabel, "all", ym.year(), ym.month());
-            //    ym = ym.next();
-            //}
 
             pos.portfolioChart(portfolioChartByLabel, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
 
@@ -884,10 +862,12 @@ public class ConsoleReports {
             this.recentETFChangeChart(12);
             this.recentETFChangeChart(24);
 
-            this.savingsChart(3);
             this.savingsChart(6);
-            this.savingsChart(24);
             this.savingsChart(12);
+
+            this.savingsXY();
+            inv.savedAndInvestedChart();
+            inv.investmentsByClassChart();
 
         } catch (IOException ex) {
             LOGGER.error("Error generating chart.", ex);
@@ -930,7 +910,6 @@ public class ConsoleReports {
         final var values = Map.of(
                 CSPX, SeriesReader.readSeries("saving/ahorros-cspx.json"),
                 EIMI, SeriesReader.readSeries("saving/ahorros-eimi.json"),
-                //MEUD, SeriesReader.readSeries("saving/ahorros-meud.json"),
                 XUSE,
                 SeriesReader.readSeries("saving/ahorros-xuse.json")
                         .add(SeriesReader.readSeries("saving/ahorros-meud.json")),
@@ -979,495 +958,22 @@ public class ConsoleReports {
                 .add(new MoneyAmount(desp.multiply(new BigDecimal(phantom)), USD));
     }
 
-    private void ppiTransfer(String[] args, String name) {
-
-        final var params = this.paramsValue(args, name);
-        final var type = params.getOrDefault("type", "full");
-
-        final Function<InvestmentEvent, MoneyAmount> grossSaleMapper
-                = (InvestmentEvent e) -> e.getRealUSDMoneyAmount()
-                        .add(e.getRealUSDFeeMoneyAmount())
-                        .add(e.getRealUSDTransferFeeMoneyAmount());
-
-        final SoldAndBought<MoneyAmount> netAmountSummary
-                = this.summarize(
-                        grossSaleMapper,
-                        InvestmentEvent::getRealUSDMoneyAmount,
-                        MoneyAmount.zero(USD),
-                        MoneyAmount::add);
-
-        final Function<InvestmentEvent, MoneyAmount> feeMapper = e -> e.getRealUSDTransferFeeMoneyAmount().add(e.getRealUSDFeeMoneyAmount());
-
-        final SoldAndBought<MoneyAmount> feeSummary
-                = this.summarize(
-                        feeMapper,
-                        feeMapper,
-                        MoneyAmount.zero(USD),
-                        MoneyAmount::add);
-
-        final var fees = feeSummary.sold.add(feeSummary.bought);
-
-        this.console.appendLine(this.format.subtitle("Comisiones"));
-        this.console.appendLine("Sold ", this.format.currency(feeSummary.sold, 16));
-        this.console.appendLine("Bought ", this.format.currency(feeSummary.bought, 16));
-        this.console.appendLine("Total:", this.format.currencyPL(fees.getAmount().negate(), 16),
-                " ",
-                this.format.percent(fees.amount().divide(netAmountSummary.sold.amount(), C), 6)
-        );
-
-        this.console.appendLine(this.format.subtitle("Monto Neto"));
-        this.console.appendLine("Sold ", this.format.currency(netAmountSummary.sold, 16));
-
-        this.console.appendLine(this.format.subtitle("Tax"));
-
-        //bna comprador
-        final Map<String, BigDecimal> bnaFX = Map.of(
-                "2025-04-03", new BigDecimal("1075"),
-                "2025-04-08", new BigDecimal("1076.25"),
-                "2025-04-14", new BigDecimal("1198"),
-                "2025-04-24", new BigDecimal("1174"),
-                "2025-05-01", new BigDecimal("1170"),
-                "2025-05-09", new BigDecimal("1136"),
-                "2025-05-16", new BigDecimal("1142"),
-                "2025-05-23", new BigDecimal("1133.5")
-        );
-
-        final var taxAmount
-                = this.series.getInvestments()
-                        .stream()
-                        .filter(Investment::isETF)
-                        .filter(i -> i.getOut() != null)
-                        .map(i -> i.getOut().getMoneyAmount().subtract(this.cost(i)))
-                        //.peek(m -> this.console.appendLine(this.format.currency(m, 20)))
-                        .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
-                        .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
-
-        this.console.appendLine(this.format.currency(taxAmount, 20),
-                " ",
-                this.format.percent(taxAmount.amount().divide(netAmountSummary.sold.amount(), C))
-        );
-
-        final var arsTax = this.series.getInvestments()
-                .stream()
-                .filter(Investment::isETF)
-                .filter(i -> i.getOut() != null)
-                .map(i -> this.capitalGainARS(i, bnaFX))
-                .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add)
-                .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
-
-        this.console.appendLine(this.format.currency(
-                arsTax,
-                20));
-
-        final var currentTaxAmount = ForeignExchanges.getForeignExchange(Currency.ARS, USD).exchange(arsTax, USD, new Date());
-        this.console.appendLine(
-                "Current ",
-                this.format.currency(currentTaxAmount, 15),
-                " ",
-                this.format.percent(currentTaxAmount.amount().divide(netAmountSummary.sold.amount(), C))
-        );
-
-        this.console.appendLine(this.format.subtitle("Detail"));
-
-        this.console.appendLine(MessageFormat.format("{0} {1} {2} {3} {4} {5} {6} {7}",
-                this.format.text("  Date", 10),
-                this.format.text("Curr.", 5),
-                this.format.text("Cant.", 8),
-                this.format.text("   Amount", 18),
-                this.format.text("   Fee", 16),
-                this.format.text("   CG USD", 16),
-                this.format.text("     TC", 16),
-                this.format.text("   CG ARS", 20)
-        ));
-
-        final Function<Investment, InvestmentGroup> classifier = switch (type) {
-            case "group" ->
-                (Investment i) -> new InvestmentGroup(i.getCurrency(), DTF.format(i.getOut().getDate().toInstant()));
-            case "groupall" ->
-                (Investment i) -> new InvestmentGroup(i.getCurrency(), "");
-            default ->
-                null;
-        };
-
-        if (classifier != null) {
-
-            Map<InvestmentGroup, Investment> grouped
-                    = this.series.getInvestments()
-                            .stream()
-                            .filter(Investment::isETF)
-                            .filter(i -> i.getOut() != null)
-                            .collect(Collectors.groupingBy(
-                                    classifier,
-                                    Collectors.reducing(null, this::union)
-                            ));
-
-            grouped.values()
-                    .stream()
-                    .sorted(Comparator.comparing((Investment i) -> i.getOut().getDate())
-                            .thenComparing(Comparator.comparing((Investment i) -> i.getCurrency())))
-                    .map(e -> this.sellReport(e, bnaFX))
-                    .forEach(this.console::appendLine);
-        } else {
-            this.series.getInvestments()
-                    .stream()
-                    .filter(Investment::isETF)
-                    .filter(i -> i.getOut() != null)
-                    .sorted(Comparator.comparing((Investment i) -> i.getOut().getDate())
-                            .thenComparing(Comparator.comparing((Investment i) -> i.getCurrency())))
-                    .map(i -> this.sellReport(i, bnaFX))
-                    .forEach(this.console::appendLine);
-        }
-    }
-
-    private record InvestmentGroup(Currency currency, String date) {
-
-    }
-
-    private Investment union(Investment left, Investment right) {
-
-        if (left == null) {
-            return right;
-        }
-        if (right == null) {
-            return left;
-        }
-
-        var res = new Investment();
-        res.setIn(this.union(left.getIn(), right.getIn()));
-        res.setOut(this.union(left.getOut(), right.getOut()));
-
-        var c1 = left.getComment();
-        var c2 = right.getComment();
-
-        if (c1 == null && c2 == null) {
-            res.setComment(null);
-        } else {
-            res.setComment(c1 == null ? c2 : c1);
-        }
-        res.setId(left.getId());
-        res.setType(left.getType());
-        res.setInvestment(this.union(left.getInvestment(), right.getInvestment()));
-        return res;
-    }
-
-    private InvestmentAsset union(InvestmentAsset left, InvestmentAsset right) {
-
-        InvestmentAsset res = new InvestmentAsset();
-
-        res.setAmount(left.getAmount().add(right.getAmount()));
-        res.setCurrency(left.getCurrency());
-
-        return res;
-    }
-
-    private InvestmentEvent union(InvestmentEvent left, InvestmentEvent right) {
-
-        var res = new InvestmentEvent();
-
-        res.setAmount(left.getAmount().add(right.getAmount()));
-        res.setCurrency(left.getCurrency());
-        res.setDate(left.getDate().compareTo(right.getDate()) <= 0 ? left.getDate() : right.getDate());
-        res.setFee(left.getFee().add(right.getFee()));
-        res.setFx(left.getFx());
-
-        if (left.getTransferFee() == null) {
-            res.setTransferFee(right.getTransferFee());
-        } else if (right.getTransferFee() == null) {
-            res.setTransferFee(left.getTransferFee());
-        } else {
-            res.setTransferFee(left.getTransferFee().add(right.getTransferFee()));
-        }
-        return res;
-    }
-
-    private MoneyAmount capitalGainARS(Investment i, Map<String, BigDecimal> bnaFX) {
-        return new MoneyAmount(i.getOut()
-                .getMoneyAmount()
-                .subtract(this.cost(i))
-                .adjust(BigDecimal.ONE, bnaFX.get(DTF.format(i.getOut().getDate().toInstant()))).getAmount(),
-                Currency.ARS);
-    }
-
-    private String sellReport(Investment i, Map<String, BigDecimal> bnaFX) {
-
-        return MessageFormat.format("{0} {1} {2} {3} {4} {5} {6} {7}",
-                DateTimeFormatter.ISO_DATE.format(
-                        LocalDate.ofInstant(i.getOut().getDate().toInstant(), ZoneId.systemDefault())),
-                i.getCurrency(),
-                this.format.number(i.getInvestment().getAmount(), 8),
-                this.format.currency(i.getOut().getMoneyAmount(), 18),
-                this.format.currency(i.getOut().getFeeMoneyAmount(), 16),
-                this.format.currency(i.getOut().getMoneyAmount().subtract(this.cost(i)), 16),
-                this.format.currency(new MoneyAmount(bnaFX.get(DTF.format(i.getOut().getDate().toInstant())), Currency.ARS), 16),
-                this.format.currency(this.capitalGainARS(i, bnaFX), 20)
-        );
-    }
-
-    private MoneyAmount cost(Investment i) {
-        if (i.getIn().getFx() != null) {
-            return new MoneyAmount(
-                    i.getIn().getFx()
-                            .multiply(
-                                    i.getIn().getAmount()
-                                            .add(i.getIn().getFee()
-                                                    .multiply(new BigDecimal("1.21"), C)
-                                            ),
-                                    C),
-                    USD
-            );
-        }
-        return i.getIn().getMoneyAmount()
-                .add(i.getIn().getFeeMoneyAmount().adjust(BigDecimal.ONE, new BigDecimal("1.21")));
-    }
-
-    private <T> SoldAndBought<T> summarize(
-            Function<InvestmentEvent, T> sellMapper,
-            Function<InvestmentEvent, T> buyMapper,
-            T identity,
-            BinaryOperator<T> reduction) {
-        final var limitDate = LocalDateTime.of(2025, Month.APRIL, 2, 0, 0, 0, 0);
-
-        final var lastBuyDate = LocalDateTime.of(2025, Month.JUNE, 30, 0, 0, 0, 0);
-
-        return new SoldAndBought<>(
-                this.series.getInvestments()
-                        .stream()
-                        .filter(Investment::isETF)
-                        .map(Investment::getOut)
-                        .filter(Objects::nonNull)
-                        .map(sellMapper)
-                        .reduce(identity, reduction),
-                this.series.getInvestments()
-                        .stream()
-                        .filter(Investment::isETF)
-                        .filter(Investment::isCurrent)
-                        .map(Investment::getIn)
-                        .filter(e
-                                -> e.getDate()
-                                .toInstant()
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDateTime()
-                                .isAfter(limitDate))
-                        .filter(e
-                                -> e.getDate()
-                                .toInstant()
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDateTime()
-                                .isBefore(lastBuyDate))
-                        .map(buyMapper)
-                        .reduce(identity, reduction));
-
-    }
-
-    public record SoldAndBought<T>(T sold, T bought) {
-
-    }
-
-    private void retirementWithdrawals(int months) {
-
-        this.console.appendLine(this.format.title("F.I.R.E."));
-
-        final var limit = USD_INFLATION.getTo();
-        final var futureHealth = SeriesReader.readUSD("futureHealth");
-        final var futureRent = SeriesReader.readUSD("futureRent");
-        final var futurePension = SeriesReader.readUSD("futurePension");
-        final var totalSavings = this.series.realSavings(null).getAmount(limit);
-
-        final var essential = this.sumExpenses(ESSENTIAL, months);
-        final var discretionary = this.sumExpenses(Series.DISCRETIONARY, months);
-        final var irregular = this.sumExpenses(Series.IRREGULAR, months);
-        final var other = this.sumExpenses(Series.OTHER, months);
-
-        final var expectedFutureIncome = SeriesReader.readBigDecimal("futureRealState")
-                .add(SeriesReader.readBigDecimal("futureCash"))
-                .add(SeriesReader.readBigDecimal("futureSavings"));
-
-        this.console.appendLine(this.format.subtitle(months + "-Month Average Spending"));
-
-        this.conceptLine("Essential", essential);
-        this.conceptLine("Other", other);
-        this.conceptLine("Future Rent", futureRent);
-        this.conceptLine("Future Health Cost", futureHealth);
-        this.conceptLine("Discretionary", discretionary);
-        this.conceptLine("Irregular", irregular);
-        this.conceptLine("Future Pension", futurePension);
-
-        this.conceptLine("Current Savings", totalSavings);
-        this.conceptLine("Future Income", new MoneyAmount(expectedFutureIncome, USD));
-
-        var expected10YearCAGR = SeriesReader.readPercent("futureGrowth").add(ONE, C);
-        var expectedGrowth = expected10YearCAGR.pow(10, C);
-
-        this.console.appendLine(
-                this.format.text("10 Year Growth", 20),
-                this.format.percent(expectedGrowth.subtract(ONE, C), 10));
-
-        this.console.appendLine(this.format.subtitle("Portfolio Size by Spending and Withdrawal Percent"));
-
-        final var essentialWithoutRent = essential
-                .add(futureHealth)
-                .add(other)
-                .subtract(futurePension);
-        final var essentialWithRent = essentialWithoutRent
-                .add(futureRent);
-        final var everythingWithoutRent = essential
-                .add(futureHealth)
-                .add(other)
-                .subtract(futurePension)
-                .add(discretionary)
-                .add(irregular);
-
-        final var everythingWithRent = everythingWithoutRent
-                .add(futureRent);
-
-        this.conceptLine("Essential - Rent", essentialWithoutRent);
-        this.conceptLine("Everything - Rent", everythingWithoutRent);
-        this.conceptLine("Essential + Rent", essentialWithRent);
-        this.conceptLine("Everything + Rent", everythingWithRent);
-
-        this.console.appendLine("");
-        final var step = new BigDecimal("0.0025");
-        final var percents = Stream.concat(
-                IntStream.range(12, 19)
-                        .mapToObj(i -> new BigDecimal(i).multiply(step, C)),
-                Stream.of(
-                        new BigDecimal("3.66"),
-                        new BigDecimal("3.38"),
-                        new BigDecimal("3.53"),
-                        new BigDecimal("4.42"),
-                        new BigDecimal("4.07"))
-                        .map(v -> v.movePointLeft(2)))
-                .sorted()
-                .toList();
-
-        var alreadyThere = Attribute.GREEN_TEXT();
-        var withGrowth = Attribute.BRIGHT_YELLOW_TEXT();
-        var withGrowthAndIncome = Attribute.YELLOW_TEXT();
-        var farAway = Attribute.RED_TEXT();
-
-        this.console.appendLine(
-                Stream.concat(
-                        Stream.of(this.format.text("Spending", 12)),
-                        percents.stream()
-                                .map(pct -> this.format.center(this.format.percent(pct), 8)))
-                        .collect(Collectors.joining()));
-        Stream.concat(
-                Stream.of(essentialWithRent, essentialWithoutRent, everythingWithRent, everythingWithoutRent)
-                        .map(MoneyAmount::amount),
-                IntStream.range(3, 11)
-                        .map(i -> i * 400)
-                        .mapToObj(BigDecimal::new))
-                .sorted()
-                .map(monthlySpending
-                        -> this.retirementWithdrawalRow(
-                        monthlySpending,
-                        totalSavings,
-                        expectedFutureIncome,
-                        expectedGrowth,
-                        percents,
-                        alreadyThere,
-                        withGrowth,
-                        withGrowthAndIncome,
-                        farAway
-                ))
-                .forEach(this.console::appendLine);
-
-        this.console.appendLine(this.format.subtitle("Failsafe around Prominent Market Peaks"));
-
-        this.refLine("pre-1900", "3.95");
-        this.refLine("1900-1910", "3.38");
-        this.refLine("1911-1928", "3.57");
-        this.refLine("1929", "3.25");
-        this.refLine("1964-69", "3.66");
-        this.refLine("1972/73", "4.07");
-        this.refLine("1999-2000", "3.53");
-        this.refLine("2008/09", "4.42");
-
-        new References(console, format)
-                .refsLabels(
-                        List.of("Savings", "Savings+Growth", "Savings+Growth+Income", "Far Away"),
-                        List.of(alreadyThere,
-                                withGrowth,
-                                withGrowthAndIncome,
-                                farAway));
-
-    }
-
-    private void refLine(String label, String pct) {
-        this.console.appendLine(
-                this.format.text(label, 16),
-                this.format.percent(new BigDecimal(pct).movePointLeft(2), 6));
-    }
-
-    private MoneyAmount sumExpenses(String type, int months) {
-
-        return this.series.getRealUSDExpensesByType()
-                .get(type)
-                .stream()
-                .reduce(MoneyAmountSeries::add)
-                .map(new SimpleAggregation(months)::average)
-                .get()
-                .getAmountOrElseZero(USD_INFLATION.getTo());
-
-    }
-
-    private void conceptLine(String label, MoneyAmount value) {
-        this.console.appendLine(
-                this.format.text(label, 20),
-                this.format.currency(value, 12));
-    }
-
-    private String retirementWithdrawalRow(
-            BigDecimal monthlySpending,
-            MoneyAmount currentSavings,
-            BigDecimal expectedFutureSavings,
-            BigDecimal expected10YearGrowth,
-            List<BigDecimal> percents,
-            Attribute alreadyThere,
-            Attribute withGrowth,
-            Attribute withGrowthAndIncome,
-            Attribute farAway) {
-        var annualSpending = monthlySpending.multiply(new BigDecimal(12l), C);
-        return this.format.text(this.format.currency(monthlySpending), 12)
-                + percents.stream()
-                        .map(percent -> annualSpending.divide(percent, C))
-                        .map(portfolioLevel -> this.coloredAmount(
-                        portfolioLevel,
-                        currentSavings,
-                        expectedFutureSavings,
-                        expected10YearGrowth,
-                        alreadyThere,
-                        withGrowth,
-                        withGrowthAndIncome,
-                        farAway))
-                        .collect(Collectors.joining());
-
-    }
-
-    private String coloredAmount(
-            BigDecimal amount,
-            MoneyAmount currentSavings,
-            BigDecimal expectedFutureSavings,
-            BigDecimal expected10YearGrowth,
-            Attribute alreadyThere,
-            Attribute withGrowth,
-            Attribute withGrowthAndIncome,
-            Attribute farAway) {
-
-        var cols = 8;
-
-        if (amount.compareTo(currentSavings.amount()) <= 0) {
-            return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(alreadyThere));
-        } else if (amount.compareTo(currentSavings.amount()
-                .multiply(expected10YearGrowth, C)) <= 0) {
-            return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(withGrowth));
-        } else if (amount.compareTo(currentSavings.amount()
-                .multiply(expected10YearGrowth, C)
-                .add(expectedFutureSavings, C)) <= 0) {
-            return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(withGrowthAndIncome));
-        } else {
-            return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(farAway));
-        }
+    private void savingsXY() throws IOException {
+
+        final var s = new Savings(format, series, bar, console);
+
+        final var ss = new XYSeries("Saving by Income");
+        IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
+                .forEach(year -> {
+                    ss.add(s.yearIncome(year).amount(), s.yearSavings(year).amount());
+                });
+
+        new ScatterXYChart().create(
+                "Saving by Income",
+                List.of(ss),
+                "Real Income USD",
+                "USD",
+                "by-income.png");
     }
 
 }

@@ -193,6 +193,8 @@ public class Positions {
                 this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
+        var iva = SeriesReader.readPercent("iva").add(ONE);
+        
         final var realizedList = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
@@ -204,7 +206,7 @@ public class Positions {
                         i.getInitialMoneyAmount()
                                 .add(i.getIn().getFeeMoneyAmount()
                                         .adjust(ONE, i.getComment() == null
-                                                ? new BigDecimal("1.21")
+                                                ? iva
                                                 : ONE)),
                         i.getOut().getMoneyAmount()))
                 .toList();
@@ -286,7 +288,7 @@ public class Positions {
         return unrealizedPnL(positions).getAmount()
                 .divide(costBasis(positions).amount(), C);
     }
-
+    
     private MoneyAmount unrealizedPnL(List<Position> positions) {
         return positions
                 .stream()

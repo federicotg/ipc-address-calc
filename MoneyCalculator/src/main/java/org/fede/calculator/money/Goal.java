@@ -48,8 +48,6 @@ public class Goal {
     private final BigDecimal SELL_FEE = new BigDecimal("0.00726").multiply(new BigDecimal("0.5"), C)
             .add(new BigDecimal("0.00056").multiply(new BigDecimal("0.5"), C));
 
-    //private final BigDecimal CAPITAL_GAINS_TAX_PCT = new BigDecimal("0.15");
-
     private final Map<Integer, BigDecimal> EXTRA_INCOME = Map.of(
             //2034, new BigDecimal("0"), // 56
             //2035, new BigDecimal("0"), // 57
@@ -57,7 +55,7 @@ public class Goal {
             2042, new BigDecimal("300000") // 64
     );
 
-    private final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("400");
+    //private final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("600");
     private final double bbppTaxRate;
     private final Console console;
     private final Format format;
@@ -225,7 +223,7 @@ public class Goal {
         final var deposit = monthlyDeposit.multiply(MONTHS_IN_A_YEAR, C).doubleValue();
 
         final var withdraw = (monthlyWithdraw
-                .add(HEALTH_MONTHLY_COST, C)
+                .add(SeriesReader.readBigDecimal("futureHealth"), C)
                 .multiply(MONTHS_IN_A_YEAR, C)
                 .subtract(new BigDecimal(pension * 13), C))
                 .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
@@ -266,7 +264,7 @@ public class Goal {
                 this.bbppTaxRate * 100.0d,
                 bbppMin,
                 SeriesReader.readPercent("capitalGainsTaxRate"),
-                HEALTH_MONTHLY_COST,
+                SeriesReader.readBigDecimal("futureHealth"),
                 pension,
                 inflation,
                 badReturnYears,

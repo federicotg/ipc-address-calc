@@ -25,16 +25,15 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
 import org.fede.calculator.money.ConsoleReports;
-import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
-import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.AbstractRenderer;
-import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,54 +41,54 @@ import org.slf4j.LoggerFactory;
  *
  * @author fede
  */
-public class TimeSeriesChart {
+public class ScatterXYChart {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TimeSeriesChart.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScatterXYChart.class);
 
     private final Font font;
     private final Stroke stroke;
-    private final boolean logScale;
 
-    public TimeSeriesChart() {
-        this(false);
-    }
-    
-    public TimeSeriesChart(boolean logScale) {
+    public ScatterXYChart() {
         this.font = new Font("SansSerif", Font.PLAIN, 18);
         this.stroke = new BasicStroke(3.0f);
-        this.logScale = logScale;
     }
 
     public void create(
             String chartName,
-            List<MoneyAmountSeries> series,
+            List<XYSeries> series,
+            //List<BigDecimal> xSeries,
+            //List<BigDecimal> ySeries,
+            String xLabel,
+            String yLabel,
             String filename) {
         try {
-            var collection = new TimeSeriesCollection();
-            series.stream().map(MoneyAmountSeries::asTimeSeries).forEach(collection::addSeries);
-            JFreeChart chart = ChartFactory.createTimeSeriesChart(
+
+            //XYSeries series = new XYSeries(chartName);
+            //for (var i = 0; i < xSeries.size(); i++) {
+            //    series.add(xSeries.get(i), ySeries.get(i));
+            //}
+            XYSeriesCollection dataset = new XYSeriesCollection();
+            for(var s: series){
+                dataset.addSeries(s);
+            }
+            JFreeChart chart = ChartFactory.createScatterPlot(
                     chartName,
-                    "Date",
-                    "USD",
-                    collection);
+                    xLabel,
+                    yLabel,
+                    dataset);
             var xyPlot = chart.getXYPlot();
-            xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
+            xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
             xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
             xyPlot.setRangeGridlinePaint(Color.BLACK);
             xyPlot.setDomainGridlinePaint(Color.BLACK);
-            
-            if (logScale) {
-                LogarithmicAxis yAxis = new LogarithmicAxis("USD");
-                yAxis.setNumberFormatOverride(NumberFormat.getCurrencyInstance());
-                xyPlot.setRangeAxis(yAxis);
-            } else {
-                ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride(NumberFormat.getCurrencyInstance());
-            }
-            
+
+            var nf = NumberFormat.getCurrencyInstance();
+            ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride(nf);
+            ((NumberAxis) xyPlot.getDomainAxis()).setNumberFormatOverride(nf);
+
             xyPlot.getRangeAxis().setLabelFont(this.font);
             xyPlot.getRangeAxis().setTickLabelFont(this.font);
-            
-            
+
             var renderer = xyPlot.getRenderer();
             ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
             renderer.setDefaultStroke(this.stroke);

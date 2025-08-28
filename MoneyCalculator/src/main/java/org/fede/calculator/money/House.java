@@ -21,6 +21,7 @@ import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static java.text.MessageFormat.format;
 import java.util.stream.Stream;
+import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -40,7 +41,6 @@ public class House {
     private final BigDecimal REALTOR_FEE = new BigDecimal("0.045");
     private final BigDecimal STAMP_TAX = new BigDecimal("0.018");
     private final BigDecimal REGISTER_TAX = new BigDecimal("0.006");
-    private final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
 
     private final Console console;
     private final Format format;
@@ -50,7 +50,6 @@ public class House {
         this.console = console;
         this.format = format;
         this.bar = bar;
-
     }
 
     public void houseCostsEvolution() {
@@ -71,17 +70,17 @@ public class House {
         //this.console.appendLine(" "+nominalTransactionCost);
 
         final var start = YearMonth.of(2010, 8);
-        final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalTransactionCost, Currency.USD),
+        final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalTransactionCost, USD),
                 start,
                 limit);
 
-        final var initialCostSeries = new SortedMapMoneyAmountSeries(Currency.USD, "costs");
+        final var initialCostSeries = new SortedMapMoneyAmountSeries(USD, "costs");
         initialCostSeries.putAmount(start, realInitialCost);
-        initialCostSeries.putAmount(YearMonth.of(2010, 9), ZERO_USD);
-        initialCostSeries.putAmount(YearMonth.of(2010, 10), ZERO_USD);
-        initialCostSeries.putAmount(YearMonth.of(2010, 11), ZERO_USD);
-        initialCostSeries.putAmount(YearMonth.of(2010, 12), ZERO_USD);
-        initialCostSeries.putAmount(YearMonth.of(2011, 1), ZERO_USD);
+        initialCostSeries.putAmount(YearMonth.of(2010, 9), MoneyAmount.zero(USD));
+        initialCostSeries.putAmount(YearMonth.of(2010, 10), MoneyAmount.zero(USD));
+        initialCostSeries.putAmount(YearMonth.of(2010, 11), MoneyAmount.zero(USD));
+        initialCostSeries.putAmount(YearMonth.of(2010, 12), MoneyAmount.zero(USD));
+        initialCostSeries.putAmount(YearMonth.of(2011, 1), MoneyAmount.zero(USD));
 
         final var proportionalExpenses = SeriesReader.readSeries("expense/consorcio-reparaciones.json")
                 .map((ym, amount) -> amount.adjust(ONE, COEFFICIENT));
@@ -91,7 +90,7 @@ public class House {
                         .map(SeriesReader::readSeries),
                 Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
-                .map(expenses -> expenses.exchangeInto(Currency.USD))
+                .map(expenses -> expenses.exchangeInto(USD))
                 .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit))
                 .get();
 
@@ -115,13 +114,13 @@ public class House {
                 Stream.of("expense/inmobiliario-43.json", "expense/seguro.json", "expense/reparaciones.json").map(SeriesReader::readSeries),
                 Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
-                .map(expenses -> expenses.exchangeInto(Currency.USD))
+                .map(expenses -> expenses.exchangeInto(USD))
                 .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit))
                 .map(s -> s.map((ym, amount) -> this.limit(timeLimit, ym, amount)))
                 .map(MoneyAmountSeries::moneyAmountStream)
                 .orElseGet(Stream::empty)
                 .reduce(MoneyAmount::add)
-                .orElse(ZERO_USD);
+                .orElse(MoneyAmount.zero(USD));
 
         this.buyVsRent(realExpensesInUSD, ZERO, timeLimit);
         this.buyVsRent(realExpensesInUSD, new BigDecimal("0.02"), timeLimit);
@@ -180,8 +179,8 @@ public class House {
         this.console.appendLine(format("\tMensual USD {0} {1} - ARS {2}",
                 this.format.currency(monthlyCost),
                 this.format.percent(monthlyCost.divide(realInitialCost.getAmount(), C)),
-                this.format.currency(getMoneyAmountForeignExchange(Currency.USD, Currency.ARS)
-                        .apply(new MoneyAmount(monthlyCost, Currency.USD), limit)
+                this.format.currency(getMoneyAmountForeignExchange(USD, Currency.ARS)
+                        .apply(new MoneyAmount(monthlyCost, USD), limit)
                         .getAmount())));
 
         final var yearlyCost = totalRealExpense.getAmount().divide(years, C);

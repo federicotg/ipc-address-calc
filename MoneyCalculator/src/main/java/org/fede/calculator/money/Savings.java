@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static org.fede.calculator.money.Format.format;
-import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -89,26 +88,6 @@ public class Savings {
 
         this.savingsRefs(title);
 
-        //final var may = YearMonth.of(2025, 5);
-        //final var apr = YearMonth.of(2025, 4);
-        //this.debug(apr);
-        //this.debug(may);
-    }
-
-    private void debug(YearMonth m) {
-
-        var income = this.series.realIncome().getAmount(m);
-        var spending = this.series.realExpenses(null).getAmount(m);
-        var netSaving = this.series.realNetSavings().getAmount(m);
-
-        this.console.appendLine("");
-
-        this.console.appendLine(MessageFormat.format("{0}: Income {1} - spending {2} = saving {3}",
-                m.monthString(),
-                this.format.currency(income, 16),
-                this.format.currency(spending, 16),
-                this.format.currency(netSaving, 16)
-        ));
     }
 
     public SpendingAndSaving averageSpendingAndSaving(int months) {
@@ -483,7 +462,7 @@ public class Savings {
                 .forEach(this.console::appendLine);
     }
 
-    private MoneyAmount yearIncome(int year) {
+    public MoneyAmount yearIncome(int year) {
 
         final var months = year < USD_INFLATION.getTo().getYear()
                 ? 12
@@ -497,7 +476,7 @@ public class Savings {
                 .adjust(BigDecimal.valueOf(months), ONE);
     }
 
-    private MoneyAmount yearSavings(int year) {
+    public MoneyAmount yearSavings(int year) {
 
         final var months = year < USD_INFLATION.getTo().getYear()
                 ? 12

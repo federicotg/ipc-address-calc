@@ -113,7 +113,7 @@ public class InvestmentEvent {
     public MoneyAmount getRealUSDTransferFeeMoneyAmount() {
         return this.real(new MoneyAmount(this.getTransferFee(), this.getCurrency()));
     }
-    
+
     public MoneyAmount getRealUSDFeeMoneyAmount() {
         return this.real(this.getFeeMoneyAmount());
 
@@ -139,21 +139,25 @@ public class InvestmentEvent {
 
     private MoneyAmount real(MoneyAmount nominal) {
         final var now = Inflation.USD_INFLATION.getTo();
-        final var toUSD = ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD);
         MoneyAmount ma = null;
         //var logger = LoggerFactory.getLogger(ConsoleReports.class);
 
-        if (this.getCurrency() != Currency.USD && this.fx != null) {
-            ma = new MoneyAmount(nominal.adjust(BigDecimal.ONE, this.fx).amount(), Currency.USD);
+        if (this.getCurrency() != Currency.USD) {
+            if (this.fx != null) {
+                ma = new MoneyAmount(nominal.adjust(BigDecimal.ONE, this.fx).amount(), Currency.USD);
 
-            //logger.error("ma {} curr {}  fx {} => new ma {}", this.getMoneyAmount(), this.currency, this.fx, ma);
+                //logger.error("ma {} curr {}  fx {} => new ma {}", this.getMoneyAmount(), this.currency, this.fx, ma);
+            } else {
+                final var toUSD = ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD);
+
+                ma = toUSD.apply(nominal, YearMonth.of(this.getDate()));
+            }
         } else {
-            ma = toUSD.apply(nominal, YearMonth.of(this.getDate()));
+            ma = nominal;
         }
 
         return Inflation.USD_INFLATION.adjust(
-                toUSD
-                        .apply(ma, YearMonth.of(this.getDate())),
+                ma,
                 YearMonth.of(this.getDate()),
                 now);
 
@@ -163,24 +167,6 @@ public class InvestmentEvent {
 
         return this.real(this.getMoneyAmount());
 
-//        final var now = Inflation.USD_INFLATION.getTo();
-//        final var toUSD = ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD);
-//        MoneyAmount ma = null;
-//        //var logger = LoggerFactory.getLogger(ConsoleReports.class);
-//
-//        if (this.getCurrency() != Currency.USD && this.fx != null) {
-//            ma = new MoneyAmount(this.getMoneyAmount().adjust(BigDecimal.ONE, this.fx).amount(), Currency.USD);
-//
-//            //logger.error("ma {} curr {}  fx {} => new ma {}", this.getMoneyAmount(), this.currency, this.fx, ma);
-//        } else {
-//            ma = toUSD.apply(this.getMoneyAmount(), YearMonth.of(this.getDate()));
-//        }
-//
-//        return Inflation.USD_INFLATION.adjust(
-//                toUSD
-//                        .apply(ma, YearMonth.of(this.getDate())),
-//                YearMonth.of(this.getDate()),
-//                now);
     }
 
 }
