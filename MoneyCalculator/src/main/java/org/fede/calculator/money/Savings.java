@@ -36,8 +36,13 @@ import java.util.stream.Stream;
 import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.chart.ChartStyle;
 import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
+import org.fede.calculator.money.chart.Scale;
+import org.fede.calculator.money.chart.StackedTimeSeriesChart;
+import org.fede.calculator.money.chart.Stacking;
+import org.fede.calculator.money.chart.ValueFormat;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
@@ -90,6 +95,30 @@ public class Savings {
 
     }
 
+    public void netAvgSavingSpentChart(int months) {
+
+        final var agg = new SimpleAggregation(months);
+        final var incomeSeries = agg.average(this.series.realIncome());
+        final var netSaving = agg.average(this.series.realNetSavings());
+        final var spending = agg.average(this.series.realExpenses(null));
+        spending.setName("Spending");
+        netSaving.setName("Savings");
+
+        var otherSpending = incomeSeries
+                .map((ym, income) -> MoneyAmount.zero(Currency.USD)
+                .max(income
+                        .subtract(netSaving.getAmountOrElseZero(ym))
+                        .subtract(spending.getAmountOrElseZero(ym))));
+        otherSpending.setName("Other Spending");
+
+        new StackedTimeSeriesChart()
+                .create(
+                        months + "-month Savings and Spending",
+                        List.of(spending, otherSpending, netSaving),
+                        "savings-spending" + months + ".png");
+
+    }
+
     public SpendingAndSaving averageSpendingAndSaving(int months) {
         final var agg = new SimpleAggregation(months);
         final var income = agg.average(this.series.realIncome()).getAmount(Inflation.USD_INFLATION.getTo());
@@ -119,7 +148,6 @@ public class Savings {
         final var eq = this.series.realSavings("EQ");
         final var bo = this.series.realSavings("BO");
 
-        //final var nf = NumberFormat.getCurrencyInstance();
         cash.forEach((ym, cashMa) -> this.console.appendLine(
                 this.bar.bar(
                         ym,
@@ -287,7 +315,7 @@ public class Savings {
         return switch (months) {
             case 1 ->
                 400;
-            case 2, 3 ,4 ->
+            case 2, 3, 4 ->
                 220;
             case 5, 6 ->
                 120;
@@ -431,7 +459,7 @@ public class Savings {
                         new PieItem("Savings", savings)),
                 "saving-rate-" + year + ".png",
                 year == LocalDate.now().getYear()
-                );
+        );
     }
 
     public void yearSavingsIncomeTable() {

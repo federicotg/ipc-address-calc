@@ -37,6 +37,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.fede.calculator.criptoya.CriptoYaAPI;
+import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.YearMonth;
@@ -50,10 +51,14 @@ import static org.fede.calculator.money.Currency.XRSU;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.chart.BarChart;
 import org.fede.calculator.money.chart.CategoryDatasetItem;
+import org.fede.calculator.money.chart.ChartStyle;
 import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
+import org.fede.calculator.money.chart.Scale;
 import org.fede.calculator.money.chart.ScatterXYChart;
+import org.fede.calculator.money.chart.Stacking;
 import org.fede.calculator.money.chart.TimeSeriesChart;
+import org.fede.calculator.money.chart.ValueFormat;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
@@ -135,18 +140,12 @@ public class ConsoleReports {
                 () -> new Investments(console, format, bar, series)
                 .invPF(me.paramsValueDefaultFalse(args, "pf", "detail"), me.paramsValueDefaultFalse(args, "pf", "nominal"));
 
-            case "gi" ->
-                new Positions(console, format, series, bar)::groupedInvestments;
-
-            case "ti" ->
-                new Positions(console, format, series, bar)::listStockByType;
-
             case "inv" ->
                 () -> me.invReport(args, "inv");
 
             case "fire" ->
                 () -> new Fire(format, series, console)
-                .retirementWithdrawals(Integer.parseInt(me.paramsValue(args, "fire").getOrDefault("m", "12")));
+                .fire(Integer.parseInt(me.paramsValue(args, "fire").getOrDefault("m", "12")));
 
             case "savings" ->
                 () -> me.savings(args, "savings");
@@ -265,8 +264,8 @@ public class ConsoleReports {
             case "mdr" ->
                 () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar));
 
-            case "mdr-by-currency" ->
-                new PortfolioReturns(series, console, format, bar)::mdrByCurrency;
+            //case "mdr-by-currency" ->
+            //    new PortfolioReturns(series, console, format, bar)::mdrByCurrency;
 
             case "inv-evo" ->
                 () -> me.invEvo(args, "inv-evo");
@@ -341,8 +340,6 @@ public class ConsoleReports {
                         new CmdParam("savings-change", "m=1"),
                         new CmdParam("savings-change-pct", "m=1"),
                         new CmdParam("i"),
-                        new CmdParam("ti"),
-                        new CmdParam("gi"),
                         new CmdParam("pa"),
                         new CmdParam("house-evo"),
                         new CmdParam("expenses-src", "m=12"),
@@ -666,7 +663,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paranName);
         final var timeWeighted = Boolean.parseBoolean(params.getOrDefault("tw", "false"));
         final var withCash = Boolean.parseBoolean(params.getOrDefault("cash", "true"));
-        final var startYear = Integer.parseInt(params.getOrDefault("start", "1999"));
+        final var startYear = Integer.parseInt(params.getOrDefault("start", SeriesReader.readEnvironment().getProperty("start")));
 
         pr.returns(nominal(params), withCash, startYear, timeWeighted);
 
@@ -744,8 +741,17 @@ public class ConsoleReports {
         s.setName("Real");
         var nominal = this.series.nominalSavings();
         nominal.setName("Nominal");
-        new TimeSeriesChart(true).create("Savings", List.of(s, nominal), "savings.png");
+        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG, Stacking.UNSTACKED))
+                .create("Savings", List.of(s, nominal), "savings.png");
 
+    }
+    
+     private void savingsARSEvoChart() throws IOException {
+
+        var s = this.series.realSavings(null).exchangeInto(ARS);
+        s.setName("Real");
+        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG, Stacking.UNSTACKED))
+                .create("Savings", List.of(s), "savings-ars.png");
     }
 
     private void incomeAccChart() {
@@ -830,44 +836,31 @@ public class ConsoleReports {
             final var inv = new Investments(this.console, this.format, this.bar, this.series);
             final var pos = new Positions(console, format, series, bar);
             final var savings = new Savings(format, series, bar, console);
-
-            inv.brokerChart(new PieChart(true));
-            inv.brokerDetailedChart(new PieChart(true));
-            this.expensesChart(12, true);
-            this.incomeAccChart();
-            this.expensesChart(6, true);
-            this.expensesChart(3, true);
-            this.expensePieChart(12, new PieChart(true));
-            this.expensePieChart(24, new PieChart(true));
-            this.expensePieChart(48, new PieChart(true));
-            this.savingsEvoChart();
-
             final var thisYear = LocalDate.now().getYear();
 
+            this.expensesChart(12, true);
+            this.incomeAccChart();
+            this.expensePieChart(12, new PieChart(true));
+            this.savingsEvoChart();
+            this.savingsARSEvoChart();
             savings.savingRate(thisYear);
-
-            var portfolioChartByLabel = new PieChart(true, true);
-
-            pos.portfolioChart(portfolioChartByLabel, "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-
-            pos.portfolioChart(new PieChart(true), "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-
+            savings.netAvgSavingSpentChart(12);
+            savings.netAvgSavingSpentChart(3);
+            
+            inv.mdrChart(true);
+            inv.mdrChart(false);
+            
+            pos.portfolioChart(new PieChart(false), "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            pos.portfolioChart(new PieChart(false), "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChartByGeography(new PieChart(false), "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-            pos.portfolioChartByGeography(new PieChart(true), "amounts", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-
             pos.portfolioChartByGeographyBreakUSA(new PieChart(false), "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-            pos.portfolioChartByGeographyBreakUSA(new PieChart(true), "amounts", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-
-            this.recentETFChangeChart(1);
             this.recentETFChangeChart(12);
-            this.recentETFChangeChart(24);
-
-            this.savingsChart(6);
             this.savingsChart(12);
-
+            inv.savingsInvestmentsPercentChart();
             this.savingsXY();
             inv.savedAndInvestedChart();
             inv.investmentsByClassChart();
+            inv.projection();
 
         } catch (IOException ex) {
             LOGGER.error("Error generating chart.", ex);
@@ -968,12 +961,14 @@ public class ConsoleReports {
                     ss.add(s.yearIncome(year).amount(), s.yearSavings(year).amount());
                 });
 
-        new ScatterXYChart().create(
-                "Saving by Income",
-                List.of(ss),
-                "Real Income USD",
-                "USD",
-                "by-income.png");
+        new ScatterXYChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR, Stacking.UNSTACKED))
+                .create(
+                        "Saving by Income",
+                        USD,
+                        List.of(ss),
+                        "Real Income USD",
+                        "USD",
+                        "by-income.png");
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 fede
+ * Copyright (C) 2025 fede
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,16 +29,17 @@ import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.chart.ValueFormat.CURRENCY;
 import static org.fede.calculator.money.chart.ValueFormat.NUMBER;
 import static org.fede.calculator.money.chart.ValueFormat.PERCENTAGE;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.renderer.AbstractRenderer;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.StackedXYAreaRenderer2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,15 +47,23 @@ import org.slf4j.LoggerFactory;
  *
  * @author fede
  */
-public class ScatterXYChart {
+public class StackedTimeSeriesChart {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ScatterXYChart.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StackedTimeSeriesChart.class);
 
     private final Font font;
     private final Stroke stroke;
     private final ChartStyle style;
 
-    public ScatterXYChart(ChartStyle style) {
+    public StackedTimeSeriesChart() {
+        this(ValueFormat.CURRENCY);
+    }
+
+    public StackedTimeSeriesChart(ValueFormat valueFormat) {
+        this(new ChartStyle(valueFormat, Scale.LINEAR, Stacking.STACKED));
+    }
+
+    public StackedTimeSeriesChart(ChartStyle style) {
         this.font = new Font("SansSerif", Font.PLAIN, 18);
         this.stroke = new BasicStroke(3.0f);
         this.style = style;
@@ -62,55 +71,66 @@ public class ScatterXYChart {
 
     public void create(
             String chartName,
-            Currency currency,
-            List<XYSeries> series,
-            String xLabel,
-            String yLabel,
+            List<MoneyAmountSeries> series,
             String filename) {
         try {
 
-            XYSeriesCollection dataset = new XYSeriesCollection();
-            for (var s : series) {
-                dataset.addSeries(s);
-            }
-            JFreeChart chart = ChartFactory.createScatterPlot(
-                    chartName,
-                    xLabel,
-                    yLabel,
-                    dataset);
+            var c = series.stream()
+                    .findFirst()
+                    .map(MoneyAmountSeries::getCurrency)
+                    .orElse(Currency.USD);
 
-            var xyPlot = chart.getXYPlot();
-            xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
-            xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
-            xyPlot.setRangeGridlinePaint(Color.BLACK);
-            xyPlot.setDomainGridlinePaint(Color.BLACK);
+            var label = switch (this.style.valueFormat()) {
+                case NUMBER ->
+                    "";
+                case CURRENCY ->
+                    c.name();
+                case PERCENTAGE ->
+                    "%";
+            };
 
             var valueFormatter = switch (this.style.valueFormat()) {
                 case NUMBER ->
                     NumberFormat.getNumberInstance();
                 case CURRENCY ->
-                    this.currencyFormat(
-                    currency);
+                    this.currencyFormat(c);
                 case PERCENTAGE ->
                     NumberFormat.getPercentInstance();
             };
 
-            if (this.style.scale() == Scale.LOG) {
+            JFreeChart chart = ChartFactory.createXYAreaChart(
+                    chartName,
+                    "Date",
+                    label,
+                    ChartSeriesMapper.asTimeTableXYDataset(series)
+            );
 
-                xyPlot.setRangeAxis(new LogarithmicAxis(yLabel));
+            // Customize plot
+            XYPlot plot = (XYPlot) chart.getPlot();
+
+            plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
+            plot.setBackgroundPaint(Color.LIGHT_GRAY);
+            plot.setRangeGridlinePaint(Color.BLACK);
+            plot.setDomainGridlinePaint(Color.BLACK);
+            if (this.style.scale() == Scale.LOG) {
+                plot.setRangeAxis(new LogarithmicAxis(label));
             }
 
-            ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
-            ((NumberAxis) xyPlot.getDomainAxis()).setNumberFormatOverride(valueFormatter);
+            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
 
-            xyPlot.getRangeAxis().setLabelFont(this.font);
-            xyPlot.getRangeAxis().setTickLabelFont(this.font);
+            plot.getRangeAxis().setLabelFont(this.font);
+            plot.getRangeAxis().setTickLabelFont(this.font);
 
-            var renderer = xyPlot.getRenderer();
-            ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
+            var renderer = new StackedXYAreaRenderer2();
+
             renderer.setDefaultStroke(this.stroke);
-            chart.getLegend().setItemFont(this.font);
+            plot.setRenderer(renderer);
 
+            plot.setDomainAxis(new DateAxis("Date"));
+
+            plot.getDomainAxis().setLabelFont(this.font);
+            plot.getDomainAxis().setTickLabelFont(this.font);
+            chart.getLegend().setItemFont(this.font);
             ChartUtils.saveChartAsPNG(
                     new File(ConsoleReports.CHARTS_PREFIX + filename),
                     chart,

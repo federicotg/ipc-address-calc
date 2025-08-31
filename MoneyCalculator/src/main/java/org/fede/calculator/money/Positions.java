@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -46,19 +45,9 @@ import static java.util.stream.Collectors.reducing;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.Currency.ARS;
-import static org.fede.calculator.money.Currency.AY24;
-import static org.fede.calculator.money.Currency.CSPX;
-import static org.fede.calculator.money.Currency.EIMI;
-import static org.fede.calculator.money.Currency.LECAP;
-import static org.fede.calculator.money.Currency.LETE;
-import static org.fede.calculator.money.Currency.MEUD;
-import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.IWDA;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.Currency.UVA;
-import static org.fede.calculator.money.Currency.XRSU;
-import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.YearMonth;
@@ -66,7 +55,6 @@ import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.series.InvestmentEvent;
-import org.fede.calculator.money.series.InvestmentType;
 import static org.fede.calculator.money.series.InvestmentType.ETF;
 import static org.fede.calculator.money.series.InvestmentType.FCI;
 import static org.fede.calculator.money.series.InvestmentType.PF;
@@ -729,106 +717,6 @@ public class Positions {
         return () -> SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
     }
 
-    public void listStockByType() {
-
-        final var reportCurrency = USD;
-        final var limit = USD_INFLATION.getTo();
-        final var limitStr = String.valueOf(limit.getMonth()) + "/" + String.valueOf(limit.getYear());
-
-        this.console.appendLine(this.format.title(format("Inversiones Actuales en {0} por tipo. ", limitStr)));
-
-        final Optional<MoneyAmount> total = this.total(Investment::isCurrent, reportCurrency, limit);
-
-        this.series.getInvestments().stream()
-                .filter(Investment::isCurrent)
-                .collect(groupingBy(
-                        this::assetAllocation,
-                        mapping(inv -> getMoneyAmountForeignExchange(inv.getInvestment().getCurrency(), reportCurrency).apply(inv.getInvestment().getMoneyAmount(), limit)
-                        .getAmount()
-                        .setScale(MathConstants.SCALE, MathConstants.RM),
-                                reducing(ZERO, BigDecimal::add))))
-                .entrySet()
-                .stream()
-                .map(entry -> this.formatReport(total, entry.getValue(), entry.getKey()))
-                .forEach(this.console::appendLine);
-
-        total.map(t -> format("-----------------------------\n{0} {1}", this.format.text("Total", 5), this.format.currency(t, 16)))
-                .ifPresent(this.console::appendLine);
-    }
-
-    private String assetAllocation(Investment investment) {
-        final Set<Currency> equities = Set.of(CSPX, EIMI, MEUD, XRSU, RTWO);
-        final Set<Currency> bonds = Set.of(LECAP, LETE, UVA, AY24);
-
-        if (equities.contains(investment.getInvestment().getCurrency())) {
-            return "EQ";
-        }
-        if (investment.getType() == BONO
-                || investment.getType() == PF
-                || bonds.contains(investment.getInvestment().getCurrency())) {
-            return "BO";
-        }
-
-        return "CASH";
-
-    }
-
-    private Optional<MoneyAmount> total(Predicate<Investment> predicate, Currency reportCurrency, YearMonth limit) {
-        return this.series.getInvestments().stream()
-                .filter(predicate)
-                .map(Investment::getInvestment)
-                .map(InvestmentAsset::getMoneyAmount)
-                .map(investedAmount -> getMoneyAmountForeignExchange(investedAmount.getCurrency(), reportCurrency).apply(investedAmount, limit))
-                .reduce(MoneyAmount::add);
-    }
-
-    public void groupedInvestments() {
-        final var reportCurrency = USD;
-        final var limit = USD_INFLATION.getTo();
-
-        this.console.appendLine("Inversiones Actuales Agrupadas en ", reportCurrency.name(), " ", String.valueOf(limit.getYear()), "/", String.valueOf(limit.getMonth()));
-
-        final var total = this.total(Investment::isCurrent, reportCurrency, limit);
-        this.series.getInvestments().stream()
-                .filter(Investment::isCurrent)
-                .collect(groupingBy(in -> new InvestmentTypeAndCurrency(in.getType(), in.getCurrency()),
-                        mapping(inv -> inv.getMoneyAmount().getAmount(),
-                                reducing(ZERO, BigDecimal::add))))
-                .entrySet()
-                .stream()
-                .map(e -> new InvestmentTypeCurrencyAndAmount(e.getKey(), e.getValue()))
-                .map(p -> this.fx(p, reportCurrency))
-                .sorted((p, q) -> q.amount().compareTo(p.amount()))
-                .map(pair -> this.formatReport(total, pair.amount(), pair.type()))
-                .forEach(this.console::appendLine);
-
-        total.map(t -> format("-----------------------------\n{0}{1}", this.format.text("Total", 5), this.format.currency(t, 16)))
-                .ifPresent(this.console::appendLine);
-    }
-
-    private InvestmentTypeCurrencyAndAmount fx(InvestmentTypeCurrencyAndAmount p, Currency reportCurrency) {
-
-        return new InvestmentTypeCurrencyAndAmount(
-                p.type(),
-                reportCurrency,
-                getMoneyAmountForeignExchange(
-                        p.currency(),
-                        reportCurrency)
-                        .apply(new MoneyAmount(p.amount(), p.currency()),
-                                USD_INFLATION.getTo()).getAmount());
-    }
-
-    private String formatReport(Optional<MoneyAmount> total, BigDecimal subtotal, InvestmentType type) {
-        return this.formatReport(total, subtotal, type.toString());
-    }
-
-    private String formatReport(Optional<MoneyAmount> total, BigDecimal subtotal, String type) {
-
-        return format("{0}{1}{2}",
-                this.format.text(type, 5),
-                this.format.currency(subtotal, 16),
-                this.bar.pctBar(total.map(tot -> subtotal.divide(tot.getAmount(), C)).orElse(ZERO)));
-    }
 
     private record CurrencyAndGroupKey(Currency currency, String groupKey) {
 

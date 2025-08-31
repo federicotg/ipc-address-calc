@@ -25,6 +25,10 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
 import org.fede.calculator.money.ConsoleReports;
+import org.fede.calculator.money.Currency;
+import static org.fede.calculator.money.chart.ValueFormat.CURRENCY;
+import static org.fede.calculator.money.chart.ValueFormat.NUMBER;
+import static org.fede.calculator.money.chart.ValueFormat.PERCENTAGE;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
@@ -34,6 +38,7 @@ import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.AbstractRenderer;
+import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,48 +53,87 @@ public class TimeSeriesChart {
 
     private final Font font;
     private final Stroke stroke;
-    private final boolean logScale;
+    private final ChartStyle style;
 
     public TimeSeriesChart() {
-        this(false);
+        this(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR, Stacking.UNSTACKED));
     }
-    
-    public TimeSeriesChart(boolean logScale) {
+
+    public TimeSeriesChart(ChartStyle style) {
         this.font = new Font("SansSerif", Font.PLAIN, 18);
         this.stroke = new BasicStroke(3.0f);
-        this.logScale = logScale;
+        this.style = style;
     }
 
     public void create(
             String chartName,
             List<MoneyAmountSeries> series,
             String filename) {
+        var c = series.stream()
+                .findFirst()
+                .map(MoneyAmountSeries::getCurrency)
+                .orElse(Currency.USD);
+        this.createFromTimeSeries(chartName,
+                series.stream().map(ChartSeriesMapper::asTimeSeries).toList(),
+                c,
+                filename);
+    }
+
+     public void createFromTimeSeries(
+            String chartName,
+            List<TimeSeries> series,
+            String filename) {
+         this.createFromTimeSeries(chartName, series, Currency.USD, filename);
+     }
+    
+    public void createFromTimeSeries(
+            String chartName,
+            List<TimeSeries> series,
+            Currency c,
+            String filename) {
         try {
+
+            var label = switch (this.style.valueFormat()) {
+                case NUMBER ->
+                    "";
+                case CURRENCY ->
+                    c.name();
+                case PERCENTAGE ->
+                    "%";
+            };
+
             var collection = new TimeSeriesCollection();
-            series.stream().map(MoneyAmountSeries::asTimeSeries).forEach(collection::addSeries);
+            series.stream().forEach(collection::addSeries);
+
             JFreeChart chart = ChartFactory.createTimeSeriesChart(
                     chartName,
                     "Date",
-                    "USD",
+                    label,
                     collection);
             var xyPlot = chart.getXYPlot();
             xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
             xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
             xyPlot.setRangeGridlinePaint(Color.BLACK);
             xyPlot.setDomainGridlinePaint(Color.BLACK);
-            
-            if (logScale) {
-                LogarithmicAxis yAxis = new LogarithmicAxis("USD");
-                yAxis.setNumberFormatOverride(NumberFormat.getCurrencyInstance());
-                xyPlot.setRangeAxis(yAxis);
-            } else {
-                ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride(NumberFormat.getCurrencyInstance());
+
+            var valueFormatter = switch (this.style.valueFormat()) {
+                case NUMBER ->
+                    NumberFormat.getNumberInstance();
+                case CURRENCY ->
+                    this.currencyFormat(c);
+                case PERCENTAGE ->
+                    this.percentFormat();
+            };
+
+            if (this.style.scale() == Scale.LOG) {
+                xyPlot.setRangeAxis(new LogarithmicAxis(label));
             }
-            
+
+            ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
+
             xyPlot.getRangeAxis().setLabelFont(this.font);
             xyPlot.getRangeAxis().setTickLabelFont(this.font);
-            
-            
+
             var renderer = xyPlot.getRenderer();
             ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
             renderer.setDefaultStroke(this.stroke);
@@ -103,5 +147,18 @@ public class TimeSeriesChart {
         } catch (IOException ioEx) {
             LOGGER.error("Error.", ioEx);
         }
+    }
+
+    private NumberFormat currencyFormat(Currency currency) {
+        var nf = NumberFormat.getCurrencyInstance();
+        nf.setCurrency(java.util.Currency.getInstance(currency.name()));
+        nf.setMaximumFractionDigits(0);
+        return nf;
+    }
+    
+    private NumberFormat percentFormat(){
+        var answer = NumberFormat.getPercentInstance();
+        answer.setMinimumFractionDigits(1);
+        return answer;
     }
 }

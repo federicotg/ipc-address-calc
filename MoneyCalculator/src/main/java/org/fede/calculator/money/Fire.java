@@ -47,7 +47,7 @@ public class Fire {
         this.console = console;
     }
 
-    public void retirementWithdrawals(int months) {
+    public void fire(int months) {
 
         this.console.appendLine(this.format.title("F.I.R.E."));
 
@@ -56,6 +56,9 @@ public class Fire {
         final var futureRent = SeriesReader.readUSD("futureRent");
         final var futurePension = SeriesReader.readUSD("futurePension");
         final var totalSavings = this.series.realSavings(null).getAmount(limit);
+        final var years = SeriesReader.readInt("retirementHorizon");
+        final var futureSavings = SeriesReader.readBigDecimal("futureSavingsByYear")
+                .multiply(BigDecimal.valueOf(years), C);
 
         final var essential = this.sumExpenses(ESSENTIAL, months);
         final var discretionary = this.sumExpenses(Series.DISCRETIONARY, months);
@@ -64,7 +67,7 @@ public class Fire {
 
         final var expectedFutureIncome = SeriesReader.readBigDecimal("futureRealState")
                 .add(SeriesReader.readBigDecimal("futureCash"))
-                .add(SeriesReader.readBigDecimal("futureSavings"));
+                .add(futureSavings);
 
         this.console.appendLine(this.format.subtitle(months + "-Month Average Spending"));
 
@@ -77,14 +80,17 @@ public class Fire {
         this.conceptLine("Future Pension", futurePension);
 
         this.conceptLine("Current Savings", totalSavings);
+        
+        //this.conceptLine("Future Savings", new MoneyAmount(futureSavings, USD));
         this.conceptLine("Future Income", new MoneyAmount(expectedFutureIncome, USD));
 
-        var expected10YearCAGR = SeriesReader.readPercent("futureGrowth").add(ONE, C);
-        var expectedGrowth = expected10YearCAGR.pow(10, C);
+        var expected10YearCAGR = SeriesReader.readPercent("futureReturn").add(ONE, C);
+        var expectedGrowth = expected10YearCAGR.pow(years, C);
 
         this.console.appendLine(
-                this.format.text("10 Year Growth", 20),
-                this.format.percent(expectedGrowth.subtract(ONE, C), 10));
+                String.valueOf(years),
+                this.format.text(" Year Growth", 20),
+                this.format.percent(expectedGrowth.subtract(ONE, C), 6));
 
         this.console.appendLine(this.format.subtitle("Portfolio Size by Spending and Withdrawal Percent"));
 
@@ -104,10 +110,10 @@ public class Fire {
         final var everythingWithRent = everythingWithoutRent
                 .add(futureRent);
 
-        this.conceptLine("Essential - Rent", essentialWithoutRent);
-        this.conceptLine("Everything - Rent", everythingWithoutRent);
-        this.conceptLine("Essential + Rent", essentialWithRent);
-        this.conceptLine("Everything + Rent", everythingWithRent);
+        this.conceptLine("Essential - Rent", essentialWithoutRent, "✅");
+        this.conceptLine("Everything - Rent", everythingWithoutRent, "✅✅");
+        this.conceptLine("Essential + Rent", essentialWithRent, "✅✅");
+        this.conceptLine("Everything + Rent", everythingWithRent, "✅✅✅");
 
         this.console.appendLine("");
         final var step = new BigDecimal("0.0025");
@@ -194,11 +200,16 @@ public class Fire {
                 .getAmountOrElseZero(USD_INFLATION.getTo());
 
     }
-
-    private void conceptLine(String label, MoneyAmount value) {
+    
+     private void conceptLine(String label, MoneyAmount value) {
+         this.conceptLine(label, value, "");
+     }
+    
+    private void conceptLine(String label, MoneyAmount value, String extra) {
         this.console.appendLine(
                 this.format.text(label, 20),
-                this.format.currency(value, 12));
+                this.format.currency(value, 12),
+                " ", extra);
     }
 
     private String retirementWithdrawalRow(
