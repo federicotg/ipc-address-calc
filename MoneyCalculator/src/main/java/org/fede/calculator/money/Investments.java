@@ -63,7 +63,6 @@ import org.fede.calculator.money.chart.ChartStyle;
 import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.chart.Scale;
-import org.fede.calculator.money.chart.Stacking;
 import org.fede.calculator.money.chart.TimeSeriesChart;
 import org.fede.calculator.money.chart.ValueFormat;
 import org.fede.calculator.money.series.Investment;
@@ -79,6 +78,7 @@ import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.TimeSeriesDatapoint;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
+import org.jfree.data.time.TimeSeries;
 
 /**
  *
@@ -336,7 +336,6 @@ public class Investments {
 
         final var etfs = this.getInvestments()
                 .filter(Investment::isETF)
-                //.filter(Investment::isCurrent)
                 .filter(everyone)
                 .toList();
 
@@ -414,33 +413,62 @@ public class Investments {
 
     public void mdrChart(boolean cagr) {
 
+        var initial = YearMonth.of(
+                SeriesReader.readInt("start.year"),
+                SeriesReader.readInt("start.month"));
+
         Function<ModifiedDietzReturnResult, BigDecimal> resultFunction
                 = cagr ? ModifiedDietzReturnResult::annualizedMoneyWeighted
                         : ModifiedDietzReturnResult::getMoneyWeighted;
 
-        var inv
-                = Stream.concat(this.series.getInvestments().stream(),
-                        this.cashInvestments.cashInvestments().stream())
-                        .toList();
+        var inv = Stream.concat(this.series.getInvestments().stream(),
+                this.cashInvestments.cashInvestments().stream())
+                .toList();
 
-        var start = YearMonth.of(2002, 1)
+        var start = initial
                 .max(inv.stream()
                         .map(Investment::getInitialDate)
                         .map(YearMonth::of)
                         .min(Comparator.naturalOrder())
-                        .orElse(YearMonth.of(2003, 1)));
+                        .orElse(initial));
 
         var nominalWithCash = this.mdrSeries(inv, true, start, resultFunction);
 
         var realWithCash = this.mdrSeries(inv, false, start, resultFunction);
 
-        new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR, Stacking.UNSTACKED))
+        List<TimeSeries> mdrSeries = new ArrayList<>();
+
+        mdrSeries.add(ChartSeriesMapper.asTimeSeries(realWithCash, "Real Returns"));
+        mdrSeries.add(ChartSeriesMapper.asTimeSeries(nominalWithCash, "Nominal Returns"));
+        var savings = this.series.realSavings(null);
+
+        if (!cagr) {
+
+            var investments = this.portfolioValue(false, i -> true);
+
+            var uninvested = savings.map((ym, ma) -> ma.subtract(investments.getAmountOrElseZero(ym)));
+
+            var uninvestedPct = uninvested.yearMonthStream()
+                    .filter(ym -> ym.compareTo(start) >= 0)
+                    .map(ym -> new TimeSeriesDatapoint(
+                    ym,
+                    uninvested.getAmount(ym)
+                            .adjust(savings.getAmount(ym).amount(), ONE)
+                            .amount()))
+                    .toList();
+
+            mdrSeries.add(ChartSeriesMapper.asTimeSeries(uninvestedPct, "Uninvested Cash"));
+
+            var globalStocks
+                    = this.currencyInvestment("Global Stocks", List.of(CSPX, MEUD, XRSU, RTWO, XUSE, EIMI))
+                            .map((ym, ma) -> ma.adjust(savings.getAmount(ym).amount(), ONE));
+
+            mdrSeries.add(ChartSeriesMapper.asTimeSeries(globalStocks));
+        }
+        new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
                 .createFromTimeSeries(
                         "Modified Dietz Returns" + (cagr ? " CAGR" : ""),
-                        List.of(
-                                ChartSeriesMapper.asTimeSeries(realWithCash, "Real"),
-                                ChartSeriesMapper.asTimeSeries(nominalWithCash, "Nominal")
-                        ),
+                        mdrSeries,
                         "mdr" + (cagr ? "_cagr" : "") + ".png");
     }
 
@@ -449,10 +477,11 @@ public class Investments {
             boolean nominal,
             YearMonth start,
             Function<ModifiedDietzReturnResult, BigDecimal> resultFunction) {
-        final List<TimeSeriesDatapoint> ss = new ArrayList<>();
 
         var startLocalDate = LocalDate.ofInstant(start.asToDate().toInstant(), SYSTEM_DEFAULT_ZONE_ID);
         var end = Inflation.USD_INFLATION.getTo();
+
+        final List<TimeSeriesDatapoint> ss = new ArrayList<>(start.monthsUntil(end));
 
         for (var ym = start; ym.compareTo(end) <= 0; ym = ym.next()) {
 
@@ -1318,19 +1347,21 @@ public class Investments {
 
     public void savedAndInvestedChart() {
 
-        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG, Stacking.UNSTACKED)).create("ETF Real Growth",
-                List.of(
-                        this.accumulatedNetContributions(false, Investment::isETF),
-                        this.portfolioValue(false, Investment::isETF)),
-                "growth-etf-real.png");
+        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
+                .create("ETF Real Growth",
+                        List.of(
+                                this.accumulatedNetContributions(false, Investment::isETF),
+                                this.portfolioValue(false, Investment::isETF)),
+                        "growth-etf-real.png");
 
         final var realContributions = this.accumulatedNetContributions(false, i -> true);
 
-        new TimeSeriesChart().create("Investments Real Growth",
-                List.of(
-                        realContributions,
-                        this.portfolioValue(false, i -> true)),
-                "growth-all-real.png");
+        new TimeSeriesChart()
+                .create("Investments Real Growth",
+                        List.of(
+                                realContributions,
+                                this.portfolioValue(false, i -> true)),
+                        "growth-all-real.png");
 
         var savings = this.series.realSavings(null);
         savings.setName("Real Savings");
@@ -1369,9 +1400,10 @@ public class Investments {
 
         cashSavingsPercent.setName("% Cash Savings");
 
-        new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR, Stacking.UNSTACKED)).create("Real Income, Savings & Investments",
-                List.of(savedIncomePercent, cashSavingsPercent),
-                "savings-investments-percent.png");
+        new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
+                .create("Real Income, Savings & Investments",
+                        List.of(savedIncomePercent, cashSavingsPercent),
+                        "savings-investments-percent.png");
     }
 
     public void investmentsByClassChart() {
@@ -1389,14 +1421,15 @@ public class Investments {
         var cash = savings.map((ym, ma) -> ma.subtract(investments.getAmountOrElseZero(ym)));
         cash.setName("Cash");
 
-        new TimeSeriesChart().create("Real Investments by Currency (Grouped)",
-                List.of(
-                        this.currencyInvestment("Local USD Bonds", localUSDBonds),
-                        this.currencyInvestment("Local ARS Bonds", localARSBonds),
-                        this.currencyInvestment("Local Stocks", localStocks),
-                        this.currencyInvestment("Global Stocks", globalStocks),
-                        cash),
-                "investments-by-class.png");
+        new TimeSeriesChart()
+                .create("Real Investments by Currency (Grouped)",
+                        List.of(
+                                this.currencyInvestment("Local USD Bonds", localUSDBonds),
+                                this.currencyInvestment("Local ARS Bonds", localARSBonds),
+                                this.currencyInvestment("Local Stocks", localStocks),
+                                this.currencyInvestment("Global Stocks", globalStocks),
+                                cash),
+                        "investments-by-class.png");
     }
 
     private MoneyAmountSeries currencyInvestment(String name, List<Currency> currencies) {
@@ -1528,13 +1561,13 @@ public class Investments {
                 expectedReturn,
                 expectedVolatility);
 
-        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG, Stacking.UNSTACKED)).create("Future Return Probabilities",
-                List.of(portfolio,
-                        p10,
-                        p50,
-                        p90),
-                "future.png");
-
+        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
+                .create("Future Return Probabilities",
+                        List.of(portfolio,
+                                p10,
+                                p50,
+                                p90),
+                        "future.png");
     }
 
     private MoneyAmountSeries predictedValues(

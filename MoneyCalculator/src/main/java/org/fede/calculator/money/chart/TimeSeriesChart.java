@@ -56,7 +56,7 @@ public class TimeSeriesChart {
     private final ChartStyle style;
 
     public TimeSeriesChart() {
-        this(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR, Stacking.UNSTACKED));
+        this(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR));
     }
 
     public TimeSeriesChart(ChartStyle style) {

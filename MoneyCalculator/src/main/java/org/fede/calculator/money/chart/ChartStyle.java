@@ -20,6 +20,6 @@ package org.fede.calculator.money.chart;
  *
  * @author fede
  */
-public record ChartStyle(ValueFormat valueFormat, Scale scale, Stacking stacking) {
+public record ChartStyle(ValueFormat valueFormat, Scale scale) {
 
 }

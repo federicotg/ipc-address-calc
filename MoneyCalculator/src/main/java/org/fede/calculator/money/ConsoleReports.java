@@ -56,7 +56,6 @@ import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.chart.Scale;
 import org.fede.calculator.money.chart.ScatterXYChart;
-import org.fede.calculator.money.chart.Stacking;
 import org.fede.calculator.money.chart.TimeSeriesChart;
 import org.fede.calculator.money.chart.ValueFormat;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -263,10 +262,6 @@ public class ConsoleReports {
 
             case "mdr" ->
                 () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar));
-
-            //case "mdr-by-currency" ->
-            //    new PortfolioReturns(series, console, format, bar)::mdrByCurrency;
-
             case "inv-evo" ->
                 () -> me.invEvo(args, "inv-evo");
 
@@ -355,7 +350,6 @@ public class ConsoleReports {
                         new CmdParam("all-charts"),
                         new CmdParam("cash"),
                         new CmdParam("bench"),
-                        new CmdParam("mdr-by-currency"),
                         new CmdParam("income-src", "m=12"),
                         new CmdParam("pf", "detail=false nominal=false"),
                         new CmdParam("income-src-pct", "m=12"),
@@ -447,7 +441,8 @@ public class ConsoleReports {
     }
 
     private void income(String[] args) {
-        new Savings(format, series, bar, console).income(this.paramsValue(args, "income"));
+        new Savings(format, series, bar, console)
+                .income(this.paramsValue(args, "income"));
     }
 
     private void house(String[] args, String paramName) {
@@ -456,18 +451,22 @@ public class ConsoleReports {
         final var years = params.get("years");
 
         if (years == null) {
-            new House(console, format, bar).houseIrrecoverableCosts(USD_INFLATION.getTo());
+            new House(console, format, bar)
+                    .houseIrrecoverableCosts(USD_INFLATION.getTo());
         } else {
-            new House(console, format, bar).houseIrrecoverableCosts(YearMonth.of(2010 + Integer.parseInt(years), 8));
+            new House(console, format, bar)
+                    .houseIrrecoverableCosts(YearMonth.of(2010 + Integer.parseInt(years), 8));
         }
     }
 
     private void benchmark(String[] args, String param) {
-        new Investments(console, format, bar, series).monthly(nominal(this.paramsValue(args, param)));
+        new Investments(console, format, bar, series)
+                .monthly(nominal(this.paramsValue(args, param)));
     }
 
     private void savings(String[] args, String paramName) {
-        new Savings(format, series, bar, console).savings(this.paramsValue(args, paramName));
+        new Savings(format, series, bar, console)
+                .savings(this.paramsValue(args, paramName));
     }
 
     private void condo() {
@@ -478,22 +477,28 @@ public class ConsoleReports {
     }
 
     private void expenses(String[] args, String type) {
-        new Expenses(series, console, bar, format).expenses(this.paramsValue(args, type));
+        new Expenses(series, console, bar, format)
+                .expenses(this.paramsValue(args, type));
     }
 
     private void savingsPercentChange(String[] args, String paramName) {
         final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault(MONTHS_PARAM, "1")) + 1;
-        new Savings(format, series, bar, console).savingsPercentChange(months);
+        new Savings(format, series, bar, console)
+                .savingsPercentChange(months);
     }
 
     private void incomeDelta(String[] args, String paramName) {
         final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault(MONTHS_PARAM, "12"));
-        new Savings(format, series, bar, console).incomeDelta(months);
+        new Savings(format, series, bar, console)
+                .incomeDelta(months);
     }
 
     private void savingEvolution(String[] args, String paramName) {
         this.appendLine(this.format.title("Savings Evolution"));
-        this.bar.evolution("Savings", this.series.realSavings(this.paramsValue(args, paramName).get("type")), SeriesReader.readInt("scale"));
+        this.bar.evolution(
+                "Savings",
+                this.series.realSavings(this.paramsValue(args, paramName).get("type")), 
+                SeriesReader.readInt("scale"));
     }
 
     private void expenseEvolution(String[] args, String paramName) {
@@ -505,7 +510,8 @@ public class ConsoleReports {
     }
 
     private void expenseBySource(String[] args, String paramName) {
-        new Expenses(series, console, bar, format).expenseBySource(months(this.paramsValue(args, paramName)));
+        new Expenses(series, console, bar, format)
+                .expenseBySource(months(this.paramsValue(args, paramName)));
     }
 
     private void expenseEvolution(String type, int months) {
@@ -530,7 +536,8 @@ public class ConsoleReports {
 
         var params = this.paramsValue(args, name);
         final var months = months(params);
-        new Expenses(series, console, bar, format).expensesChange(months);
+        new Expenses(series, console, bar, format)
+                .expensesChange(months);
     }
 
     private void incomeAverageEvolution(String[] args, String paramName) {
@@ -538,7 +545,8 @@ public class ConsoleReports {
         var months = months(params);
         var ars = Boolean.parseBoolean(params.getOrDefault("ars", "false"));
 
-        new Savings(format, series, bar, console).incomeAverageEvolution(months, ars);
+        new Savings(format, series, bar, console)
+                .incomeAverageEvolution(months, ars);
     }
 
     private Map<String, String> paramsValue(String[] args, String paramName) {
@@ -605,18 +613,21 @@ public class ConsoleReports {
     }
 
     private void averageSavedSalaries(String[] args, String name) {
-        new Savings(format, series, bar, console).averageSavedSalaries(months(this.paramsValue(args, name)));
+        new Savings(format, series, bar, console)
+                .averageSavedSalaries(months(this.paramsValue(args, name)));
     }
 
     private void monthlySavings(String[] args, String name) {
-        new Savings(format, series, bar, console).monthlySavings(months(this.paramsValue(args, name)));
+        new Savings(format, series, bar, console)
+                .monthlySavings(months(this.paramsValue(args, name)));
     }
 
     private void netAvgSavingSpentPct(String[] args, String name) {
 
         final var months = months(this.paramsValue(args, name));
         final var title = format("Average {0}-month net monthly average savings and spending percent", months);
-        new Savings(format, series, bar, console).netAvgSavingSpentPct(months, title);
+        new Savings(format, series, bar, console)
+                .netAvgSavingSpentPct(months, title);
 
     }
 
@@ -624,21 +635,24 @@ public class ConsoleReports {
 
         final var months = months(this.paramsValue(args, name));
         final var title = format("Average {0}-month net monthly average savings and spending", months);
-        new Savings(format, series, bar, console).netAvgSavingSpent(months, title);
+        new Savings(format, series, bar, console)
+                .netAvgSavingSpent(months, title);
 
     }
 
     private void incomeAverageBySource(String[] args, String name) {
 
         final var months = months(this.paramsValue(args, name));
-        new Savings(format, series, bar, console).incomeAverageBySource(months);
+        new Savings(format, series, bar, console)
+                .incomeAverageBySource(months);
 
     }
 
     private void incomeAveragePctBySource(String[] args, String name) {
 
         final var months = months(this.paramsValue(args, name));
-        new Savings(format, series, bar, console).incomeAverageBySource(months, true);
+        new Savings(format, series, bar, console)
+                .incomeAverageBySource(months, true);
 
     }
 
@@ -653,7 +667,7 @@ public class ConsoleReports {
         final var month = Optional.ofNullable(params.get("m"))
                 .map(Integer::parseInt)
                 .orElseGet(USD_INFLATION.getTo()::getMonth);
-        new Positions(console, format, series, bar)
+        new Positions(console, format, series)
                 .portfolio(type, subtype, year, month);
 
     }
@@ -663,7 +677,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paranName);
         final var timeWeighted = Boolean.parseBoolean(params.getOrDefault("tw", "false"));
         final var withCash = Boolean.parseBoolean(params.getOrDefault("cash", "true"));
-        final var startYear = Integer.parseInt(params.getOrDefault("start", SeriesReader.readEnvironment().getProperty("start")));
+        final var startYear = Integer.parseInt(params.getOrDefault("start", SeriesReader.readEnvironment().getProperty("start.year")));
 
         pr.returns(nominal(params), withCash, startYear, timeWeighted);
 
@@ -693,12 +707,13 @@ public class ConsoleReports {
     private void invEvoPct(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
         final var currency = Optional.ofNullable(params.get("type")).map(Currency::valueOf).orElse(null);
-        new Investments(console, format, bar, series).invEvoPct(currency, nominal(params));
+        new Investments(console, format, bar, series)
+                .invEvoPct(currency, nominal(params));
     }
 
     private void positions(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
-        new Positions(this.console, this.format, this.series, this.bar)
+        new Positions(this.console, this.format, this.series)
                 .positions(nominal(params));
     }
 
@@ -706,7 +721,7 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, paramName);
 
         final var type = params.getOrDefault("type", "q");
-        new Positions(this.console, this.format, this.series, this.bar)
+        new Positions(this.console, this.format, this.series)
                 .dca(nominal(params), type);
     }
 
@@ -715,7 +730,7 @@ public class ConsoleReports {
 
         final var group = params.getOrDefault("group", "q");
         final var type = params.getOrDefault("type", "long");
-        new Positions(this.console, this.format, this.series, this.bar)
+        new Positions(this.console, this.format, this.series)
                 .invested(nominal(params), type, group);
     }
 
@@ -725,14 +740,16 @@ public class ConsoleReports {
                 .map(Currency::valueOf)
                 .orElse(null);
         final var nominal = nominal(params);
-        new Investments(console, format, bar, series).invEvo(currency, nominal);
+        new Investments(console, format, bar, series)
+                .invEvo(currency, nominal);
     }
 
     private void portfolioEvo(String[] args, String paramName) {
         this.console.appendLine(this.format.title("Portfolio Evolution"));
         final var params = this.paramsValue(args, paramName);
         final var type = params.get("type");
-        new Investments(console, format, bar, series).portfolioEvo(type, "p-evo-pct".equalsIgnoreCase(paramName));
+        new Investments(console, format, bar, series)
+                .portfolioEvo(type, "p-evo-pct".equalsIgnoreCase(paramName));
     }
 
     private void savingsEvoChart() throws IOException {
@@ -741,7 +758,7 @@ public class ConsoleReports {
         s.setName("Real");
         var nominal = this.series.nominalSavings();
         nominal.setName("Nominal");
-        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG, Stacking.UNSTACKED))
+        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
                 .create("Savings", List.of(s, nominal), "savings.png");
 
     }
@@ -750,7 +767,7 @@ public class ConsoleReports {
 
         var s = this.series.realSavings(null).exchangeInto(ARS);
         s.setName("Real");
-        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG, Stacking.UNSTACKED))
+        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
                 .create("Savings", List.of(s), "savings-ars.png");
     }
 
@@ -803,7 +820,8 @@ public class ConsoleReports {
         if (grouped) {
             chartName = "Grouped " + chartName;
         }
-        new TimeSeriesChart().create(chartName, expenseSeries, "expenses_" + (grouped ? "grouped" : "") + "_" + m + ".png");
+        new TimeSeriesChart()
+                .create(chartName, expenseSeries, "expenses_" + (grouped ? "grouped" : "") + "_" + m + ".png");
 
     }
 
@@ -834,7 +852,7 @@ public class ConsoleReports {
     private void allCharts() {
         try {
             final var inv = new Investments(this.console, this.format, this.bar, this.series);
-            final var pos = new Positions(console, format, series, bar);
+            final var pos = new Positions(console, format, series);
             final var savings = new Savings(format, series, bar, console);
             final var thisYear = LocalDate.now().getYear();
 
@@ -961,7 +979,7 @@ public class ConsoleReports {
                     ss.add(s.yearIncome(year).amount(), s.yearSavings(year).amount());
                 });
 
-        new ScatterXYChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR, Stacking.UNSTACKED))
+        new ScatterXYChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
                 .create(
                         "Saving by Income",
                         USD,

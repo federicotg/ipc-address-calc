@@ -75,13 +75,11 @@ public class Positions {
     private final Console console;
     private final Format format;
     private final Series series;
-    private final Bar bar;
 
-    public Positions(Console console, Format format, Series series, Bar bar) {
+    public Positions(Console console, Format format, Series series) {
         this.console = console;
         this.format = format;
         this.series = series;
-        this.bar = bar;
     }
 
     public void positions(boolean nominal) {
@@ -464,7 +462,6 @@ public class Positions {
                         .map(currency -> new CurrencyAndGroupKey(currency, year))
                         .map(key -> this.avgPrice(positionsByGroup, key, averagesByGroup)))
                 .collect(joining());
-
     }
 
     private String avgPrice(Map<CurrencyAndGroupKey, Position> positionsByGroup, CurrencyAndGroupKey key, Map<CurrencyAndGroupKey, Position> averagesByGroup) {
@@ -503,7 +500,8 @@ public class Positions {
         return new Position(
                 Investments.ETF_NAME.get(symbol),
                 position,
-                ForeignExchanges.getMoneyAmountForeignExchange(symbol, USD).apply(new MoneyAmount(ONE, symbol), now),
+                ForeignExchanges.getMoneyAmountForeignExchange(symbol, USD)
+                        .apply(new MoneyAmount(ONE, symbol), now),
                 investments.stream()
                         .map(i -> i.getIn().getMoneyAmount())
                         .reduce(MoneyAmount.zero(USD), MoneyAmount::add),

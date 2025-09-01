@@ -60,7 +60,7 @@ public class StackedTimeSeriesChart {
     }
 
     public StackedTimeSeriesChart(ValueFormat valueFormat) {
-        this(new ChartStyle(valueFormat, Scale.LINEAR, Stacking.STACKED));
+        this(new ChartStyle(valueFormat, Scale.LINEAR));
     }
 
     public StackedTimeSeriesChart(ChartStyle style) {

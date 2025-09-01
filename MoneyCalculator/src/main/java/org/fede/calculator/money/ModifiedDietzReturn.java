@@ -256,8 +256,8 @@ public class ModifiedDietzReturn {
                     this.nominal,
                     st,
                     fn).get().getMoneyWeighted());
-
         }
+
         final var value = monthyMDR.stream()
                 .map(ONE::add)
                 .reduce(ONE, BigDecimal::multiply)

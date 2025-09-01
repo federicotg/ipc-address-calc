@@ -126,7 +126,6 @@ public class PortfolioReturns {
                         .map(i -> i.getOut() == null ? Inflation.USD_INFLATION.getTo() : YearMonth.of(i.getOut().getDate()))
                         .max(Comparator.naturalOrder())
                         .orElse(Inflation.USD_INFLATION.getTo()).asToDate().toInstant(), ZoneId.systemDefault());
-        ;
 
         return returnTypeFunction.apply(new ModifiedDietzReturn(
                 inv,
@@ -282,25 +281,6 @@ public class PortfolioReturns {
 
     }
 
-    /* public void mdrByCurrency() {
-
-        final var skippedCurrencies = Set.of("AY24", "LECAP", "LETE");
-
-        this.console.appendLine(this.format.title("Real USD Modified Dietz Return by Currency"));
-        Stream.concat(
-                this.cashInvestments.cashInvestments().stream(),
-                this.series.getInvestments().stream())
-                .map(Investment::getCurrency)
-                .filter(Predicate.not(skippedCurrencies::contains))
-                .distinct()
-                .forEach(this::mdrByCurrencyReport);
-
-    }*/
-
- /* public void mdrByCurrencyReport(Currency currency) {
-        this.console.appendLine(this.format.subtitle(currency.name()));
-        this.modifiedDietzReturn(i -> i.getCurrency().equals(currency), false, true, ModifiedDietzReturn::get);
-    }*/
     public void portfolioAllocation() {
 
         this.console.appendLine(this.format.title("Money Weighted Return"));
