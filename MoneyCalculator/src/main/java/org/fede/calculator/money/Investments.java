@@ -58,6 +58,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.Currency.*;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.chart.BarChart;
+import org.fede.calculator.money.chart.CategoryDatasetItem;
 import org.fede.calculator.money.chart.ChartSeriesMapper;
 import org.fede.calculator.money.chart.ChartStyle;
 import org.fede.calculator.money.chart.PieChart;
@@ -78,6 +80,7 @@ import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.TimeSeriesDatapoint;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
+import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.time.TimeSeries;
 
 /**
@@ -411,6 +414,30 @@ public class Investments {
                 new ModifiedDietzReturn(series, nominal, LocalDate.of(year, JANUARY, 1), LocalDate.of(year, DECEMBER, 31)).get());
     }
 
+    public void mdrByYearChart() {
+
+        var to = Inflation.USD_INFLATION.getTo().year();
+        var inv = Stream.concat(this.series.getInvestments().stream(),
+                this.cashInvestments.cashInvestments().stream())
+                .toList();
+
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+        for (var year = SeriesReader.readInt("start.year") + 1; year <= to; year++) {
+            var mdr = new ModifiedDietzReturn(
+                    inv,
+                    false,
+                    LocalDate.of(year, Month.JANUARY, 1),
+                    LocalDate.of(year, Month.DECEMBER, 31))
+                    .get();
+
+            dataset.addValue(mdr.getMoneyWeighted(), "MDR", String.valueOf(year));
+        }
+
+        new BarChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
+                .create("MDR by Year", "Year", dataset, "mdr-by-year.png");
+    }
+
     public void mdrChart(boolean cagr) {
 
         var initial = YearMonth.of(
@@ -469,7 +496,7 @@ public class Investments {
                 .createFromTimeSeries(
                         "Modified Dietz Returns" + (cagr ? " CAGR" : ""),
                         mdrSeries,
-                        "mdr" + (cagr ? "_cagr" : "") + ".png");
+                        "mdr" + (cagr ? "-cagr" : "") + ".png");
     }
 
     private List<TimeSeriesDatapoint> mdrSeries(

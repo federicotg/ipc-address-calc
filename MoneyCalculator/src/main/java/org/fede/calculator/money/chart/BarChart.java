@@ -24,6 +24,10 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
 import org.fede.calculator.money.ConsoleReports;
+import org.fede.calculator.money.Currency;
+import static org.fede.calculator.money.chart.ValueFormat.CURRENCY;
+import static org.fede.calculator.money.chart.ValueFormat.NUMBER;
+import static org.fede.calculator.money.chart.ValueFormat.PERCENTAGE;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
@@ -45,21 +49,46 @@ public class BarChart {
 
     private final Font font;
     private final Stroke stroke;
+    private final ChartStyle style;
 
-    public BarChart() {
+    public BarChart(ChartStyle style) {
         this.font = new Font("SansSerif", Font.PLAIN, 16);
         this.stroke = new BasicStroke(3.0f);
+        this.style = style;
     }
 
-    public void create(String chartName, String categoriesName, List<CategoryDatasetItem> items, String filename) {
+    public void create(
+            String chartName,
+            String categoriesName,
+            List<CategoryDatasetItem> items,
+            String filename) {
+
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+        for (var item : items) {
+            dataset.addValue(item.value(), item.yearMonth(), item.currency().name());
+        }
+        this.create(chartName, categoriesName, dataset, filename);
+
+    }
+
+    public void create(
+            String chartName,
+            String categoriesName,
+            DefaultCategoryDataset dataset,
+            String filename) {
 
         try {
 
-            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-
-            for (var item : items) {
-                dataset.addValue(item.value(), item.yearMonth(), item.currency().name());
-            }
+            var valueFormatter = switch (this.style.valueFormat()) {
+                case NUMBER ->
+                    NumberFormat.getNumberInstance();
+                case CURRENCY ->
+                    this.currencyFormat(
+                    Currency.USD);
+                case PERCENTAGE ->
+                    NumberFormat.getPercentInstance();
+            };
 
             JFreeChart chart = ChartFactory.createBarChart(chartName, categoriesName, "USD", dataset);
             var plot = chart.getCategoryPlot();
@@ -69,10 +98,12 @@ public class BarChart {
             renderer.setDefaultStroke(this.stroke);
             chart.getLegend().setItemFont(this.font);
 
-            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(NumberFormat.getCurrencyInstance());
+            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
 
             plot.getRangeAxis().setLabelFont(this.font);
             plot.getRangeAxis().setTickLabelFont(this.font);
+            plot.getDomainAxis().setLabelFont(this.font);
+            plot.getDomainAxis().setTickLabelFont(this.font);
 
             ChartUtils.saveChartAsPNG(
                     new File(ConsoleReports.CHARTS_PREFIX + filename),
@@ -85,4 +116,10 @@ public class BarChart {
         }
     }
 
+    private NumberFormat currencyFormat(Currency currency) {
+        var nf = NumberFormat.getCurrencyInstance();
+        nf.setCurrency(java.util.Currency.getInstance(currency.name()));
+        nf.setMaximumFractionDigits(0);
+        return nf;
+    }
 }

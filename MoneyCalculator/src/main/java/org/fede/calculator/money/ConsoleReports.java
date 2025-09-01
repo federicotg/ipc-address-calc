@@ -832,6 +832,7 @@ public class ConsoleReports {
             savings.netAvgSavingSpentChart(3);
             inv.mdrChart(true);
             inv.mdrChart(false);
+            inv.mdrByYearChart();
             pos.portfolioChart(new PieChart(false), "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChart(new PieChart(false), "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChartByGeography(new PieChart(false), "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
