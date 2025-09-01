@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -33,7 +32,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.fede.calculator.criptoya.CriptoYaAPI;
@@ -42,26 +40,19 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.calculator.ppi.PPI;
-import static org.fede.calculator.money.Currency.CSPX;
 import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.RTWO;
-import static org.fede.calculator.money.Currency.XUSE;
 import static org.fede.calculator.money.Currency.XRSU;
 import static org.fede.calculator.money.Currency.USD;
-import org.fede.calculator.money.chart.BarChart;
-import org.fede.calculator.money.chart.CategoryDatasetItem;
 import org.fede.calculator.money.chart.ChartStyle;
 import org.fede.calculator.money.chart.PieChart;
-import org.fede.calculator.money.chart.PieItem;
 import org.fede.calculator.money.chart.Scale;
-import org.fede.calculator.money.chart.ScatterXYChart;
 import org.fede.calculator.money.chart.TimeSeriesChart;
 import org.fede.calculator.money.chart.ValueFormat;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
-import org.jfree.data.xy.XYSeries;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -497,7 +488,7 @@ public class ConsoleReports {
         this.appendLine(this.format.title("Savings Evolution"));
         this.bar.evolution(
                 "Savings",
-                this.series.realSavings(this.paramsValue(args, paramName).get("type")), 
+                this.series.realSavings(this.paramsValue(args, paramName).get("type")),
                 SeriesReader.readInt("scale"));
     }
 
@@ -653,7 +644,6 @@ public class ConsoleReports {
         final var months = months(this.paramsValue(args, name));
         new Savings(format, series, bar, console)
                 .incomeAverageBySource(months, true);
-
     }
 
     private void portfolio(String[] args, String name) {
@@ -669,7 +659,6 @@ public class ConsoleReports {
                 .orElseGet(USD_INFLATION.getTo()::getMonth);
         new Positions(console, format, series)
                 .portfolio(type, subtype, year, month);
-
     }
 
     private void returns(String[] args, String paranName, PortfolioReturns pr) {
@@ -678,9 +667,7 @@ public class ConsoleReports {
         final var timeWeighted = Boolean.parseBoolean(params.getOrDefault("tw", "false"));
         final var withCash = Boolean.parseBoolean(params.getOrDefault("cash", "true"));
         final var startYear = Integer.parseInt(params.getOrDefault("start", SeriesReader.readEnvironment().getProperty("start.year")));
-
         pr.returns(nominal(params), withCash, startYear, timeWeighted);
-
     }
 
     private void ibkrPositions(int year) {
@@ -762,8 +749,8 @@ public class ConsoleReports {
                 .create("Savings", List.of(s, nominal), "savings.png");
 
     }
-    
-     private void savingsARSEvoChart() throws IOException {
+
+    private void savingsARSEvoChart() throws IOException {
 
         var s = this.series.realSavings(null).exchangeInto(ARS);
         s.setName("Real");
@@ -795,7 +782,6 @@ public class ConsoleReports {
 
         new TimeSeriesChart()
                 .create("Income", List.of(other, lifia, unlp, despARS, despUSD, otherARS), "income_acc.png");
-
     }
 
     private void expensesChart(int m, boolean grouped) throws IOException {
@@ -822,25 +808,6 @@ public class ConsoleReports {
         }
         new TimeSeriesChart()
                 .create(chartName, expenseSeries, "expenses_" + (grouped ? "grouped" : "") + "_" + m + ".png");
-
-    }
-
-    private void expensePieChart(int months, PieChart chart) throws IOException {
-        final Aggregation agg = new SimpleAggregation(months);
-        var now = Inflation.USD_INFLATION.getTo();
-        var pieSeries = this.series.getRealUSDExpensesByType()
-                .entrySet()
-                .stream()
-                .map(e -> this.sum(e.getKey(), e.getValue()))
-                .map(agg::sum)
-                .map(s -> new PieItem(s.getName(), s.getAmountOrElseZero(now).amount()))
-                .toList();
-        chart
-                .create(
-                        MessageFormat.format("Total {0}-month Expenses", months),
-                        pieSeries,
-                        "expenses_" + months + "_months.png");
-
     }
 
     private MoneyAmountSeries sum(String name, List<MoneyAmountSeries> series) {
@@ -858,28 +825,24 @@ public class ConsoleReports {
 
             this.expensesChart(12, true);
             this.incomeAccChart();
-            this.expensePieChart(12, new PieChart(true));
             this.savingsEvoChart();
             this.savingsARSEvoChart();
             savings.savingRate(thisYear);
             savings.netAvgSavingSpentChart(12);
             savings.netAvgSavingSpentChart(3);
-            
             inv.mdrChart(true);
             inv.mdrChart(false);
-            
             pos.portfolioChart(new PieChart(false), "all", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChart(new PieChart(false), "equity", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChartByGeography(new PieChart(false), "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChartByGeographyBreakUSA(new PieChart(false), "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-            this.recentETFChangeChart(12);
             this.savingsChart(12);
             inv.savingsInvestmentsPercentChart();
-            this.savingsXY();
+            savings.savingsByIncomeChart();
+            savings.spendingByRegularIncomeChart();
             inv.savedAndInvestedChart();
             inv.investmentsByClassChart();
             inv.projection();
-
         } catch (IOException ex) {
             LOGGER.error("Error generating chart.", ex);
         }
@@ -912,33 +875,6 @@ public class ConsoleReports {
 
     }
 
-    private void recentETFChangeChart(int months) throws IOException {
-
-        final var now = Inflation.USD_INFLATION.getTo();
-        final var prev = months == 1
-                ? now.prev()
-                : YearMonth.of(now.year() - (months / 12), now.month() - (months % 12));
-        final var values = Map.of(
-                CSPX, SeriesReader.readSeries("saving/ahorros-cspx.json"),
-                EIMI, SeriesReader.readSeries("saving/ahorros-eimi.json"),
-                XUSE,
-                SeriesReader.readSeries("saving/ahorros-xuse.json")
-                        .add(SeriesReader.readSeries("saving/ahorros-meud.json")),
-                RTWO, SeriesReader.readSeries("saving/ahorros-rtwo.json"),
-                XRSU, SeriesReader.readSeries("saving/ahorros-xrsu.json"));
-
-        final List<CategoryDatasetItem> l = new ArrayList<>(values.size() * 2);
-        for (var currency : List.of(CSPX, XUSE, EIMI, XRSU, RTWO)) {
-            final var fx = ForeignExchanges.getMoneyAmountForeignExchange(currency, USD);
-            Stream.of(prev, now)
-                    .map(moment -> new CategoryDatasetItem(currency, moment.monthString(), fx.apply(values.get(currency).getAmount(moment), moment).amount()))
-                    .forEach(l::add);
-        }
-        new BarChart()
-                .create(MessageFormat.format("{0}-Month Change", months), "ETF", l, months + "-months-change.png");
-
-    }
-
     private void ltiReport() {
         this.console.appendLine(this.format.title("LTI"));
 
@@ -967,26 +903,6 @@ public class ConsoleReports {
     private MoneyAmount gross(BigDecimal desp, int phantom, BigDecimal cash) {
         return new MoneyAmount(cash, USD)
                 .add(new MoneyAmount(desp.multiply(new BigDecimal(phantom)), USD));
-    }
-
-    private void savingsXY() throws IOException {
-
-        final var s = new Savings(format, series, bar, console);
-
-        final var ss = new XYSeries("Saving by Income");
-        IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
-                .forEach(year -> {
-                    ss.add(s.yearIncome(year).amount(), s.yearSavings(year).amount());
-                });
-
-        new ScatterXYChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
-                .create(
-                        "Saving by Income",
-                        USD,
-                        List.of(ss),
-                        "Real Income USD",
-                        "USD",
-                        "by-income.png");
     }
 
 }

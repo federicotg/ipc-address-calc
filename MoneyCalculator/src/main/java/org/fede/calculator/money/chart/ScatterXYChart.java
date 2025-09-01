@@ -37,6 +37,8 @@ import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.AbstractRenderer;
+import org.jfree.data.xy.XYDataItem;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.slf4j.Logger;
@@ -52,12 +54,14 @@ public class ScatterXYChart {
 
     private final Font font;
     private final Stroke stroke;
-    private final ChartStyle style;
+    private final ChartStyle styleX;
+    private final ChartStyle styleY;
 
-    public ScatterXYChart(ChartStyle style) {
+    public ScatterXYChart(ChartStyle styleX, ChartStyle styleY) {
         this.font = new Font("SansSerif", Font.PLAIN, 18);
         this.stroke = new BasicStroke(3.0f);
-        this.style = style;
+        this.styleX = styleX;
+        this.styleY = styleY;
     }
 
     public void create(
@@ -85,7 +89,7 @@ public class ScatterXYChart {
             xyPlot.setRangeGridlinePaint(Color.BLACK);
             xyPlot.setDomainGridlinePaint(Color.BLACK);
 
-            var valueFormatter = switch (this.style.valueFormat()) {
+            var valueFormatterX = switch (this.styleX.valueFormat()) {
                 case NUMBER ->
                     NumberFormat.getNumberInstance();
                 case CURRENCY ->
@@ -95,21 +99,41 @@ public class ScatterXYChart {
                     NumberFormat.getPercentInstance();
             };
 
-            if (this.style.scale() == Scale.LOG) {
+            var valueFormatterY = switch (this.styleY.valueFormat()) {
+                case NUMBER ->
+                    NumberFormat.getNumberInstance();
+                case CURRENCY ->
+                    this.currencyFormat(
+                    currency);
+                case PERCENTAGE ->
+                    NumberFormat.getPercentInstance();
+            };
+
+            if (this.styleY.scale() == Scale.LOG) {
 
                 xyPlot.setRangeAxis(new LogarithmicAxis(yLabel));
             }
 
-            ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
-            ((NumberAxis) xyPlot.getDomainAxis()).setNumberFormatOverride(valueFormatter);
+            ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride(valueFormatterY);
+            ((NumberAxis) xyPlot.getDomainAxis()).setNumberFormatOverride(valueFormatterX);
 
             xyPlot.getRangeAxis().setLabelFont(this.font);
             xyPlot.getRangeAxis().setTickLabelFont(this.font);
 
             var renderer = xyPlot.getRenderer();
+
+            renderer.setDefaultItemLabelGenerator((XYDataset dataset1, int seriesIndex, int itemIndex) -> {
+                XYDataItem item = ((XYSeriesCollection) dataset1).getSeries(seriesIndex).getDataItem(itemIndex);
+                if (item instanceof LabeledXYDataItem i) {
+                    return i.getLabel();
+                }
+                return "(" + item.getX() + ", " + item.getY() + ")";
+            });
             ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
             renderer.setDefaultStroke(this.stroke);
             chart.getLegend().setItemFont(this.font);
+            renderer.setDefaultItemLabelsVisible(true);
+            renderer.setDefaultItemLabelFont(this.font);
 
             ChartUtils.saveChartAsPNG(
                     new File(ConsoleReports.CHARTS_PREFIX + filename),

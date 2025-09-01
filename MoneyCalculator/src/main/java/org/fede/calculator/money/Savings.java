@@ -28,20 +28,28 @@ import java.time.Month;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import static org.fede.calculator.money.Currency.ARS;
+import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.chart.ChartStyle;
+import org.fede.calculator.money.chart.LabeledXYDataItem;
 import org.fede.calculator.money.chart.PieChart;
 import org.fede.calculator.money.chart.PieItem;
+import org.fede.calculator.money.chart.Scale;
+import org.fede.calculator.money.chart.ScatterXYChart;
 import org.fede.calculator.money.chart.StackedTimeSeriesChart;
+import org.fede.calculator.money.chart.ValueFormat;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
+import org.jfree.data.xy.XYSeries;
 
 /**
  *
@@ -486,18 +494,26 @@ public class Savings {
                 .forEach(this.console::appendLine);
     }
 
-    public MoneyAmount yearIncome(int year) {
-
+    private MoneyAmount yearIncome(int year, Supplier<List<MoneyAmountSeries>> supplier) {
         final var months = year < USD_INFLATION.getTo().getYear()
                 ? 12
                 : USD_INFLATION.getTo().getMonth();
 
-        return this.series.getIncomeSeries()
+        return supplier.get()
                 .stream()
                 .map(s -> s.filter((ym, ma) -> ym.getYear() == year))
                 .flatMap(Function.identity())
                 .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add)
                 .adjust(BigDecimal.valueOf(months), ONE);
+    }
+
+    public MoneyAmount yearRegularIncome(int year) {
+        return this.yearIncome(year, this.series::getRegularIncomeSeries);
+    }
+
+    public MoneyAmount yearIncome(int year) {
+
+        return this.yearIncome(year, this.series::getIncomeSeries);
     }
 
     public MoneyAmount yearSavings(int year) {
@@ -733,4 +749,56 @@ public class Savings {
     public record SpendingAndSaving(MoneyAmount spending, MoneyAmount saving) {
 
     }
+
+    public void spendingByRegularIncomeChart() throws IOException {
+
+        final var ss = new XYSeries("Spending by Regular Income");
+
+        IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
+                .forEach(year
+                        -> ss.add(
+                        new LabeledXYDataItem(
+                                this.yearRegularIncome(year).amount(),
+                                this.yearIncome(year)
+                                        .subtract(this.yearSavings(year))
+                                        .adjust(this.yearRegularIncome(year).amount(), ONE).amount(),
+                                String.valueOf(year)
+                        )));
+
+        new ScatterXYChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR),
+                new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
+                .create(
+                        "Spending by Regular Income",
+                        USD,
+                        List.of(ss),
+                        "Income",
+                        "Spending",
+                        "by-income-spending.png");
+    }
+
+    public void savingsByIncomeChart() throws IOException {
+
+        final var ss = new XYSeries("Saving by Regular Income");
+
+        IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
+                .forEach(year -> {
+                    ss.add(new LabeledXYDataItem(
+                            this.yearRegularIncome(year).amount(),
+                            this.yearSavings(year)
+                                    .adjust(this.yearRegularIncome(year).amount(), ONE).amount(),
+                            String.valueOf(year)));
+                });
+
+        new ScatterXYChart(
+                new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR),
+                new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
+                .create(
+                        "Saving by Regular Income",
+                        USD,
+                        List.of(ss),
+                        "Income",
+                        "Savings",
+                        "by-income-savings.png");
+    }
+
 }

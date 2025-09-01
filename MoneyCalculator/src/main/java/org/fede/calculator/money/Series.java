@@ -62,6 +62,9 @@ public class Series {
 
     private List<MoneyAmountSeries> incomeSeries;
 
+    private List<MoneyAmountSeries> regularIncomeSeries;
+
+    
     private MoneyAmountSeries realNetSavings;
 
     private MoneyAmountSeries realIncome;
@@ -333,10 +336,10 @@ public class Series {
 
     public List<MoneyAmountSeries> getRegularIncomeSeries() {
 
-        if (this.incomeSeries == null) {
+        if (this.regularIncomeSeries == null) {
 
             final var limit = USD_INFLATION.getTo();
-            this.incomeSeries = Stream.of(
+            this.regularIncomeSeries = Stream.of(
                     readSeries("income/lifia.json"),
                     readSeries("income/unlp.json"),
                     readSeries("income/despegar.json"),
@@ -345,7 +348,7 @@ public class Series {
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
                     .toList();
         }
-        return this.incomeSeries;
+        return this.regularIncomeSeries;
     }
 
     public MoneyAmountSeries nominalSavings() {

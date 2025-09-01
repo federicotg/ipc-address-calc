@@ -60,6 +60,12 @@ public class Group {
         if (comparisonSeries != null) {
             comparisonSeries.forEachNonZero((ym, ma) -> comparisonByYear.merge(classifier.apply(ym), ma, MoneyAmount::add));
         }
+        
+        var scale = switch(months){
+            case 3 -> 200;
+            case 6 -> 150;
+            default -> 100;
+        };
 
         byYear.entrySet()
                 .stream()
@@ -71,7 +77,7 @@ public class Group {
                         Optional.ofNullable(comparisonByYear.get(e.getKey()))
                                 .map(comp -> this.format.percent(e.getValue().getAmount().divide(comp.getAmount(), C), 10))
                                 .orElse(""),
-                        this.bar.bar(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), C), 100))
+                        this.bar.bar(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), C), scale))
         )
                 );
     }
