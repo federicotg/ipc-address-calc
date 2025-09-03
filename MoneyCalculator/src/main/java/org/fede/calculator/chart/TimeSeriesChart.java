@@ -119,22 +119,13 @@ public class TimeSeriesChart {
             xyPlot.setRangeGridlinePaint(Color.BLACK);
             xyPlot.setDomainGridlinePaint(Color.BLACK);
 
-            var valueFormatter = switch (this.style.valueFormat()) {
-                case NUMBER ->
-                    NumberFormat.getNumberInstance();
-                case CURRENCY ->
-                    this.currencyFormat(c);
-                case PERCENTAGE ->
-                    this.percentFormat();
-                case DATE ->
-                    null;
-            };
+            var valueFormatter = this.style.valueFormat().format();
 
             if (this.style.scale() == Scale.LOG) {
                 xyPlot.setRangeAxis(new LogarithmicAxis(label));
             }
 
-            ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
+            ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride((NumberFormat) valueFormatter);
 
             xyPlot.getRangeAxis().setLabelFont(this.font);
             xyPlot.getRangeAxis().setTickLabelFont(this.font);
@@ -157,16 +148,5 @@ public class TimeSeriesChart {
         }
     }
 
-    private NumberFormat currencyFormat(Currency currency) {
-        var nf = NumberFormat.getCurrencyInstance();
-        nf.setCurrency(java.util.Currency.getInstance(currency.name()));
-        nf.setMaximumFractionDigits(0);
-        return nf;
-    }
-
-    private NumberFormat percentFormat() {
-        var answer = NumberFormat.getPercentInstance();
-        answer.setMinimumFractionDigits(1);
-        return answer;
-    }
+  
 }

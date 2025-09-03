@@ -16,13 +16,46 @@
  */
 package org.fede.calculator.chart;
 
+import java.text.Format;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+
 /**
  *
  * @author fede
  */
 public enum ValueFormat {
-    PERCENTAGE,
-    CURRENCY,
-    NUMBER,
-    DATE
+    PERCENTAGE {
+        @Override
+        public Format format() {
+            var answer = NumberFormat.getPercentInstance();
+            answer.setMinimumFractionDigits(1);
+            return answer;
+        }
+
+    },
+    CURRENCY {
+        @Override
+        public Format format() {
+            var nf = NumberFormat.getCurrencyInstance();
+            nf.setCurrency(java.util.Currency.getInstance("USD"));
+            nf.setMaximumFractionDigits(0);
+            return nf;
+        }
+    },
+    NUMBER {
+        @Override
+        public Format format() {
+            return NumberFormat.getNumberInstance();
+        }
+    },
+    DATE {
+        @Override
+        public Format format() {
+            return new SimpleDateFormat("dd-MMM-yy");
+        }
+    };
+
+    public abstract Format format();
+
 }

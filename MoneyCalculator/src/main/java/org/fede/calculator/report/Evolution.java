@@ -66,13 +66,13 @@ public class Evolution<T> {
         final var start = inv
                 .stream()
                 .map(startFunction)
-                .reduce((left, right) -> left.min(right))
+                .reduce(YearMonth::min)
                 .get();
 
         final var end = inv
                 .stream()
                 .map(endFunction)
-                .reduce((left, right) -> left.max(right))
+                .reduce(YearMonth::max)
                 .get();
 
         final var refs = new HashSet<String>();

@@ -62,7 +62,6 @@ import org.jfree.data.xy.XYSeries;
  */
 public class Savings {
 
-    // private static final MoneyAmount MoneyAmount.zero(Currency.USD) = MoneyAmount.zero(Currency.USD);
     private final Format format;
     private final Series series;
     private final Bar bar;

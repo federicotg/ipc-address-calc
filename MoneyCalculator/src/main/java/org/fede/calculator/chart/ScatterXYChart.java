@@ -25,14 +25,10 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.Format;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import org.fede.calculator.report.ConsoleReports;
 import org.fede.calculator.money.Currency;
-import static org.fede.calculator.chart.ValueFormat.CURRENCY;
 import static org.fede.calculator.chart.ValueFormat.DATE;
-import static org.fede.calculator.chart.ValueFormat.NUMBER;
-import static org.fede.calculator.chart.ValueFormat.PERCENTAGE;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
@@ -56,8 +52,6 @@ import org.slf4j.LoggerFactory;
 public class ScatterXYChart {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScatterXYChart.class);
-
-    private static final String DATE_FORMAT = "dd-MMM-yy";
 
     private final Font font;
     private final Stroke stroke;
@@ -96,29 +90,9 @@ public class ScatterXYChart {
             xyPlot.setRangeGridlinePaint(Color.BLACK);
             xyPlot.setDomainGridlinePaint(Color.BLACK);
 
-            Format valueFormatterX = switch (this.styleX.valueFormat()) {
-                case NUMBER ->
-                    NumberFormat.getNumberInstance();
-                case CURRENCY ->
-                    this.currencyFormat(
-                    currency);
-                case PERCENTAGE ->
-                    NumberFormat.getPercentInstance();
-                case DATE ->
-                    new SimpleDateFormat(DATE_FORMAT);
-            };
+            Format valueFormatterX = this.styleX.valueFormat().format();
 
-            Format valueFormatterY = switch (this.styleY.valueFormat()) {
-                case NUMBER ->
-                    NumberFormat.getNumberInstance();
-                case CURRENCY ->
-                    this.currencyFormat(
-                    currency);
-                case PERCENTAGE ->
-                    NumberFormat.getPercentInstance();
-                case DATE ->
-                    new SimpleDateFormat(DATE_FORMAT);
-            };
+            Format valueFormatterY = this.styleY.valueFormat().format();
 
             if (this.styleY.scale() == Scale.LOG) {
 
@@ -173,10 +147,4 @@ public class ScatterXYChart {
         }
     }
 
-    private NumberFormat currencyFormat(Currency currency) {
-        var nf = NumberFormat.getCurrencyInstance();
-        nf.setCurrency(java.util.Currency.getInstance(currency.name()));
-        nf.setMaximumFractionDigits(0);
-        return nf;
-    }
 }

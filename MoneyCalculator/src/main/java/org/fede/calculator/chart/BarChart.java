@@ -24,11 +24,6 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
 import org.fede.calculator.report.ConsoleReports;
-import org.fede.calculator.money.Currency;
-import static org.fede.calculator.chart.ValueFormat.CURRENCY;
-import static org.fede.calculator.chart.ValueFormat.DATE;
-import static org.fede.calculator.chart.ValueFormat.NUMBER;
-import static org.fede.calculator.chart.ValueFormat.PERCENTAGE;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
@@ -81,17 +76,7 @@ public class BarChart {
 
         try {
 
-            var valueFormatter = switch (this.style.valueFormat()) {
-                case NUMBER ->
-                    NumberFormat.getNumberInstance();
-                case CURRENCY ->
-                    this.currencyFormat(
-                    Currency.USD);
-                case PERCENTAGE ->
-                    NumberFormat.getPercentInstance();
-                case DATE ->
-                    null;
-            };
+            var valueFormatter = this.style.valueFormat().format();
 
             JFreeChart chart = ChartFactory.createBarChart(chartName, categoriesName, "USD", dataset);
             var plot = chart.getCategoryPlot();
@@ -101,7 +86,7 @@ public class BarChart {
             renderer.setDefaultStroke(this.stroke);
             chart.getLegend().setItemFont(this.font);
 
-            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
+            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride((NumberFormat) valueFormatter);
 
             plot.getRangeAxis().setLabelFont(this.font);
             plot.getRangeAxis().setTickLabelFont(this.font);
@@ -119,10 +104,4 @@ public class BarChart {
         }
     }
 
-    private NumberFormat currencyFormat(Currency currency) {
-        var nf = NumberFormat.getCurrencyInstance();
-        nf.setCurrency(java.util.Currency.getInstance(currency.name()));
-        nf.setMaximumFractionDigits(0);
-        return nf;
-    }
 }

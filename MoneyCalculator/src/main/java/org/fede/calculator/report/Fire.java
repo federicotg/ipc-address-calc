@@ -238,7 +238,6 @@ public class Fire {
                         withGrowthAndIncome,
                         farAway))
                         .collect(Collectors.joining());
-
     }
 
     private String coloredAmount(

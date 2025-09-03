@@ -92,17 +92,8 @@ public class StackedTimeSeriesChart {
                     null;
             };
 
-            var valueFormatter = switch (this.style.valueFormat()) {
-                case NUMBER ->
-                    NumberFormat.getNumberInstance();
-                case CURRENCY ->
-                    this.currencyFormat(c);
-                case PERCENTAGE ->
-                    NumberFormat.getPercentInstance();
-                case DATE ->
-                    null;
-            };
-
+            var valueFormatter = this.style.valueFormat().format();
+            
             JFreeChart chart = ChartFactory.createXYAreaChart(
                     chartName,
                     "Date",
@@ -121,7 +112,7 @@ public class StackedTimeSeriesChart {
                 plot.setRangeAxis(new LogarithmicAxis(label));
             }
 
-            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
+            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride((NumberFormat) valueFormatter);
 
             plot.getRangeAxis().setLabelFont(this.font);
             plot.getRangeAxis().setTickLabelFont(this.font);
@@ -146,10 +137,4 @@ public class StackedTimeSeriesChart {
         }
     }
 
-    private NumberFormat currencyFormat(Currency currency) {
-        var nf = NumberFormat.getCurrencyInstance();
-        nf.setCurrency(java.util.Currency.getInstance(currency.name()));
-        nf.setMaximumFractionDigits(0);
-        return nf;
-    }
 }

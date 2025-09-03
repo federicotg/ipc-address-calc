@@ -121,7 +121,6 @@ public class PortfolioReturns {
         final var inv = Stream.concat(
                 withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
                 this.series.getInvestments().stream())
-                //.filter(criteria)
                 .toList();
 
         var end = LocalDate.ofInstant(
@@ -136,7 +135,6 @@ public class PortfolioReturns {
                 nominal,
                 LocalDate.of(year, Month.JANUARY, 1),
                 end));
-
     }
 
     public void modifiedDietzReturn(int startYear, boolean nominal, boolean withCash, Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction) {
@@ -146,7 +144,6 @@ public class PortfolioReturns {
         final var inv = Stream.concat(
                 withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
                 this.series.getInvestments().stream())
-                //.filter(criteria)
                 .toList();
 
         final var from = inv.stream()
@@ -200,7 +197,6 @@ public class PortfolioReturns {
 
         this.console.appendLine(this.format.title((nominal ? "Nominal " : "Real ") + (timeWeighted ? "Time Weighted " : "Money Weighted ") + "Returns" + (withCash ? "" : " Without Cash")));
 
-        //final Predicate<Investment> sinceYear = i -> after(i.getInitialDate(), startYear, Month.JANUARY, 1);
         Function<ModifiedDietzReturn, ModifiedDietzReturnResult> f
                 = timeWeighted
                         ? ModifiedDietzReturn::monthlyLinked
