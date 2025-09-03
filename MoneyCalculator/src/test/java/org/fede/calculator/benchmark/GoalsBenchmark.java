@@ -17,10 +17,10 @@
 package org.fede.calculator.benchmark;
 
 import java.math.BigDecimal;
-import org.fede.calculator.money.Bar;
+import org.fede.calculator.report.Bar;
 import org.fede.calculator.money.Currency;
-import org.fede.calculator.money.Format;
-import org.fede.calculator.money.Goal;
+import org.fede.calculator.report.Format;
+import org.fede.calculator.report.Goal;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.Series;
 import org.openjdk.jmh.annotations.Benchmark;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 fede
+ * Copyright (C) 2025 fede
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,34 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.benchmark;
+package org.fede.calculator.chart;
 
-import java.io.IOException;
-import org.fede.calculator.report.Console;
-import org.openjdk.jmh.infra.Blackhole;
+import org.jfree.data.xy.XYDataItem;
 
 /**
  *
  * @author fede
  */
-public class BenchmarkConsole implements Console {
+public class LabeledXYDataItem extends XYDataItem {
 
-    private final Blackhole blackhole;
+    private final String label;
 
-    public BenchmarkConsole(Blackhole blackhole) {
-        this.blackhole = blackhole;
-    }
-    
-    @Override
-    public void appendLine(String... texts) {
-    
-        this.blackhole.consume(texts);
-        
+    public LabeledXYDataItem(Number x, Number y, String label) {
+        super(x, y);
+        this.label = label;
     }
 
-    @Override
-    public void printReport() throws IOException {
-        // do nothing
+    public String getLabel() {
+        return label;
     }
-    
 }

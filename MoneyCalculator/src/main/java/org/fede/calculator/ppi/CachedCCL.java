@@ -24,8 +24,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.Map;
-import org.fede.calculator.money.ConsoleReports;
-import org.fede.calculator.service.CCL;
+import org.fede.calculator.report.ConsoleReports;
+import org.fede.calculator.report.CCL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

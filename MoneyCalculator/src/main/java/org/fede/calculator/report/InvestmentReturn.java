@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 fede
+ * Copyright (C) 2025 fede
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,34 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.benchmark;
+package org.fede.calculator.report;
 
-import java.io.IOException;
-import org.fede.calculator.report.Console;
-import org.openjdk.jmh.infra.Blackhole;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import org.fede.calculator.money.Currency;
+import org.fede.calculator.money.MoneyAmount;
 
 /**
  *
  * @author fede
  */
-public class BenchmarkConsole implements Console {
+public record InvestmentReturn(Currency currency, Date from, Date to, MoneyAmount initialAmount, MoneyAmount endAmount) {
 
-    private final Blackhole blackhole;
-
-    public BenchmarkConsole(Blackhole blackhole) {
-        this.blackhole = blackhole;
+    public MoneyAmount profit(){
+        return this.endAmount().subtract(this.initialAmount());
     }
     
-    @Override
-    public void appendLine(String... texts) {
-    
-        this.blackhole.consume(texts);
-        
+    public long days(){
+        return ChronoUnit.DAYS.between(this.from().toInstant(), this.to().toInstant());
     }
-
-    @Override
-    public void printReport() throws IOException {
-        // do nothing
-    }
-    
 }

@@ -18,7 +18,7 @@
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.function.Supplier;
-import org.fede.calculator.money.CashInvestmentBuilder;
+import org.fede.calculator.report.CashInvestmentBuilder;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.MoneyAmountSeries;

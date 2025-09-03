@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 fede
+ * Copyright (C) 2022 federicogentile
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,34 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.benchmark;
+package org.fede.calculator.report;
 
-import java.io.IOException;
-import org.fede.calculator.report.Console;
-import org.openjdk.jmh.infra.Blackhole;
+import java.math.BigDecimal;
 
 /**
  *
- * @author fede
+ * @author federicogentile
  */
-public class BenchmarkConsole implements Console {
+public record ModifiedDietzReturnResult(BigDecimal moneyWeighted, BigDecimal annualizedMoneyWeighted) implements Comparable<ModifiedDietzReturnResult> {
 
-    private final Blackhole blackhole;
-
-    public BenchmarkConsole(Blackhole blackhole) {
-        this.blackhole = blackhole;
+    public BigDecimal getMoneyWeighted() {
+        return moneyWeighted;
     }
-    
-    @Override
-    public void appendLine(String... texts) {
-    
-        this.blackhole.consume(texts);
-        
+
+    public BigDecimal getAnnualizedMoneyWeighted() {
+        return annualizedMoneyWeighted;
     }
 
     @Override
-    public void printReport() throws IOException {
-        // do nothing
+    public int compareTo(ModifiedDietzReturnResult o) {
+        return this.moneyWeighted.compareTo(o.getMoneyWeighted());
     }
-    
+
 }

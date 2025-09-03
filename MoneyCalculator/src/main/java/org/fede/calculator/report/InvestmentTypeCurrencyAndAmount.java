@@ -1,5 +1,12 @@
+package org.fede.calculator.report;
+
+
+import java.math.BigDecimal;
+import org.fede.calculator.money.Currency;
+import org.fede.calculator.money.series.InvestmentType;
+
 /*
- * Copyright (C) 2023 fede
+ * Copyright (C) 2023 federicogentile
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,34 +21,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.benchmark;
-
-import java.io.IOException;
-import org.fede.calculator.report.Console;
-import org.openjdk.jmh.infra.Blackhole;
-
 /**
  *
- * @author fede
+ * @author federicogentile
  */
-public class BenchmarkConsole implements Console {
+public record InvestmentTypeCurrencyAndAmount(InvestmentType type, Currency currency, BigDecimal amount) {
 
-    private final Blackhole blackhole;
-
-    public BenchmarkConsole(Blackhole blackhole) {
-        this.blackhole = blackhole;
-    }
-    
-    @Override
-    public void appendLine(String... texts) {
-    
-        this.blackhole.consume(texts);
-        
+    public InvestmentTypeCurrencyAndAmount(InvestmentTypeAndCurrency tc, BigDecimal amount) {
+        this(tc.type(), tc.currency(), amount);
     }
 
-    @Override
-    public void printReport() throws IOException {
-        // do nothing
-    }
-    
 }

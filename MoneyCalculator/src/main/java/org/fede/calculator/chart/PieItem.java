@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 fede
+ * Copyright (C) 2024 fede
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,34 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.benchmark;
-
-import java.io.IOException;
-import org.fede.calculator.report.Console;
-import org.openjdk.jmh.infra.Blackhole;
+package org.fede.calculator.chart;
 
 /**
  *
  * @author fede
  */
-public class BenchmarkConsole implements Console {
-
-    private final Blackhole blackhole;
-
-    public BenchmarkConsole(Blackhole blackhole) {
-        this.blackhole = blackhole;
-    }
-    
-    @Override
-    public void appendLine(String... texts) {
-    
-        this.blackhole.consume(texts);
-        
-    }
-
-    @Override
-    public void printReport() throws IOException {
-        // do nothing
-    }
+public record PieItem(String label, Number value) {
     
 }

@@ -16,9 +16,9 @@
  */
 package org.fede.calculator.benchmark;
 
-import org.fede.calculator.money.Bar;
-import org.fede.calculator.money.Format;
-import org.fede.calculator.money.Investments;
+import org.fede.calculator.report.Bar;
+import org.fede.calculator.report.Format;
+import org.fede.calculator.report.Investments;
 import org.fede.calculator.money.Series;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;

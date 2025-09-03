@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
 import static org.fede.calculator.money.Currency.USD;
-import org.fede.calculator.money.ModifiedDietzReturn;
+import org.fede.calculator.report.ModifiedDietzReturn;
 import org.fede.calculator.money.Series;
 import org.junit.After;
 import org.junit.AfterClass;
