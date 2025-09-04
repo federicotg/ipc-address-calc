@@ -27,7 +27,6 @@ import java.util.Locale;
 import org.fede.calculator.report.ConsoleReports;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.PieSectionLabelGenerator;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
@@ -61,9 +60,9 @@ public class PieChart {
     }
 
     public PieChart(NumberFormat pctFormat, NumberFormat currencyFormat, boolean showAbsoluteValue, boolean byLabel) {
-        font = ChartConstants.FONT;
+        this.font = ChartConstants.FONT;
         this.largerFirst = byLabel
-                ? Comparator.comparing((PieItem i) -> i.label())
+                ? Comparator.comparing(PieItem::label)
                 : Comparator.comparing((PieItem i) -> i.value().intValue(), Comparator.reverseOrder());
 
         pctFormat.setMinimumFractionDigits(2);
@@ -82,15 +81,14 @@ public class PieChart {
 
             var file = new File(ConsoleReports.CHARTS_PREFIX + fileName);
             if (overwrite || !file.exists()) {
-
                 DefaultPieDataset<String> ds = new DefaultPieDataset<>();
-
                 items
                         .stream()
                         .sorted(this.largerFirst)
                         .forEach(item -> ds.setValue(item.label(), item.value()));
 
                 JFreeChart chart = ChartFactory.createPieChart(chartTitle, ds);
+                chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
                 chart.setBorderVisible(false);
                 var p = (PiePlot) chart.getPlot();
                 p.setOutlineVisible(false);
@@ -102,7 +100,7 @@ public class PieChart {
                 p.setLabelShadowPaint(WHITE);
                 chart.getLegend().setItemFont(this.font);
 
-                ChartUtils.saveChartAsPNG(
+                ChartStrategy.currentStrategy().saveChartAsPNG(
                         file,
                         chart,
                         SeriesReader.readInt("chart.piewidth"),

@@ -33,7 +33,6 @@ import static org.fede.calculator.chart.ValueFormat.PERCENTAGE;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.DateAxis;
@@ -89,7 +88,7 @@ public class StackedTimeSeriesChart {
                 case PERCENTAGE ->
                     "%";
                 case DATE ->
-                    null;
+                    "";
             };
 
             var valueFormatter = this.style.valueFormat().format();
@@ -101,6 +100,8 @@ public class StackedTimeSeriesChart {
                     ChartSeriesMapper.asTimeTableXYDataset(series)
             );
 
+            chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
+            
             // Customize plot
             XYPlot plot = (XYPlot) chart.getPlot();
 
@@ -127,7 +128,7 @@ public class StackedTimeSeriesChart {
             plot.getDomainAxis().setLabelFont(this.font);
             plot.getDomainAxis().setTickLabelFont(this.font);
             chart.getLegend().setItemFont(this.font);
-            ChartUtils.saveChartAsPNG(
+            ChartStrategy.currentStrategy().saveChartAsPNG(
                     new File(ConsoleReports.CHARTS_PREFIX + filename),
                     chart,
                     SeriesReader.readInt("chart.width"),
@@ -136,5 +137,5 @@ public class StackedTimeSeriesChart {
             LOGGER.error("Error.", ioEx);
         }
     }
-
+   
 }

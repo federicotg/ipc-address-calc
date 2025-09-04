@@ -19,11 +19,8 @@ package org.fede.calculator.money;
 import java.math.BigDecimal;
 import static java.math.RoundingMode.HALF_UP;
 import java.text.NumberFormat;
-import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -31,24 +28,18 @@ import java.util.stream.Collectors;
  */
 public record MoneyAmount(BigDecimal amount, Currency currency) {
 
-    private static final Map<Currency, MoneyAmount> ZERO_AMOUNTS = Arrays.stream(Currency.values())
-            .map(c -> new MoneyAmount(BigDecimal.ZERO, c))
-            .collect(Collectors.toMap(
-                    MoneyAmount::currency,
-                    Function.identity(),
-                    (a, b) -> a,
-                    () -> new EnumMap<>(Currency.class)
-            ));
+    private static final Map<Currency, MoneyAmount> ZERO_AMOUNTS = new EnumMap(Currency.class);
 
     public static MoneyAmount zero(Currency currency) {
-        return ZERO_AMOUNTS.get(currency);
+        return ZERO_AMOUNTS.computeIfAbsent(currency, c -> new MoneyAmount(BigDecimal.ZERO, c));
     }
 
     public MoneyAmount adjust(BigDecimal divisor, BigDecimal factor) {
         if (this.isZero() || divisor.compareTo(factor) == 0) {
             return this;
         }
-        return new MoneyAmount(this.amount.setScale(MathConstants.SCALE, MathConstants.RM).divide(divisor, MathConstants.C)
+        return new MoneyAmount(this.amount
+                .divide(divisor, MathConstants.C)
                 .multiply(factor, MathConstants.C), this.currency);
     }
 
@@ -66,13 +57,13 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof MoneyAmount other)
-                && other.currency.equals(this.currency)
+                && other.currency == this.currency
                 && other.amount.setScale(5, HALF_UP)
                         .compareTo(this.amount.setScale(5, HALF_UP)) == 0;
     }
 
     public void assertCurrency(Currency currency) {
-        if (!this.currency.equals(currency)) {
+        if (this.currency != currency) {
             throw new IllegalArgumentException("Unexpected currency.  " + this.currency + " is not " + currency);
         }
     }
@@ -90,14 +81,14 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
     }
 
     public MoneyAmount add(MoneyAmount other) {
-        if (!other.getCurrency().equals(this.getCurrency())) {
+        if (other.getCurrency() != this.getCurrency()) {
             throw new IllegalArgumentException("Money amounts must be in the same currency.");
         }
         return new MoneyAmount(this.getAmount().add(other.getAmount(), MathConstants.C), this.getCurrency());
     }
 
     public MoneyAmount subtract(MoneyAmount other) {
-        if (!other.getCurrency().equals(this.getCurrency())) {
+        if (other.getCurrency() != this.getCurrency()) {
             throw new IllegalArgumentException("Money amounts must be in the same currency.");
         }
         return new MoneyAmount(this.getAmount().subtract(other.getAmount(), MathConstants.C), this.getCurrency());

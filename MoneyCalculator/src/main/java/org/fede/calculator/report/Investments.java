@@ -31,7 +31,6 @@ import java.time.Month;
 import static java.time.Month.DECEMBER;
 import static java.time.Month.JANUARY;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +40,6 @@ import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -933,61 +931,6 @@ public class Investments {
                 CATEGORIES.getOrDefault(i.getCurrency(), i.getType().toString() + " " + i.getCurrency());
         };
 
-    }
-
-    public void monthly(boolean nominal) {
-
-        final var currency = USD;
-        final var etfs = this.getInvestments()
-                .filter(Investment::isETF)
-                .toList();
-
-        this.console.appendLine("Month;Portfolio;CSPX;IWDA;Cash");
-
-        final Map<YearMonth, BigDecimal[]> results = new LinkedHashMap<>();
-
-        final var initialInvestment = new BigDecimal("10000");
-        results.put(YearMonth.of(2019, 6), new BigDecimal[]{initialInvestment, initialInvestment, initialInvestment, initialInvestment, initialInvestment});
-
-        for (var ym = YearMonth.of(2019, 6); ym.compareTo(Inflation.USD_INFLATION.getTo()) < 0; ym = ym.next()) {
-
-            var next = ym.next();
-
-            final var st = LocalDate.ofInstant(ym.asToDate().toInstant(), SYSTEM_DEFAULT_ZONE_ID).plusDays(1);
-
-            final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), SYSTEM_DEFAULT_ZONE_ID);
-
-            final var portfolio = ONE.add(new ModifiedDietzReturn(
-                    etfs,
-                    currency,
-                    nominal,
-                    st,
-                    fn).get().getMoneyWeighted(), C);
-
-            final var cspx = ONE.add(new ModifiedDietzReturn(this.benchmark(etfs, CSPX), currency, nominal, st, fn).get().getMoneyWeighted(), C);
-            final var iwda = ONE.add(new ModifiedDietzReturn(this.benchmark(etfs, IWDA), currency, nominal, st, fn).get().getMoneyWeighted(), C);
-            final var cash = ONE.add(new ModifiedDietzReturn(this.benchmark(etfs, USD), currency, nominal, st, fn).get().getMoneyWeighted(), C);
-
-            final var month = YearMonth.of(Date.from(fn.atStartOfDay().toInstant(ZoneOffset.ofHours(-3))));
-
-            final var prev = results.get(month.prev());
-
-            results.put(month, new BigDecimal[]{
-                prev[0].multiply(portfolio, C),
-                prev[1].multiply(cspx, C),
-                prev[2].multiply(iwda, C),
-                prev[3].multiply(cash, C)});
-        }
-
-        results.forEach((month, arr)
-                -> this.console.appendLine(
-                        format("{0}-{1};{2};{3};{4};{5}",
-                                this.format.text(String.valueOf(month.getYear()), 4),
-                                this.format.text((month.getMonth() < 10 ? "0" : "") + String.valueOf(month.getMonth()), 2),
-                                this.format.currency(arr[0], 10),
-                                this.format.currency(arr[1], 10),
-                                this.format.currency(arr[2], 10),
-                                this.format.currency(arr[3], 10))));
     }
 
     public void investments() {

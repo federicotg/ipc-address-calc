@@ -284,9 +284,6 @@ public class ConsoleReports {
             case "inv-evo-pct" ->
                 () -> me.invEvoPct(args, "inv-evo-pct");
 
-            case "bench" ->
-                () -> me.benchmark(args, "bench");
-
             case "lti" ->
                 me::ltiReport;
 
@@ -345,7 +342,6 @@ public class ConsoleReports {
                         new CmdParam("balances"),
                         new CmdParam("all-charts"),
                         new CmdParam("cash"),
-                        new CmdParam("bench"),
                         new CmdParam("income-src", "m=12"),
                         new CmdParam("pf", "detail=false nominal=false"),
                         new CmdParam("income-src-pct", "m=12"),
@@ -365,12 +361,12 @@ public class ConsoleReports {
                         new CmdParam("inv", "type=(all*|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
                         new CmdParam("inv-evo", "type=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                         new CmdParam("inv-evo-pct", "curency=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                        new CmdParam("invested", "type=(long*|all*|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all) nominal=false"),
+                        new CmdParam("invested", "type=(long*|all|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all) nominal=false"),
                         new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false"),
                         new CmdParam("saved-salaries-evo", "months=12"),
                         new CmdParam("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
                         new CmdParam("income-evo", "months=12 ars=false"),
-                        new CmdParam("bbpp", "year=2023"),
+                        new CmdParam("bbpp", "year=yyyy"),
                         new CmdParam("bbppstatus"),
                         new CmdParam("ppi", "type=group|groupall|full*"),
                         new CmdParam("savings-net-change", "m=12"),
@@ -453,11 +449,6 @@ public class ConsoleReports {
             new House(console, format, bar)
                     .houseIrrecoverableCosts(YearMonth.of(2010 + Integer.parseInt(years), 8));
         }
-    }
-
-    private void benchmark(String[] args, String param) {
-        new Investments(console, format, bar, series)
-                .monthly(nominal(this.paramsValue(args, param)));
     }
 
     private void savings(String[] args, String paramName) {
@@ -624,7 +615,6 @@ public class ConsoleReports {
         final var title = format("Average {0}-month net monthly average savings and spending percent", months);
         new Savings(format, series, bar, console)
                 .netAvgSavingSpentPct(months, title);
-
     }
 
     private void netAvgSavingSpent(String[] args, String name) {
@@ -633,7 +623,6 @@ public class ConsoleReports {
         final var title = format("Average {0}-month net monthly average savings and spending", months);
         new Savings(format, series, bar, console)
                 .netAvgSavingSpent(months, title);
-
     }
 
     private void incomeAverageBySource(String[] args, String name) {
@@ -641,7 +630,6 @@ public class ConsoleReports {
         final var months = months(this.paramsValue(args, name));
         new Savings(format, series, bar, console)
                 .incomeAverageBySource(months);
-
     }
 
     private void incomeAveragePctBySource(String[] args, String name) {
@@ -752,7 +740,6 @@ public class ConsoleReports {
         nominal.setName("Nominal");
         new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
                 .create("Savings", List.of(s, nominal), "savings.png");
-
     }
 
     private void savingsARSEvoChart() throws IOException {
@@ -845,14 +832,14 @@ public class ConsoleReports {
             inv.savedAndInvestedChart();
             inv.investmentsByClassChart();
             inv.projection();
-            
+
             inv.investmentScatterChart(Currency.CSPX);
             inv.investmentScatterChart(Currency.MEUD);
             inv.investmentScatterChart(Currency.XRSU);
             inv.investmentScatterChart(Currency.EIMI);
             inv.investmentScatterChart(Currency.XUSE);
             inv.investmentScatterChart(Currency.RTWO);
-            
+
         } catch (IOException ex) {
             LOGGER.error("Error generating charts.", ex);
         }

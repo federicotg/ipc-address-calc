@@ -31,7 +31,6 @@ import org.fede.calculator.money.Currency;
 import static org.fede.calculator.chart.ValueFormat.DATE;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.DateAxis;
@@ -91,11 +90,9 @@ public class ScatterXYChart {
             xyPlot.setDomainGridlinePaint(Color.BLACK);
 
             Format valueFormatterX = this.styleX.valueFormat().format();
-
             Format valueFormatterY = this.styleY.valueFormat().format();
 
             if (this.styleY.scale() == Scale.LOG) {
-
                 xyPlot.setRangeAxis(new LogarithmicAxis(yLabel));
             }
 
@@ -137,11 +134,12 @@ public class ScatterXYChart {
             renderer.setDefaultItemLabelsVisible(true);
             renderer.setDefaultItemLabelFont(this.font);
 
-            ChartUtils.saveChartAsPNG(
-                    new File(ConsoleReports.CHARTS_PREFIX + filename),
-                    chart,
-                    SeriesReader.readInt("chart.width"),
-                    SeriesReader.readInt("chart.height"));
+            ChartStrategy.currentStrategy()
+                    .saveChartAsPNG(
+                            new File(ConsoleReports.CHARTS_PREFIX + filename),
+                            chart,
+                            SeriesReader.readInt("chart.width"),
+                            SeriesReader.readInt("chart.height"));
         } catch (IOException ioEx) {
             LOGGER.error("Error.", ioEx);
         }

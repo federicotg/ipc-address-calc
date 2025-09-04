@@ -33,7 +33,6 @@ import static org.fede.calculator.chart.ValueFormat.PERCENTAGE;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.LogarithmicAxis;
@@ -102,7 +101,7 @@ public class TimeSeriesChart {
                 case PERCENTAGE ->
                     "%";
                 case DATE ->
-                    null;
+                    "";
             };
 
             var collection = new TimeSeriesCollection();
@@ -113,6 +112,8 @@ public class TimeSeriesChart {
                     "Date",
                     label,
                     collection);
+            chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
+            
             var xyPlot = chart.getXYPlot();
             xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
             xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
@@ -138,7 +139,7 @@ public class TimeSeriesChart {
             renderer.setDefaultStroke(this.stroke);
             chart.getLegend().setItemFont(this.font);
 
-            ChartUtils.saveChartAsPNG(
+            ChartStrategy.currentStrategy().saveChartAsPNG(
                     new File(ConsoleReports.CHARTS_PREFIX + filename),
                     chart,
                     SeriesReader.readInt("chart.width"),
@@ -147,6 +148,6 @@ public class TimeSeriesChart {
             LOGGER.error("Error.", ioEx);
         }
     }
-
+   
   
 }

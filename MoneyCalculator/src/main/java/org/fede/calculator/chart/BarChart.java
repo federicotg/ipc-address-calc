@@ -26,7 +26,6 @@ import java.util.List;
 import org.fede.calculator.report.ConsoleReports;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
@@ -79,6 +78,8 @@ public class BarChart {
             var valueFormatter = this.style.valueFormat().format();
 
             JFreeChart chart = ChartFactory.createBarChart(chartName, categoriesName, "USD", dataset);
+            chart.setAntiAlias(Boolean.parseBoolean(SeriesReader.readEnvironment().getProperty("chart.antialias")));
+
             var plot = chart.getCategoryPlot();
             plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
             var renderer = plot.getRenderer();
@@ -93,7 +94,7 @@ public class BarChart {
             plot.getDomainAxis().setLabelFont(this.font);
             plot.getDomainAxis().setTickLabelFont(this.font);
 
-            ChartUtils.saveChartAsPNG(
+            ChartStrategy.currentStrategy().saveChartAsPNG(
                     new File(ConsoleReports.CHARTS_PREFIX + filename),
                     chart,
                     SeriesReader.readInt("chart.width"),

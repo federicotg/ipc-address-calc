@@ -84,6 +84,10 @@ public class SeriesReader {
         return ENVIRONMENT;
     }
 
+    public static boolean readBoolean(String key) {
+        return Boolean.parseBoolean(readEnvironment().getProperty(key));
+    }
+
     public static BigDecimal readBigDecimal(String key) {
         return new BigDecimal(readEnvironment().getProperty(key));
     }
