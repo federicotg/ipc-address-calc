@@ -28,7 +28,6 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.Series;
 import org.fede.calculator.money.SimpleAggregation;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;

@@ -39,7 +39,6 @@ import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.Series;
 import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Currency.CSPX;
 import static org.fede.calculator.money.Currency.EIMI;

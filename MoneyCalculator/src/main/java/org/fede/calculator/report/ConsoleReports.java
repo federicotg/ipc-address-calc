@@ -52,7 +52,6 @@ import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.Series;
 import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.SingleHttpClientSupplier;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -813,6 +812,7 @@ public class ConsoleReports {
             final var inv = new Investments(this.console, this.format, this.bar, this.series);
             final var pos = new Positions(console, format, series);
             final var savings = new Savings(format, series, bar, console);
+            final var fire = new Fire(format, series, console);
 
             this.expensesChart(12, true);
             this.incomeAccChart();
@@ -831,7 +831,14 @@ public class ConsoleReports {
             savings.spendingByRegularIncomeChart();
             inv.savedAndInvestedChart();
             inv.investmentsByClassChart();
-            inv.projection();
+            inv.projection(MoneyAmount.zero(USD));
+            inv.projection(SeriesReader.readUSD("futureSavingsByYear"));
+            inv.projection(SeriesReader.readUSD("futureSavingsByYear2"));
+
+            fire.fireChartFuture();
+
+            fire.fireChartBudgets(12);
+            fire.fireChartBudgets(24);
 
             inv.investmentScatterChart(Currency.CSPX);
             inv.investmentScatterChart(Currency.MEUD);

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.money;
+package org.fede.calculator.report;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import static java.math.BigDecimal.ONE;
@@ -25,6 +25,13 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import java.util.stream.Stream;
+import org.fede.calculator.money.Cost;
+import org.fede.calculator.money.Currency;
+import org.fede.calculator.money.ForeignExchanges;
+import org.fede.calculator.money.Inflation;
+import org.fede.calculator.money.MathConstants;
+import org.fede.calculator.money.MoneyAmount;
+import org.fede.calculator.money.SimpleAggregation;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.BBPPYear;
 import org.fede.calculator.money.series.Investment;
@@ -109,6 +116,7 @@ public class Series {
                     of(ESSENTIAL, "monotributo-angeles"),
                     of(ESSENTIAL, "monotributo"),
                     of(ESSENTIAL, "municipal-43"),
+                    of(ESSENTIAL, "salud"),
                     of(ESSENTIAL, "contadora"),
                     of(DISCRETIONARY, "celular-a"),
                     of(DISCRETIONARY, "celular-f"),
@@ -162,6 +170,7 @@ public class Series {
                         "telefono-43",
                         "emergencia",
                         "ioma",
+                        "salud",
                         "seguro",
                         "gas",
                         "luz",

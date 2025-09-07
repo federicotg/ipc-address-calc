@@ -39,7 +39,6 @@ import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.Series;
 import org.fede.calculator.money.SimpleAggregation;
 import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Currency.USD;
@@ -663,7 +662,10 @@ public class Savings {
         final var limit = Inflation.USD_INFLATION.getTo();
         average.forEachNonZero((ym, ch) -> {
             if (ym.compareTo(limit) <= 0) {
-                percentEvolutionReport(ym, change.getAmount(ym).getAmount().divide(average.getAmount(ym).getAmount(), C));
+                percentEvolutionReport(
+                        ym, 
+                        change.getAmount(ym).getAmount().divide(average.getAmount(ym).getAmount(), C),
+                        1);
             }
         });
 
@@ -681,19 +683,19 @@ public class Savings {
         var limit = s.getTo();
 
         while (ym.compareTo(limit) <= 0) {
-            this.percentEvolutionReport(ym, s.getIndex(ym));
+            this.percentEvolutionReport(ym, s.getIndex(ym), months / 24);
             ym = ym.next();
         }
     }
 
-    private void percentEvolutionReport(YearMonth ym, BigDecimal ma) {
-
+    private void percentEvolutionReport(YearMonth ym, BigDecimal ma, int scale) {
+        
         this.console.appendLine(
                 format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
                 " ",
                 this.format.percent(ma, 8),
                 " ",
-                this.bar.bar(ma.movePointRight(2), 1));
+                this.bar.bar(ma.movePointRight(2), Math.max(1, scale)));
     }
 
     public void monthlySavings(int months) {
@@ -743,7 +745,7 @@ public class Savings {
 
     public void spendingByRegularIncomeChart() throws IOException {
 
-        final var ss = new XYSeries("Spending by Regular Income");
+        final var ss = new XYSeries("Year");
 
         IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
                 .forEach(year
@@ -769,7 +771,7 @@ public class Savings {
 
     public void savingsByIncomeChart() throws IOException {
 
-        final var ss = new XYSeries("Saving by Regular Income");
+        final var ss = new XYSeries("Year");
 
         IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
                 .forEach(year -> {

@@ -113,7 +113,7 @@ public class TimeSeriesChart {
                     label,
                     collection);
             chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
-            
+
             var xyPlot = chart.getXYPlot();
             xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
             xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
@@ -148,6 +148,5 @@ public class TimeSeriesChart {
             LOGGER.error("Error.", ioEx);
         }
     }
-   
-  
+
 }

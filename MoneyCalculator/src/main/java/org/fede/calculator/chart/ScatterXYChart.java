@@ -37,6 +37,7 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.AbstractRenderer;
+import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -64,12 +65,23 @@ public class ScatterXYChart {
         this.styleY = styleY;
     }
 
+     public void create(
+            String chartName,
+            Currency currency,
+            List<XYSeries> series,
+            String xLabel,
+            String yLabel,  
+            String filename){
+         this.create(chartName, currency, series, xLabel, yLabel, RectangleEdge.TOP, filename);
+     }
+    
     public void create(
             String chartName,
             Currency currency,
             List<XYSeries> series,
             String xLabel,
             String yLabel,
+            RectangleEdge legendPosition,
             String filename) {
         try {
 
@@ -131,6 +143,7 @@ public class ScatterXYChart {
             ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
             renderer.setDefaultStroke(this.stroke);
             chart.getLegend().setItemFont(this.font);
+            chart.getLegend().setPosition(legendPosition);
             renderer.setDefaultItemLabelsVisible(true);
             renderer.setDefaultItemLabelFont(this.font);
 

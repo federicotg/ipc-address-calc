@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.report;
 
-import org.fede.calculator.report.Format;
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
 import java.util.List;

@@ -29,7 +29,7 @@ public enum ValueFormat {
         @Override
         public Format format() {
             var answer = NumberFormat.getPercentInstance();
-            answer.setMinimumFractionDigits(1);
+            answer.setMinimumFractionDigits(2);
             return answer;
         }
 
@@ -38,7 +38,7 @@ public enum ValueFormat {
         @Override
         public Format format() {
             var nf = NumberFormat.getCurrencyInstance();
-            nf.setCurrency(java.util.Currency.getInstance("USD"));
+            //nf.setCurrency(java.util.Currency.getInstance("USD"));
             nf.setMaximumFractionDigits(0);
             return nf;
         }
@@ -57,5 +57,6 @@ public enum ValueFormat {
     };
 
     public abstract Format format();
+    //public abstract Format format();
 
 }

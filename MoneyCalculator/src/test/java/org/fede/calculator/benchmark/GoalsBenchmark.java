@@ -22,7 +22,7 @@ import org.fede.calculator.money.Currency;
 import org.fede.calculator.report.Format;
 import org.fede.calculator.report.Goal;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.Series;
+import org.fede.calculator.report.Series;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;

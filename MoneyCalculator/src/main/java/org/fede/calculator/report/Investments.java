@@ -59,8 +59,6 @@ import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.PortfolioPercentiles;
-import org.fede.calculator.money.Series;
 import org.fede.calculator.money.SimpleAggregation;
 import static org.fede.calculator.money.Currency.*;
 import static org.fede.calculator.money.MathConstants.C;
@@ -74,6 +72,7 @@ import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.ScatterXYChart;
 import org.fede.calculator.chart.TimeSeriesChart;
 import org.fede.calculator.chart.ValueFormat;
+import org.fede.calculator.money.PortfolioProjections;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
@@ -1507,7 +1506,7 @@ public class Investments {
         return accSeries;
     }
 
-    public void projection() {
+    public void projection(MoneyAmount savings) {
         var expectedReturn = SeriesReader.readPercent("futureReturn").doubleValue();
         var expectedVolatility = SeriesReader.readPercent("futureVolatility").doubleValue();
 
@@ -1523,7 +1522,7 @@ public class Investments {
                 0.1d,
                 presentValue,
                 expectedReturn,
-                expectedVolatility);
+                expectedVolatility, savings);
 
         var p50 = this.predictedValues(
                 portfolio.getTo(),
@@ -1531,7 +1530,7 @@ public class Investments {
                 0.5d,
                 presentValue,
                 expectedReturn,
-                expectedVolatility);
+                expectedVolatility, savings);
 
         var p90 = this.predictedValues(
                 portfolio.getTo(),
@@ -1539,15 +1538,17 @@ public class Investments {
                 0.9d,
                 presentValue,
                 expectedReturn,
-                expectedVolatility);
+                expectedVolatility, savings);
 
         new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
-                .create("Future Return Probabilities",
+                .create("Future Return Saving "+this.format.currency(savings.amount()),
                         List.of(portfolio,
                                 p10,
                                 p50,
                                 p90),
-                        "future.png");
+                        "future" + (savings.isZero()
+                        ? ".png"
+                        : "-with-"+savings.getAmount().intValue()+".png"));
     }
 
     private MoneyAmountSeries predictedValues(
@@ -1556,17 +1557,28 @@ public class Investments {
             double percentile,
             MoneyAmount initial,
             double carg,
-            double volatility) {
+            double volatility,
+            MoneyAmount yearlyAdditionalSavings) {
 
-        var valueSeries = new SortedMapMoneyAmountSeries(USD, "P" + percentile * 100d);
+        var valueSeries = new SortedMapMoneyAmountSeries(USD,
+                " P"
+                + (int) (percentile * 100d));
         valueSeries.putAmount(start, initial);
         for (var i = 1; i <= years; i++) {
 
+            var amount = initial.amount()
+                    .add(yearlyAdditionalSavings.amount()
+                            .multiply(BigDecimal.valueOf(i)));
+
             valueSeries.putAmount(start.year() + i, start.month(),
                     new MoneyAmount(
-                            BigDecimal.valueOf(PortfolioPercentiles.valueAtPercentile(
-                                    initial.amount().doubleValue(),
-                                    carg, volatility, (double) i, percentile)), USD));
+                            BigDecimal.valueOf(
+                                    PortfolioProjections.calculatePortfolioPercentile(
+                                            amount.doubleValue(),
+                                            carg,
+                                            volatility,
+                                            i,
+                                            percentile)), USD));
 
         }
         return valueSeries;

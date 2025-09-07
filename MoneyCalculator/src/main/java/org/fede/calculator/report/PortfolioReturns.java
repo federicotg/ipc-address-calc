@@ -41,7 +41,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.Inflation;
-import org.fede.calculator.money.Series;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
