@@ -75,7 +75,7 @@ public class BarChart {
 
         try {
 
-            var valueFormatter = this.style.valueFormat().format();
+            NumberFormat valueFormatter = this.style.valueFormat().format();
 
             JFreeChart chart = ChartFactory.createBarChart(chartName, categoriesName, "USD", dataset);
             chart.setAntiAlias(Boolean.parseBoolean(SeriesReader.readEnvironment().getProperty("chart.antialias")));
@@ -87,7 +87,7 @@ public class BarChart {
             renderer.setDefaultStroke(this.stroke);
             chart.getLegend().setItemFont(this.font);
 
-            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride((NumberFormat) valueFormatter);
+            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
 
             plot.getRangeAxis().setLabelFont(this.font);
             plot.getRangeAxis().setTickLabelFont(this.font);

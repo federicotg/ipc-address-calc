@@ -67,14 +67,14 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     @Override
     public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int year, int month) {
-        if (amount.getCurrency().equals(targetCurrency)) {
+        if (amount.getCurrency() == targetCurrency) {
             return amount;
         }
-        if (this.targetCurrency.equals(targetCurrency)) {
+        if (this.targetCurrency == targetCurrency) {
             return amount.exchange(targetCurrency, getSeries().getIndex(year, month));
         }
 
-        if (this.fromCurrency.equals(targetCurrency)) {
+        if (this.fromCurrency == targetCurrency) {
             return amount.exchange(targetCurrency, BigDecimal.ONE.divide(getSeries().getIndex(year, month), MathConstants.C));
         }
 

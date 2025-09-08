@@ -1584,7 +1584,11 @@ public class Investments {
         return valueSeries;
     }
 
-    public void investmentScatterChart(Currency currency) {
+     public void investmentScatterChart(Currency currency) {
+         this.investmentScatterChart(currency, ValueFormat.CURRENCY);
+     }
+    
+    public void investmentScatterChart(Currency currency, ValueFormat format) {
 
         final var ss = new XYSeries("Quantity");
 
@@ -1621,7 +1625,7 @@ public class Investments {
                 .forEach(ss::add);
 
         new ScatterXYChart(new ChartStyle(ValueFormat.DATE, Scale.LINEAR),
-                new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
+                new ChartStyle(format, Scale.LINEAR))
                 .create(
                         "Investments " + currency.name(),
                         USD,

@@ -83,7 +83,7 @@ public class StackedTimeSeriesChart {
             var label = switch (this.style.valueFormat()) {
                 case NUMBER ->
                     "";
-                case CURRENCY ->
+                case CURRENCY, CURRENCY_DECIMALS ->
                     c.name();
                 case PERCENTAGE ->
                     "%";
@@ -91,7 +91,7 @@ public class StackedTimeSeriesChart {
                     "";
             };
 
-            var valueFormatter = this.style.valueFormat().format();
+            NumberFormat valueFormatter = this.style.valueFormat().format();
             
             JFreeChart chart = ChartFactory.createXYAreaChart(
                     chartName,
@@ -113,7 +113,7 @@ public class StackedTimeSeriesChart {
                 plot.setRangeAxis(new LogarithmicAxis(label));
             }
 
-            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride((NumberFormat) valueFormatter);
+            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
 
             plot.getRangeAxis().setLabelFont(this.font);
             plot.getRangeAxis().setTickLabelFont(this.font);

@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.fede.calculator.criptoya.CriptoYaAPI;
@@ -744,7 +745,7 @@ public class ConsoleReports {
     private void savingsARSEvoChart() throws IOException {
 
         var s = this.series.realSavings(null).exchangeInto(ARS);
-        s.setName("Real");
+        s.setName("Real USD expressed in ARS");
         new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
                 .create("Savings", List.of(s), "savings-ars.png");
     }
@@ -825,7 +826,7 @@ public class ConsoleReports {
             inv.mdrByYearChart();
             pos.portfolioChartByGeography(new PieChart(false), "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
             pos.portfolioChartByGeographyBreakUSA(new PieChart(false), "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-            this.savingsChart(12);
+            this.savingsChart();
             inv.savingsInvestmentsPercentChart();
             savings.savingsByIncomeChart();
             savings.spendingByRegularIncomeChart();
@@ -844,7 +845,7 @@ public class ConsoleReports {
             inv.investmentScatterChart(Currency.MEUD);
             inv.investmentScatterChart(Currency.XRSU);
             inv.investmentScatterChart(Currency.EIMI);
-            inv.investmentScatterChart(Currency.XUSE);
+            inv.investmentScatterChart(Currency.XUSE, ValueFormat.CURRENCY_DECIMALS);
             inv.investmentScatterChart(Currency.RTWO);
 
         } catch (IOException ex) {
@@ -864,18 +865,20 @@ public class ConsoleReports {
         }
     }
 
-    private void savingsChart(int m) throws IOException {
+    private void savingsChart() throws IOException {
 
-        var s = new SimpleAggregation(m)
-                .average(this.series.realNetSavings());
-        s.setName(m + " months");
+        var ss = IntStream.of(12, 24, 36)
+                .mapToObj(m -> {
+                    var s = new SimpleAggregation(m).average(this.series.realNetSavings());
+                    s.setName(m + " months");
+                    return s;
+                })
+                .toList();
 
         new TimeSeriesChart().create(
-                "Savings Average " + m + " months",
-                List.of(s),
-                "savings-avg-" + (m < 10
-                        ? ("0" + m)
-                        : ("" + m)) + ".png");
+                "Savings Average",
+                ss,
+                "savings-avg.png");
 
     }
 

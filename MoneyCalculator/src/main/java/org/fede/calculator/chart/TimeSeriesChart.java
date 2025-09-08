@@ -38,6 +38,7 @@ import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.AbstractRenderer;
+import org.jfree.chart.ui.RectangleAnchor;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.slf4j.Logger;
@@ -96,7 +97,7 @@ public class TimeSeriesChart {
             var label = switch (this.style.valueFormat()) {
                 case NUMBER ->
                     "";
-                case CURRENCY ->
+                case CURRENCY, CURRENCY_DECIMALS ->
                     c.name();
                 case PERCENTAGE ->
                     "%";
@@ -120,13 +121,13 @@ public class TimeSeriesChart {
             xyPlot.setRangeGridlinePaint(Color.BLACK);
             xyPlot.setDomainGridlinePaint(Color.BLACK);
 
-            var valueFormatter = this.style.valueFormat().format();
+            NumberFormat valueFormatter = this.style.valueFormat().format();
 
             if (this.style.scale() == Scale.LOG) {
                 xyPlot.setRangeAxis(new LogarithmicAxis(label));
             }
 
-            ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride((NumberFormat) valueFormatter);
+            ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
 
             xyPlot.getRangeAxis().setLabelFont(this.font);
             xyPlot.getRangeAxis().setTickLabelFont(this.font);
@@ -138,7 +139,7 @@ public class TimeSeriesChart {
             ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
             renderer.setDefaultStroke(this.stroke);
             chart.getLegend().setItemFont(this.font);
-
+            
             ChartStrategy.currentStrategy().saveChartAsPNG(
                     new File(ConsoleReports.CHARTS_PREFIX + filename),
                     chart,
