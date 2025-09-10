@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.chart;
 
-import java.io.File;
 import java.io.IOException;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.JFreeChart;
@@ -34,6 +33,6 @@ public interface ChartStrategy {
 
     }
 
-    void saveChartAsPNG(File file, JFreeChart chart, int width, int height) throws IOException;
+    void saveChart(String file, JFreeChart chart, int width, int height) throws IOException;
 
 }

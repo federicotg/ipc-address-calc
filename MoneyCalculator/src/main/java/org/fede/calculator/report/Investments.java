@@ -442,7 +442,7 @@ public class Investments {
         }
 
         new BarChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
-                .create("MDR by Year", "Year", dataset, "mdr-by-year.png");
+                .create("MDR by Year", "Year", dataset, "mdr-by-year");
     }
 
     public void mdrChart(boolean cagr) {
@@ -503,7 +503,7 @@ public class Investments {
                 .createFromTimeSeries(
                         "Modified Dietz Returns" + (cagr ? " CAGR" : ""),
                         mdrSeries,
-                        "mdr" + (cagr ? "-cagr" : "") + ".png");
+                        "mdr" + (cagr ? "-cagr" : ""));
     }
 
     private List<TimeSeriesDatapoint> mdrSeries(
@@ -979,7 +979,7 @@ public class Investments {
         chart.create(
                 "Investments By Broker",
                 byBroker.entrySet().stream().flatMap(e -> this.brokerDetailedItem(e.getKey(), e.getValue())).toList(),
-                "brokers-detail.png");
+                "brokers-detail");
     }
 
     public void brokerChart(PieChart chart) throws IOException {
@@ -992,7 +992,7 @@ public class Investments {
         chart.create(
                 "Investments By Broker",
                 byBroker.entrySet().stream().flatMap(e -> this.brokerItem(e.getKey(), e.getValue())).toList(),
-                "brokers.png");
+                "brokers");
 
     }
 
@@ -1331,7 +1331,7 @@ public class Investments {
                         List.of(
                                 this.accumulatedNetContributions(false, Investment::isETF),
                                 this.portfolioValue(false, Investment::isETF)),
-                        "growth-etf-real.png");
+                        "growth-etf-real");
 
         final var realContributions = this.accumulatedNetContributions(false, i -> true);
 
@@ -1340,7 +1340,7 @@ public class Investments {
                         List.of(
                                 realContributions,
                                 this.portfolioValue(false, i -> true)),
-                        "growth-all-real.png");
+                        "growth-all-real");
 
         var savings = this.series.realSavings(null);
         savings.setName("Real Savings");
@@ -1359,7 +1359,7 @@ public class Investments {
                         investments,
                         income,
                         uninvested),
-                "savings-investments-real.png");
+                "savings-investments-real");
     }
 
     public void savingsInvestmentsPercentChart() {
@@ -1382,7 +1382,7 @@ public class Investments {
         new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
                 .create("Real Income, Savings & Investments",
                         List.of(savedIncomePercent, cashSavingsPercent),
-                        "savings-investments-percent.png");
+                        "savings-investments-percent");
     }
 
     public void investmentsByClassChart() {
@@ -1547,8 +1547,8 @@ public class Investments {
                                 p50,
                                 p90),
                         "future" + (savings.isZero()
-                        ? ".png"
-                        : "-with-"+savings.getAmount().intValue()+".png"));
+                        ? ""
+                        : "-with-"+savings.getAmount().intValue()));
     }
 
     private MoneyAmountSeries predictedValues(
@@ -1632,7 +1632,7 @@ public class Investments {
                         List.of(ss),
                         "Date",
                         "Price",
-                        "inv-" + currency.name() + ".png");
+                        "inv-" + currency.name());
     }
 
     private MoneyAmount initialMoneyAmountUSD(Investment i) {

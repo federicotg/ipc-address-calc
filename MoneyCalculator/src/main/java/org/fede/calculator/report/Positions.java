@@ -184,7 +184,7 @@ public class Positions {
                 this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
 
         var iva = SeriesReader.readPercent("iva").add(ONE);
-        
+
         final var realizedList = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
@@ -257,15 +257,14 @@ public class Positions {
                                 .sorted(Comparator.comparing(Investment::getInitialDate))
                                 .limit(n).toList()
                         ))));
-
     }
 
     private void egrReportLine(String title, List<Position> positions) {
         final var egr = this.egr(positions);
         final var tax = egr.multiply(SeriesReader.readPercent("capitalGainsTaxRate"));
-        
+
         this.console.appendLine(
-                format.text(title + " EGR", 20), 
+                format.text(title + " EGR", 20),
                 this.format.percent(egr, 6),
                 format.text(" Tax", 5),
                 this.format.percent(tax, 6),
@@ -278,7 +277,7 @@ public class Positions {
         return unrealizedPnL(positions).getAmount()
                 .divide(costBasis(positions).amount(), C);
     }
-    
+
     private MoneyAmount unrealizedPnL(List<Position> positions) {
         return positions
                 .stream()
@@ -567,7 +566,7 @@ public class Positions {
                 .create(
                         MessageFormat.format("Portfolio {0}", ym.monthString()),
                         List.of(cash, us, exUS, em),
-                        MessageFormat.format("portfolio-geo-{1}-{0}.png", ym.monthString(), type));
+                        MessageFormat.format("portfolio-geo-{1}-{0}", ym.monthString(), type));
 
     }
 
@@ -608,7 +607,7 @@ public class Positions {
                 .create(
                         MessageFormat.format("Portfolio {0}", ym.monthString()),
                         List.of(cash, sp500, r2k, exUS, em),
-                        MessageFormat.format("portfolio-geo-break-{1}-{0}.png", ym.monthString(), type));
+                        MessageFormat.format("portfolio-geo-break-{1}-{0}", ym.monthString(), type));
 
     }
 
@@ -617,10 +616,9 @@ public class Positions {
         return ForeignExchanges.getMoneyAmountForeignExchange(amount.getCurrency(), USD)
                 .apply(amount, ym);
     }
-    
+
     public void portfolioChart(PieChart chart, String subtype, int year, int month) throws IOException {
         final var ym = YearMonth.of(year, month);
-        final var now = YearMonth.of(new Date());
         final var items = this.portfolioItems(subtype, year, month);
 
         if (items.stream().map(PortfolioItem::getAmount).anyMatch(Predicate.not(MoneyAmount::isZero))) {
@@ -635,10 +633,8 @@ public class Positions {
                                     .map(item -> new PieItem(
                                     Investments.ETF_NAME.getOrDefault(item.getAmount().getCurrency(), item.getAmount().getCurrency().name()),
                                     item.getDollarAmount().amount())).toList(),
-                            MessageFormat.format("portfolio-{1}-{0}.png", ym.monthString(), subtype),
-                            // overwrite if ym is now
-                            now.compareTo(ym) == 0
-                            );
+                            MessageFormat.format("portfolio-{1}-{0}.png", ym.monthString(), subtype)
+                    );
         }
 
     }
@@ -718,7 +714,6 @@ public class Positions {
     private Supplier<MoneyAmount> lastAmount(String seriesName, YearMonth ym) {
         return () -> SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
     }
-
 
     private record CurrencyAndGroupKey(Currency currency, String groupKey) {
 

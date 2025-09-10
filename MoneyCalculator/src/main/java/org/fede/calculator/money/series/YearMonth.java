@@ -18,6 +18,8 @@ package org.fede.calculator.money.series;
 
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Comparator;
@@ -30,13 +32,13 @@ import java.util.Date;
 public record YearMonth(int year, int month) implements Comparable<YearMonth> {
 
     private static final Comparator<YearMonth> CMP = Comparator.comparing(YearMonth::year).thenComparing(YearMonth::month);
-    
+
     public static YearMonth of(LocalDate day) {
         return of(day.getYear(), day.getMonthValue());
     }
 
     public static YearMonth of(Date day) {
-        return of(day.toInstant().atZone(ZoneOffset.UTC).toLocalDate());
+        return of(day.toInstant().atZone(ZoneOffset.systemDefault()).toLocalDate());
     }
 
     public static YearMonth of(int year, int month) {
@@ -57,10 +59,8 @@ public record YearMonth(int year, int month) implements Comparable<YearMonth> {
     }
 
     public int monthsUntil(YearMonth other) {
-        if (this.compareTo(other) <= 0) {
-            return ((other.getYear() - this.getYear()) * 12) + (other.getMonth() - this.getMonth());
-        }
-        return -1;
+
+        return ((other.year - this.year) * 12) + (other.month - this.month);
     }
 
     public YearMonth next() {
@@ -77,25 +77,21 @@ public record YearMonth(int year, int month) implements Comparable<YearMonth> {
         return YearMonth.of(this.year, this.month - 1);
     }
 
-    @Override
-    public String toString() {
-        return "YearMonth{" + "year=" + year + ", month=" + month + '}';
-    }
-
     public Date asToDate() {
 
         return Date.from(
                 LocalDate.of(this.getYear(), this.getMonth(), 1)
                         .with(TemporalAdjusters.lastDayOfMonth())
-                        .atTime(12, 00)
-                        .toInstant(ZoneOffset.UTC));
+                        .atTime(LocalTime.MAX)
+                        .atZone(ZoneId.systemDefault())
+                        .toInstant());
     }
 
     public Date asDate() {
         return Date.from(
                 LocalDate.of(this.getYear(), this.getMonth(), 1)
-                        .atTime(12, 00)
-                        .toInstant(ZoneOffset.UTC));
+                        .atStartOfDay(ZoneId.systemDefault())
+                        .toInstant());
     }
 
     public YearMonth min(YearMonth other) {

@@ -148,8 +148,8 @@ public class ScatterXYChart {
             renderer.setDefaultItemLabelFont(this.font);
 
             ChartStrategy.currentStrategy()
-                    .saveChartAsPNG(
-                            new File(ConsoleReports.CHARTS_PREFIX + filename),
+                    .saveChart(
+                            filename,
                             chart,
                             SeriesReader.readInt("chart.width"),
                             SeriesReader.readInt("chart.height"));

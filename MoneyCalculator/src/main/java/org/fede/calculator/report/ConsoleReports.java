@@ -739,7 +739,7 @@ public class ConsoleReports {
         var nominal = this.series.nominalSavings();
         nominal.setName("Nominal");
         new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
-                .create("Savings", List.of(s, nominal), "savings.png");
+                .create("Savings", List.of(s, nominal), "savings");
     }
 
     private void savingsARSEvoChart() throws IOException {
@@ -747,7 +747,7 @@ public class ConsoleReports {
         var s = this.series.realSavings(null).exchangeInto(ARS);
         s.setName("Real USD expressed in ARS");
         new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
-                .create("Savings", List.of(s), "savings-ars.png");
+                .create("Savings", List.of(s), "savings-ars");
     }
 
     private void incomeAccChart() {
@@ -773,7 +773,7 @@ public class ConsoleReports {
         despUSD.setName("DESP USD");
 
         new TimeSeriesChart()
-                .create("Income", List.of(other, lifia, unlp, despARS, despUSD, otherARS), "income_acc.png");
+                .create("Income", List.of(other, lifia, unlp, despARS, despUSD, otherARS), "income_acc");
     }
 
     private void expensesChart(int m, boolean grouped) throws IOException {
@@ -799,7 +799,7 @@ public class ConsoleReports {
             chartName = "Grouped " + chartName;
         }
         new TimeSeriesChart()
-                .create(chartName, expenseSeries, "expenses_" + (grouped ? "grouped" : "") + "_" + m + ".png");
+                .create(chartName, expenseSeries, "expenses_" + (grouped ? "grouped" : "") + "_" + m);
     }
 
     private MoneyAmountSeries sum(String name, List<MoneyAmountSeries> series) {
@@ -878,7 +878,7 @@ public class ConsoleReports {
         new TimeSeriesChart().create(
                 "Savings Average",
                 ss,
-                "savings-avg.png");
+                "savings-avg");
 
     }
 

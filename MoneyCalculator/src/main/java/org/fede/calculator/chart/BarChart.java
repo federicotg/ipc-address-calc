@@ -94,8 +94,8 @@ public class BarChart {
             plot.getDomainAxis().setLabelFont(this.font);
             plot.getDomainAxis().setTickLabelFont(this.font);
 
-            ChartStrategy.currentStrategy().saveChartAsPNG(
-                    new File(ConsoleReports.CHARTS_PREFIX + filename),
+            ChartStrategy.currentStrategy().saveChart(
+                    filename,
                     chart,
                     SeriesReader.readInt("chart.width"),
                     SeriesReader.readInt("chart.height"));

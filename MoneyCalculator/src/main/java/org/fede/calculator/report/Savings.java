@@ -122,7 +122,7 @@ public class Savings {
                 .create(
                         months + "-month Savings and Spending",
                         List.of(spending, otherSpending, netSaving),
-                        "savings-spending" + months + ".png");
+                        "savings-spending" + months);
 
     }
 
@@ -766,7 +766,7 @@ public class Savings {
                         List.of(ss),
                         "Income",
                         "Spending",
-                        "by-income-spending.png");
+                        "by-income-spending");
     }
 
     public void savingsByIncomeChart() throws IOException {
@@ -791,7 +791,7 @@ public class Savings {
                         List.of(ss),
                         "Income",
                         "Savings",
-                        "by-income-savings.png");
+                        "by-income-savings");
     }
 
 }

@@ -73,14 +73,9 @@ public class PieChart {
     }
 
     public void create(String chartTitle, List<PieItem> items, String fileName) {
-        this.create(chartTitle, items, fileName, true);
-    }
+            try {
 
-    public void create(String chartTitle, List<PieItem> items, String fileName, boolean overwrite) {
-        try {
-
-            var file = new File(ConsoleReports.CHARTS_PREFIX + fileName);
-            if (overwrite || !file.exists()) {
+           
                 DefaultPieDataset<String> ds = new DefaultPieDataset<>();
                 items
                         .stream()
@@ -100,12 +95,12 @@ public class PieChart {
                 p.setLabelShadowPaint(WHITE);
                 chart.getLegend().setItemFont(this.font);
 
-                ChartStrategy.currentStrategy().saveChartAsPNG(
-                        file,
+                ChartStrategy.currentStrategy().saveChart(
+                        fileName,
                         chart,
                         SeriesReader.readInt("chart.piewidth"),
                         SeriesReader.readInt("chart.piewidth"));
-            }
+            
         } catch (IOException ioEx) {
             LOGGER.error("Error.", ioEx);
         }

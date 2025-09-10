@@ -18,6 +18,7 @@ package org.fede.calculator.chart;
 
 import java.io.File;
 import java.io.IOException;
+import org.fede.calculator.report.ConsoleReports;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 
@@ -28,9 +29,9 @@ import org.jfree.chart.JFreeChart;
 public class JFreeChartDefaultStrategy implements ChartStrategy {
 
     @Override
-    public void saveChartAsPNG(File file, JFreeChart chart, int width, int height) throws IOException {
+    public void saveChart(String file, JFreeChart chart, int width, int height) throws IOException {
         
-        ChartUtils.saveChartAsPNG(file, chart, width, height);
+        ChartUtils.saveChartAsPNG(new File(ConsoleReports.CHARTS_PREFIX + file+".png"), chart, width, height);
     }
 
 }

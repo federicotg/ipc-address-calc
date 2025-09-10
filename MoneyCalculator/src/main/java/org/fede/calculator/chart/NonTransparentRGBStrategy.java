@@ -19,9 +19,12 @@ package org.fede.calculator.chart;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import org.fede.calculator.report.ConsoleReports;
 import org.jfree.chart.JFreeChart;
 
 /**
@@ -31,14 +34,19 @@ import org.jfree.chart.JFreeChart;
 public class NonTransparentRGBStrategy implements ChartStrategy {
 
     @Override
-    public void saveChartAsPNG(File file, JFreeChart chart, int width, int height) throws IOException {
+    public void saveChart(String file, JFreeChart chart, int width, int height) throws IOException {
 
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = image.createGraphics();
         chart.draw(g2, new Rectangle2D.Double(0, 0, width, height));
         g2.dispose();
 
-        ImageIO.write(image, "png", file);
+        ImageIO.write(image,
+                "jpg", 
+                new BufferedOutputStream(
+                        new FileOutputStream(
+                                new File(ConsoleReports.CHARTS_PREFIX + file + ".jpg")), 
+                        1_048_576));
     }
 
 }

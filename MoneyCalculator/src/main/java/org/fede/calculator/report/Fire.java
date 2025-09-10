@@ -20,8 +20,6 @@ import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,7 +63,7 @@ public class Fire {
 
         this.console.appendLine(this.format.title("F.I.R.E."));
         final var limit = USD_INFLATION.getTo();
-        var budgets = this.budgets(months);
+        final var budgets = this.budgets(months);
 
         final var essential = this.sumExpenses(ESSENTIAL, months);
         final var discretionary = this.sumExpenses(Series.DISCRETIONARY, months);
@@ -90,14 +88,11 @@ public class Fire {
         this.conceptLine("Discretionary", discretionary);
         this.conceptLine("Irregular", irregular);
         this.conceptLine("Future Pension", futurePension);
-
         this.conceptLine("Current Savings", totalSavings);
-
-        //this.conceptLine("Future Savings", new MoneyAmount(futureSavings, USD));
         this.conceptLine("Future Income", new MoneyAmount(expectedFutureIncome, USD));
 
-        var expected10YearCAGR = SeriesReader.readPercent("futureReturn").add(ONE, C);
-        var expectedGrowth = expected10YearCAGR.pow(years, C);
+        final var expected10YearCAGR = SeriesReader.readPercent("futureReturn").add(ONE, C);
+        final var expectedGrowth = expected10YearCAGR.pow(years, C);
 
         this.console.appendLine(
                 String.valueOf(years),
@@ -116,10 +111,10 @@ public class Fire {
 
         final var percents = this.percents();
 
-        var alreadyThere = Attribute.GREEN_TEXT();
-        var withGrowth = Attribute.BRIGHT_YELLOW_TEXT();
-        var withGrowthAndIncome = Attribute.YELLOW_TEXT();
-        var farAway = Attribute.RED_TEXT();
+        final var alreadyThere = Attribute.GREEN_TEXT();
+        final var withGrowth = Attribute.BRIGHT_YELLOW_TEXT();
+        final var withGrowthAndIncome = Attribute.YELLOW_TEXT();
+        final var farAway = Attribute.RED_TEXT();
 
         this.console.appendLine(
                 Stream.concat(
@@ -262,7 +257,7 @@ public class Fire {
             Attribute withGrowth,
             Attribute withGrowthAndIncome,
             Attribute farAway) {
-        var annualSpending = monthlySpending.multiply(new BigDecimal(12l), C);
+        final var annualSpending = monthlySpending.multiply(new BigDecimal(12l), C);
         return this.format.text(this.format.currency(monthlySpending), 12)
                 + percents.stream()
                         .map(percent -> annualSpending.divide(percent, C))
@@ -288,16 +283,13 @@ public class Fire {
             Attribute withGrowthAndIncome,
             Attribute farAway) {
 
-        var cols = 8;
+        final var cols = 8;
 
         if (amount.compareTo(currentSavings.amount()) <= 0) {
             return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(alreadyThere));
-        } else if (amount.compareTo(currentSavings.amount()
-                .multiply(expected10YearGrowth, C)) <= 0) {
+        } else if (amount.compareTo(currentSavings.amount().multiply(expected10YearGrowth, C)) <= 0) {
             return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(withGrowth));
-        } else if (amount.compareTo(currentSavings.amount()
-                .multiply(expected10YearGrowth, C)
-                .add(expectedFutureSavings, C)) <= 0) {
+        } else if (amount.compareTo(currentSavings.amount().multiply(expected10YearGrowth, C).add(expectedFutureSavings, C)) <= 0) {
             return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(withGrowthAndIncome));
         } else {
             return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(farAway));
@@ -323,28 +315,28 @@ public class Fire {
         final var totalSavings = this.series.realSavings(null)
                 .getAmount(Inflation.USD_INFLATION.getTo());
 
-        var basePct = new BigDecimal("0.0325");
-        var monthsInAYear = BigDecimal.valueOf(12l);
+        final var basePct = SeriesReader.readPercent("safewithdrawalrate");
+        final var monthsInAYear = BigDecimal.valueOf(12l);
         final var expectedFutureIncome = this.expectedFutureIncome();
         final var years = SeriesReader.readInt("retirementHorizon");
-        var cagr = SeriesReader.readPercent("futureReturn");
-        var vol = SeriesReader.readPercent("futureVolatility");
+        final var cagr = SeriesReader.readPercent("futureReturn");
+        final var vol = SeriesReader.readPercent("futureVolatility");
 
-        var p90Growth = asMonthlySpending(PortfolioProjections.calculatePortfolioPercentile(
+        final var p90Growth = asMonthlySpending(PortfolioProjections.calculatePortfolioPercentile(
                 totalSavings.amount().doubleValue(),
                 cagr.doubleValue(),
                 vol.doubleValue(),
                 years,
                 0.9d) + expectedFutureIncome.doubleValue());
 
-        var p10Growth = asMonthlySpending(PortfolioProjections.calculatePortfolioPercentile(
+        final var p10Growth = asMonthlySpending(PortfolioProjections.calculatePortfolioPercentile(
                 totalSavings.amount().doubleValue(),
                 cagr.doubleValue(),
                 vol.doubleValue(),
                 years,
                 0.1d) + expectedFutureIncome.doubleValue());
 
-        var p50Growth = asMonthlySpending(PortfolioProjections.calculatePortfolioPercentile(
+        final var p50Growth = asMonthlySpending(PortfolioProjections.calculatePortfolioPercentile(
                 totalSavings.amount().doubleValue(),
                 cagr.doubleValue(),
                 vol.doubleValue(),
@@ -354,7 +346,7 @@ public class Fire {
         // C = Current savings
         // G = Current savings with expected growth percentiles
         // F = future yearly savings + future cash + future prop.
-        var ss = List.of(
+        final var ss = List.of(
                 this.fireSeries("C+" + years + "y P10 G+F", p10Growth),
                 this.fireSeries("C+ " + years + "y P50 G+F", p50Growth),
                 this.fireSeries("C+" + years + "y P90 G+F", p90Growth),
@@ -365,20 +357,21 @@ public class Fire {
 
         this.fireChart(ss,
                 "Projected FIRE",
-                "fire-projected.png");
+                "fire-projected");
     }
 
     private MoneyAmount asMonthlySpending(double portfiolioAmount) {
+        final var safeWithdrawalRate = SeriesReader.readPercent("safewithdrawalrate").doubleValue();
         return new MoneyAmount(
-                BigDecimal.valueOf((portfiolioAmount / 12.0d) * 0.0325d),
+                BigDecimal.valueOf((portfiolioAmount / 12.0d) * safeWithdrawalRate),
                 USD);
     }
 
     public void fireChartBudgets(int months) {
 
-        var budgets = this.budgets(months);
+        final var budgets = this.budgets(months);
 
-        List<XYSeries> ss = List.of(
+        final List<XYSeries> ss = List.of(
                 this.fireSeries("Essential-Rent", budgets.essentialWithoutRent()),
                 this.fireSeries("Essential+Rent", budgets.essentialWithRent()),
                 this.fireSeries("Everything-Rent", budgets.everythingWithoutRent()),
@@ -387,11 +380,11 @@ public class Fire {
 
         this.fireChart(ss,
                 "FIRE " + String.valueOf(months) + " Months",
-                "fire-" + String.valueOf(months) + ".png");
+                "fire-" + String.valueOf(months));
     }
 
     private XYSeries fireSeries(String name, MoneyAmount monthlySpending) {
-        var s = new XYSeries(name + " " + this.format.currencyShort(monthlySpending.amount()));
+        final var s = new XYSeries(name + " " + this.format.currencyShort(monthlySpending.amount()));
 
         final var from = new BigDecimal("0.025");
         final var to = new BigDecimal("0.05");
@@ -403,7 +396,7 @@ public class Fire {
     }
 
     public LabeledXYDataItem fireNumber(BigDecimal monthlySpending, BigDecimal portfolioPercent) {
-        var fireNumber = monthlySpending
+        final var fireNumber = monthlySpending
                 .multiply(BigDecimal.valueOf(12l), C)
                 .divide(portfolioPercent, C);
 

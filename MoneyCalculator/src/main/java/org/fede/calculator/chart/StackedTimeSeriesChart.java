@@ -128,8 +128,8 @@ public class StackedTimeSeriesChart {
             plot.getDomainAxis().setLabelFont(this.font);
             plot.getDomainAxis().setTickLabelFont(this.font);
             chart.getLegend().setItemFont(this.font);
-            ChartStrategy.currentStrategy().saveChartAsPNG(
-                    new File(ConsoleReports.CHARTS_PREFIX + filename),
+            ChartStrategy.currentStrategy().saveChart(
+                    filename,
                     chart,
                     SeriesReader.readInt("chart.width"),
                     SeriesReader.readInt("chart.height"));
