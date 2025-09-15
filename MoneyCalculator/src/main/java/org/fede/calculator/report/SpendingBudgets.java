@@ -31,7 +31,13 @@ public record SpendingBudgets(MoneyAmount essentialWithRent,
         MoneyAmount current) {
 
     public Stream<BigDecimal> asStream() {
-        return Stream.of(essentialWithRent, essentialWithoutRent, everythingWithRent, everythingWithoutRent, current)
+        return Stream.of(
+                essentialWithRent, 
+                essentialWithoutRent, 
+                everythingWithRent, 
+                everythingWithoutRent,
+                current)
+                .distinct()
                 .map(MoneyAmount::amount);
     }
 }

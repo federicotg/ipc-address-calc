@@ -20,11 +20,13 @@ import com.diogonunes.jcolor.Attribute;
 import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import static java.math.BigDecimal.ZERO;
 import static org.fede.calculator.report.Format.format;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -34,6 +36,7 @@ import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.fede.calculator.chart.ChartSeriesMapper;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
@@ -49,6 +52,7 @@ import org.fede.calculator.chart.LabeledXYDataItem;
 import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.ScatterXYChart;
 import org.fede.calculator.chart.StackedTimeSeriesChart;
+import org.fede.calculator.chart.TimeSeriesChart;
 import org.fede.calculator.chart.ValueFormat;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
@@ -242,7 +246,7 @@ public class Savings {
                 this.format.currency(ForeignExchanges.getMoneyAmountForeignExchange(savingPct.getCurrency(), ARS).apply(savingPct, limit).getAmount()));
 
         this.console.appendLine(format("Saved salaries {0}",
-                this.series.realSavings(null).getAmount(limit).getAmount()
+                this.series.currentSavingsUSD().getAmount()
                         .divide(averageRealUSDIncome.getAmount(), C)));
 
     }
@@ -533,8 +537,7 @@ public class Savings {
 
         final var limit = USD_INFLATION.getTo();
 
-        final var totalSavings = this.series.realSavings(null).getAmount(limit);
-
+        final var totalSavings = this.series.currentSavingsUSD();
         // total income
         final var totalIncome = this.series.realIncome()
                 .moneyAmountStream()
@@ -663,7 +666,7 @@ public class Savings {
         average.forEachNonZero((ym, ch) -> {
             if (ym.compareTo(limit) <= 0) {
                 percentEvolutionReport(
-                        ym, 
+                        ym,
                         change.getAmount(ym).getAmount().divide(average.getAmount(ym).getAmount(), C),
                         1);
             }
@@ -689,7 +692,7 @@ public class Savings {
     }
 
     private void percentEvolutionReport(YearMonth ym, BigDecimal ma, int scale) {
-        
+
         this.console.appendLine(
                 format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
                 " ",
@@ -794,4 +797,54 @@ public class Savings {
                         "by-income-savings");
     }
 
+    public void savingRate(int months) {
+
+        Function<MoneyAmountSeries, MoneyAmountSeries> avg = new SimpleAggregation(months)::average;
+
+        var regularAvgIncome = this.series.getRegularIncomeSeries()
+                .stream()
+                .reduce(MoneyAmountSeries::add)
+                .map(avg)
+                .get();
+
+        var regularAvgExpenses = Stream.concat(
+                this.series.getRealUSDExpenses().stream(),
+                Stream.of(this.series.realOtherExpenses()))
+                .reduce(MoneyAmountSeries::add)
+                .map(avg)
+                .get();
+
+        final var from = YearMonth.of(2007, 1);
+        final var to = Inflation.USD_INFLATION.getTo();
+
+        List<TimeSeriesDatapoint> spendingRate = new ArrayList<>(from.monthsUntil(to));
+        List<TimeSeriesDatapoint> savingRate = new ArrayList<>(from.monthsUntil(to));
+
+        Stream.iterate(from, ym -> ym.compareTo(to) <= 0, YearMonth::next)
+                .forEach(ym -> this.addRate(ym, regularAvgIncome, regularAvgExpenses, spendingRate, savingRate));
+
+        new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
+                .createFromTimeSeries(
+                        "Saving Rate " + months + " Month Average",
+                        List.of(ChartSeriesMapper.asTimeSeries(spendingRate, "Spending Rate"),
+                                ChartSeriesMapper.asTimeSeries(savingRate, "Saving Rate")),
+                        "saving-rate-" + (months < 10 ? "0" : "") + months);
+    }
+
+    private void addRate(
+            YearMonth ym,
+            MoneyAmountSeries income,
+            MoneyAmountSeries spending,
+            List<TimeSeriesDatapoint> spendingRates,
+            List<TimeSeriesDatapoint> savingRates) {
+
+        var spendingRate = spending.getAmount(ym).amount()
+                .divide(income.getAmount(ym).amount(), C)
+                .min(ONE)
+                .max(ZERO);
+
+        spendingRates.add(new TimeSeriesDatapoint(ym, spendingRate));
+        savingRates.add(new TimeSeriesDatapoint(ym, ONE.subtract(spendingRate)));
+
+    }
 }

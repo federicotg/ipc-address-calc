@@ -83,7 +83,6 @@ import static org.fede.calculator.money.series.InvestmentType.USD_CASH;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
-import org.fede.calculator.money.series.TimeSeriesDatapoint;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import org.jfree.data.category.DefaultCategoryDataset;

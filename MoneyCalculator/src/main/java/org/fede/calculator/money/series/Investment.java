@@ -39,7 +39,6 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public class Investment {
 
-    //private static final BigDecimal IVA = new BigDecimal("1.21");
     private static final BigDecimal CCL_FEE_FACTOR = BigDecimal.ONE.subtract(new BigDecimal("0.006"), C);
 
     private String id;

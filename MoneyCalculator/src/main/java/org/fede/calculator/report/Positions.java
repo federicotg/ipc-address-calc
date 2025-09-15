@@ -255,8 +255,44 @@ public class Positions {
                         List.of(this.position(e.getValue()
                                 .stream()
                                 .sorted(Comparator.comparing(Investment::getInitialDate))
-                                .limit(n).toList()
+                                .limit(n)
+                                .toList()
                         ))));
+
+        final var savings = this.series.currentSavingsUSD();
+
+        this.potentialTaxLine(" Potential Wealth Tax ", taxAmount(savings), savings);
+
+        var futureSavings = savings
+                .add(SeriesReader.readUSD("futureRealState"))
+                .add(SeriesReader.readUSD("futureCash"));
+
+        this.potentialTaxLine(" Potential Future Wealth Tax ",
+                taxAmount(futureSavings),
+                futureSavings);
+
+    }
+
+    private BigDecimal taxAmount(MoneyAmount savings) {
+        final var bbppTaxRate = SeriesReader.readPercent("projected.bbpp.tax");
+        final var bbppMinimum = SeriesReader.readUSD("projected.bbpp.min").amount();
+        final var bbppUsdDiff = SeriesReader.readPercent("projected.bbpp.usddiff");
+
+        return savings.amount()
+                .multiply(BigDecimal.ONE.subtract(bbppUsdDiff))
+                .subtract(bbppMinimum, C)
+                .multiply(bbppTaxRate);
+    }
+
+    private void potentialTaxLine(String title, BigDecimal taxAmount, MoneyAmount savings) {
+        this.console.appendLine("");
+        this.console.appendLine(
+                title,
+                this.format.currency(taxAmount
+                        .divide(BigDecimal.valueOf(12l), C), 8),
+                "/month, ",
+                this.format.percent(taxAmount.divide(savings.amount(), C), 5),
+                " a year.");
     }
 
     private void egrReportLine(String title, List<Position> positions) {

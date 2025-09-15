@@ -18,7 +18,7 @@ package org.fede.calculator.chart;
 
 import java.util.List;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.TimeSeriesDatapoint;
+import org.fede.calculator.report.TimeSeriesDatapoint;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeTableXYDataset;

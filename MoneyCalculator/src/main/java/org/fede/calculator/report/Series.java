@@ -136,6 +136,7 @@ public class Series {
                     of(ESSENTIAL, "expensas"),
                     of(DISCRETIONARY, "netflix"),
                     of(DISCRETIONARY, "suscripciones-usd"),
+                    of(DISCRETIONARY, "suscripciones-ars"),
                     of(DISCRETIONARY, "viajes"),
                     of(DISCRETIONARY, "viajes-usd"),
                     of(DISCRETIONARY, "xbox"),
@@ -184,6 +185,7 @@ public class Series {
                         "expensas",
                         "netflix",
                         "suscripciones-usd",
+                        "suscripciones-ars",
                         "viajes",
                         "xbox",
                         "atlantico",
@@ -305,14 +307,12 @@ public class Series {
 
             final var limit = USD_INFLATION.getTo();
 
-            //final var adjuster = new MonthlyInvestmentSavingsAdjuster(this);
             this.realNetSavings = this.savingsSeries()
                     .map(new SimpleAggregation(2)::change)
                     .map(series -> series.exchangeInto(Currency.USD))
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
                     .reduce(MoneyAmountSeries::add)
                     .get();
-            //.map((ym, ma) -> ma.subtract(USD_INFLATION.adjust(adjuster.difference(ym), ym, limit)));
         }
         return this.realNetSavings;
     }
@@ -366,6 +366,10 @@ public class Series {
                 .map(name -> this.readSeriesInUSD("saving/", name))
                 .reduce(MoneyAmountSeries::add)
                 .get();
+    }
+    
+    public MoneyAmount currentSavingsUSD(){
+        return this.nominalSavings().getAmount(Inflation.USD_INFLATION.getTo());
     }
 
     public MoneyAmountSeries realSavings(String type) {

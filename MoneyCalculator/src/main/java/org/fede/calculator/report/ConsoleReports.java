@@ -574,7 +574,7 @@ public class ConsoleReports {
 
         final var goal = new Goal(this.console, this.format, this.series, this.bar, bbppTax);
 
-        final var todaySavings = this.series.realSavings(null).getAmount(Inflation.USD_INFLATION.getTo());
+        final var todaySavings = this.series.currentSavingsUSD();
 
         final var invested = this.series.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
 
@@ -747,7 +747,7 @@ public class ConsoleReports {
         var s = this.series.realSavings(null).exchangeInto(ARS);
         s.setName("Real USD expressed in ARS");
         new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
-                .create("Savings", List.of(s), "savings-ars");
+                .create("Savings ARS", List.of(s), "savings-ars");
     }
 
     private void incomeAccChart() {
@@ -835,16 +835,16 @@ public class ConsoleReports {
             inv.projection(MoneyAmount.zero(USD));
             inv.projection(SeriesReader.readUSD("futureSavingsByYear"));
             inv.projection(SeriesReader.readUSD("futureSavingsByYear2"));
-
             fire.fireChartFuture();
-
             fire.fireChartBudgets(12);
             fire.fireChartBudgets(24);
-
+            savings.savingRate(12);
+            savings.savingRate(24);
+            savings.savingRate(6);
             inv.investmentScatterChart(Currency.CSPX);
             inv.investmentScatterChart(Currency.MEUD);
             inv.investmentScatterChart(Currency.XRSU);
-            inv.investmentScatterChart(Currency.EIMI);
+            inv.investmentScatterChart(Currency.EIMI, ValueFormat.CURRENCY_DECIMALS);
             inv.investmentScatterChart(Currency.XUSE, ValueFormat.CURRENCY_DECIMALS);
             inv.investmentScatterChart(Currency.RTWO);
 

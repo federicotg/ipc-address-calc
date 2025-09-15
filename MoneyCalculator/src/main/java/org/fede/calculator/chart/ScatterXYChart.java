@@ -20,13 +20,11 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Stroke;
-import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.Format;
 import java.text.NumberFormat;
 import java.util.List;
-import org.fede.calculator.report.ConsoleReports;
 import org.fede.calculator.money.Currency;
 import static org.fede.calculator.chart.ValueFormat.DATE;
 import org.fede.calculator.money.series.SeriesReader;
@@ -37,6 +35,7 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.AbstractRenderer;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYDataset;
@@ -65,18 +64,19 @@ public class ScatterXYChart {
         this.styleY = styleY;
     }
 
-     public void create(
+    public void create(
             String chartName,
             Currency currency,
             List<XYSeries> series,
             String xLabel,
-            String yLabel,  
-            String filename){
-         this.create(chartName, currency, series, xLabel, yLabel, RectangleEdge.TOP, filename);
-     }
-    
+            String yLabel,
+            String filename) {
+        this.create(chartName, null, currency, series, xLabel, yLabel, RectangleEdge.TOP, filename);
+    }
+
     public void create(
             String chartName,
+            String chartSubtitle,
             Currency currency,
             List<XYSeries> series,
             String xLabel,
@@ -95,6 +95,11 @@ public class ScatterXYChart {
                     yLabel,
                     dataset);
 
+            if (chartSubtitle != null) {
+                var t = new TextTitle(chartSubtitle);
+                t.setFont(this.font);
+                chart.addSubtitle(t);
+            }
             var xyPlot = chart.getXYPlot();
             xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
             xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
