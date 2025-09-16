@@ -33,7 +33,6 @@ import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.SimpleAggregation;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
-import org.fede.calculator.money.series.BBPPYear;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;

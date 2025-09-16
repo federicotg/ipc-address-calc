@@ -24,8 +24,6 @@ import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
-import org.jfree.data.time.Day;
-import org.jfree.data.time.TimeSeries;
 
 /**
  *

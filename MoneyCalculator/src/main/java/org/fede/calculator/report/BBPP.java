@@ -50,8 +50,6 @@ import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.Currency.XRSU;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
-import org.fede.calculator.money.series.BBPPItem;
-import org.fede.calculator.money.series.BBPPYear;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import static org.fede.calculator.money.series.InvestmentType.BONO;

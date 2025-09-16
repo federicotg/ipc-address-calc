@@ -39,8 +39,6 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public class Investment {
 
-    private static final BigDecimal CCL_FEE_FACTOR = BigDecimal.ONE.subtract(new BigDecimal("0.006"), C);
-
     private String id;
     private InvestmentType type;
     private InvestmentEvent in;
@@ -221,9 +219,12 @@ public class Investment {
                 .multiply(iva, C)
                 .add(this.getIn().getAmount());
 
+        
+        BigDecimal cclFeeFactor = BigDecimal.ONE.subtract(new BigDecimal("0.006"), C);
+
         return totalInvestment
-                .divide(CCL_FEE_FACTOR, C)
-                .divide(CCL_FEE_FACTOR, C)
+                .divide(cclFeeFactor, C)
+                .divide(cclFeeFactor, C)
                 .subtract(totalInvestment, C);
     }
 

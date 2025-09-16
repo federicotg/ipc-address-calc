@@ -79,7 +79,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     @Override
     public final MoneyAmountSeries add(final MoneyAmountSeries other) {
 
-        if (!other.getCurrency().equals(this.getCurrency())) {
+        if (other.getCurrency() != this.getCurrency()) {
             return this.exchangeInto(Currency.USD).add(other.exchangeInto(Currency.USD));
         }
 

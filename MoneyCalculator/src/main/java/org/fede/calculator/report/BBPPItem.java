@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.money.series;
+package org.fede.calculator.report;
 
 import java.math.BigDecimal;
 import org.fede.calculator.money.Currency;

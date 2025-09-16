@@ -35,7 +35,6 @@ import static java.util.stream.Collectors.toMap;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
-import org.fede.calculator.money.series.SeenPrice;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;

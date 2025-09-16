@@ -18,13 +18,11 @@ package org.fede.calculator.chart;
 
 import static java.awt.Color.WHITE;
 import java.awt.Font;
-import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import org.fede.calculator.report.ConsoleReports;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;

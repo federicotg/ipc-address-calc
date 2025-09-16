@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Federico Tello Gentile <federicotg@gmail.com>
+ * Copyright (C) 2020 fede
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,22 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.money.series;
+package org.fede.calculator.report;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  *
  * @author fede
  */
-public record BBPPYear(
-        int year,
-        List<BBPPTaxBraket> brakets,
-        BigDecimal minimum,
-        BigDecimal usd,
-        BigDecimal eur,
-        BigDecimal tax,
-        List<BBPPItem> items) {
+public record BBPPTaxBraket(BigDecimal from, BigDecimal tax){
+
 
 }
