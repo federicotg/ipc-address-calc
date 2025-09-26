@@ -156,32 +156,32 @@ public class Positions {
 
         positions
                 .stream()
-                .sorted(comparing((Position p) -> p.getMarketValue().getAmount(), reverseOrder()))
+                .sorted(comparing((Position p) -> p.getMarketValue().amount(), reverseOrder()))
                 .map(p -> MessageFormat.format(
                 fmt,
                 this.format.text(p.getFundName(), descWidth),
                 String.format("%" + posWidth + "d", p.getPosition().intValue()),
-                this.format.currency(p.getLast().getAmount(), lastWidth),
-                this.format.currency(p.getCostBasis().getAmount(), costWidth),
-                this.format.percent(p.getCostBasis().getAmount().divide(totalCostBasis.getAmount(), C), costPct),
-                this.format.currency(p.getMarketValue().getAmount(), mkvWidth),
-                this.format.percent(p.getMarketValue().getAmount().divide(totalMarketValue.getAmount(), C), mkvPctWidth),
-                this.format.currency(p.getAveragePrice().getAmount(), avgWidth),
-                this.format.currencyPL(p.getUnrealizedPnL().getAmount(), pnlWidth),
-                this.format.percent(p.getUnrealizedPnL().getAmount().divide(p.getCostBasis().getAmount(), C), pnlPctWidth)))
+                this.format.currency(p.getLast().amount(), lastWidth),
+                this.format.currency(p.getCostBasis().amount(), costWidth),
+                this.format.percent(p.getCostBasis().amount().divide(totalCostBasis.amount(), C), costPct),
+                this.format.currency(p.getMarketValue().amount(), mkvWidth),
+                this.format.percent(p.getMarketValue().amount().divide(totalMarketValue.amount(), C), mkvPctWidth),
+                this.format.currency(p.getAveragePrice().amount(), avgWidth),
+                this.format.currencyPL(p.getUnrealizedPnL().amount(), pnlWidth),
+                this.format.percent(p.getUnrealizedPnL().amount().divide(p.getCostBasis().amount(), C), pnlPctWidth)))
                 .forEach(this.console::appendLine);
 
         this.console.appendLine(MessageFormat.format(fmt,
                 this.format.text("Unrealized", descWidth),
                 this.format.text("", posWidth),
                 this.format.text("", lastWidth),
-                this.format.currency(totalCostBasis.getAmount(), costWidth),
+                this.format.currency(totalCostBasis.amount(), costWidth),
                 this.format.text("", costPct),
-                this.format.currency(totalMarketValue.getAmount(), mkvWidth),
+                this.format.currency(totalMarketValue.amount(), mkvWidth),
                 this.format.text("", mkvPctWidth),
                 this.format.text("", avgWidth),
-                this.format.currencyPL(totalPnL.getAmount(), pnlWidth),
-                this.format.percent(totalPnL.getAmount().divide(totalCostBasis.getAmount(), C), pnlPctWidth)));
+                this.format.currencyPL(totalPnL.amount(), pnlWidth),
+                this.format.percent(totalPnL.amount().divide(totalCostBasis.amount(), C), pnlPctWidth)));
 
         var iva = SeriesReader.readPercent("iva").add(ONE);
 
@@ -211,13 +211,13 @@ public class Positions {
                 .map(MoneyAmount::amount)
                 .reduce(ZERO, BigDecimal::add);
 
-        final var gainPct = realized.getAmount().divide(realizedInvested, C);
+        final var gainPct = realized.amount().divide(realizedInvested, C);
 
         this.console.appendLine(MessageFormat.format(" Realized {0} {1}", this.format.currencyPL(
                 realized.amount(), 110), this.format.percent(gainPct, 8)));
 
         this.console.appendLine(MessageFormat.format(" Total {0}", this.format.currencyPL(
-                realized.add(totalPnL).getAmount(), 113)));
+                realized.add(totalPnL).amount(), 113)));
 
         this.console.appendLine(format.subtitle("EGR"));
 
@@ -310,7 +310,7 @@ public class Positions {
 
     // EGR = ratio de ganancia embebida
     private BigDecimal egr(List<Position> positions) {
-        return unrealizedPnL(positions).getAmount()
+        return unrealizedPnL(positions).amount()
                 .divide(costBasis(positions).amount(), C);
     }
 
@@ -481,11 +481,12 @@ public class Positions {
 
     private MoneyAmount current(Currency currency) {
         final var ma = new MoneyAmount(ONE, currency);
-        return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), USD).apply(ma, Inflation.USD_INFLATION.getTo());
+        return ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), USD)
+                .apply(ma, Inflation.USD_INFLATION.getTo());
     }
 
     private String currentPice(Currency currency) {
-        return Ansi.colorize(this.format.currency(this.current(currency).getAmount(), 9), Attribute.WHITE_TEXT());
+        return Ansi.colorize(this.format.currency(this.current(currency).amount(), 9), Attribute.WHITE_TEXT());
     }
 
     private Map<CurrencyAndGroupKey, Position> positionsBy(List<Investment> investments, Function<Investment, String> groupingFunction, boolean nominal, Date now) {
@@ -516,8 +517,8 @@ public class Positions {
     private String avgPrice(Map<CurrencyAndGroupKey, Position> positionsByGroup, CurrencyAndGroupKey key, Map<CurrencyAndGroupKey, Position> averagesByGroup) {
         return Optional.ofNullable(positionsByGroup.get(key))
                 .map(Position::getAveragePrice)
-                .map(MoneyAmount::getAmount)
-                .map(avgPrice -> this.colorized(avgPrice, averagesByGroup.get(new CurrencyAndGroupKey(key.currency(), AVERAGE_KEY)).getAveragePrice().getAmount(), this.current(key.currency()).getAmount()))
+                .map(MoneyAmount::amount)
+                .map(avgPrice -> this.colorized(avgPrice, averagesByGroup.get(new CurrencyAndGroupKey(key.currency(), AVERAGE_KEY)).getAveragePrice().amount(), this.current(key.currency()).amount()))
                 .orElseGet(() -> this.format.text("", 9));
     }
 
@@ -659,7 +660,7 @@ public class Positions {
 
     private MoneyAmount lastUSDAmount(String seriesName, YearMonth ym) {
         var amount = this.lastAmount(seriesName, ym).get();
-        return ForeignExchanges.getMoneyAmountForeignExchange(amount.getCurrency(), USD)
+        return ForeignExchanges.getMoneyAmountForeignExchange(amount.currency(), USD)
                 .apply(amount, ym);
     }
 
@@ -677,7 +678,7 @@ public class Positions {
                             MessageFormat.format("Portfolio {1} {0}", ym.monthString(), subtype),
                             items.stream()
                                     .map(item -> new PieItem(
-                                    Investments.ETF_NAME.getOrDefault(item.getAmount().getCurrency(), item.getAmount().getCurrency().name()),
+                                    Investments.ETF_NAME.getOrDefault(item.getAmount().currency(), item.getAmount().currency().name()),
                                     item.getDollarAmount().amount())).toList(),
                             MessageFormat.format("portfolio-{1}-{0}.png", ym.monthString(), subtype)
                     );
@@ -701,7 +702,7 @@ public class Positions {
 
         if (!pct) {
             this.console.appendLine("--------------------------------------");
-            this.console.appendLine(format("Total {0}", this.format.currency(total.getAmount())));
+            this.console.appendLine(format("Total {0}", this.format.currency(total.amount())));
         }
     }
 
@@ -734,7 +735,7 @@ public class Positions {
                         .collect(groupingBy(
                                 Pair::first,
                                 groupingBy(
-                                        p -> p.second().get().getCurrency().name(),
+                                        p -> p.second().get().currency().name(),
                                         mapping(
                                                 p -> p.second().get(),
                                                 reducing(MoneyAmount::add)))));
@@ -743,7 +744,7 @@ public class Positions {
                 .entrySet()
                 .stream()
                 .flatMap(e -> this.item(e.getKey(), e.getValue(), ym))
-                .sorted(comparing((PortfolioItem::getDollarAmount), comparing(MoneyAmount::getAmount)).reversed())
+                .sorted(comparing((PortfolioItem::getDollarAmount), comparing(MoneyAmount::amount)).reversed())
                 .toList();
 
     }

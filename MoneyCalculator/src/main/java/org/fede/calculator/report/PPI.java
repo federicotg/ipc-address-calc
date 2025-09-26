@@ -126,7 +126,7 @@ public class PPI implements CCL {
             }
 
             results.stream()
-                    .sorted(Comparator.comparing(p -> p.second().getAmount(), Comparator.reverseOrder()))
+                    .sorted(Comparator.comparing(p -> p.second().amount(), Comparator.reverseOrder()))
                     .forEach(p -> this.console.appendLine(this.format.text(p.first(), LABEL_WIDTH), this.format.currency(p.second(), 10)));
 
         } catch (Exception ex) {

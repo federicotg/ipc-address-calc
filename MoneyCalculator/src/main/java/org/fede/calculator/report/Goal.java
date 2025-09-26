@@ -172,8 +172,8 @@ public class Goal {
         final var spendingAndSaving = new Savings(this.format, this.series, this.bar, this.console)
                 .averageSpendingAndSaving(averageIncomeSpendingMonths);
 
-        final var monthlyDeposit = spendingAndSaving.saving().getAmount();
-        final var monthlyWithdraw = spendingAndSaving.spending().getAmount()
+        final var monthlyDeposit = spendingAndSaving.saving().amount();
+        final var monthlyWithdraw = spendingAndSaving.spending().amount()
                 .subtract(new BigDecimal(pension), C);
 
         this.goal(trials,
@@ -211,8 +211,8 @@ public class Goal {
         final var end = birthYear + age;
         final var yearsLeft = 2088 - startingYear;
 
-        final var cash = todaySavings.getAmount()
-                .subtract(invested.getAmount(), C)
+        final var cash = todaySavings.amount()
+                .subtract(invested.amount(), C)
                 .add(extraCash, C).doubleValue();
 
         final var inflationRate = ONE.setScale(SCALE, RM)
@@ -231,7 +231,7 @@ public class Goal {
                 .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
                 .doubleValue();
 
-        final var investedAmount = invested.getAmount().doubleValue();
+        final var investedAmount = invested.amount().doubleValue();
 
         final var legend = """
     - Cash: {0,number,currency}

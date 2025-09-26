@@ -67,7 +67,7 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
 
     @Override
     public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int year, int month) {
-        if (amount.getCurrency() == targetCurrency) {
+        if (amount.currency() == targetCurrency) {
             return amount;
         }
         if (this.targetCurrency == targetCurrency) {

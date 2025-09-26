@@ -131,7 +131,7 @@ public class House {
     }
 
     private MoneyAmount limit(YearMonth timeLimit, YearMonth ym, MoneyAmount amount) {
-        return ym.compareTo(timeLimit) <= 0 ? amount : MoneyAmount.zero(amount.getCurrency());
+        return ym.compareTo(timeLimit) <= 0 ? amount : MoneyAmount.zero(amount.currency());
     }
 
     private void buyVsRent(MoneyAmount realExpensesInUSD, BigDecimal rate, YearMonth timeLimit) {
@@ -175,21 +175,21 @@ public class House {
 
         this.console.appendLine(format("USD reales {0}/{1}", limit.getMonth(), String.valueOf(limit.getYear())));
         this.console.appendLine(format("\tTotal USD {0} {1}",
-                this.format.currency(totalRealExpense.getAmount()),
-                this.format.percent(totalRealExpense.getAmount().divide(realInitialCost.getAmount(), C))));
+                this.format.currency(totalRealExpense.amount()),
+                this.format.percent(totalRealExpense.amount().divide(realInitialCost.amount(), C))));
 
-        final var monthlyCost = totalRealExpense.getAmount().divide(months, C);
+        final var monthlyCost = totalRealExpense.amount().divide(months, C);
         this.console.appendLine(format("\tMensual USD {0} {1} - ARS {2}",
                 this.format.currency(monthlyCost),
-                this.format.percent(monthlyCost.divide(realInitialCost.getAmount(), C)),
+                this.format.percent(monthlyCost.divide(realInitialCost.amount(), C)),
                 this.format.currency(getMoneyAmountForeignExchange(USD, Currency.ARS)
                         .apply(new MoneyAmount(monthlyCost, USD), limit)
-                        .getAmount())));
+                        .amount())));
 
-        final var yearlyCost = totalRealExpense.getAmount().divide(years, C);
+        final var yearlyCost = totalRealExpense.amount().divide(years, C);
         this.console.appendLine(format("\tAnual USD {0} {1}\n",
                 this.format.currency(yearlyCost),
-                this.format.percent(yearlyCost.divide(realInitialCost.getAmount(), C))));
+                this.format.percent(yearlyCost.divide(realInitialCost.amount(), C))));
 
     }
 

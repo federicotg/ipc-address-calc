@@ -166,9 +166,9 @@ public class Savings {
         cash.forEach((ym, cashMa) -> this.console.appendLine(
                 this.bar.bar(
                         ym,
-                        cashMa.getAmount(),
-                        eq.getAmountOrElseZero(ym).getAmount(),
-                        bo.getAmountOrElseZero(ym).getAmount(),
+                        cashMa.amount(),
+                        eq.getAmountOrElseZero(ym).amount(),
+                        bo.getAmountOrElseZero(ym).amount(),
                         SeriesReader.readInt("scale")
                 )));
 
@@ -232,26 +232,26 @@ public class Savings {
                 String.valueOf(limit.getYear()))));
 
         this.console.appendLine("\tIncome: ",
-                averageRealUSDIncome.getCurrency().name(),
+                averageRealUSDIncome.currency().name(),
                 " ",
-                this.format.currency(averageRealUSDIncome.getAmount()));
+                this.format.currency(averageRealUSDIncome.amount()));
 
         final var savingRate = new BigDecimal("0.66");
 
         final var savingPct = new MoneyAmount(
-                averageRealUSDIncome.getAmount().multiply(savingRate, C),
-                averageRealUSDIncome.getCurrency());
+                averageRealUSDIncome.amount().multiply(savingRate, C),
+                averageRealUSDIncome.currency());
 
         this.console.appendLine(format.percent(savingRate), " saving: ",
-                averageRealUSDIncome.getCurrency().name(),
+                averageRealUSDIncome.currency().name(),
                 " ",
-                this.format.currency(savingPct.getAmount()),
+                this.format.currency(savingPct.amount()),
                 " / ",
-                this.format.currency(ForeignExchanges.getMoneyAmountForeignExchange(savingPct.getCurrency(), ARS).apply(savingPct, limit).getAmount()));
+                this.format.currency(ForeignExchanges.getMoneyAmountForeignExchange(savingPct.currency(), ARS).apply(savingPct, limit).amount()));
 
         this.console.appendLine(format("Saved salaries {0}",
-                this.series.currentSavingsUSD().getAmount()
-                        .divide(averageRealUSDIncome.getAmount(), C)));
+                this.series.currentSavingsUSD().amount()
+                        .divide(averageRealUSDIncome.amount(), C)));
 
     }
 
@@ -265,7 +265,7 @@ public class Savings {
                     .flatMap(MoneyAmountSeries::moneyAmountStream)
                     .collect(reducing(MoneyAmount::add))
                     .orElse(MoneyAmount.zero(Currency.USD))
-                    .getAmount();
+                    .amount();
             this.console.appendLine(format("Total income: {0}", this.format.currency(totalIncome)));
         };
         new By().by(params, this::quarterIncome, this::halfIncome, this::yearlyIncome, otherwise);
@@ -424,7 +424,7 @@ public class Savings {
                         Stream.of("Income"),
                         IntStream.of(years)
                                 .mapToObj(incomes::get)
-                                .map(MoneyAmount::getAmount)
+                                .map(MoneyAmount::amount)
                                 .map(this.format::currency))));
         this.console.appendLine(
                 this.row(
@@ -432,7 +432,7 @@ public class Savings {
                                 Stream.of("Savings"),
                                 IntStream.of(years)
                                         .mapToObj(savings::get)
-                                        .map(MoneyAmount::getAmount)
+                                        .map(MoneyAmount::amount)
                                         .map(this.format::currency))));
         this.console.appendLine(
                 this.row(
@@ -440,11 +440,11 @@ public class Savings {
                                 Stream.of("Spending"),
                                 IntStream.of(years)
                                         .mapToObj(y -> incomes.get(y).subtract(savings.get(y)))
-                                        .map(MoneyAmount::getAmount)
+                                        .map(MoneyAmount::amount)
                                         .map(this.format::currency))));
         this.console.appendLine(this.row(Stream.concat(Stream.of("Saving %"),
                 IntStream.of(years)
-                        .mapToObj(y -> savings.get(y).getAmount().divide(incomes.get(y).getAmount().subtract(ONE, C), C))
+                        .mapToObj(y -> savings.get(y).amount().divide(incomes.get(y).amount().subtract(ONE, C), C))
                         .map(this.format::percent))));
     }
 
@@ -482,13 +482,13 @@ public class Savings {
 
         IntStream.of(years)
                 .mapToObj(y -> this.row(Stream.of(format("-= {0} =-", String.valueOf(y) + (y == USD_INFLATION.getTo().getYear() ? "*" : "")),
-                this.format.currency(incomes.get(y).getAmount()),
-                this.format.currency(savings.get(y).getAmount()),
-                this.format.currency(incomes.get(y).subtract(savings.get(y)).getAmount()),
-                format("{0}", this.format.percent(savings.get(y).getAmount()
-                        .divide(incomes.get(y).getAmount()
+                this.format.currency(incomes.get(y).amount()),
+                this.format.currency(savings.get(y).amount()),
+                this.format.currency(incomes.get(y).subtract(savings.get(y)).amount()),
+                format("{0}", this.format.percent(savings.get(y).amount()
+                        .divide(incomes.get(y).amount()
                                 .subtract(ONE, C), C))),
-                this.format.number(savings.get(y).getAmount().divide(incomes.get(y).subtract(savings.get(y)).getAmount(), C)))))
+                this.format.number(savings.get(y).amount().divide(incomes.get(y).subtract(savings.get(y)).amount(), C)))))
                 .forEach(this.console::appendLine);
     }
 
@@ -549,14 +549,14 @@ public class Savings {
 
         final var months = this.series.realIncome().getFrom().monthsUntil(limit);
 
-        final var avgSalary = totalIncome.getAmount().divide(BigDecimal.valueOf(months), C);
+        final var avgSalary = totalIncome.amount().divide(BigDecimal.valueOf(months), C);
 
         this.console.appendLine(format("Income USD {0}\nSavings USD {1} {2}\nAverage salary {3}\nSaved salaries {4}",
-                this.format.currency(totalIncome.getAmount()),
-                this.format.currency(totalSavings.getAmount()),
-                this.format.percent(totalSavings.getAmount().divide(totalIncome.getAmount(), C)),
+                this.format.currency(totalIncome.amount()),
+                this.format.currency(totalSavings.amount()),
+                this.format.percent(totalSavings.amount().divide(totalIncome.amount(), C)),
                 this.format.currency(avgSalary),
-                totalSavings.getAmount().divide(avgSalary, C)));
+                totalSavings.amount().divide(avgSalary, C)));
 
         //ingreso promedio de N meses
         final var agg = new SimpleAggregation(YearMonth.of(2012, 1).monthsUntil(USD_INFLATION.getTo()));
@@ -566,18 +566,18 @@ public class Savings {
         // ahorro promedio de N meses
         final var averagNetSavings = agg.average(this.series.realNetSavings()).getAmount(USD_INFLATION.getTo());
 
-        final var m = totalSavings.getAmount().divide(averageIncome.subtract(averagNetSavings).getAmount(), C);
+        final var m = totalSavings.amount().divide(averageIncome.subtract(averagNetSavings).amount(), C);
 
         final var MONTHS_IN_ONE_YEAR = BigDecimal.valueOf(12);
 
         final var yearAndMonth = m.divideAndRemainder(MONTHS_IN_ONE_YEAR, C);
 
-        final var avgIncome = averageIncome.subtract(averagNetSavings).getAmount();
+        final var avgIncome = averageIncome.subtract(averagNetSavings).amount();
 
         this.console.appendLine(format("Projected {0} years and {1} months of USD {3} income (equivalent to {2} of historical real income).",
                 yearAndMonth[0],
                 yearAndMonth[1].setScale(0, MathConstants.RM),
-                this.format.percent(ONE.subtract(averagNetSavings.getAmount().divide(averageIncome.getAmount(), C), C)),
+                this.format.percent(ONE.subtract(averagNetSavings.amount().divide(averageIncome.amount(), C), C)),
                 avgIncome));
 
         final var unlp = SeriesReader.readSeries("income/unlp.json");
@@ -671,7 +671,7 @@ public class Savings {
             if (ym.compareTo(limit) <= 0) {
                 percentEvolutionReport(
                         ym,
-                        change.getAmount(ym).getAmount().divide(average.getAmount(ym).getAmount(), C),
+                        change.getAmount(ym).amount().divide(average.getAmount(ym).amount(), C),
                         1);
             }
         });
@@ -724,7 +724,7 @@ public class Savings {
         final var income = new SimpleAggregation(months).average(this.series.realRegularIncome());
 
         this.bar.evolution(title,
-                income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).getAmount().divide(ONE.max(ma.getAmount()), C), ma.getCurrency())),
+                income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).amount().divide(ONE.max(ma.amount()), C), ma.currency())),
                 2);
     }
 
@@ -738,7 +738,7 @@ public class Savings {
                 : this.series.realIncome();
 
         final var barSize = ars
-                ? Math.round((float) (baseBarSize - 10) / ForeignExchanges.USD_ARS.exchange(new MoneyAmount(ONE, Currency.ARS), Currency.USD, Inflation.USD_INFLATION.getTo()).getAmount().floatValue())
+                ? Math.round((float) (baseBarSize - 10) / ForeignExchanges.USD_ARS.exchange(new MoneyAmount(ONE, Currency.ARS), Currency.USD, Inflation.USD_INFLATION.getTo()).amount().floatValue())
                 : baseBarSize;
 
         this.bar.evolution(format("Average {0}-month income {1}", months, ars ? "ARS" : "USD"),

@@ -67,7 +67,7 @@ public class Bar {
         final var total = amounts
                 .stream()
                 .map(AmountAndColor::amount)
-                .map(MoneyAmount::getAmount)
+                .map(MoneyAmount::amount)
                 .reduce(ZERO, BigDecimal::add);
 
         if (total.signum() == 0) {
@@ -76,24 +76,24 @@ public class Bar {
         final var relativeAmounts = amounts
                 .stream()
                 .filter(p -> !p.amount().isZero())
-                .map(p -> new AmountAndColor(new MoneyAmount(p.amount().getAmount().divide(total, C).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.amount().getCurrency()), p.color()))
+                .map(p -> new AmountAndColor(new MoneyAmount(p.amount().amount().divide(total, C).movePointRight(2).setScale(0, RoundingMode.HALF_EVEN), p.amount().currency()), p.color()))
                 .collect(Collectors.toList());
 
         final var relativeTotal = relativeAmounts
                 .stream()
                 .map(AmountAndColor::amount)
-                .map(MoneyAmount::getAmount)
+                .map(MoneyAmount::amount)
                 .reduce(ZERO, BigDecimal::add);
 
         if (relativeTotal.compareTo(HUNDRED) != 0) {
             final var first = relativeAmounts.get(0);
 
-            final var firstAmount = first.amount().getAmount();
+            final var firstAmount = first.amount().amount();
 
             var difference = relativeTotal.subtract(HUNDRED, C).negate(C);
 
             relativeAmounts.set(0,
-                    new AmountAndColor(new MoneyAmount(firstAmount.add(difference, C), first.amount().getCurrency()), first.color()));
+                    new AmountAndColor(new MoneyAmount(firstAmount.add(difference, C), first.amount().currency()), first.color()));
 
         }
 
@@ -106,7 +106,7 @@ public class Bar {
                 .map(i -> i + 2)
                 .mapToObj(i -> format("'{'{0}'}'", i))
                 .collect(joining(""));
-        final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.amount().getAmount(), width, p.amount().getAmount().signum() < 0 ? Attribute.RED_BACK() : p.color()));
+        final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.amount().amount(), width, p.amount().amount().signum() < 0 ? Attribute.RED_BACK() : p.color()));
         final Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth()));
 
         return format("{0}/{1} ".concat(bars),
@@ -224,7 +224,7 @@ public class Bar {
 
         final var total = one.add(two).add(three);
 
-        if (total.getAmount().signum() == 0) {
+        if (total.amount().signum() == 0) {
             return "";
         }
 
@@ -256,8 +256,8 @@ public class Bar {
     }
 
     private BigDecimal asPct(MoneyAmount ma, MoneyAmount total) {
-        return ma.getAmount()
-                .divide(total.getAmount(), C)
+        return ma.amount()
+                .divide(total.amount(), C)
                 .movePointRight(2)
                 .setScale(0, RoundingMode.HALF_UP);
     }

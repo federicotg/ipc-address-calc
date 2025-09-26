@@ -88,8 +88,8 @@ public class InvestmentDetails {
     }
 
     public BigDecimal getGrossCapitalGainsPercent() {
-        return this.getGrossCapitalGains().getAmount()
-                .divide(this.getInvestedAmount().getAmount(), MathConstants.C);
+        return this.getGrossCapitalGains().amount()
+                .divide(this.getInvestedAmount().amount(), MathConstants.C);
     }
 
     public BigDecimal getCAGR() {
@@ -119,8 +119,8 @@ public class InvestmentDetails {
     }
 
     public InvestmentDetails asReal() {
-        if (USD != this.getCurrentAmount().getCurrency()) {
-            throw new IllegalArgumentException("No way to turn into real " + this.getCurrentAmount().getCurrency() + ".");
+        if (USD != this.getCurrentAmount().currency()) {
+            throw new IllegalArgumentException("No way to turn into real " + this.getCurrentAmount().currency() + ".");
         }
 
         if (this.nominal) {
@@ -154,7 +154,7 @@ public class InvestmentDetails {
     }
 
     public BigDecimal getInvestmentPrice() {
-        return this.investedAmount.getAmount().divide(this.investmentQuantity, MathConstants.C);
+        return this.investedAmount.amount().divide(this.investmentQuantity, MathConstants.C);
     }
 
     public MoneyAmount getCostBasis() {

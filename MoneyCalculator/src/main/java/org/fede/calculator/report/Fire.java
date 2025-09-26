@@ -52,11 +52,13 @@ public class Fire {
     private final Format format;
     private final Series series;
     private final Console console;
+    private final Bar bar;
 
-    public Fire(Format format, Series series, Console console) {
+    public Fire(Format format, Series series, Console console, Bar bar) {
         this.format = format;
         this.series = series;
         this.console = console;
+        this.bar = bar;
     }
 
     public void fire(int months) {
@@ -91,16 +93,10 @@ public class Fire {
         this.conceptLine("Current Savings", totalSavings);
         this.conceptLine("Future Income", expectedFutureIncome);
 
-        final var expectedfutureCAGR = SeriesReader.readPercent("futureReturn")
-                .subtract(SeriesReader.readPercent("expectedInflation"), C);
+        var futureSavingsByYear = SeriesReader.readUSD("futureSavingsByYear");
 
-        final var projectedPortfolioSize = new MoneyAmount(
-                BigDecimal.valueOf(PortfolioProjections.calculatePortfolioPercentile(
-                        totalSavings.amount().doubleValue(),
-                        expectedfutureCAGR.doubleValue(),
-                        SeriesReader.readPercent("futureVolatility").doubleValue(),
-                        years,
-                        0.5d)), USD);
+        final var projectedPortfolioSize = new Investments(console, format, bar, series)
+                .projectedPortfolioSize(totalSavings, futureSavingsByYear, 0.5d);
 
         this.console.appendLine(
                 String.valueOf(years),
@@ -123,6 +119,31 @@ public class Fire {
             this.conceptLine("Essential + Rent", budgets.essentialWithRent(), "✅✅");
             this.conceptLine("Everything + Rent", budgets.everythingWithRent(), "✅✅✅");
         }
+        this.console.appendLine("");
+
+        this.console.appendLine(this.format.subtitle("Failsafe Around Prominent Market Peaks"));
+
+        this.refLine("pre-1900", "3.95");
+        this.refLine("1900-1910", "3.38");
+        this.refLine("1911-1928", "3.57");
+        this.refLine("1929", "3.25");
+        this.refLine("1964-69", "3.66");
+        this.refLine("1972/73", "4.07");
+        this.refLine("1999-2000", "3.53");
+        this.refLine("2008/09", "4.42");
+
+        final var saved = BigDecimal.valueOf(10000l);
+
+        this.console.appendLine(this.format.subtitle(MessageFormat.format("For every {0} saved.", this.format.currency(saved))));
+        this.percents()
+                .stream()
+                .map(pct
+                        -> MessageFormat.format(
+                        "{0} => {1}",
+                        this.format.percent(pct),
+                        this.format.currency(saved.multiply(pct.divide(BigDecimal.valueOf(12), C), C))))
+                .forEach(this.console::appendLine);
+
         this.console.appendLine("");
 
         final var percents = this.percents();
@@ -161,28 +182,9 @@ public class Fire {
                                 withGrowthAndIncome,
                                 farAway));
 
-        this.console.appendLine(this.format.subtitle("Failsafe Around Prominent Market Peaks"));
-
-        this.refLine("pre-1900", "3.95");
-        this.refLine("1900-1910", "3.38");
-        this.refLine("1911-1928", "3.57");
-        this.refLine("1929", "3.25");
-        this.refLine("1964-69", "3.66");
-        this.refLine("1972/73", "4.07");
-        this.refLine("1999-2000", "3.53");
-        this.refLine("2008/09", "4.42");
-
-        final var saved = BigDecimal.valueOf(10000l);
-
-        this.console.appendLine(this.format.subtitle(MessageFormat.format("For every {0} saved.", this.format.currency(saved))));
-        this.percents()
-                .stream()
-                .map(pct
-                        -> MessageFormat.format(
-                        "{0} => {1}",
-                        this.format.percent(pct),
-                        this.format.currency(saved.multiply(pct.divide(BigDecimal.valueOf(12), C), C))))
-                .forEach(this.console::appendLine);
+        this.console.appendLine(Format.format("Saving {0} every year for {1} years.",
+                this.format.currency(futureSavingsByYear.amount()),
+                years));
 
     }
 
@@ -459,6 +461,7 @@ public class Fire {
 
         return SeriesReader.readUSD("futureRealState")
                 .add(SeriesReader.readUSD("futureCash"))
-                .add(futureSavings).adjust(inflationFactor, ONE);
+                .add(futureSavings)
+                .adjust(inflationFactor, ONE);
     }
 }

@@ -109,7 +109,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
             asset.setAmount(usdInvested);
         } else {
             var fx = ForeignExchanges.getMoneyAmountForeignExchange(t.getInitialCurrency(), this.benchmark);
-            asset.setAmount(fx.apply(t.getInitialMoneyAmount(), YearMonth.of(t.getInitialDate())).getAmount());
+            asset.setAmount(fx.apply(t.getInitialMoneyAmount(), YearMonth.of(t.getInitialDate())).amount());
         }
         var answer = new Investment();
         answer.setIn(t.getIn());
@@ -131,7 +131,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
                 var sellPrice = this.seenUSDPrices.get(sellDmy(t));
                 if (sellPrice == null) {
                     var fx = ForeignExchanges.getMoneyAmountForeignExchange(asset.getCurrency(), USD);
-                    out.setAmount(fx.apply(asset.getMoneyAmount(), YearMonth.of(t.getOut().getDate())).getAmount());
+                    out.setAmount(fx.apply(asset.getMoneyAmount(), YearMonth.of(t.getOut().getDate())).amount());
                 } else {
                     out.setAmount(asset.getAmount().multiply(sellPrice, C));
                 }

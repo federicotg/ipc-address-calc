@@ -44,7 +44,7 @@ public class SimpleAggregation implements Aggregation {
     }
 
     private void checkCurrency(Currency expectedCurrency, MoneyAmount lastValue) {
-        if (expectedCurrency != lastValue.getCurrency()) {
+        if (expectedCurrency != lastValue.currency()) {
             throw new IllegalArgumentException("All money amounts must be in the same currency before aggregating them.");
         }
     }
@@ -52,31 +52,31 @@ public class SimpleAggregation implements Aggregation {
     private MoneyAmount avg(SequencedCollection<MoneyAmount> lastValues) {
         return new MoneyAmount(
                 lastValues.stream()
-                        .map(MoneyAmount::getAmount)
+                        .map(MoneyAmount::amount)
                         .reduce(BigDecimal.ZERO, BigDecimal::add)
-                        .divide(new BigDecimal(lastValues.size()), MathConstants.C), lastValues.getFirst().getCurrency());
+                        .divide(new BigDecimal(lastValues.size()), MathConstants.C), lastValues.getFirst().currency());
     }
 
     private MoneyAmount sum(SequencedCollection<MoneyAmount> lastValues) {
         return new MoneyAmount(
                 lastValues.stream()
-                        .map(MoneyAmount::getAmount)
+                        .map(MoneyAmount::amount)
                         .reduce(BigDecimal.ZERO, BigDecimal::add),
-                lastValues.getFirst().getCurrency());
+                lastValues.getFirst().currency());
     }
 
     private MoneyAmount change(SequencedCollection<MoneyAmount> lastValues) {
-        return new MoneyAmount(lastValues.getFirst().getAmount().subtract(lastValues.getLast().getAmount()), lastValues.getFirst().getCurrency());
+        return new MoneyAmount(lastValues.getFirst().amount().subtract(lastValues.getLast().amount()), lastValues.getFirst().currency());
     }
 
     private BigDecimal percentChange(SequencedCollection<MoneyAmount> lastValues) {
 
-        final var last = lastValues.getLast().getAmount();
+        final var last = lastValues.getLast().amount();
         if (last.signum() == 0) {
             return BigDecimal.ZERO;
         }
         return lastValues.getFirst()
-                .getAmount()
+                .amount()
                 .subtract(last)
                 .divide(last, MathConstants.C);
 

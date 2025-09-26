@@ -48,7 +48,7 @@ public class PortfolioItem {
         this.type = type;
         PERCENT.setMinimumFractionDigits(2);
 
-        this.dollarAmount = ForeignExchanges.getMoneyAmountForeignExchange(this.amount.getCurrency(), USD)
+        this.dollarAmount = ForeignExchanges.getMoneyAmountForeignExchange(this.amount.currency(), USD)
                 .apply(this.amount, ym);
 
     }
@@ -67,11 +67,11 @@ public class PortfolioItem {
 
     public String asPercentReport(MoneyAmount total) {
 
-        final var pct = this.getDollarAmount().getAmount().divide(total.getAmount(), MathConstants.C);
+        final var pct = this.getDollarAmount().amount().divide(total.amount(), MathConstants.C);
 
         return MessageFormat.format("{0} {1} {2} {3}",
                 String.format("%-9s", this.type),
-                String.format("%-7s", this.amount.getCurrency()),
+                String.format("%-7s", this.amount.currency()),
                 String.format("%7s", this.pct(pct)),
                 pctBar(pct)
         );
@@ -80,11 +80,11 @@ public class PortfolioItem {
 
     public String asReport(MoneyAmount total) {
 
-        final var pct = this.getDollarAmount().getAmount().divide(total.getAmount(), MathConstants.C);
+        final var pct = this.getDollarAmount().amount().divide(total.amount(), MathConstants.C);
         return MessageFormat.format("{0} {1} {2} {3} {4}",
                 String.format("%-8s", this.type),
-                String.format("%-5s", this.amount.getCurrency()),
-                String.format("%13s", MessageFormat.format("{0,number,currency}", this.getDollarAmount().getAmount())),
+                String.format("%-5s", this.amount.currency()),
+                String.format("%13s", MessageFormat.format("{0,number,currency}", this.getDollarAmount().amount())),
                 String.format("%7s", this.pct(pct)),
                 Ansi.colorize(pctBar(pct), Attribute.BRIGHT_WHITE_BACK())
         );

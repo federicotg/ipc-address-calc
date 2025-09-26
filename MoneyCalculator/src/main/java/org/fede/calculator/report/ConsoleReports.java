@@ -139,7 +139,7 @@ public class ConsoleReports {
                 () -> me.invReport(args, "inv");
 
             case "fire" ->
-                () -> new Fire(format, series, console)
+                () -> new Fire(format, series, console, bar)
                 .fire(Integer.parseInt(me.paramsValue(args, "fire").getOrDefault("m", "12")));
 
             case "savings" ->
@@ -813,7 +813,7 @@ public class ConsoleReports {
             final var inv = new Investments(this.console, this.format, this.bar, this.series);
             final var pos = new Positions(console, format, series);
             final var savings = new Savings(format, series, bar, console);
-            final var fire = new Fire(format, series, console);
+            final var fire = new Fire(format, series, console, bar);
 
             this.expensesChart(12, true);
             this.incomeAccChart();

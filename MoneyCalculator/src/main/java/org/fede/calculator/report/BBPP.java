@@ -131,8 +131,8 @@ public class BBPP {
                 this.format.currency(bbpp.minimum, 17),
                 this.format.currency(bbpp.taxedTotalUSD, 17),
                 this.format.percent(bbpp.taxAmount.divide(bbpp.totalAmount, C), 9),
-                this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.allInvested.getAmount(), C), 9),
-                this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.yearRealIncome, C), 9)));
+                this.format.percent(bbpp.usdTaxAmount.amount().divide(bbpp.allInvested.amount(), C), 9),
+                this.format.percent(bbpp.usdTaxAmount.amount().divide(bbpp.yearRealIncome, C), 9)));
     }
 
     private BBPPItem toArs(BBPPItem i, Map<Currency, Function<MoneyAmount, BigDecimal>> arsFunction) {
@@ -156,30 +156,30 @@ public class BBPP {
 
         final var ym = Inflation.USD_INFLATION.getTo().min(YearMonth.of(year, 12));
 
-        final Map<Currency, Function<MoneyAmount, BigDecimal>> arsFunction = Map.of(ARS, (MoneyAmount item) -> item.getAmount(),
-                LECAP, (MoneyAmount item) -> item.getAmount(),
-                EUR, (MoneyAmount item) -> item.getAmount().multiply(bbpp.eur(), C),
-                USD, (MoneyAmount item) -> item.getAmount().multiply(bbpp.usd(), C),
-                LETE, (MoneyAmount item) -> item.getAmount().multiply(bbpp.usd(), C),
-                XRSU, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
+        final Map<Currency, Function<MoneyAmount, BigDecimal>> arsFunction = Map.of(ARS, (MoneyAmount item) -> item.amount(),
+                LECAP, (MoneyAmount item) -> item.amount(),
+                EUR, (MoneyAmount item) -> item.amount().multiply(bbpp.eur(), C),
+                USD, (MoneyAmount item) -> item.amount().multiply(bbpp.usd(), C),
+                LETE, (MoneyAmount item) -> item.amount().multiply(bbpp.usd(), C),
+                XRSU, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
                         .apply(item, ym)
-                        .getAmount()
+                        .amount()
                         .multiply(bbpp.usd(), C),
-                RTWO, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
+                RTWO, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
                         .apply(item, ym)
-                        .getAmount()
+                        .amount()
                         .multiply(bbpp.usd(), C),
-                CSPX, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
+                CSPX, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
                         .apply(item, ym)
-                        .getAmount()
+                        .amount()
                         .multiply(bbpp.usd(), C),
-                EIMI, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), USD)
+                EIMI, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
                         .apply(item, ym)
-                        .getAmount()
+                        .amount()
                         .multiply(bbpp.usd(), C),
-                MEUD, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.getCurrency(), EUR)
+                MEUD, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), EUR)
                         .apply(item, ym)
-                        .getAmount()
+                        .amount()
                         .multiply(bbpp.eur(), C));
 
         final var ons = this.series.getInvestments()
@@ -188,7 +188,7 @@ public class BBPP {
                 .filter(i -> i.isCurrent(date))
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getMoneyAmount)
-                .map(ma -> arsFunction.get(ma.getCurrency()).apply(ma))
+                .map(ma -> arsFunction.get(ma.currency()).apply(ma))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         bbpp.items().add(new BBPPItem("ONs", ons, ONE, true, false, ARS));
@@ -255,7 +255,7 @@ public class BBPP {
                 .filter(i -> i.isCurrent(date))
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getMoneyAmount)
-                .map(ma -> getMoneyAmountForeignExchange(ma.getCurrency(), USD).apply(ma, ym))
+                .map(ma -> getMoneyAmountForeignExchange(ma.currency(), USD).apply(ma, ym))
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
         final var incomeMonths = Stream.concat(
@@ -270,7 +270,7 @@ public class BBPP {
         final int incomeSize = yearRealIncomeList.size();
 
         var income = yearRealIncomeList.stream()
-                .map(MoneyAmount::getAmount)
+                .map(MoneyAmount::amount)
                 .reduce(ZERO, BigDecimal::add);
 
         if (incomeSize < 12) {
@@ -316,15 +316,15 @@ public class BBPP {
 
         this.console.appendLine(format("Tax amount {0} / USD {1}. Advances {2}",
                 this.format.currency(bbpp.taxAmount),
-                this.format.currency(bbpp.usdTaxAmount.getAmount()),
+                this.format.currency(bbpp.usdTaxAmount.amount()),
                 this.format.currency(bbpp.taxAmount.divide(BigDecimal.valueOf(5), C))));
 
-        this.console.appendLine(format("Monthly tax amount USD {0}", this.format.currency(bbpp.usdTaxAmount.adjust(BigDecimal.valueOf(12), ONE).getAmount())));
+        this.console.appendLine(format("Monthly tax amount USD {0}", this.format.currency(bbpp.usdTaxAmount.adjust(BigDecimal.valueOf(12), ONE).amount())));
 
         this.console.appendLine(format("Effective tax rate is {0}. Tax is {1} of investments. Tax is {2} of income.",
                 this.format.percent(bbpp.taxAmount.divide(bbpp.totalAmount, C)),
-                this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.allInvested.getAmount(), C)),
-                this.format.percent(bbpp.usdTaxAmount.getAmount().divide(bbpp.yearRealIncome, C))));
+                this.format.percent(bbpp.usdTaxAmount.amount().divide(bbpp.allInvested.amount(), C)),
+                this.format.percent(bbpp.usdTaxAmount.amount().divide(bbpp.yearRealIncome, C))));
 
         this.console.appendLine(this.format.subtitle("Detail"));
 

@@ -262,7 +262,7 @@ public class PortfolioReturns {
                 year,
                 i.getType(),
                 i.getCurrency(),
-                usdInvested.getAmount().multiply(BigDecimal.valueOf(daysInvestedInYear), C));
+                usdInvested.amount().multiply(BigDecimal.valueOf(daysInvestedInYear), C));
 
     }
 

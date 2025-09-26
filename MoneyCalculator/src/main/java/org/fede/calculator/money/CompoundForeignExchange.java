@@ -55,12 +55,12 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
     @Override
     public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth) {
         return this.second.exchange(
-                this.first.exchange(amount, this.getFirstTargetCurrency(amount.getCurrency()), referenceYear, referenceMonth), targetCurrency, referenceYear, referenceMonth);
+                this.first.exchange(amount, this.getFirstTargetCurrency(amount.currency()), referenceYear, referenceMonth), targetCurrency, referenceYear, referenceMonth);
     }
 
     @Override
     public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) {
-        return this.second.exchange(this.first.exchange(amount, this.getFirstTargetCurrency(amount.getCurrency()), moment), targetCurrency, moment);
+        return this.second.exchange(this.first.exchange(amount, this.getFirstTargetCurrency(amount.currency()), moment), targetCurrency, moment);
     }
 
     private Currency getFirstTargetCurrency(Currency currency) {
@@ -76,7 +76,7 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
 
     @Override
     public MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) {
-        return this.second.exchange(this.first.exchange(amount, this.getFirstTargetCurrency(amount.getCurrency())), targetCurrency);
+        return this.second.exchange(this.first.exchange(amount, this.getFirstTargetCurrency(amount.currency())), targetCurrency);
     }
 
     @Override

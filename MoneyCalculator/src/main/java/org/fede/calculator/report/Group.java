@@ -74,11 +74,11 @@ public class Group {
                 .forEach(e -> this.console.appendLine(
                 format("{0}{1}{2} {3}",
                         this.format.text(e.getKey(), 9),
-                        this.format.currency(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), C), 11),
+                        this.format.currency(e.getValue().amount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), C), 11),
                         Optional.ofNullable(comparisonByYear.get(e.getKey()))
-                                .map(comp -> this.format.percent(e.getValue().getAmount().divide(comp.getAmount(), C), 10))
+                                .map(comp -> this.format.percent(e.getValue().amount().divide(comp.amount(), C), 10))
                                 .orElse(""),
-                        this.bar.bar(e.getValue().getAmount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), C), scale))
+                        this.bar.bar(e.getValue().amount().divide(BigDecimal.valueOf(Math.min(months, counts.get(e.getKey()))), C), scale))
         )
                 );
     }

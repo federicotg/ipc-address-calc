@@ -141,7 +141,7 @@ public class Format {
     }
 
     public String currency(MoneyAmount value, int width) {
-        return String.format(this.getRightAlignedFormat(width), format("{0} {1}", value.getCurrency(), currency(value.getAmount())));
+        return String.format(this.getRightAlignedFormat(width), format("{0} {1}", value.currency(), currency(value.amount())));
     }
 
     public String percent(BigDecimal pct, int width) {

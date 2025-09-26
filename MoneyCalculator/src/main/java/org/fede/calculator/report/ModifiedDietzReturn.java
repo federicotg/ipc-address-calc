@@ -197,8 +197,8 @@ public class ModifiedDietzReturn {
                 : ForeignExchanges.getMoneyAmountForeignExchange(ie.getCurrency(), currency).apply(ie.getMoneyAmount(), ym);
 
         return nominal
-                ? fx.getAmount()
-                : Inflation.USD_INFLATION.adjust(fx, ym, Inflation.USD_INFLATION.getTo()).getAmount();
+                ? fx.amount()
+                : Inflation.USD_INFLATION.adjust(fx, ym, Inflation.USD_INFLATION.getTo()).amount();
     }
 
     private MoneyAmount portfolioValue(YearMonth ym) {
@@ -230,10 +230,10 @@ public class ModifiedDietzReturn {
             return new ModifiedDietzReturnResult(ZERO, ZERO);
         }
 
-        final var result = v1.getAmount()
-                .subtract(v0.getAmount(), C)
+        final var result = v1.amount()
+                .subtract(v0.amount(), C)
                 .subtract(cashFlowSum, C)
-                .divide(v0.getAmount().add(adjustedCashFlowSum, C), C)
+                .divide(v0.amount().add(adjustedCashFlowSum, C), C)
                 .max(ONE.negate());
 
         return new ModifiedDietzReturnResult(result, annualized(result));

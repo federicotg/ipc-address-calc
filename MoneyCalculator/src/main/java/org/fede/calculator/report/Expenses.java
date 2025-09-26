@@ -74,7 +74,7 @@ public class Expenses {
                     .entrySet()
                     .stream()
                     .filter(p -> exp == null || exp.equals(p.getKey()))
-                    .map(e -> new TypeAndAmount(e.getKey(), this.aggregate(e.getValue(), s -> this.lastMonths(s, months)).getAmount()))
+                    .map(e -> new TypeAndAmount(e.getKey(), this.aggregate(e.getValue(), s -> this.lastMonths(s, months)).amount()))
                     .toList();
 
             final var total = list.stream()

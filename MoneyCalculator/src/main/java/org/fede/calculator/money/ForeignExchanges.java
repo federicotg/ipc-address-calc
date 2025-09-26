@@ -240,13 +240,13 @@ public class ForeignExchanges {
 
         InvestmentEvent answer = new InvestmentEvent();
         MoneyAmount ma = fx(in.getFx(), fx, in.getMoneyAmount(), currency, in.getDate());
-        answer.setAmount(ma.getAmount());
-        answer.setCurrency(ma.getCurrency());
+        answer.setAmount(ma.amount());
+        answer.setCurrency(ma.currency());
         answer.setDate(in.getDate());
-        answer.setFee(fx(in.getFx(), fx, fee, currency, in.getDate()).getAmount());
+        answer.setFee(fx(in.getFx(), fx, fee, currency, in.getDate()).amount());
         answer.setTransferFee(
                 Optional.ofNullable(in.getTransferFee())
-                        .map(trfee -> fx(in.getFx(), fx, new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).getAmount())
+                        .map(trfee -> fx(in.getFx(), fx, new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).amount())
                         .orElse(null));
         answer.setFx(in.getFx());
         return answer;
@@ -257,7 +257,7 @@ public class ForeignExchanges {
 
             return fx.exchange(ma, currency, date);
         }
-        return new MoneyAmount(ma.getAmount().multiply(optionalFxRate, MathConstants.C), USD);
+        return new MoneyAmount(ma.amount().multiply(optionalFxRate, MathConstants.C), USD);
     }
 
     private record FromTo(Currency from, Currency to) {

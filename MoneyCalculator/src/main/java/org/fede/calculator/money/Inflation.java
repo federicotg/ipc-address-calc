@@ -109,19 +109,19 @@ public interface Inflation extends Series {
         InvestmentEvent answer = new InvestmentEvent();
         YearMonth start = YearMonth.of(event.getDate());
         MoneyAmount adjusted = this.adjust(event.getMoneyAmount(), start, moment);
-        answer.setCurrency(adjusted.getCurrency());
-        answer.setAmount(adjusted.getAmount());
+        answer.setCurrency(adjusted.currency());
+        answer.setAmount(adjusted.amount());
         answer.setDate(event.getDate());
         Optional.ofNullable(event.getTransferFee())
                 .map(f -> new MoneyAmount(f, event.getCurrency()))
                 .map(ma -> this.adjust(ma, start, moment))
-                .map(MoneyAmount::getAmount)
+                .map(MoneyAmount::amount)
                 .ifPresent(answer::setTransferFee);
         answer.setFee(
                 this.adjust(
                         new MoneyAmount(event.getFee(), event.getCurrency()),
                         start,
-                        moment).getAmount());
+                        moment).amount());
         answer.setFx(event.getFx());
         return answer;
     }

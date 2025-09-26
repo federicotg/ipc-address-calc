@@ -27,11 +27,11 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public record InvestmentReturn(Currency currency, Date from, Date to, MoneyAmount initialAmount, MoneyAmount endAmount) {
 
-    public MoneyAmount profit(){
+    public MoneyAmount profit() {
         return this.endAmount().subtract(this.initialAmount());
     }
-    
-    public long days(){
+
+    public long days() {
         return ChronoUnit.DAYS.between(this.from().toInstant(), this.to().toInstant());
     }
 }

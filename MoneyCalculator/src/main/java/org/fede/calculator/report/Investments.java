@@ -408,7 +408,7 @@ public class Investments {
             endValue = Inflation.USD_INFLATION.adjust(endValue, endYm, Inflation.USD_INFLATION.getTo());
         }
 
-        return endValue.getAmount().divide(startValue.getAmount(), MathConstants.C).subtract(ONE);
+        return endValue.amount().divide(startValue.amount(), MathConstants.C).subtract(ONE);
 
     }
 
@@ -669,9 +669,9 @@ public class Investments {
                 this.format.text(d.getInvestmentCurrency().name(), colWidths[i++]),
                 this.format.text(DateTimeFormatter.ISO_LOCAL_DATE.format(d.getInvestmentDate()), colWidths[i++]),
                 this.format.currency(d.getInvestmentPrice(), colWidths[i++]),
-                this.format.currency(d.getInvestedAmount().getAmount(), colWidths[i++]),
-                this.format.currency(d.getCurrentAmount().getAmount(), colWidths[i++]),
-                this.format.currencyPL(d.getGrossCapitalGains().getAmount(), colWidths[i++]),
+                this.format.currency(d.getInvestedAmount().amount(), colWidths[i++]),
+                this.format.currency(d.getCurrentAmount().amount(), colWidths[i++]),
+                this.format.currencyPL(d.getGrossCapitalGains().amount(), colWidths[i++]),
                 this.format.percent(d.getGrossCapitalGainsPercent(), colWidths[i++]),
                 this.format.percent(d.getCAGR(), colWidths[i++]),
                 this.format.text(" ", colWidths[i++]),
@@ -839,7 +839,7 @@ public class Investments {
         final var capitalGains = total.apply(i)
                 .subtract(invested.apply(i));
 
-        if (capitalGains.getAmount().signum() > 0) {
+        if (capitalGains.amount().signum() > 0) {
             return capitalGains.adjust(ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
         }
 
@@ -851,7 +851,7 @@ public class Investments {
     }
 
     private MoneyAmount asUSD(MoneyAmount ma, YearMonth ym) {
-        return ForeignExchanges.getMoneyAmountForeignExchange(ma.getCurrency(), Currency.USD).apply(ma, ym);
+        return ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), Currency.USD).apply(ma, ym);
     }
 
     private MoneyAmount accum(List<Investment> investments, YearMonth yearMonth, Function<Investment, MoneyAmount> extractor) {
@@ -943,7 +943,7 @@ public class Investments {
                 .thenComparing(InvestmentTypeCurrencyAndAmount::currency);
 
         Collector<Investment, ?, BigDecimal> mapper = Collectors.mapping(
-                inv -> inv.getMoneyAmount().getAmount(),
+                inv -> inv.getMoneyAmount().amount(),
                 Collectors.reducing(ZERO, BigDecimal::add));
 
         this.console.appendLine(this.format.title("Inversiones actuales agrupadas por moneda"));
@@ -1083,7 +1083,7 @@ public class Investments {
         this.console.appendLine(this.format.subtitle("Comisiones"));
         this.console.appendLine("Sold ", this.format.currency(feeSummary.sold, 16));
         this.console.appendLine("Bought ", this.format.currency(feeSummary.bought, 16));
-        this.console.appendLine("Total:", this.format.currencyPL(fees.getAmount().negate(), 16),
+        this.console.appendLine("Total:", this.format.currencyPL(fees.amount().negate(), 16),
                 " ",
                 this.format.percent(fees.amount().divide(netAmountSummary.sold.amount(), C), 6)
         );
@@ -1264,7 +1264,7 @@ public class Investments {
         return new MoneyAmount(i.getOut()
                 .getMoneyAmount()
                 .subtract(this.cost(i))
-                .adjust(BigDecimal.ONE, bnaFX.get(DTF.format(i.getOut().getDate().toInstant()))).getAmount(),
+                .adjust(BigDecimal.ONE, bnaFX.get(DTF.format(i.getOut().getDate().toInstant()))).amount(),
                 Currency.ARS);
     }
 
@@ -1473,7 +1473,7 @@ public class Investments {
                             .filter(i -> i.isCurrent(moment))
                             .map(Investment::getInvestment)
                             .map(InvestmentAsset::getMoneyAmount)
-                            .map(ma -> ForeignExchanges.getForeignExchange(ma.getCurrency(), USD).exchange(ma, USD, moment))
+                            .map(ma -> ForeignExchanges.getForeignExchange(ma.currency(), USD).exchange(ma, USD, moment))
                             .map(ma -> nominal
                             ? ma
                             : Inflation.USD_INFLATION.adjust(ma, momentYm, end))
@@ -1535,15 +1535,42 @@ public class Investments {
         return accSeries;
     }
 
+    public MoneyAmount projectedPortfolioSize(MoneyAmount presentValue, MoneyAmount yearlySavings, double pValue) {
+        var years = SeriesReader.readInt("retirementHorizon");
+        //var expectedReturn = SeriesReader.readPercent("futureReturn").doubleValue();
+         final var expectedReturn = SeriesReader.readPercent("futureReturn")
+                .subtract(SeriesReader.readPercent("expectedInflation"), C)
+                .doubleValue();
+        
+        var expectedVolatility = SeriesReader.readPercent("futureVolatility").doubleValue();
+
+        var projection = this.predictedValues(
+                Inflation.USD_INFLATION.getTo(),
+                years,
+                pValue,
+                presentValue,
+                expectedReturn,
+                expectedVolatility, yearlySavings);
+
+        return projection.getAmount(projection.getTo());
+
+    }
+
     public void projection(MoneyAmount savings) {
-        var expectedReturn = SeriesReader.readPercent("futureReturn").doubleValue();
+        //var expectedReturn = SeriesReader.readPercent("futureReturn").doubleValue();
+        
+        final var expectedReturn = SeriesReader.readPercent("futureReturn")
+                .subtract(SeriesReader.readPercent("expectedInflation"), C)
+                .doubleValue();
+
+        
         var expectedVolatility = SeriesReader.readPercent("futureVolatility").doubleValue();
 
         var portfolio = this.portfolioValue(false, Investment::isETF);
 
         var presentValue = portfolio.getAmount(portfolio.getTo());
 
-        var years = 10;
+        var years = SeriesReader.readInt("retirementHorizon");
 
         var p10 = this.predictedValues(
                 portfolio.getTo(),
@@ -1576,8 +1603,8 @@ public class Investments {
                                 p50,
                                 p90),
                         "future" + (savings.isZero()
-                        ? ""
-                        : "-with-" + savings.getAmount().intValue()));
+                        ? "-with-0"
+                        : "-with-" + savings.amount().intValue()));
     }
 
     private MoneyAmountSeries predictedValues(
@@ -1587,29 +1614,52 @@ public class Investments {
             MoneyAmount initial,
             double carg,
             double volatility,
-            MoneyAmount yearlyAdditionalSavings) {
+            MoneyAmount savings) {
 
+        List<MoneyAmountSeries> s = new ArrayList<>(years);
+
+        s.add(this.predictedValues(start, years, percentile, initial, carg, volatility));
+        for (int y = 1; y < years; y++) {
+            s.add(this.predictedValues(
+                    YearMonth.of(start.year() + y, start.month()),
+                    years - y,
+                    percentile,
+                    savings,
+                    carg,
+                    volatility));
+
+        }
+        return s.stream().reduce(MoneyAmountSeries::add).get();
+    }
+
+    private MoneyAmountSeries predictedValues(
+            YearMonth start,
+            int years,
+            double percentile,
+            MoneyAmount initial,
+            double carg,
+            double volatility) {
+
+        //   this.console.appendLine("");
+        //  this.console.appendLine(""+start+" "+years + " "+initial);
         var valueSeries = new SortedMapMoneyAmountSeries(USD,
                 " P"
                 + (int) (percentile * 100d));
         valueSeries.putAmount(start, initial);
         for (var i = 1; i <= years; i++) {
 
-            var amount = initial.amount()
-                    .add(yearlyAdditionalSavings.amount()
-                            .multiply(BigDecimal.valueOf(i)));
-
             valueSeries.putAmount(start.year() + i, start.month(),
                     new MoneyAmount(
                             BigDecimal.valueOf(
                                     PortfolioProjections.calculatePortfolioPercentile(
-                                            amount.doubleValue(),
+                                            initial.amount().doubleValue(),
                                             carg,
                                             volatility,
                                             i,
                                             percentile)), USD));
 
         }
+        // this.console.appendLine(""+valueSeries.getFrom() + " "+ valueSeries.getTo());
         return valueSeries;
     }
 

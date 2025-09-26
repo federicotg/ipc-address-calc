@@ -56,7 +56,7 @@ public class CashInvestmentBuilder {
             
             for (var ym = cashInvesments.getFrom(); ym.compareTo(cashInvesments.getTo()) <= 0; ym = ym.next()) {
 
-                var currentSavedUSD = cashInvesments.getAmountOrElseZero(ym).getAmount();
+                var currentSavedUSD = cashInvesments.getAmountOrElseZero(ym).amount();
                 var total = this.total(this.data);
                 if (currentSavedUSD.compareTo(total) > 0) {
                     this.data.add(this.newInvestment(currentSavedUSD.subtract(total, MathConstants.C), ym));
