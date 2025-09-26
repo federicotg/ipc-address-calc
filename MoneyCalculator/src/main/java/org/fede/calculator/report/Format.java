@@ -54,7 +54,7 @@ public class Format {
         PERCENT_FORMAT.setMaximumFractionDigits(2);
         CURRENCY_FORMAT.setMinimumFractionDigits(2);
         NUMBER_FORMAT2.setMinimumFractionDigits(2);
-        NUMBER_FORMAT2.setMinimumFractionDigits(4);
+        NUMBER_FORMAT4.setMinimumFractionDigits(4);
 
     }
 
