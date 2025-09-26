@@ -398,9 +398,11 @@ public class Series {
 
         final var negativeFactor = ONE.negate();
 
-        return income
+        var otherSpending = income
                 .add(spending.map((ym, ma) -> ma.adjust(ONE, negativeFactor)))
                 .add(netSaving.map((ym, ma) -> ma.adjust(ONE, negativeFactor)));
+        otherSpending.setName("Other spending");
+        return otherSpending;
     }
 
     public MoneyAmountSeries realCash() {

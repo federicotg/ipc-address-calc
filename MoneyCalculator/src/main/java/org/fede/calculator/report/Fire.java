@@ -20,6 +20,7 @@ import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import java.text.MessageFormat;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -70,6 +71,8 @@ public class Fire {
         final var totalSavings = this.series.currentSavingsUSD();
         final var years = SeriesReader.readInt("retirementHorizon");
 
+        final var capitalGainsTaxRate = SeriesReader.readPercent("capitalGainsTaxRate");
+
         final var expectedFutureIncome = this.expectedFutureSavings();
 
         this.console.appendLine(this.format.subtitle(months + "-Month Average Spending"));
@@ -106,6 +109,10 @@ public class Fire {
                         projectedPortfolioSize.amount().divide(totalSavings.amount(), C)
                                 .subtract(ONE, C),
                         6));
+
+        this.console.appendLine(
+                this.format.text("Capital Gains", 20),
+                this.format.percent(capitalGainsTaxRate, 6));
 
         this.console.appendLine(this.format.subtitle("Portfolio Size by Spending and Withdrawal Percent"));
 
@@ -146,6 +153,14 @@ public class Fire {
                 ))
                 .forEach(this.console::appendLine);
 
+        new References(console, format)
+                .refsLabels(
+                        List.of("Savings", "Savings+Growth", "Savings+Growth+Income", "Far Away"),
+                        List.of(alreadyThere,
+                                withGrowth,
+                                withGrowthAndIncome,
+                                farAway));
+
         this.console.appendLine(this.format.subtitle("Failsafe Around Prominent Market Peaks"));
 
         this.refLine("pre-1900", "3.95");
@@ -157,13 +172,18 @@ public class Fire {
         this.refLine("1999-2000", "3.53");
         this.refLine("2008/09", "4.42");
 
-        new References(console, format)
-                .refsLabels(
-                        List.of("Savings", "Savings+Growth", "Savings+Growth+Income", "Far Away"),
-                        List.of(alreadyThere,
-                                withGrowth,
-                                withGrowthAndIncome,
-                                farAway));
+        final var saved = BigDecimal.valueOf(10000l);
+
+        this.console.appendLine(this.format.subtitle(MessageFormat.format("For every {0} saved.", this.format.currency(saved))));
+        this.percents()
+                .stream()
+                .map(pct
+                        -> MessageFormat.format(
+                        "{0} => {1}",
+                        this.format.percent(pct),
+                        this.format.currency(saved.multiply(pct.divide(BigDecimal.valueOf(12), C), C))))
+                .forEach(this.console::appendLine);
+
     }
 
     private void refLine(String label, String pct) {
@@ -191,14 +211,16 @@ public class Fire {
     private List<BigDecimal> spendingAmounts(SpendingBudgets budgets) {
         return Stream.concat(
                 budgets.asStream(),
-                IntStream.range(5, 21)
-                        .map(i -> i * 200)
+                IntStream.range(12, 41)
+                        .map(i -> i * 100)
                         .mapToObj(BigDecimal::new))
                 .sorted()
                 .toList();
     }
 
     private SpendingBudgets budgets(int months) {
+
+        final var capitalGainsTaxRate = SeriesReader.readPercent("capitalGainsTaxRate").add(ONE);
 
         final var futureHealth = SeriesReader.readUSD("futureHealth");
         final var futureRent = SeriesReader.readUSD("futureRent");
@@ -224,12 +246,13 @@ public class Fire {
         final var everythingWithRent = everythingWithoutRent
                 .add(futureRent);
         return new SpendingBudgets(
-                essentialWithRent,
-                essentialWithoutRent,
-                everythingWithRent,
-                everythingWithoutRent,
+                essentialWithRent.adjust(ONE, capitalGainsTaxRate),
+                essentialWithoutRent.adjust(ONE, capitalGainsTaxRate),
+                everythingWithRent.adjust(ONE, capitalGainsTaxRate),
+                everythingWithoutRent.adjust(ONE, capitalGainsTaxRate),
                 Stream.of(essential, discretionary, irregular, other)
-                        .reduce(MoneyAmount.zero(USD), MoneyAmount::add));
+                        .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
+                        .adjust(ONE, capitalGainsTaxRate));
     }
 
     private MoneyAmount sumExpenses(String type, int months) {
@@ -343,7 +366,7 @@ public class Fire {
                 "Projected FIRE Number",
                 this.format.percent(basePct)
                 + " safe withdrawal. "
-                + "C: current, P: "+years+"-year returns percentile, F: future income",
+                + "C: current, P: " + years + "-year returns percentile, F: future income",
                 "fire-projected");
     }
 

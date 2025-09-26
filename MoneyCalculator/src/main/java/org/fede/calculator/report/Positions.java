@@ -431,7 +431,24 @@ public class Positions {
 
         final Function<CashFlow, String> groupingFunction = groupings.get(group);
 
-        final Map<String, BigDecimal> grouped = this.series.getInvestments()
+        final Map<String, BigDecimal> grouped = this.netInvestedByGrouping(
+                nominal, 
+                filter, 
+                groupingFunction);
+
+        grouped.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(e -> this.console.appendLine(
+                e.getKey() + " " + this.format.currencyPL(e.getValue(), 20)));
+    }
+    
+    private Map<String, BigDecimal> netInvestedByGrouping(
+            boolean nominal,
+            Predicate<Investment> filter,
+            Function<CashFlow, String> groupingFunction) {
+
+        return this.series.getInvestments()
                 .stream()
                 .filter(filter)
                 .map(inv -> ForeignExchanges.exchange(inv, USD))
@@ -448,13 +465,6 @@ public class Positions {
                         Collectors.mapping(CashFlow::amount,
                                 Collectors.reducing(ZERO, BigDecimal::add)
                         )));
-
-        grouped.entrySet()
-                .stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(e -> this.console.appendLine(
-                e.getKey() + " " + this.format.currencyPL(e.getValue(), 20)
-        ));
     }
 
     private boolean isLong(Investment i) {
@@ -754,5 +764,5 @@ public class Positions {
     private record CurrencyAndGroupKey(Currency currency, String groupKey) {
 
     }
-
+    
 }

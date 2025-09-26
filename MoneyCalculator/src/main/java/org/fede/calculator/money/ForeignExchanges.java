@@ -170,7 +170,7 @@ public class ForeignExchanges {
     
     public static ForeignExchange getForeignExchange(Currency from, Currency to) {
 
-        if (from.equals(to)) {
+        if (from == to) {
             return IDENTITY_FX.computeIfAbsent(to, ForeignExchanges::getIdentityForeignExchange);
         }
 

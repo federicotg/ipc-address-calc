@@ -23,6 +23,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.fede.calculator.money.MoneyAmount;
 
 /**
@@ -31,24 +33,41 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public class Format {
 
+    private static final Map<String, MessageFormat> FORMATS = new ConcurrentHashMap<>();
+
     private final BigDecimal ONE_THOUSAND = BigDecimal.ONE.movePointRight(3);
     private final BigDecimal ONE_MILLION = BigDecimal.ONE.movePointRight(6);
 
     private final AnsiFormat PROFIT_FORMAT = new AnsiFormat(Attribute.GREEN_TEXT());
     private final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
     private final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
+    private final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance();
+    private final NumberFormat NUMBER_FORMAT = NumberFormat.getNumberInstance();
+    private final NumberFormat NUMBER_FORMAT2 = NumberFormat.getNumberInstance();
+    private final NumberFormat NUMBER_FORMAT4 = NumberFormat.getNumberInstance();
 
+    private final Map<Integer, String> rightAlignedFormat = new ConcurrentHashMap<>();
+    private final Map<Integer, String> leftAlignedFormat = new ConcurrentHashMap<>();
+    
     public Format() {
         PERCENT_FORMAT.setMinimumFractionDigits(2);
         PERCENT_FORMAT.setMaximumFractionDigits(2);
+        CURRENCY_FORMAT.setMinimumFractionDigits(2);
+        NUMBER_FORMAT2.setMinimumFractionDigits(2);
+        NUMBER_FORMAT2.setMinimumFractionDigits(4);
+
     }
 
     private String getRightAlignedFormat(int width) {
-        return "%" + String.valueOf(width) + "s";
+        return this.rightAlignedFormat.computeIfAbsent(
+                width,
+                w -> "%" + String.valueOf(w) + "s");
     }
 
     private String getLeftAlignedFormat(int width) {
-        return "%-" + String.valueOf(width) + "s";
+        return this.leftAlignedFormat.computeIfAbsent(
+                width,
+                w -> "%-" + String.valueOf(w) + "s");
     }
 
     public String text(String value, int width, AnsiFormat fmt) {
@@ -73,11 +92,14 @@ public class Format {
     }
 
     public static String format(String pattern, Object... o) {
-        return new MessageFormat(pattern).format(o);
+        return FORMATS.computeIfAbsent(pattern, MessageFormat::new)
+                .format(o);
     }
 
     public String currency(BigDecimal value) {
-        return format("{0,number,currency}", value);
+        //return format("{0,number,currency}", value);
+        return CURRENCY_FORMAT.format(value);
+
     }
 
     public String currency(BigDecimal value, int width) {
@@ -85,25 +107,28 @@ public class Format {
     }
 
     public String number(BigDecimal value) {
-        return format("{0,number,0.00}", value);
+        //return format("{0,number,0.00}", value);
+        return NUMBER_FORMAT2.format(value);
     }
 
     public String number2(BigDecimal value) {
-        return format("{0,number,0.##}", value);
+        //return format("{0,number,0.##}", value);
+        return NUMBER_FORMAT.format(value);
     }
 
     public String numberLong(BigDecimal value) {
-        return format("{0,number,0.0000}", value);
+        //return format("{0,number,0.0000}", value);
+        return NUMBER_FORMAT4.format(value);
     }
 
     public String currencyShort(BigDecimal value) {
         if (value.abs().compareTo(ONE_THOUSAND) < 0) {
-            return format("{0,number,0}", value.setScale(0, RoundingMode.HALF_UP));
+            return NUMBER_FORMAT.format(value.setScale(0, RoundingMode.HALF_UP));
         }
         if (value.abs().compareTo(ONE_MILLION) < 0) {
-            return format("{0,number,0.#}k", value.movePointLeft(3).setScale(1, RoundingMode.HALF_UP));
+            return NUMBER_FORMAT.format(value.movePointLeft(3).setScale(1, RoundingMode.HALF_UP)) + "k";
         }
-        return format("{0,number,0.#}m", value.movePointLeft(6).setScale(1, RoundingMode.HALF_UP));
+        return NUMBER_FORMAT.format(value.movePointLeft(6).setScale(1, RoundingMode.HALF_UP)) + "m";
     }
 
     public String number(BigDecimal value, int width) {
@@ -126,13 +151,13 @@ public class Format {
 
     public String percent(BigDecimal pct) {
 
-        return format("{0}", PERCENT_FORMAT.format(pct));
+        return PERCENT_FORMAT.format(pct);
     }
 
     public String title(String text) {
 
-        return "\n"+
-                this.center(Ansi.colorize(text, Attribute.BRIGHT_WHITE_TEXT(), Attribute.BOLD()), 80)
+        return "\n"
+                + this.center(Ansi.colorize(text, Attribute.BRIGHT_WHITE_TEXT(), Attribute.BOLD()), 80)
                 + "\n";
 
     }

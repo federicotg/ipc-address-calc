@@ -18,11 +18,8 @@ package org.fede.calculator.report;
 
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -53,10 +50,10 @@ public class CashInvestmentBuilder {
 
         if (this.data == null) {
 
-            this.data = new ArrayList<>(100);
-
             final var cashInvesments = this.cash.get();
 
+            this.data = new ArrayList<>(cashInvesments.getFrom().monthsUntil(cashInvesments.getTo()));
+            
             for (var ym = cashInvesments.getFrom(); ym.compareTo(cashInvesments.getTo()) <= 0; ym = ym.next()) {
 
                 var currentSavedUSD = cashInvesments.getAmountOrElseZero(ym).getAmount();
@@ -92,7 +89,7 @@ public class CashInvestmentBuilder {
         final var out = new InvestmentEvent();
         out.setAmount(inv.getInvestment().getAmount());
         out.setCurrency(USD);
-        out.setDate(ym.asDate());
+        out.setDate(ym.prev().asToDate());
         out.setFee(ZERO);
         out.setTransferFee(ZERO);
         inv.setOut(out);
@@ -102,10 +99,7 @@ public class CashInvestmentBuilder {
         final var in = new InvestmentEvent();
         in.setAmount(amount);
         in.setCurrency(USD);
-        in.setDate(Date.from(
-                LocalDate.of(ym.getYear(), ym.getMonth(), 1)
-                        .atTime(12, 01)
-                        .toInstant(ZoneOffset.UTC)));
+        in.setDate(ym.asDate());
         in.setFee(ZERO);
         in.setTransferFee(ZERO);
 

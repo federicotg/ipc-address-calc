@@ -830,8 +830,10 @@ public class ConsoleReports {
             inv.savingsInvestmentsPercentChart();
             savings.savingsByIncomeChart();
             savings.spendingByRegularIncomeChart();
+            savings.spendingByYear();
             inv.savedAndInvestedChart();
             inv.investmentsByClassChart();
+            
             inv.projection(MoneyAmount.zero(USD));
             inv.projection(SeriesReader.readUSD("futureSavingsByYear"));
             inv.projection(SeriesReader.readUSD("futureSavingsByYear2"));

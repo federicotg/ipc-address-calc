@@ -44,7 +44,7 @@ public class SimpleAggregation implements Aggregation {
     }
 
     private void checkCurrency(Currency expectedCurrency, MoneyAmount lastValue) {
-        if (!expectedCurrency.equals(lastValue.getCurrency())) {
+        if (expectedCurrency != lastValue.getCurrency()) {
             throw new IllegalArgumentException("All money amounts must be in the same currency before aggregating them.");
         }
     }

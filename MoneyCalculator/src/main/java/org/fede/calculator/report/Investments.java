@@ -70,12 +70,14 @@ import org.fede.calculator.chart.PieChart;
 import org.fede.calculator.chart.PieItem;
 import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.ScatterXYChart;
+import org.fede.calculator.chart.StackedTimeSeriesChart;
 import org.fede.calculator.chart.TimeSeriesChart;
 import org.fede.calculator.chart.ValueFormat;
 import org.fede.calculator.money.PortfolioProjections;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
+import org.fede.calculator.money.series.InvestmentType;
 import static org.fede.calculator.money.series.InvestmentType.BONO;
 import static org.fede.calculator.money.series.InvestmentType.FCI;
 import static org.fede.calculator.money.series.InvestmentType.PF;
@@ -167,15 +169,17 @@ public class Investments {
     }
 
     public void cashInv(boolean nominal) {
+        Predicate<Investment> isCurrent = i -> i.isCurrent(new Date());
         this.investmentReport(
                 this.cashInvestments.cashInvestments().stream(),
                 i -> true,
                 i -> true,
-                Investment::isCurrent, nominal);
+                isCurrent, nominal);
     }
 
     private void investmentReport(final Predicate<Investment> everyone, boolean nominal) {
-        this.investmentReport(this.getInvestments(), everyone, Investment::isETF, Investment::isCurrent, nominal);
+        Predicate<Investment> isCurrent = i -> i.isCurrent(new Date());
+        this.investmentReport(this.getInvestments(), everyone, Investment::isETF, isCurrent, nominal);
     }
 
     private void investmentReport(
@@ -777,13 +781,15 @@ public class Investments {
                 .map(Investment::getIn)
                 .map(InvestmentEvent::getDate)
                 .map(YearMonth::of)
-                .reduce((left, right) -> left.min(right))
+                //.reduce((left, right) -> left.min(right))
+                .reduce(YearMonth::min)
                 .get();
 
         final var end = inv
                 .stream()
                 .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate).map(YearMonth::of).orElse(Inflation.USD_INFLATION.getTo()))
-                .reduce((left, right) -> left.max(right))
+                //.reduce((left, right) -> left.max(right))
+                .reduce(YearMonth::max)
                 .get();
 
         final var investmentSeries = new SortedMapMoneyAmountSeries(Currency.USD, "investment");
@@ -951,14 +957,30 @@ public class Investments {
                 .stream()
                 .map(e -> new InvestmentTypeCurrencyAndAmount(e.getKey(), e.getValue()))
                 .sorted(TYPE_CURRENCY_COMPARATOR)
-                .map(e -> format("{0}{1} {2}",
-                this.format.text(e.currency().name(), 5),
-                this.format.number(e.amount(), 12),
-                this.format.currency(
-                        ForeignExchanges.getForeignExchange(e.currency(), USD)
-                                .exchange(new MoneyAmount(ONE, e.currency()), USD, now), 10)
-        ))
+                .map(e -> this.investmentLine(
+                e.currency(),
+                e.amount(),
+                ForeignExchanges.getForeignExchange(e.currency(), USD)
+                        .exchange(new MoneyAmount(ONE, e.currency()), USD, now)))
                 .forEach(this.console::appendLine);
+
+        this.console.appendLine(this.investmentLine(EUR, ONE, ForeignExchanges.getForeignExchange(EUR, USD)
+                .exchange(new MoneyAmount(ONE, EUR), USD, now)));
+        this.console.appendLine(this.investmentLine(USD, ONE,
+                ForeignExchanges.getForeignExchange(USD, ARS)
+                        .exchange(new MoneyAmount(ONE, USD), ARS, now)));
+
+        this.console.appendLine(this.investmentLine(MEUD, ONE,
+                ForeignExchanges.getForeignExchange(MEUD, EUR)
+                        .exchange(new MoneyAmount(ONE, MEUD), EUR, now)));
+
+    }
+
+    private String investmentLine(Currency currency, BigDecimal quantity, MoneyAmount price) {
+        return format("{0}{1} {2}",
+                this.format.text(currency.name(), 5),
+                this.format.number(quantity, 12),
+                this.format.currency(price, 10));
     }
 
     private record LabelAndMDR(String label, ModifiedDietzReturnResult mdr) {
@@ -1288,7 +1310,7 @@ public class Investments {
         final var limitDate = LocalDateTime.of(2025, Month.APRIL, 2, 0, 0, 0, 0);
 
         final var lastBuyDate = LocalDateTime.of(2025, Month.JUNE, 30, 0, 0, 0, 0);
-
+        Predicate<Investment> isCurrent = i -> i.isCurrent(new Date());
         return new SoldAndBought<>(
                 this.series.getInvestments()
                         .stream()
@@ -1300,7 +1322,7 @@ public class Investments {
                 this.series.getInvestments()
                         .stream()
                         .filter(Investment::isETF)
-                        .filter(Investment::isCurrent)
+                        .filter(isCurrent)
                         .map(Investment::getIn)
                         .filter(e
                                 -> e.getDate()
@@ -1399,15 +1421,23 @@ public class Investments {
         var cash = savings.map((ym, ma) -> ma.subtract(investments.getAmountOrElseZero(ym)));
         cash.setName("Cash");
 
+        var ss = List.of(
+                this.currencyInvestment("Local USD Bonds", localUSDBonds),
+                this.currencyInvestment("Local ARS Bonds", localARSBonds),
+                this.currencyInvestment("Local Stocks", localStocks),
+                this.currencyInvestment("Global Stocks", globalStocks),
+                cash);
+
+        new StackedTimeSeriesChart()
+                .create("Real Investments by Currency (Grouped)",
+                        ss,
+                        "investments-by-class-s.png");
+
         new TimeSeriesChart()
                 .create("Real Investments by Currency (Grouped)",
-                        List.of(
-                                this.currencyInvestment("Local USD Bonds", localUSDBonds),
-                                this.currencyInvestment("Local ARS Bonds", localARSBonds),
-                                this.currencyInvestment("Local Stocks", localStocks),
-                                this.currencyInvestment("Global Stocks", globalStocks),
-                                cash),
+                        ss,
                         "investments-by-class.png");
+
     }
 
     private MoneyAmountSeries currencyInvestment(String name, List<Currency> currencies) {
@@ -1540,14 +1570,14 @@ public class Investments {
                 expectedVolatility, savings);
 
         new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
-                .create("Future Return Saving "+this.format.currency(savings.amount()),
+                .create("Future Return Saving " + this.format.currency(savings.amount()),
                         List.of(portfolio,
                                 p10,
                                 p50,
                                 p90),
                         "future" + (savings.isZero()
                         ? ""
-                        : "-with-"+savings.getAmount().intValue()));
+                        : "-with-" + savings.getAmount().intValue()));
     }
 
     private MoneyAmountSeries predictedValues(
@@ -1583,19 +1613,19 @@ public class Investments {
         return valueSeries;
     }
 
-     public void investmentScatterChart(Currency currency) {
-         this.investmentScatterChart(currency, ValueFormat.CURRENCY);
-     }
-    
+    public void investmentScatterChart(Currency currency) {
+        this.investmentScatterChart(currency, ValueFormat.CURRENCY);
+    }
+
     public void investmentScatterChart(Currency currency, ValueFormat format) {
 
         final var ss = new XYSeries("Quantity");
 
         var fx = ForeignExchanges.getForeignExchange(currency, USD);
-
+        Predicate<Investment> isCurrent = i -> i.isCurrent(new Date());
         var fxFrom = this.series.getInvestments()
                 .stream()
-                .filter(Investment::isCurrent)
+                .filter(isCurrent)
                 .filter(i -> i.getCurrency() == currency)
                 .map(Investment::getInitialDate)
                 .map(YearMonth::of)
@@ -1614,7 +1644,7 @@ public class Investments {
                 )),
                 this.series.getInvestments()
                         .stream()
-                        .filter(Investment::isCurrent)
+                        .filter(isCurrent)
                         .filter(i -> i.getCurrency() == currency)
                         .map(i -> new LabeledXYDataItem(
                         i.getInitialDate().getTime(),

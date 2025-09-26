@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -36,6 +37,7 @@ import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.fede.calculator.chart.BarChart;
 import org.fede.calculator.chart.ChartSeriesMapper;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.ForeignExchanges;
@@ -57,6 +59,7 @@ import org.fede.calculator.chart.ValueFormat;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
+import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.XYSeries;
 
 /**
@@ -69,6 +72,7 @@ public class Savings {
     private final Series series;
     private final Bar bar;
     private final Console console;
+    //private final BigDecimal appartmentInvestment2011 = BigDecimal.valueOf(11600);
 
     public Savings(Format format, Series series, Bar bar, Console console) {
         this.format = format;
@@ -109,23 +113,23 @@ public class Savings {
     public void netAvgSavingSpentChart(int months) {
 
         final var agg = new SimpleAggregation(months);
-        final var incomeSeries = agg.average(this.series.realIncome());
+        //final var incomeSeries = agg.average(this.series.realIncome());
+
         final var netSaving = agg.average(this.series.realNetSavings());
         final var spending = agg.average(this.series.realExpenses(null));
         spending.setName("Spending");
         netSaving.setName("Savings");
 
-        var otherSpending = incomeSeries
-                .map((ym, income) -> MoneyAmount.zero(Currency.USD)
-                .max(income
-                        .subtract(netSaving.getAmountOrElseZero(ym))
-                        .subtract(spending.getAmountOrElseZero(ym))));
-        otherSpending.setName("Other Spending");
-
+        //var otherSpending = incomeSeries
+        //        .map((ym, income) -> MoneyAmount.zero(Currency.USD)
+        //        .max(income
+        //                .subtract(netSaving.getAmountOrElseZero(ym))
+        //                .subtract(spending.getAmountOrElseZero(ym))));
+        //otherSpending.setName("Other Spending");
         new StackedTimeSeriesChart()
                 .create(
                         months + "-month Savings and Spending",
-                        List.of(spending, otherSpending, netSaving),
+                        List.of(spending, agg.average(this.series.realOtherExpenses()), netSaving),
                         "savings-spending" + months);
 
     }
@@ -746,6 +750,56 @@ public class Savings {
 
     }
 
+    private MoneyAmount spendingAdjustment() {
+
+        var arsSavings = SeriesReader.readSeries("saving/ahorros-peso.json");
+
+        var ym = YearMonth.of(2011, 8);
+
+        var ars = arsSavings.getAmount(ym.prev())
+                .subtract(arsSavings.getAmount(ym));
+
+        var usd = ForeignExchanges.getForeignExchange(ARS, USD).exchange(ars, USD, ym);
+        return Inflation.USD_INFLATION.adjust(usd, ym, Inflation.USD_INFLATION.getTo());
+
+    }
+
+    public void spendingByYear() {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+        Map<Integer, BigDecimal> values = new HashMap<>();
+
+        IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
+                .forEach(year
+                        -> values.put(year - 2000,
+                        this.yearIncome(year)
+                                .subtract(this.yearSavings(year))
+                                .amount()
+                                .multiply(new BigDecimal(12))
+                                .subtract(year == 2011
+                                        ? this.spendingAdjustment().amount()
+                                        : ZERO)));
+
+        var avg = values.values()
+                .stream()
+                .reduce(ZERO, BigDecimal::add)
+                .divide(BigDecimal.valueOf(values.size()), C);
+        values.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(e
+                        -> dataset.addValue(e.getValue(),
+                        "Spending",
+                        e.getKey() == 11 ? "11(*)" : e.getKey().toString()));
+
+        dataset.addValue(avg,
+                "Spending",
+                "Avg.");
+
+        new BarChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
+                .create("Spending", "Year", dataset, "spending");
+
+    }
+
     public void spendingByRegularIncomeChart() throws IOException {
 
         final var ss = new XYSeries("Year");
@@ -757,8 +811,13 @@ public class Savings {
                                 this.yearRegularIncome(year).amount(),
                                 this.yearIncome(year)
                                         .subtract(this.yearSavings(year))
-                                        .adjust(this.yearRegularIncome(year).amount(), ONE).amount(),
-                                String.valueOf(year)
+                                        .subtract(year == 2011
+                                                ? new MoneyAmount(this.spendingAdjustment().amount()
+                                                        .divide(BigDecimal.valueOf(12), C), USD)
+                                                : MoneyAmount.zero(USD))
+                                        .adjust(this.yearRegularIncome(year).amount(), ONE)
+                                        .amount(),
+                                year == 2011 ? "2011(*)" : String.valueOf(year)
                         )));
 
         new ScatterXYChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR),
@@ -781,8 +840,12 @@ public class Savings {
                     ss.add(new LabeledXYDataItem(
                             this.yearRegularIncome(year).amount(),
                             this.yearSavings(year)
+                                    .add(year == 2011
+                                            ? new MoneyAmount(this.spendingAdjustment().amount()
+                                                    .divide(BigDecimal.valueOf(12), C), USD)
+                                            : MoneyAmount.zero(USD))
                                     .adjust(this.yearRegularIncome(year).amount(), ONE).amount(),
-                            String.valueOf(year)));
+                            year == 2011 ? "2011(*)" : String.valueOf(year)));
                 });
 
         new ScatterXYChart(

@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import static java.math.RoundingMode.HALF_UP;
-import java.text.NumberFormat;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -42,11 +41,7 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
                 .divide(divisor, MathConstants.C)
                 .multiply(factor, MathConstants.C), this.currency);
     }
-
-    public MoneyAmount exchange(String newCurrency, BigDecimal exchangeRate) {
-        return this.exchange(Currency.valueOf(newCurrency), exchangeRate);
-    }
-
+    
     public MoneyAmount exchange(Currency newCurrency, BigDecimal exchangeRate) {
         if (this.isZero()) {
             return MoneyAmount.zero(newCurrency);
@@ -72,10 +67,6 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
         return this.currency;
     }
 
-    public MoneyAmount movePoint(int n) {
-        return new MoneyAmount(this.amount.movePointRight(n), this.currency);
-    }
-
     public BigDecimal getAmount() {
         return amount;
     }
@@ -96,10 +87,6 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
 
     public boolean isZero() {
         return this.amount.signum() == 0;
-    }
-
-    public void appendTo(StringBuilder sb, NumberFormat nf) {
-        sb.append(this.currency).append(" ").append(nf.format(this.amount));
     }
 
     public MoneyAmount max(MoneyAmount other) {
