@@ -58,7 +58,7 @@ public class Expenses {
         this.bar.evolution(format("{0}-month average expenses change", months),
                 new SimpleAggregation(2)
                         .change(new SimpleAggregation(months)
-                                .average(this.series.realExpenses(null))), 1);
+                                .average(this.series.realExpenses(null))), 3);
     }
 
     public void expenses(Map<String, String> params) {

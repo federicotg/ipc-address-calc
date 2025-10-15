@@ -61,7 +61,8 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
     @Override
     public final MoneyAmountSeries exchangeInto(Currency currency) {
-        return ForeignExchanges.getForeignExchange(this.getCurrency(), currency).exchange(this, currency);
+        return ForeignExchanges.getForeignExchange(this.getCurrency(), currency)
+                .exchange(this, currency);
     }
 
     protected abstract MoneyAmountSeries createNew();
@@ -80,7 +81,8 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     public final MoneyAmountSeries add(final MoneyAmountSeries other) {
 
         if (other.getCurrency() != this.getCurrency()) {
-            return this.exchangeInto(Currency.USD).add(other.exchangeInto(Currency.USD));
+            return this.exchangeInto(Currency.USD)
+                    .add(other.exchangeInto(Currency.USD));
         }
 
         if (this.getFrom().compareTo(other.getFrom()) > 0) {

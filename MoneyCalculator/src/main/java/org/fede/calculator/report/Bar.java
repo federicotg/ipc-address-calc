@@ -224,7 +224,7 @@ public class Bar {
 
         final var total = one.add(two).add(three);
 
-        if (total.amount().signum() == 0) {
+        if (total.isZero()) {
             return "";
         }
 

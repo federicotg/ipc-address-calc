@@ -16,9 +16,6 @@
  */
 package org.fede.calculator.criptoya;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
@@ -35,6 +32,11 @@ import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MathConstants;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.module.blackbird.BlackbirdModule;
 
 /**
  *
@@ -56,13 +58,14 @@ public class CriptoYaAPI {
 
     private Map<String, Map<String, Map<String, BigDecimal>>> fees;
 
-    //private final Map<String, Map<String, Map<String, CriptoYaFx>>> fxCache = new ConcurrentHashMap<>();
     private Map<String, DollarItem> dollarCache;
 
     public CriptoYaAPI(Supplier<HttpClient> clientSupplier) {
-        this.jsonMapper = new ObjectMapper();
+        this.jsonMapper = JsonMapper.builder()
+                .addModule(new BlackbirdModule())
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .build();
         this.clientSupplier = clientSupplier;
-        this.jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     private HttpRequest.Builder requestBuilderFor(String uri) throws URISyntaxException, IOException, InterruptedException {
@@ -76,7 +79,7 @@ public class CriptoYaAPI {
     public BigDecimal usdSell() throws URISyntaxException, IOException, InterruptedException {
 
         final var usdType = "ahorro";
-        
+
         if (this.dollarCache != null) {
             return this.dollarCache.get(usdType).getBid();
         }
@@ -163,7 +166,6 @@ public class CriptoYaAPI {
 //            this.fxCache.computeIfAbsent(exchange, t -> new ConcurrentHashMap<>())
 //                    .computeIfAbsent(coin, t -> new ConcurrentHashMap<>())
 //                    .put(fiat, newAnswer);
-
             return newAnswer;
 
         } else {
@@ -231,9 +233,9 @@ public class CriptoYaAPI {
     public record CriptoYaFXParams(String exchange, String coin, String fiatFrom, String fiatTo, String currency) {
 
     }
-    
-    private static class DollarItem{
-    
+
+    private static class DollarItem {
+
         private BigDecimal ask;
         private BigDecimal bid;
         private BigDecimal price;
@@ -261,7 +263,6 @@ public class CriptoYaAPI {
         public void setPrice(BigDecimal price) {
             this.price = price;
         }
-        
-        
+
     }
 }

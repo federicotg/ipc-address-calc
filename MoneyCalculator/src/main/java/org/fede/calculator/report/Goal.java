@@ -18,7 +18,6 @@ package org.fede.calculator.report;
 
 import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static org.fede.calculator.report.Format.format;
@@ -35,6 +34,7 @@ import static org.fede.calculator.money.MathConstants.C;
 import static org.fede.calculator.money.MathConstants.RM;
 import static org.fede.calculator.money.MathConstants.SCALE;
 import org.fede.calculator.money.series.SeriesReader;
+import tools.jackson.core.type.TypeReference;
 
 /**
  *

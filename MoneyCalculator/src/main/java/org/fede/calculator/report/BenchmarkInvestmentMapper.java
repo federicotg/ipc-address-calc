@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.report;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import java.time.LocalDate;
@@ -39,6 +38,7 @@ import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.InvestmentEvent;
+import tools.jackson.core.type.TypeReference;
 
 /**
  *

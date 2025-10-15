@@ -19,7 +19,6 @@ package org.fede.calculator.report;
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
-import java.io.IOException;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
@@ -66,8 +65,6 @@ import org.fede.calculator.chart.BarChart;
 import org.fede.calculator.chart.ChartSeriesMapper;
 import org.fede.calculator.chart.ChartStyle;
 import org.fede.calculator.chart.LabeledXYDataItem;
-import org.fede.calculator.chart.PieChart;
-import org.fede.calculator.chart.PieItem;
 import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.ScatterXYChart;
 import org.fede.calculator.chart.StackedTimeSeriesChart;
@@ -77,7 +74,6 @@ import org.fede.calculator.money.PortfolioProjections;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
-import org.fede.calculator.money.series.InvestmentType;
 import static org.fede.calculator.money.series.InvestmentType.BONO;
 import static org.fede.calculator.money.series.InvestmentType.FCI;
 import static org.fede.calculator.money.series.InvestmentType.PF;
@@ -937,7 +933,7 @@ public class Investments {
 
     }
 
-    public void investments() {
+    public void investments(Date moment) {
 
         final Comparator<InvestmentTypeCurrencyAndAmount> TYPE_CURRENCY_COMPARATOR = comparing(InvestmentTypeCurrencyAndAmount::type)
                 .thenComparing(InvestmentTypeCurrencyAndAmount::currency);
@@ -948,10 +944,9 @@ public class Investments {
 
         this.console.appendLine(this.format.title("Inversiones actuales agrupadas por moneda"));
 
-        var now = new Date();
         this.series.getInvestments()
                 .stream()
-                .filter(investment -> investment.isCurrent(now))
+                .filter(investment -> investment.isCurrent(moment))
                 .collect(groupingBy(inv -> new InvestmentTypeAndCurrency(inv.getType(), inv.getCurrency()), mapper))
                 .entrySet()
                 .stream()
@@ -961,19 +956,24 @@ public class Investments {
                 e.currency(),
                 e.amount(),
                 ForeignExchanges.getForeignExchange(e.currency(), USD)
-                        .exchange(new MoneyAmount(ONE, e.currency()), USD, now)))
+                        .exchange(new MoneyAmount(ONE, e.currency()), USD, moment)))
                 .forEach(this.console::appendLine);
 
         this.console.appendLine(this.investmentLine(EUR, ONE, ForeignExchanges.getForeignExchange(EUR, USD)
-                .exchange(new MoneyAmount(ONE, EUR), USD, now)));
+                .exchange(new MoneyAmount(ONE, EUR), USD, moment)));
         this.console.appendLine(this.investmentLine(USD, ONE,
                 ForeignExchanges.getForeignExchange(USD, ARS)
-                        .exchange(new MoneyAmount(ONE, USD), ARS, now)));
+                        .exchange(new MoneyAmount(ONE, USD), ARS, moment)));
 
-        this.console.appendLine(this.investmentLine(MEUD, ONE,
-                ForeignExchanges.getForeignExchange(MEUD, EUR)
-                        .exchange(new MoneyAmount(ONE, MEUD), EUR, now)));
+        if (this.series.getInvestments()
+                .stream()
+                .filter(investment -> investment.isCurrent(moment))
+                .anyMatch(i -> i.getCurrency() == MEUD)) {
 
+            this.console.appendLine(this.investmentLine(MEUD, ONE,
+                    ForeignExchanges.getForeignExchange(MEUD, EUR)
+                            .exchange(new MoneyAmount(ONE, MEUD), EUR, moment)));
+        }
     }
 
     private String investmentLine(Currency currency, BigDecimal quantity, MoneyAmount price) {
@@ -988,71 +988,6 @@ public class Investments {
         public LabelAndMDR(int year, ModifiedDietzReturnResult mdr) {
             this(String.valueOf(year), mdr);
         }
-    }
-
-    public void brokerDetailedChart(PieChart chart) throws IOException {
-        var now = new Date();
-        Map<String, List<Investment>> byBroker = this.getInvestments()
-                .filter(Investment::isETF)
-                .filter(investment -> investment.isCurrent(now))
-                .collect(Collectors.groupingBy(i -> i.getComment() == null ? "PPI" : "IBKR"));
-
-        chart.create(
-                "Investments By Broker",
-                byBroker.entrySet().stream().flatMap(e -> this.brokerDetailedItem(e.getKey(), e.getValue())).toList(),
-                "brokers-detail");
-    }
-
-    public void brokerChart(PieChart chart) throws IOException {
-        var now = new Date();
-        Map<String, List<Investment>> byBroker = this.getInvestments()
-                .filter(Investment::isETF)
-                .filter(investment -> investment.isCurrent(now))
-                .collect(Collectors.groupingBy(i -> i.getComment() == null ? "PPI" : "IBKR"));
-
-        chart.create(
-                "Investments By Broker",
-                byBroker.entrySet().stream().flatMap(e -> this.brokerItem(e.getKey(), e.getValue())).toList(),
-                "brokers");
-
-    }
-
-    private Stream<PieItem> brokerDetailedItem(String broker, List<Investment> investments) {
-
-        final var now = Inflation.USD_INFLATION.getTo();
-
-        var invested = investments.stream()
-                .map(Investment::getRealUSDInitialMoneyAmount)
-                .reduce(MoneyAmount::add).map(MoneyAmount::amount).get();
-
-        var currentValue = investments.stream()
-                .map(Investment::getMoneyAmount)
-                .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), USD).apply(ma, now))
-                .reduce(MoneyAmount::add).map(MoneyAmount::amount).get();
-
-        var costValue = investments.stream()
-                .map(Investment::getRealUSDCost)
-                .reduce(MoneyAmount::add).map(MoneyAmount::amount).get();
-
-        return Stream.of(
-                new PieItem("Invested " + broker, invested),
-                new PieItem("Cost " + broker, costValue),
-                new PieItem("Gains " + broker, currentValue.subtract(invested)));
-
-    }
-
-    private Stream<PieItem> brokerItem(String broker, List<Investment> investments) {
-
-        final var now = Inflation.USD_INFLATION.getTo();
-
-        var currentValue = investments.stream()
-                .map(Investment::getMoneyAmount)
-                .map(ma -> ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), USD).apply(ma, now))
-                .reduce(MoneyAmount::add).map(MoneyAmount::amount).get();
-
-        return Stream.of(
-                new PieItem("Current Value " + broker, currentValue));
-
     }
 
     public void ppiTransfer(String type) {
@@ -1535,13 +1470,16 @@ public class Investments {
         return accSeries;
     }
 
+    private BigDecimal cagr() {
+        return SeriesReader.readPercent("futureReturn")
+                .subtract(SeriesReader.readPercent("expectedInflation"), C);
+    }
+
     public MoneyAmount projectedPortfolioSize(MoneyAmount presentValue, MoneyAmount yearlySavings, double pValue) {
         var years = SeriesReader.readInt("retirementHorizon");
-        //var expectedReturn = SeriesReader.readPercent("futureReturn").doubleValue();
-         final var expectedReturn = SeriesReader.readPercent("futureReturn")
-                .subtract(SeriesReader.readPercent("expectedInflation"), C)
+        final var expectedReturn = this.cagr()
                 .doubleValue();
-        
+
         var expectedVolatility = SeriesReader.readPercent("futureVolatility").doubleValue();
 
         var projection = this.predictedValues(
@@ -1557,13 +1495,10 @@ public class Investments {
     }
 
     public void projection(MoneyAmount savings) {
-        //var expectedReturn = SeriesReader.readPercent("futureReturn").doubleValue();
-        
-        final var expectedReturn = SeriesReader.readPercent("futureReturn")
-                .subtract(SeriesReader.readPercent("expectedInflation"), C)
+
+        final var expectedReturn = this.cagr()
                 .doubleValue();
 
-        
         var expectedVolatility = SeriesReader.readPercent("futureVolatility").doubleValue();
 
         var portfolio = this.portfolioValue(false, Investment::isETF);

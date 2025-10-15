@@ -95,8 +95,10 @@ public class Fire {
 
         var futureSavingsByYear = SeriesReader.readUSD("futureSavingsByYear");
 
+        final var percentile = BigDecimal.valueOf(50l);
+
         final var projectedPortfolioSize = new Investments(console, format, bar, series)
-                .projectedPortfolioSize(totalSavings, futureSavingsByYear, 0.5d);
+                .projectedPortfolioSize(totalSavings, futureSavingsByYear, percentile.movePointLeft(2).doubleValue());
 
         this.console.appendLine(
                 String.valueOf(years),
@@ -182,9 +184,13 @@ public class Fire {
                                 withGrowthAndIncome,
                                 farAway));
 
-        this.console.appendLine(Format.format("Saving {0} every year for {1} years.",
+        this.console.appendLine(Format.format("Saving {0} for {1} years {2}th percentile {3} real ret. {4} vol.",
                 this.format.currency(futureSavingsByYear.amount()),
-                years));
+                years,
+                this.format.number2(percentile),
+                this.format.percent(this.cagr()),
+                this.format.percent(SeriesReader.readPercent("futureVolatility"))
+        ));
 
     }
 
@@ -372,6 +378,11 @@ public class Fire {
                 "fire-projected");
     }
 
+    private BigDecimal cagr(){
+        return SeriesReader.readPercent("futureReturn")
+                .subtract(SeriesReader.readPercent("expectedInflation"), C);
+    }
+    
     /**
      * Safe projected monthly spending
      *
@@ -385,7 +396,8 @@ public class Fire {
             int years,
             int percentile) {
 
-        final var cagr = SeriesReader.readPercent("futureReturn");
+        final var cagr = this.cagr();
+
         final var vol = SeriesReader.readPercent("futureVolatility");
 
         return asMonthlySpending(

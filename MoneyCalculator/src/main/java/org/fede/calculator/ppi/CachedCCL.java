@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.ppi;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -28,6 +27,7 @@ import org.fede.calculator.report.ConsoleReports;
 import org.fede.calculator.report.CCL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  *

@@ -19,9 +19,12 @@ package org.fede.calculator.report;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +36,7 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.fede.calculator.chart.ChartSeriesMapper;
 
 import org.fede.calculator.criptoya.CriptoYaAPI;
 import static org.fede.calculator.money.Currency.ARS;
@@ -58,6 +62,14 @@ import org.fede.calculator.money.SingleHttpClientSupplier;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.util.Pair;
+import org.jfree.data.time.TimeSeries;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.UserInterruptException;
+import org.jline.reader.impl.DefaultParser;
+import org.jline.reader.impl.completer.StringsCompleter;
+import org.jline.terminal.TerminalBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +87,8 @@ public class ConsoleReports {
 
     public static final String CHARTS_PREFIX = System.getProperty("user.home") + File.separator + "Pictures" + File.separator + "chart-";
     public static final String CACHE_DIR = System.getProperty("user.home") + "/Downloads";
+
+    private static final List<CmdParam> COMMANDS = commandParams().toList();
 
     private static boolean nominal(Map<String, String> params) {
         return Boolean.parseBoolean(params.getOrDefault("nominal", "false"));
@@ -129,7 +143,7 @@ public class ConsoleReports {
 
         return switch (args[0]) {
             case "i" ->
-                new Investments(console, format, bar, series)::investments;
+                () -> me.i(args, "i");
 
             case "pf" ->
                 () -> new Investments(console, format, bar, series)
@@ -297,6 +311,101 @@ public class ConsoleReports {
         };
     }
 
+    private static Stream<CmdParam> commandParams() {
+        return Stream.of(
+                new CmdParam("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} bbpp={5} pension={6} exp={7} m={8} srr={9}",
+                        SeriesReader.readEnvironment().getProperty("goal.trials"),
+                        SeriesReader.readEnvironment().getProperty("goal.retirement"),
+                        SeriesReader.readEnvironment().getProperty("goal.maxage"),
+                        SeriesReader.readPercent("expectedInflation"),
+                        SeriesReader.readEnvironment().getProperty("goal.cash"),
+                        SeriesReader.readEnvironment().getProperty("goal.bbpp"),
+                        SeriesReader.readEnvironment().getProperty("goal.pension"),
+                        SeriesReader.readEnvironment().getProperty("goal.expectedreturns"),
+                        SeriesReader.readInt("goal.months"),
+                        SeriesReader.readEnvironment().getProperty("goal.badreturns")
+                )),
+                new CmdParam("savings-change", "m=1"),
+                new CmdParam("savings-change-pct", "m=1"),
+                new CmdParam("i", "y=current m=current"),
+                new CmdParam("pa"),
+                new CmdParam("house-evo"),
+                new CmdParam("expenses-src", "m=12"),
+                new CmdParam("fire", "m=12"),
+                new CmdParam("p-type-evo"),
+                new CmdParam("p-type-evo-pct"),
+                new CmdParam("condo"),
+                new CmdParam("ccl"),
+                new CmdParam("lti"),
+                new CmdParam("bbpp-evo"),
+                new CmdParam("routes"),
+                new CmdParam("help"),
+                new CmdParam("balances"),
+                new CmdParam("all-charts"),
+                new CmdParam("cash"),
+                new CmdParam("income-src", "m=12"),
+                new CmdParam("pf", "detail=false nominal=false"),
+                new CmdParam("income-src-pct", "m=12"),
+                new CmdParam("income-acc"),
+                new CmdParam("income-acc-pct"),
+                new CmdParam("savings-avg", "m=12"),
+                new CmdParam("income-table"),
+                new CmdParam("income-year-table"),
+                new CmdParam("savings-dist"),
+                new CmdParam("savings-dist-pct"),
+                new CmdParam("income-avg-change", "m=12"),
+                new CmdParam("income", "by=(year|half|quarter*) months=12"),
+                new CmdParam("savings", "by=(year|half|quarter*)"),
+                new CmdParam("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
+                new CmdParam("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
+                new CmdParam("p-evo-pct", "type=(all*|ETF|BONO|PF|FCI)"),
+                new CmdParam("inv", "type=(all*|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
+                new CmdParam("inv-evo", "type=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
+                new CmdParam("inv-evo-pct", "curency=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
+                new CmdParam("invested", "type=(long*|all|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all) nominal=false"),
+                new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false"),
+                new CmdParam("saved-salaries-evo", "months=12"),
+                new CmdParam("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
+                new CmdParam("income-evo", "months=12 ars=false"),
+                new CmdParam("bbpp", "year=yyyy"),
+                new CmdParam("bbppstatus"),
+                new CmdParam("ppi", "type=group|groupall|full*"),
+                new CmdParam("savings-net-change", "m=12"),
+                new CmdParam("savings-avg-pct", "m=12"),
+                new CmdParam("expenses", "by=(year|half|quarter*|month) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
+                new CmdParam("expenses-change", "m=12"),
+                new CmdParam("expenses-evo", "type=(full|taxes|insurance|services|home|entertainment) m=12"),
+                new CmdParam("savings-evo", "type=(BO|LIQ|EQ)"),
+                new CmdParam("dca", "type=(q*|h|y|m)"),
+                new CmdParam("pos", "nominal=false")
+        );
+    }
+
+    private static void help(ConsoleReports me) {
+        COMMANDS.stream()
+                .map(param -> format(" - {0} {1}", param.name, param.argsDesc))
+                .sorted()
+                .forEach(me::appendLine);
+
+    }
+
+    private static void handleCommand(String[] args, ConsoleReports me, Format format, Bar bar, Series series, Console console) throws IOException {
+
+        final var params = Arrays.stream(args)
+                .map(String::toLowerCase)
+                .collect(toSet());
+
+        if (params.isEmpty() || params.contains("help")) {
+            help(me);
+        } else {
+
+            getAction(args, me, format, bar, series, console).run();
+            me.appendLine("");
+        }
+        console.printReport();
+
+    }
+
     public static void main(String[] args) {
         try {
 
@@ -306,86 +415,34 @@ public class ConsoleReports {
             final var series = new Series();
             final var me = new ConsoleReports(console, format, bar, series);
 
-            final var params = Arrays.stream(args)
-                    .map(String::toLowerCase)
-                    .collect(toSet());
+            LineReader reader = LineReaderBuilder.builder()
+                    .terminal(TerminalBuilder.builder()
+                            .system(true)
+                            .build())
+                    .parser(new DefaultParser())
+                    .variable(LineReader.HISTORY_FILE, Paths.get(CACHE_DIR + "/.command_history"))
+                    .completer(
+                            new StringsCompleter(
+                                    COMMANDS.stream()
+                                            .map(CmdParam::name)
+                                            .toList()))
+                    .build();
 
-            if (params.isEmpty() || params.contains("help")) {
+            while (true) {
 
-                Stream.of(
-                        new CmdParam("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} bbpp={5} pension={6} exp={7} m={8} srr={9}",
-                                SeriesReader.readEnvironment().getProperty("goal.trials"),
-                                SeriesReader.readEnvironment().getProperty("goal.retirement"),
-                                SeriesReader.readEnvironment().getProperty("goal.maxage"),
-                                SeriesReader.readPercent("expectedInflation"),
-                                SeriesReader.readEnvironment().getProperty("goal.cash"),
-                                SeriesReader.readEnvironment().getProperty("goal.bbpp"),
-                                SeriesReader.readEnvironment().getProperty("goal.pension"),
-                                SeriesReader.readEnvironment().getProperty("goal.expectedreturns"),
-                                SeriesReader.readInt("goal.months"),
-                                SeriesReader.readEnvironment().getProperty("goal.badreturns")
-                        )),
-                        new CmdParam("savings-change", "m=1"),
-                        new CmdParam("savings-change-pct", "m=1"),
-                        new CmdParam("i"),
-                        new CmdParam("pa"),
-                        new CmdParam("house-evo"),
-                        new CmdParam("expenses-src", "m=12"),
-                        new CmdParam("fire", "m=12"),
-                        new CmdParam("p-type-evo"),
-                        new CmdParam("p-type-evo-pct"),
-                        new CmdParam("condo"),
-                        new CmdParam("ccl"),
-                        new CmdParam("lti"),
-                        new CmdParam("bbpp-evo"),
-                        new CmdParam("routes"),
-                        new CmdParam("balances"),
-                        new CmdParam("all-charts"),
-                        new CmdParam("cash"),
-                        new CmdParam("income-src", "m=12"),
-                        new CmdParam("pf", "detail=false nominal=false"),
-                        new CmdParam("income-src-pct", "m=12"),
-                        new CmdParam("income-acc"),
-                        new CmdParam("income-acc-pct"),
-                        new CmdParam("savings-avg", "m=12"),
-                        new CmdParam("income-table"),
-                        new CmdParam("income-year-table"),
-                        new CmdParam("savings-dist"),
-                        new CmdParam("savings-dist-pct"),
-                        new CmdParam("income-avg-change", "m=12"),
-                        new CmdParam("income", "by=(year|half|quarter*) months=12"),
-                        new CmdParam("savings", "by=(year|half|quarter*)"),
-                        new CmdParam("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                        new CmdParam("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
-                        new CmdParam("p-evo-pct", "type=(all*|ETF|BONO|PF|FCI)"),
-                        new CmdParam("inv", "type=(all*|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
-                        new CmdParam("inv-evo", "type=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                        new CmdParam("inv-evo-pct", "curency=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                        new CmdParam("invested", "type=(long*|all|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all) nominal=false"),
-                        new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false"),
-                        new CmdParam("saved-salaries-evo", "months=12"),
-                        new CmdParam("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
-                        new CmdParam("income-evo", "months=12 ars=false"),
-                        new CmdParam("bbpp", "year=yyyy"),
-                        new CmdParam("bbppstatus"),
-                        new CmdParam("ppi", "type=group|groupall|full*"),
-                        new CmdParam("savings-net-change", "m=12"),
-                        new CmdParam("savings-avg-pct", "m=12"),
-                        new CmdParam("expenses", "by=(year|half|quarter*|month) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
-                        new CmdParam("expenses-change", "m=12"),
-                        new CmdParam("expenses-evo", "type=(full|taxes|insurance|services|home|entertainment) m=12"),
-                        new CmdParam("savings-evo", "type=(BO|LIQ|EQ)"),
-                        new CmdParam("dca", "type=(q*|h|y|m)"),
-                        new CmdParam("pos", "nominal=false")
-                ).map(param -> format(" - {0} {1}", param.name, param.argsDesc))
-                        .sorted()
-                        .forEach(me::appendLine);
-            } else {
+                String line;
+                try {
+                    line = reader.readLine("> "); // prompt
+                } catch (UserInterruptException | EndOfFileException e) {
+                    break; // Ctrl+C or Ctrl+D
+                }
+                if (line == null || line.trim().equalsIgnoreCase("q")) {
+                    break;
+                }
+                handleCommand(line.split("\\s+"), me, format, bar, series, console);
 
-                getAction(args, me, format, bar, series, console).run();
-                me.appendLine("");
             }
-            console.printReport();
+
         } catch (Exception ex) {
             LOGGER.error("Unexpected error.", ex);
         }
@@ -514,9 +571,20 @@ public class ConsoleReports {
 
         final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault(MONTHS_PARAM, "1")) + 1;
 
+        var scale = switch (months) {
+            case 1 ->
+                800;
+            case 2, 3 ->
+                1000;
+            case 4, 5, 6 ->
+                1500;
+            default ->
+                240 * months;
+        };
+
         this.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
         this.bar.evolution(format("{0}-month Savings Change", months - 1), new SimpleAggregation(months)
-                .change(this.series.realSavings(null)), 240 * months);
+                .change(this.series.realSavings(null)), scale);
     }
 
     private void expensesChange(String[] args, String name) {
@@ -637,6 +705,20 @@ public class ConsoleReports {
         final var months = months(this.paramsValue(args, name));
         new Savings(format, series, bar, console)
                 .incomeAverageBySource(months, true);
+    }
+
+    private void i(String[] args, String name) {
+        final var params = this.paramsValue(args, name);
+        final var year = Optional.ofNullable(params.get("y"))
+                .map(Integer::parseInt)
+                .orElseGet(USD_INFLATION.getTo()::getYear);
+        final var month = Optional.ofNullable(params.get("m"))
+                .map(Integer::parseInt)
+                .orElseGet(USD_INFLATION.getTo()::getMonth);
+
+        new Investments(console, format, bar, series)
+                .investments(YearMonth.of(year, month).asToDate());
+
     }
 
     private void portfolio(String[] args, String name) {
@@ -833,7 +915,7 @@ public class ConsoleReports {
             savings.spendingByYear();
             inv.savedAndInvestedChart();
             inv.investmentsByClassChart();
-            
+
             inv.projection(MoneyAmount.zero(USD));
             inv.projection(SeriesReader.readUSD("futureSavingsByYear"));
             inv.projection(SeriesReader.readUSD("futureSavingsByYear2"));
@@ -849,6 +931,7 @@ public class ConsoleReports {
             inv.investmentScatterChart(Currency.EIMI, ValueFormat.CURRENCY_DECIMALS);
             inv.investmentScatterChart(Currency.XUSE, ValueFormat.CURRENCY_DECIMALS);
             inv.investmentScatterChart(Currency.RTWO);
+            this.averageSpendingPortfolioPercent();
 
         } catch (IOException ex) {
             LOGGER.error("Error generating charts.", ex);
@@ -914,4 +997,48 @@ public class ConsoleReports {
                 .add(new MoneyAmount(desp.multiply(new BigDecimal(phantom)), USD));
     }
 
+    private TimeSeries portfolioSpendingSeries(
+            int months,
+            MoneyAmountSeries savings,
+            MoneyAmountSeries expenses) {
+        var averageSpenses = new SimpleAggregation(months).average(expenses);
+        List<TimeSeriesDatapoint> s = new ArrayList<>();
+
+        var monthsInAYear = BigDecimal.valueOf(12l);
+        var ym = YearMonth.of(2015, 1);
+        while (ym.compareTo(savings.getTo()) <= 0) {
+            s.add(
+                    new TimeSeriesDatapoint(
+                            ym,
+                            averageSpenses.getAmount(ym).amount()
+                                    .multiply(monthsInAYear, MathConstants.C)
+                                    .divide(savings.getAmount(ym).amount(), MathConstants.C)));
+            ym = ym.next();
+        }
+        return ChartSeriesMapper.asTimeSeries(s, "Avg. " + months + "-month");
+    }
+
+    private void averageSpendingPortfolioPercent() {
+
+        MoneyAmountSeries savings = this.series.realSavings(null);
+
+        MoneyAmountSeries expenses = this.series.getRealUSDExpensesByType()
+                .values()
+                .stream()
+                .flatMap(Collection::stream)
+                .reduce(MoneyAmountSeries::add)
+                .get();
+
+        new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
+                .createFromTimeSeries("Portfolio Spending",
+                        List.of(
+                                //this.portfolioSpendingSeries(6, savings, expenses),
+                                this.portfolioSpendingSeries(12, savings, expenses),
+                                this.portfolioSpendingSeries(18, savings, expenses),
+                                this.portfolioSpendingSeries(24, savings, expenses),
+                                this.portfolioSpendingSeries(36, savings, expenses)
+                        ),
+                        "portfolio-spending");
+
+    }
 }

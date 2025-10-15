@@ -16,9 +16,6 @@
  */
 package org.fede.calculator.money.series;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,6 +33,12 @@ import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.json.JsonReadFeature;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.module.blackbird.BlackbirdModule;
 
 /**
  *
@@ -51,7 +54,11 @@ public class SeriesReader {
 
     private static final String ENV = APP_RESOURCES + "environment.properties";
 
-    private static final ObjectMapper OM = new ObjectMapper();
+    private static final ObjectMapper OM = JsonMapper.builder()
+                .addModule(new BlackbirdModule())
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .disable(JsonReadFeature.ALLOW_JAVA_COMMENTS)
+                .build();
 
     private static final Map<String, JSONIndexSeries> CACHE = new ConcurrentHashMap<>();
 
@@ -62,10 +69,6 @@ public class SeriesReader {
 
     private static Properties ENVIRONMENT = null;
 
-    static {
-        OM.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    }
-
     private static JSONIndexSeries createIndexSeries(String name) {
         return new JSONIndexSeries(read(name, INDEX_SERIES_TYPE_REFERENCE));
 
@@ -73,7 +76,7 @@ public class SeriesReader {
 
     public static Properties readEnvironment() {
         if (ENVIRONMENT == null) {
-            try (var is = new FileInputStream(new File(SeriesReader.ENV))) {
+            try (var is = new BufferedInputStream(new FileInputStream(SeriesReader.ENV), 128 * 1024)) {
                 ENVIRONMENT = new Properties();
                 ENVIRONMENT.load(is);
             } catch (IOException ioEx) {
@@ -113,7 +116,7 @@ public class SeriesReader {
     }
 
     public static <T> T read(String name, TypeReference<T> typeReference) {
-        try (InputStream in = new BufferedInputStream(new FileInputStream(new File(APP_RESOURCES + name)));) {
+        try (InputStream in = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name), 1024 * 1024);) {
             return OM.readValue(in, typeReference);
         } catch (IOException ioEx) {
             LOGGER.error("Unexpected error.", ioEx);
@@ -134,7 +137,7 @@ public class SeriesReader {
 
     private static MoneyAmountSeries read(String name) {
 
-        try (InputStream is = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name))) {
+        try (InputStream is = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name), 1024 * 1024)) {
 
             JSONSeries series = OM.readValue(is, JSONSeries.class);
 

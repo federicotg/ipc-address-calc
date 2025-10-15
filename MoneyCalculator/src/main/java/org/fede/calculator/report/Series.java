@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.report;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import static java.math.BigDecimal.ONE;
 import java.util.Collection;
 import java.util.List;
@@ -41,6 +40,7 @@ import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonth;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
+import tools.jackson.core.type.TypeReference;
 
 /**
  *
@@ -48,10 +48,10 @@ import static org.fede.util.Pair.of;
  */
 public class Series {
 
-    public static final String OTHER = "OTHER";
-    public static final String ESSENTIAL = "ESSENTIAL";
-    public static final String DISCRETIONARY = "DISCRETIONARY";
-    public static final String IRREGULAR = "IRREGULAR";
+    public static final String OTHER = "1-OTHER";
+    public static final String ESSENTIAL = "0-ESSENTIAL";
+    public static final String DISCRETIONARY = "2-DISCRETIONARY";
+    public static final String IRREGULAR = "3-IRREGULAR";
 
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
@@ -123,11 +123,13 @@ public class Series {
                     of(ESSENTIAL, "emergencia"),
                     of(ESSENTIAL, "ioma"),
                     of(ESSENTIAL, "seguro"),
+                    of(ESSENTIAL, "comida"),
                     of(ESSENTIAL, "gas"),
                     of(ESSENTIAL, "luz"),
                     of(DISCRETIONARY, "santander"),
                     of(DISCRETIONARY, "cablevision"),
                     of(DISCRETIONARY, "cafe"),
+                    of(DISCRETIONARY, "sellos"),
                     of(IRREGULAR, "other"),
                     of(IRREGULAR, "other-usd"),
                     of(IRREGULAR, "reparaciones"),
@@ -170,6 +172,8 @@ public class Series {
                         "telefono-43",
                         "emergencia",
                         "ioma",
+                        "comida",
+                        "sellos",
                         "salud",
                         "seguro",
                         "gas",

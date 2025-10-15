@@ -427,7 +427,8 @@ public class BBPP {
         final var lastYear = YearMonth.of(LocalDate.now()).year();
 
         Stream.of(CSPX, EIMI, XRSU, MEUD, RTWO)
-                .flatMap(currency -> IntStream.range(2019, lastYear).mapToObj(y -> new YearCurrency(y, currency)))
+                .flatMap(currency -> IntStream.range(2019, lastYear)
+                        .mapToObj(y -> new YearCurrency(y, currency)))
                 .map(this::status)
                 .sorted(Comparator.comparing(BBPPStatus::yearCurrency))
                 .map(status -> status.toString(this.format))

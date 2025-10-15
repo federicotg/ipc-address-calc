@@ -644,17 +644,20 @@ public class Savings {
 
     private void quarterSavings() {
 
-        new Group(console, format, bar).group("Net quarter savings", this.series.realNetSavings(), this.series.realIncome(), YearMonth::quarter, 3);
+        new Group(console, format, bar)
+                .group("Net quarter savings", this.series.realNetSavings(), this.series.realIncome(), YearMonth::quarter, 3);
     }
 
     private void halfSavings() {
 
-        new Group(console, format, bar).group("Net half savings", this.series.realNetSavings(), this.series.realIncome(), YearMonth::half, 6);
+        new Group(console, format, bar)
+                .group("Net half savings", this.series.realNetSavings(), this.series.realIncome(), YearMonth::half, 6);
     }
 
     private void yearlySavings() {
 
-        new Group(console, format, bar).group("Net yearly savings", this.series.realNetSavings(), this.series.realIncome(), ym -> String.valueOf(ym.getYear()), 12);
+        new Group(console, format, bar)
+                .group("Net yearly savings", this.series.realNetSavings(), this.series.realIncome(), ym -> String.valueOf(ym.getYear()), 12);
     }
 
     // increase in real USD -  rolling N months
@@ -712,7 +715,7 @@ public class Savings {
 
         this.bar.evolution(title,
                 new SimpleAggregation(months).average(this.series.realNetSavings()),
-                100);
+                120);
     }
 
     public void averageSavedSalaries(int months) {

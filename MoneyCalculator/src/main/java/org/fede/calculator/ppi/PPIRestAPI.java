@@ -16,9 +16,6 @@
  */
 package org.fede.calculator.ppi;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -40,6 +37,10 @@ import org.fede.calculator.money.InstrumentType;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.SeriesReader;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.module.blackbird.BlackbirdModule;
 
 /**
  *
@@ -80,8 +81,11 @@ public class PPIRestAPI {
             this.config.load(is);
         }
 
-        this.jsonMapper = new ObjectMapper();
-        this.jsonMapper.registerModule(new JavaTimeModule());
+        this.jsonMapper = JsonMapper.builder()
+                //.addModule(new JavaTimeModule())
+                .addModule(new BlackbirdModule())
+                .build();
+
         this.clientSupplier = clientSupplier;
     }
 
@@ -196,7 +200,6 @@ public class PPIRestAPI {
 //            System.out.print("+");
 //            return answer;
 //        }
-
         //System.out.print("-");
         final var req = this.requestBuilderFor(MessageFormat.format(CURRENT_MARKET_DATA, PPI_API, VERSION, ticker, type.toString(), settlement.toString()))
                 .GET()
@@ -212,7 +215,6 @@ public class PPIRestAPI {
 //            this.marketDataCache.computeIfAbsent(ticker, t -> new ConcurrentHashMap<>())
 //                    .computeIfAbsent(type, t -> new ConcurrentHashMap<>())
 //                    .put(settlement, newAnswer);
-
             return newAnswer;
 
         } else {
