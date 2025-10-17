@@ -126,21 +126,6 @@ public class Investments {
             Map.entry(UVA, "UVA Bank"),
             Map.entry(ARS, "ARS Bank"));
 
-    private final Map<Currency, String> CATEGORIES = Map.ofEntries(
-            Map.entry(CSPX, "Global Eq."),
-            Map.entry(EIMI, "Global Eq."),
-            Map.entry(MEUD, "Global Eq."),
-            Map.entry(XUSE, "Global Eq."),
-            Map.entry(XRSU, "Global Eq."),
-            Map.entry(RTWO, "Global Eq."),
-            Map.entry(CONAAFA, "Dom. Eq."),
-            Map.entry(CONBALA, "Dom. Bonds"),
-            Map.entry(CAPLUSA, "Dom. Bonds"),
-            Map.entry(LECAP, "Dom. Bonds"),
-            Map.entry(LETE, "Dom. Bonds"),
-            Map.entry(AY24, "Dom. Bonds"),
-            Map.entry(ARS, "ARS Cash"));
-
     private final AnsiFormat BRIGHT_WHITE_TEXT = new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT());
     private final AnsiFormat GREEN_TEXT = new AnsiFormat(Attribute.GREEN_TEXT());
     private final AnsiFormat YELLOW_TEXT = new AnsiFormat(Attribute.YELLOW_TEXT());
@@ -918,9 +903,24 @@ public class Investments {
 
     private String classifier(Investment i) {
 
+        var categories = Map.ofEntries(
+                Map.entry(CSPX, "Global Eq."),
+                Map.entry(EIMI, "Global Eq."),
+                Map.entry(MEUD, "Global Eq."),
+                Map.entry(XUSE, "Global Eq."),
+                Map.entry(XRSU, "Global Eq."),
+                Map.entry(RTWO, "Global Eq."),
+                Map.entry(CONAAFA, "Dom. Eq."),
+                Map.entry(CONBALA, "Dom. Bonds"),
+                Map.entry(CAPLUSA, "Dom. Bonds"),
+                Map.entry(LECAP, "Dom. Bonds"),
+                Map.entry(LETE, "Dom. Bonds"),
+                Map.entry(AY24, "Dom. Bonds"),
+                Map.entry(ARS, "ARS Cash"));
+
         return switch (i.getType()) {
             case PF ->
-                PF_CATEGORIES.getOrDefault(i.getCurrency(), CATEGORIES.getOrDefault(i.getCurrency(), "unknown"));
+                PF_CATEGORIES.getOrDefault(i.getCurrency(), categories.getOrDefault(i.getCurrency(), "unknown"));
             case USD_CASH ->
                 "USD Cash";
             case USD ->
@@ -928,7 +928,7 @@ public class Investments {
             case BONO ->
                 "Dom. Bonds";
             case FCI, ETF ->
-                CATEGORIES.getOrDefault(i.getCurrency(), i.getType().toString() + " " + i.getCurrency());
+                categories.getOrDefault(i.getCurrency(), i.getType().toString() + " " + i.getCurrency());
         };
 
     }
