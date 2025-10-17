@@ -48,7 +48,7 @@ public class SimpleAggregation implements Aggregation {
                 lastValues.stream()
                         .map(MoneyAmount::amount)
                         .reduce(BigDecimal.ZERO, BigDecimal::add)
-                        .divide(BigDecimal.valueOf(lastValues.size()), MathConstants.C), lastValues.getFirst().currency());
+                        .divide(new BigDecimal(lastValues.size()), MathConstants.C), lastValues.getFirst().currency());
     }
 
     private MoneyAmount sum(SequencedCollection<MoneyAmount> lastValues) {
@@ -76,19 +76,17 @@ public class SimpleAggregation implements Aggregation {
 
     }
 
-    private MoneyAmountSeries aggregate(
-            MoneyAmountSeries series,
-            final Function<SequencedCollection<MoneyAmount>, MoneyAmount> aggregationFunction,
-            int m) {
-        final SequencedCollection<MoneyAmount> lastValues = new ArrayDeque<>(Math.max(m, 12) + 1);
+    private MoneyAmountSeries aggregate(MoneyAmountSeries series, final Function<SequencedCollection<MoneyAmount>, MoneyAmount> aggregationFunction) {
+        final SequencedCollection<MoneyAmount> lastValues = new ArrayDeque<>();
 
         final Currency seriesCurrency = series.getCurrency();
 
         MoneyAmountSeries result = new SortedMapMoneyAmountSeries(seriesCurrency, series.getName());
         for (var ym = series.getFrom(); ym.compareTo(Inflation.USD_INFLATION.getTo()) <= 0; ym = ym.next()) {
             var amount = series.getAmountOrElseZero(ym);
+            //checkCurrency(seriesCurrency, amount);
             lastValues.addFirst(amount);
-            if (m > -1 && lastValues.size() > m) {
+            if (months > -1 && lastValues.size() > months) {
                 lastValues.removeLast();
             }
             result.putAmount(ym, aggregationFunction.apply(lastValues));
@@ -100,17 +98,17 @@ public class SimpleAggregation implements Aggregation {
 
     @Override
     public MoneyAmountSeries average(MoneyAmountSeries series) {
-        return this.aggregate(series, this::avg, this.months);
+        return this.aggregate(series, this::avg);
     }
 
     @Override
     public MoneyAmountSeries sum(MoneyAmountSeries series) {
-        return this.aggregate(series, this::sum, this.months);
+        return this.aggregate(series, this::sum);
     }
 
     @Override
     public MoneyAmountSeries change(MoneyAmountSeries series) {
-        return this.aggregate(series, this::change, this.months + 1);
+        return this.aggregate(series, this::change);
     }
 
     @Override
@@ -118,12 +116,12 @@ public class SimpleAggregation implements Aggregation {
 
         final var list = new ArrayList<JSONDataPoint>();
 
-        final SequencedCollection<MoneyAmount> lastValues = new ArrayDeque<>(Math.max(this.months + 1, 12) + 1);
+        final SequencedCollection<MoneyAmount> lastValues = new ArrayDeque<>();
 
         series.forEach((ym, ma) -> {
 
             lastValues.addFirst(ma);
-            if (lastValues.size() > this.months + 1) {
+            if (lastValues.size() > months) {
                 lastValues.removeLast();
             }
 

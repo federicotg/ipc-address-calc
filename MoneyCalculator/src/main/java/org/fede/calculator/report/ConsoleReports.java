@@ -391,6 +391,7 @@ public class ConsoleReports {
 
     private static void handleCommand(String[] args, ConsoleReports me, Format format, Bar bar, Series series, Console console) throws IOException {
 
+        final var st = System.nanoTime();
         final var params = Arrays.stream(args)
                 .map(String::toLowerCase)
                 .collect(toSet());
@@ -402,6 +403,7 @@ public class ConsoleReports {
             getAction(args, me, format, bar, series, console).run();
             me.appendLine("");
         }
+        console.appendLine(MessageFormat.format("{0}ms", (System.nanoTime() - st)/ 1_000_000.0d));
         console.printReport();
 
     }
