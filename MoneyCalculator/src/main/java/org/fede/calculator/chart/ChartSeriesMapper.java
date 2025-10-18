@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.chart;
 
+import java.time.LocalDate;
 import java.util.List;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.report.TimeSeriesDatapoint;
@@ -32,13 +33,13 @@ public class ChartSeriesMapper {
     public static TimeSeries asTimeSeries(List<TimeSeriesDatapoint> series, String name) {
         final TimeSeries ts = new TimeSeries(name);
 
-        series.stream().forEach(dp -> ts.add(new Day(dp.ym().asToDate()), dp.value()));
+        series.stream().forEach(dp -> ts.add(day(dp.ym().atEndOfMonth()), dp.value()));
         return ts;
     }
 
     public static TimeSeries asTimeSeries(MoneyAmountSeries series) {
         final TimeSeries ts = new TimeSeries(series.getName());
-        series.forEach((ym, ma) -> ts.add(new Day(ym.asToDate()), ma.amount()));
+        series.forEach((ym, ma) -> ts.add(day(ym.atEndOfMonth()), ma.amount()));
         return ts;
     }
 
@@ -46,10 +47,14 @@ public class ChartSeriesMapper {
         var dataset = new TimeTableXYDataset();
 
         for (var s : series) {
-            s.forEach((ym, ma) -> dataset.add(new Day(ym.asToDate()), ma.amount(), s.getName(), false));
+            s.forEach((ym, ma) -> dataset.add(day(ym.atEndOfMonth()), ma.amount(), s.getName(), false));
         }
 
         return dataset;
+    }
+
+    private static Day day(LocalDate d) {
+        return new Day(d.getDayOfMonth(), d.getMonthValue(), d.getYear());
     }
 
 }

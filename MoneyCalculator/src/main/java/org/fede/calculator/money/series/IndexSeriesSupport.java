@@ -17,6 +17,9 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Objects;
 
@@ -64,8 +67,8 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
     private int hashValue = 0;
 
     @Override
-    public final BigDecimal getIndex(Date day) {
-        return this.getIndex(YearMonth.of(day));
+    public final BigDecimal getIndex(LocalDate day) {
+        return this.getIndex(YearMonth.from(day));
     }
 
     @Override
@@ -73,7 +76,7 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
 
         if (obj instanceof IndexSeries other) {
 
-            final int months = this.getFrom().monthsUntil(this.getTo());
+            final long months = this.getFrom().until(this.getTo(), ChronoUnit.MONTHS);
             YearMonth ym = this.getFrom();
             int i = 0;
 
@@ -81,7 +84,7 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
             while (equal && i < months) {
                 equal &= this.getIndex(ym).compareTo(
                         other.getIndex(ym)) == 0;
-                ym = ym.next();
+                ym = ym.plusMonths(1);
             }
             return equal;
         }
@@ -97,11 +100,11 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
             this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getFrom());
             this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getTo());
 
-            final int months = this.getFrom().monthsUntil(this.getTo());
+            final long months = this.getFrom().until(this.getTo(), ChronoUnit.MONTHS);
             YearMonth ym = this.getFrom();
             for (int i = 0; i < months; i++) {
                 this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getIndex(ym));
-                ym = ym.next();
+                ym = ym.plusMonths(1);
             }
         }
         return this.hashValue;

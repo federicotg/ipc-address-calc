@@ -24,6 +24,8 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
@@ -145,7 +147,7 @@ public class SeriesReader {
             final var maSeries = new SortedMapMoneyAmountSeries(currency, name);
 
             for (JSONDataPoint dp : series.data()) {
-                maSeries.putAmount(YearMonth.of(dp.year(), dp.month()), moneyAmount(dp.value(), currency));
+                maSeries.putAmount(dp.yearMonth(), moneyAmount(dp.value(), currency));
             }
 
             final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.interpolation());
@@ -153,12 +155,12 @@ public class SeriesReader {
             YearMonth ym = maSeries.getFrom();
             final YearMonth last = maSeries.getTo();
 
-            while (ym.monthsUntil(last) > 0) {
-                YearMonth next = ym.next();
+            while (ym.until(last, ChronoUnit.MONTHS) > 0) {
+                YearMonth next = ym.plusMonths(1);
                 if (!maSeries.hasValue(next)) {
                     maSeries.putAmount(next, strategy.interpolate(maSeries.getAmount(ym), ym, currency));
                 }
-                ym = ym.next();
+                ym = ym.plusMonths(1);
             }
             return maSeries;
 

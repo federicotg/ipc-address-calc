@@ -27,7 +27,7 @@ import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 
 /**
  *

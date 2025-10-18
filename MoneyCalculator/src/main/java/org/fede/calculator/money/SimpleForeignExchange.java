@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -24,7 +25,7 @@ import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesSupport;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 
 /**
  *
@@ -92,9 +93,9 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         }
 
         final int fromYear = from.getYear();
-        final int fromMonth = from.getMonth();
+        final int fromMonth = from.getMonthValue();
         final int toYear = to.getYear();
-        final int toMonth = to.getMonth();
+        final int toMonth = to.getMonthValue();
 
         final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(targetCurrency, series.getName());
 
@@ -118,18 +119,18 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) {
-        final var ym = YearMonth.of(moment);      
-        return this.exchange(amount, targetCurrency, ym.getYear(), ym.getMonth());
+    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, LocalDate moment) {
+        final var ym = YearMonth.from(moment);      
+        return this.exchange(amount, targetCurrency, ym.getYear(), ym.getMonthValue());
     }
 
     @Override
     public MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) {
 
         final int fromYear = this.getFrom().getYear();
-        final int fromMonth = this.getFrom().getMonth();
+        final int fromMonth = this.getFrom().getMonthValue();
         final int toYear = this.getTo().getYear();
-        final int toMonth = this.getTo().getMonth();
+        final int toMonth = this.getTo().getMonthValue();
 
         final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(targetCurrency, targetCurrency.name() + " series");
 

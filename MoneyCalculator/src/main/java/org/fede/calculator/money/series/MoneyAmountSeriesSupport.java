@@ -17,7 +17,8 @@
 package org.fede.calculator.money.series;
 
 import java.text.MessageFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -41,8 +42,8 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
     }
 
     @Override
-    public final MoneyAmount getAmount(Date day) {
-        return this.getAmount(YearMonth.of(day));
+    public final MoneyAmount getAmount(LocalDate day) {
+        return this.getAmount(YearMonth.from(day));
     }
 
     @Override
@@ -134,7 +135,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
             if (!Objects.equals(this.getAmount(current), other.getAmount(current))) {
                 return false;
             }
-            current = current.next();
+            current = current.plusMonths(1);
         }
         return true;
     }
@@ -146,7 +147,7 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
         int valueHash = 13;
         while (current.compareTo(this.getTo()) <= 0) {
             valueHash += 37 * Objects.hash(this.getAmount(current), current);
-            current = current.next();
+            current = current.plusMonths(1);
         }
 
         return 37 * Objects.hash(this.getCurrency(), this.getFrom(), this.getTo()) + valueHash;

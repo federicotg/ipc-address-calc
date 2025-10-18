@@ -19,10 +19,8 @@ package org.fede.calculator.report;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,7 +33,7 @@ import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.SeriesReader;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.InvestmentEvent;
 import tools.jackson.core.type.TypeReference;
@@ -59,8 +57,8 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
         return dmy(i.getOut().getDate());
     }
 
-    private static String dmy(Date d) {
-        return DMY.format(LocalDate.ofInstant(d.toInstant(), ZoneId.systemDefault()));
+    private static String dmy(LocalDate d) {
+        return DMY.format(d);
     }
 
     private static BigDecimal price(Investment i) {
@@ -109,7 +107,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
             asset.setAmount(usdInvested);
         } else {
             var fx = ForeignExchanges.getMoneyAmountForeignExchange(t.getInitialCurrency(), this.benchmark);
-            asset.setAmount(fx.apply(t.getInitialMoneyAmount(), YearMonth.of(t.getInitialDate())).amount());
+            asset.setAmount(fx.apply(t.getInitialMoneyAmount(), YearMonth.from(t.getInitialDate())).amount());
         }
         var answer = new Investment();
         answer.setIn(t.getIn());
@@ -131,7 +129,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
                 var sellPrice = this.seenUSDPrices.get(sellDmy(t));
                 if (sellPrice == null) {
                     var fx = ForeignExchanges.getMoneyAmountForeignExchange(asset.getCurrency(), USD);
-                    out.setAmount(fx.apply(asset.getMoneyAmount(), YearMonth.of(t.getOut().getDate())).amount());
+                    out.setAmount(fx.apply(asset.getMoneyAmount(), YearMonth.from(t.getOut().getDate())).amount());
                 } else {
                     out.setAmount(asset.getAmount().multiply(sellPrice, C));
                 }

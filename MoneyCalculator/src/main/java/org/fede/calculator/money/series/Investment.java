@@ -21,8 +21,7 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import java.time.LocalDate;
 import java.time.Month;
-import java.time.ZoneId;
-import java.util.Date;
+import java.time.YearMonth;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
@@ -81,7 +80,7 @@ public class Investment {
     }
 
     @JsonIgnore
-    public Date getInitialDate() {
+    public LocalDate getInitialDate() {
         return this.getIn().getDate();
     }
 
@@ -120,14 +119,14 @@ public class Investment {
     }
 
     @JsonIgnore
-    public boolean isCurrent(Date now) {
-        return this.getIn().getDate().before(now) && (this.getOut() == null || this.getOut().getDate().after(now));
+    public boolean isCurrent(LocalDate now) {
+        return this.getIn().getDate().isBefore(now) && (this.getOut() == null || this.getOut().getDate().isAfter(now));
     }
 
     @JsonIgnore
     public boolean isPast() {
-        final Date now = new Date();
-        return this.getIn().getDate().before(now) && this.getOut() != null && (!this.getOut().getDate().after(now));
+        final LocalDate now = LocalDate.now();
+        return this.getIn().getDate().isBefore(now) && this.getOut() != null && (!this.getOut().getDate().isAfter(now));
     }
 
     @Override
@@ -166,9 +165,9 @@ public class Investment {
     public boolean currentInYear(int year) {
 
         final LocalDate reference = LocalDate.of(year, Month.DECEMBER, 31);
-        final LocalDate buyDate = this.getIn().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        final LocalDate buyDate = this.getIn().getDate();
         final LocalDate sellDate = Optional.ofNullable(this.getOut())
-                .map(e -> e.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+                .map(e -> e.getDate())
                 .orElseGet(() -> LocalDate.of(2099, Month.DECEMBER, 31));
 
         return (buyDate.isBefore(reference) || buyDate.isEqual(reference))
@@ -177,7 +176,7 @@ public class Investment {
 
     public MoneyAmount getRealUSDCost() {
         final var now = Inflation.USD_INFLATION.getTo();
-        final var then = YearMonth.of(this.getInitialDate());
+        final var then = YearMonth.from(this.getInitialDate());
         final var cost = this.getCost();
 
         MoneyAmount ma = null;

@@ -42,7 +42,7 @@ import org.fede.calculator.criptoya.CriptoYaAPI;
 import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.RTWO;
@@ -61,6 +61,7 @@ import org.fede.calculator.money.SimpleAggregation;
 import org.fede.calculator.money.SingleHttpClientSupplier;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
+import org.fede.calculator.money.series.YearMonthUtil;
 import org.fede.util.Pair;
 import org.jfree.data.time.TimeSeries;
 import org.jline.reader.EndOfFileException;
@@ -716,10 +717,10 @@ public class ConsoleReports {
                 .orElseGet(USD_INFLATION.getTo()::getYear);
         final var month = Optional.ofNullable(params.get("m"))
                 .map(Integer::parseInt)
-                .orElseGet(USD_INFLATION.getTo()::getMonth);
+                .orElseGet(USD_INFLATION.getTo()::getMonthValue);
 
         new Investments(console, format, bar, series)
-                .investments(YearMonth.of(year, month).asToDate());
+                .investments(YearMonth.of(year, month).atEndOfMonth());
 
     }
 
@@ -733,7 +734,7 @@ public class ConsoleReports {
                 .orElseGet(USD_INFLATION.getTo()::getYear);
         final var month = Optional.ofNullable(params.get("m"))
                 .map(Integer::parseInt)
-                .orElseGet(USD_INFLATION.getTo()::getMonth);
+                .orElseGet(USD_INFLATION.getTo()::getMonthValue);
         new Positions(console, format, series)
                 .portfolio(type, subtype, year, month);
     }
@@ -753,8 +754,8 @@ public class ConsoleReports {
                 .stream()
                 .filter(Investment::isETF)
                 .filter(inv -> Objects.nonNull(inv.getComment()))
-                .filter(inv -> YearMonth.of(inv.getInitialDate()).year() <= year)
-                .filter(inv -> inv.getOut() == null || YearMonth.of(inv.getOut().getDate()).year() > year)
+                .filter(inv -> inv.getInitialDate().getYear() <= year)
+                .filter(inv -> inv.getOut() == null || inv.getOut().getDate().getYear() > year)
                 .collect(
                         Collectors.groupingBy(
                                 Investment::getCurrency,
@@ -908,8 +909,8 @@ public class ConsoleReports {
             inv.mdrChart(true);
             inv.mdrChart(false);
             inv.mdrByYearChart();
-            pos.portfolioChartByGeography(new PieChart(false), "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
-            pos.portfolioChartByGeographyBreakUSA(new PieChart(false), "pct", USD_INFLATION.getTo().year(), USD_INFLATION.getTo().month());
+            pos.portfolioChartByGeography(new PieChart(false), "pct", USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonthValue());
+            pos.portfolioChartByGeographyBreakUSA(new PieChart(false), "pct", USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonthValue());
             this.savingsChart();
             inv.savingsInvestmentsPercentChart();
             savings.savingsByIncomeChart();
@@ -989,7 +990,7 @@ public class ConsoleReports {
 
     private String ltiLine(int year, BigDecimal despPrice, int phantom, BigDecimal cash) {
         return MessageFormat.format("{0} {1}",
-                YearMonth.of(year, 1).monthString(),
+                YearMonthUtil.monthString(YearMonth.of(year, 1)),
                 this.format.currency(this.gross(despPrice, phantom, cash), 16)
         );
     }
@@ -1015,7 +1016,7 @@ public class ConsoleReports {
                             averageSpenses.getAmount(ym).amount()
                                     .multiply(monthsInAYear, MathConstants.C)
                                     .divide(savings.getAmount(ym).amount(), MathConstants.C)));
-            ym = ym.next();
+            ym = ym.plusMonths(1);
         }
         return ChartSeriesMapper.asTimeSeries(s, "Avg. " + months + "-month");
     }

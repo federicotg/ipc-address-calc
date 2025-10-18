@@ -16,11 +16,11 @@
  */
 package org.fede.calculator.money;
 
-import java.util.Date;
+import java.time.LocalDate;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesSupport;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 
 /**
  *
@@ -34,10 +34,10 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
         final YearMonth minTo = series.getTo();
 
         final int fromYear = maxFrom.getYear();
-        final int fromMonth = maxFrom.getMonth();
+        final int fromMonth = maxFrom.getMonthValue();
 
         final int toYear = minTo.getYear();
-        final int toMonth = minTo.getMonth();
+        final int toMonth = minTo.getMonthValue();
 
         final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(this.getCurrency(), series.getName());
 
@@ -66,10 +66,10 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
     public final MoneyAmountSeries adjust(MoneyAmount amount, int referenceYear, int referenceMonth) {
 
         final int fromYear = this.getFrom().getYear();
-        final int fromMonth = this.getFrom().getMonth();
+        final int fromMonth = this.getFrom().getMonthValue();
 
         final int toYear = this.getTo().getYear();
-        final int toMonth = this.getTo().getMonth();
+        final int toMonth = this.getTo().getMonthValue();
 
         final int maxMonthForFirstYear = fromYear == toYear ? toMonth : 12;
 
@@ -97,10 +97,8 @@ abstract class BaseInflation extends SeriesSupport implements Inflation {
 
  
     @Override
-    public final MoneyAmount adjust(MoneyAmount amount, Date from, Date to) {
-        final var fromYm = YearMonth.of(from);
-        final var toYm = YearMonth.of(to);
-        return this.adjust(amount, fromYm.year(), fromYm.month(), toYm.year(), toYm.month());
+    public final MoneyAmount adjust(MoneyAmount amount, LocalDate from, LocalDate to) {
+        return this.adjust(amount, from.getYear(), from.getMonthValue(), to.getYear(), to.getMonthValue());
     }
 
 }

@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 
 /**
@@ -107,7 +107,7 @@ public class Bar {
                 .mapToObj(i -> format("'{'{0}'}'", i))
                 .collect(joining(""));
         final Stream<String> barsStream = amounts.stream().map(p -> this.bar(p.amount().amount(), width, p.amount().amount().signum() < 0 ? Attribute.RED_BACK() : p.color()));
-        final Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth()));
+        final Stream<String> ymStream = Stream.of(String.valueOf(ym.getYear()), String.format("%02d", ym.getMonthValue()));
 
         return format("{0}/{1} ".concat(bars),
                 (Object[]) Stream.of(ymStream, barsStream).flatMap(Function.identity()).toArray(String[]::new));
@@ -241,7 +241,7 @@ public class Bar {
     public String bar(YearMonth ym, BigDecimal one, BigDecimal two, int scale) {
         return format("{0}/{1} {2}{3}",
                 String.valueOf(ym.getYear()),
-                String.format("%02d", ym.getMonth()),
+                String.format("%02d", ym.getMonthValue()),
                 this.bar(one, scale, Attribute.BLUE_BACK()),
                 this.bar(two, scale, Attribute.RED_BACK()));
     }
@@ -249,7 +249,7 @@ public class Bar {
     public String bar(YearMonth ym, BigDecimal one, BigDecimal two, BigDecimal three, int scale) {
         return format("{0}/{1} {2}{3}{4}",
                 String.valueOf(ym.getYear()),
-                String.format("%02d", ym.getMonth()),
+                String.format("%02d", ym.getMonthValue()),
                 this.bar(one, scale, Attribute.BLUE_BACK()),
                 this.bar(two, scale, Attribute.RED_BACK()),
                 this.bar(three, scale, Attribute.YELLOW_BACK()));

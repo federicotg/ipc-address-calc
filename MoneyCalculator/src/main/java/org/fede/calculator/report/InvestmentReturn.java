@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.report;
 
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import org.fede.calculator.money.Currency;
@@ -25,13 +26,13 @@ import org.fede.calculator.money.MoneyAmount;
  *
  * @author fede
  */
-public record InvestmentReturn(Currency currency, Date from, Date to, MoneyAmount initialAmount, MoneyAmount endAmount) {
+public record InvestmentReturn(Currency currency, LocalDate from, LocalDate to, MoneyAmount initialAmount, MoneyAmount endAmount) {
 
     public MoneyAmount profit() {
         return this.endAmount().subtract(this.initialAmount());
     }
 
     public long days() {
-        return ChronoUnit.DAYS.between(this.from().toInstant(), this.to().toInstant());
+        return ChronoUnit.DAYS.between(this.from(), this.to());
     }
 }

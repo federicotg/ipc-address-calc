@@ -58,7 +58,9 @@ import org.fede.calculator.chart.TimeSeriesChart;
 import org.fede.calculator.chart.ValueFormat;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
+import org.fede.calculator.money.series.YearMonthUtil;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.XYSeries;
 
@@ -223,7 +225,7 @@ public class Savings {
                 .stream()
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(new SimpleAggregation(months)::average)
-                .map(allRealUSDIncome -> allRealUSDIncome.getAmount(limit.min(allRealUSDIncome.getTo())))
+                .map(allRealUSDIncome -> allRealUSDIncome.getAmount(YearMonthUtil.min(limit, allRealUSDIncome.getTo())))
                 .orElse(MoneyAmount.zero(Currency.USD));
 
         this.console.appendLine(this.format.title(format("Average {0}-month income in {1}/{2} real USD",
@@ -277,11 +279,13 @@ public class Savings {
     }
 
     private void halfIncome() {
-        new Group(console, format, bar).group("Half income", this.series.realIncome(), null, YearMonth::half, 6);
+        new Group(console, format, bar)
+                .group("Half income", this.series.realIncome(), null, YearMonthUtil::half, 6);
     }
 
     private void quarterIncome() {
-        new Group(console, format, bar).group("Quarterly income", this.series.realIncome(), null, YearMonth::quarter, 3);
+        new Group(console, format, bar)
+                .group("Quarterly income", this.series.realIncome(), null, YearMonthUtil::quarter, 3);
     }
 
     public void incomeAverageBySource(int months) {
@@ -495,7 +499,7 @@ public class Savings {
     private MoneyAmount yearIncome(int year, Supplier<List<MoneyAmountSeries>> supplier) {
         final var months = year < USD_INFLATION.getTo().getYear()
                 ? 12
-                : USD_INFLATION.getTo().getMonth();
+                : USD_INFLATION.getTo().getMonthValue();
 
         return supplier.get()
                 .stream()
@@ -518,7 +522,7 @@ public class Savings {
 
         final var months = year < USD_INFLATION.getTo().getYear()
                 ? 12
-                : USD_INFLATION.getTo().getMonth();
+                : USD_INFLATION.getTo().getMonthValue();
 
         return this.series.realNetSavings()
                 .filter((ym, ma) -> ym.getYear() == year)
@@ -547,7 +551,7 @@ public class Savings {
                 .moneyAmountStream()
                 .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
 
-        final var months = this.series.realIncome().getFrom().monthsUntil(limit);
+        final var months = this.series.realIncome().getFrom().until(limit, ChronoUnit.MONTHS);
 
         final var avgSalary = totalIncome.amount().divide(BigDecimal.valueOf(months), C);
 
@@ -559,7 +563,7 @@ public class Savings {
                 totalSavings.amount().divide(avgSalary, C)));
 
         //ingreso promedio de N meses
-        final var agg = new SimpleAggregation(YearMonth.of(2012, 1).monthsUntil(USD_INFLATION.getTo()));
+        final var agg = new SimpleAggregation((int) YearMonth.of(2012, 1).until(USD_INFLATION.getTo(),ChronoUnit.MONTHS));
 
         final var averageIncome = agg.average(this.series.realIncome()).getAmount(USD_INFLATION.getTo());
 
@@ -583,8 +587,8 @@ public class Savings {
         final var unlp = SeriesReader.readSeries("income/unlp.json");
         final var despegar = SeriesReader.readSeries("income/despegar.json");
 
-        final var totalYears = Math.round((double) unlp.getFrom().next().monthsUntil(unlp.getTo()) / 12.0d);
-        final var simultaneousYears = Math.round((double) despegar.getFrom().monthsUntil(unlp.getTo()) / 12.0d);
+        final var totalYears = Math.round((double) unlp.getFrom().plusMonths(1).until(unlp.getTo(), ChronoUnit.MONTHS) / 12.0d);
+        final var simultaneousYears = Math.round((double) despegar.getFrom().until(unlp.getTo(), ChronoUnit.MONTHS) / 12.0d);
 
         final var simultaneousPercent = new BigDecimal("0.82").divide(new BigDecimal("30"), MathConstants.C);
 
@@ -645,13 +649,13 @@ public class Savings {
     private void quarterSavings() {
 
         new Group(console, format, bar)
-                .group("Net quarter savings", this.series.realNetSavings(), this.series.realIncome(), YearMonth::quarter, 3);
+                .group("Net quarter savings", this.series.realNetSavings(), this.series.realIncome(), YearMonthUtil::quarter, 3);
     }
 
     private void halfSavings() {
 
         new Group(console, format, bar)
-                .group("Net half savings", this.series.realNetSavings(), this.series.realIncome(), YearMonth::half, 6);
+                .group("Net half savings", this.series.realNetSavings(), this.series.realIncome(), YearMonthUtil::half, 6);
     }
 
     private void yearlySavings() {
@@ -694,14 +698,14 @@ public class Savings {
 
         while (ym.compareTo(limit) <= 0) {
             this.percentEvolutionReport(ym, s.getIndex(ym), months / 24);
-            ym = ym.next();
+            ym = ym.plusMonths(1);
         }
     }
 
     private void percentEvolutionReport(YearMonth ym, BigDecimal ma, int scale) {
 
         this.console.appendLine(
-                format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonth())),
+                format("{0}/{1}", String.valueOf(ym.getYear()), String.format("%02d", ym.getMonthValue())),
                 " ",
                 this.format.percent(ma, 8),
                 " ",
@@ -759,7 +763,7 @@ public class Savings {
 
         var ym = YearMonth.of(2011, 8);
 
-        var ars = arsSavings.getAmount(ym.prev())
+        var ars = arsSavings.getAmount(ym.plusMonths(-1))
                 .subtract(arsSavings.getAmount(ym));
 
         var usd = ForeignExchanges.getForeignExchange(ARS, USD).exchange(ars, USD, ym);
@@ -883,10 +887,10 @@ public class Savings {
         final var from = YearMonth.of(2007, 1);
         final var to = Inflation.USD_INFLATION.getTo();
 
-        List<TimeSeriesDatapoint> spendingRate = new ArrayList<>(from.monthsUntil(to));
-        List<TimeSeriesDatapoint> savingRate = new ArrayList<>(from.monthsUntil(to));
+        List<TimeSeriesDatapoint> spendingRate = new ArrayList<>((int) from.until(to, ChronoUnit.MONTHS));
+        List<TimeSeriesDatapoint> savingRate = new ArrayList<>((int) from.until(to, ChronoUnit.MONTHS));
 
-        Stream.iterate(from, ym -> ym.compareTo(to) <= 0, YearMonth::next)
+        Stream.iterate(from, ym -> ym.compareTo(to) <= 0, ym -> ym.plusMonths(1))
                 .forEach(ym -> this.addRate(ym, regularAvgIncome, regularAvgExpenses, spendingRate, savingRate));
 
         new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))

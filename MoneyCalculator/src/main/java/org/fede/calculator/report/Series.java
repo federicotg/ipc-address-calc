@@ -37,7 +37,8 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 import tools.jackson.core.type.TypeReference;
@@ -207,7 +208,7 @@ public class Series {
                         .filter(Investment::isETF)
                         .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
                         .map(Inflation.USD_INFLATION::real)
-                        .map(i -> new Cost(YearMonth.of(i.getIn().getDate()), i.getCost()))
+                        .map(i -> new Cost(YearMonth.from(i.getIn().getDate()), i.getCost()))
                         .toList();
 
         final var iva = SeriesReader.readPercent("iva").add(ONE);
@@ -221,7 +222,7 @@ public class Series {
                         .map(Inflation.USD_INFLATION::real)
                         .map(i
                                 -> new Cost(
-                                YearMonth.of(i.getOut().getDate()),
+                                YearMonth.from(i.getOut().getDate()),
                                 i.getOut().getFeeMoneyAmount().adjust(ONE, iva)
                                         .add(new MoneyAmount(i.getOut().getTransferFee(), i.getOut().getCurrency()))))
                         .toList();
@@ -235,7 +236,7 @@ public class Series {
 
         final var expenseSeries = new SortedMapMoneyAmountSeries(Currency.USD, "investing");
 
-        for (YearMonth ym = YearMonth.of(2016, 1); ym.monthsUntil(Inflation.USD_INFLATION.getTo()) >= 0; ym = ym.next()) {
+        for (YearMonth ym = YearMonth.of(2016, 1); ym.until(Inflation.USD_INFLATION.getTo(), ChronoUnit.MONTHS) >= 0; ym = ym.plusMonths(1)) {
             expenseSeries.putAmount(ym, feesByMonth.getOrDefault(ym, zero));
         }
 

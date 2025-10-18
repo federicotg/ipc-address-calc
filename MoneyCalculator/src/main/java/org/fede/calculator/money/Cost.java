@@ -1,6 +1,6 @@
 package org.fede.calculator.money;
 
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 
 /**
  *

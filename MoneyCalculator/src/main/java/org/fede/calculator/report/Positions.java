@@ -25,10 +25,10 @@ import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -54,7 +54,7 @@ import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.Currency.UVA;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.chart.PieChart;
 import org.fede.calculator.chart.PieItem;
@@ -65,6 +65,7 @@ import static org.fede.calculator.money.series.InvestmentType.PF;
 import static org.fede.calculator.money.series.InvestmentType.BONO;
 
 import org.fede.calculator.money.series.SeriesReader;
+import org.fede.calculator.money.series.YearMonthUtil;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 
@@ -88,7 +89,7 @@ public class Positions {
 
     public void positions(boolean nominal) {
 
-        final var now = new Date();
+        final var now = LocalDate.now();
         this.console.appendLine(this.format.title("Positions Without Fees"));
 
         final var descWidth = 36;
@@ -339,13 +340,13 @@ public class Positions {
     public void dca(boolean nominal, String type) {
 
         final Map<String, Function<Investment, String>> groupings = Map.of(
-                "h", i -> YearMonth.of(i.getInitialDate()).half(),
-                "y", i -> Integer.toString(YearMonth.of(i.getInitialDate()).getYear()),
-                "m", i -> YearMonth.of(i.getInitialDate()).monthString(),
-                "q", i -> YearMonth.of(i.getInitialDate()).quarter());
+                "h", i -> YearMonthUtil.half(YearMonth.from(i.getInitialDate())),
+                "y", i -> Integer.toString(YearMonth.from(i.getInitialDate()).getYear()),
+                "m", i -> YearMonthUtil.monthString(YearMonth.from(i.getInitialDate())),
+                "q", i -> YearMonthUtil.quarter(YearMonth.from(i.getInitialDate())));
 
         this.console.appendLine(this.format.title((nominal ? "Nominal" : "Real") + " Dollar Cost Average"));
-        var now = new Date();
+        var now = LocalDate.now();
         final var classifier = groupings.get(type);
         this.dca(nominal, classifier, now);
 
@@ -356,7 +357,7 @@ public class Positions {
         this.netInvested(nominal, type, group);
     }
 
-    private void dca(boolean nominal, Function<Investment, String> groupingFunction, Date now) {
+    private void dca(boolean nominal, Function<Investment, String> groupingFunction, LocalDate now) {
 
         final var averagesByGroup = this.positionsBy(
                 this.series.getInvestments(),
@@ -403,10 +404,14 @@ public class Positions {
     private void netInvested(boolean nominal, String type, String group) {
 
         final Map<String, Function<CashFlow, String>> groupings = Map.of(
-                "h", i -> YearMonth.of(i.date()).half(),
+                /*    "h", i -> YearMonth.from(i.date()).half(),
                 "y", i -> Integer.toString(YearMonth.of(i.date()).getYear()),
                 "m", i -> YearMonth.of(i.date()).monthString(),
-                "q", i -> YearMonth.of(i.date()).quarter(),
+                "q", i -> YearMonth.of(i.date()).quarter(),*/
+                "h", i -> YearMonthUtil.half(YearMonth.from(i.date())),
+                "y", i -> Integer.toString(YearMonth.from(i.date()).getYear()),
+                "m", i -> YearMonthUtil.monthString(YearMonth.from(i.date())),
+                "q", i -> YearMonthUtil.quarter(YearMonth.from(i.date())),
                 "all", i -> ""
         );
 
@@ -432,8 +437,8 @@ public class Positions {
         final Function<CashFlow, String> groupingFunction = groupings.get(group);
 
         final Map<String, BigDecimal> grouped = this.netInvestedByGrouping(
-                nominal, 
-                filter, 
+                nominal,
+                filter,
                 groupingFunction);
 
         grouped.entrySet()
@@ -442,7 +447,7 @@ public class Positions {
                 .forEach(e -> this.console.appendLine(
                 e.getKey() + " " + this.format.currencyPL(e.getValue(), 20)));
     }
-    
+
     private Map<String, BigDecimal> netInvestedByGrouping(
             boolean nominal,
             Predicate<Investment> filter,
@@ -475,7 +480,7 @@ public class Positions {
                 || (i.getType() == PF && i.getCurrency() == USD);
     }
 
-    private record CashFlow(Date date, BigDecimal amount) {
+    private record CashFlow(LocalDate date, BigDecimal amount) {
 
     }
 
@@ -489,7 +494,7 @@ public class Positions {
         return Ansi.colorize(this.format.currency(this.current(currency).amount(), 9), Attribute.WHITE_TEXT());
     }
 
-    private Map<CurrencyAndGroupKey, Position> positionsBy(List<Investment> investments, Function<Investment, String> groupingFunction, boolean nominal, Date now) {
+    private Map<CurrencyAndGroupKey, Position> positionsBy(List<Investment> investments, Function<Investment, String> groupingFunction, boolean nominal, LocalDate now) {
         return investments
                 .stream()
                 .filter(investment -> investment.isCurrent(now))
@@ -545,7 +550,7 @@ public class Positions {
                 .map(InvestmentAsset::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
-        final var now = YearMonth.of(new Date());
+        final var now = YearMonth.now();
 
         return new Position(
                 Investments.ETF_NAME.get(symbol),
@@ -572,12 +577,12 @@ public class Positions {
     public void portfolioChartSeries(String subtype) throws IOException {
 
         var from = YearMonth.of(2001, 10);
-        var to = YearMonth.of(new Date());
+        var to = YearMonth.now();
 
         var chart = new PieChart(false, true);
 
-        for (var y = from; y.compareTo(to) <= 0; y = y.next()) {
-            this.portfolioChart(chart, subtype, y.year(), y.month());
+        for (var y = from; y.compareTo(to) <= 0; y = y.plusMonths(1)) {
+            this.portfolioChart(chart, subtype, y.getYear(), y.getMonthValue());
         }
     }
 
@@ -611,9 +616,9 @@ public class Positions {
 
         chart
                 .create(
-                        MessageFormat.format("Portfolio {0}", ym.monthString()),
+                        MessageFormat.format("Portfolio {0}", YearMonthUtil.monthString(ym)),
                         List.of(cash, us, exUS, em),
-                        MessageFormat.format("portfolio-geo-{1}-{0}", ym.monthString(), type));
+                        MessageFormat.format("portfolio-geo-{1}-{0}", YearMonthUtil.monthString(ym), type));
 
     }
 
@@ -652,9 +657,9 @@ public class Positions {
 
         chart
                 .create(
-                        MessageFormat.format("Portfolio {0}", ym.monthString()),
+                        MessageFormat.format("Portfolio {0}", YearMonthUtil.monthString(ym)),
                         List.of(cash, sp500, r2k, exUS, em),
-                        MessageFormat.format("portfolio-geo-break-{1}-{0}", ym.monthString(), type));
+                        MessageFormat.format("portfolio-geo-break-{1}-{0}", YearMonthUtil.monthString(ym), type));
 
     }
 
@@ -675,12 +680,12 @@ public class Positions {
 
             chart
                     .create(
-                            MessageFormat.format("Portfolio {1} {0}", ym.monthString(), subtype),
+                            MessageFormat.format("Portfolio {1} {0}", YearMonthUtil.monthString(ym), subtype),
                             items.stream()
                                     .map(item -> new PieItem(
                                     Investments.ETF_NAME.getOrDefault(item.getAmount().currency(), item.getAmount().currency().name()),
                                     item.getDollarAmount().amount())).toList(),
-                            MessageFormat.format("portfolio-{1}-{0}.png", ym.monthString(), subtype)
+                            MessageFormat.format("portfolio-{1}-{0}.png", YearMonthUtil.monthString(ym), subtype)
                     );
         }
 
@@ -765,5 +770,5 @@ public class Positions {
     private record CurrencyAndGroupKey(Currency currency, String groupKey) {
 
     }
-    
+
 }

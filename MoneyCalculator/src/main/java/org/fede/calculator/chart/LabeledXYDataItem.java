@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.chart;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import org.jfree.data.xy.XYDataItem;
 
 /**
@@ -25,6 +27,28 @@ import org.jfree.data.xy.XYDataItem;
 public class LabeledXYDataItem extends XYDataItem {
 
     private final String label;
+
+    public LabeledXYDataItem(LocalDate x, LocalDate y, String label) {
+        this(
+                x.atStartOfDay(ZoneId.systemDefault()) // convert to ZonedDateTime
+                        .toInstant() // convert to Instant (UTC)
+                        .toEpochMilli(),
+                y.atStartOfDay(ZoneId.systemDefault()) // convert to ZonedDateTime
+                        .toInstant() // convert to Instant (UTC)
+                        .toEpochMilli(),
+                label
+        );
+    }
+    
+     public LabeledXYDataItem(LocalDate x, Number y, String label) {
+        this(
+                x.atStartOfDay(ZoneId.systemDefault()) // convert to ZonedDateTime
+                        .toInstant() // convert to Instant (UTC)
+                        .toEpochMilli(),
+                y,
+                label
+        );
+    }
 
     public LabeledXYDataItem(Number x, Number y, String label) {
         super(x, y);

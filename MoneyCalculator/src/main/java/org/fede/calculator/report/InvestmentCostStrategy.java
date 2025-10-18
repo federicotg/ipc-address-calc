@@ -52,7 +52,7 @@ public class InvestmentCostStrategy {
 
         d.setCostBasis(inv.getCost());
 
-        d.setInvestmentDate(LocalDate.ofInstant(inv.getInitialDate().toInstant(), ZoneId.systemDefault()));
+        d.setInvestmentDate(inv.getInitialDate());
         d.setInvestedAmount(new MoneyAmount(investedAmount, this.currency));
         d.setInvestmentCurrency(inv.getInvestment().getCurrency());
         d.setCurrentAmount(new MoneyAmount(presentValue, this.currency));

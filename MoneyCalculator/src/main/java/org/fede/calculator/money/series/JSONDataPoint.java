@@ -16,20 +16,30 @@
  */
 package org.fede.calculator.money.series;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
+import java.time.YearMonth;
 
 /**
  *
  * @author fede
  */
-public record JSONDataPoint(int year, int month, BigDecimal value) implements Comparable<JSONDataPoint> {
+public record JSONDataPoint(YearMonth yearMonth, BigDecimal value) implements Comparable<JSONDataPoint> {
+
+    @JsonCreator
+    public JSONDataPoint(
+            @JsonProperty("year") int year,
+            @JsonProperty("month") int month,
+            @JsonProperty("value") BigDecimal value) {
+        this(YearMonth.of(year, month), value);
+    }
 
     @Override
     public int compareTo(JSONDataPoint o) {
-        if (this.year == o.year) {
-            return this.month - o.month;
-        }
-        return this.year - o.year;
+
+        return this.yearMonth.compareTo(o.yearMonth);
+
     }
 
 }

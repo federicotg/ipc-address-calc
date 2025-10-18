@@ -17,6 +17,7 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
+import java.time.YearMonth;
 import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.stream.Collectors;
@@ -33,12 +34,12 @@ public class JSONIndexSeries extends IndexSeriesSupport {
 
     public JSONIndexSeries(SequencedCollection<JSONDataPoint> data) {
         JSONDataPoint first = data.getFirst();
-        this.from = YearMonth.of(first.year(), first.month());
+        this.from = first.yearMonth();
         JSONDataPoint last = data.getLast();
-        this.to = YearMonth.of(last.year(), last.month());
+        this.to = last.yearMonth();
 
         this.data = data.stream()
-                .collect(Collectors.toMap(dp -> YearMonth.of(dp.year(), dp.month()), JSONDataPoint::value));
+                .collect(Collectors.toMap(JSONDataPoint::yearMonth, JSONDataPoint::value));
 
     }
 

@@ -30,7 +30,8 @@ import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 
 /**
  *
@@ -52,9 +53,10 @@ public class CashInvestmentBuilder {
 
             final var cashInvesments = this.cash.get();
 
-            this.data = new ArrayList<>(cashInvesments.getFrom().monthsUntil(cashInvesments.getTo()));
+            this.data = new ArrayList<>((int) cashInvesments.getFrom()
+                    .until(cashInvesments.getTo(), ChronoUnit.MONTHS));
             
-            for (var ym = cashInvesments.getFrom(); ym.compareTo(cashInvesments.getTo()) <= 0; ym = ym.next()) {
+            for (var ym = cashInvesments.getFrom(); ym.compareTo(cashInvesments.getTo()) <= 0; ym = ym.plusMonths(1)) {
 
                 var currentSavedUSD = cashInvesments.getAmountOrElseZero(ym).amount();
                 var total = this.total(this.data);
@@ -89,7 +91,7 @@ public class CashInvestmentBuilder {
         final var out = new InvestmentEvent();
         out.setAmount(inv.getInvestment().getAmount());
         out.setCurrency(USD);
-        out.setDate(ym.prev().asToDate());
+        out.setDate(ym.plusMonths(-1).atEndOfMonth());
         out.setFee(ZERO);
         out.setTransferFee(ZERO);
         inv.setOut(out);
@@ -99,7 +101,7 @@ public class CashInvestmentBuilder {
         final var in = new InvestmentEvent();
         in.setAmount(amount);
         in.setCurrency(USD);
-        in.setDate(ym.asDate());
+        in.setDate(ym.atDay(1));
         in.setFee(ZERO);
         in.setTransferFee(ZERO);
 

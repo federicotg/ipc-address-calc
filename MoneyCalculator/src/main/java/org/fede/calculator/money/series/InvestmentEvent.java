@@ -3,6 +3,8 @@ package org.fede.calculator.money.series;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.Optional;
 import java.util.StringJoiner;
@@ -35,7 +37,7 @@ import org.fede.calculator.money.MoneyAmount;
 public class InvestmentEvent {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy", timezone = "GMT-3")
-    private Date date;
+    private LocalDate date;
     private BigDecimal amount;
     private BigDecimal fee;
     private Currency currency;
@@ -50,11 +52,11 @@ public class InvestmentEvent {
         this.transferFee = transferFee;
     }
 
-    public Date getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(LocalDate date) {
         this.date = date;
     }
 
@@ -150,7 +152,7 @@ public class InvestmentEvent {
             } else {
                 final var toUSD = ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD);
 
-                ma = toUSD.apply(nominal, YearMonth.of(this.getDate()));
+                ma = toUSD.apply(nominal, YearMonth.from(this.getDate()));
             }
         } else {
             ma = nominal;
@@ -158,7 +160,7 @@ public class InvestmentEvent {
 
         return Inflation.USD_INFLATION.adjust(
                 ma,
-                YearMonth.of(this.getDate()),
+                YearMonth.from(this.getDate()),
                 now);
 
     }

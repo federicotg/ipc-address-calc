@@ -36,7 +36,7 @@ import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 
 /**
@@ -53,18 +53,6 @@ public class ModifiedDietzReturn {
     private final long daysBetween;
     private final MoneyAmount zeroAmount;
 
-    private static Instant min(Instant i1, Instant i2) {
-        return i1.compareTo(i2) <= 0
-                ? i1
-                : i2;
-    }
-
-    private static Instant max(Instant i1, Instant i2) {
-        return i1.compareTo(i2) >= 0
-                ? i1
-                : i2;
-    }
-
     private static LocalDate min(LocalDate l1, LocalDate l2) {
         return l1.compareTo(l2) <= 0
                 ? l1
@@ -77,14 +65,6 @@ public class ModifiedDietzReturn {
                 : l2;
     }
 
-    private static LocalDate asLocalDate(Instant i) {
-        return LocalDate.ofInstant(i, ZoneId.systemDefault());
-    }
-
-    private static LocalDate asLocalDate(Date d) {
-        return asLocalDate(d.toInstant());
-    }
-
     private static LocalDate finalMoment(List<Investment> investments) {
 
         if (investments.stream().map(Investment::getOut).anyMatch(Objects::isNull)) {
@@ -95,9 +75,7 @@ public class ModifiedDietzReturn {
                 .stream()
                 .map(Investment::getOut)
                 .map(InvestmentEvent::getDate)
-                .map(Date::toInstant)
                 .reduce(ModifiedDietzReturn::max)
-                .map(ModifiedDietzReturn::asLocalDate)
                 .get();
     }
 
@@ -113,9 +91,7 @@ public class ModifiedDietzReturn {
                         .stream()
                         .map(Investment::getIn)
                         .map(InvestmentEvent::getDate)
-                        .map(Date::toInstant)
                         .reduce(ModifiedDietzReturn::min)
-                        .map(ModifiedDietzReturn::asLocalDate)
                         .get(),
                 finalMoment(investments));
     }
@@ -134,9 +110,7 @@ public class ModifiedDietzReturn {
                         .stream()
                         .map(Investment::getIn)
                         .map(InvestmentEvent::getDate)
-                        .map(Date::toInstant)
                         .reduce(ModifiedDietzReturn::min)
-                        .map(ModifiedDietzReturn::asLocalDate)
                         .get());
 
         this.finalMoment = min(finalMoment, LocalDate.now());
@@ -155,10 +129,10 @@ public class ModifiedDietzReturn {
         return this.cashFlows(this::adjustedCashFlowAmount);
     }
 
-    private static boolean between(Date d, LocalDate initialMoment, LocalDate finalMoment) {
-        final var ld = asLocalDate(d);
-        return (ld.isEqual(initialMoment) || ld.isAfter(initialMoment))
-                && (ld.isEqual(finalMoment) || ld.isBefore(finalMoment));
+    private static boolean between(LocalDate d, LocalDate initialMoment, LocalDate finalMoment) {
+        //final var ld = asLocalDate(d);
+        return (d.isEqual(initialMoment) || d.isAfter(initialMoment))
+                && (d.isEqual(finalMoment) || d.isBefore(finalMoment));
     }
 
     private List<BigDecimal> cashFlows(Function<InvestmentEvent, BigDecimal> cashFlowFunction) {
@@ -181,7 +155,7 @@ public class ModifiedDietzReturn {
 
     private BigDecimal adjustedCashFlowAmount(InvestmentEvent ie) {
 
-        final var cashFlowDate = asLocalDate(ie.getDate());
+        final var cashFlowDate = ie.getDate();
 
         final var cashFlowTime = ChronoUnit.DAYS.between(this.initialMoment, cashFlowDate);
 
@@ -191,7 +165,7 @@ public class ModifiedDietzReturn {
 
     private BigDecimal cashFlowAmount(InvestmentEvent ie) {
 
-        final var ym = YearMonth.of(ie.getDate());
+        final var ym = YearMonth.from(ie.getDate());
         final var fx = ie.getFx() != null
                 ? new MoneyAmount(ie.getAmount().multiply(ie.getFx(), C), USD)
                 : ForeignExchanges.getMoneyAmountForeignExchange(ie.getCurrency(), currency).apply(ie.getMoneyAmount(), ym);
@@ -202,7 +176,7 @@ public class ModifiedDietzReturn {
     }
 
     private MoneyAmount portfolioValue(YearMonth ym) {
-        final var toDate = ym.asToDate();
+        final var toDate = ym.atEndOfMonth();
         return this.getInvestments()
                 .stream()
                 .filter(i -> i.isCurrent(toDate))
@@ -216,7 +190,7 @@ public class ModifiedDietzReturn {
     public ModifiedDietzReturnResult get() {
 
         final var v1 = this.portfolioValue(YearMonth.of(this.finalMoment.getYear(), this.finalMoment.getMonthValue()));
-        final var v0 = this.portfolioValue(YearMonth.of(this.initialMoment.getYear(), this.initialMoment.getMonthValue()).prev());
+        final var v0 = this.portfolioValue(YearMonth.of(this.initialMoment.getYear(), this.initialMoment.getMonthValue()).plusMonths(-1));
 
         final var cashFlowSum = this.cashFlows()
                 .stream()
@@ -243,17 +217,15 @@ public class ModifiedDietzReturn {
     public ModifiedDietzReturnResult monthlyLinked() {
         List<BigDecimal> monthyMDR = new ArrayList<>(60);
 
-        final var from = YearMonth.of(this.initialMoment).prev();
-        final var to = YearMonth.of(this.finalMoment);
+        final var from = YearMonth.from(this.initialMoment).plusMonths(-1);
+        final var to = YearMonth.from(this.finalMoment);
 
-        for (var ym = from; ym.compareTo(to) < 0; ym = ym.next()) {
+        for (var ym = from; ym.compareTo(to) < 0; ym = ym.plusMonths(1)) {
 
-            var next = ym.next();
+            var next = ym.plusMonths(1);
 
-            final var st = LocalDate.ofInstant(ym.asToDate().toInstant(), ZoneId.systemDefault()).plusDays(1);
-
-            final var fn = LocalDate.ofInstant(next.asToDate().toInstant(), ZoneId.systemDefault());
-
+            final var st = ym.atEndOfMonth();
+            final var fn = next.atEndOfMonth();
             monthyMDR.add(new ModifiedDietzReturn(
                     this.investments,
                     this.currency,

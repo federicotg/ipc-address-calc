@@ -81,7 +81,9 @@ import static org.fede.calculator.money.series.InvestmentType.USD_CASH;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
+import org.fede.calculator.money.series.YearMonthUtil;
 import org.fede.util.Pair;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.time.TimeSeries;
@@ -150,7 +152,7 @@ public class Investments {
     }
 
     public void cashInv(boolean nominal) {
-        Predicate<Investment> isCurrent = i -> i.isCurrent(new Date());
+        Predicate<Investment> isCurrent = i -> i.isCurrent(LocalDate.now());
         this.investmentReport(
                 this.cashInvestments.cashInvestments().stream(),
                 i -> true,
@@ -159,7 +161,7 @@ public class Investments {
     }
 
     private void investmentReport(final Predicate<Investment> everyone, boolean nominal) {
-        Predicate<Investment> isCurrent = i -> i.isCurrent(new Date());
+        Predicate<Investment> isCurrent = i -> i.isCurrent(LocalDate.now());
         this.investmentReport(this.getInvestments(), everyone, Investment::isETF, isCurrent, nominal);
     }
 
@@ -273,7 +275,7 @@ public class Investments {
     private String pnl(Currency currency, Integer year, List<InvestmentReturn> inv, Map<Currency, Integer> cols) {
         return inv.stream()
                 .filter(i -> i.currency() == currency)
-                .filter(i -> LocalDate.ofInstant(i.to().toInstant(), SYSTEM_DEFAULT_ZONE_ID).getYear() == year)
+                .filter(i -> i.to().getYear() == year)
                 .map(InvestmentReturn::profit)
                 .reduce(MoneyAmount::add)
                 .map(pnl -> this.format.currencyPL(pnl.amount(), cols.getOrDefault(currency, 12)))
@@ -284,11 +286,10 @@ public class Investments {
 
         var from = this.format.text(
                 DateTimeFormatter.ISO_LOCAL_DATE.format(
-                        LocalDate.ofInstant(pf.from().toInstant(), SYSTEM_DEFAULT_ZONE_ID)), 12);
+                        pf.from()), 12);
         var to = this.format.text(
-                DateTimeFormatter.ISO_LOCAL_DATE.format(
-                        LocalDate.ofInstant(pf.to().toInstant(), SYSTEM_DEFAULT_ZONE_ID))
-                + (pf.to().after(new Date()) ? "*" : ""),
+                DateTimeFormatter.ISO_LOCAL_DATE.format(pf.to())
+                + (pf.to().isAfter(LocalDate.now()) ? "*" : ""),
                 12);
 
         var days = this.format.text(String.valueOf(pf.days()), 4);
@@ -308,8 +309,8 @@ public class Investments {
         var from = pf.getInitialDate();
         var to = pf.getOut() != null
                 ? pf.getOut().getDate()
-                : new Date();
-        var now = new Date();
+                : LocalDate.now();
+        var now = LocalDate.now();
         var realInitialAmount = nominal
                 ? pf.getInitialMoneyAmount()
                 : Inflation.USD_INFLATION.adjust(pf.getInitialMoneyAmount(), from, now);
@@ -376,10 +377,10 @@ public class Investments {
         }
 
         final var amount = new MoneyAmount(ONE, symbol);
-        final var startYm = YearMonth.of(Math.max(2019, year) - 1, 12).max(from);
+        final var startYm = YearMonthUtil.max(YearMonth.of(Math.max(2019, year) - 1, 12), from);
         final var endYm = year == 0
                 ? to
-                : YearMonth.of(year, 12).min(to);
+                : YearMonthUtil.min(YearMonth.of(year, 12), to);
 
         final var fx = ForeignExchanges.getForeignExchange(symbol, USD);
         var startValue = fx.exchange(amount, Currency.USD, startYm);
@@ -407,7 +408,7 @@ public class Investments {
 
     public void mdrByYearChart() {
 
-        var to = Inflation.USD_INFLATION.getTo().year();
+        var to = Inflation.USD_INFLATION.getTo().getYear();
         var inv = Stream.concat(this.series.getInvestments().stream(),
                 this.cashInvestments.cashInvestments().stream())
                 .toList();
@@ -443,10 +444,10 @@ public class Investments {
                 this.cashInvestments.cashInvestments().stream())
                 .toList();
 
-        var start = initial
-                .max(inv.stream()
+        var start = YearMonthUtil.max(initial,
+                inv.stream()
                         .map(Investment::getInitialDate)
-                        .map(YearMonth::of)
+                        .map(YearMonth::from)
                         .min(Comparator.naturalOrder())
                         .orElse(initial));
 
@@ -496,15 +497,14 @@ public class Investments {
             YearMonth start,
             Function<ModifiedDietzReturnResult, BigDecimal> resultFunction) {
 
-        var startLocalDate = LocalDate.ofInstant(start.asToDate().toInstant(), SYSTEM_DEFAULT_ZONE_ID);
+        var startLocalDate = start.atEndOfMonth();
         var end = Inflation.USD_INFLATION.getTo();
 
-        final List<TimeSeriesDatapoint> ss = new ArrayList<>(start.monthsUntil(end));
+        final List<TimeSeriesDatapoint> ss = new ArrayList<>((int) start.until(end, ChronoUnit.MONTHS));
 
-        for (var ym = start; ym.compareTo(end) <= 0; ym = ym.next()) {
+        for (var ym = start; ym.compareTo(end) <= 0; ym = ym.plusMonths(1)) {
 
-            var to = LocalDate.ofInstant(ym.asToDate().toInstant(), SYSTEM_DEFAULT_ZONE_ID);
-
+            var to = ym.atEndOfMonth();
             var realMdr = new ModifiedDietzReturn(
                     inv,
                     nominal,
@@ -761,16 +761,17 @@ public class Investments {
                 .stream()
                 .map(Investment::getIn)
                 .map(InvestmentEvent::getDate)
-                .map(YearMonth::of)
+                .map(YearMonth::from)
                 //.reduce((left, right) -> left.min(right))
-                .reduce(YearMonth::min)
+                .reduce(YearMonthUtil::min)
                 .get();
 
         final var end = inv
                 .stream()
-                .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate).map(YearMonth::of).orElse(Inflation.USD_INFLATION.getTo()))
+                .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate)
+                .map(YearMonth::from).orElse(Inflation.USD_INFLATION.getTo()))
                 //.reduce((left, right) -> left.max(right))
-                .reduce(YearMonth::max)
+                .reduce(YearMonthUtil::max)
                 .get();
 
         final var investmentSeries = new SortedMapMoneyAmountSeries(Currency.USD, "investment");
@@ -800,7 +801,7 @@ public class Investments {
 
             taxesValuesSeries.putAmount(ym, accum(inv, ym, taxes));
 
-            ym = ym.next();
+            ym = ym.plusMonths(1);
         }
 
         return Map.of(
@@ -812,7 +813,7 @@ public class Investments {
 
     private MoneyAmount real(Investment i, YearMonth moment, Function<Investment, MoneyAmount> extrator) {
         return Inflation.USD_INFLATION
-                .adjust(extrator.apply(i), YearMonth.of(i.getInitialDate()), moment);
+                .adjust(extrator.apply(i), YearMonth.from(i.getInitialDate()), moment);
     }
 
     private MoneyAmount tax(Investment i, Function<Investment, MoneyAmount> invested, Function<Investment, MoneyAmount> total) {
@@ -827,8 +828,8 @@ public class Investments {
         return MoneyAmount.zero(Currency.USD);
     }
 
-    private MoneyAmount asUSD(MoneyAmount ma, Date d) {
-        return this.asUSD(ma, YearMonth.of(d));
+    private MoneyAmount asUSD(MoneyAmount ma, LocalDate d) {
+        return this.asUSD(ma, YearMonth.from(d));
     }
 
     private MoneyAmount asUSD(MoneyAmount ma, YearMonth ym) {
@@ -838,8 +839,8 @@ public class Investments {
     private MoneyAmount accum(List<Investment> investments, YearMonth yearMonth, Function<Investment, MoneyAmount> extractor) {
 
         return investments.stream()
-                .filter(i -> YearMonth.of(i.getIn().getDate()).compareTo(yearMonth) <= 0)
-                .filter(i -> i.isCurrent(yearMonth.asToDate()))
+                .filter(i -> YearMonth.from(i.getIn().getDate()).compareTo(yearMonth) <= 0)
+                .filter(i -> i.isCurrent(yearMonth.atEndOfMonth()))
                 .map(extractor)
                 .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
     }
@@ -848,11 +849,11 @@ public class Investments {
 
         final BiFunction<Investment, YearMonth, MoneyAmount> totalFunction = (i, moment) -> this.asUSD(i.getInvestment().getMoneyAmount(), moment);
 
-        Function<Investment, YearMonth> startFunction = i -> YearMonth.of(i.getIn().getDate());
+        Function<Investment, YearMonth> startFunction = i -> YearMonth.from(i.getIn().getDate());
         Function<Investment, YearMonth> endFunction = i -> Optional.ofNullable(i.getOut())
                 .map(InvestmentEvent::getDate)
-                .map(YearMonth::of)
-                .map(YearMonth::prev)
+                .map(YearMonth::from)
+                .map(ym -> ym.plusMonths(-1))
                 .orElseGet(Inflation.USD_INFLATION::getTo);
 
         Function<Investment, String> classifier = i
@@ -890,11 +891,11 @@ public class Investments {
 
         final BiFunction<Investment, YearMonth, MoneyAmount> totalFunction = (i, moment) -> this.asUSD(i.getInvestment().getMoneyAmount(), moment);
 
-        Function<Investment, YearMonth> startFunction = i -> YearMonth.of(i.getIn().getDate());
+        Function<Investment, YearMonth> startFunction = i -> YearMonth.from(i.getIn().getDate());
         Function<Investment, YearMonth> endFunction = i -> Optional.ofNullable(i.getOut())
                 .map(InvestmentEvent::getDate)
-                .map(YearMonth::of)
-                .map(YearMonth::prev)
+                .map(YearMonth::from)
+                .map(ym -> ym.plusMonths(-1))
                 .orElseGet(Inflation.USD_INFLATION::getTo);
 
         new Evolution<Investment>(this.console, this.bar)
@@ -933,7 +934,7 @@ public class Investments {
 
     }
 
-    public void investments(Date moment) {
+    public void investments(LocalDate moment) {
 
         final Comparator<InvestmentTypeCurrencyAndAmount> TYPE_CURRENCY_COMPARATOR = comparing(InvestmentTypeCurrencyAndAmount::type)
                 .thenComparing(InvestmentTypeCurrencyAndAmount::currency);
@@ -1067,7 +1068,8 @@ public class Investments {
                 arsTax,
                 20));
 
-        final var currentTaxAmount = ForeignExchanges.getForeignExchange(Currency.ARS, USD).exchange(arsTax, USD, new Date());
+        final var currentTaxAmount = ForeignExchanges.getForeignExchange(Currency.ARS, USD)
+                .exchange(arsTax, USD, LocalDate.now());
         this.console.appendLine(
                 "Current ",
                 this.format.currency(currentTaxAmount, 15),
@@ -1090,7 +1092,7 @@ public class Investments {
 
         final Function<Investment, InvestmentGroup> classifier = switch (type) {
             case "group" ->
-                (Investment i) -> new InvestmentGroup(i.getCurrency(), DTF.format(i.getOut().getDate().toInstant()));
+                (Investment i) -> new InvestmentGroup(i.getCurrency(), DTF.format(i.getOut().getDate()));
             case "groupall" ->
                 (Investment i) -> new InvestmentGroup(i.getCurrency(), "");
             default ->
@@ -1199,7 +1201,7 @@ public class Investments {
         return new MoneyAmount(i.getOut()
                 .getMoneyAmount()
                 .subtract(this.cost(i))
-                .adjust(BigDecimal.ONE, bnaFX.get(DTF.format(i.getOut().getDate().toInstant()))).amount(),
+                .adjust(BigDecimal.ONE, bnaFX.get(DTF.format(i.getOut().getDate()))).amount(),
                 Currency.ARS);
     }
 
@@ -1207,13 +1209,13 @@ public class Investments {
 
         return MessageFormat.format("{0} {1} {2} {3} {4} {5} {6} {7}",
                 DateTimeFormatter.ISO_DATE.format(
-                        LocalDate.ofInstant(i.getOut().getDate().toInstant(), ZoneId.systemDefault())),
+                        i.getOut().getDate()),
                 i.getCurrency(),
                 this.format.number(i.getInvestment().getAmount(), 8),
                 this.format.currency(i.getOut().getMoneyAmount(), 18),
                 this.format.currency(i.getOut().getFeeMoneyAmount(), 16),
                 this.format.currency(i.getOut().getMoneyAmount().subtract(this.cost(i)), 16),
-                this.format.currency(new MoneyAmount(bnaFX.get(DTF.format(i.getOut().getDate().toInstant())), Currency.ARS), 16),
+                this.format.currency(new MoneyAmount(bnaFX.get(DTF.format(i.getOut().getDate())), Currency.ARS), 16),
                 this.format.currency(this.capitalGainARS(i, bnaFX), 20)
         );
     }
@@ -1245,7 +1247,7 @@ public class Investments {
         final var limitDate = LocalDateTime.of(2025, Month.APRIL, 2, 0, 0, 0, 0);
 
         final var lastBuyDate = LocalDateTime.of(2025, Month.JUNE, 30, 0, 0, 0, 0);
-        Predicate<Investment> isCurrent = i -> i.isCurrent(new Date());
+        Predicate<Investment> isCurrent = i -> i.isCurrent(LocalDate.now());
         return new SoldAndBought<>(
                 this.series.getInvestments()
                         .stream()
@@ -1261,15 +1263,11 @@ public class Investments {
                         .map(Investment::getIn)
                         .filter(e
                                 -> e.getDate()
-                                .toInstant()
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDateTime()
+                                .atTime(23, 59, 59, 999999)
                                 .isAfter(limitDate))
                         .filter(e
                                 -> e.getDate()
-                                .toInstant()
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDateTime()
+                                .atTime(23, 59, 59, 999999)
                                 .isBefore(lastBuyDate))
                         .map(buyMapper)
                         .reduce(identity, reduction));
@@ -1390,15 +1388,15 @@ public class Investments {
                 .filter(filter)
                 .map(Investment::getIn)
                 .map(InvestmentEvent::getDate)
-                .map(YearMonth::of)
+                .map(YearMonth::from)
                 .min(YearMonth::compareTo).get();
 
         var valueSeries = new SortedMapMoneyAmountSeries(USD, (nominal ? "Nominal" : "Real") + " Investments");
         final var end = Inflation.USD_INFLATION.getTo();
 
-        for (YearMonth ym = start; ym.compareTo(end) <= 0; ym = ym.next()) {
+        for (YearMonth ym = start; ym.compareTo(end) <= 0; ym = ym.plusMonths(1)) {
 
-            final var moment = ym.asToDate();
+            final var moment = ym.atEndOfMonth();
             final var momentYm = ym;
 
             valueSeries.putAmount(ym,
@@ -1427,7 +1425,7 @@ public class Investments {
                 .map(i -> ForeignExchanges.exchange(i, USD))
                 .map(Investment::getIn)
                 .collect(Collectors.groupingBy(
-                        ev -> YearMonth.of(ev.getDate()),
+                        ev -> YearMonth.from(ev.getDate()),
                         Collectors.reducing(null, this::union)
                 ));
 
@@ -1438,14 +1436,14 @@ public class Investments {
                 .map(i -> ForeignExchanges.exchange(i, USD))
                 .map(Investment::getOut)
                 .collect(Collectors.groupingBy(
-                        ev -> YearMonth.of(ev.getDate()),
+                        ev -> YearMonth.from(ev.getDate()),
                         Collectors.reducing(null, this::union)
                 ));
 
         var start = contributions.keySet().stream().min(YearMonth::compareTo).get();
 
         var accSeries = new SortedMapMoneyAmountSeries(USD, (nominal ? "Nominal" : "Real") + " Contributions");
-        var end = YearMonth.of(new Date());
+        var end = YearMonth.now();
 
         var acc = MoneyAmount.zero(USD);
 
@@ -1453,7 +1451,7 @@ public class Investments {
                 ? InvestmentEvent::getMoneyAmount
                 : InvestmentEvent::getRealUSDMoneyAmount;
 
-        for (YearMonth ym = start; ym.compareTo(end) <= 0; ym = ym.next()) {
+        for (YearMonth ym = start; ym.compareTo(end) <= 0; ym = ym.plusMonths(1)) {
             var contribution = Optional.ofNullable(contributions.get(ym))
                     .map(realFunction)
                     .orElse(MoneyAmount.zero(USD));
@@ -1556,7 +1554,7 @@ public class Investments {
         s.add(this.predictedValues(start, years, percentile, initial, carg, volatility));
         for (int y = 1; y < years; y++) {
             s.add(this.predictedValues(
-                    YearMonth.of(start.year() + y, start.month()),
+                    YearMonth.of(start.getYear() + y, start.getMonthValue()),
                     years - y,
                     percentile,
                     savings,
@@ -1583,7 +1581,7 @@ public class Investments {
         valueSeries.putAmount(start, initial);
         for (var i = 1; i <= years; i++) {
 
-            valueSeries.putAmount(start.year() + i, start.month(),
+            valueSeries.putAmount(start.getYear() + i, start.getMonthValue(),
                     new MoneyAmount(
                             BigDecimal.valueOf(
                                     PortfolioProjections.calculatePortfolioPercentile(
@@ -1607,13 +1605,13 @@ public class Investments {
         final var ss = new XYSeries("Quantity");
 
         var fx = ForeignExchanges.getForeignExchange(currency, USD);
-        Predicate<Investment> isCurrent = i -> i.isCurrent(new Date());
+        Predicate<Investment> isCurrent = i -> i.isCurrent(LocalDate.now());
         var fxFrom = this.series.getInvestments()
                 .stream()
                 .filter(isCurrent)
                 .filter(i -> i.getCurrency() == currency)
                 .map(Investment::getInitialDate)
-                .map(YearMonth::of)
+                .map(YearMonth::from)
                 .min(Comparator.naturalOrder())
                 .get();
 
@@ -1621,18 +1619,18 @@ public class Investments {
         var one = new MoneyAmount(ONE, currency);
 
         Stream.concat(
-                Stream.iterate(fxFrom, ym -> ym.compareTo(fxTo) <= 0, YearMonth::next)
-                        .map(ym -> new LabeledXYDataItem(
-                        ym.asToDate().getTime(),
+                Stream.iterate(fxFrom, ym -> ym.compareTo(fxTo) <= 0, (YearMonth ym) -> ym.plusMonths(1))
+                        .map((YearMonth ym) -> new LabeledXYDataItem(
+                        ym.atEndOfMonth(),
                         fx.exchange(one, USD, ym).amount(),
                         ""
                 )),
-                this.series.getInvestments()
+                 this.series.getInvestments()
                         .stream()
                         .filter(isCurrent)
                         .filter(i -> i.getCurrency() == currency)
-                        .map(i -> new LabeledXYDataItem(
-                        i.getInitialDate().getTime(),
+                        .map((Investment i) -> new LabeledXYDataItem(
+                        i.getInitialDate(),
                         this.initialMoneyAmountUSD(i).adjust(i.getInvestment().getAmount(), ONE).amount(),
                         i.getInvestment().getAmount().toString()
                 )))

@@ -27,7 +27,7 @@ import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.Currency.USD;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 
 /**
  *

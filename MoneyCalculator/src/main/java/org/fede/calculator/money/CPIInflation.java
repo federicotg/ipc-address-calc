@@ -18,7 +18,7 @@ package org.fede.calculator.money;
 
 import org.fede.calculator.money.series.IndexSeries;
 import java.math.BigDecimal;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 
 /**
  *

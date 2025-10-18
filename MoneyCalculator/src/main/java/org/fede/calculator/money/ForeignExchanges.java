@@ -17,6 +17,7 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 import static org.fede.calculator.money.Currency.*;
 
 /**
@@ -246,13 +247,16 @@ public class ForeignExchanges {
         answer.setFee(fx(in.getFx(), fx, fee, currency, in.getDate()).amount());
         answer.setTransferFee(
                 Optional.ofNullable(in.getTransferFee())
-                        .map(trfee -> fx(in.getFx(), fx, new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).amount())
+                        .map(trfee -> fx(
+                                in.getFx(),
+                                fx,
+                                new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).amount())
                         .orElse(null));
         answer.setFx(in.getFx());
         return answer;
     }
 
-    private static MoneyAmount fx(BigDecimal optionalFxRate, ForeignExchange fx, MoneyAmount ma, Currency currency, Date date) {
+    private static MoneyAmount fx(BigDecimal optionalFxRate, ForeignExchange fx, MoneyAmount ma, Currency currency, LocalDate date) {
         if (USD != currency || optionalFxRate == null) {
 
             return fx.exchange(ma, currency, date);

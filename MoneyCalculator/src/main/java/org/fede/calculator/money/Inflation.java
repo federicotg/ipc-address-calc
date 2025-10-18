@@ -16,14 +16,14 @@
  */
 package org.fede.calculator.money;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Optional;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.Series;
 import org.fede.calculator.money.series.SeriesReader;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 
 /**
  *
@@ -48,10 +48,10 @@ public interface Inflation extends Series {
     MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth);
 
     default MoneyAmount adjust(MoneyAmount amount, YearMonth from, YearMonth to) {
-        return this.adjust(amount, from.getYear(), from.getMonth(), to.getYear(), to.getMonth());
+        return this.adjust(amount, from.getYear(), from.getMonthValue(), to.getYear(), to.getMonthValue());
     }
 
-    MoneyAmount adjust(MoneyAmount amount, Date from, Date to);
+    MoneyAmount adjust(MoneyAmount amount, LocalDate from, LocalDate to);
 
     /**
      * Ajusta por inflación todos los valores de la serie
@@ -67,7 +67,7 @@ public interface Inflation extends Series {
     MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth);
 
     default MoneyAmountSeries adjust(MoneyAmountSeries series, YearMonth ym) {
-        return this.adjust(series, ym.getYear(), ym.getMonth());
+        return this.adjust(series, ym.getYear(), ym.getMonthValue());
     }
 
     /**
@@ -107,7 +107,7 @@ public interface Inflation extends Series {
         }
 
         InvestmentEvent answer = new InvestmentEvent();
-        YearMonth start = YearMonth.of(event.getDate());
+        YearMonth start = YearMonth.from(event.getDate());
         MoneyAmount adjusted = this.adjust(event.getMoneyAmount(), start, moment);
         answer.setCurrency(adjusted.currency());
         answer.setAmount(adjusted.amount());

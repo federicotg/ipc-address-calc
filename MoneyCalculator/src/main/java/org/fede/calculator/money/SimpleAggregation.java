@@ -82,7 +82,7 @@ public class SimpleAggregation implements Aggregation {
         final Currency seriesCurrency = series.getCurrency();
 
         MoneyAmountSeries result = new SortedMapMoneyAmountSeries(seriesCurrency, series.getName());
-        for (var ym = series.getFrom(); ym.compareTo(Inflation.USD_INFLATION.getTo()) <= 0; ym = ym.next()) {
+        for (var ym = series.getFrom(); ym.compareTo(Inflation.USD_INFLATION.getTo()) <= 0; ym = ym.plusMonths(1)) {
             var amount = series.getAmountOrElseZero(ym);
             //checkCurrency(seriesCurrency, amount);
             lastValues.addFirst(amount);
@@ -125,7 +125,7 @@ public class SimpleAggregation implements Aggregation {
                 lastValues.removeLast();
             }
 
-            list.add(new JSONDataPoint(ym.getYear(), ym.getMonth(), this.percentChange(lastValues)));
+            list.add(new JSONDataPoint(ym.getYear(), ym.getMonthValue(), this.percentChange(lastValues)));
 
         });
 

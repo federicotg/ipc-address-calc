@@ -30,7 +30,8 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import static org.fede.calculator.money.MathConstants.C;
 
 /**
@@ -102,7 +103,7 @@ public class House {
         final var initialExpenseYM = allExpenses.getFrom();
 
         this.bar.evolution("House cost evolution",
-                allExpenses.map((ym, ma) -> ma.adjust(BigDecimal.valueOf(initialExpenseYM.monthsUntil(ym) + 1), ONE)), 120);
+                allExpenses.map((ym, ma) -> ma.adjust(BigDecimal.valueOf(initialExpenseYM.until(ym, ChronoUnit.MONTHS) + 1), ONE)), 120);
 
     }
 
@@ -154,7 +155,7 @@ public class House {
                 start,
                 limit);
 
-        final var months = BigDecimal.valueOf(start.monthsUntil(timeLimit));
+        final var months = BigDecimal.valueOf(start.until(timeLimit, ChronoUnit.MONTHS));
         final var years = months.divide(BigDecimal.valueOf(12), C);
 
         // interest rate cost

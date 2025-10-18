@@ -18,7 +18,7 @@ package org.fede.calculator.report;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.Inflation;

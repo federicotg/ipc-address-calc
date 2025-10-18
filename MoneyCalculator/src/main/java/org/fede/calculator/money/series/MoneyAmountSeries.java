@@ -16,7 +16,8 @@
  */
 package org.fede.calculator.money.series;
 
-import java.util.Date;
+import java.time.YearMonth;
+import java.time.LocalDate;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;  
@@ -30,7 +31,7 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public interface MoneyAmountSeries extends Series {
 
-    MoneyAmount getAmount(Date day);
+    MoneyAmount getAmount(LocalDate day);
 
     default MoneyAmount getAmount(int year, int month){
         return this.getAmount(YearMonth.of(year, month));

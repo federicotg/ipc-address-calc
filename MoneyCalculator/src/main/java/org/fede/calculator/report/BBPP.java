@@ -23,10 +23,8 @@ import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
 import java.time.Month;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,9 +52,10 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import static org.fede.calculator.money.series.InvestmentType.BONO;
 import org.fede.calculator.money.series.SeriesReader;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import org.fede.calculator.money.series.YearMonthUtil;
 
 /**
  *
@@ -146,15 +145,16 @@ public class BBPP {
 
     private BBPPYear bbpp(List<BBPPYear> bbppYears, int year) {
 
-        final var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
-
+        final var date = LocalDate.of(year, Month.DECEMBER, 31);
         final var bbpp = bbppYears
                 .stream()
                 .filter(y -> y.year() == year)
                 .findAny()
                 .get();
 
-        final var ym = Inflation.USD_INFLATION.getTo().min(YearMonth.of(year, 12));
+        final var ym = YearMonthUtil.min(
+                Inflation.USD_INFLATION.getTo(),
+                YearMonth.of(year, 12));
 
         final Map<Currency, Function<MoneyAmount, BigDecimal>> arsFunction = Map.of(ARS, (MoneyAmount item) -> item.amount(),
                 LECAP, (MoneyAmount item) -> item.amount(),
@@ -204,8 +204,7 @@ public class BBPP {
 
         final var ym = YearMonth.of(year, 12);
 
-        final var date = Date.from(LocalDate.of(year, Month.DECEMBER, 31).atStartOfDay(ZoneId.systemDefault()).toInstant());
-
+        final var date = LocalDate.of(year, Month.DECEMBER, 31);
         final var bbpp = this.bbpp(bbppYears, year);
 
         final var result = new BBPPResult();
@@ -245,7 +244,9 @@ public class BBPP {
 
         result.taxAmount = bbpp.tax();
 
-        final var usdFxYearMonth = Inflation.USD_INFLATION.getTo().min(YearMonth.of(ym.getYear() + 1, 6));
+        final var usdFxYearMonth = YearMonthUtil.min(
+                Inflation.USD_INFLATION.getTo(),
+                YearMonth.of(ym.getYear() + 1, 6));
 
         result.usdTaxAmount = getMoneyAmountForeignExchange(ARS, USD)
                 .apply(new MoneyAmount(result.taxAmount, ARS), usdFxYearMonth);
@@ -408,7 +409,7 @@ public class BBPP {
                 .map(BBPPItem::value).findFirst()
                 .orElse(ZERO);
 
-        final var ym = YearMonth.of(yc.year, 12).asToDate();
+        final var ym = YearMonth.of(yc.year, 12).atEndOfMonth();
         
         final var totalAmount = this.series.getInvestments()
                 .stream()
@@ -424,7 +425,7 @@ public class BBPP {
 
     public void status() {
 
-        final var lastYear = YearMonth.of(LocalDate.now()).year();
+        final var lastYear = LocalDate.now().getYear();
 
         Stream.of(CSPX, EIMI, XRSU, MEUD, RTWO)
                 .flatMap(currency -> IntStream.range(2019, lastYear)
@@ -453,7 +454,7 @@ public class BBPP {
 
             final var dif = includedAmount.subtract(totalAmount, C);
             final var difAmount = ForeignExchanges.getForeignExchange(yearCurrency.currency, USD)
-                    .exchange(new MoneyAmount(dif, yearCurrency.currency), USD, YearMonth.of(LocalDate.now()));
+                    .exchange(new MoneyAmount(dif, yearCurrency.currency), USD, YearMonth.now());
             return MessageFormat.format("{0} {1} {2} {3} {4} {5}",
                     format.text(String.valueOf(yearCurrency.year), 5),
                     format.text(yearCurrency.currency.name(), 5),

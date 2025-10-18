@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.money.series;
 
+import java.time.YearMonth;
 import java.util.Map;
 import java.util.SequencedMap;
 import java.util.TreeMap;

@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.money.series;
 
+import java.time.YearMonth;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MoneyAmount;
@@ -55,7 +56,7 @@ public enum InterpolationStrategy {
         return inflation.adjust(
                 lastValue, 
                 lastValueYearMonth,
-                lastValueYearMonth.next());
+                lastValueYearMonth.plusMonths(1));
     }
 
 }

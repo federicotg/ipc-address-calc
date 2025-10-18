@@ -31,7 +31,8 @@ import static org.fede.calculator.money.Currency.USD;
 import java.util.stream.IntStream;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.SeriesReader;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
+import org.fede.calculator.money.series.YearMonthUtil;
 
 /**
  *
@@ -66,13 +67,13 @@ public class Evolution<T> {
         final var start = inv
                 .stream()
                 .map(startFunction)
-                .reduce(YearMonth::min)
+                .reduce(YearMonthUtil::min)
                 .get();
 
         final var end = inv
                 .stream()
                 .map(endFunction)
-                .reduce(YearMonth::max)
+                .reduce(YearMonthUtil::max)
                 .get();
 
         final var refs = new HashSet<String>();
@@ -124,7 +125,7 @@ public class Evolution<T> {
                     .mapToObj(i -> Ansi.colorize(" ", colorList.get(i)) + typeList.get(i))
                     .forEach(refs::add);
 
-            ym = ym.next();
+            ym = ym.plusMonths(1);
         }
         this.console.appendLine("");
         this.console.appendLine("References:");

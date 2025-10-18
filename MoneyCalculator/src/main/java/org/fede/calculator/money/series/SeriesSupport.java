@@ -16,6 +16,8 @@
  */
 package org.fede.calculator.money.series;
 
+import java.time.YearMonth;
+
 /**
  *
  * @author fede
@@ -24,11 +26,11 @@ public abstract class SeriesSupport implements Series {
 
     @Override
     public final YearMonth minimumTo(Series other) {
-        return this.getTo().min(other.getTo());
+        return YearMonthUtil.min(this.getTo(), other.getTo());
     }
 
     @Override
     public final YearMonth maximumFrom(Series other) {
-        return this.getFrom().max(other.getFrom());
+        return YearMonthUtil.max(this.getFrom(), other.getFrom());
     }
 }

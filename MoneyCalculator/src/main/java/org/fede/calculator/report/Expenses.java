@@ -31,7 +31,8 @@ import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.SimpleAggregation;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
+import org.fede.calculator.money.series.YearMonthUtil;
 
 /**
  *
@@ -111,7 +112,7 @@ public class Expenses {
 
         for (var i = 0; i < months; i++) {
             amount = amount.add(s.getAmountOrElseZero(ym));
-            ym = ym.prev();
+            ym = ym.plusMonths(-1);
         }
 
         return amount;
@@ -119,19 +120,23 @@ public class Expenses {
     }
 
     private void quarterExpenses() {
-        new Group(console, format, bar).group("Quarterly expenses", this.series.realExpense(), null, YearMonth::quarter, 3);
+        new Group(console, format, bar)
+                .group("Quarterly expenses", this.series.realExpense(), null, YearMonthUtil::quarter, 3);
     }
 
     private void monthlyExpenses() {
-        new Group(console, format, bar).group("Monthly expenses", this.series.realExpense(), null, YearMonth::monthString, 1);
+        new Group(console, format, bar)
+                .group("Monthly expenses", this.series.realExpense(), null, YearMonthUtil::monthString, 1);
     }
 
     private void yearlyExpenses() {
-        new Group(console, format, bar).group("Yearly expenses", this.series.realExpense(), null, ym -> String.valueOf(ym.getYear()), 12);
+        new Group(console, format, bar)
+                .group("Yearly expenses", this.series.realExpense(), null, ym -> String.valueOf(ym.getYear()), 12);
     }
 
     private void halfExpenses() {
-        new Group(console, format, bar).group("Half expenses", this.series.realExpense(), null, YearMonth::half, 6);
+        new Group(console, format, bar)
+                .group("Half expenses", this.series.realExpense(), null, YearMonthUtil::half, 6);
     }
 
     public void expenseBySource(int months) {

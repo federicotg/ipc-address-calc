@@ -17,7 +17,8 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.YearMonth;
 
 /**
  *
@@ -25,7 +26,7 @@ import java.util.Date;
  */
 public interface IndexSeries extends Series {
 
-    BigDecimal getIndex(Date day);
+    BigDecimal getIndex(LocalDate day);
 
     BigDecimal getIndex(int year, int month);
 

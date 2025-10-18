@@ -16,11 +16,12 @@
  */
 package org.fede.calculator.money;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Objects;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesSupport;
-import org.fede.calculator.money.series.YearMonth;
+import java.time.YearMonth;
 
 /**
  *
@@ -59,7 +60,7 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, Date moment) {
+    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, LocalDate moment) {
         return this.second.exchange(this.first.exchange(amount, this.getFirstTargetCurrency(amount.currency()), moment), targetCurrency, moment);
     }
 
