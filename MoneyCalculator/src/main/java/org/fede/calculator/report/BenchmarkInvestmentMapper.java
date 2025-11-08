@@ -88,7 +88,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
     @Override
     public Investment apply(Investment t) {
 
-        if (t.getCurrency().equals(this.benchmark)) {
+        if (t.getCurrency() == this.benchmark) {
             return t;
         }
 

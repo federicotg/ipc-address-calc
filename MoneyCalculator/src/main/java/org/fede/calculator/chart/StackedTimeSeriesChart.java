@@ -90,7 +90,7 @@ public class StackedTimeSeriesChart {
             };
 
             NumberFormat valueFormatter = this.style.valueFormat().format();
-            
+
             JFreeChart chart = ChartFactory.createXYAreaChart(
                     chartName,
                     "Date",
@@ -99,7 +99,7 @@ public class StackedTimeSeriesChart {
             );
 
             chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
-            
+
             // Customize plot
             XYPlot plot = (XYPlot) chart.getPlot();
 
@@ -126,14 +126,15 @@ public class StackedTimeSeriesChart {
             plot.getDomainAxis().setLabelFont(this.font);
             plot.getDomainAxis().setTickLabelFont(this.font);
             chart.getLegend().setItemFont(this.font);
-            ChartStrategy.currentStrategy().saveChart(
-                    filename,
-                    chart,
-                    SeriesReader.readInt("chart.width"),
-                    SeriesReader.readInt("chart.height"));
+            ChartStrategy.currentStrategy()
+                    .saveChart(
+                            filename,
+                            chart,
+                            SeriesReader.readInt("chart.width"),
+                            SeriesReader.readInt("chart.height"));
         } catch (IOException ioEx) {
             LOGGER.error("Error.", ioEx);
         }
     }
-   
+
 }

@@ -39,8 +39,8 @@ public class LabeledXYDataItem extends XYDataItem {
                 label
         );
     }
-    
-     public LabeledXYDataItem(LocalDate x, Number y, String label) {
+
+    public LabeledXYDataItem(LocalDate x, Number y, String label) {
         this(
                 x.atStartOfDay(ZoneId.systemDefault()) // convert to ZonedDateTime
                         .toInstant() // convert to Instant (UTC)

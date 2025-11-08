@@ -137,8 +137,9 @@ public class Fire {
         final var saved = BigDecimal.valueOf(10000l);
 
         this.console.appendLine(this.format.subtitle(MessageFormat.format("For every {0} saved.", this.format.currency(saved))));
-        this.percents()
-                .stream()
+        final var percents = this.percents();
+
+        percents.stream()
                 .map(pct
                         -> MessageFormat.format(
                         "{0} => {1}",
@@ -148,7 +149,23 @@ public class Fire {
 
         this.console.appendLine("");
 
-        final var percents = this.percents();
+        this.console.appendLine(
+                this.format.subtitle(
+                        MessageFormat.format("Savings to reach future pension {0}.",
+                                this.format.currency(futurePension.amount()))));
+
+        percents
+                .stream()
+                .map(pct
+                        -> MessageFormat.format(
+                        "{0} => {1}",
+                        this.format.percent(pct),
+                        this.format.currency(this.portfolioToReplacePension(pct, futurePension.amount()))))
+                .forEach(this.console::appendLine);
+
+        this.console.appendLine("");
+
+        //final var percents = this.percents();
         final var alreadyThere = Attribute.GREEN_TEXT();
         final var withGrowth = Attribute.BRIGHT_YELLOW_TEXT();
         final var withGrowthAndIncome = Attribute.YELLOW_TEXT();
@@ -164,6 +181,7 @@ public class Fire {
                 .stream()
                 .map(monthlySpending
                         -> this.retirementWithdrawalRow(
+                        futurePension.amount(),
                         monthlySpending,
                         totalSavings,
                         expectedFutureIncome,
@@ -226,9 +244,17 @@ public class Fire {
                 .toList();
     }
 
+    private BigDecimal portfolioToReplacePension(BigDecimal percentSpending, BigDecimal monthlyPension) {
+
+        var yearlyPension = monthlyPension.multiply(BigDecimal.valueOf(13l), C);
+        return yearlyPension.divide(percentSpending, C);
+
+    }
+
     private SpendingBudgets budgets(int months) {
 
-        final var capitalGainsTaxRate = SeriesReader.readPercent("capitalGainsTaxRate").add(ONE);
+        final var capitalGainsTaxRate = SeriesReader.readPercent("capitalGainsTaxRate");
+        final var costBasisPct = SeriesReader.readPercent("costBasisPct");
 
         final var futureHealth = SeriesReader.readUSD("futureHealth");
         final var futureRent = SeriesReader.readUSD("futureRent");
@@ -254,13 +280,28 @@ public class Fire {
         final var everythingWithRent = everythingWithoutRent
                 .add(futureRent);
         return new SpendingBudgets(
-                essentialWithRent.adjust(ONE, capitalGainsTaxRate),
-                essentialWithoutRent.adjust(ONE, capitalGainsTaxRate),
-                everythingWithRent.adjust(ONE, capitalGainsTaxRate),
-                everythingWithoutRent.adjust(ONE, capitalGainsTaxRate),
-                Stream.of(essential, discretionary, irregular, other)
-                        .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
-                        .adjust(ONE, capitalGainsTaxRate));
+                adjustforCapitalGains(essentialWithRent, capitalGainsTaxRate, costBasisPct),
+                adjustforCapitalGains(essentialWithoutRent, capitalGainsTaxRate, costBasisPct),
+                adjustforCapitalGains(everythingWithRent, capitalGainsTaxRate, costBasisPct),
+                adjustforCapitalGains(everythingWithoutRent, capitalGainsTaxRate, costBasisPct),
+                adjustforCapitalGains(Stream.of(essential, discretionary, irregular, other)
+                        .reduce(MoneyAmount.zero(USD), MoneyAmount::add),
+                        capitalGainsTaxRate, costBasisPct));
+    }
+
+    private MoneyAmount adjustforCapitalGains(
+            MoneyAmount netAmount,
+            BigDecimal capitalGainsTaxRate,
+            BigDecimal costBasisPct) {
+
+        var divisor = ONE.subtract(capitalGainsTaxRate
+                .multiply(ONE.subtract(costBasisPct, C), C), C);
+
+        return netAmount
+                .adjust(
+                        divisor,
+                        ONE);
+
     }
 
     private MoneyAmount sumExpenses(String type, int months) {
@@ -287,6 +328,7 @@ public class Fire {
     }
 
     private String retirementWithdrawalRow(
+            BigDecimal monthlyPension,
             BigDecimal monthlySpending,
             MoneyAmount currentPortfolioSize,
             MoneyAmount expectedFutureSavings,
@@ -296,10 +338,12 @@ public class Fire {
             Attribute withGrowth,
             Attribute withGrowthAndIncome,
             Attribute farAway) {
-        final var annualSpending = monthlySpending.multiply(new BigDecimal(12l), C);
+        final var annualSpendingFromPortfolio = monthlySpending
+                .multiply(new BigDecimal(12l), C)
+                .subtract(monthlyPension.multiply(BigDecimal.valueOf(13l), C));
         return this.format.text(this.format.currency(monthlySpending), 12)
                 + percents.stream()
-                        .map(percent -> annualSpending.divide(percent, C))
+                        .map(percent -> annualSpendingFromPortfolio.divide(percent, C))
                         .map(portfolioLevel -> this.coloredAmount(
                         portfolioLevel,
                         currentPortfolioSize,
@@ -378,11 +422,11 @@ public class Fire {
                 "fire-projected");
     }
 
-    private BigDecimal cagr(){
+    private BigDecimal cagr() {
         return SeriesReader.readPercent("futureReturn")
                 .subtract(SeriesReader.readPercent("expectedInflation"), C);
     }
-    
+
     /**
      * Safe projected monthly spending
      *

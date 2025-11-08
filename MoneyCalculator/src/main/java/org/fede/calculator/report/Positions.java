@@ -220,6 +220,40 @@ public class Positions {
         this.console.appendLine(MessageFormat.format(" Total {0}", this.format.currencyPL(
                 realized.add(totalPnL).amount(), 113)));
 
+        final var invesmentExpenses = this.series.investingExpenses();
+
+        var cost = invesmentExpenses
+                .moneyAmountStream()
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
+                .adjust(ONE, ONE.negate());
+
+        this.console.appendLine("");
+        this.console.appendLine(this.format.text("Costs", 6),
+                MessageFormat.format(
+                        "{0}",
+                        this.format.currencyPL(cost.amount(), 12)));
+
+        Map<String, MoneyAmount> grouped = invesmentExpenses
+                .yearMonthStream()
+                .collect(
+                        Collectors.groupingBy(
+                                ym -> String.valueOf(ym.getYear()),
+                                Collectors.mapping(
+                                        invesmentExpenses::getAmount,
+                                        Collectors.reducing(
+                                                MoneyAmount.zero(USD),
+                                                MoneyAmount::add))));
+        grouped.keySet()
+                .stream()
+                .filter(ym -> !grouped.get(ym).isZero())
+                .sorted()
+                .map(groupName
+                        -> MessageFormat.format(
+                        "{0}{1}",
+                        this.format.text(groupName, 6),
+                        this.format.currencyPL(grouped.get(groupName).amount().negate(), 12)))
+                .forEach(this.console::appendLine);
+
         this.console.appendLine(format.subtitle("EGR"));
 
         this.egrReportLine(" Average", nominalPositions);
@@ -404,10 +438,6 @@ public class Positions {
     private void netInvested(boolean nominal, String type, String group) {
 
         final Map<String, Function<CashFlow, String>> groupings = Map.of(
-                /*    "h", i -> YearMonth.from(i.date()).half(),
-                "y", i -> Integer.toString(YearMonth.of(i.date()).getYear()),
-                "m", i -> YearMonth.of(i.date()).monthString(),
-                "q", i -> YearMonth.of(i.date()).quarter(),*/
                 "h", i -> YearMonthUtil.half(YearMonth.from(i.date())),
                 "y", i -> Integer.toString(YearMonth.from(i.date()).getYear()),
                 "m", i -> YearMonthUtil.monthString(YearMonth.from(i.date())),

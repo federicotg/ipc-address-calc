@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.report;
 
+import org.fede.calculator.chart.TimeSeriesDatapoint;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;

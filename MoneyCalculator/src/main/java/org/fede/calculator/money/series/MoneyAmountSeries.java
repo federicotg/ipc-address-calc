@@ -16,11 +16,12 @@
  */
 package org.fede.calculator.money.series;
 
+import static java.math.BigDecimal.ONE;
 import java.time.YearMonth;
 import java.time.LocalDate;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.BiPredicate;  
+import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
@@ -33,7 +34,7 @@ public interface MoneyAmountSeries extends Series {
 
     MoneyAmount getAmount(LocalDate day);
 
-    default MoneyAmount getAmount(int year, int month){
+    default MoneyAmount getAmount(int year, int month) {
         return this.getAmount(YearMonth.of(year, month));
     }
 
@@ -41,32 +42,37 @@ public interface MoneyAmountSeries extends Series {
 
     MoneyAmount getAmountOrElseZero(YearMonth moment);
 
-    default void putAmount(int year, int month, MoneyAmount amount){
+    default void putAmount(int year, int month, MoneyAmount amount) {
         this.putAmount(YearMonth.of(year, month), amount);
     }
-    
+
     void putAmount(YearMonth ym, MoneyAmount amount);
 
     Currency getCurrency();
 
     void forEach(BiConsumer<YearMonth, MoneyAmount> consumer);
-    
+
     void forEachNonZero(BiConsumer<YearMonth, MoneyAmount> consumer);
-    
+
     Stream<MoneyAmount> moneyAmountStream();
-    
+
     Stream<YearMonth> yearMonthStream();
 
     MoneyAmountSeries map(BiFunction<YearMonth, MoneyAmount, MoneyAmount> f);
-    
+
     Stream<MoneyAmount> filter(BiPredicate<YearMonth, MoneyAmount> predicate);
-    
+
     MoneyAmountSeries add(MoneyAmountSeries other);
 
+    default MoneyAmountSeries subtract(MoneyAmountSeries other) {
+        final var negativeFactor = ONE.negate();
+        return this.add(other.map((ym, ma) -> ma.adjust(ONE, negativeFactor)));
+    }
+
     MoneyAmountSeries exchangeInto(Currency currency);
-    
+
     String getName();
-    
+
     void setName(String name);
-    
+
 }

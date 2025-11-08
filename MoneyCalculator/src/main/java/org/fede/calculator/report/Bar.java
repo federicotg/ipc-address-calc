@@ -47,7 +47,7 @@ public class Bar {
     private final BigDecimal HUNDRED = BigDecimal.valueOf(100);
     private final AnsiFormat RED = new AnsiFormat(Attribute.RED_BACK(), Attribute.WHITE_TEXT());
     private final AnsiFormat GREEN = new AnsiFormat(Attribute.GREEN_BACK(), Attribute.WHITE_TEXT());
-    
+
     private final Set<String> DARK_COLORS = Set.of(
             Attribute.BLACK_BACK().toString(),
             Attribute.BRIGHT_BLACK_BACK().toString(),
@@ -132,9 +132,7 @@ public class Bar {
 
         if (end > 100) {
 
-            final var part = IntStream.range(0, 48)
-                    .mapToObj(i -> " ")
-                    .collect(joining());
+            final var part = " ".repeat(48);
 
             return format("{0} {1}",
                     this.format.percent(value, 10),
@@ -143,32 +141,29 @@ public class Bar {
 
         return format("{0} {1}",
                 this.format.percent(value, 10),
-                Ansi.colorize(IntStream.range(0, end)
-                        .mapToObj(i -> " ")
-                        .collect(joining()), attr));
+                Ansi.colorize(" ".repeat(end),
+                        attr));
     }
 
     public String smallPctBar(BigDecimal value) {
 
         final var maxLengh = 21;
         final var partLength = (maxLengh - 3) / 2;
-        
+
         final var steps = value.movePointRight(2)
                 .abs()
                 .divide(new BigDecimal("5"), C)
                 .intValue();
 
-        final var stream = steps < maxLengh
-                ? IntStream.range(0, steps).mapToObj(x -> " ")
-                : Stream.concat(
-                        Stream.concat(
-                                IntStream.range(0, partLength).mapToObj(x -> " "),
-                                Stream.of("/-/")),
-                        IntStream.range(0, partLength).mapToObj(x -> " "));
+        final var bar = steps < maxLengh
+                ? " ".repeat(steps)
+                : " ".repeat(partLength)
+                + "/-/"
+                + " ".repeat(partLength);
 
         Attribute attr = value.signum() < 0 ? Attribute.RED_BACK() : Attribute.GREEN_BACK();
 
-        return String.format("%-"+maxLengh+"s", Ansi.colorize(stream.collect(joining()), attr));
+        return String.format("%-" + maxLengh + "s", Ansi.colorize(bar, attr));
     }
 
     public String bar(BigDecimal value, int scale) {
@@ -190,20 +185,19 @@ public class Bar {
             return Ansi.colorize(Stream.concat(
                     Stream.of(valueStr),
                     IntStream.range(0, end - valueStr.length()).mapToObj(x -> " "))
-                    .collect(joining()), color, this.isDarkColor(color) 
-                            ? Attribute.WHITE_TEXT() 
-                            : Attribute.BLACK_TEXT());
+                    .collect(joining()), color, this.isDarkColor(color)
+                    ? Attribute.WHITE_TEXT()
+                    : Attribute.BLACK_TEXT());
         }
 
         return Ansi.colorize(IntStream.range(0, end)
                 .mapToObj(x -> " ")
                 .collect(joining()), new AnsiFormat(color));
     }
-    
-    
-    private boolean isDarkColor(Attribute color){
+
+    private boolean isDarkColor(Attribute color) {
         var parts = color.toString().split(";");
-        if(parts.length<3){
+        if (parts.length < 3) {
             return DARK_COLORS.contains(color.toString());
         }
         return Integer.parseInt(parts[2]) < 128;

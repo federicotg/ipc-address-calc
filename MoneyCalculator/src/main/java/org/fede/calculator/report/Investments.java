@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.report;
 
+import org.fede.calculator.chart.TimeSeriesDatapoint;
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
@@ -38,7 +39,6 @@ import java.util.Comparator;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -94,8 +94,6 @@ import org.jfree.data.xy.XYSeries;
  * @author fede
  */
 public class Investments {
-
-    private final ZoneId SYSTEM_DEFAULT_ZONE_ID = ZoneId.systemDefault();
 
     private static final DateTimeFormatter DTF = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault());
 
@@ -1040,7 +1038,8 @@ public class Investments {
                 "2025-05-16", new BigDecimal("1142"),
                 "2025-05-23", new BigDecimal("1133.5")
         );
-
+        final var col2Width = 20;
+        final var col1Width = 9;
         final var taxAmount
                 = this.series.getInvestments()
                         .stream()
@@ -1051,7 +1050,8 @@ public class Investments {
                         .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
                         .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
 
-        this.console.appendLine(this.format.currency(taxAmount, 20),
+        this.console.appendLine(this.format.text("", col1Width),
+                this.format.currency(taxAmount, col2Width),
                 " ",
                 this.format.percent(taxAmount.amount().divide(netAmountSummary.sold.amount(), C))
         );
@@ -1064,30 +1064,29 @@ public class Investments {
                 .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add)
                 .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
 
-        this.console.appendLine(this.format.currency(
-                arsTax,
-                20));
+        this.console.appendLine(this.format.text("", col1Width),
+                this.format.currency(arsTax,
+                        col2Width));
 
         final var currentTaxAmount = ForeignExchanges.getForeignExchange(Currency.ARS, USD)
                 .exchange(arsTax, USD, LocalDate.now());
-        this.console.appendLine(
-                "Current ",
-                this.format.currency(currentTaxAmount, 15),
+        this.console.appendLine(this.format.text("Current", col1Width),
+                this.format.currency(currentTaxAmount, col2Width),
                 " ",
                 this.format.percent(currentTaxAmount.amount().divide(netAmountSummary.sold.amount(), C))
         );
 
         this.console.appendLine(this.format.subtitle("Detail"));
 
-        this.console.appendLine(MessageFormat.format("{0} {1} {2} {3} {4} {5} {6} {7}",
-                this.format.text("  Date", 10),
-                this.format.text("Curr.", 5),
-                this.format.text("Cant.", 8),
-                this.format.text("   Amount", 18),
-                this.format.text("   Fee", 16),
-                this.format.text("   CG USD", 16),
-                this.format.text("     TC", 16),
-                this.format.text("   CG ARS", 20)
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}{7}",
+                this.format.center("Date", 11),
+                this.format.center("Curr.", 6),
+                this.format.center("Cant.", 9),
+                this.format.center("Amount", 19),
+                this.format.center("Fee", 17),
+                this.format.center("CG USD", 17),
+                this.format.center("TC", 17),
+                this.format.center("CG ARS", 21)
         ));
 
         final Function<Investment, InvestmentGroup> classifier = switch (type) {
@@ -1123,7 +1122,7 @@ public class Investments {
                     .filter(Investment::isETF)
                     .filter(i -> i.getOut() != null)
                     .sorted(Comparator.comparing((Investment i) -> i.getOut().getDate())
-                            .thenComparing(Comparator.comparing((Investment i) -> i.getCurrency())))
+                            .thenComparing(Comparator.comparing(Investment::getCurrency)))
                     .map(i -> this.sellReport(i, bnaFX))
                     .forEach(this.console::appendLine);
         }
@@ -1625,7 +1624,7 @@ public class Investments {
                         fx.exchange(one, USD, ym).amount(),
                         ""
                 )),
-                 this.series.getInvestments()
+                this.series.getInvestments()
                         .stream()
                         .filter(isCurrent)
                         .filter(i -> i.getCurrency() == currency)

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.Date;
 import java.util.Optional;
 import java.util.StringJoiner;
 import org.fede.calculator.money.Currency;

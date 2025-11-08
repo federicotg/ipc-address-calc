@@ -71,7 +71,6 @@ public class Series {
 
     private List<MoneyAmountSeries> regularIncomeSeries;
 
-    
     private MoneyAmountSeries realNetSavings;
 
     private MoneyAmountSeries realIncome;
@@ -129,7 +128,7 @@ public class Series {
                     of(ESSENTIAL, "luz"),
                     of(DISCRETIONARY, "santander"),
                     of(DISCRETIONARY, "cablevision"),
-                    of(DISCRETIONARY, "cafe"),
+                    of(DISCRETIONARY, "comida-disc"),
                     of(DISCRETIONARY, "sellos"),
                     of(IRREGULAR, "other"),
                     of(IRREGULAR, "other-usd"),
@@ -181,7 +180,7 @@ public class Series {
                         "luz",
                         "cablevision",
                         "santander",
-                        "cafe",
+                        "comida-disc",
                         "other",
                         "other-usd",
                         "reparaciones",
@@ -200,7 +199,7 @@ public class Series {
 
     }
 
-    private MoneyAmountSeries investingExpenses() {
+    public MoneyAmountSeries investingExpenses() {
 
         final List<Cost> buyCost
                 = this.getInvestments()
@@ -371,8 +370,8 @@ public class Series {
                 .reduce(MoneyAmountSeries::add)
                 .get();
     }
-    
-    public MoneyAmount currentSavingsUSD(){
+
+    public MoneyAmount currentSavingsUSD() {
         return this.nominalSavings().getAmount(Inflation.USD_INFLATION.getTo());
     }
 
@@ -401,11 +400,9 @@ public class Series {
         final var netSaving = this.realNetSavings();
         final var spending = this.realExpenses(null);
 
-        final var negativeFactor = ONE.negate();
-
         var otherSpending = income
-                .add(spending.map((ym, ma) -> ma.adjust(ONE, negativeFactor)))
-                .add(netSaving.map((ym, ma) -> ma.adjust(ONE, negativeFactor)));
+                .subtract(spending)
+                .subtract(netSaving);
         otherSpending.setName("Other spending");
         return otherSpending;
     }

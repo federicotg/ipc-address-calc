@@ -136,12 +136,13 @@ public class TimeSeriesChart {
             ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
             renderer.setDefaultStroke(this.stroke);
             chart.getLegend().setItemFont(this.font);
-            
-            ChartStrategy.currentStrategy().saveChart(
-                    filename,
-                    chart,
-                    SeriesReader.readInt("chart.width"),
-                    SeriesReader.readInt("chart.height"));
+
+            ChartStrategy.currentStrategy()
+                    .saveChart(
+                            filename,
+                            chart,
+                            SeriesReader.readInt("chart.width"),
+                            SeriesReader.readInt("chart.height"));
         } catch (IOException ioEx) {
             LOGGER.error("Error.", ioEx);
         }

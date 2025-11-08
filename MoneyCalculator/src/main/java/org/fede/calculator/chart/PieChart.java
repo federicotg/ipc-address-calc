@@ -71,34 +71,34 @@ public class PieChart {
     }
 
     public void create(String chartTitle, List<PieItem> items, String fileName) {
-            try {
+        try {
 
-           
-                DefaultPieDataset<String> ds = new DefaultPieDataset<>();
-                items
-                        .stream()
-                        .sorted(this.largerFirst)
-                        .forEach(item -> ds.setValue(item.label(), item.value()));
+            DefaultPieDataset<String> ds = new DefaultPieDataset<>();
+            items
+                    .stream()
+                    .sorted(this.largerFirst)
+                    .forEach(item -> ds.setValue(item.label(), item.value()));
 
-                JFreeChart chart = ChartFactory.createPieChart(chartTitle, ds);
-                chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
-                chart.setBorderVisible(false);
-                var p = (PiePlot) chart.getPlot();
-                p.setOutlineVisible(false);
-                p.setBackgroundPaint(WHITE);
-                p.setLabelFont(this.font);
-                p.setLabelGenerator(this.labelGenerator);
-                p.setLabelBackgroundPaint(WHITE);
-                p.setLabelOutlinePaint(WHITE);
-                p.setLabelShadowPaint(WHITE);
-                chart.getLegend().setItemFont(this.font);
+            JFreeChart chart = ChartFactory.createPieChart(chartTitle, ds);
+            chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
+            chart.setBorderVisible(false);
+            var p = (PiePlot) chart.getPlot();
+            p.setOutlineVisible(false);
+            p.setBackgroundPaint(WHITE);
+            p.setLabelFont(this.font);
+            p.setLabelGenerator(this.labelGenerator);
+            p.setLabelBackgroundPaint(WHITE);
+            p.setLabelOutlinePaint(WHITE);
+            p.setLabelShadowPaint(WHITE);
+            chart.getLegend().setItemFont(this.font);
 
-                ChartStrategy.currentStrategy().saveChart(
-                        fileName,
-                        chart,
-                        SeriesReader.readInt("chart.piewidth"),
-                        SeriesReader.readInt("chart.piewidth"));
-            
+            ChartStrategy.currentStrategy()
+                    .saveChart(
+                            fileName,
+                            chart,
+                            SeriesReader.readInt("chart.piewidth"),
+                            SeriesReader.readInt("chart.piewidth"));
+
         } catch (IOException ioEx) {
             LOGGER.error("Error.", ioEx);
         }

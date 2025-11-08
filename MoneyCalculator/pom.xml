@@ -11,10 +11,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.0</version>
+                <version>3.14.1</version>
                 <configuration>
                     <showDeprecation>true</showDeprecation>
-                    <release>24</release>
+                    <release>25</release>
                 </configuration>
             </plugin>
             
@@ -22,16 +22,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.5.0</version>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>${env.HOME}</directory>
-                            <includes>
-                                <include>ConsoleReports.jsa</include>
-                            </includes>
-                        </fileset>
-                    </filesets>
-                </configuration>
             </plugin>
             
             <plugin>
@@ -91,13 +81,13 @@
         <dependency>
             <groupId>tools.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.1</version>
         </dependency>
         
         <dependency>
             <groupId>tools.jackson.module</groupId>
             <artifactId>jackson-module-blackbird</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.jline</groupId>
@@ -113,7 +103,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.5.18</version>
+            <version>1.5.20</version>
         </dependency>
         
         <dependency>
@@ -121,26 +111,8 @@
             <artifactId>commons-math3</artifactId>
             <version>3.6.1</version>
         </dependency>
-        
-       <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter</artifactId>
-        <version>5.13.4</version> <!-- latest stable as of 2025 -->
-        <scope>test</scope>
-    </dependency>
-        
-        <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-core</artifactId>
-            <version>1.37</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-generator-annprocess</artifactId>
-            <version>1.37</version>
-            <scope>test</scope>
-        </dependency>
+    
+       
 
     </dependencies>
     <properties>

@@ -56,11 +56,16 @@ public class SeriesReader {
 
     private static final String ENV = APP_RESOURCES + "environment.properties";
 
+    private static final Map<String, BigDecimal> PROPERTY_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Boolean> BOOL_PROPERTY_CACHE = new ConcurrentHashMap<>();
+
+    private static final Map<String, Integer> INT_PROPERTY_CACHE = new ConcurrentHashMap<>();
+
     private static final ObjectMapper OM = JsonMapper.builder()
-                .addModule(new BlackbirdModule())
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .disable(JsonReadFeature.ALLOW_JAVA_COMMENTS)
-                .build();
+            .addModule(new BlackbirdModule())
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .disable(JsonReadFeature.ALLOW_JAVA_COMMENTS)
+            .build();
 
     private static final Map<String, JSONIndexSeries> CACHE = new ConcurrentHashMap<>();
 
@@ -73,7 +78,6 @@ public class SeriesReader {
 
     private static JSONIndexSeries createIndexSeries(String name) {
         return new JSONIndexSeries(read(name, INDEX_SERIES_TYPE_REFERENCE));
-
     }
 
     public static Properties readEnvironment() {
@@ -90,15 +94,21 @@ public class SeriesReader {
     }
 
     public static boolean readBoolean(String key) {
-        return Boolean.parseBoolean(readEnvironment().getProperty(key));
+        return BOOL_PROPERTY_CACHE.computeIfAbsent(
+                key,
+                k -> Boolean.valueOf(readEnvironment().getProperty(k)));
     }
 
     public static BigDecimal readBigDecimal(String key) {
-        return new BigDecimal(readEnvironment().getProperty(key));
+        return PROPERTY_CACHE.computeIfAbsent(
+                key,
+                k -> new BigDecimal(readEnvironment().getProperty(k)));
     }
 
     public static int readInt(String key) {
-        return Integer.parseInt(readEnvironment().getProperty(key));
+        return INT_PROPERTY_CACHE.computeIfAbsent(
+                key,
+                k -> Integer.valueOf(readEnvironment().getProperty(k)));
     }
 
     public static MoneyAmount readUSD(String key) {
@@ -106,7 +116,9 @@ public class SeriesReader {
     }
 
     public static BigDecimal readPercent(String key) {
-        return readBigDecimal(key).movePointLeft(2);
+        return PROPERTY_CACHE.computeIfAbsent(
+                key,
+                k -> new BigDecimal(readEnvironment().getProperty(k)).movePointLeft(2));
     }
 
     public static LocalDate readDate(String key) {

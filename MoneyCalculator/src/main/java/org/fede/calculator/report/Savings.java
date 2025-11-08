@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.report;
 
+import org.fede.calculator.chart.TimeSeriesDatapoint;
 import com.diogonunes.jcolor.Attribute;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -74,7 +75,6 @@ public class Savings {
     private final Series series;
     private final Bar bar;
     private final Console console;
-    //private final BigDecimal appartmentInvestment2011 = BigDecimal.valueOf(11600);
 
     public Savings(Format format, Series series, Bar bar, Console console) {
         this.format = format;
@@ -86,9 +86,11 @@ public class Savings {
     private int getScale(int months) {
 
         return switch (months) {
-            case 1, 2, 3 ->
+            case 1 ->
                 400;
-            case 4, 5, 6 ->
+            case 2 ->
+                270;
+            case 3, 4, 5, 6 ->
                 200;
             case 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 ->
                 100;
@@ -115,19 +117,12 @@ public class Savings {
     public void netAvgSavingSpentChart(int months) {
 
         final var agg = new SimpleAggregation(months);
-        //final var incomeSeries = agg.average(this.series.realIncome());
 
         final var netSaving = agg.average(this.series.realNetSavings());
         final var spending = agg.average(this.series.realExpenses(null));
         spending.setName("Spending");
         netSaving.setName("Savings");
 
-        //var otherSpending = incomeSeries
-        //        .map((ym, income) -> MoneyAmount.zero(Currency.USD)
-        //        .max(income
-        //                .subtract(netSaving.getAmountOrElseZero(ym))
-        //                .subtract(spending.getAmountOrElseZero(ym))));
-        //otherSpending.setName("Other Spending");
         new StackedTimeSeriesChart()
                 .create(
                         months + "-month Savings and Spending",
@@ -332,18 +327,18 @@ public class Savings {
 
     public int incomeScale(int months) {
         return switch (months) {
-            case 1 ->
+            case 1, 2 ->
                 400;
-            case 2, 3, 4 ->
+            case 3, 4, 5 ->
                 220;
-            case 5, 6 ->
+            case 6, 7 ->
                 120;
-            case 7, 8, 9, 10 ->
+            case 8, 9, 10 ->
+                100;
+            case 11, 12 ->
                 90;
-            case 11 ->
-                80;
             default ->
-                75;
+                80;
         };
     }
 
@@ -477,7 +472,11 @@ public class Savings {
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         final var savings = IntStream.of(years)
-                .mapToObj(i -> Map.entry(i, this.yearSavings(i)))
+                .mapToObj(year -> Map.entry(year, this.yearSavings(year)
+                .add(year == 2011
+                        ? this.spendingAdjustment()
+                                .adjust(BigDecimal.valueOf(12), ONE)
+                        : MoneyAmount.zero(USD))))
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         this.console.appendLine(this.format.title("Income / Spending by Year"));
@@ -485,15 +484,29 @@ public class Savings {
         this.console.appendLine(this.row(Stream.of("-= Year =-", "Income", "Sav.", "Spend.", "Sav. %", "Sav./Spend.")));
 
         IntStream.of(years)
-                .mapToObj(y -> this.row(Stream.of(format("-= {0} =-", String.valueOf(y) + (y == USD_INFLATION.getTo().getYear() ? "*" : "")),
+                .mapToObj(y -> this.row(Stream.of(format("-= {0} =-", String.valueOf(y) + (y == 2011 || y == USD_INFLATION.getTo().getYear() ? "*" : " ")),
                 this.format.currency(incomes.get(y).amount()),
                 this.format.currency(savings.get(y).amount()),
                 this.format.currency(incomes.get(y).subtract(savings.get(y)).amount()),
-                format("{0}", this.format.percent(savings.get(y).amount()
-                        .divide(incomes.get(y).amount()
+                format("{0}", this.format.percent(savings.get(y)
+                        .amount()
+                        .divide(incomes.get(y)
+                                .amount()
                                 .subtract(ONE, C), C))),
-                this.format.number(savings.get(y).amount().divide(incomes.get(y).subtract(savings.get(y)).amount(), C)))))
+                this.format.number(savings.get(y).amount()
+                        .divide(incomes.get(y)
+                                .subtract(savings.get(y))
+                                .amount(), C)))))
                 .forEach(this.console::appendLine);
+
+        var savedYears = IntStream.of(years)
+                .filter(year -> year >= 2007)
+                .mapToObj(year
+                        -> savings.get(year).amount()
+                        .divide(incomes.get(year).amount(), C))
+                .map(savingsRate -> savingsRate.divide(ONE.subtract(savingsRate, C), C))
+                .reduce(ZERO, BigDecimal::add);
+        this.console.appendLine("Saved years ", this.format.number(savedYears));
     }
 
     private MoneyAmount yearIncome(int year, Supplier<List<MoneyAmountSeries>> supplier) {
@@ -518,7 +531,7 @@ public class Savings {
         return this.yearIncome(year, this.series::getIncomeSeries);
     }
 
-    public MoneyAmount yearSavings(int year) {
+    private MoneyAmount yearSavings(int year) {
 
         final var months = year < USD_INFLATION.getTo().getYear()
                 ? 12
@@ -563,7 +576,7 @@ public class Savings {
                 totalSavings.amount().divide(avgSalary, C)));
 
         //ingreso promedio de N meses
-        final var agg = new SimpleAggregation((int) YearMonth.of(2012, 1).until(USD_INFLATION.getTo(),ChronoUnit.MONTHS));
+        final var agg = new SimpleAggregation((int) YearMonth.of(2012, 1).until(USD_INFLATION.getTo(), ChronoUnit.MONTHS));
 
         final var averageIncome = agg.average(this.series.realIncome()).getAmount(USD_INFLATION.getTo());
 
@@ -775,14 +788,14 @@ public class Savings {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
         Map<Integer, BigDecimal> values = new HashMap<>();
-
+        final var months = new BigDecimal(12);
         IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
                 .forEach(year
                         -> values.put(year - 2000,
                         this.yearIncome(year)
                                 .subtract(this.yearSavings(year))
                                 .amount()
-                                .multiply(new BigDecimal(12))
+                                .multiply(months)
                                 .subtract(year == 2011
                                         ? this.spendingAdjustment().amount()
                                         : ZERO)));
@@ -841,7 +854,7 @@ public class Savings {
     public void savingsByIncomeChart() throws IOException {
 
         final var ss = new XYSeries("Year");
-
+        final var months = BigDecimal.valueOf(12);
         IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
                 .forEach(year -> {
                     ss.add(new LabeledXYDataItem(
@@ -849,7 +862,7 @@ public class Savings {
                             this.yearSavings(year)
                                     .add(year == 2011
                                             ? new MoneyAmount(this.spendingAdjustment().amount()
-                                                    .divide(BigDecimal.valueOf(12), C), USD)
+                                                    .divide(months, C), USD)
                                             : MoneyAmount.zero(USD))
                                     .adjust(this.yearRegularIncome(year).amount(), ONE).amount(),
                             year == 2011 ? "2011(*)" : String.valueOf(year)));
