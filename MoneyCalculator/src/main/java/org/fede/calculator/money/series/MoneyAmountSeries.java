@@ -34,10 +34,6 @@ public interface MoneyAmountSeries extends Series {
 
     MoneyAmount getAmount(LocalDate day);
 
-    default MoneyAmount getAmount(int year, int month) {
-        return this.getAmount(YearMonth.of(year, month));
-    }
-
     MoneyAmount getAmount(YearMonth moment);
 
     MoneyAmount getAmountOrElseZero(YearMonth moment);
@@ -57,6 +53,8 @@ public interface MoneyAmountSeries extends Series {
     Stream<MoneyAmount> moneyAmountStream();
 
     Stream<YearMonth> yearMonthStream();
+    
+    Stream<MoneyAmountItem> items();
 
     MoneyAmountSeries map(BiFunction<YearMonth, MoneyAmount, MoneyAmount> f);
 

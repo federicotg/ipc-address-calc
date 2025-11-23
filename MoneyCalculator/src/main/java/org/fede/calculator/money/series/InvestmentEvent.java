@@ -117,25 +117,6 @@ public class InvestmentEvent {
 
     public MoneyAmount getRealUSDFeeMoneyAmount() {
         return this.real(this.getFeeMoneyAmount());
-
-//        final var now = Inflation.USD_INFLATION.getTo();
-//        final var toUSD = ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD);
-//        MoneyAmount ma = null;
-//        //var logger = LoggerFactory.getLogger(ConsoleReports.class);
-//
-//        if (this.getCurrency() != Currency.USD && this.fx != null) {
-//            ma = new MoneyAmount(this.getFeeMoneyAmount().adjust(BigDecimal.ONE, this.fx).amount(), Currency.USD);
-//
-//            //logger.error("ma {} curr {}  fx {} => new ma {}", this.getMoneyAmount(), this.currency, this.fx, ma);
-//        } else {
-//            ma = toUSD.apply(this.getFeeMoneyAmount(), YearMonth.of(this.getDate()));
-//        }
-//
-//        return Inflation.USD_INFLATION.adjust(
-//                toUSD
-//                        .apply(ma, YearMonth.of(this.getDate())),
-//                YearMonth.of(this.getDate()),
-//                now);
     }
 
     private MoneyAmount real(MoneyAmount nominal) {

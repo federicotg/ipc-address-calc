@@ -19,8 +19,6 @@ package org.fede.calculator.money.series;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -28,7 +26,7 @@ import java.util.Objects;
  * @author fede
  */
 public abstract class IndexSeriesSupport extends SeriesSupport implements IndexSeries {
-    
+
     public static final IndexSeries CONSTANT_SERIES = new IndexSeriesSupport() {
         @Override
         public YearMonth getFrom() {
@@ -45,13 +43,6 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
             return BigDecimal.ONE;
         }
 
-        
-        
-        @Override
-        public BigDecimal getIndex(int year, int month) {
-            return BigDecimal.ONE;
-        }
-
         @Override
         public int hashCode() {
             return Objects.hashCode(this);
@@ -64,50 +55,9 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
 
     };
 
-    private int hashValue = 0;
-
     @Override
     public final BigDecimal getIndex(LocalDate day) {
         return this.getIndex(YearMonth.from(day));
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-
-        if (obj instanceof IndexSeries other) {
-
-            final long months = this.getFrom().until(this.getTo(), ChronoUnit.MONTHS);
-            YearMonth ym = this.getFrom();
-            int i = 0;
-
-            boolean equal = this.getFrom().equals(other.getFrom()) && this.getTo().equals(other.getTo());
-            while (equal && i < months) {
-                equal &= this.getIndex(ym).compareTo(
-                        other.getIndex(ym)) == 0;
-                ym = ym.plusMonths(1);
-            }
-            return equal;
-        }
-        return false;
-
-    }
-
-    @Override
-    public int hashCode() {
-        if (this.hashValue == 0) {
-
-            this.hashValue = 7;
-            this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getFrom());
-            this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getTo());
-
-            final long months = this.getFrom().until(this.getTo(), ChronoUnit.MONTHS);
-            YearMonth ym = this.getFrom();
-            for (int i = 0; i < months; i++) {
-                this.hashValue = 11 * this.hashValue + Objects.hashCode(this.getIndex(ym));
-                ym = ym.plusMonths(1);
-            }
-        }
-        return this.hashValue;
     }
 
 }

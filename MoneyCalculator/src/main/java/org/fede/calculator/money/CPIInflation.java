@@ -35,10 +35,9 @@ public final class CPIInflation extends BaseInflation {
     }
 
     @Override
-    public final MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth) {
-        //amount.assertCurrency(this.currency);
-        BigDecimal divisor = this.series.getIndex(fromYear, fromMonth);
-        BigDecimal factor = this.series.getIndex(toYear, toMonth);
+    public final MoneyAmount adjust(MoneyAmount amount, YearMonth from, YearMonth to) {
+        BigDecimal divisor = this.series.getIndex(from);
+        BigDecimal factor = this.series.getIndex(to);
         return amount.adjust(divisor, factor);
     }
 

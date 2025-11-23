@@ -19,7 +19,6 @@ package org.fede.calculator.money;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +31,7 @@ import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
 import java.time.YearMonth;
+import java.util.EnumMap;
 import static org.fede.calculator.money.Currency.*;
 
 /**
@@ -42,9 +42,9 @@ public class ForeignExchanges {
 
     private static final Map<FromTo, BiFunction<MoneyAmount, YearMonth, MoneyAmount>> FX_FUNCTION_CACHE = new ConcurrentHashMap<>();
 
-    private static final Map<Currency, ForeignExchange> IDENTITY_FX = new ConcurrentHashMap<>();
+    private static final Map<Currency, ForeignExchange> IDENTITY_FX = new EnumMap<>(Currency.class);
 
-    private static final Map<Currency, Currency> INTERMEDIATE_FOREIGN_EXCHANGES = Map.of(
+    private static final Map<Currency, Currency> INTERMEDIATE_FOREIGN_EXCHANGES = new EnumMap<>(Map.of(
             UVA, ARS,
             CONAAFA, ARS,
             CAPLUSA, ARS,
@@ -54,7 +54,7 @@ public class ForeignExchanges {
             CSPX, USD,
             IWDA, USD,
             DAI, USD,
-            ARS, USD);
+            ARS, USD));
 
     private static final Map<FromTo, ForeignExchange> DIRECT_FOREIGN_EXCHANGES;
 

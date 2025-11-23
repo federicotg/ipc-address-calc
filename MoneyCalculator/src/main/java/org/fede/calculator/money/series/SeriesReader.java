@@ -25,7 +25,6 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +34,6 @@ import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.core.json.JsonReadFeature;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -64,7 +62,7 @@ public class SeriesReader {
     private static final ObjectMapper OM = JsonMapper.builder()
             .addModule(new BlackbirdModule())
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .disable(JsonReadFeature.ALLOW_JAVA_COMMENTS)
+            //.disable(JsonReadFeature.ALLOW_JAVA_COMMENTS)
             .build();
 
     private static final Map<String, JSONIndexSeries> CACHE = new ConcurrentHashMap<>();
@@ -167,12 +165,12 @@ public class SeriesReader {
             YearMonth ym = maSeries.getFrom();
             final YearMonth last = maSeries.getTo();
 
-            while (ym.until(last, ChronoUnit.MONTHS) > 0) {
+            while (ym.isBefore(last)) {
                 YearMonth next = ym.plusMonths(1);
                 if (!maSeries.hasValue(next)) {
                     maSeries.putAmount(next, strategy.interpolate(maSeries.getAmount(ym), ym, currency));
                 }
-                ym = ym.plusMonths(1);
+                ym = next;
             }
             return maSeries;
 

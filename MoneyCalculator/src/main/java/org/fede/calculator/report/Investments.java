@@ -58,7 +58,6 @@ import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.SimpleAggregation;
 import static org.fede.calculator.money.Currency.*;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.chart.BarChart;
@@ -83,6 +82,8 @@ import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumMap;
+import org.fede.calculator.money.Accumulator;
 import org.fede.calculator.money.series.YearMonthUtil;
 import org.fede.util.Pair;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -99,7 +100,7 @@ public class Investments {
 
     private final Comparator<Investment> COMPARATOR = comparing(Investment::getInitialDate, naturalOrder());
 
-    public static final Map<Currency, String> ETF_NAME = Map.of(
+    public static final Map<Currency, String> ETF_NAME = new EnumMap<>(Map.of(
             CSPX, "iShares Core S&P 500",
             EIMI, "iShares Core MSCI EM IMI",
             XRSU, "Xtrackers Russell 2000",
@@ -107,7 +108,7 @@ public class Investments {
             MEUD, "Amundi Stoxx Europe 600",
             IWDA, "iShares Core MSCI World",
             XUSE, "iShares MSCI World ex-US"
-    );
+    ));
 
     private final AnsiFormat DIM = new AnsiFormat(Attribute.DIM());
     private final Map<String, AnsiFormat> ETF_COLOR = Map.of(
@@ -121,10 +122,10 @@ public class Investments {
             "Cash", DIM
     );
 
-    private final Map<Currency, String> PF_CATEGORIES = Map.ofEntries(
+    private final Map<Currency, String> PF_CATEGORIES = new EnumMap<>(Map.ofEntries(
             Map.entry(USD, "USD Bank"),
             Map.entry(UVA, "UVA Bank"),
-            Map.entry(ARS, "ARS Bank"));
+            Map.entry(ARS, "ARS Bank")));
 
     private final AnsiFormat BRIGHT_WHITE_TEXT = new AnsiFormat(Attribute.BRIGHT_WHITE_TEXT());
     private final AnsiFormat GREEN_TEXT = new AnsiFormat(Attribute.GREEN_TEXT());
@@ -1303,7 +1304,7 @@ public class Investments {
         var uninvested = savings.map((ym, ma) -> ma.subtract(investments.getAmountOrElseZero(ym)));
         uninvested.setName("Cash");
 
-        var income = new SimpleAggregation().sum(this.series.realIncome());
+        var income = new Accumulator().sum(this.series.realIncome());
         income.setName("Real Icome");
 
         new TimeSeriesChart().create("Real Income, Savings & Investments",
@@ -1317,7 +1318,7 @@ public class Investments {
 
     public void savingsInvestmentsPercentChart() {
 
-        final var income = new SimpleAggregation().sum(this.series.realIncome());
+        final var income = new Accumulator().sum(this.series.realIncome());
         var savings = this.series.realSavings(null);
 
         var savedIncomePercent = savings.map((ym, s) -> s.adjust(income.getAmount(ym).amount(), ONE));
@@ -1572,8 +1573,6 @@ public class Investments {
             double carg,
             double volatility) {
 
-        //   this.console.appendLine("");
-        //  this.console.appendLine(""+start+" "+years + " "+initial);
         var valueSeries = new SortedMapMoneyAmountSeries(USD,
                 " P"
                 + (int) (percentile * 100d));

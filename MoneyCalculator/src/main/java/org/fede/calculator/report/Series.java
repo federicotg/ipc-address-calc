@@ -30,7 +30,6 @@ import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.SimpleAggregation;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -39,6 +38,7 @@ import static org.fede.calculator.money.series.SeriesReader.readSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
+import org.fede.calculator.money.SlidingWindow;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 import tools.jackson.core.type.TypeReference;
@@ -311,7 +311,7 @@ public class Series {
             final var limit = USD_INFLATION.getTo();
 
             this.realNetSavings = this.savingsSeries()
-                    .map(new SimpleAggregation(2)::change)
+                    .map(new SlidingWindow(1)::change)
                     .map(series -> series.exchangeInto(Currency.USD))
                     .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
                     .reduce(MoneyAmountSeries::add)

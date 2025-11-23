@@ -20,9 +20,9 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import javax.imageio.ImageIO;
 import org.fede.calculator.report.ConsoleReports;
 import org.jfree.chart.JFreeChart;
@@ -41,12 +41,12 @@ public class NonTransparentRGBStrategy implements ChartStrategy {
         chart.draw(g2, new Rectangle2D.Double(0, 0, width, height));
         g2.dispose();
 
-        ImageIO.write(image,
-                "jpg", 
-                new BufferedOutputStream(
-                        new FileOutputStream(
-                                new File(ConsoleReports.CHARTS_PREFIX + file + ".jpg")), 
-                        1_048_576));
+        Path output = Path.of(ConsoleReports.CHARTS_PREFIX + file + ".jpg");
+
+        try (var out = new BufferedOutputStream(Files.newOutputStream(output))) {
+
+            ImageIO.write(image, "jpg", out);
+        }
     }
 
 }

@@ -36,7 +36,7 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
     public SortedMapMoneyAmountSeries(final Currency currency, String name) {
         super(currency, name);
-        this.values = new TreeMap<>(YearMonth::compareTo);
+        this.values = new TreeMap<>();
     }
 
     @Override
@@ -66,9 +66,9 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
     @Override
     public void forEach(BiConsumer<YearMonth, MoneyAmount> consumer) {
-        this.values.sequencedEntrySet()
-                .stream()
-                .forEach(e -> consumer.accept(e.getKey(), e.getValue()));
+        for (var e : values.sequencedEntrySet()) {
+            consumer.accept(e.getKey(), e.getValue());
+        }
     }
 
     @Override
@@ -92,6 +92,14 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
     @Override
     public Stream<YearMonth> yearMonthStream() {
         return this.values.sequencedKeySet().stream();
+    }
+
+    @Override
+    public Stream<MoneyAmountItem> items() {
+        return this.values.sequencedEntrySet()
+                .stream()
+                .map(e -> new MoneyAmountItem(e.getKey(), e.getValue()));
+
     }
 
 }

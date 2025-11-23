@@ -91,11 +91,7 @@ public class PortfolioItem {
     }
 
     private static String pctBar(BigDecimal value) {
-
-        return IntStream.range(0, value.movePointRight(2).intValue())
-                .mapToObj(i -> " ")
-                .collect(Collectors.joining());
-
+        return ".".repeat(value.movePointRight(2).intValue());
     }
 
     private String pct(BigDecimal value) {

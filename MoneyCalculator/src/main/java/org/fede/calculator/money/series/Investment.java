@@ -187,7 +187,7 @@ public class Investment {
                     new MoneyAmount(this.getIn().getFee()
                             .add(this.getIn().getTransferFee()),
                             this.getIn().getCurrency())
-                            .adjust(BigDecimal.ONE, this.getIn().getFx()).amount(), Currency.USD);
+                            .adjust(BigDecimal.ONE, this.getIn().getFx()).amount(), USD);
 
         } else {
             ma = ForeignExchanges.getMoneyAmountForeignExchange(cost.currency(), USD)

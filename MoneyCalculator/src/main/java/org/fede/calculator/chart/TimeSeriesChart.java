@@ -89,53 +89,57 @@ public class TimeSeriesChart {
             List<TimeSeries> series,
             Currency c,
             String filename) {
+
+        var label = switch (this.style.valueFormat()) {
+            case NUMBER, DATE ->
+                "";
+            case CURRENCY, CURRENCY_DECIMALS ->
+                c.name();
+            case PERCENTAGE ->
+                "%";
+        };
+
+        var collection = new TimeSeriesCollection();
+        series.stream().forEach(collection::addSeries);
+
+        JFreeChart chart = ChartFactory.createTimeSeriesChart(
+                chartName,
+                "Date",
+                label,
+                collection);
+        chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
+
+        var xyPlot = chart.getXYPlot();
+        xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
+        xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
+        xyPlot.setRangeGridlinePaint(Color.BLACK);
+        xyPlot.setDomainGridlinePaint(Color.BLACK);
+
+        NumberFormat valueFormatter = this.style.valueFormat().format();
+
+        if (this.style.scale() == Scale.LOG) {
+            xyPlot.setRangeAxis(new LogarithmicAxis(label));
+        }
+
+        if (xyPlot.getRangeAxis() instanceof NumberAxis na) {
+            na.setNumberFormatOverride(valueFormatter);
+        }
+
+        xyPlot.getRangeAxis().setLabelFont(this.font);
+        xyPlot.getRangeAxis().setTickLabelFont(this.font);
+
+        xyPlot.getDomainAxis().setLabelFont(this.font);
+        xyPlot.getDomainAxis().setTickLabelFont(this.font);
+
+        var renderer = xyPlot.getRenderer();
+
+        if (renderer instanceof AbstractRenderer r) {
+            r.setAutoPopulateSeriesStroke(false);
+        }
+
+        renderer.setDefaultStroke(this.stroke);
+        chart.getLegend().setItemFont(this.font);
         try {
-
-            var label = switch (this.style.valueFormat()) {
-                case NUMBER ->
-                    "";
-                case CURRENCY, CURRENCY_DECIMALS ->
-                    c.name();
-                case PERCENTAGE ->
-                    "%";
-                case DATE ->
-                    "";
-            };
-
-            var collection = new TimeSeriesCollection();
-            series.stream().forEach(collection::addSeries);
-
-            JFreeChart chart = ChartFactory.createTimeSeriesChart(
-                    chartName,
-                    "Date",
-                    label,
-                    collection);
-            chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
-
-            var xyPlot = chart.getXYPlot();
-            xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
-            xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
-            xyPlot.setRangeGridlinePaint(Color.BLACK);
-            xyPlot.setDomainGridlinePaint(Color.BLACK);
-
-            NumberFormat valueFormatter = this.style.valueFormat().format();
-
-            if (this.style.scale() == Scale.LOG) {
-                xyPlot.setRangeAxis(new LogarithmicAxis(label));
-            }
-
-            ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
-
-            xyPlot.getRangeAxis().setLabelFont(this.font);
-            xyPlot.getRangeAxis().setTickLabelFont(this.font);
-
-            xyPlot.getDomainAxis().setLabelFont(this.font);
-            xyPlot.getDomainAxis().setTickLabelFont(this.font);
-
-            var renderer = xyPlot.getRenderer();
-            ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
-            renderer.setDefaultStroke(this.stroke);
-            chart.getLegend().setItemFont(this.font);
 
             ChartStrategy.currentStrategy()
                     .saveChart(

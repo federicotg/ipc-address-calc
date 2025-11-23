@@ -16,8 +16,6 @@
  */
 package org.fede.calculator.report;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;

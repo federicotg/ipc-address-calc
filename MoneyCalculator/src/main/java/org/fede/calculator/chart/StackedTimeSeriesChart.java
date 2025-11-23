@@ -71,61 +71,60 @@ public class StackedTimeSeriesChart {
             String chartName,
             List<MoneyAmountSeries> series,
             String filename) {
+
+        var c = series.stream()
+                .findFirst()
+                .map(MoneyAmountSeries::getCurrency)
+                .orElse(Currency.USD);
+
+        var label = switch (this.style.valueFormat()) {
+            case NUMBER, DATE ->
+                "";
+            case CURRENCY, CURRENCY_DECIMALS ->
+                c.name();
+            case PERCENTAGE ->
+                "%";
+
+        };
+
+        NumberFormat valueFormatter = this.style.valueFormat().format();
+
+        JFreeChart chart = ChartFactory.createXYAreaChart(
+                chartName,
+                "Date",
+                label,
+                ChartSeriesMapper.asTimeTableXYDataset(series)
+        );
+
+        chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
+
+        // Customize plot
+        XYPlot plot = (XYPlot) chart.getPlot();
+
+        plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
+        plot.setBackgroundPaint(Color.LIGHT_GRAY);
+        plot.setRangeGridlinePaint(Color.BLACK);
+        plot.setDomainGridlinePaint(Color.BLACK);
+        if (this.style.scale() == Scale.LOG) {
+            plot.setRangeAxis(new LogarithmicAxis(label));
+        }
+
+        ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
+
+        plot.getRangeAxis().setLabelFont(this.font);
+        plot.getRangeAxis().setTickLabelFont(this.font);
+
+        var renderer = new StackedXYAreaRenderer2();
+
+        renderer.setDefaultStroke(this.stroke);
+        plot.setRenderer(renderer);
+
+        plot.setDomainAxis(new DateAxis("Date"));
+
+        plot.getDomainAxis().setLabelFont(this.font);
+        plot.getDomainAxis().setTickLabelFont(this.font);
+        chart.getLegend().setItemFont(this.font);
         try {
-
-            var c = series.stream()
-                    .findFirst()
-                    .map(MoneyAmountSeries::getCurrency)
-                    .orElse(Currency.USD);
-
-            var label = switch (this.style.valueFormat()) {
-                case NUMBER ->
-                    "";
-                case CURRENCY, CURRENCY_DECIMALS ->
-                    c.name();
-                case PERCENTAGE ->
-                    "%";
-                case DATE ->
-                    "";
-            };
-
-            NumberFormat valueFormatter = this.style.valueFormat().format();
-
-            JFreeChart chart = ChartFactory.createXYAreaChart(
-                    chartName,
-                    "Date",
-                    label,
-                    ChartSeriesMapper.asTimeTableXYDataset(series)
-            );
-
-            chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
-
-            // Customize plot
-            XYPlot plot = (XYPlot) chart.getPlot();
-
-            plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
-            plot.setBackgroundPaint(Color.LIGHT_GRAY);
-            plot.setRangeGridlinePaint(Color.BLACK);
-            plot.setDomainGridlinePaint(Color.BLACK);
-            if (this.style.scale() == Scale.LOG) {
-                plot.setRangeAxis(new LogarithmicAxis(label));
-            }
-
-            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
-
-            plot.getRangeAxis().setLabelFont(this.font);
-            plot.getRangeAxis().setTickLabelFont(this.font);
-
-            var renderer = new StackedXYAreaRenderer2();
-
-            renderer.setDefaultStroke(this.stroke);
-            plot.setRenderer(renderer);
-
-            plot.setDomainAxis(new DateAxis("Date"));
-
-            plot.getDomainAxis().setLabelFont(this.font);
-            plot.getDomainAxis().setTickLabelFont(this.font);
-            chart.getLegend().setItemFont(this.font);
             ChartStrategy.currentStrategy()
                     .saveChart(
                             filename,

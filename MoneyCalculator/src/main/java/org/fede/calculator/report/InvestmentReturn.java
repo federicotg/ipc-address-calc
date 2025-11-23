@@ -18,7 +18,6 @@ package org.fede.calculator.report;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
 

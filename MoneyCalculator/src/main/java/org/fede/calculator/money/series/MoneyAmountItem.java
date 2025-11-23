@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 fede
+ * Copyright (C) 2025 fede
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,17 +16,13 @@
  */
 package org.fede.calculator.money.series;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.YearMonth;
+import org.fede.calculator.money.MoneyAmount;
 
 /**
  *
  * @author fede
  */
-public interface IndexSeries extends Series {
+public record MoneyAmountItem(YearMonth ym, MoneyAmount amount) {
 
-    BigDecimal getIndex(LocalDate day);
-
-    BigDecimal getIndex(YearMonth ym);
 }

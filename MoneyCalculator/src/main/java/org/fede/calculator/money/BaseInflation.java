@@ -29,76 +29,37 @@ import java.time.YearMonth;
 abstract class BaseInflation extends SeriesSupport implements Inflation {
 
     @Override
-    public final MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth) {
+    public final MoneyAmountSeries adjust(MoneyAmountSeries series, YearMonth reference) {
         final YearMonth maxFrom = this.maximumFrom(series);
         final YearMonth minTo = series.getTo();
 
-        final int fromYear = maxFrom.getYear();
-        final int fromMonth = maxFrom.getMonthValue();
-
-        final int toYear = minTo.getYear();
-        final int toMonth = minTo.getMonthValue();
-
         final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(this.getCurrency(), series.getName());
 
-        final int maxMonthForFirstYear = fromYear == toYear ? toMonth : 12;
+        for (YearMonth ym = maxFrom; !ym.isAfter(minTo); ym = ym.plusMonths(1)) {
+            answer.putAmount(ym, this.adjust(series.getAmount(ym), ym, reference));
 
-        for (int m = fromMonth; m <= maxMonthForFirstYear; m++) {
-            //first year
-            answer.putAmount(fromYear, m, this.adjust(series.getAmount(fromYear, m), fromYear, m, referenceYear, referenceMonth));
-        }
-        for (int y = fromYear + 1; y < toYear; y++) {
-            for (int m = 1; m <= 12; m++) {
-                answer.putAmount(y, m, this.adjust(series.getAmount(y, m), y, m, referenceYear, referenceMonth));
-            }
         }
 
-        if (fromYear < toYear) {
-            for (int m = 1; m <= toMonth; m++) {
-                //last year
-                answer.putAmount(toYear, m, this.adjust(series.getAmount(toYear, m), toYear, m, referenceYear, referenceMonth));
-            }
-        }
         return answer;
     }
 
     @Override
-    public final MoneyAmountSeries adjust(MoneyAmount amount, int referenceYear, int referenceMonth) {
+    public final MoneyAmountSeries adjust(MoneyAmount amount, YearMonth reference) {
 
-        final int fromYear = this.getFrom().getYear();
-        final int fromMonth = this.getFrom().getMonthValue();
+        MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(this.getCurrency(), amount.currency().name() + " series");
 
-        final int toYear = this.getTo().getYear();
-        final int toMonth = this.getTo().getMonthValue();
+        for (YearMonth ym = this.getFrom(); !ym.isAfter(this.getTo()); ym = ym.plusMonths(1)) {
+            answer.putAmount(ym, this.adjust(amount, reference, ym));
 
-        final int maxMonthForFirstYear = fromYear == toYear ? toMonth : 12;
-
-        MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(this.getCurrency(), amount.currency().name()+" series");
-
-        for (int m = fromMonth; m <= maxMonthForFirstYear; m++) {
-            //first year
-            answer.putAmount(fromYear, m, this.adjust(amount, referenceYear, referenceMonth, fromYear, m));
-        }
-        for (int y = fromYear + 1; y < toYear; y++) {
-            for (int m = 1; m <= 12; m++) {
-                answer.putAmount(y, m, this.adjust(amount, referenceYear, referenceMonth, y, m));
-            }
         }
 
-        if (fromYear < toYear) {
-            for (int m = 1; m <= toMonth; m++) {
-                //last year
-                answer.putAmount(toYear, m, this.adjust(amount, referenceYear, referenceMonth, toYear, m));
-            }
-        }
         return answer;
 
     }
 
- 
     @Override
     public final MoneyAmount adjust(MoneyAmount amount, LocalDate from, LocalDate to) {
-        return this.adjust(amount, from.getYear(), from.getMonthValue(), to.getYear(), to.getMonthValue());
+        return this.adjust(amount, YearMonth.from(from), YearMonth.from(to));
     }
 
 }

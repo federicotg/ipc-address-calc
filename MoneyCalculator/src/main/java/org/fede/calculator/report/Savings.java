@@ -45,7 +45,6 @@ import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.SimpleAggregation;
 import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
@@ -61,6 +60,9 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
+import org.fede.calculator.money.Accumulator;
+import org.fede.calculator.money.Accumulator;
+import org.fede.calculator.money.SlidingWindow;
 import org.fede.calculator.money.series.YearMonthUtil;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.XYSeries;
@@ -93,7 +95,7 @@ public class Savings {
             case 3, 4, 5, 6 ->
                 200;
             case 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 ->
-                100;
+                80;
             default ->
                 50;
         };
@@ -103,7 +105,7 @@ public class Savings {
 
         this.console.appendLine(this.format.title(title));
 
-        final var agg = new SimpleAggregation(months);
+        final var agg = new SlidingWindow(months);
         final var income = agg.average(this.series.realIncome());
         final var netSaving = agg.average(this.series.realNetSavings());
         final var spending = agg.average(this.series.realExpenses(null));
@@ -116,7 +118,7 @@ public class Savings {
 
     public void netAvgSavingSpentChart(int months) {
 
-        final var agg = new SimpleAggregation(months);
+        final var agg = new SlidingWindow(months);
 
         final var netSaving = agg.average(this.series.realNetSavings());
         final var spending = agg.average(this.series.realExpenses(null));
@@ -132,7 +134,7 @@ public class Savings {
     }
 
     public SpendingAndSaving averageSpendingAndSaving(int months) {
-        final var agg = new SimpleAggregation(months);
+        final var agg = new SlidingWindow(months);
         final var income = agg.average(this.series.realIncome()).getAmount(Inflation.USD_INFLATION.getTo());
         final var netSaving = agg.average(this.series.realNetSavings()).getAmount(Inflation.USD_INFLATION.getTo());
         return new SpendingAndSaving(income.subtract(netSaving), netSaving);
@@ -142,7 +144,7 @@ public class Savings {
 
         this.console.appendLine(this.format.title(title));
 
-        final var agg = new SimpleAggregation(months);
+        final var agg = new SlidingWindow(months);
         final var income = agg.average(this.series.realIncome());
         final var netSaving = agg.average(this.series.realNetSavings());
         final var spending = agg.average(this.series.realExpenses(null));
@@ -219,7 +221,7 @@ public class Savings {
         final var averageRealUSDIncome = this.series.getRegularIncomeSeries()
                 .stream()
                 .collect(reducing(MoneyAmountSeries::add))
-                .map(new SimpleAggregation(months)::average)
+                .map(new SlidingWindow(months)::average)
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(YearMonthUtil.min(limit, allRealUSDIncome.getTo())))
                 .orElse(MoneyAmount.zero(Currency.USD));
 
@@ -293,7 +295,7 @@ public class Savings {
         final var colorList = List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK(), Attribute.GREEN_BACK(), Attribute.WHITE_BACK());
         this.console.appendLine(this.format.title(title));
 
-        final var agg = new SimpleAggregation(months);
+        final var agg = new SlidingWindow(months);
 
         final var unlp = agg.average(this.series.incomeSource("unlp"));
         final var lifia = agg.average(this.series.incomeSource("lifia"));
@@ -348,7 +350,7 @@ public class Savings {
         final var colorList = List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK(), Attribute.GREEN_BACK(), Attribute.WHITE_BACK());
         this.console.appendLine(this.format.title(title));
 
-        final var agg = new SimpleAggregation();
+        final var agg = new Accumulator();
 
         final var unlp = agg.sum(this.series.incomeSource("unlp"));
         final var other = agg.sum(this.series.incomeSource("other-usd").add(this.series.incomeSource("other-ars")));
@@ -374,7 +376,7 @@ public class Savings {
         final var colorList = List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK(), Attribute.GREEN_BACK(), Attribute.WHITE_BACK());
         this.console.appendLine(this.format.title(title));
 
-        final var agg = new SimpleAggregation();
+        final var agg = new Accumulator();
 
         final var unlp = agg.sum(this.series.incomeSource("unlp"));
         final var other = agg.sum(this.series.incomeSource("other-usd").add(this.series.incomeSource("other-ars")));
@@ -452,13 +454,13 @@ public class Savings {
         return this.series.getIncomeSeries()
                 .stream()
                 .collect(reducing(MoneyAmountSeries::add))
-                .map(new SimpleAggregation(years * 12)::average)
+                .map(new SlidingWindow(years * 12)::average)
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(USD_INFLATION.getTo()))
                 .orElse(MoneyAmount.zero(Currency.USD));
     }
 
     private MoneyAmount savingsAverage(int years) {
-        return new SimpleAggregation(years * 12)
+        return new SlidingWindow(years * 12)
                 .average(this.series.realNetSavings())
                 .getAmount(USD_INFLATION.getTo());
     }
@@ -576,7 +578,7 @@ public class Savings {
                 totalSavings.amount().divide(avgSalary, C)));
 
         //ingreso promedio de N meses
-        final var agg = new SimpleAggregation((int) YearMonth.of(2012, 1).until(USD_INFLATION.getTo(), ChronoUnit.MONTHS));
+        final var agg = new SlidingWindow((int) YearMonth.of(2012, 1).until(USD_INFLATION.getTo(), ChronoUnit.MONTHS));
 
         final var averageIncome = agg.average(this.series.realIncome()).getAmount(USD_INFLATION.getTo());
 
@@ -683,7 +685,7 @@ public class Savings {
         this.console.appendLine(this.format.title(title));
 
         final var allIncomeSeries = this.series.getIncomeSeries().stream().reduce(MoneyAmountSeries::add).get();
-        final var agg = new SimpleAggregation(months);
+        final var agg = new SlidingWindow(months);
         final var average = agg.average(allIncomeSeries);
         final var change = agg.change(average);
         final var limit = Inflation.USD_INFLATION.getTo();
@@ -703,7 +705,7 @@ public class Savings {
     public void savingsPercentChange(int months) {
 
         this.console.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
-        final var s = new SimpleAggregation(months)
+        final var s = new SlidingWindow(months)
                 .percentChange(this.series.realSavings(null));
 
         var ym = s.getFrom();
@@ -731,7 +733,7 @@ public class Savings {
         this.console.appendLine(this.format.title(title));
 
         this.bar.evolution(title,
-                new SimpleAggregation(months).average(this.series.realNetSavings()),
+                new SlidingWindow(months).average(this.series.realNetSavings()),
                 120);
     }
 
@@ -741,7 +743,7 @@ public class Savings {
         this.console.appendLine(this.format.title(title));
 
         final var savings = this.series.realSavings(null);
-        final var income = new SimpleAggregation(months).average(this.series.realRegularIncome());
+        final var income = new SlidingWindow(months).average(this.series.realRegularIncome());
 
         this.bar.evolution(title,
                 income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).amount().divide(ONE.max(ma.amount()), C), ma.currency())),
@@ -762,7 +764,7 @@ public class Savings {
                 : baseBarSize;
 
         this.bar.evolution(format("Average {0}-month income {1}", months, ars ? "ARS" : "USD"),
-                new SimpleAggregation(months).average(s),
+                new SlidingWindow(months).average(s),
                 barSize);
     }
 
@@ -882,7 +884,7 @@ public class Savings {
 
     public void savingRate(int months) {
 
-        Function<MoneyAmountSeries, MoneyAmountSeries> avg = new SimpleAggregation(months)::average;
+        Function<MoneyAmountSeries, MoneyAmountSeries> avg = new SlidingWindow(months)::average;
 
         var regularAvgIncome = this.series.getRegularIncomeSeries()
                 .stream()

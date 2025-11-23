@@ -29,11 +29,11 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.SimpleAggregation;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import java.time.YearMonth;
 import java.util.function.BiConsumer;
+import org.fede.calculator.money.SlidingWindow;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonthUtil;
@@ -61,8 +61,8 @@ public class Expenses {
         this.console.appendLine(this.format.title("Expenses Change"));
 
         this.bar.evolution(format("{0}-month average expenses change", months),
-                new SimpleAggregation(2)
-                        .change(new SimpleAggregation(months)
+                new SlidingWindow(1)
+                        .change(new SlidingWindow(months)
                                 .average(this.series.realExpenses(null))), 3);
     }
 
@@ -167,7 +167,7 @@ public class Expenses {
                 Attribute.GREEN_BACK());
         this.console.appendLine(this.format.title(title));
 
-        final var agg = new SimpleAggregation(months);
+        final var agg = new SlidingWindow(months);
 
         final var seriesGroups = source;
 

@@ -23,7 +23,6 @@ import static java.text.MessageFormat.format;
 import java.util.stream.Stream;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.SimpleAggregation;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
@@ -33,6 +32,7 @@ import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import static org.fede.calculator.money.MathConstants.C;
+import org.fede.calculator.money.SlidingWindow;
 
 /**
  *
@@ -98,7 +98,7 @@ public class House {
                 .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit))
                 .get();
 
-        final var allExpenses = new SimpleAggregation(1200).sum(ongoingExpenses.add(initialCostSeries));
+        final var allExpenses = new SlidingWindow(1200).sum(ongoingExpenses.add(initialCostSeries));
 
         final var initialExpenseYM = allExpenses.getFrom();
 

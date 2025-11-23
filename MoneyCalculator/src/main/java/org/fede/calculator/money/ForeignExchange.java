@@ -27,11 +27,7 @@ import java.time.YearMonth;
  */
 public interface ForeignExchange extends Series {
 
-    default MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, YearMonth ym) {
-        return this.exchange(amount, targetCurrency, ym.getYear(), ym.getMonthValue());
-    }
-
-    MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int referenceYear, int referenceMonth);
+    MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, YearMonth ym);
 
     MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, LocalDate moment);
 

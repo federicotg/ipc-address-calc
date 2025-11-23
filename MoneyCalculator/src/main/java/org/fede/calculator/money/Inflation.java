@@ -37,19 +37,13 @@ public interface Inflation extends Series {
      * Ajusta por inflación un monto.
      *
      * @param amount el monto a ajustar. Es el valor nominal.
-     * @param fromYear el año en el que está basado el monto
-     * @param fromMonth el mes del año en el que está basado el monto.
-     * @param toYear el año al que se quiere llevar el monto
-     * @param toMonth el mes del año al que se quiere llevar el monto.
+     * @param from
+     * @param to
      * @return el monto ajustado por inflación. Queda expresado en valores de
      * toYear y toMonth
      * @throws NoSeriesDataFoundException
      */
-    MoneyAmount adjust(MoneyAmount amount, int fromYear, int fromMonth, int toYear, int toMonth);
-
-    default MoneyAmount adjust(MoneyAmount amount, YearMonth from, YearMonth to) {
-        return this.adjust(amount, from.getYear(), from.getMonthValue(), to.getYear(), to.getMonthValue());
-    }
+    MoneyAmount adjust(MoneyAmount amount, YearMonth from, YearMonth to);
 
     MoneyAmount adjust(MoneyAmount amount, LocalDate from, LocalDate to);
 
@@ -57,31 +51,24 @@ public interface Inflation extends Series {
      * Ajusta por inflación todos los valores de la serie
      *
      * @param series la serie a ajustar.
-     * @param referenceYear el año al que se quiere llevar los valores de la
-     * serie.
-     * @param referenceMonth el mes.
+     * @param ym
      * @return una serie de valores expresados en valores de referenceYear y
      * referenceMonth
      * @throws NoSeriesDataFoundException
      */
-    MoneyAmountSeries adjust(MoneyAmountSeries series, int referenceYear, int referenceMonth);
-
-    default MoneyAmountSeries adjust(MoneyAmountSeries series, YearMonth ym) {
-        return this.adjust(series, ym.getYear(), ym.getMonthValue());
-    }
+    MoneyAmountSeries adjust(MoneyAmountSeries series, YearMonth ym);
 
     /**
      * Calcula el valor ajustado por inflación del monto especificado en cada
      * mes que se pueda.
      *
      * @param amount el monto a ajustar
-     * @param referenceYear el año del monto
-     * @param referenceMonth el mes del monto
+     * @param reference
      * @return el valor especificado expresado en valores ajustados para cada
      * mes de la serie.
      * @throws NoSeriesDataFoundException
      */
-    MoneyAmountSeries adjust(MoneyAmount amount, int referenceYear, int referenceMonth);
+    MoneyAmountSeries adjust(MoneyAmount amount, YearMonth reference);
 
     Currency getCurrency();
 

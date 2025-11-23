@@ -18,9 +18,9 @@ package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
 import java.time.YearMonth;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.SequencedCollection;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -32,30 +32,23 @@ public class JSONIndexSeries extends IndexSeriesSupport {
     private final YearMonth from;
     private final YearMonth to;
 
-    public JSONIndexSeries(SequencedCollection<JSONDataPoint> data) {
-        JSONDataPoint first = data.getFirst();
+    public JSONIndexSeries(SequencedCollection<JSONDataPoint> datapoints) {
+        JSONDataPoint first = datapoints.getFirst();
         this.from = first.yearMonth();
-        JSONDataPoint last = data.getLast();
+        JSONDataPoint last = datapoints.getLast();
         this.to = last.yearMonth();
 
-        this.data = data.stream()
-                .collect(Collectors.toMap(JSONDataPoint::yearMonth, JSONDataPoint::value));
+        this.data = HashMap.newHashMap(datapoints.size());
 
+        for (var d : datapoints) {
+            this.data.put(d.yearMonth(), d.value());
+        }
     }
 
     @Override
     public BigDecimal getIndex(YearMonth ym) {
-        if (ym.compareTo(this.getTo()) > 0) {
-            return this.data.get(this.to);
-        }
-        return this.data.get(ym);
+        return this.data.get(YearMonthUtil.min(ym, this.to));
 
-    }
-
-    @Override
-    public BigDecimal getIndex(int year, int month) {
-
-        return this.getIndex(YearMonth.of(year, month));
     }
 
     @Override

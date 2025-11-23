@@ -14,19 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.fede.calculator.money.series;
+package org.fede.calculator.money;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.YearMonth;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 
 /**
  *
  * @author fede
  */
-public interface IndexSeries extends Series {
+public interface Aggregator {
 
-    BigDecimal getIndex(LocalDate day);
+    MoneyAmountSeries average(MoneyAmountSeries series);
 
-    BigDecimal getIndex(YearMonth ym);
+    MoneyAmountSeries sum(MoneyAmountSeries series);
+
+  
+
 }

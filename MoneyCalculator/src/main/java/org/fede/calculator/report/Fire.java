@@ -32,11 +32,11 @@ import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.ScatterXYChart;
 import org.fede.calculator.chart.ValueFormat;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.SimpleAggregation;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.PortfolioProjections;
+import org.fede.calculator.money.SlidingWindow;
 import static org.fede.calculator.report.Series.ESSENTIAL;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
@@ -310,7 +310,7 @@ public class Fire {
                 .get(type)
                 .stream()
                 .reduce(MoneyAmountSeries::add)
-                .map(new SimpleAggregation(months)::average)
+                .map(new SlidingWindow(months)::average)
                 .get()
                 .getAmountOrElseZero(USD_INFLATION.getTo());
 

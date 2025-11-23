@@ -58,8 +58,9 @@ import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.SimpleAggregation;
+import org.fede.calculator.money.Accumulator;
 import org.fede.calculator.money.SingleHttpClientSupplier;
+import org.fede.calculator.money.SlidingWindow;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
@@ -518,9 +519,8 @@ public class ConsoleReports {
     }
 
     private void condo() {
-        this.bar.evolution(
-                format("Average {0}-month condo expenses.", 12),
-                new SimpleAggregation(12).average(this.series.getRealUSDCondoExpenses()),
+        this.bar.evolution(format("Average {0}-month condo expenses.", 12),
+                new SlidingWindow(12).average(this.series.getRealUSDCondoExpenses()),
                 25);
     }
 
@@ -568,7 +568,7 @@ public class ConsoleReports {
                 ? this.series.realExpense()
                 : this.series.realExpenses(type);
 
-        this.bar.evolution(format("Average {0}-month expenses.", months), new SimpleAggregation(months).average(s), 30);
+        this.bar.evolution(format("Average {0}-month expenses.", months), new SlidingWindow(months).average(s), 30);
     }
 
     private void savingChange(String[] args, String paramName) {
@@ -587,7 +587,7 @@ public class ConsoleReports {
         };
 
         this.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
-        this.bar.evolution(format("{0}-month Savings Change", months - 1), new SimpleAggregation(months)
+        this.bar.evolution(format("{0}-month Savings Change", months - 1), new SlidingWindow(months)
                 .change(this.series.realSavings(null)), scale);
     }
 
@@ -838,7 +838,7 @@ public class ConsoleReports {
 
     private void incomeAccChart() {
 
-        final var agg = new SimpleAggregation();
+        final var agg = new Accumulator();
 
         final var unlp = agg.sum(this.series.incomeSource("unlp"));
         unlp.setName("UNLP");
@@ -873,7 +873,7 @@ public class ConsoleReports {
                 : this.series.getRealUSDExpenses();
 
         if (m > 0) {
-            var avg = new SimpleAggregation(m);
+            var avg = new SlidingWindow(m);
             expenseSeries = expenseSeries.stream().map(avg::average).toList();
         }
 
@@ -958,7 +958,7 @@ public class ConsoleReports {
 
         var ss = IntStream.of(12, 24, 36)
                 .mapToObj(m -> {
-                    var s = new SimpleAggregation(m).average(this.series.realNetSavings());
+                    var s = new SlidingWindow(m).average(this.series.realNetSavings());
                     s.setName(m + " months");
                     return s;
                 })
@@ -1005,7 +1005,7 @@ public class ConsoleReports {
             int months,
             MoneyAmountSeries savings,
             MoneyAmountSeries expenses) {
-        var averageSpenses = new SimpleAggregation(months).average(expenses);
+        var averageSpenses = new SlidingWindow(months).average(expenses);
         List<TimeSeriesDatapoint> s = new ArrayList<>();
 
         var monthsInAYear = BigDecimal.valueOf(12l);

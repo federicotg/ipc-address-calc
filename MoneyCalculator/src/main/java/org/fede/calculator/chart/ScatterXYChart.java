@@ -83,75 +83,78 @@ public class ScatterXYChart {
             String yLabel,
             RectangleEdge legendPosition,
             String filename) {
+
+        XYSeriesCollection dataset = new XYSeriesCollection();
+        for (var s : series) {
+            dataset.addSeries(s);
+        }
+        JFreeChart chart = ChartFactory.createScatterPlot(
+                chartName,
+                xLabel,
+                yLabel,
+                dataset);
+
+        
+        chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
+        if (chartSubtitle != null) {
+            var t = new TextTitle(chartSubtitle);
+            t.setFont(this.font);
+            chart.addSubtitle(t);
+        }
+        var xyPlot = chart.getXYPlot();
+        xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+        xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
+        xyPlot.setRangeGridlinePaint(Color.BLACK);
+        xyPlot.setDomainGridlinePaint(Color.BLACK);
+
+        Format valueFormatterX = this.styleX.valueFormat().format();
+        Format valueFormatterY = this.styleY.valueFormat().format();
+
+        if (this.styleY.scale() == Scale.LOG) {
+            xyPlot.setRangeAxis(new LogarithmicAxis(yLabel));
+        }
+
+        if (this.styleX.valueFormat() == DATE) {
+            DateAxis dateAxis = new DateAxis("Date");
+            dateAxis.setDateFormatOverride((DateFormat) valueFormatterX);
+            xyPlot.setDomainAxis(dateAxis);
+
+        } else {
+            ((NumberAxis) xyPlot.getDomainAxis()).setNumberFormatOverride((NumberFormat) valueFormatterX);
+        }
+
+        if (this.styleY.valueFormat() == DATE) {
+            DateAxis dateAxis = new DateAxis("Date");
+            dateAxis.setDateFormatOverride((DateFormat) valueFormatterY);
+            xyPlot.setRangeAxis(dateAxis);
+
+        } else {
+            ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride((NumberFormat) valueFormatterY);
+        }
+
+        xyPlot.getRangeAxis().setLabelFont(this.font);
+        xyPlot.getRangeAxis().setTickLabelFont(this.font);
+        xyPlot.getDomainAxis().setLabelFont(this.font);
+        xyPlot.getDomainAxis().setTickLabelFont(this.font);
+
+        var renderer = xyPlot.getRenderer();
+
+        renderer.setDefaultItemLabelGenerator((XYDataset dataset1, int seriesIndex, int itemIndex) -> {
+            XYDataItem item = ((XYSeriesCollection) dataset1).getSeries(seriesIndex).getDataItem(itemIndex);
+            if (item instanceof LabeledXYDataItem i) {
+                return i.getLabel();
+            }
+            return "(" + item.getX() + ", " + item.getY() + ")";
+        });
+        if (renderer instanceof AbstractRenderer r) {
+            r.setAutoPopulateSeriesStroke(false);
+        }
+        renderer.setDefaultStroke(this.stroke);
+        chart.getLegend().setItemFont(this.font);
+        chart.getLegend().setPosition(legendPosition);
+        renderer.setDefaultItemLabelsVisible(true);
+        renderer.setDefaultItemLabelFont(this.font);
         try {
-
-            XYSeriesCollection dataset = new XYSeriesCollection();
-            for (var s : series) {
-                dataset.addSeries(s);
-            }
-            JFreeChart chart = ChartFactory.createScatterPlot(
-                    chartName,
-                    xLabel,
-                    yLabel,
-                    dataset);
-
-            if (chartSubtitle != null) {
-                var t = new TextTitle(chartSubtitle);
-                t.setFont(this.font);
-                chart.addSubtitle(t);
-            }
-            var xyPlot = chart.getXYPlot();
-            xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
-            xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
-            xyPlot.setRangeGridlinePaint(Color.BLACK);
-            xyPlot.setDomainGridlinePaint(Color.BLACK);
-
-            Format valueFormatterX = this.styleX.valueFormat().format();
-            Format valueFormatterY = this.styleY.valueFormat().format();
-
-            if (this.styleY.scale() == Scale.LOG) {
-                xyPlot.setRangeAxis(new LogarithmicAxis(yLabel));
-            }
-
-            if (this.styleX.valueFormat() == DATE) {
-                DateAxis dateAxis = new DateAxis("Date");
-                dateAxis.setDateFormatOverride((DateFormat) valueFormatterX);
-                xyPlot.setDomainAxis(dateAxis);
-
-            } else {
-                ((NumberAxis) xyPlot.getDomainAxis()).setNumberFormatOverride((NumberFormat) valueFormatterX);
-            }
-
-            if (this.styleY.valueFormat() == DATE) {
-                DateAxis dateAxis = new DateAxis("Date");
-                dateAxis.setDateFormatOverride((DateFormat) valueFormatterY);
-                xyPlot.setRangeAxis(dateAxis);
-
-            } else {
-                ((NumberAxis) xyPlot.getRangeAxis()).setNumberFormatOverride((NumberFormat) valueFormatterY);
-            }
-
-            xyPlot.getRangeAxis().setLabelFont(this.font);
-            xyPlot.getRangeAxis().setTickLabelFont(this.font);
-            xyPlot.getDomainAxis().setLabelFont(this.font);
-            xyPlot.getDomainAxis().setTickLabelFont(this.font);
-
-            var renderer = xyPlot.getRenderer();
-
-            renderer.setDefaultItemLabelGenerator((XYDataset dataset1, int seriesIndex, int itemIndex) -> {
-                XYDataItem item = ((XYSeriesCollection) dataset1).getSeries(seriesIndex).getDataItem(itemIndex);
-                if (item instanceof LabeledXYDataItem i) {
-                    return i.getLabel();
-                }
-                return "(" + item.getX() + ", " + item.getY() + ")";
-            });
-            ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
-            renderer.setDefaultStroke(this.stroke);
-            chart.getLegend().setItemFont(this.font);
-            chart.getLegend().setPosition(legendPosition);
-            renderer.setDefaultItemLabelsVisible(true);
-            renderer.setDefaultItemLabelFont(this.font);
-
             ChartStrategy.currentStrategy()
                     .saveChart(
                             filename,

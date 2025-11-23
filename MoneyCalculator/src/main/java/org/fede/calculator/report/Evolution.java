@@ -102,6 +102,8 @@ public class Evolution<T> {
                 .collect(Collectors.groupingBy(classifier));
 
         var ym = start;
+        final var scale = SeriesReader.readInt("scale");
+
         while (ym.compareTo(end) <= 0) {
 
             final var moment = ym;
@@ -119,7 +121,7 @@ public class Evolution<T> {
             this.console.appendLine(
                     pct
                             ? this.pctBar(ym, elements)
-                            : this.bar(ym, elements, SeriesReader.readInt("scale")));
+                            : this.bar(ym, elements, scale));
 
             IntStream.range(0, typeList.size())
                     .mapToObj(i -> Ansi.colorize(" ", colorList.get(i)) + typeList.get(i))

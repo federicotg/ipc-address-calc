@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 fede
+ * Copyright (C) 2025 fede
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,14 +23,9 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
  *
  * @author fede
  */
-public interface Aggregation {
-
-    MoneyAmountSeries average(MoneyAmountSeries series);
-
-    MoneyAmountSeries sum(MoneyAmountSeries series);
+public interface Differencer {
 
     MoneyAmountSeries change(MoneyAmountSeries series);
-    
-    IndexSeries percentChange(MoneyAmountSeries series);
 
+    IndexSeries percentChange(MoneyAmountSeries series);
 }

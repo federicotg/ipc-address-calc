@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.fede.calculator.money.series.IndexSeries;
@@ -67,16 +66,16 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     }
 
     @Override
-    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, int year, int month) {
+    public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, YearMonth ym) {
         if (amount.currency() == targetCurrency) {
             return amount;
         }
         if (this.targetCurrency == targetCurrency) {
-            return amount.exchange(targetCurrency, getSeries().getIndex(year, month));
+            return amount.exchange(targetCurrency, getSeries().getIndex(ym));
         }
 
         if (this.fromCurrency == targetCurrency) {
-            return amount.exchange(targetCurrency, BigDecimal.ONE.divide(getSeries().getIndex(year, month), MathConstants.C));
+            return amount.exchange(targetCurrency, BigDecimal.ONE.divide(getSeries().getIndex(ym), MathConstants.C));
         }
 
         throw new IllegalArgumentException("Unknown currency.");
@@ -92,76 +91,33 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
             throw new IllegalArgumentException("From cannot be after to.");
         }
 
-        final int fromYear = from.getYear();
-        final int fromMonth = from.getMonthValue();
-        final int toYear = to.getYear();
-        final int toMonth = to.getMonthValue();
-
         final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(targetCurrency, series.getName());
 
-        for (int m = fromMonth; m <= (fromYear == toYear ? toMonth : 12); m++) {
-            //first year
-            answer.putAmount(fromYear, m, this.exchange(series.getAmount(fromYear, m), targetCurrency, fromYear, m));
+        for (YearMonth ym = from; !ym.isAfter(to); ym = ym.plusMonths(1)) {
+            answer.putAmount(ym, this.exchange(series.getAmount(ym), targetCurrency, ym));
+
         }
-        for (int y = fromYear + 1; y < toYear; y++) {
-            for (int m = 1; m <= 12; m++) {
-                answer.putAmount(y, m, this.exchange(series.getAmount(y, m), targetCurrency, y, m));
-            }
-        }
-        if (fromYear != toYear) {
-            for (int m = 1; m <= toMonth; m++) {
-                //last year
-                answer.putAmount(toYear, m, this.exchange(series.getAmount(toYear, m), targetCurrency, toYear, m));
-            }
-        }
+
         return answer;
 
     }
 
     @Override
     public MoneyAmount exchange(MoneyAmount amount, Currency targetCurrency, LocalDate moment) {
-        final var ym = YearMonth.from(moment);      
-        return this.exchange(amount, targetCurrency, ym.getYear(), ym.getMonthValue());
+        return this.exchange(amount, targetCurrency, YearMonth.from(moment));
     }
 
     @Override
     public MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) {
 
-        final int fromYear = this.getFrom().getYear();
-        final int fromMonth = this.getFrom().getMonthValue();
-        final int toYear = this.getTo().getYear();
-        final int toMonth = this.getTo().getMonthValue();
-
         final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(targetCurrency, targetCurrency.name() + " series");
 
-        for (int m = fromMonth; m <= 12; m++) {
-            //first year
-            answer.putAmount(fromYear, m, this.exchange(amount, targetCurrency, fromYear, m));
+        for (YearMonth ym = this.getFrom(); !ym.isAfter(this.getTo()); ym = ym.plusMonths(1)) {
+            answer.putAmount(ym, this.exchange(amount, targetCurrency, ym));
         }
-        for (int y = fromYear + 1; y < toYear; y++) {
-            for (int m = 1; m <= 12; m++) {
-                answer.putAmount(y, m, this.exchange(amount, targetCurrency, y, m));
-            }
-        }
-        for (int m = 1; m <= toMonth; m++) {
-            //last year
-            answer.putAmount(toYear, m, this.exchange(amount, targetCurrency, toYear, m));
-        }
+
         return answer;
 
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.fromCurrency, this.targetCurrency, this.getSeries());
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof SimpleForeignExchange other
-                && Objects.equals(this.fromCurrency, other.fromCurrency)
-                && Objects.equals(this.targetCurrency, other.targetCurrency)
-                && Objects.equals(this.getSeries(), other.getSeries());
     }
 
     @Override
