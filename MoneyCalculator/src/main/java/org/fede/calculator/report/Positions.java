@@ -55,6 +55,7 @@ import static org.fede.calculator.money.Currency.UVA;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import java.time.YearMonth;
+import java.util.stream.Gatherers;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.chart.PieChart;
 import org.fede.calculator.chart.PieItem;
@@ -63,6 +64,7 @@ import static org.fede.calculator.money.series.InvestmentType.ETF;
 import static org.fede.calculator.money.series.InvestmentType.FCI;
 import static org.fede.calculator.money.series.InvestmentType.PF;
 import static org.fede.calculator.money.series.InvestmentType.BONO;
+import org.fede.calculator.money.series.MoneyAmountItem;
 
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
@@ -305,6 +307,67 @@ public class Positions {
         this.potentialTaxLine(" Potential Future Wealth Tax ",
                 taxAmount(futureSavings),
                 futureSavings);
+
+        this.console.appendLine(this.format.subtitle("Post Retirement"));
+        // 3 años de cash
+        var threeYearsAgo = YearMonth.now().plusMonths(-36);
+
+        var lastThreeYears = this.series.realExpense().items()
+                .filter(i -> !i.ym().isBefore(threeYearsAgo))
+                .gather(Gatherers.windowFixed(12))
+                .toList();
+
+        var oldest = lastThreeYears.get(0)
+                .stream()
+                .map(MoneyAmountItem::amount)
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+
+        var middle = lastThreeYears.get(1)
+                .stream()
+                .map(MoneyAmountItem::amount)
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
+                .adjust(ONE, BigDecimal.TWO);
+
+        var latest = lastThreeYears.get(2)
+                .stream()
+                .map(MoneyAmountItem::amount)
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
+                .adjust(ONE, BigDecimal.valueOf(3));
+
+        var threeYearSpending = oldest
+                .add(middle)
+                .add(latest)
+                .adjust(BigDecimal.valueOf(6l), BigDecimal.valueOf(3));
+
+        var ym = YearMonth.now();
+
+        final var items = this.portfolioItems("all", ym.getYear(), ym.getMonthValue());
+
+        final var currentCash = items.stream()
+                .filter(i -> "CASH".equals(i.getType()))
+                .map(PortfolioItem::getDollarAmount)
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+
+        this.console.appendLine(
+                MessageFormat.format("3 Years of Spending: {0} of {1}. {2}",
+                        this.format.currency(currentCash.amount()),
+                        this.format.currency(threeYearSpending.amount()),
+                        this.format.currencyPL(currentCash.subtract(threeYearSpending).amount(), 12)
+                ));
+
+        // 20% bonos
+        final var currentBonds = items.stream()
+                .filter(i -> "BONDS".equals(i.getType()))
+                .map(PortfolioItem::getDollarAmount)
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+        // 80% acciones 
+        final var currentEquity = items.stream()
+                .filter(i -> "EQUITY".equals(i.getType()))
+                .map(PortfolioItem::getDollarAmount)
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+        this.console.appendLine("Bonds ", this.format.currency(currentBonds.amount()));
+
+        this.console.appendLine("Equity ", this.format.currency(currentEquity.amount()));
 
     }
 

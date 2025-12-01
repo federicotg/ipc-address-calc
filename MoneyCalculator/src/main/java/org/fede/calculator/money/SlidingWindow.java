@@ -136,7 +136,7 @@ public class SlidingWindow implements Aggregator, Differencer {
 
     private MoneyAmount avg(SequencedCollection<MoneyAmountItem> lastValues, Currency currency) {
         return this.sum(lastValues, currency)
-                .adjust(new BigDecimal(lastValues.size()), BigDecimal.ONE);
+                .adjust(BigDecimal.valueOf(lastValues.size()), BigDecimal.ONE);
 
     }
 

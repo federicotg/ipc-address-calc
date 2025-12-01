@@ -304,6 +304,13 @@ public class ConsoleReports {
             case "lti" ->
                 me::ltiReport;
 
+            case "buy" ->
+                () -> me.buy(
+                        new BigDecimal(me.paramsValue(args, "buy").getOrDefault("usd", "0")),
+                        new BigDecimal(me.paramsValue(args, "buy").getOrDefault("eur", "0")),
+                        new BigDecimal(me.paramsValue(args, "buy").getOrDefault("transfer", "50"))
+                );
+
             case "ppi" ->
                 () -> new Investments(console, format, bar, series)
                 .ppiTransfer(me.paramsValue(args, "ppi").getOrDefault("type", "full"));
@@ -406,7 +413,7 @@ public class ConsoleReports {
             getAction(args, me, format, bar, series, console).run();
             me.appendLine("");
         }
-        console.appendLine(MessageFormat.format("{0}ms", (System.nanoTime() - st)/ 1_000_000.0d));
+        console.appendLine(MessageFormat.format("{0}ms", (System.nanoTime() - st) / 1_000_000.0d));
         console.printReport();
 
     }
@@ -463,7 +470,7 @@ public class ConsoleReports {
             final var feePct = new BigDecimal(fee).movePointLeft(2);
 
             final var api = new CriptoYaAPI(new SingleHttpClientSupplier());
-            final var initialAmount = new BigDecimal(10000);
+            final var initialAmount = BigDecimal.valueOf(10000l);
 
             this.console.appendLine(MessageFormat.format("Sending {0}", this.format.currency(new MoneyAmount(initialAmount, USD), 10)));
             final var blueFee = BigDecimal.ONE.add(feePct);
@@ -986,7 +993,7 @@ public class ConsoleReports {
     }
 
     private String ltiLine(int year, BigDecimal despPrice, int phantom, int cash) {
-        return this.ltiLine(year, despPrice, phantom, new BigDecimal(cash));
+        return this.ltiLine(year, despPrice, phantom, BigDecimal.valueOf(cash));
     }
 
     private String ltiLine(int year, BigDecimal despPrice, int phantom, BigDecimal cash) {
@@ -1045,4 +1052,13 @@ public class ConsoleReports {
                         "portfolio-spending");
 
     }
+
+    private void buy(BigDecimal usd, BigDecimal eur, BigDecimal transfer) {
+        new BuySideReport(format, series, console)
+                .rebalance(
+                        new MoneyAmount(usd, USD), 
+                        new MoneyAmount(eur, Currency.EUR),
+                        new MoneyAmount(transfer, USD));
+    }
+
 }

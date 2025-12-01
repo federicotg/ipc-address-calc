@@ -33,6 +33,8 @@ public interface Inflation extends Series {
 
     public static final Inflation USD_INFLATION = new CPIInflation(SeriesReader.readIndexSeries("index/bls.json"), Currency.USD);
 
+    public static final Inflation ANSES = new CPIInflation(SeriesReader.readIndexSeries("index/anses.json"), Currency.ARS);
+
     /**
      * Ajusta por inflación un monto.
      *

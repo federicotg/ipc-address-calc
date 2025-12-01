@@ -25,6 +25,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import org.fede.calculator.chart.ChartStyle;
 import org.fede.calculator.chart.LabeledXYDataItem;
@@ -81,7 +82,7 @@ public class Fire {
 
         final var futureHealth = SeriesReader.readUSD("futureHealth");
         final var futureRent = SeriesReader.readUSD("futureRent");
-        final var futurePension = SeriesReader.readUSD("futurePension");
+        final var futurePension = MoneyAmount.zero(USD); //new Pension().value();
 
         this.conceptLine("Essential", essential);
         this.conceptLine("Other", other);
@@ -202,12 +203,13 @@ public class Fire {
                                 withGrowthAndIncome,
                                 farAway));
 
-        this.console.appendLine(Format.format("Saving {0} for {1} years {2}th percentile {3} real ret. {4} vol.",
+        this.console.appendLine(Format.format("Saving {0} for {1} years {2}th percentile {3} real ret. {4} vol. Pension {5}",
                 this.format.currency(futureSavingsByYear.amount()),
                 years,
                 this.format.number2(percentile),
                 this.format.percent(this.cagr()),
-                this.format.percent(SeriesReader.readPercent("futureVolatility"))
+                this.format.percent(SeriesReader.readPercent("futureVolatility")),
+                this.format.currency(futurePension, 12)
         ));
 
     }
@@ -221,8 +223,8 @@ public class Fire {
     private List<BigDecimal> percents() {
         final var step = new BigDecimal("0.0025");
         return Stream.concat(
-                IntStream.range(12, 25)
-                        .mapToObj(i -> new BigDecimal(i).multiply(step, C)),
+                LongStream.range(12l, 25l)
+                        .mapToObj(i -> BigDecimal.valueOf(i).multiply(step, C)),
                 Stream.of(
                         new BigDecimal("3.66"),
                         new BigDecimal("3.38"),
@@ -239,7 +241,7 @@ public class Fire {
                 budgets.asStream(),
                 IntStream.range(12, 41)
                         .map(i -> i * 100)
-                        .mapToObj(BigDecimal::new))
+                        .mapToObj(BigDecimal::valueOf))
                 .sorted()
                 .toList();
     }
@@ -258,8 +260,7 @@ public class Fire {
 
         final var futureHealth = SeriesReader.readUSD("futureHealth");
         final var futureRent = SeriesReader.readUSD("futureRent");
-        final var futurePension = SeriesReader.readUSD("futurePension");
-
+        final var futurePension =  new Pension().value();
         final var essential = this.sumExpenses(ESSENTIAL, months);
         final var discretionary = this.sumExpenses(Series.DISCRETIONARY, months);
         final var irregular = this.sumExpenses(Series.IRREGULAR, months);

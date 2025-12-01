@@ -61,7 +61,6 @@ import org.fede.calculator.money.series.SeriesReader;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import org.fede.calculator.money.Accumulator;
-import org.fede.calculator.money.Accumulator;
 import org.fede.calculator.money.SlidingWindow;
 import org.fede.calculator.money.series.YearMonthUtil;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -605,7 +604,7 @@ public class Savings {
         final var totalYears = Math.round((double) unlp.getFrom().plusMonths(1).until(unlp.getTo(), ChronoUnit.MONTHS) / 12.0d);
         final var simultaneousYears = Math.round((double) despegar.getFrom().until(unlp.getTo(), ChronoUnit.MONTHS) / 12.0d);
 
-        final var simultaneousPercent = new BigDecimal("0.82").divide(new BigDecimal("30"), MathConstants.C);
+        final var simultaneousPercent = BigDecimal.valueOf(82).movePointLeft(2).divide(BigDecimal.valueOf(30l), MathConstants.C);
 
         final var yearsLeft = SeriesReader.readDate("dob").getYear() + 65 - LocalDate.now().getYear();
 
@@ -619,12 +618,16 @@ public class Savings {
                 this.format.percent(simultaneousPercent
                         .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
 
+        this.console.appendLine("Pension: ", this.format.currency(
+                new Pension().value(),
+                20));
+
         final long daysWorked = Duration.between(LocalDateTime.of(2015, Month.DECEMBER, 22, 0, 0, 0), LocalDateTime.now()).toDays();
         final long yearsWorked = daysWorked / 365 + ((daysWorked % 365 > 180) ? 1 : 0);
 
         final var contingency = BigDecimal.valueOf(yearsWorked)
-                .multiply(new BigDecimal(2900))
-                .add(new BigDecimal(100000));
+                .multiply(BigDecimal.valueOf(2900l))
+                .add(BigDecimal.valueOf(100000l));
 
         final var contingencyMonths = contingency.divide(avgIncome, C).setScale(0, MathConstants.RM);
 
@@ -641,12 +644,12 @@ public class Savings {
 
         this.console.appendLine(format("Gap is {0,number} years.", gapYears));
 
-        final var currentIlliquidAssets = new MoneyAmount(new BigDecimal("75000"), Currency.USD);// 50% 43 y d80
+        final var currentIlliquidAssets = new MoneyAmount(BigDecimal.valueOf(75000), Currency.USD);// 50% 43 y d80
 
-        final var futureIlliquidAssets = new MoneyAmount(new BigDecimal("137500"), Currency.USD);// 50% 47 53 moreno colon
+        final var futureIlliquidAssets = new MoneyAmount( BigDecimal.valueOf(137500), Currency.USD);// 50% 47 53 moreno colon
 
         // 50% caja, severance y deuda casa
-        final var futureCash = new MoneyAmount(new BigDecimal("69320"), Currency.USD);
+        final var futureCash = new MoneyAmount(BigDecimal.valueOf(69320), Currency.USD);
 
         this.console.appendLine(format("Future est. net worth is {0,number,currency}.",
                 totalSavings
@@ -790,7 +793,7 @@ public class Savings {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
         Map<Integer, BigDecimal> values = new HashMap<>();
-        final var months = new BigDecimal(12);
+        final var months = BigDecimal.valueOf(12l);
         IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
                 .forEach(year
                         -> values.put(year - 2000,

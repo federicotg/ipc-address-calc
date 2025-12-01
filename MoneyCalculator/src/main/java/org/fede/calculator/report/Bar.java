@@ -152,7 +152,7 @@ public class Bar {
 
         final var steps = value.movePointRight(2)
                 .abs()
-                .divide(new BigDecimal("5"), C)
+                .divide(BigDecimal.valueOf(5l), C)
                 .intValue();
 
         final var bar = steps < maxLengh
@@ -178,21 +178,22 @@ public class Bar {
 
         final var valueStr = valueFormat.apply(value).trim();
 
-        final var end = value.abs().divide(BigDecimal.valueOf(scale), C).setScale(0, RoundingMode.HALF_UP).intValue();
+        final var end = value.abs()
+                .divide(BigDecimal.valueOf(scale), C)
+                .setScale(0, RoundingMode.HALF_UP)
+                .intValue();
 
         if (end > valueStr.length()) {
 
-            return Ansi.colorize(Stream.concat(
-                    Stream.of(valueStr),
-                    IntStream.range(0, end - valueStr.length()).mapToObj(x -> " "))
-                    .collect(joining()), color, this.isDarkColor(color)
+            return Ansi.colorize(
+                    valueStr + " ".repeat(end - valueStr.length()),
+                    color,
+                    this.isDarkColor(color)
                     ? Attribute.WHITE_TEXT()
                     : Attribute.BLACK_TEXT());
         }
 
-        return Ansi.colorize(IntStream.range(0, end)
-                .mapToObj(x -> " ")
-                .collect(joining()), new AnsiFormat(color));
+        return Ansi.colorize(" ".repeat(end), new AnsiFormat(color));
     }
 
     private boolean isDarkColor(Attribute color) {
@@ -209,9 +210,9 @@ public class Bar {
                 ? RED
                 : GREEN;
 
-        return Ansi.colorize(IntStream.range(0, value.abs().divide(BigDecimal.valueOf(scale), C).setScale(0, RoundingMode.HALF_UP).intValue())
-                .mapToObj(x -> symbol)
-                .collect(joining()), fmt);
+        return Ansi.colorize(
+                symbol.repeat(value.abs().divide(BigDecimal.valueOf(scale), C).setScale(0, RoundingMode.HALF_UP).intValue()),
+                fmt);
     }
 
     public String percentBar(YearMonth ym, MoneyAmount one, MoneyAmount two, MoneyAmount three) {

@@ -127,7 +127,6 @@ public class ModifiedDietzReturn {
     }
 
     private static boolean between(LocalDate d, LocalDate initialMoment, LocalDate finalMoment) {
-        //final var ld = asLocalDate(d);
         return (d.isEqual(initialMoment) || d.isAfter(initialMoment))
                 && (d.isEqual(finalMoment) || d.isBefore(finalMoment));
     }

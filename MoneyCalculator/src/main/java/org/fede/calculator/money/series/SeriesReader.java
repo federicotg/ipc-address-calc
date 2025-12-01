@@ -58,11 +58,11 @@ public class SeriesReader {
     private static final Map<String, Boolean> BOOL_PROPERTY_CACHE = new ConcurrentHashMap<>();
 
     private static final Map<String, Integer> INT_PROPERTY_CACHE = new ConcurrentHashMap<>();
-
+    
     private static final ObjectMapper OM = JsonMapper.builder()
             .addModule(new BlackbirdModule())
+            .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            //.disable(JsonReadFeature.ALLOW_JAVA_COMMENTS)
             .build();
 
     private static final Map<String, JSONIndexSeries> CACHE = new ConcurrentHashMap<>();

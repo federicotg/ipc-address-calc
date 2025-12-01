@@ -89,8 +89,6 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
     }
 
     public MoneyAmount min(MoneyAmount other) {
-        //this.assertCurrency(other.currency());
-
         if (this.amount().compareTo(other.amount()) >= 0) {
             return other;
         }

@@ -111,10 +111,12 @@ public class InvestmentEvent {
         this.fx = fx;
     }
 
+    @JsonIgnore
     public MoneyAmount getRealUSDTransferFeeMoneyAmount() {
         return this.real(new MoneyAmount(this.getTransferFee(), this.getCurrency()));
     }
 
+    @JsonIgnore
     public MoneyAmount getRealUSDFeeMoneyAmount() {
         return this.real(this.getFeeMoneyAmount());
     }
@@ -145,6 +147,7 @@ public class InvestmentEvent {
 
     }
 
+    @JsonIgnore
     public MoneyAmount getRealUSDMoneyAmount() {
 
         return this.real(this.getMoneyAmount());

@@ -54,7 +54,7 @@ public class Goal {
             //2034, new BigDecimal("0"), // 56
             //2035, new BigDecimal("0"), // 57
             //2041, new BigDecimal("0"), // 63
-            2042, new BigDecimal("300000") // 64
+            2042, BigDecimal.valueOf(300000l) // 64
     );
 
     //private final BigDecimal HEALTH_MONTHLY_COST = new BigDecimal("600");
@@ -174,7 +174,7 @@ public class Goal {
 
         final var monthlyDeposit = spendingAndSaving.saving().amount();
         final var monthlyWithdraw = spendingAndSaving.spending().amount()
-                .subtract(new BigDecimal(pension), C);
+                .subtract(BigDecimal.valueOf(pension), C);
 
         this.goal(trials,
                 monthlyDeposit,
@@ -227,7 +227,7 @@ public class Goal {
         final var withdraw = (monthlyWithdraw
                 .add(SeriesReader.readBigDecimal("futureHealth"), C)
                 .multiply(MONTHS_IN_A_YEAR, C)
-                .subtract(new BigDecimal(pension * 13), C))
+                .subtract(BigDecimal.valueOf(pension * 13), C))
                 .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
                 .doubleValue();
 

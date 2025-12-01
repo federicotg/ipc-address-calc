@@ -21,8 +21,6 @@ import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;

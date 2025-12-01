@@ -163,6 +163,7 @@ public class Investment {
         this.comment = comment;
     }
 
+    @JsonIgnore
     public boolean currentInYear(int year) {
 
         final LocalDate reference = LocalDate.of(year, Month.DECEMBER, 31);
@@ -175,6 +176,7 @@ public class Investment {
                 && sellDate.isAfter(reference);
     }
 
+    @JsonIgnore
     public MoneyAmount getRealUSDCost() {
         final var now = Inflation.USD_INFLATION.getTo();
         final var then = YearMonth.from(this.getInitialDate());
@@ -200,6 +202,7 @@ public class Investment {
                 now);
     }
 
+    @JsonIgnore
     public MoneyAmount getCost() {
         return new MoneyAmount(
                 Optional.ofNullable(this.getComment())
@@ -214,7 +217,6 @@ public class Investment {
                 .multiply(iva, C)
                 .add(this.getIn().getAmount());
 
-        
         BigDecimal cclFeeFactor = BigDecimal.ONE.subtract(new BigDecimal("0.006"), C);
 
         return totalInvestment
@@ -236,6 +238,7 @@ public class Investment {
                 .add(this.getIn().getTransferFee(), C);
     }
 
+    @JsonIgnore
     public boolean isETF() {
         return this.getType() == InvestmentType.ETF;
     }

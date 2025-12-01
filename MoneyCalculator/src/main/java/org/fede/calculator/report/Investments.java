@@ -1030,14 +1030,14 @@ public class Investments {
 
         //bna comprador
         final Map<String, BigDecimal> bnaFX = Map.of(
-                "2025-04-03", new BigDecimal("1075"),
-                "2025-04-08", new BigDecimal("1076.25"),
-                "2025-04-14", new BigDecimal("1198"),
-                "2025-04-24", new BigDecimal("1174"),
-                "2025-05-01", new BigDecimal("1170"),
-                "2025-05-09", new BigDecimal("1136"),
-                "2025-05-16", new BigDecimal("1142"),
-                "2025-05-23", new BigDecimal("1133.5")
+                "2025-04-03", BigDecimal.valueOf(1075),
+                "2025-04-08", BigDecimal.valueOf(107625).movePointLeft(2),
+                "2025-04-14", BigDecimal.valueOf(1198),
+                "2025-04-24", BigDecimal.valueOf(1174),
+                "2025-05-01", BigDecimal.valueOf(1170),
+                "2025-05-09", BigDecimal.valueOf(1136),
+                "2025-05-16", BigDecimal.valueOf(1142),
+                "2025-05-23", BigDecimal.valueOf(11335).movePointLeft(1)
         );
         final var col2Width = 20;
         final var col1Width = 9;
