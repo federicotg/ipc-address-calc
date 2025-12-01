@@ -107,17 +107,16 @@ public class BuySideReport {
             throw new IllegalArgumentException("Contribution must not be $0.00.");
         }
 
-        final Map<Currency, BigDecimal> quantities
-                = this.series.getInvestments()
-                        .stream()
-                        .filter(Investment::isETF)
-                        .filter(i -> i.isCurrent(LocalDate.now()))
-                        .collect(Collectors.groupingBy(
-                                Investment::getCurrency,
-                                currencyMapSupplier(),
-                                Collectors.mapping(
-                                        i -> i.getInvestment().getAmount(),
-                                        Collectors.reducing(ZERO, BigDecimal::add))));
+        final Map<Currency, BigDecimal> quantities = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .filter(i -> i.isCurrent(LocalDate.now()))
+                .collect(Collectors.groupingBy(
+                        Investment::getCurrency,
+                        currencyMapSupplier(),
+                        Collectors.mapping(
+                                i -> i.getInvestment().getAmount(),
+                                Collectors.reducing(ZERO, BigDecimal::add))));
 
         final Map<Currency, MoneyAmount> values = new EnumMap<>(Currency.class);
 
@@ -151,11 +150,9 @@ public class BuySideReport {
                         currencyMapSupplier()));
 
         this.console.appendLine(this.format.title("Greedy Proportional Rebalancing"));
-
         this.console.appendLine(this.format.subtitle("Initial State"));
         this.print(virtualValues);
         this.console.appendLine("Contribution: ", this.format.currency(contribution, 16));
-
         this.rebalance(weights, virtualValues, prices, contribution, transfer);
 
     }
@@ -246,43 +243,43 @@ public class BuySideReport {
                 remainder = remainder(shares, p, c);
             }
         }
-
         this.console.appendLine(this.format.subtitle("Result"));
         this.print(this.newValues(shares, v, p));
         this.console.appendLine(this.format.subtitle("Buy"));
         this.printBigDecimal(shares);
         this.console.appendLine("Remainder: ", this.format.currency(remainder, 16));
 
-        final Map<Currency, MoneyAmount> feeAttrbution = new EnumMap<>(Currency.class);
-        for (var curr : shares.keySet()) {
+        if (shares.values().stream().anyMatch(quantity -> quantity.signum() > 0)) {
 
-            final var proportion = shares.get(curr)
-                    .multiply(p.get(curr).amount(), C)
-                    .divide(c.subtract(remainder).amount(), C);
+            final Map<Currency, MoneyAmount> feeAttrbution = new EnumMap<>(Currency.class);
+            for (var curr : shares.keySet()) {
+                final var proportion = shares.get(curr)
+                        .multiply(p.get(curr).amount(), C)
+                        .divide(c.subtract(remainder).amount(), C);
+                feeAttrbution.put(
+                        curr,
+                        transferFee.adjust(ONE, proportion));
+            }
 
-            feeAttrbution.put(
-                    curr,
-                    transferFee.adjust(ONE, proportion));
+            this.console.appendLine(this.format.subtitle("Transfer Fee"));
+            this.print(feeAttrbution);
+
+            final var om = JsonMapper.builder()
+                    .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    .enable(SerializationFeature.INDENT_OUTPUT)
+                    .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                    .build();
+
+            this.console.appendLine(this.format.subtitle("JSON"));
+            this.console.appendLine(shares.entrySet()
+                    .stream()
+                    .filter(e -> e.getValue().signum() > 0)
+                    .map(e -> this.asInvestment(e.getKey(), e.getValue(), c, shares, p, feeAttrbution))
+                    .map(om::writeValueAsString)
+                    .collect(Collectors.joining(",\n", ",\n", "")));
 
         }
-
-        this.console.appendLine(this.format.subtitle("Transfer Fee"));
-        this.print(feeAttrbution);
-
-        final var om = JsonMapper.builder()
-                .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
-                .build();
-
-        this.console.appendLine(this.format.subtitle("JSON"));
-
-        this.console.appendLine(shares.entrySet()
-                .stream()
-                .map(e -> this.asInvestment(e.getKey(), e.getValue(), c, shares, p, feeAttrbution))
-                .map(om::writeValueAsString)
-                .collect(Collectors.joining(",\n", ",\n", "")));
     }
 
     private Investment asInvestment(
@@ -362,16 +359,20 @@ public class BuySideReport {
     }
 
     private void print(Currency c, MoneyAmount m, MoneyAmount total) {
-        this.console.appendLine(
-                MessageFormat.format("{0} {1} {2}",
-                        c,
-                        this.format.currency(m, 20),
-                        this.format.percent(m.amount().divide(total.amount(), C), 12)
-                ));
+        if (!m.isZero()) {
+            this.console.appendLine(
+                    MessageFormat.format("{0} {1} {2}",
+                            c,
+                            this.format.currency(m, 20),
+                            this.format.percent(m.amount().divide(total.amount(), C), 12)
+                    ));
+        }
     }
 
     private void print(Currency c, BigDecimal v) {
-        this.console.appendLine(MessageFormat.format("{0} {1}", c, this.format.number(v)));
+        if (v.signum() > 0) {
+            this.console.appendLine(MessageFormat.format("{0} {1}", c, this.format.number(v)));
+        }
     }
 
     private void print(Map<Currency, MoneyAmount> m) {
