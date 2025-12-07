@@ -306,9 +306,15 @@ public class ConsoleReports {
 
             case "buy" ->
                 () -> me.buy(
-                        new BigDecimal(me.paramsValue(args, "buy").getOrDefault("usd", "0")),
-                        new BigDecimal(me.paramsValue(args, "buy").getOrDefault("eur", "0")),
-                        new BigDecimal(me.paramsValue(args, "buy").getOrDefault("transfer", "50"))
+                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("usd", "9970")),
+                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("eur", "0")),
+                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("transfer", "50"))
+                );
+
+            case "sell" ->
+                () -> me.sell(
+                new BigDecimal(me.paramsValue(args, "sell").getOrDefault("usd", "9970")),
+                Boolean.parseBoolean(me.paramsValue(args, "sell").getOrDefault("oversell", "false"))
                 );
 
             case "ppi" ->
@@ -346,6 +352,8 @@ public class ConsoleReports {
                 new CmdParam("p-type-evo-pct"),
                 new CmdParam("condo"),
                 new CmdParam("ccl"),
+                new CmdParam("buy", "usd=9970 eur=0 transfer=50"),
+                new CmdParam("sell", "usd=9970 oversell=false"),
                 new CmdParam("lti"),
                 new CmdParam("bbpp-evo"),
                 new CmdParam("routes"),
@@ -985,7 +993,7 @@ public class ConsoleReports {
         this.console.appendLine(this.ltiLine(2023, new BigDecimal("5.941"), 113, 1354));
         this.console.appendLine(this.ltiLine(2024, new BigDecimal("7.556"), 352, 3588));
         this.console.appendLine(this.ltiLine(2025, new BigDecimal("16.3011123971"), 454, new BigDecimal("4866.52")));
-        this.console.appendLine(this.ltiLine(2026, dealPrice, 430, 4639));
+        this.console.appendLine(this.ltiLine(2026, BigDecimal.ZERO, 1, 13107));
         this.console.appendLine(this.ltiLine(2027, dealPrice, 191, 2337));
         this.console.appendLine(this.ltiLine(2028, dealPrice, 192, 2337));
         this.console.appendLine(this.ltiLine(2029, dealPrice, 90, 1100));
@@ -1054,11 +1062,17 @@ public class ConsoleReports {
     }
 
     private void buy(BigDecimal usd, BigDecimal eur, BigDecimal transfer) {
-        new BuySideReport(format, series, console)
-                .rebalance(
-                        new MoneyAmount(usd, USD), 
+        BuySideReport.equity(format, series, console)
+                .buy(
+                        new MoneyAmount(usd, USD),
                         new MoneyAmount(eur, Currency.EUR),
                         new MoneyAmount(transfer, USD));
+    }
+
+    private void sell(BigDecimal usd, boolean allowOversell) {
+        BuySideReport.equity(format, series, console)
+                .sell(
+                        new MoneyAmount(usd, USD), allowOversell);
     }
 
 }
