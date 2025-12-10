@@ -59,8 +59,11 @@ import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.Accumulator;
+import org.fede.calculator.money.CPIInflation;
 import org.fede.calculator.money.SingleHttpClientSupplier;
 import org.fede.calculator.money.SlidingWindow;
+import org.fede.calculator.money.series.JSONDataPoint;
+import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
@@ -156,7 +159,7 @@ public class ConsoleReports {
                 () -> me.invReport(args, "inv");
 
             case "fire" ->
-                () -> new Fire(format, series, console, bar)
+                () -> new Fire(format, series, console)
                 .fire(Integer.parseInt(me.paramsValue(args, "fire").getOrDefault("m", "12")));
 
             case "savings" ->
@@ -308,13 +311,15 @@ public class ConsoleReports {
                 () -> me.buy(
                 new BigDecimal(me.paramsValue(args, "buy").getOrDefault("usd", "9970")),
                 new BigDecimal(me.paramsValue(args, "buy").getOrDefault("eur", "0")),
-                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("transfer", "50"))
+                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("transfer", "50")),
+                Boolean.parseBoolean(me.paramsValue(args, "buy").getOrDefault("detail", "false"))
                 );
 
             case "sell" ->
                 () -> me.sell(
                 new BigDecimal(me.paramsValue(args, "sell").getOrDefault("usd", "9970")),
-                Boolean.parseBoolean(me.paramsValue(args, "sell").getOrDefault("oversell", "false"))
+                Boolean.parseBoolean(me.paramsValue(args, "sell").getOrDefault("oversell", "false")),
+                Boolean.parseBoolean(me.paramsValue(args, "sell").getOrDefault("detail", "false"))
                 );
 
             case "ppi" ->
@@ -352,8 +357,8 @@ public class ConsoleReports {
                 new CmdParam("p-type-evo-pct"),
                 new CmdParam("condo"),
                 new CmdParam("ccl"),
-                new CmdParam("buy", "usd=9970 eur=0 transfer=50"),
-                new CmdParam("sell", "usd=9970 oversell=false"),
+                new CmdParam("buy", "usd=9970 eur=0 transfer=50 detail=false"),
+                new CmdParam("sell", "usd=9970 oversell=false detail=false"),
                 new CmdParam("lti"),
                 new CmdParam("bbpp-evo"),
                 new CmdParam("routes"),
@@ -435,34 +440,38 @@ public class ConsoleReports {
             final var series = new Series();
             final var me = new ConsoleReports(console, format, bar, series);
 
-            LineReader reader = LineReaderBuilder.builder()
-                    .terminal(TerminalBuilder.builder()
-                            .system(true)
-                            .build())
-                    .parser(new DefaultParser())
-                    .variable(LineReader.HISTORY_FILE, Paths.get(CACHE_DIR + "/.command_history"))
-                    .completer(
-                            new StringsCompleter(
-                                    COMMANDS.stream()
-                                            .map(CmdParam::name)
-                                            .toList()))
-                    .build();
+            if (args.length > 0) {
+                handleCommand(args, me, format, bar, series, console);
+            } else {
 
-            while (true) {
+                LineReader reader = LineReaderBuilder.builder()
+                        .terminal(TerminalBuilder.builder()
+                                .system(true)
+                                .build())
+                        .parser(new DefaultParser())
+                        .variable(LineReader.HISTORY_FILE, Paths.get(CACHE_DIR + "/.command_history"))
+                        .completer(
+                                new StringsCompleter(
+                                        COMMANDS.stream()
+                                                .map(CmdParam::name)
+                                                .toList()))
+                        .build();
 
-                String line;
-                try {
-                    line = reader.readLine("> "); // prompt
-                } catch (UserInterruptException | EndOfFileException e) {
-                    break; // Ctrl+C or Ctrl+D
+                while (true) {
+
+                    String line;
+                    try {
+                        line = reader.readLine("> "); // prompt
+                    } catch (UserInterruptException | EndOfFileException e) {
+                        break; // Ctrl+C or Ctrl+D
+                    }
+                    if (line == null || line.trim().equalsIgnoreCase("q")) {
+                        break;
+                    }
+                    handleCommand(line.split("\\s+"), me, format, bar, series, console);
+
                 }
-                if (line == null || line.trim().equalsIgnoreCase("q")) {
-                    break;
-                }
-                handleCommand(line.split("\\s+"), me, format, bar, series, console);
-
             }
-
         } catch (Exception ex) {
             LOGGER.error("Unexpected error.", ex);
         }
@@ -914,7 +923,7 @@ public class ConsoleReports {
             final var inv = new Investments(this.console, this.format, this.bar, this.series);
             final var pos = new Positions(console, format, series);
             final var savings = new Savings(format, series, bar, console);
-            final var fire = new Fire(format, series, console, bar);
+            final var fire = new Fire(format, series, console);
 
             this.expensesChart(12, true);
             this.incomeAccChart();
@@ -951,6 +960,7 @@ public class ConsoleReports {
             inv.investmentScatterChart(Currency.XUSE, ValueFormat.CURRENCY_DECIMALS);
             inv.investmentScatterChart(Currency.RTWO);
             this.averageSpendingPortfolioPercent();
+            this.inflation();
 
         } catch (IOException ex) {
             LOGGER.error("Error generating charts.", ex);
@@ -1061,18 +1071,43 @@ public class ConsoleReports {
 
     }
 
-    private void buy(BigDecimal usd, BigDecimal eur, BigDecimal transfer) {
-        BuySideReport.equity(format, series, console)
+    private void buy(BigDecimal usd, BigDecimal eur, BigDecimal transfer, boolean detail) {
+        RebalancingReport.equity(format, series, console)
                 .buy(
                         new MoneyAmount(usd, USD),
                         new MoneyAmount(eur, Currency.EUR),
-                        new MoneyAmount(transfer, USD));
+                        new MoneyAmount(transfer, USD),
+                        detail);
     }
 
-    private void sell(BigDecimal usd, boolean allowOversell) {
-        BuySideReport.equity(format, series, console)
-                .sell(
-                        new MoneyAmount(usd, USD), allowOversell);
+    private void sell(BigDecimal usd, boolean allowOversell, boolean detail) {
+        RebalancingReport.equity(format, series, console)
+                .sell(new MoneyAmount(usd, USD), allowOversell, detail);
+    }
+
+    private void inflation() {
+
+        var inflation = new CPIInflation(
+                new JSONIndexSeries(
+                        Stream.concat(
+                                SeriesReader.read("index/bls.json", SeriesReader.INDEX_SERIES_TYPE_REFERENCE).stream(),
+                                SeriesReader.read("index/bls-hist.json", SeriesReader.INDEX_SERIES_TYPE_REFERENCE).stream())
+                                .sorted(Comparator.comparing(JSONDataPoint::yearMonth))
+                                .toList()),
+                USD);
+
+        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
+                .createFromTimeSeries(
+                        "Inflation",
+                        List.of(
+                                ChartSeriesMapper.asTimeSeries(
+                                        inflation.adjust(
+                                                new MoneyAmount(
+                                                        BigDecimal.ONE.movePointRight(2),
+                                                        USD),
+                                                YearMonth.now()))),
+                        USD,
+                        "inflation");
     }
 
 }

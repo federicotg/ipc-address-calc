@@ -67,7 +67,7 @@ public class SeriesReader {
 
     private static final Map<String, JSONIndexSeries> CACHE = new ConcurrentHashMap<>();
 
-    private static final TypeReference<List<JSONDataPoint>> INDEX_SERIES_TYPE_REFERENCE = new TypeReference<List<JSONDataPoint>>() {
+    public static final TypeReference<List<JSONDataPoint>> INDEX_SERIES_TYPE_REFERENCE = new TypeReference<List<JSONDataPoint>>() {
     };
 
     private static final Map<String, MoneyAmountSeries> MACACHE = new ConcurrentHashMap<>();
@@ -114,9 +114,7 @@ public class SeriesReader {
     }
 
     public static BigDecimal readPercent(String key) {
-        return PROPERTY_CACHE.computeIfAbsent(
-                key,
-                k -> new BigDecimal(readEnvironment().getProperty(k)).movePointLeft(2));
+        return new BigDecimal(readEnvironment().getProperty(key)).movePointLeft(2);
     }
 
     public static LocalDate readDate(String key) {

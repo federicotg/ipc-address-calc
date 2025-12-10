@@ -20,7 +20,6 @@ import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
-import java.text.MessageFormat;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,13 +52,11 @@ public class Fire {
     private final Format format;
     private final Series series;
     private final Console console;
-    private final Bar bar;
 
-    public Fire(Format format, Series series, Console console, Bar bar) {
+    public Fire(Format format, Series series, Console console) {
         this.format = format;
         this.series = series;
         this.console = console;
-        this.bar = bar;
     }
 
     public void fire(int months) {
@@ -72,7 +69,6 @@ public class Fire {
         final var irregular = this.sumExpenses(Series.IRREGULAR, months);
         final var other = this.sumExpenses(Series.OTHER, months);
         final var totalSavings = this.series.currentSavingsUSD();
-        final var years = SeriesReader.readInt("retirementHorizon");
 
         final var capitalGainsTaxRate = SeriesReader.readPercent("capitalGainsTaxRate");
 
@@ -82,32 +78,17 @@ public class Fire {
 
         final var futureHealth = SeriesReader.readUSD("futureHealth");
         final var futureRent = SeriesReader.readUSD("futureRent");
-        final var futurePension = MoneyAmount.zero(USD); //new Pension().value();
 
+        final var pensionPresentValue = new Pension().discountedCashFlowValue();
         this.conceptLine("Essential", essential);
         this.conceptLine("Other", other);
         this.conceptLine("Future Rent", futureRent);
         this.conceptLine("Future Health Cost", futureHealth);
         this.conceptLine("Discretionary", discretionary);
         this.conceptLine("Irregular", irregular);
-        this.conceptLine("Future Pension", futurePension);
         this.conceptLine("Current Savings", totalSavings);
-        this.conceptLine("Future Income", expectedFutureIncome);
-
-        var futureSavingsByYear = SeriesReader.readUSD("futureSavingsByYear");
-
-        final var percentile = BigDecimal.valueOf(50l);
-
-        final var projectedPortfolioSize = new Investments(console, format, bar, series)
-                .projectedPortfolioSize(totalSavings, futureSavingsByYear, percentile.movePointLeft(2).doubleValue());
-
-        this.console.appendLine(
-                String.valueOf(years),
-                this.format.text(" Year Growth", 20),
-                this.format.percent(
-                        projectedPortfolioSize.amount().divide(totalSavings.amount(), C)
-                                .subtract(ONE, C),
-                        6));
+        this.conceptLine("Future Income Present Value", expectedFutureIncome);
+        this.conceptLine("Future Pension Present Value", pensionPresentValue);
 
         this.console.appendLine(
                 this.format.text("Capital Gains", 20),
@@ -126,47 +107,22 @@ public class Fire {
 
         this.console.appendLine(this.format.subtitle("Failsafe Around Prominent Market Peaks"));
 
-        this.refLine("pre-1900", "3.95");
-        this.refLine("1900-1910", "3.38");
-        this.refLine("1911-1928", "3.57");
-        this.refLine("1929", "3.25");
-        this.refLine("1964-69", "3.66");
-        this.refLine("1972/73", "4.07");
-        this.refLine("1999-2000", "3.53");
-        this.refLine("2008/09", "4.42");
+        this.console.appendLine(
+                Stream.of(
+                        this.refLine("pre-1900", "3.95"),
+                        this.refLine("1900-1910", "3.38"),
+                        this.refLine("1911-1928", "3.57"),
+                        this.refLine("1929", "3.25"),
+                        this.refLine("1964-69", "3.66"),
+                        this.refLine("1972/73", "4.07"),
+                        this.refLine("1999-2000", "3.53"),
+                        this.refLine("2008/09", "4.42"))
+                        .collect(Collectors.joining(", ")));
 
-        final var saved = BigDecimal.valueOf(10000l);
-
-        this.console.appendLine(this.format.subtitle(MessageFormat.format("For every {0} saved.", this.format.currency(saved))));
         final var percents = this.percents();
 
-        percents.stream()
-                .map(pct
-                        -> MessageFormat.format(
-                        "{0} => {1}",
-                        this.format.percent(pct),
-                        this.format.currency(saved.multiply(pct.divide(BigDecimal.valueOf(12), C), C))))
-                .forEach(this.console::appendLine);
-
         this.console.appendLine("");
 
-        this.console.appendLine(
-                this.format.subtitle(
-                        MessageFormat.format("Savings to reach future pension {0}.",
-                                this.format.currency(futurePension.amount()))));
-
-        percents
-                .stream()
-                .map(pct
-                        -> MessageFormat.format(
-                        "{0} => {1}",
-                        this.format.percent(pct),
-                        this.format.currency(this.portfolioToReplacePension(pct, futurePension.amount()))))
-                .forEach(this.console::appendLine);
-
-        this.console.appendLine("");
-
-        //final var percents = this.percents();
         final var alreadyThere = Attribute.GREEN_TEXT();
         final var withGrowth = Attribute.BRIGHT_YELLOW_TEXT();
         final var withGrowthAndIncome = Attribute.YELLOW_TEXT();
@@ -182,42 +138,33 @@ public class Fire {
                 .stream()
                 .map(monthlySpending
                         -> this.retirementWithdrawalRow(
-                        futurePension.amount(),
                         monthlySpending,
                         totalSavings,
-                        expectedFutureIncome,
-                        projectedPortfolioSize,
+                        totalSavings.add(pensionPresentValue),
+                        totalSavings.add(expectedFutureIncome).add(pensionPresentValue),
                         percents,
                         alreadyThere,
                         withGrowth,
                         withGrowthAndIncome,
-                        farAway
+                        farAway,
+                        budgets
                 ))
                 .forEach(this.console::appendLine);
 
         new References(console, format)
                 .refsLabels(
-                        List.of("Savings", "Savings+Growth", "Savings+Growth+Income", "Far Away"),
+                        List.of("Savings", "Savings+Pension", "Savings+Pension+Income", "Far Away"),
                         List.of(alreadyThere,
                                 withGrowth,
                                 withGrowthAndIncome,
                                 farAway));
-
-        this.console.appendLine(Format.format("Saving {0} for {1} years {2}th percentile {3} real ret. {4} vol. Pension {5}",
-                this.format.currency(futureSavingsByYear.amount()),
-                years,
-                this.format.number2(percentile),
-                this.format.percent(this.cagr()),
-                this.format.percent(SeriesReader.readPercent("futureVolatility")),
-                this.format.currency(futurePension, 12)
-        ));
-
     }
 
-    private void refLine(String label, String pct) {
-        this.console.appendLine(
-                this.format.text(label, 16),
-                this.format.percent(new BigDecimal(pct).movePointLeft(2), 6));
+    private String refLine(String label, String pct) {
+
+        return label 
+                + " "
+                + this.format.percent(new BigDecimal(pct).movePointLeft(2), 6);
     }
 
     private List<BigDecimal> percents() {
@@ -246,13 +193,6 @@ public class Fire {
                 .toList();
     }
 
-    private BigDecimal portfolioToReplacePension(BigDecimal percentSpending, BigDecimal monthlyPension) {
-
-        var yearlyPension = monthlyPension.multiply(BigDecimal.valueOf(13l), C);
-        return yearlyPension.divide(percentSpending, C);
-
-    }
-
     private SpendingBudgets budgets(int months) {
 
         final var capitalGainsTaxRate = SeriesReader.readPercent("capitalGainsTaxRate");
@@ -260,7 +200,6 @@ public class Fire {
 
         final var futureHealth = SeriesReader.readUSD("futureHealth");
         final var futureRent = SeriesReader.readUSD("futureRent");
-        final var futurePension =  new Pension().value();
         final var essential = this.sumExpenses(ESSENTIAL, months);
         final var discretionary = this.sumExpenses(Series.DISCRETIONARY, months);
         final var irregular = this.sumExpenses(Series.IRREGULAR, months);
@@ -268,14 +207,12 @@ public class Fire {
 
         final var essentialWithoutRent = essential
                 .add(futureHealth)
-                .add(other)
-                .subtract(futurePension);
+                .add(other);
         final var essentialWithRent = essentialWithoutRent
                 .add(futureRent);
         final var everythingWithoutRent = essential
                 .add(futureHealth)
                 .add(other)
-                .subtract(futurePension)
                 .add(discretionary)
                 .add(irregular);
         final var everythingWithRent = everythingWithoutRent
@@ -298,11 +235,7 @@ public class Fire {
         var divisor = ONE.subtract(capitalGainsTaxRate
                 .multiply(ONE.subtract(costBasisPct, C), C), C);
 
-        return netAmount
-                .adjust(
-                        divisor,
-                        ONE);
-
+        return netAmount.adjust(divisor, ONE);
     }
 
     private MoneyAmount sumExpenses(String type, int months) {
@@ -314,7 +247,6 @@ public class Fire {
                 .map(new SlidingWindow(months)::average)
                 .get()
                 .getAmountOrElseZero(USD_INFLATION.getTo());
-
     }
 
     private void conceptLine(String label, MoneyAmount value) {
@@ -323,33 +255,40 @@ public class Fire {
 
     private void conceptLine(String label, MoneyAmount value, String extra) {
         this.console.appendLine(
-                this.format.text(label, 20),
+                this.format.text(label, 30),
                 this.format.currency(value, 12),
                 " ", extra);
     }
 
     private String retirementWithdrawalRow(
-            BigDecimal monthlyPension,
             BigDecimal monthlySpending,
             MoneyAmount currentPortfolioSize,
-            MoneyAmount expectedFutureSavings,
-            MoneyAmount projectedPortfolioSize,
+            MoneyAmount plusPension,
+            MoneyAmount plusPensionAndIncome,
             List<BigDecimal> percents,
             Attribute alreadyThere,
             Attribute withGrowth,
             Attribute withGrowthAndIncome,
-            Attribute farAway) {
+            Attribute farAway,
+            SpendingBudgets budgets) {
         final var annualSpendingFromPortfolio = monthlySpending
-                .multiply(new BigDecimal(12l), C)
-                .subtract(monthlyPension.multiply(BigDecimal.valueOf(13l), C));
-        return this.format.text(this.format.currency(monthlySpending), 12)
+                .multiply(new BigDecimal(12l), C);
+
+        Attribute textStyle = budgets.asStream().anyMatch(b -> b.equals(monthlySpending))
+                ? Attribute.BOLD()
+                : Attribute.DIM();
+
+        return this.format.text(
+                this.format.currency(monthlySpending),
+                12,
+                new AnsiFormat(textStyle))
                 + percents.stream()
                         .map(percent -> annualSpendingFromPortfolio.divide(percent, C))
                         .map(portfolioLevel -> this.coloredAmount(
                         portfolioLevel,
                         currentPortfolioSize,
-                        expectedFutureSavings,
-                        projectedPortfolioSize,
+                        plusPension,
+                        plusPensionAndIncome,
                         alreadyThere,
                         withGrowth,
                         withGrowthAndIncome,
@@ -360,8 +299,8 @@ public class Fire {
     private String coloredAmount(
             BigDecimal amount,
             MoneyAmount currentPortfolioSize,
-            MoneyAmount expectedFutureSavings,
-            MoneyAmount projectedPortfolioSize,
+            MoneyAmount plusPension,
+            MoneyAmount plusPensionAndIncome,
             Attribute alreadyThere,
             Attribute withGrowth,
             Attribute withGrowthAndIncome,
@@ -371,9 +310,9 @@ public class Fire {
 
         if (amount.compareTo(currentPortfolioSize.amount()) <= 0) {
             return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(alreadyThere));
-        } else if (amount.compareTo(projectedPortfolioSize.amount()) <= 0) {
+        } else if (amount.compareTo(plusPension.amount()) <= 0) {
             return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(withGrowth));
-        } else if (amount.compareTo(projectedPortfolioSize.add(expectedFutureSavings).amount()) <= 0) {
+        } else if (amount.compareTo(plusPensionAndIncome.amount()) <= 0) {
             return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(withGrowthAndIncome));
         } else {
             return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(farAway));
@@ -502,23 +441,21 @@ public class Fire {
     }
 
     /**
-     * Expected yearly savings over the retirement horizon plus expected cash
-     * income.
+     * DCF future income. income.
      *
      * @return
      */
     private MoneyAmount expectedFutureSavings() {
 
-        final var years = SeriesReader.readBigDecimal("retirementHorizon");
-        final var futureSavings = SeriesReader.readUSD("futureSavingsByYear")
-                .adjust(ONE, years);
-        final var inflationFactor = SeriesReader.readPercent("expectedInflation")
+        var r = SeriesReader
+                .readBigDecimal("futureReturn")
+                .movePointLeft(2)
                 .add(ONE)
-                .pow(years.intValue());
-
+                .pow(20);
+        // 20 years in the future
         return SeriesReader.readUSD("futureRealState")
                 .add(SeriesReader.readUSD("futureCash"))
-                .add(futureSavings)
-                .adjust(inflationFactor, ONE);
+                .adjust(r, ONE);
+
     }
 }

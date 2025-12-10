@@ -81,7 +81,6 @@ public class BBPP {
     }
 
     //private final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
-
     private final Format format;
     private final Series series;
     private final Console console;
@@ -156,31 +155,42 @@ public class BBPP {
                 Inflation.USD_INFLATION.getTo(),
                 YearMonth.of(year, 12));
 
-        final Map<Currency, Function<MoneyAmount, BigDecimal>> arsFunction = Map.of(ARS, (MoneyAmount item) -> item.amount(),
-                LECAP, (MoneyAmount item) -> item.amount(),
-                EUR, (MoneyAmount item) -> item.amount().multiply(bbpp.eur(), C),
-                USD, (MoneyAmount item) -> item.amount().multiply(bbpp.usd(), C),
-                LETE, (MoneyAmount item) -> item.amount().multiply(bbpp.usd(), C),
-                XRSU, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
-                        .apply(item, ym)
-                        .amount()
-                        .multiply(bbpp.usd(), C),
-                RTWO, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
-                        .apply(item, ym)
-                        .amount()
-                        .multiply(bbpp.usd(), C),
-                CSPX, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
-                        .apply(item, ym)
-                        .amount()
-                        .multiply(bbpp.usd(), C),
-                EIMI, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
-                        .apply(item, ym)
-                        .amount()
-                        .multiply(bbpp.usd(), C),
-                MEUD, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), EUR)
-                        .apply(item, ym)
-                        .amount()
-                        .multiply(bbpp.eur(), C));
+        final Map<Currency, Function<MoneyAmount, BigDecimal>> arsFunction = Map.ofEntries(
+                Map.entry(ARS, (MoneyAmount item) -> item.amount()),
+                Map.entry(LECAP, (MoneyAmount item) -> item.amount()),
+                Map.entry(EUR, (MoneyAmount item) -> item.amount().multiply(bbpp.eur(), C)),
+                Map.entry(USD, (MoneyAmount item) -> item.amount().multiply(bbpp.usd(), C)),
+                Map.entry(LETE, (MoneyAmount item) -> item.amount().multiply(bbpp.usd(), C)),
+                Map.entry(
+                        XRSU, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
+                                .apply(item, ym)
+                                .amount()
+                                .multiply(bbpp.usd(), C)),
+                Map.entry(
+                        RTWO, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
+                                .apply(item, ym)
+                                .amount()
+                                .multiply(bbpp.usd(), C)),
+                Map.entry(
+                        CSPX, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
+                                .apply(item, ym)
+                                .amount()
+                                .multiply(bbpp.usd(), C)),
+                Map.entry(
+                        EIMI, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
+                                .apply(item, ym)
+                                .amount()
+                                .multiply(bbpp.usd(), C)),
+                Map.entry(
+                        Currency.XUSE, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
+                                .apply(item, ym)
+                                .amount()
+                                .multiply(bbpp.usd(), C)),
+                Map.entry(
+                        MEUD, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), EUR)
+                                .apply(item, ym)
+                                .amount()
+                                .multiply(bbpp.eur(), C)));
 
         final var ons = this.series.getInvestments()
                 .stream()
@@ -410,7 +420,7 @@ public class BBPP {
                 .orElse(ZERO);
 
         final var ym = YearMonth.of(yc.year, 12).atEndOfMonth();
-        
+
         final var totalAmount = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
@@ -427,9 +437,9 @@ public class BBPP {
 
         final var lastYear = LocalDate.now().getYear();
 
-        Stream.of(CSPX, EIMI, XRSU, MEUD, RTWO)
+        Stream.of(CSPX, EIMI, XRSU, MEUD, RTWO, Currency.XUSE)
                 .flatMap(currency -> IntStream.range(2019, lastYear)
-                        .mapToObj(y -> new YearCurrency(y, currency)))
+                .mapToObj(y -> new YearCurrency(y, currency)))
                 .map(this::status)
                 .sorted(Comparator.comparing(BBPPStatus::yearCurrency))
                 .map(status -> status.toString(this.format))

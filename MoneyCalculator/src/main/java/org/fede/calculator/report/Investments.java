@@ -1469,7 +1469,8 @@ public class Investments {
     }
 
     private BigDecimal cagr() {
-        return SeriesReader.readPercent("futureReturn")
+        var p = SeriesReader.readPercent("futureReturn");
+        return p
                 .subtract(SeriesReader.readPercent("expectedInflation"), C);
     }
 

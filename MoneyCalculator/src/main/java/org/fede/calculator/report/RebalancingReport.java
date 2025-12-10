@@ -37,6 +37,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.CSPX;
 import static org.fede.calculator.money.Currency.EIMI;
@@ -48,14 +49,15 @@ import static org.fede.calculator.money.Currency.XUSE;
 import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.MathConstants.C;
-
 import org.fede.calculator.money.MoneyAmount;
+import static org.fede.calculator.money.MoneyAmount.zero;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.SeriesReader;
 import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -63,7 +65,7 @@ import tools.jackson.databind.json.JsonMapper;
  *
  * @author fede
  */
-public class BuySideReport {
+public class RebalancingReport {
 
     private final Format format;
     private final Series series;
@@ -76,9 +78,10 @@ public class BuySideReport {
             XUSE, List.of(XUSE, MEUD),
             EIMI, List.of(EIMI)
     ));
+   
 
-    public static BuySideReport equity(Format format, Series series, Console console) {
-        return new BuySideReport(format, series, console, new EnumMap<>(Map.of(
+    public static RebalancingReport equity(Format format, Series series, Console console) {
+        return new RebalancingReport(format, series, console, new EnumMap<>(Map.of(
                 CSPX, BigDecimal.valueOf(65l).movePointLeft(2),
                 RTWO, BigDecimal.valueOf(10l).movePointLeft(2),
                 XUSE, BigDecimal.valueOf(15l).movePointLeft(2),
@@ -86,47 +89,11 @@ public class BuySideReport {
         )));
     }
 
-    private BuySideReport(Format format, Series series, Console console, Map<Currency, BigDecimal> weights) {
+    private RebalancingReport(Format format, Series series, Console console, Map<Currency, BigDecimal> weights) {
         this.format = format;
         this.series = series;
         this.console = console;
         this.weights = weights;
-    }
-
-    private Map<Currency, MoneyAmount> virtualPortfolioValues(YearMonth now) {
-        final Map<Currency, BigDecimal> quantities = this.series.getInvestments()
-                .stream()
-                .filter(Investment::isETF)
-                .filter(i -> i.isCurrent(LocalDate.now()))
-                .collect(Collectors.groupingBy(
-                        Investment::getCurrency,
-                        currencyMapSupplier(),
-                        Collectors.mapping(
-                                i -> i.getInvestment().getAmount(),
-                                Collectors.reducing(ZERO, BigDecimal::add))));
-
-        final Map<Currency, MoneyAmount> values = new EnumMap<>(Currency.class);
-
-        for (var e : quantities.entrySet()) {
-            final Currency curr = e.getKey();
-            values.put(
-                    curr,
-                    ForeignExchanges.getForeignExchange(curr, USD)
-                            .exchange(new MoneyAmount(e.getValue(), curr), USD, now));
-        }
-
-        final var virtualValues = new EnumMap<Currency, MoneyAmount>(Currency.class);
-
-        for (var e : currencyEquivalences.entrySet()) {
-            final Currency curr = e.getKey();
-            virtualValues.put(
-                    curr,
-                    e.getValue()
-                            .stream()
-                            .map(values::get)
-                            .reduce(MoneyAmount.zero(USD), MoneyAmount::add));
-        }
-        return virtualValues;
     }
 
     /**
@@ -137,8 +104,9 @@ public class BuySideReport {
      * @param usd
      * @param eur
      * @param transfer
+     * @param detail
      */
-    public void buy(MoneyAmount usd, MoneyAmount eur, MoneyAmount transfer) {
+    public void buy(MoneyAmount usd, MoneyAmount eur, MoneyAmount transfer, boolean detail) {
 
         if (usd.amount().compareTo(ZERO) < 0
                 || eur.amount().compareTo(ZERO) < 0
@@ -169,8 +137,173 @@ public class BuySideReport {
         this.console.appendLine(this.format.subtitle("Initial State"));
         this.print(virtualValues);
         this.console.appendLine("Contribution: ", this.format.currency(contribution, 16));
-        this.rebalance(weights, virtualValues, prices, contribution, transfer);
+        this.rebalance(weights, virtualValues, prices, contribution, transfer, detail);
 
+    }
+
+    private Map<Currency, MoneyAmount> virtualPortfolioValues(YearMonth now) {
+        final Map<Currency, BigDecimal> quantities = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .filter(i -> i.isCurrent(LocalDate.now()))
+                .collect(Collectors.groupingBy(
+                        Investment::getCurrency,
+                        currencyMapSupplier(),
+                        Collectors.mapping(
+                                i -> i.getInvestment().getAmount(),
+                                Collectors.reducing(ZERO, BigDecimal::add))));
+
+        final Map<Currency, MoneyAmount> values = new EnumMap<>(Currency.class);
+
+        for (var e : quantities.entrySet()) {
+            final Currency curr = e.getKey();
+            values.put(
+                    curr,
+                    ForeignExchanges.getForeignExchange(curr, USD)
+                            .exchange(new MoneyAmount(e.getValue(), curr), USD, now));
+        }
+
+        final var virtualValues = new EnumMap<Currency, MoneyAmount>(Currency.class);
+
+        for (var e : currencyEquivalences.entrySet()) {
+            final Currency curr = e.getKey();
+            virtualValues.put(
+                    curr,
+                    sum(e.getValue().stream().map(values::get)));
+        }
+        return virtualValues;
+    }
+
+    public void sell(MoneyAmount c, boolean allowOverSell, boolean detail) {
+
+        if (c.amount().compareTo(ZERO) < 0) {
+            throw new IllegalArgumentException("Only positive amounts.");
+        }
+
+        final var now = YearMonth.now();
+
+        this.console.appendLine(this.format.title("Greedy Proportional Rebalancing"));
+        this.console.appendLine(this.format.subtitle("Initial State"));
+        this.print(this.virtualPortfolioValues(now));
+        this.console.appendLine("Withdrawal: ", this.format.currency(c, 16));
+
+        var lots = this.lots(LocalDate.now());
+
+        var sold = zero(USD);
+
+        final List<Investment> soldInvestments = new ArrayList<>();
+
+        boolean keepGoing = true;
+        while (keepGoing
+                && this.hasLotsRemaining(lots)
+                && sold.amount().compareTo(c.amount()) < 0) {
+            Sale bestSale = null;
+            BigDecimal trackingError = null;
+            for (var etf : lots.keySet()) {
+                var sale = this.sellingOldest(etf, lots);
+                if (sale != null) {
+
+                    var v = this.value(
+                            ForeignExchanges.getForeignExchange(sale.soldCurrency, USD),
+                            List.of(sale.soldInvestment()),
+                            now);
+                    var oversold = v.add(sold).amount().compareTo(c.amount()) > 0;
+
+                    var newTE = this.trackingError(this.virtualValues(sale.remainingLots(), now));
+                    if ((!oversold || allowOverSell)
+                            && (trackingError == null || newTE.compareTo(trackingError) < 0)) {
+                        trackingError = newTE;
+                        bestSale = sale;
+                    }
+                }
+            }
+
+            keepGoing = bestSale != null;
+
+            if (bestSale != null) {
+                var soldValue = this.value(
+                        ForeignExchanges.getForeignExchange(bestSale.soldCurrency, USD),
+                        List.of(bestSale.soldInvestment()),
+                        now);
+
+                lots = bestSale.remainingLots();
+                soldInvestments.add(bestSale.soldInvestment());
+                sold = sold.add(soldValue);
+            }
+        }
+        this.console.appendLine(this.format.subtitle("Final State"));
+        this.print(this.virtualValues(lots, now));
+        this.console.appendLine("");
+        this.console.appendLine("Sold: ", this.format.currency(sold, 16));
+
+        var cgt = zero(USD);
+        final var cgtr = SeriesReader.readPercent("capitalGainsTaxRate");
+
+        for (var i : soldInvestments) {
+
+            var fx = ForeignExchanges.getForeignExchange(i.getCurrency(), USD);
+            var initial = i.getIn().getFx() == null
+                    ? i.getInitialMoneyAmount()
+                    : new MoneyAmount(i.getIn().getAmount().multiply(i.getIn().getFx(), C), USD);
+            var current = fx.exchange(i.getInvestment().getMoneyAmount(), USD, now);
+            cgt = cgt.add(current.subtract(initial).adjust(ONE, cgtr));
+
+        }
+
+        if (!sold.isZero()) {
+            this.console.appendLine(
+                    MessageFormat.format("Capital Gains Tax: {0} {1}",
+                            this.format.currency(cgt, 16),
+                            this.format.percent(cgt.amount().divide(sold.amount(), C), 6)));
+        }
+        this.console.appendLine("Neto: ", this.format.currency(sold.subtract(cgt), 16));
+
+        if (detail) {
+            final var om = this.om();
+            this.console.appendLine(this.format.subtitle("Detail"));
+
+            this.console.appendLine(MessageFormat.format("Sell {0} lots.", soldInvestments.size()));
+
+            for (var i : soldInvestments) {
+
+                var fx = ForeignExchanges.getForeignExchange(i.getCurrency(), USD);
+
+                this.console.appendLine(MessageFormat.format("Sell {2} {0} bought on {1} for {3}",
+                        i.getCurrency(),
+                        i.getInitialDate(),
+                        this.format.number(i.getInvestment().getAmount(), 4),
+                        this.format.currency(fx.exchange(i.getInvestment().getMoneyAmount(), USD, now), 16)));
+
+                var out = new InvestmentEvent();
+                var outCurrency = i.getInitialCurrency();
+
+                var outFx = ForeignExchanges.getForeignExchange(i.getCurrency(), outCurrency);
+
+                var outAmount = outFx.exchange(i.getInvestment().getMoneyAmount(), outCurrency, now);
+
+                out.setAmount(outAmount.amount());
+                out.setCurrency(outCurrency);
+                out.setDate(LocalDate.now());
+                out.setFee(ZERO);
+                out.setFx(outCurrency != USD
+                        ? ForeignExchanges.getForeignExchange(outCurrency, USD)
+                                .exchange(new MoneyAmount(ONE, outCurrency), USD, now)
+                                .amount()
+                        : null);
+                out.setTransferFee(ZERO);
+
+                this.console.appendLine(om.writeValueAsString(out));
+
+            }
+        }
+    }
+
+    private static MoneyAmount sum(Map<?, MoneyAmount> m) {
+        return sum(m.values().stream());
+    }
+
+    private static MoneyAmount sum(Stream<MoneyAmount> s) {
+        return s.reduce(zero(USD), MoneyAmount::add);
     }
 
     private void rebalance(
@@ -178,11 +311,10 @@ public class BuySideReport {
             Map<Currency, MoneyAmount> v,
             Map<Currency, MoneyAmount> p,
             MoneyAmount c,
-            MoneyAmount transferFee) {
+            MoneyAmount transferFee,
+            boolean detail) {
 
-        final MoneyAmount totalFuturePortfolioValue = v.values()
-                .stream()
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
+        final MoneyAmount totalFuturePortfolioValue = sum(v)
                 .add(c);
 
         final Map<Currency, MoneyAmount> targetValue = w.entrySet()
@@ -201,10 +333,7 @@ public class BuySideReport {
             }
         }
 
-        final var deficitsSum = deficits.values()
-                .stream()
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
-
+        final var deficitsSum = sum(deficits);
         final Map<Currency, MoneyAmount> allocation = deficits.entrySet()
                 .stream()
                 .collect(Collectors.toMap(
@@ -280,22 +409,27 @@ public class BuySideReport {
             this.console.appendLine(this.format.subtitle("Transfer Fee"));
             this.print(feeAttrbution);
 
-            final var om = JsonMapper.builder()
-                    .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                    .enable(SerializationFeature.INDENT_OUTPUT)
-                    .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
-                    .build();
+            if (detail) {
+                final var om = this.om();
 
-            this.console.appendLine(this.format.subtitle("JSON"));
-            this.console.appendLine(shares.entrySet()
-                    .stream()
-                    .filter(e -> e.getValue().signum() > 0)
-                    .map(e -> this.asInvestment(e.getKey(), e.getValue(), c, shares, p, feeAttrbution))
-                    .map(om::writeValueAsString)
-                    .collect(Collectors.joining(",\n", ",\n", "")));
-
+                this.console.appendLine(this.format.subtitle("JSON"));
+                this.console.appendLine(shares.entrySet()
+                        .stream()
+                        .filter(e -> e.getValue().signum() > 0)
+                        .map(e -> this.asInvestment(e.getKey(), e.getValue(), c, shares, p, feeAttrbution))
+                        .map(om::writeValueAsString)
+                        .collect(Collectors.joining(",\n", ",\n", "")));
+            }
         }
+    }
+
+    private ObjectMapper om() {
+        return JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                .build();
     }
 
     private Investment asInvestment(
@@ -335,10 +469,9 @@ public class BuySideReport {
             Map<Currency, MoneyAmount> p,
             MoneyAmount c) {
         return c
-                .subtract(shares.entrySet()
+                .subtract(sum(shares.entrySet()
                         .stream()
-                        .map(e -> p.get(e.getKey()).adjust(ONE, e.getValue()))
-                        .reduce(MoneyAmount.zero(c.currency()), MoneyAmount::add));
+                        .map(e -> p.get(e.getKey()).adjust(ONE, e.getValue()))));
     }
 
     private Map<Currency, MoneyAmount> newValues(
@@ -359,10 +492,7 @@ public class BuySideReport {
     }
 
     private BigDecimal trackingError(Map<Currency, MoneyAmount> values) {
-        final var sum = values
-                .values()
-                .stream()
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+        final var sum = sum(values);
 
         if (sum.isZero()) {
             return ZERO;
@@ -385,165 +515,19 @@ public class BuySideReport {
                 .pow(2, C);
     }
 
-    private void print(Currency c, MoneyAmount m, MoneyAmount total) {
-        if (!m.isZero()) {
-            this.console.appendLine(
-                    MessageFormat.format("{0} {1} {2}",
-                            c,
-                            this.format.currency(m, 20),
-                            this.format.percent(m.amount().divide(total.amount(), C), 12)
-                    ));
-        } else {
-            this.console.appendLine(
-                    MessageFormat.format("{0} {1} {2}",
-                            c,
-                            this.format.currency(MoneyAmount.zero(c), 20),
-                            this.format.percent(ZERO, 12)
-                    ));
-        }
-    }
-
-    private void print(Currency c, BigDecimal v) {
-        if (v.signum() > 0) {
-            this.console.appendLine(MessageFormat.format("{0} {1}", c, this.format.number(v)));
-        }
-    }
-
-    private void print(Map<Currency, MoneyAmount> m) {
-
-        final var sum = m.values().stream()
-                .reduce(
-                        MoneyAmount.zero(USD),
-                        MoneyAmount::add);
-        m.forEach((c, ma) -> this.print(c, ma, sum));
-
-    }
-
-    private void printBigDecimal(Map<Currency, BigDecimal> m) {
-
-        m.forEach(this::print);
-
-    }
-
-    private static <V> Supplier<Map<Currency, V>> currencyMapSupplier() {
-        return () -> new EnumMap<>(Currency.class);
-    }
-
-    private static <T> BinaryOperator<T> keepFirst() {
-        return (a, b) -> a;
-    }
-
     private boolean hasLotsRemaining(Map<Currency, Deque<Investment>> lots) {
         return !lots.isEmpty()
                 && lots.values().stream().anyMatch(Predicate.not(Collection::isEmpty));
-    }
-
-    public void sell(MoneyAmount c, boolean allowOverSell) {
-
-        if (c.amount().compareTo(ZERO) < 0) {
-            throw new IllegalArgumentException("Only positive amounts.");
-        }
-
-        final var now = YearMonth.now();
-
-        this.console.appendLine(this.format.title("Greedy Proportional Rebalancing"));
-        this.console.appendLine(this.format.subtitle("Initial State"));
-        this.print(this.virtualPortfolioValues(now));
-        this.console.appendLine("Withdrawal: ", this.format.currency(c, 16));
-
-        var lots = this.lots(LocalDate.now());
-
-        var sold = MoneyAmount.zero(USD);
-
-        final List<Investment> soldInvestments = new ArrayList<>();
-
-        boolean keepGoing = true;
-        while (keepGoing
-                && this.hasLotsRemaining(lots)
-                && sold.amount().compareTo(c.amount()) < 0) {
-            Sale bestSale = null;
-            BigDecimal trackingError = null;
-            for (var etf : lots.keySet()) {
-                var sale = this.sellingOldest(etf, lots);
-                if (sale != null) {
-
-                    var v = this.value(
-                            ForeignExchanges.getForeignExchange(sale.soldCurrency, USD),
-                            List.of(sale.soldInvestment()),
-                            now);
-                    var oversold = v.add(sold).amount().compareTo(c.amount()) > 0;
-
-                    var newTE = this.trackingError(this.virtualValues(sale.remainingLots(), now));
-                    if ((!oversold || allowOverSell)
-                            && (trackingError == null || newTE.compareTo(trackingError) < 0)) {
-                        trackingError = newTE;
-                        bestSale = sale;
-                    }
-                }
-            }
-
-            keepGoing = bestSale != null;
-
-            if (bestSale != null) {
-                var soldValue = this.value(
-                        ForeignExchanges.getForeignExchange(bestSale.soldCurrency, USD),
-                        List.of(bestSale.soldInvestment()),
-                        now);
-
-                lots = bestSale.remainingLots();
-                soldInvestments.add(bestSale.soldInvestment());
-                sold = sold.add(soldValue);
-            }
-        }
-        this.console.appendLine(this.format.subtitle("Final State"));
-        this.print(this.virtualValues(lots, now));
-        this.console.appendLine("");
-        this.console.appendLine("Sold: ", this.format.currency(sold, 16));
-
-        var cgt = MoneyAmount.zero(USD);
-        final var cgtr = SeriesReader.readPercent("capitalGainsTaxRate");
-
-        for (var i : soldInvestments) {
-
-            var fx = ForeignExchanges.getForeignExchange(i.getCurrency(), USD);
-            var initial = i.getIn().getFx() == null
-                    ? i.getInitialMoneyAmount()
-                    : new MoneyAmount(i.getIn().getAmount().multiply(i.getIn().getFx(), C), USD);
-            var current = fx.exchange(i.getInvestment().getMoneyAmount(), USD, now);
-            cgt = cgt.add(current.subtract(initial).adjust(ONE, cgtr));
-
-        }
-
-        this.console.appendLine(
-                MessageFormat.format("Capital Gains Tax: {0} {1}",
-                        this.format.currency(cgt, 16),
-                        this.format.percent(cgt.amount().divide(sold.amount(), C), 6)));
-
-        this.console.appendLine("Neto: ", this.format.currency(sold.subtract(cgt), 16));
-
-        this.console.appendLine(this.format.subtitle("Detail"));
-        for (var i : soldInvestments) {
-
-            var fx = ForeignExchanges.getForeignExchange(i.getCurrency(), USD);
-
-            this.console.appendLine(MessageFormat.format("Sell {2} {0} bought on {1} for {3}",
-                    i.getCurrency(),
-                    i.getInitialDate(),
-                    this.format.number(i.getInvestment().getAmount(), 4),
-                    this.format.currency(fx.exchange(i.getInvestment().getMoneyAmount(), USD, now), 16)));
-
-        }
     }
 
     private MoneyAmount value(
             ForeignExchange fx,
             Collection<Investment> inv,
             YearMonth ym) {
-        return inv.stream()
+        return sum(inv.stream()
                 .map(Investment::getInvestment)
                 .map(InvestmentAsset::getMoneyAmount)
-                .map(ma -> fx.exchange(ma, USD, ym))
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+                .map(ma -> fx.exchange(ma, USD, ym)));
 
     }
 
@@ -566,10 +550,9 @@ public class BuySideReport {
             Currency curr = e.getKey();
             virtualNewValues.put(
                     curr,
-                    e.getValue()
+                    sum(e.getValue()
                             .stream()
-                            .map(c -> newValues.getOrDefault(c, MoneyAmount.zero(USD)))
-                            .reduce(MoneyAmount.zero(USD), MoneyAmount::add));
+                            .map(c -> newValues.getOrDefault(c, zero(USD)))));
 
         }
 
@@ -590,6 +573,7 @@ public class BuySideReport {
         return new Sale(c, newLots, lot.removeFirst());
     }
 
+
     private Map<Currency, Deque<Investment>> lots(LocalDate now) {
 
         return this.series.getInvestments()
@@ -597,17 +581,64 @@ public class BuySideReport {
                 .filter(Investment::isETF)
                 .filter(i -> i.isCurrent(now))
                 .collect(Collectors.groupingBy(Investment::getCurrency))
-                .entrySet()
-                .stream()
-                .collect(
-                        Collectors.toMap(
-                                Map.Entry::getKey,
-                                e -> this.asDeque(e.getValue()),
-                                keepFirst(),
-                                currencyMapSupplier()
-                        )
-                );
+                        .entrySet()
+                        .stream()
+                        .collect(
+                                Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        e -> this.asDeque(e.getValue()),
+                                        keepFirst(),
+                                        currencyMapSupplier()
+                                )
+                        );
 
+    }
+
+    private void print(Currency c, MoneyAmount m, MoneyAmount total) {
+        if (!m.isZero()) {
+
+            this.console.appendLine(
+                    MessageFormat.format("{0} {1} {2}",
+                            c,
+                            this.format.currency(m, 20),
+                            this.format.percent(m.amount().divide(total.amount(), C), 12)));
+
+            // this.safePrint(c, m, total.amount());
+        } else {
+            this.console.appendLine(
+                    MessageFormat.format("{0} {1} {2}",
+                            c,
+                            ZERO,
+                            this.format.percent(ZERO, 12)));
+
+        }
+    }
+
+    private void print(Currency c, BigDecimal v) {
+        if (v.signum() > 0) {
+            this.console.appendLine(MessageFormat.format("{0} {1}", c, this.format.number(v)));
+        }
+    }
+
+    private void print(Map<Currency, MoneyAmount> m) {
+
+        final var sum = sum(m);
+        m.forEach((c, ma) -> this.print(c, ma, sum));
+
+    }
+
+    private void printBigDecimal(Map<Currency, BigDecimal> m) {
+
+        m.forEach(this::print);
+
+    }
+
+    private static <V> Supplier<Map<Currency, V>> currencyMapSupplier() {
+        return () -> new EnumMap<>(Currency.class);
+    }
+
+    private static <T> BinaryOperator<T> keepFirst() {
+        return (a, b) -> a;
     }
 
     private Deque<Investment> asDeque(List<Investment> i) {

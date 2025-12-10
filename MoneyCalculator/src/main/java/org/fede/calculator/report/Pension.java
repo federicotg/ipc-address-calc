@@ -22,6 +22,7 @@ import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.function.Function;
+import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.ForeignExchanges;
@@ -40,6 +41,27 @@ public class Pension {
     private boolean isSAC(YearMonth ym) {
         return ym.getMonthValue() == 12
                 || ym.getMonthValue() == 7;
+    }
+
+    public MoneyAmount discountedCashFlowValue() {
+
+        var futurePension = SeriesReader.readUSD("goal.pension");
+        var retirementAge = SeriesReader.readInt("goal.retirement");
+        var maxAge = SeriesReader.readInt("goal.maxage");
+        var dob = SeriesReader.readDate("dob");
+
+        var yearlyPension = futurePension.amount().doubleValue() * 13.0d;
+
+        double sum = 0.0d;
+        double discountRate = 1.0d + SeriesReader.readPercent("pensionDiscountRate").doubleValue();
+        var retirementYear = dob.getYear() + retirementAge;
+        var yearsToRetire = retirementYear - YearMonth.now().getYear();
+        var endYear = dob.getYear() + maxAge - YearMonth.now().getYear();
+
+        for (int i = yearsToRetire; i < endYear; i++) {
+            sum += yearlyPension / Math.pow(discountRate, i);
+        }
+        return new MoneyAmount(new BigDecimal(sum), Currency.USD);
     }
 
     public MoneyAmount value() {
@@ -100,7 +122,7 @@ public class Pension {
 
         // divido por 240 para considerar la mitad.
         final var adjusted10YearAverageSalary = total10YearsSalary
-                .adjust(BigDecimal.valueOf(120l*2l), BigDecimal.ONE);
+                .adjust(BigDecimal.valueOf(120l * 2l), BigDecimal.ONE);
 
         // prestación básica universal: 
         final var pbu = new MoneyAmount(SeriesReader.readBigDecimal("pbu"), ARS);
