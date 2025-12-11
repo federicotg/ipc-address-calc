@@ -18,7 +18,6 @@ package org.fede.calculator.money;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Objects;
 import java.util.function.Supplier;
 import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;

@@ -309,7 +309,7 @@ public class ConsoleReports {
 
             case "buy" ->
                 () -> me.buy(
-                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("usd", "9970")),
+                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("usd", "0")),
                 new BigDecimal(me.paramsValue(args, "buy").getOrDefault("eur", "0")),
                 new BigDecimal(me.paramsValue(args, "buy").getOrDefault("transfer", "50")),
                 Boolean.parseBoolean(me.paramsValue(args, "buy").getOrDefault("detail", "false"))
@@ -954,11 +954,15 @@ public class ConsoleReports {
             savings.savingRate(24);
             savings.savingRate(6);
             inv.investmentScatterChart(Currency.CSPX);
+            inv.investmentScatterChart(Currency.SXR8);
             inv.investmentScatterChart(Currency.MEUD);
+            inv.investmentScatterChart(Currency.MEUS);
             inv.investmentScatterChart(Currency.XRSU);
             inv.investmentScatterChart(Currency.EIMI, ValueFormat.CURRENCY_DECIMALS);
+            inv.investmentScatterChart(Currency.EMIM, ValueFormat.CURRENCY_DECIMALS);
             inv.investmentScatterChart(Currency.XUSE, ValueFormat.CURRENCY_DECIMALS);
             inv.investmentScatterChart(Currency.RTWO);
+            inv.investmentScatterChart(Currency.RTWOE);
             this.averageSpendingPortfolioPercent();
             this.inflation();
 

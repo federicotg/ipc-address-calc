@@ -100,15 +100,21 @@ public class Investments {
 
     private final Comparator<Investment> COMPARATOR = comparing(Investment::getInitialDate, naturalOrder());
 
-    public static final Map<Currency, String> ETF_NAME = new EnumMap<>(Map.of(
-            CSPX, "iShares Core S&P 500",
-            EIMI, "iShares Core MSCI EM IMI",
-            XRSU, "Xtrackers Russell 2000",
-            RTWO, "Russell 2000 Q. Factor",
-            MEUD, "Amundi Stoxx Europe 600",
-            IWDA, "iShares Core MSCI World",
-            XUSE, "iShares MSCI World ex-US"
-    ));
+    public static final Map<Currency, String> ETF_NAME = new EnumMap<>(
+            Map.ofEntries(
+                    Map.entry(CSPX, "iShares Core S&P 500"),
+                    Map.entry(SXR8, "iShares Core S&P 500 €"),
+                    Map.entry(EIMI, "iShares Core MSCI EM IMI"),
+                    Map.entry(EMIM, "iShares Core MSCI EM IMI €"),
+                    Map.entry(XRSU, "Xtrackers Russell 2000"),
+                    Map.entry(RTWO, "Russell 2000 Q. Factor"),
+                    Map.entry(RTWOE, "Russell 2000 Q. Factor €"),
+                    Map.entry(MEUD, "Amundi Stoxx Europe 600 €"),
+                    Map.entry(MEUS, "Amundi Stoxx Europe 600"),
+                    Map.entry(IWDA, "iShares Core MSCI World"),
+                    Map.entry(XUSE, "iShares MSCI World ex-US")
+            )
+    );
 
     private final AnsiFormat DIM = new AnsiFormat(Attribute.DIM());
     private final Map<String, AnsiFormat> ETF_COLOR = Map.of(
@@ -354,6 +360,32 @@ public class Investments {
                 .sorted(Comparator.comparing(Pair::second, Comparator.reverseOrder()))
                 .map(p -> this.row(p.first(), nominal))
                 .forEach(this.console::appendLine);
+
+       // this.test(CSPX, SXR8);
+       // this.test(EIMI, EMIM);
+       // this.test(RTWO, RTWOE);
+       // this.test(MEUS, MEUD);
+        
+    }
+
+    private void test(Currency usd, Currency eur) {
+
+        var a = new MoneyAmount(BigDecimal.TEN, usd);
+        var b = new MoneyAmount(BigDecimal.TEN, eur);
+        var now = YearMonth.now();
+
+        this.console.appendLine(MessageFormat.format("{0} = {1} => {2} = {3}",
+                this.format.currency(a, 16),
+                this.format.currency(b, 16),
+                this.format.currency(ForeignExchanges.getForeignExchange(
+                        a.currency(),
+                        USD)
+                        .exchange(a, USD, now), 16),
+                this.format.currency(ForeignExchanges.getForeignExchange(
+                        b.currency(),
+                        USD)
+                        .exchange(b, USD, now), 16)
+        ));
 
     }
 

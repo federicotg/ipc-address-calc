@@ -44,17 +44,24 @@ public class ForeignExchanges {
 
     private static final Map<Currency, ForeignExchange> IDENTITY_FX = new EnumMap<>(Currency.class);
 
-    private static final Map<Currency, Currency> INTERMEDIATE_FOREIGN_EXCHANGES = new EnumMap<>(Map.of(
-            UVA, ARS,
-            CONAAFA, ARS,
-            CAPLUSA, ARS,
-            CONBALA, ARS,
-            LECAP, ARS,
-            MEUD, EUR,
-            CSPX, USD,
-            IWDA, USD,
-            DAI, USD,
-            ARS, USD));
+    private static final Map<Currency, Currency> INTERMEDIATE_FOREIGN_EXCHANGES = new EnumMap<>(
+            Map.ofEntries(
+                    Map.entry(UVA, ARS),
+                    Map.entry(CONAAFA, ARS),
+                    Map.entry(CAPLUSA, ARS),
+                    Map.entry(CONBALA, ARS),
+                    Map.entry(LECAP, ARS),
+                    Map.entry(MEUD, EUR),
+                    Map.entry(CSPX, USD),
+                    Map.entry(EIMI, USD),
+                    Map.entry(IWDA, USD),
+                    Map.entry(DAI, USD),
+                    Map.entry(ARS, USD),
+                    Map.entry(EMIM, EIMI),
+                    Map.entry(SXR8, CSPX),
+                    Map.entry(MEUS, MEUD),
+                    Map.entry(RTWOE, RTWO)
+            ));
 
     private static final Map<FromTo, ForeignExchange> DIRECT_FOREIGN_EXCHANGES;
 
@@ -156,10 +163,15 @@ public class ForeignExchanges {
         map(temporalMap, USD, XUSE, USD_XUSE);
         map(temporalMap, USD, EIMI, USD_EIMI);
 
+        // direct conversion for alternative currency ETFs
+        map(temporalMap, EIMI, EMIM, ForeignExchanges.getIdentityForeignExchange(EIMI));
+        map(temporalMap, CSPX, SXR8, ForeignExchanges.getIdentityForeignExchange(CSPX));
+        map(temporalMap, MEUD, MEUS, ForeignExchanges.getIdentityForeignExchange(MEUD));
+        map(temporalMap, RTWO, RTWOE, ForeignExchanges.getIdentityForeignExchange(RTWO));
+
         DIRECT_FOREIGN_EXCHANGES = Collections.unmodifiableMap(temporalMap);
 
     }
-
 
     public static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(Currency from, Currency to) {
         return FX_FUNCTION_CACHE.computeIfAbsent(new FromTo(from, to), ForeignExchanges::getMoneyAmountForeignExchange);
@@ -168,7 +180,7 @@ public class ForeignExchanges {
     private static BiFunction<MoneyAmount, YearMonth, MoneyAmount> getMoneyAmountForeignExchange(FromTo fromTo) {
         return (amount, ym) -> getForeignExchange(fromTo.from(), fromTo.to()).exchange(amount, fromTo.to(), ym);
     }
-    
+
     public static ForeignExchange getForeignExchange(Currency from, Currency to) {
 
         if (from == to) {
@@ -248,9 +260,9 @@ public class ForeignExchanges {
         answer.setTransferFee(
                 Optional.ofNullable(in.getTransferFee())
                         .map(trfee -> fx(
-                                in.getFx(),
-                                fx,
-                                new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).amount())
+                        in.getFx(),
+                        fx,
+                        new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).amount())
                         .orElse(null));
         answer.setFx(in.getFx());
         return answer;

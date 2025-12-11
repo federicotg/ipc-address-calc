@@ -17,7 +17,6 @@
 package org.fede.calculator.money;
 
 import java.time.LocalDate;
-import java.util.Objects;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesSupport;
 import java.time.YearMonth;

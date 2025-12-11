@@ -22,6 +22,11 @@ package org.fede.calculator.money;
  */
 public enum Currency {
 
-    USD, ARS, EUR, CSPX, EIMI, XRSU, MEUS, MEUD, IWDA, RTWO, XUSE, XAU, UVA, LETE, LECAP, CONAAFA, CAPLUSA, CONBALA, DAI, AY24;
+    USD, ARS, EUR, CSPX, 
+    
+    EIMI, XRSU, MEUS, MEUD, IWDA, RTWO, XUSE, 
+    EMIM, RTWOE, SXR8,
+    
+    XAU, UVA, LETE, LECAP, CONAAFA, CAPLUSA, CONBALA, DAI, AY24;
 
 }

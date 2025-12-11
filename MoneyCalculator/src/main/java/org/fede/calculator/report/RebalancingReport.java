@@ -42,6 +42,10 @@ import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.CSPX;
 import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.RTWO;
+import static org.fede.calculator.money.Currency.EMIM;
+import static org.fede.calculator.money.Currency.MEUS;
+import static org.fede.calculator.money.Currency.RTWOE;
+import static org.fede.calculator.money.Currency.SXR8;
 import static org.fede.calculator.money.Currency.XRSU;
 import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.USD;
@@ -73,12 +77,11 @@ public class RebalancingReport {
     private final Map<Currency, BigDecimal> weights;
 
     private final Map<Currency, List<Currency>> currencyEquivalences = new EnumMap<>(Map.of(
-            CSPX, List.of(CSPX),
-            RTWO, List.of(RTWO, XRSU),
-            XUSE, List.of(XUSE, MEUD),
-            EIMI, List.of(EIMI)
+            CSPX, List.of(CSPX, SXR8),
+            RTWO, List.of(RTWO, XRSU, RTWOE),
+            XUSE, List.of(XUSE, MEUD, MEUS),
+            EIMI, List.of(EIMI, EMIM)
     ));
-   
 
     public static RebalancingReport equity(Format format, Series series, Console console) {
         return new RebalancingReport(format, series, console, new EnumMap<>(Map.of(
@@ -115,13 +118,11 @@ public class RebalancingReport {
         }
 
         final var now = YearMonth.now();
-        final var contribution = ForeignExchanges.getForeignExchange(eur.currency(), USD)
-                .exchange(eur, USD, now)
-                .add(usd);
+        final var contribution = new MoneyAmount(BigDecimal.valueOf(9970l), USD)
+                .min(ForeignExchanges.getForeignExchange(eur.currency(), USD)
+                        .exchange(eur, USD, now)
+                        .add(usd));
 
-        if (contribution.isZero()) {
-            throw new IllegalArgumentException("Contribution must not be $0.00.");
-        }
         final var virtualValues = this.virtualPortfolioValues(now);
 
         final var prices = currencyEquivalences.keySet()
@@ -258,22 +259,25 @@ public class RebalancingReport {
         }
         this.console.appendLine("Neto: ", this.format.currency(sold.subtract(cgt), 16));
 
+        ObjectMapper om = null;
         if (detail) {
-            final var om = this.om();
-            this.console.appendLine(this.format.subtitle("Detail"));
+            om = this.om();
+        }
+        this.console.appendLine(this.format.subtitle("Detail"));
 
-            this.console.appendLine(MessageFormat.format("Sell {0} lots.", soldInvestments.size()));
+        this.console.appendLine(MessageFormat.format("Sell {0} lots.", soldInvestments.size()));
 
-            for (var i : soldInvestments) {
+        for (var i : soldInvestments) {
 
-                var fx = ForeignExchanges.getForeignExchange(i.getCurrency(), USD);
+            var fx = ForeignExchanges.getForeignExchange(i.getCurrency(), USD);
 
-                this.console.appendLine(MessageFormat.format("Sell {2} {0} bought on {1} for {3}",
-                        i.getCurrency(),
-                        i.getInitialDate(),
-                        this.format.number(i.getInvestment().getAmount(), 4),
-                        this.format.currency(fx.exchange(i.getInvestment().getMoneyAmount(), USD, now), 16)));
+            this.console.appendLine(MessageFormat.format("Sell {2} {0} bought on {1} for {3}",
+                    i.getCurrency(),
+                    i.getInitialDate(),
+                    this.format.number(i.getInvestment().getAmount(), 4),
+                    this.format.currency(fx.exchange(i.getInvestment().getMoneyAmount(), USD, now), 16)));
 
+            if (detail) {
                 var out = new InvestmentEvent();
                 var outCurrency = i.getInitialCurrency();
 
@@ -293,8 +297,8 @@ public class RebalancingReport {
                 out.setTransferFee(ZERO);
 
                 this.console.appendLine(om.writeValueAsString(out));
-
             }
+
         }
     }
 
@@ -573,7 +577,6 @@ public class RebalancingReport {
         return new Sale(c, newLots, lot.removeFirst());
     }
 
-
     private Map<Currency, Deque<Investment>> lots(LocalDate now) {
 
         return this.series.getInvestments()
@@ -581,16 +584,16 @@ public class RebalancingReport {
                 .filter(Investment::isETF)
                 .filter(i -> i.isCurrent(now))
                 .collect(Collectors.groupingBy(Investment::getCurrency))
-                        .entrySet()
-                        .stream()
-                        .collect(
-                                Collectors.toMap(
-                                        Map.Entry::getKey,
-                                        e -> this.asDeque(e.getValue()),
-                                        keepFirst(),
-                                        currencyMapSupplier()
-                                )
-                        );
+                .entrySet()
+                .stream()
+                .collect(
+                        Collectors.toMap(
+                                Map.Entry::getKey,
+                                e -> this.asDeque(e.getValue()),
+                                keepFirst(),
+                                currencyMapSupplier()
+                        )
+                );
 
     }
 
@@ -602,8 +605,6 @@ public class RebalancingReport {
                             c,
                             this.format.currency(m, 20),
                             this.format.percent(m.amount().divide(total.amount(), C), 12)));
-
-            // this.safePrint(c, m, total.amount());
         } else {
             this.console.appendLine(
                     MessageFormat.format("{0} {1} {2}",
