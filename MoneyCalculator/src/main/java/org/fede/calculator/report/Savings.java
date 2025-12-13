@@ -849,7 +849,6 @@ public class Savings {
                 new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
                 .create(
                         "Spending by Regular Income",
-                        USD,
                         List.of(ss),
                         "Income",
                         "Spending",
@@ -878,7 +877,6 @@ public class Savings {
                 new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
                 .create(
                         "Saving by Regular Income",
-                        USD,
                         List.of(ss),
                         "Income",
                         "Savings",

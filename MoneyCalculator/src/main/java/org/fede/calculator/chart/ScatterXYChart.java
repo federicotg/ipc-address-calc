@@ -66,18 +66,18 @@ public class ScatterXYChart {
 
     public void create(
             String chartName,
-            Currency currency,
+            //Currency currency,
             List<XYSeries> series,
             String xLabel,
             String yLabel,
             String filename) {
-        this.create(chartName, null, currency, series, xLabel, yLabel, RectangleEdge.TOP, filename);
+        this.create(chartName, null, series, xLabel, yLabel, RectangleEdge.TOP, filename);
     }
 
     public void create(
             String chartName,
             String chartSubtitle,
-            Currency currency,
+            //Currency currency2,
             List<XYSeries> series,
             String xLabel,
             String yLabel,

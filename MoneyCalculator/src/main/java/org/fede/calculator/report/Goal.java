@@ -244,8 +244,7 @@ public class Goal {
     - Pension: {8,number,currency}
     - Expected Inflation: {9,number,#.##} %
     - Sequence of Returns Risk: {10,number} years
-    - Retiring at {11,number} living until {12,number}
-        """;
+    - Retiring at {11,number} living until {12,number}""";
 
         final var formattedDeposit = this.format.text(format("{0,number,currency}", monthlyDeposit), 6, new AnsiFormat(Attribute.BRIGHT_GREEN_TEXT()));
         final var formattedWithdrawal = this.format.text(format("{0,number,currency}", monthlyWithdraw), 6, new AnsiFormat(Attribute.BRIGHT_RED_TEXT()));

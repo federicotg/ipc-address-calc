@@ -87,7 +87,7 @@ public class StackedTimeSeriesChart {
 
         };
 
-        NumberFormat valueFormatter = this.style.valueFormat().format();
+        NumberFormat valueFormatter = (NumberFormat) this.style.valueFormat().format();
 
         JFreeChart chart = ChartFactory.createXYAreaChart(
                 chartName,

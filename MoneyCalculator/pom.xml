@@ -15,6 +15,9 @@
                 <configuration>
                     <showDeprecation>true</showDeprecation>
                     <release>25</release>
+                    <compilerArgs>
+                        <arg>-Xlint</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             

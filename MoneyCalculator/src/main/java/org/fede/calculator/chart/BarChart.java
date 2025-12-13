@@ -73,7 +73,7 @@ public class BarChart {
 
         try {
 
-            NumberFormat valueFormatter = this.style.valueFormat().format();
+            NumberFormat valueFormatter = (NumberFormat) this.style.valueFormat().format();
 
             JFreeChart chart = ChartFactory.createBarChart(chartName, categoriesName, "USD", dataset);
             chart.setAntiAlias(Boolean.parseBoolean(SeriesReader.readEnvironment().getProperty("chart.antialias")));

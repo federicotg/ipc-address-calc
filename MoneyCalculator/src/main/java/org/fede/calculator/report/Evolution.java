@@ -94,7 +94,13 @@ public class Evolution<T> {
                 Attribute.BRIGHT_RED_BACK(),
                 Attribute.BACK_COLOR(48),
                 Attribute.BACK_COLOR(16),
-                Attribute.BACK_COLOR(32)
+                Attribute.BACK_COLOR(32),
+                Attribute.BLUE_BACK(),
+                Attribute.CYAN_BACK(),
+                Attribute.GREEN_BACK(),
+                Attribute.MAGENTA_BACK(),
+                Attribute.RED_BACK(),
+                Attribute.YELLOW_BACK()
         );
 
         final Map<String, List<T>> grouped = inv

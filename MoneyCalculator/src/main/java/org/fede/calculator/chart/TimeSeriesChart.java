@@ -115,7 +115,7 @@ public class TimeSeriesChart {
         xyPlot.setRangeGridlinePaint(Color.BLACK);
         xyPlot.setDomainGridlinePaint(Color.BLACK);
 
-        NumberFormat valueFormatter = this.style.valueFormat().format();
+        NumberFormat valueFormatter = (NumberFormat) this.style.valueFormat().format();
 
         if (this.style.scale() == Scale.LOG) {
             xyPlot.setRangeAxis(new LogarithmicAxis(label));

@@ -1671,7 +1671,6 @@ public class Investments {
                 new ChartStyle(format, Scale.LINEAR))
                 .create(
                         "Investments " + currency.name(),
-                        USD,
                         List.of(ss),
                         "Date",
                         "Price",

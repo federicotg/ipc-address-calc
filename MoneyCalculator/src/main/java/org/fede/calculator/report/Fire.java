@@ -326,7 +326,6 @@ public class Fire {
                 new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
                 .create(title,
                         subtitle,
-                        USD,
                         ss.stream().sorted(Comparator.comparingDouble(s -> s.getDataItem(0).getYValue())).toList(),
                         "Spending %", "Porfolio Amount",
                         RectangleEdge.RIGHT,

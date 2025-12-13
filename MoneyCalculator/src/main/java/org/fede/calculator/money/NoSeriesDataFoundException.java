@@ -22,6 +22,8 @@ package org.fede.calculator.money;
  */
 public class NoSeriesDataFoundException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     public NoSeriesDataFoundException(String message) {
         super(message);
     }

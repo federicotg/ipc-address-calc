@@ -118,12 +118,13 @@ public class RebalancingReport {
         }
 
         final var now = YearMonth.now();
-        final var contribution = new MoneyAmount(BigDecimal.valueOf(9970l), USD)
-                .min(ForeignExchanges.getForeignExchange(eur.currency(), USD)
+        final var contribution = usd.isZero() && eur.isZero()
+                ? new MoneyAmount(BigDecimal.valueOf(9970l), USD)
+                : ForeignExchanges.getForeignExchange(eur.currency(), USD)
                         .exchange(eur, USD, now)
-                        .add(usd));
+                        .add(usd);
 
-        final var virtualValues = this.virtualPortfolioValues(now);
+        final var virtualValues = this.virtualPortfolioValues();
 
         final var prices = currencyEquivalences.keySet()
                 .stream()
@@ -142,39 +143,6 @@ public class RebalancingReport {
 
     }
 
-    private Map<Currency, MoneyAmount> virtualPortfolioValues(YearMonth now) {
-        final Map<Currency, BigDecimal> quantities = this.series.getInvestments()
-                .stream()
-                .filter(Investment::isETF)
-                .filter(i -> i.isCurrent(LocalDate.now()))
-                .collect(Collectors.groupingBy(
-                        Investment::getCurrency,
-                        currencyMapSupplier(),
-                        Collectors.mapping(
-                                i -> i.getInvestment().getAmount(),
-                                Collectors.reducing(ZERO, BigDecimal::add))));
-
-        final Map<Currency, MoneyAmount> values = new EnumMap<>(Currency.class);
-
-        for (var e : quantities.entrySet()) {
-            final Currency curr = e.getKey();
-            values.put(
-                    curr,
-                    ForeignExchanges.getForeignExchange(curr, USD)
-                            .exchange(new MoneyAmount(e.getValue(), curr), USD, now));
-        }
-
-        final var virtualValues = new EnumMap<Currency, MoneyAmount>(Currency.class);
-
-        for (var e : currencyEquivalences.entrySet()) {
-            final Currency curr = e.getKey();
-            virtualValues.put(
-                    curr,
-                    sum(e.getValue().stream().map(values::get)));
-        }
-        return virtualValues;
-    }
-
     public void sell(MoneyAmount c, boolean allowOverSell, boolean detail) {
 
         if (c.amount().compareTo(ZERO) < 0) {
@@ -185,7 +153,7 @@ public class RebalancingReport {
 
         this.console.appendLine(this.format.title("Greedy Proportional Rebalancing"));
         this.console.appendLine(this.format.subtitle("Initial State"));
-        this.print(this.virtualPortfolioValues(now));
+        this.print(this.virtualPortfolioValues());
         this.console.appendLine("Withdrawal: ", this.format.currency(c, 16));
 
         var lots = this.lots(LocalDate.now());
@@ -298,16 +266,40 @@ public class RebalancingReport {
 
                 this.console.appendLine(om.writeValueAsString(out));
             }
-
         }
     }
 
-    private static MoneyAmount sum(Map<?, MoneyAmount> m) {
-        return sum(m.values().stream());
-    }
+    private Map<Currency, MoneyAmount> virtualPortfolioValues() {
+        final Map<Currency, BigDecimal> quantities = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .filter(i -> i.isCurrent(LocalDate.now()))
+                .collect(Collectors.groupingBy(
+                        Investment::getCurrency,
+                        currencyMapSupplier(),
+                        Collectors.mapping(
+                                i -> i.getInvestment().getAmount(),
+                                Collectors.reducing(ZERO, BigDecimal::add))));
 
-    private static MoneyAmount sum(Stream<MoneyAmount> s) {
-        return s.reduce(zero(USD), MoneyAmount::add);
+        final Map<Currency, MoneyAmount> values = new EnumMap<>(Currency.class);
+        final var now = YearMonth.now();
+        for (var e : quantities.entrySet()) {
+            final Currency curr = e.getKey();
+            values.put(
+                    curr,
+                    ForeignExchanges.getForeignExchange(curr, USD)
+                            .exchange(new MoneyAmount(e.getValue(), curr), USD, now));
+        }
+
+        final var virtualValues = new EnumMap<Currency, MoneyAmount>(Currency.class);
+
+        for (var e : currencyEquivalences.entrySet()) {
+            final Currency curr = e.getKey();
+            virtualValues.put(
+                    curr,
+                    sum(e.getValue().stream().map(c -> values.get(c))));
+        }
+        return virtualValues;
     }
 
     private void rebalance(
@@ -648,6 +640,14 @@ public class RebalancingReport {
                 .sorted(Comparator.comparing(Investment::getInitialDate))
                 .forEachOrdered(deque::addLast);
         return deque;
+    }
+
+    private static MoneyAmount sum(Map<?, MoneyAmount> m) {
+        return sum(m.values().stream());
+    }
+
+    private static MoneyAmount sum(Stream<MoneyAmount> s) {
+        return s.reduce(zero(USD), MoneyAmount::add);
     }
 
     private record Sale(

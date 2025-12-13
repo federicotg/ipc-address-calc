@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.chart;
 
-import java.text.DateFormat;
 import java.text.Format;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -28,7 +27,7 @@ import java.text.SimpleDateFormat;
 public enum ValueFormat {
     PERCENTAGE {
         @Override
-        public NumberFormat format() {
+        public Format format() {
             var answer = NumberFormat.getPercentInstance();
             answer.setMinimumFractionDigits(2);
             return answer;
@@ -37,7 +36,7 @@ public enum ValueFormat {
     },
     CURRENCY {
         @Override
-        public NumberFormat format() {
+        public Format format() {
             var nf = NumberFormat.getCurrencyInstance();
             nf.setMaximumFractionDigits(0);
             return nf;
@@ -45,7 +44,7 @@ public enum ValueFormat {
     },
     CURRENCY_DECIMALS {
         @Override
-        public NumberFormat format() {
+        public Format format() {
             var nf = NumberFormat.getCurrencyInstance();
             nf.setMaximumFractionDigits(2);
             return nf;
@@ -53,17 +52,17 @@ public enum ValueFormat {
     },
     NUMBER {
         @Override
-        public NumberFormat format() {
+        public Format format() {
             return NumberFormat.getNumberInstance();
         }
     },
     DATE {
         @Override
-        public DateFormat format() {
+        public Format format() {
             return new SimpleDateFormat("dd-MMM-yy");
         }
     };
 
-    public abstract <F extends Format> F format();
+    public abstract Format format();
 
 }

@@ -26,6 +26,8 @@ import org.jfree.data.xy.XYDataItem;
  */
 public class LabeledXYDataItem extends XYDataItem {
 
+    private static final long serialVersionUID = 1L;
+
     private final String label;
 
     public LabeledXYDataItem(LocalDate x, LocalDate y, String label) {
