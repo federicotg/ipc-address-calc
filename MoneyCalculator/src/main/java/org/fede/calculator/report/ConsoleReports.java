@@ -309,9 +309,9 @@ public class ConsoleReports {
 
             case "buy" ->
                 () -> me.buy(
-                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("usd", "0")),
-                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("eur", "0")),
-                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("transfer", "50")),
+                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("usd", "0").replaceAll(",", ".")),
+                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("eur", "0").replaceAll(",", ".")),
+                new BigDecimal(me.paramsValue(args, "buy").getOrDefault("transfer", "50").replaceAll(",", ".")),
                 Boolean.parseBoolean(me.paramsValue(args, "buy").getOrDefault("detail", "false"))
                 );
 

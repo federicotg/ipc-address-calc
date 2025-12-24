@@ -654,6 +654,5 @@ public class RebalancingReport {
             Currency soldCurrency,
             Map<Currency, Deque<Investment>> remainingLots,
             Investment soldInvestment) {
-
     }
 }

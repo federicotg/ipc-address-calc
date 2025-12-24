@@ -96,9 +96,9 @@ import org.jfree.data.xy.XYSeries;
  */
 public class Investments {
 
-    private static final DateTimeFormatter DTF = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault());
+    private final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault());
 
-    private final Comparator<Investment> COMPARATOR = comparing(Investment::getInitialDate, naturalOrder());
+    private final Comparator<Investment> comparator = comparing(Investment::getInitialDate, naturalOrder());
 
     public static final Map<Currency, String> ETF_NAME = new EnumMap<>(
             Map.ofEntries(
@@ -116,16 +116,18 @@ public class Investments {
             )
     );
 
-    private final AnsiFormat DIM = new AnsiFormat(Attribute.DIM());
+    private final List<Currency> etfCurrencies = List.of(CSPX, SXR8, MEUD, MEUS, XRSU, RTWO, RTWOE, XUSE, EIMI, EMIM);
+
+    private final AnsiFormat dim = new AnsiFormat(Attribute.DIM());
     private final Map<String, AnsiFormat> ETF_COLOR = Map.of(
-            "CSPX", DIM,
-            "EIMI", DIM,
-            "RTWO", DIM,
-            "XRSU", DIM,
-            "XUSE", DIM,
-            "MEUD", DIM,
-            "IWDA", DIM,
-            "Cash", DIM
+            "CSPX", dim,
+            "EIMI", dim,
+            "RTWO", dim,
+            "XRSU", dim,
+            "XUSE", dim,
+            "MEUD", dim,
+            "IWDA", dim,
+            "Cash", dim
     );
 
     private final Map<Currency, String> PF_CATEGORIES = new EnumMap<>(Map.ofEntries(
@@ -248,7 +250,11 @@ public class Investments {
                 LETE, 9
         );
 
-        final var currencies = List.of(ARS, USD, UVA, CSPX, MEUD, XRSU, EIMI, LETE, CONAAFA, CONBALA, CAPLUSA, LECAP, AY24);
+        final var currencies = List.of(ARS, USD, UVA, CSPX, 
+                // no tienen ventas por ahora
+                //SXR8, EMIM, MEUS, RTWOE, 
+                
+                MEUD, XRSU, EIMI, LETE, CONAAFA, CONBALA, CAPLUSA, LECAP, AY24);
 
         this.console.appendLine(this.format.subtitle("CDs, Bonds, ETFs & FCIs PnL by Year"));
 
@@ -349,7 +355,7 @@ public class Investments {
         this.console.appendLine(this.format.subtitle(nominal ? "Nominal Returns" : "Real Returns"));
 
         this.console.appendLine(
-                this.format.text("", 24),
+                this.format.text("", 25),
                 this.range()
                         .mapToObj(y -> y == 0 ? "Total" : String.valueOf(y))
                         .map(value -> this.format.center(value, 8))
@@ -361,11 +367,10 @@ public class Investments {
                 .map(p -> this.row(p.first(), nominal))
                 .forEach(this.console::appendLine);
 
-       // this.test(CSPX, SXR8);
-       // this.test(EIMI, EMIM);
-       // this.test(RTWO, RTWOE);
-       // this.test(MEUS, MEUD);
-        
+        // this.test(CSPX, SXR8);
+        // this.test(EIMI, EMIM);
+        // this.test(RTWO, RTWOE);
+        // this.test(MEUS, MEUD);
     }
 
     private void test(Currency usd, Currency eur) {
@@ -391,7 +396,7 @@ public class Investments {
 
     private String row(Currency symbol, boolean nominal) {
         return format("{0}{1}",
-                this.format.text(ETF_NAME.get(symbol), 24),
+                this.format.text(ETF_NAME.get(symbol), 25),
                 this.range()
                         .mapToObj(y -> this.format.percent(this.annualRealReturn(symbol, y, nominal), 8))
                         .collect(joining())
@@ -510,7 +515,7 @@ public class Investments {
             mdrSeries.add(ChartSeriesMapper.asTimeSeries(uninvestedPct, "Uninvested Cash"));
 
             var globalStocks
-                    = this.currencyInvestment("Global Stocks", List.of(CSPX, MEUD, XRSU, RTWO, XUSE, EIMI))
+                    = this.currencyInvestment("Global Stocks", etfCurrencies)
                             .map((ym, ma) -> ma.adjust(savings.getAmount(ym).amount(), ONE));
 
             mdrSeries.add(ChartSeriesMapper.asTimeSeries(globalStocks));
@@ -903,7 +908,7 @@ public class Investments {
         final var list = this.getAllInvestments();
 
         new Evolution<Investment>(this.console, this.bar)
-                .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, COMPARATOR, list, pct);
+                .evo(totalFunction, startFunction, endFunction, classifier, filterPredicate, comparator, list, pct);
     }
 
     private Stream<Investment> getInvestments() {
@@ -930,7 +935,7 @@ public class Investments {
                 .orElseGet(Inflation.USD_INFLATION::getTo);
 
         new Evolution<Investment>(this.console, this.bar)
-                .evo(totalFunction, startFunction, endFunction, this::classifier, i -> true, COMPARATOR, this.getAllInvestments(), pct);
+                .evo(totalFunction, startFunction, endFunction, this::classifier, i -> true, comparator, this.getAllInvestments(), pct);
     }
 
     private String classifier(Investment i) {
@@ -942,6 +947,10 @@ public class Investments {
                 Map.entry(XUSE, "Global Eq."),
                 Map.entry(XRSU, "Global Eq."),
                 Map.entry(RTWO, "Global Eq."),
+                Map.entry(RTWOE, "Global Eq."),
+                Map.entry(EMIM, "Global Eq."),
+                Map.entry(MEUS, "Global Eq."),
+                Map.entry(SXR8, "Global Eq."),
                 Map.entry(CONAAFA, "Dom. Eq."),
                 Map.entry(CONBALA, "Dom. Bonds"),
                 Map.entry(CAPLUSA, "Dom. Bonds"),
@@ -1124,7 +1133,7 @@ public class Investments {
 
         final Function<Investment, InvestmentGroup> classifier = switch (type) {
             case "group" ->
-                (Investment i) -> new InvestmentGroup(i.getCurrency(), DTF.format(i.getOut().getDate()));
+                (Investment i) -> new InvestmentGroup(i.getCurrency(), dtf.format(i.getOut().getDate()));
             case "groupall" ->
                 (Investment i) -> new InvestmentGroup(i.getCurrency(), "");
             default ->
@@ -1233,7 +1242,7 @@ public class Investments {
         return new MoneyAmount(i.getOut()
                 .getMoneyAmount()
                 .subtract(this.cost(i))
-                .adjust(BigDecimal.ONE, bnaFX.get(DTF.format(i.getOut().getDate()))).amount(),
+                .adjust(BigDecimal.ONE, bnaFX.get(dtf.format(i.getOut().getDate()))).amount(),
                 Currency.ARS);
     }
 
@@ -1247,7 +1256,7 @@ public class Investments {
                 this.format.currency(i.getOut().getMoneyAmount(), 18),
                 this.format.currency(i.getOut().getFeeMoneyAmount(), 16),
                 this.format.currency(i.getOut().getMoneyAmount().subtract(this.cost(i)), 16),
-                this.format.currency(new MoneyAmount(bnaFX.get(DTF.format(i.getOut().getDate())), Currency.ARS), 16),
+                this.format.currency(new MoneyAmount(bnaFX.get(dtf.format(i.getOut().getDate())), Currency.ARS), 16),
                 this.format.currency(this.capitalGainARS(i, bnaFX), 20)
         );
     }
@@ -1337,7 +1346,7 @@ public class Investments {
         uninvested.setName("Cash");
 
         var income = new Accumulator().sum(this.series.realIncome());
-        income.setName("Real Icome");
+        income.setName("Real Income");
 
         new TimeSeriesChart().create("Real Income, Savings & Investments",
                 List.of(
@@ -1376,7 +1385,7 @@ public class Investments {
         var localUSDBonds = List.of(USD, LETE, AY24, CONBALA);
         var localARSBonds = List.of(ARS, CAPLUSA, LECAP, UVA);
         var localStocks = List.of(CONAAFA);
-        var globalStocks = List.of(CSPX, MEUD, XRSU, RTWO, XUSE, EIMI);
+        var globalStocks = etfCurrencies;
 
         var savings = this.series.realSavings(null);
         savings.setName("Real Savings");

@@ -55,6 +55,7 @@ import static org.fede.calculator.money.Currency.UVA;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import java.time.YearMonth;
+import java.util.EnumMap;
 import java.util.stream.Gatherers;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.chart.PieChart;
@@ -91,10 +92,12 @@ public class Positions {
 
     public void positions(boolean nominal) {
 
+        this.checkConsistency();
+
         final var now = LocalDate.now();
         this.console.appendLine(this.format.title("Positions Without Fees"));
 
-        final var descWidth = 36;
+        final var descWidth = 30;
         final var posWidth = 4;
         final var lastWidth = 10;
         final var costWidth = 14;
@@ -217,10 +220,10 @@ public class Positions {
         final var gainPct = realized.amount().divide(realizedInvested, C);
 
         this.console.appendLine(MessageFormat.format(" Realized {0} {1}", this.format.currencyPL(
-                realized.amount(), 110), this.format.percent(gainPct, 8)));
+                realized.amount(), 104), this.format.percent(gainPct, 8)));
 
         this.console.appendLine(MessageFormat.format(" Total {0}", this.format.currencyPL(
-                realized.add(totalPnL).amount(), 113)));
+                realized.add(totalPnL).amount(), 107)));
 
         final var invesmentExpenses = this.series.investingExpenses();
 
@@ -398,7 +401,7 @@ public class Positions {
         final var tax = egr.multiply(SeriesReader.readPercent("capitalGainsTaxRate"));
 
         this.console.appendLine(
-                format.text(title + " EGR", 20),
+                format.text(title + " EGR", 21),
                 this.format.percent(egr, 6),
                 format.text(" Tax", 5),
                 this.format.percent(tax, 6),
@@ -665,6 +668,48 @@ public class Positions {
                                 .reduce(ZERO, BigDecimal::add)
                                 .divide(position, C),
                         USD));
+    }
+
+    private void checkConsistency() {
+        final var ym = YearMonth.now();
+        final var cspx = this.lastAmount("ahorros-cspx", ym);
+        final var rtwo = this.lastAmount("ahorros-rtwo", ym);
+        final var xrsu = this.lastAmount("ahorros-xrsu", ym);
+        final var eimi = this.lastAmount("ahorros-eimi", ym);
+        final var xuse = this.lastAmount("ahorros-xuse", ym);
+        final var meud = this.lastAmount("ahorros-meud", ym);
+
+        final Map<Currency, BigDecimal> investedAmounts = this.series.getInvestments().stream()
+                .filter(Investment::isETF)
+                .filter(i -> i.isCurrent(LocalDate.now()))
+                .collect(Collectors.groupingBy(
+                        Investment::getCurrency,
+                        () -> new EnumMap<>(Currency.class),
+                        Collectors.mapping(
+                                i -> i.getInvestment().getAmount(),
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
+                ));
+
+        final boolean consistent = meud.get().amount()
+                .compareTo(investedAmounts.get(Currency.MEUD)
+                        .add(investedAmounts.get(Currency.MEUS))) == 0
+                && rtwo.get().amount()
+                        .compareTo(investedAmounts.get(Currency.RTWO)
+                                .add(investedAmounts.get(Currency.RTWOE))) == 0
+                && xrsu.get().amount()
+                        .compareTo(investedAmounts.get(Currency.XRSU)) == 0
+                && eimi.get().amount()
+                        .compareTo(investedAmounts.get(Currency.EIMI)
+                                .add(investedAmounts.get(Currency.EMIM))) == 0
+                && cspx.get().amount()
+                        .compareTo(investedAmounts.get(Currency.CSPX)
+                                .add(investedAmounts.get(Currency.SXR8))) == 0
+                && xuse.get().amount()
+                        .compareTo(investedAmounts.get(Currency.XUSE)) == 0;
+
+        if (!consistent) {
+            throw new IllegalArgumentException("Inconsistence between savings and investments.");
+        }
     }
 
     public void portfolioChartSeries(String subtype) throws IOException {
