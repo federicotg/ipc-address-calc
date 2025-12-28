@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
@@ -690,21 +689,21 @@ public class Positions {
                                 Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
                 ));
 
-        final boolean consistent = meud.get().amount()
+        final boolean consistent = meud.amount()
                 .compareTo(investedAmounts.get(Currency.MEUD)
                         .add(investedAmounts.get(Currency.MEUS))) == 0
-                && rtwo.get().amount()
+                && rtwo.amount()
                         .compareTo(investedAmounts.get(Currency.RTWO)
                                 .add(investedAmounts.get(Currency.RTWOE))) == 0
-                && xrsu.get().amount()
+                && xrsu.amount()
                         .compareTo(investedAmounts.get(Currency.XRSU)) == 0
-                && eimi.get().amount()
+                && eimi.amount()
                         .compareTo(investedAmounts.get(Currency.EIMI)
                                 .add(investedAmounts.get(Currency.EMIM))) == 0
-                && cspx.get().amount()
+                && cspx.amount()
                         .compareTo(investedAmounts.get(Currency.CSPX)
                                 .add(investedAmounts.get(Currency.SXR8))) == 0
-                && xuse.get().amount()
+                && xuse.amount()
                         .compareTo(investedAmounts.get(Currency.XUSE)) == 0;
 
         if (!consistent) {
@@ -772,15 +771,16 @@ public class Positions {
                 "Russell 2000",
                 this.lastUSDAmount("ahorros-rtwo", ym)
                         .add(this.lastUSDAmount("ahorros-xrsu", ym))
-                        .amount()
-        );
+                        .amount());
 
         final var exUS = new PieItem(
                 "MSCI World ex USA",
                 this.lastUSDAmount("ahorros-xuse", ym)
                         .add(this.lastUSDAmount("ahorros-meud", ym)).amount());
 
-        final var em = new PieItem("MSCI Emerging Markets IMI", this.lastUSDAmount("ahorros-eimi", ym).amount());
+        final var em = new PieItem(
+                "MSCI Emerging Markets IMI",
+                this.lastUSDAmount("ahorros-eimi", ym).amount());
 
         final var cash = new PieItem(
                 "Cash",
@@ -802,7 +802,7 @@ public class Positions {
     }
 
     private MoneyAmount lastUSDAmount(String seriesName, YearMonth ym) {
-        var amount = this.lastAmount(seriesName, ym).get();
+        var amount = this.lastAmount(seriesName, ym);
         return ForeignExchanges.getMoneyAmountForeignExchange(amount.currency(), USD)
                 .apply(amount, ym);
     }
@@ -878,9 +878,9 @@ public class Positions {
                         .collect(groupingBy(
                                 Pair::first,
                                 groupingBy(
-                                        p -> p.second().get().currency().name(),
+                                        p -> p.second().currency().name(),
                                         mapping(
-                                                p -> p.second().get(),
+                                                p -> p.second(),
                                                 reducing(MoneyAmount::add)))));
 
         return grouped
@@ -901,8 +901,8 @@ public class Positions {
                 .map(amount -> new PortfolioItem(amount, type, ym));
     }
 
-    private Supplier<MoneyAmount> lastAmount(String seriesName, YearMonth ym) {
-        return () -> SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
+    private MoneyAmount lastAmount(String seriesName, YearMonth ym) {
+        return SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
     }
 
     private record CurrencyAndGroupKey(Currency currency, String groupKey) {

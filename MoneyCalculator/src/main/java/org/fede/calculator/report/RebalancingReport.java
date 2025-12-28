@@ -249,9 +249,14 @@ public class RebalancingReport {
                 var out = new InvestmentEvent();
                 var outCurrency = i.getInitialCurrency();
 
-                var outFx = ForeignExchanges.getForeignExchange(i.getCurrency(), outCurrency);
+                var outFx = ForeignExchanges.getForeignExchange(i.getCurrency(), USD);
 
-                var outAmount = outFx.exchange(i.getInvestment().getMoneyAmount(), outCurrency, now);
+                var outAmount = outFx.exchange(i.getInvestment().getMoneyAmount(), USD, now);
+
+                if (outCurrency == Currency.EUR) {
+                    outAmount = ForeignExchanges.getMoneyAmountForeignExchange(USD, Currency.EUR)
+                            .apply(outAmount, now);
+                }
 
                 out.setAmount(outAmount.amount());
                 out.setCurrency(outCurrency);
@@ -654,5 +659,6 @@ public class RebalancingReport {
             Currency soldCurrency,
             Map<Currency, Deque<Investment>> remainingLots,
             Investment soldInvestment) {
+
     }
 }

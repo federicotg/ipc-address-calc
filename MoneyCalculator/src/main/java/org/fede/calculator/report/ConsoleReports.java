@@ -965,6 +965,7 @@ public class ConsoleReports {
             inv.investmentScatterChart(Currency.RTWOE);
             this.averageSpendingPortfolioPercent();
             this.inflation();
+            inv.benchmarks();
 
         } catch (IOException ex) {
             LOGGER.error("Error generating charts.", ex);

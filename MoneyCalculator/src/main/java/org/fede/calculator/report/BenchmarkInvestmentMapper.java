@@ -44,21 +44,21 @@ import tools.jackson.core.type.TypeReference;
  */
 public class BenchmarkInvestmentMapper implements Function<Investment, Investment> {
 
-    private static final TypeReference<Map<Currency, List<SeenPrice>>> TR = new TypeReference<Map<Currency, List<SeenPrice>>>() {
+    private final TypeReference<Map<Currency, List<SeenPrice>>> tr = new TypeReference<Map<Currency, List<SeenPrice>>>() {
     };
 
-    private static final DateTimeFormatter DMY = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    private final DateTimeFormatter dmy = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-    private static String dmy(Investment i) {
+    private String dmy(Investment i) {
         return dmy(i.getInitialDate());
     }
 
-    private static String sellDmy(Investment i) {
+    private String sellDmy(Investment i) {
         return dmy(i.getOut().getDate());
     }
 
-    private static String dmy(LocalDate d) {
-        return DMY.format(d);
+    private String dmy(LocalDate d) {
+        return dmy.format(d);
     }
 
     private static BigDecimal price(Investment i) {
@@ -76,11 +76,11 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
     public BenchmarkInvestmentMapper(Currency benchmark, List<Investment> investments) {
         this.benchmark = benchmark;
         this.seenUSDPrices = investments.stream()
-                .filter(i -> i.getCurrency().equals(benchmark))
-                .collect(toMap(BenchmarkInvestmentMapper::dmy, BenchmarkInvestmentMapper::price, (x, y) -> x));
+                .filter(i -> i.getCurrency() == benchmark)
+                .collect(toMap(this::dmy, BenchmarkInvestmentMapper::price, (x, y) -> x));
 
         this.seenUSDPrices.putAll(
-                SeriesReader.read("index/seen-prices.json", TR).getOrDefault(benchmark, Collections.emptyList())
+                SeriesReader.read("index/seen-prices.json", tr).getOrDefault(benchmark, Collections.emptyList())
                         .stream()
                         .collect(toMap(SeenPrice::dmy, SeenPrice::price)));
     }

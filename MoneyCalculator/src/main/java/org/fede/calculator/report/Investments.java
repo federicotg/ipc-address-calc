@@ -200,7 +200,6 @@ public class Investments {
                 .forEach(d -> this.print(d, colWidths));
 
         this.invHeader(colWidths, false);
-
     }
 
     private List<Investment> benchmark(List<Investment> etfs, Currency benchmark) {
@@ -250,10 +249,10 @@ public class Investments {
                 LETE, 9
         );
 
-        final var currencies = List.of(ARS, USD, UVA, CSPX, 
+        final var currencies = List.of(ARS, USD, UVA, CSPX,
                 // no tienen ventas por ahora
                 //SXR8, EMIM, MEUS, RTWOE, 
-                
+
                 MEUD, XRSU, EIMI, LETE, CONAAFA, CONBALA, CAPLUSA, LECAP, AY24);
 
         this.console.appendLine(this.format.subtitle("CDs, Bonds, ETFs & FCIs PnL by Year"));
@@ -525,6 +524,50 @@ public class Investments {
                         "Modified Dietz Returns" + (cagr ? " CAGR" : ""),
                         mdrSeries,
                         "mdr" + (cagr ? "-cagr" : ""));
+    }
+
+    public void benchmarks() {
+
+        final var initial = YearMonth.of(2019, 6);
+
+        final Function<ModifiedDietzReturnResult, BigDecimal> resultFunction
+                = ModifiedDietzReturnResult::getMoneyWeighted;
+
+        final var etfs = this.getInvestments()
+                .filter(Investment::isETF)
+                .toList();
+
+        final var cspxBenchmarkSeries = benchmark(etfs, CSPX);
+        final var iwdaBenchmarkSeries = benchmark(etfs, IWDA);
+        final var cashBenchmarkSeries = benchmark(etfs, USD);
+
+        final List<TimeSeries> mdrSeries = new ArrayList<>();
+
+        mdrSeries.add(
+                ChartSeriesMapper.asTimeSeries(
+                        this.mdrSeries(etfs, initial, resultFunction), "Portfolio"));
+        mdrSeries.add(
+                ChartSeriesMapper.asTimeSeries(
+                        this.mdrSeries(cspxBenchmarkSeries, initial, resultFunction), "SP500"));
+        mdrSeries.add(
+                ChartSeriesMapper.asTimeSeries(
+                        this.mdrSeries(iwdaBenchmarkSeries, initial, resultFunction), "MSCI World"));
+        mdrSeries.add(
+                ChartSeriesMapper.asTimeSeries(
+                        this.mdrSeries(cashBenchmarkSeries, initial, resultFunction), "Cash"));
+
+        new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
+                .createFromTimeSeries(
+                        "Benchmarks",
+                        mdrSeries,
+                        "benchmakrs");
+    }
+
+    private List<TimeSeriesDatapoint> mdrSeries(
+            List<Investment> inv,
+            YearMonth start,
+            Function<ModifiedDietzReturnResult, BigDecimal> resultFunction) {
+        return this.mdrSeries(inv, false, start, resultFunction);
     }
 
     private List<TimeSeriesDatapoint> mdrSeries(
