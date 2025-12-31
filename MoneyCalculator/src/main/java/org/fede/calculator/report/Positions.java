@@ -68,6 +68,9 @@ import org.fede.calculator.money.series.MoneyAmountItem;
 
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
+import static org.fede.calculator.report.AssetClass.BONDS;
+import static org.fede.calculator.report.AssetClass.CASH;
+import static org.fede.calculator.report.AssetClass.EQUITY;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
 
@@ -89,9 +92,7 @@ public class Positions {
         this.series = series;
     }
 
-    public void positions(boolean nominal) {
-
-        this.checkConsistency();
+    public void positions(boolean nominal, boolean egr) {
 
         final var now = LocalDate.now();
         this.console.appendLine(this.format.title("Positions Without Fees"));
@@ -258,46 +259,47 @@ public class Positions {
                         this.format.currencyPL(grouped.get(groupName).amount().negate(), 12)))
                 .forEach(this.console::appendLine);
 
-        this.console.appendLine(format.subtitle("EGR"));
+        if (egr) {
+            this.console.appendLine(format.subtitle("EGR"));
 
-        this.egrReportLine(" Average", nominalPositions);
+            this.egrReportLine(" Average", nominalPositions);
 
-        final var n = 10;
+            final var n = 10;
 
-        final var oldestNPositions = this.series.getInvestments()
-                .stream()
-                .filter(investment -> investment.isCurrent(now))
-                .filter(Investment::isETF)
-                .sorted(Comparator.comparing(Investment::getInitialDate))
-                .limit(n)
-                .map(inv -> ForeignExchanges.exchange(inv, USD))
-                .collect(groupingBy(Investment::getCurrency))
-                .values()
-                .stream()
-                .map(this::position)
-                .toList();
+            final var oldestNPositions = this.series.getInvestments()
+                    .stream()
+                    .filter(investment -> investment.isCurrent(now))
+                    .filter(Investment::isETF)
+                    .sorted(Comparator.comparing(Investment::getInitialDate))
+                    .limit(n)
+                    .map(inv -> ForeignExchanges.exchange(inv, USD))
+                    .collect(groupingBy(Investment::getCurrency))
+                    .values()
+                    .stream()
+                    .map(this::position)
+                    .toList();
 
-        this.egrReportLine(" Oldest " + n, oldestNPositions);
+            this.egrReportLine(" Oldest " + n, oldestNPositions);
 
-        final var oldestNPositionsByCurrency = this.series.getInvestments()
-                .stream()
-                .filter(investment -> investment.isCurrent(now))
-                .filter(Investment::isETF)
-                .map(inv -> ForeignExchanges.exchange(inv, USD))
-                .collect(groupingBy(Investment::getCurrency));
+            final var oldestNPositionsByCurrency = this.series.getInvestments()
+                    .stream()
+                    .filter(investment -> investment.isCurrent(now))
+                    .filter(Investment::isETF)
+                    .map(inv -> ForeignExchanges.exchange(inv, USD))
+                    .collect(groupingBy(Investment::getCurrency));
 
-        oldestNPositionsByCurrency.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(e
-                        -> this.egrReportLine(
-                        " Oldest " + n + " " + e.getKey().name(),
-                        List.of(this.position(e.getValue()
-                                .stream()
-                                .sorted(Comparator.comparing(Investment::getInitialDate))
-                                .limit(n)
-                                .toList()
-                        ))));
-
+            oldestNPositionsByCurrency.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEach(e
+                            -> this.egrReportLine(
+                            " Oldest " + n + " " + e.getKey().name(),
+                            List.of(this.position(e.getValue()
+                                    .stream()
+                                    .sorted(Comparator.comparing(Investment::getInitialDate))
+                                    .limit(n)
+                                    .toList()
+                            ))));
+        }
         final var savings = this.series.currentSavingsUSD();
 
         this.potentialTaxLine(" Potential Wealth Tax ", taxAmount(savings), savings);
@@ -311,66 +313,47 @@ public class Positions {
                 futureSavings);
 
         this.console.appendLine(this.format.subtitle("Post Retirement"));
-        // 3 años de cash
-        var threeYearsAgo = YearMonth.now().plusMonths(-36);
-
-        var lastThreeYears = this.series.realExpense().items()
-                .filter(i -> !i.ym().isBefore(threeYearsAgo))
-                .gather(Gatherers.windowFixed(12))
-                .toList();
-
-        var oldest = lastThreeYears.get(0)
-                .stream()
-                .map(MoneyAmountItem::amount)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
-
-        var middle = lastThreeYears.get(1)
-                .stream()
-                .map(MoneyAmountItem::amount)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
-                .adjust(ONE, BigDecimal.TWO);
-
-        var latest = lastThreeYears.get(2)
-                .stream()
-                .map(MoneyAmountItem::amount)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
-                .adjust(ONE, BigDecimal.valueOf(3));
-
-        var threeYearSpending = oldest
-                .add(middle)
-                .add(latest)
-                .adjust(BigDecimal.valueOf(6l), BigDecimal.valueOf(3));
 
         var ym = YearMonth.now();
 
-        final var items = this.portfolioItems("all", ym.getYear(), ym.getMonthValue());
+        final var items = this.portfolioItems(null, ym.getYear(), ym.getMonthValue());
 
-        final var currentCash = items.stream()
-                .filter(i -> "CASH".equals(i.getType()))
-                .map(PortfolioItem::getDollarAmount)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+        final var currentCash = byAssetClass(items, CASH);
 
-        this.console.appendLine(
-                MessageFormat.format("3 Years of Spending: {0} of {1}. {2}",
-                        this.format.currency(currentCash.amount()),
-                        this.format.currency(threeYearSpending.amount()),
-                        this.format.currencyPL(currentCash.subtract(threeYearSpending).amount(), 12)
-                ));
+        final var everythingWithoutRent = new Fire(format, series, console)
+                .budgets(12)
+                .everythingWithoutRent();
 
-        // 20% bonos
-        final var currentBonds = items.stream()
-                .filter(i -> "BONDS".equals(i.getType()))
-                .map(PortfolioItem::getDollarAmount)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
-        // 80% acciones 
-        final var currentEquity = items.stream()
-                .filter(i -> "EQUITY".equals(i.getType()))
-                .map(PortfolioItem::getDollarAmount)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+        final var currentBonds = byAssetClass(items, BONDS);
+
+        final var currentEquity = byAssetClass(items, EQUITY);
+
+        this.console.appendLine("Cash ", this.format.currency(currentCash.amount()));
         this.console.appendLine("Bonds ", this.format.currency(currentBonds.amount()));
-
         this.console.appendLine("Equity ", this.format.currency(currentEquity.amount()));
 
+        this.console.appendLine(this.format.subtitle("Targets"));
+
+        var targetCash = everythingWithoutRent.amount().multiply(BigDecimal.valueOf(24L), C);
+        var targetBonds = everythingWithoutRent.amount().multiply(BigDecimal.valueOf(48L), C);
+
+        this.console.appendLine(
+                "2 years of spending in cash  ",
+                this.format.currency(targetCash),
+                " ",
+                this.format.currencyPL(currentCash.amount().subtract(targetCash, C), 14));
+        this.console.appendLine(
+                "4 years of spending in bonds ",
+                this.format.currency(targetBonds),
+                " ",
+                this.format.currencyPL(currentBonds.amount().subtract(targetBonds, C), 14));
+    }
+
+    private MoneyAmount byAssetClass(List<PortfolioItem> items, AssetClass assetClass) {
+        return items.stream()
+                .filter(i -> assetClass == i.getType())
+                .map(PortfolioItem::getDollarAmount)
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
     }
 
     private BigDecimal taxAmount(MoneyAmount savings) {
@@ -669,7 +652,7 @@ public class Positions {
                         USD));
     }
 
-    private void checkConsistency() {
+    public void checkConsistency() {
         final var ym = YearMonth.now();
         final var cspx = this.lastAmount("ahorros-cspx", ym);
         final var rtwo = this.lastAmount("ahorros-rtwo", ym);
@@ -711,7 +694,7 @@ public class Positions {
         }
     }
 
-    public void portfolioChartSeries(String subtype) throws IOException {
+    public void portfolioChartSeries(AssetClass subtype) throws IOException {
 
         var from = YearMonth.of(2001, 10);
         var to = YearMonth.now();
@@ -807,7 +790,7 @@ public class Positions {
                 .apply(amount, ym);
     }
 
-    public void portfolioChart(PieChart chart, String subtype, int year, int month) throws IOException {
+    public void portfolioChart(PieChart chart, AssetClass subtype, int year, int month) throws IOException {
         final var ym = YearMonth.of(year, month);
         final var items = this.portfolioItems(subtype, year, month);
 
@@ -829,7 +812,7 @@ public class Positions {
 
     }
 
-    public void portfolio(String type, String subtype, int year, int month) {
+    public void portfolio(String type, AssetClass subtype, int year, int month) {
 
         final var items = this.portfolioItems(subtype, year, month);
 
@@ -849,34 +832,35 @@ public class Positions {
         }
     }
 
-    private List<PortfolioItem> portfolioItems(String subtype, int year, int month) {
+    private List<PortfolioItem> portfolioItems(AssetClass subtype, int year, int month) {
         final var ym = YearMonth.of(year, month);
 
-        final Map<String, Map<String, Optional<MoneyAmount>>> grouped
+        final Map<AssetClass, Map<String, Optional<MoneyAmount>>> grouped
                 = Stream.of(
-                        of("BOND", this.lastAmount("ahorros-ay24", ym)),
-                        of("BOND", this.lastAmount("ahorros-conbala", ym)),
-                        of("BOND", this.lastAmount("ahorros-uva", ym)),
-                        of("BOND", this.lastAmount("ahorros-dolar-ON", ym)),
-                        of("BOND", this.lastAmount("ahorros-lecap", ym)),
-                        of("BOND", this.lastAmount("ahorros-lete", ym)),
-                        of("BOND", this.lastAmount("ahorros-dolar-pf", ym)),
-                        of("BOND", this.lastAmount("ahorros-caplusa", ym)),
-                        of("CASH", this.lastAmount("ahorros-dolar-banco", ym)),
-                        of("CASH", this.lastAmount("ahorros-peso", ym)),
-                        of("CASH", this.lastAmount("ahorros-dolar-liq", ym)),
-                        of("CASH", this.lastAmount("ahorros-euro", ym)),
-                        of("CASH", this.lastAmount("ahorros-dai", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-cspx", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-eimi", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-rtwo", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-meud", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-conaafa", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-xrsu", ym)),
-                        of("EQUITY", this.lastAmount("ahorros-xuse", ym)))
-                        .filter(p -> "all".equals(subtype) || p.first().equalsIgnoreCase(subtype))
+                        of(BONDS, this.lastAmount("ahorros-ay24", ym)),
+                        of(BONDS, this.lastAmount("ahorros-conbala", ym)),
+                        of(BONDS, this.lastAmount("ahorros-uva", ym)),
+                        of(BONDS, this.lastAmount("ahorros-dolar-ON", ym)),
+                        of(BONDS, this.lastAmount("ahorros-lecap", ym)),
+                        of(BONDS, this.lastAmount("ahorros-lete", ym)),
+                        of(BONDS, this.lastAmount("ahorros-dolar-pf", ym)),
+                        of(BONDS, this.lastAmount("ahorros-caplusa", ym)),
+                        of(CASH, this.lastAmount("ahorros-dolar-banco", ym)),
+                        of(CASH, this.lastAmount("ahorros-peso", ym)),
+                        of(CASH, this.lastAmount("ahorros-dolar-liq", ym)),
+                        of(CASH, this.lastAmount("ahorros-euro", ym)),
+                        of(CASH, this.lastAmount("ahorros-dai", ym)),
+                        of(EQUITY, this.lastAmount("ahorros-cspx", ym)),
+                        of(EQUITY, this.lastAmount("ahorros-eimi", ym)),
+                        of(EQUITY, this.lastAmount("ahorros-rtwo", ym)),
+                        of(EQUITY, this.lastAmount("ahorros-meud", ym)),
+                        of(EQUITY, this.lastAmount("ahorros-conaafa", ym)),
+                        of(EQUITY, this.lastAmount("ahorros-xrsu", ym)),
+                        of(EQUITY, this.lastAmount("ahorros-xuse", ym)))
+                        .filter(p -> subtype == null || p.first() == subtype)
                         .collect(groupingBy(
                                 Pair::first,
+                                () -> new EnumMap<>(AssetClass.class),
                                 groupingBy(
                                         p -> p.second().currency().name(),
                                         mapping(
@@ -892,7 +876,7 @@ public class Positions {
 
     }
 
-    private Stream<PortfolioItem> item(String type, Map<String, Optional<MoneyAmount>> amounts, YearMonth ym) {
+    private Stream<PortfolioItem> item(AssetClass type, Map<String, Optional<MoneyAmount>> amounts, YearMonth ym) {
 
         return amounts.values()
                 .stream()

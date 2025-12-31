@@ -1017,7 +1017,22 @@ public class Investments {
 
     }
 
-    public void investments(LocalDate moment) {
+    private Currency grouping(Currency currency) {
+        return switch (currency) {
+            case Currency.RTWOE ->
+                Currency.RTWO;
+            case Currency.MEUS ->
+                Currency.MEUD;
+            case Currency.SXR8 ->
+                Currency.CSPX;
+            case Currency.EMIM ->
+                Currency.EIMI;
+            default ->
+                currency;
+        };
+    }
+
+    public void investments(LocalDate moment, boolean grouped) {
 
         final Comparator<InvestmentTypeCurrencyAndAmount> TYPE_CURRENCY_COMPARATOR = comparing(InvestmentTypeCurrencyAndAmount::type)
                 .thenComparing(InvestmentTypeCurrencyAndAmount::currency);
@@ -1028,10 +1043,14 @@ public class Investments {
 
         this.console.appendLine(this.format.title("Inversiones actuales agrupadas por moneda"));
 
+        Function<Currency, Currency> grouping = grouped
+                ? this::grouping
+                : Function.identity();
+
         this.series.getInvestments()
                 .stream()
                 .filter(investment -> investment.isCurrent(moment))
-                .collect(groupingBy(inv -> new InvestmentTypeAndCurrency(inv.getType(), inv.getCurrency()), mapper))
+                .collect(groupingBy(inv -> new InvestmentTypeAndCurrency(inv.getType(), grouping.apply(inv.getCurrency())), mapper))
                 .entrySet()
                 .stream()
                 .map(e -> new InvestmentTypeCurrencyAndAmount(e.getKey(), e.getValue()))
@@ -1662,17 +1681,32 @@ public class Investments {
                 " P"
                 + (int) (percentile * 100d));
         valueSeries.putAmount(start, initial);
-        for (var i = 1; i <= years; i++) {
 
-            valueSeries.putAmount(start.getYear() + i, start.getMonthValue(),
-                    new MoneyAmount(
-                            BigDecimal.valueOf(
-                                    PortfolioProjections.calculatePortfolioPercentile(
-                                            initial.amount().doubleValue(),
-                                            carg,
-                                            volatility,
-                                            i,
-                                            percentile)), USD));
+        YearMonth filledMonth = start.plusMonths(1L);
+        for (int i = 0; i < 11; i++) {
+            valueSeries.putAmount(filledMonth, initial);
+            filledMonth = filledMonth.plusMonths(1L);
+        }
+
+        for (var i = 1; i <= years; i++) {
+            var ym = YearMonth.of(start.getYear() + i, start.getMonthValue());
+            var amount = new MoneyAmount(
+                    BigDecimal.valueOf(
+                            PortfolioProjections.calculatePortfolioPercentile(
+                                    initial.amount().doubleValue(),
+                                    carg,
+                                    volatility,
+                                    i,
+                                    percentile)), USD);
+
+            valueSeries.putAmount(ym,
+                    amount);
+
+            filledMonth = ym.plusMonths(1L);
+            for (int j = 0; j < 11; j++) {
+                valueSeries.putAmount(filledMonth, amount);
+                filledMonth = filledMonth.plusMonths(1L);
+            }
 
         }
         // this.console.appendLine(""+valueSeries.getFrom() + " "+ valueSeries.getTo());

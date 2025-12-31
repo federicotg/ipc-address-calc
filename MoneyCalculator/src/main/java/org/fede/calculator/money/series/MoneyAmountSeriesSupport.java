@@ -90,28 +90,19 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
             return other.add(this);
         }
 
-        final YearMonth otherStart = other.getFrom();
-        final YearMonth otherEnd = other.getTo();
+        final YearMonth minStart = YearMonthUtil.min(this.getFrom(), other.getFrom());
+        final YearMonth maxEnd = YearMonthUtil.max(this.getTo(), other.getTo());
 
         final MoneyAmountSeries answer = this.createNew();
-        //this empieza antes o son iguales
-        this.forEach((now, amount) -> {
-            if (now.compareTo(otherStart) < 0 || now.compareTo(otherEnd) > 0) {
-                answer.putAmount(now, amount);
-            } else {
-                answer.putAmount(now, amount.add(other.getAmount(now)));
-            }
-        });
 
-        // si el otro termina después tengo que copiar sus valores al resultado.
-        final YearMonth thisEnd = this.getTo();
+        for (var ym = minStart; ym.compareTo(maxEnd) <= 0; ym = ym.plusMonths(1l)) {
 
-        other.forEach((otherNow, amount) -> {
-            if (otherNow.compareTo(thisEnd) > 0) {
-                answer.putAmount(otherNow, amount);
-            }
-        });
+            answer.putAmount(
+                    ym,
+                    this.getAmountOrElseZero(ym)
+                            .add(other.getAmountOrElseZero(ym)));
 
+        }
         return answer;
     }
 

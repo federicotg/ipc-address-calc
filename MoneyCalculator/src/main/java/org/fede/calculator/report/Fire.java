@@ -193,7 +193,7 @@ public class Fire {
                 .toList();
     }
 
-    private SpendingBudgets budgets(int months) {
+    public SpendingBudgets budgets(int months) {
 
         final var capitalGainsTaxRate = SeriesReader.readPercent("capitalGainsTaxRate");
         final var costBasisPct = SeriesReader.readPercent("costBasisPct");

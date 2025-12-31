@@ -348,7 +348,7 @@ public class ConsoleReports {
                 )),
                 new CmdParam("savings-change", "m=1"),
                 new CmdParam("savings-change-pct", "m=1"),
-                new CmdParam("i", "y=current m=current"),
+                new CmdParam("i", "y=current m=current g=false"),
                 new CmdParam("pa"),
                 new CmdParam("house-evo"),
                 new CmdParam("expenses-src", "m=12"),
@@ -392,6 +392,8 @@ public class ConsoleReports {
                 new CmdParam("income-evo", "months=12 ars=false"),
                 new CmdParam("bbpp", "year=yyyy"),
                 new CmdParam("bbppstatus"),
+                new CmdParam("q"),
+                new CmdParam("exit"),
                 new CmdParam("ppi", "type=group|groupall|full*"),
                 new CmdParam("savings-net-change", "m=12"),
                 new CmdParam("savings-avg-pct", "m=12"),
@@ -400,7 +402,7 @@ public class ConsoleReports {
                 new CmdParam("expenses-evo", "type=(full|taxes|insurance|services|home|entertainment) m=12"),
                 new CmdParam("savings-evo", "type=(BO|LIQ|EQ)"),
                 new CmdParam("dca", "type=(q*|h|y|m)"),
-                new CmdParam("pos", "nominal=false")
+                new CmdParam("pos", "nominal=false egr=false")
         );
     }
 
@@ -440,6 +442,8 @@ public class ConsoleReports {
             final var series = new Series();
             final var me = new ConsoleReports(console, format, bar, series);
 
+            new Positions(console, format, series).checkConsistency();
+            
             if (args.length > 0) {
                 handleCommand(args, me, format, bar, series, console);
             } else {
@@ -465,7 +469,10 @@ public class ConsoleReports {
                     } catch (UserInterruptException | EndOfFileException e) {
                         break; // Ctrl+C or Ctrl+D
                     }
-                    if (line == null || line.trim().equalsIgnoreCase("q")) {
+                    if (line == null 
+                            || line.trim().equalsIgnoreCase("q")
+                            || line.trim().equalsIgnoreCase("exit")
+                            ) {
                         break;
                     }
                     handleCommand(line.split("\\s+"), me, format, bar, series, console);
@@ -743,9 +750,13 @@ public class ConsoleReports {
         final var month = Optional.ofNullable(params.get("m"))
                 .map(Integer::parseInt)
                 .orElseGet(USD_INFLATION.getTo()::getMonthValue);
+        
+        final var grouped = Optional.ofNullable(params.get("g"))
+                .map(Boolean::parseBoolean)
+                .orElse(false);
 
         new Investments(console, format, bar, series)
-                .investments(YearMonth.of(year, month).atEndOfMonth());
+                .investments(YearMonth.of(year, month).atEndOfMonth(), grouped);
 
     }
 
@@ -753,7 +764,9 @@ public class ConsoleReports {
 
         final var params = this.paramsValue(args, name);
         final var type = params.getOrDefault("type", "full");
-        final var subtype = params.getOrDefault("subtype", "all");
+        final var subtype = Optional.ofNullable(params.get("subtype"))
+                .map(AssetClass::valueOf)
+                .orElse(null);
         final var year = Optional.ofNullable(params.get("y"))
                 .map(Integer::parseInt)
                 .orElseGet(USD_INFLATION.getTo()::getYear);
@@ -804,7 +817,10 @@ public class ConsoleReports {
     private void positions(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
         new Positions(this.console, this.format, this.series)
-                .positions(nominal(params));
+                .positions(
+                        nominal(params),
+                        Boolean.parseBoolean(params.getOrDefault("egr", "false"))
+                        );
     }
 
     private void dca(String[] args, String paramName) {

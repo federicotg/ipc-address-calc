@@ -38,10 +38,10 @@ public class PortfolioItem {
     private final NumberFormat PERCENT = NumberFormat.getPercentInstance();
 
     private final MoneyAmount amount;
-    private final String type;
+    private final AssetClass type;
     private final MoneyAmount dollarAmount;
 
-    public PortfolioItem(MoneyAmount amount, String type, YearMonth ym) {
+    public PortfolioItem(MoneyAmount amount, AssetClass type, YearMonth ym) {
         this.amount = amount;
         this.type = type;
         PERCENT.setMinimumFractionDigits(2);
@@ -55,7 +55,7 @@ public class PortfolioItem {
         return amount;
     }
 
-    public String getType() {
+    public AssetClass getType() {
         return type;
     }
 
