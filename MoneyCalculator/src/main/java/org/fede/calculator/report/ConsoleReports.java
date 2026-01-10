@@ -443,7 +443,7 @@ public class ConsoleReports {
             final var me = new ConsoleReports(console, format, bar, series);
 
             new Positions(console, format, series).checkConsistency();
-            
+
             if (args.length > 0) {
                 handleCommand(args, me, format, bar, series, console);
             } else {
@@ -469,10 +469,9 @@ public class ConsoleReports {
                     } catch (UserInterruptException | EndOfFileException e) {
                         break; // Ctrl+C or Ctrl+D
                     }
-                    if (line == null 
+                    if (line == null
                             || line.trim().equalsIgnoreCase("q")
-                            || line.trim().equalsIgnoreCase("exit")
-                            ) {
+                            || line.trim().equalsIgnoreCase("exit")) {
                         break;
                     }
                     handleCommand(line.split("\\s+"), me, format, bar, series, console);
@@ -750,7 +749,7 @@ public class ConsoleReports {
         final var month = Optional.ofNullable(params.get("m"))
                 .map(Integer::parseInt)
                 .orElseGet(USD_INFLATION.getTo()::getMonthValue);
-        
+
         final var grouped = Optional.ofNullable(params.get("g"))
                 .map(Boolean::parseBoolean)
                 .orElse(false);
@@ -820,7 +819,7 @@ public class ConsoleReports {
                 .positions(
                         nominal(params),
                         Boolean.parseBoolean(params.getOrDefault("egr", "false"))
-                        );
+                );
     }
 
     private void dca(String[] args, String paramName) {
@@ -980,6 +979,7 @@ public class ConsoleReports {
             inv.investmentScatterChart(Currency.RTWO);
             inv.investmentScatterChart(Currency.RTWOE);
             this.averageSpendingPortfolioPercent();
+            //this.averageIncomePortfolioPercent();
             this.inflation();
             inv.benchmarks();
 

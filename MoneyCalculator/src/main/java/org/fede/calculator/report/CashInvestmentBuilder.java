@@ -72,7 +72,7 @@ public class CashInvestmentBuilder {
                 }
             }
         }
-
+        
         return this.data;
 
     }

@@ -32,6 +32,7 @@ import java.util.stream.IntStream;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.SeriesReader;
 import java.time.YearMonth;
+import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.YearMonthUtil;
 
 /**
@@ -50,13 +51,13 @@ public class Evolution<T> {
     }
 
     public void evo(
-            BiFunction<T, YearMonth, MoneyAmount> totalFunction,
-            Function<T, YearMonth> startFunction,
-            Function<T, YearMonth> endFunction,
-            Function<T, String> classifier,
-            Predicate<T> filterPredicate,
-            Comparator<T> comparator,
-            List<T> list,
+            BiFunction<Investment, YearMonth, MoneyAmount> totalFunction,
+            Function<Investment, YearMonth> startFunction,
+            Function<Investment, YearMonth> endFunction,
+            Function<Investment, String> classifier,
+            Predicate<Investment> filterPredicate,
+            Comparator<Investment> comparator,
+            List<Investment> list,
             boolean pct) {
 
         final var inv = list.stream()
@@ -103,7 +104,7 @@ public class Evolution<T> {
                 Attribute.YELLOW_BACK()
         );
 
-        final Map<String, List<T>> grouped = inv
+        final Map<String, List<Investment>> grouped = inv
                 .stream()
                 .collect(Collectors.groupingBy(classifier));
 
@@ -116,7 +117,7 @@ public class Evolution<T> {
 
             final Map<String, MoneyAmount> totals = grouped.entrySet()
                     .stream()
-                    .collect(toMap(Map.Entry::getKey, e -> this.accum(e.getValue(), moment, totalFunction, startFunction, endFunction)));
+                    .collect(toMap(Map.Entry::getKey, e -> this.accum(e.getValue(), moment, totalFunction)));
 
             final var typeList = totals.keySet().stream().sorted().toList();
 
@@ -143,15 +144,12 @@ public class Evolution<T> {
     }
 
     private MoneyAmount accum(
-            List<T> investments,
+            List<Investment> investments,
             YearMonth yearMonth,
-            BiFunction<T, YearMonth, MoneyAmount> extractor,
-            Function<T, YearMonth> startFunction,
-            Function<T, YearMonth> endFunction) {
+            BiFunction<Investment, YearMonth, MoneyAmount> extractor) {
 
         return investments.stream()
-                .filter(i -> startFunction.apply(i).compareTo(yearMonth) <= 0)
-                .filter(i -> endFunction.apply(i).compareTo(yearMonth) >= 0)
+                .filter(i -> i.isCurrent(yearMonth.atDay(14)))
                 .map(i -> extractor.apply(i, yearMonth))
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
     }
