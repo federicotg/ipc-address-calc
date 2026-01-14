@@ -45,18 +45,22 @@ public class Pension {
 
     public MoneyAmount discountedCashFlowValue() {
 
-        var futurePension = SeriesReader.readUSD("goal.pension");
-        var retirementAge = SeriesReader.readInt("goal.retirement");
-        var maxAge = SeriesReader.readInt("goal.maxage");
-        var dob = SeriesReader.readDate("dob");
+        final var futurePension = ForeignExchanges.getForeignExchange(Currency.ARS, Currency.USD)
+                        .exchange(
+                                new MoneyAmount(
+                                        SeriesReader.readBigDecimal("goal.pension"), Currency.ARS),
+                                Currency.USD, YearMonth.now());
+        final var retirementAge = SeriesReader.readInt("goal.retirement");
+        final var maxAge = SeriesReader.readInt("goal.maxage");
+        final var dob = SeriesReader.readDate("dob");
 
-        var yearlyPension = futurePension.amount().doubleValue() * 13.0d;
+        final var yearlyPension = futurePension.amount().doubleValue() * 13.0d;
 
         double sum = 0.0d;
-        double discountRate = 1.0d + SeriesReader.readPercent("pensionDiscountRate").doubleValue();
-        var retirementYear = dob.getYear() + retirementAge;
-        var yearsToRetire = retirementYear - YearMonth.now().getYear();
-        var endYear = dob.getYear() + maxAge - YearMonth.now().getYear();
+        final double discountRate = 1.0d + SeriesReader.readPercent("pensionDiscountRate").doubleValue();
+        final var retirementYear = dob.getYear() + retirementAge;
+        final var yearsToRetire = retirementYear - YearMonth.now().getYear();
+        final var endYear = dob.getYear() + maxAge - YearMonth.now().getYear();
 
         for (int i = yearsToRetire; i < endYear; i++) {
             sum += yearlyPension / Math.pow(discountRate, i);

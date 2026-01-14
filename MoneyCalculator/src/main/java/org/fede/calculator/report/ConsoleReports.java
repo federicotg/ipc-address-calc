@@ -60,6 +60,7 @@ import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.Accumulator;
 import org.fede.calculator.money.CPIInflation;
+import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.SingleHttpClientSupplier;
 import org.fede.calculator.money.SlidingWindow;
 import org.fede.calculator.money.series.JSONDataPoint;
@@ -560,13 +561,13 @@ public class ConsoleReports {
     }
 
     private void savingsPercentChange(String[] args, String paramName) {
-        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault(MONTHS_PARAM, "1")) + 1;
+        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault(MONTHS_PARAM, "1"));
         new Savings(format, series, bar, console)
                 .savingsPercentChange(months);
     }
 
     private void incomeDelta(String[] args, String paramName) {
-        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault(MONTHS_PARAM, "12"));
+        final var months = months(this.paramsValue(args, paramName));
         new Savings(format, series, bar, console)
                 .incomeDelta(months);
     }
@@ -603,7 +604,7 @@ public class ConsoleReports {
 
     private void savingChange(String[] args, String paramName) {
 
-        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault(MONTHS_PARAM, "1")) + 1;
+        final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault(MONTHS_PARAM, "1"));
 
         var scale = switch (months) {
             case 1 ->
@@ -616,14 +617,14 @@ public class ConsoleReports {
                 240 * months;
         };
 
-        this.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
-        this.bar.evolution(format("{0}-month Savings Change", months - 1), new SlidingWindow(months)
+        this.appendLine(this.format.title(format("{0}-month Savings Change", months)));
+        this.bar.evolution(format("{0}-month Savings Change", months), new SlidingWindow(months)
                 .change(this.series.realSavings(null)), scale);
     }
 
     private void expensesChange(String[] args, String name) {
 
-        var params = this.paramsValue(args, name);
+        final var params = this.paramsValue(args, name);
         final var months = months(params);
         new Expenses(series, console, bar, format)
                 .expensesChange(months);
@@ -670,7 +671,22 @@ public class ConsoleReports {
         final var months = Integer.parseInt(params.getOrDefault(MONTHS_PARAM, SeriesReader.readEnvironment().getProperty("goal.months")));
         final var extraCash = Integer.parseInt(params.getOrDefault("cash", SeriesReader.readEnvironment().getProperty("goal.cash")));
         final var expected = params.getOrDefault("exp", SeriesReader.readEnvironment().getProperty("goal.expectedreturns"));
-        final var pension = Integer.parseInt(params.getOrDefault("pension", SeriesReader.readEnvironment().getProperty("goal.pension")));
+
+        final var pensionARS = SeriesReader.readEnvironment().getProperty("goal.pension");
+
+        int pensionAsIntValue = 0;
+        final var pension = params.get("pension");
+        if (pension == null) {
+            pensionAsIntValue
+                    = ForeignExchanges.getForeignExchange(Currency.ARS, Currency.USD)
+                            .exchange(
+                                    new MoneyAmount(
+                                            new BigDecimal(pensionARS), Currency.ARS),
+                                    Currency.USD, YearMonth.now()).amount().intValue();
+        } else {
+            pensionAsIntValue = Integer.parseInt(pension);
+        }
+
         final var badReturnYears = Integer.parseInt(params.getOrDefault("srr", SeriesReader.readEnvironment().getProperty("goal.badreturns")));
         final var bbppTax = Double.parseDouble(params.getOrDefault("bbpp", SeriesReader.readEnvironment().getProperty("goal.bbpp"))) / 100.0d;
 
@@ -687,7 +703,7 @@ public class ConsoleReports {
                 retirementAge,
                 BigDecimal.valueOf(extraCash),
                 age,
-                pension,
+                pensionAsIntValue,
                 todaySavings,
                 invested,
                 expected,

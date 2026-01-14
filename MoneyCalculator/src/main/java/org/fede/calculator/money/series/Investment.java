@@ -38,7 +38,6 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public class Investment {
 
-    private String id;
     private InvestmentType type;
     private InvestmentEvent in;
     private InvestmentAsset investment;
@@ -138,15 +137,6 @@ public class Investment {
                 .add("\n\tinvestment: " + this.investment.toString())
                 .add("\n\tout: " + Objects.toString(this.out, "null"))
                 .toString();
-    }
-
-    @JsonIgnore
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     /**

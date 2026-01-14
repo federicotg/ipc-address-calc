@@ -142,7 +142,6 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
         }
         answer.setType(t.getType());
         answer.setComment(t.getComment());
-        answer.setId(t.getId());
         answer.setInterest(t.getInterest());
         return answer;
     }

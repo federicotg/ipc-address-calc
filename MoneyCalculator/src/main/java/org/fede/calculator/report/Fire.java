@@ -168,17 +168,17 @@ public class Fire {
     }
 
     private List<BigDecimal> percents() {
-        final var step = new BigDecimal("0.0025");
+        final var step = BigDecimal.valueOf(25L).movePointLeft(4); //new BigDecimal("0.0025");
         return Stream.concat(
-                LongStream.range(12l, 25l)
+                LongStream.range(11l, 25l)
                         .mapToObj(i -> BigDecimal.valueOf(i).multiply(step, C)),
                 Stream.of(
-                        new BigDecimal("3.66"),
-                        new BigDecimal("3.38"),
-                        new BigDecimal("3.53"),
-                        new BigDecimal("4.42"),
-                        new BigDecimal("4.07"))
-                        .map(v -> v.movePointLeft(2)))
+                        BigDecimal.valueOf(366L),
+                        BigDecimal.valueOf(338L),
+                        BigDecimal.valueOf(353L),
+                        BigDecimal.valueOf(442L),
+                        BigDecimal.valueOf(407L))
+                        .map(v -> v.movePointLeft(4)))
                 .sorted()
                 .toList();
     }

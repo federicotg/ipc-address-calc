@@ -1257,7 +1257,6 @@ public class Investments {
         } else {
             res.setComment(c1 == null ? c2 : c1);
         }
-        res.setId(left.getId());
         res.setType(left.getType());
         res.setInvestment(this.union(left.getInvestment(), right.getInvestment()));
         return res;

@@ -80,7 +80,6 @@ public interface Inflation extends Series {
 
     private Investment real(Investment in, YearMonth moment) {
         Investment answer = new Investment();
-        answer.setId(in.getId());
         answer.setIn(this.real(in.getIn(), moment));
         answer.setOut(this.real(in.getOut(), moment));
         answer.setType(in.getType());

@@ -55,7 +55,6 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import java.time.YearMonth;
 import java.util.EnumMap;
-import java.util.stream.Gatherers;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.chart.PieChart;
 import org.fede.calculator.chart.PieItem;
@@ -64,7 +63,6 @@ import static org.fede.calculator.money.series.InvestmentType.ETF;
 import static org.fede.calculator.money.series.InvestmentType.FCI;
 import static org.fede.calculator.money.series.InvestmentType.PF;
 import static org.fede.calculator.money.series.InvestmentType.BONO;
-import org.fede.calculator.money.series.MoneyAmountItem;
 
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
