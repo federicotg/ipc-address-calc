@@ -20,6 +20,7 @@ import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import java.time.YearMonth;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,8 +32,10 @@ import org.fede.calculator.chart.LabeledXYDataItem;
 import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.ScatterXYChart;
 import org.fede.calculator.chart.ValueFormat;
+import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.Currency.USD;
+import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.PortfolioProjections;
@@ -59,6 +62,17 @@ public class Fire {
         this.console = console;
     }
 
+    private MoneyAmount futureHealth() {
+        final var ars = new MoneyAmount(
+                SeriesReader.readBigDecimal("futureHealth")
+                        .multiply(BigDecimal.TWO, C)
+                        .multiply(BigDecimal.valueOf(121).movePointLeft(2), C),
+                Currency.ARS);
+
+        return ForeignExchanges.getForeignExchange(Currency.ARS, USD)
+                .exchange(ars, USD, YearMonth.now());
+    }
+
     public void fire(int months) {
 
         this.console.appendLine(this.format.title("F.I.R.E."));
@@ -76,7 +90,7 @@ public class Fire {
 
         this.console.appendLine(this.format.subtitle(months + "-Month Average Spending"));
 
-        final var futureHealth = SeriesReader.readUSD("futureHealth");
+        final var futureHealth = this.futureHealth();
         final var futureRent = SeriesReader.readUSD("futureRent");
 
         final var pensionPresentValue = new Pension().discountedCashFlowValue();
@@ -162,7 +176,7 @@ public class Fire {
 
     private String refLine(String label, String pct) {
 
-        return label 
+        return label
                 + " "
                 + this.format.percent(new BigDecimal(pct).movePointLeft(2), 6);
     }
@@ -198,7 +212,7 @@ public class Fire {
         final var capitalGainsTaxRate = SeriesReader.readPercent("capitalGainsTaxRate");
         final var costBasisPct = SeriesReader.readPercent("costBasisPct");
 
-        final var futureHealth = SeriesReader.readUSD("futureHealth");
+        final var futureHealth = this.futureHealth();
         final var futureRent = SeriesReader.readUSD("futureRent");
         final var essential = this.sumExpenses(ESSENTIAL, months);
         final var discretionary = this.sumExpenses(Series.DISCRETIONARY, months);
@@ -232,7 +246,7 @@ public class Fire {
             BigDecimal capitalGainsTaxRate,
             BigDecimal costBasisPct) {
 
-        var divisor = ONE.subtract(capitalGainsTaxRate
+        final var divisor = ONE.subtract(capitalGainsTaxRate
                 .multiply(ONE.subtract(costBasisPct, C), C), C);
 
         return netAmount.adjust(divisor, ONE);
@@ -272,9 +286,11 @@ public class Fire {
             Attribute farAway,
             SpendingBudgets budgets) {
         final var annualSpendingFromPortfolio = monthlySpending
-                .multiply(new BigDecimal(12l), C);
+                .multiply(BigDecimal.valueOf(12l), C);
 
-        Attribute textStyle = budgets.asStream().anyMatch(b -> b.equals(monthlySpending))
+        final Attribute textStyle = budgets
+                .asStream()
+                .anyMatch(b -> b.compareTo(monthlySpending) == 0)
                 ? Attribute.BOLD()
                 : Attribute.DIM();
 
@@ -404,13 +420,23 @@ public class Fire {
 
         final var budgets = this.budgets(months);
 
-        final List<XYSeries> ss = List.of(
-                this.fireSeries("Essential-Rent", budgets.essentialWithoutRent()),
-                this.fireSeries("Essential+Rent", budgets.essentialWithRent()),
-                this.fireSeries("Everything-Rent", budgets.everythingWithoutRent()),
-                this.fireSeries("Everything+Rent", budgets.everythingWithRent()),
-                this.fireSeries("Curr. Spending", budgets.current()));
+        List<XYSeries> ss;
 
+        if (budgets.essentialWithRent().amount().compareTo(budgets.essentialWithoutRent().amount()) != 0) {
+            ss = List.of(
+                    this.fireSeries("Essential-Rent", budgets.essentialWithoutRent()),
+                    this.fireSeries("Essential+Rent", budgets.essentialWithRent()),
+                    this.fireSeries("Everything-Rent", budgets.everythingWithoutRent()),
+                    this.fireSeries("Everything+Rent", budgets.everythingWithRent()),
+                    this.fireSeries("Curr. Spending", budgets.current()));
+        } else {
+            ss = List.of(
+                    this.fireSeries("Essential", budgets.essentialWithoutRent()),
+                    // this.fireSeries("Essential+Rent", budgets.essentialWithRent()),
+                    this.fireSeries("Everything", budgets.everythingWithoutRent()),
+                    //this.fireSeries("Everything+Rent", budgets.everythingWithRent()),
+                    this.fireSeries("Curr. Spending", budgets.current()));
+        }
         this.fireChart(ss,
                 "FIRE  Months",
                 "Fire numbers based on last " + months + " months of spending and retirement budget.",
@@ -440,21 +466,38 @@ public class Fire {
     }
 
     /**
-     * DCF future income. income.
+     * DCF future income.
      *
      * @return
      */
     private MoneyAmount expectedFutureSavings() {
 
-        var r = SeriesReader
+        final var realStateDivisor = SeriesReader
                 .readBigDecimal("futureReturn")
                 .movePointLeft(2)
                 .add(ONE)
-                .pow(20);
-        // 20 years in the future
-        return SeriesReader.readUSD("futureRealState")
-                .add(SeriesReader.readUSD("futureCash"))
-                .adjust(r, ONE);
+                .pow(10); // 10 years
+
+        final var cashDivisor = SeriesReader
+                .readBigDecimal("futureReturn")
+                .movePointLeft(2)
+                .add(ONE)
+                .pow(5); // 5 years
+
+        final var current = SeriesReader.readUSD("currentEstimateUSD")
+                .add(SeriesReader.readUSD("currentEstimateGold"))
+                .add(
+                        ForeignExchanges.getForeignExchange(USD, Currency.EUR)
+                                .exchange(
+                                        new MoneyAmount(SeriesReader.readBigDecimal("currentEstimateEUR"), Currency.EUR),
+                                        USD,
+                                        YearMonth.now()));
+
+        return current
+                .add(SeriesReader.readUSD("futureRealState")
+                        .adjust(realStateDivisor, ONE))
+                .add(SeriesReader.readUSD("futureCash")
+                        .adjust(cashDivisor, ONE));
 
     }
 }

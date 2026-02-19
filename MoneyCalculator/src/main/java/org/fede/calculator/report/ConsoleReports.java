@@ -965,8 +965,7 @@ public class ConsoleReports {
             inv.mdrChart(true);
             inv.mdrChart(false);
             inv.mdrByYearChart();
-            pos.portfolioChartByGeography(new PieChart(false), "pct", USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonthValue());
-            pos.portfolioChartByGeographyBreakUSA(new PieChart(false), "pct", USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonthValue());
+            pos.portfolioChartByGeography(false, "pct", USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonthValue());
             this.savingsChart();
             inv.savingsInvestmentsPercentChart();
             savings.savingsByIncomeChart();
@@ -1121,7 +1120,7 @@ public class ConsoleReports {
         RebalancingReport.equity(format, series, console)
                 .sell(new MoneyAmount(usd, USD), allowOversell, detail);
     }
-
+    
     private void inflation() {
 
         var inflation = new CPIInflation(

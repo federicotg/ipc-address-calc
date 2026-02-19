@@ -140,7 +140,7 @@ public class Evolution<T> {
         this.console.appendLine("References:");
 
         this.console.appendLine(refs.stream().collect(Collectors.joining(" ")));
-
+        
     }
 
     private MoneyAmount accum(

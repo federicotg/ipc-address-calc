@@ -91,12 +91,12 @@ public class Savings {
                 400;
             case 2 ->
                 270;
-            case 3, 4, 5, 6 ->
+            case 3, 4, 5, 6, 7, 8, 9 ->
                 200;
-            case 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 ->
-                80;
+            case 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 ->
+                100;
             default ->
-                50;
+                60;
         };
     }
 
@@ -360,7 +360,7 @@ public class Savings {
         final var maSeries = List.of(unlp, lifia, despARS, despUSD, other);
 
         unlp.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, maSeries, colorList), 5300)));
+                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, maSeries, colorList), 5400)));
 
         new References(console, format).refs(
                 title,

@@ -20,6 +20,7 @@ import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import java.time.YearMonth;
 import static org.fede.calculator.report.Format.format;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -27,6 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
+import org.fede.calculator.money.Currency;
+import static org.fede.calculator.money.Currency.USD;
+import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.Inflation.USD_INFLATION;
@@ -190,6 +194,17 @@ public class Goal {
                 badReturnYears);
     }
 
+    private MoneyAmount futureHealth() {
+        var ars = new MoneyAmount(
+                SeriesReader.readBigDecimal("futureHealth")
+                        .multiply(BigDecimal.TWO, C)
+                        .multiply(BigDecimal.valueOf(121).movePointLeft(2), C),
+                Currency.ARS);
+
+        return ForeignExchanges.getForeignExchange(Currency.ARS, USD)
+                .exchange(ars, USD, YearMonth.now());
+    }
+
     private void goal(
             final int trials,
             final BigDecimal monthlyDeposit,
@@ -205,7 +220,7 @@ public class Goal {
             int badReturnYears) {
 
         final var birthYear = SeriesReader.readDate("dob").getYear();
-        
+
         final var retirementYear = birthYear + retirementAge;
         final int startingYear = USD_INFLATION.getTo().getYear();
         final var end = birthYear + age;
@@ -225,7 +240,7 @@ public class Goal {
         final var deposit = monthlyDeposit.multiply(MONTHS_IN_A_YEAR, C).doubleValue();
 
         final var withdraw = (monthlyWithdraw
-                .add(SeriesReader.readBigDecimal("futureHealth"), C)
+                .add(this.futureHealth().amount(), C)
                 .multiply(MONTHS_IN_A_YEAR, C)
                 .subtract(BigDecimal.valueOf(pension * 13), C))
                 .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
@@ -265,7 +280,7 @@ public class Goal {
                 this.bbppTaxRate * 100.0d,
                 bbppMin,
                 SeriesReader.readPercent("capitalGainsTaxRate"),
-                SeriesReader.readBigDecimal("futureHealth"),
+                this.futureHealth().amount(),
                 pension,
                 inflation,
                 badReturnYears,

@@ -154,6 +154,7 @@ public class Investments {
         this.cashInvestments = new CashInvestmentBuilder(()
                 -> SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
                         .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
+                        .add(SeriesReader.readSeries("/saving/ahorros-peso.json").exchangeInto(Currency.USD))
                         .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto(Currency.USD))
                         .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(Currency.USD)));
     }
@@ -238,7 +239,7 @@ public class Investments {
                 .map(this::cdReportLine)
                 .forEach(this.console::appendLine);
 
-        var cols = Map.of(
+        final var cols = Map.of(
                 USD, 9,
                 AY24, 10,
                 LECAP, 10,
@@ -294,42 +295,42 @@ public class Investments {
 
     private String cdReportLine(InvestmentReturn pf) {
 
-        var from = this.format.text(
+        final var from = this.format.text(
                 DateTimeFormatter.ISO_LOCAL_DATE.format(
                         pf.from()), 12);
-        var to = this.format.text(
+        final var to = this.format.text(
                 DateTimeFormatter.ISO_LOCAL_DATE.format(pf.to())
                 + (pf.to().isAfter(LocalDate.now()) ? "*" : ""),
                 12);
 
-        var days = this.format.text(String.valueOf(pf.days()), 4);
-        var initial = this.format.currency(pf.initialAmount().amount(), 12);
-        var endAmount = this.format.currency(pf.endAmount().amount(), 12);
+        final var days = this.format.text(String.valueOf(pf.days()), 4);
+        final var initial = this.format.currency(pf.initialAmount().amount(), 12);
+        final var endAmount = this.format.currency(pf.endAmount().amount(), 12);
 
-        var profitAmount = pf.profit();
-        var profit = this.format.currencyPL(profitAmount.amount(), 12);
-        var profitPct = this.format.percent(profitAmount.amount().divide(pf.initialAmount().amount(), C), 9);
+        final var profitAmount = pf.profit();
+        final var profit = this.format.currencyPL(profitAmount.amount(), 12);
+        final var profitPct = this.format.percent(profitAmount.amount().divide(pf.initialAmount().amount(), C), 9);
 
-        var currency = this.format.text(pf.currency().name(), 9);
+        final var currency = this.format.text(pf.currency().name(), 9);
         return MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}{7}", currency, from, to, days, initial, endAmount, profit, profitPct);
 
     }
 
     private InvestmentReturn asReturn(Investment pf, boolean nominal) {
-        var from = pf.getInitialDate();
-        var to = pf.getOut() != null
+        final var from = pf.getInitialDate();
+        final var to = pf.getOut() != null
                 ? pf.getOut().getDate()
                 : LocalDate.now();
-        var now = LocalDate.now();
-        var realInitialAmount = nominal
+        final var now = LocalDate.now();
+        final var realInitialAmount = nominal
                 ? pf.getInitialMoneyAmount()
                 : Inflation.USD_INFLATION.adjust(pf.getInitialMoneyAmount(), from, now);
-        var nominalFinalAmount = pf.getOut() != null
+        final var nominalFinalAmount = pf.getOut() != null
                 ? pf.getOut().getMoneyAmount()
                 : pf.getInitialMoneyAmount();
 
-        var maxInflationDate = to.compareTo(now) > 0 ? now : to;
-        var realFinalAmount = nominal
+        final var maxInflationDate = to.compareTo(now) > 0 ? now : to;
+        final var realFinalAmount = nominal
                 ? nominalFinalAmount
                 : Inflation.USD_INFLATION.adjust(nominalFinalAmount, maxInflationDate, now);
 
@@ -443,15 +444,15 @@ public class Investments {
 
     public void mdrByYearChart() {
 
-        var to = Inflation.USD_INFLATION.getTo().getYear();
-        var inv = Stream.concat(this.series.getInvestments().stream(),
+        final var to = Inflation.USD_INFLATION.getTo().getYear();
+        final var inv = Stream.concat(this.series.getInvestments().stream(),
                 this.cashInvestments.cashInvestments().stream())
                 .toList();
 
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
         for (var year = SeriesReader.readInt("start.year") + 1; year <= to; year++) {
-            var mdr = new ModifiedDietzReturn(
+            final var mdr = new ModifiedDietzReturn(
                     inv,
                     false,
                     LocalDate.of(year, Month.JANUARY, 1),
@@ -467,42 +468,42 @@ public class Investments {
 
     public void mdrChart(boolean cagr) {
 
-        var initial = YearMonth.of(
+        final var initial = YearMonth.of(
                 SeriesReader.readInt("start.year"),
                 SeriesReader.readInt("start.month"));
 
-        Function<ModifiedDietzReturnResult, BigDecimal> resultFunction
+        final Function<ModifiedDietzReturnResult, BigDecimal> resultFunction
                 = cagr ? ModifiedDietzReturnResult::annualizedMoneyWeighted
                         : ModifiedDietzReturnResult::getMoneyWeighted;
 
-        var inv = Stream.concat(this.series.getInvestments().stream(),
+        final var inv = Stream.concat(this.series.getInvestments().stream(),
                 this.cashInvestments.cashInvestments().stream())
                 .toList();
 
-        var start = YearMonthUtil.max(initial,
+        final var start = YearMonthUtil.max(initial,
                 inv.stream()
                         .map(Investment::getInitialDate)
                         .map(YearMonth::from)
                         .min(Comparator.naturalOrder())
                         .orElse(initial));
 
-        var nominalWithCash = this.mdrSeries(inv, true, start, resultFunction);
+        final var nominalWithCash = this.mdrSeries(inv, true, start, resultFunction);
 
-        var realWithCash = this.mdrSeries(inv, false, start, resultFunction);
+        final var realWithCash = this.mdrSeries(inv, false, start, resultFunction);
 
-        List<TimeSeries> mdrSeries = new ArrayList<>();
+        final List<TimeSeries> mdrSeries = new ArrayList<>();
 
         mdrSeries.add(ChartSeriesMapper.asTimeSeries(realWithCash, "Real Returns"));
         mdrSeries.add(ChartSeriesMapper.asTimeSeries(nominalWithCash, "Nominal Returns"));
-        var savings = this.series.realSavings(null);
+        final var savings = this.series.realSavings(null);
 
         if (!cagr) {
 
-            var investments = this.portfolioValue(false, i -> true);
+            final var investments = this.portfolioValue(false, i -> true);
 
-            var uninvested = savings.map((ym, ma) -> ma.subtract(investments.getAmountOrElseZero(ym)));
+            final var uninvested = savings.map((ym, ma) -> ma.subtract(investments.getAmountOrElseZero(ym)));
 
-            var uninvestedPct = uninvested.yearMonthStream()
+            final var uninvestedPct = uninvested.yearMonthStream()
                     .filter(ym -> ym.compareTo(start) >= 0)
                     .map(ym -> new TimeSeriesDatapoint(
                     ym,
@@ -513,7 +514,7 @@ public class Investments {
 
             mdrSeries.add(ChartSeriesMapper.asTimeSeries(uninvestedPct, "Uninvested Cash"));
 
-            var globalStocks
+            final var globalStocks
                     = this.currencyInvestment("Global Stocks", etfCurrencies)
                             .map((ym, ma) -> ma.adjust(savings.getAmount(ym).amount(), ONE));
 
