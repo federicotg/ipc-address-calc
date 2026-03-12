@@ -713,6 +713,7 @@ public class Positions {
                 .add(this.lastUSDAmount("ahorros-dolar-liq", ym))
                 .add(this.lastUSDAmount("ahorros-peso", ym))
                 .add(this.lastUSDAmount("ahorros-euro", ym))
+                .add(this.lastUSDAmount("ahorros-euro-liq", ym))
                 .amount();
 
         final var em = new PieItem("MSCI Emerging Markets IMI",
@@ -809,6 +810,7 @@ public class Positions {
                         of(CASH, this.lastAmount("ahorros-peso", ym)),
                         of(CASH, this.lastAmount("ahorros-dolar-liq", ym)),
                         of(CASH, this.lastAmount("ahorros-euro", ym)),
+                         of(CASH, this.lastAmount("ahorros-euro-liq", ym)),
                         of(CASH, this.lastAmount("ahorros-dai", ym)),
                         of(EQUITY, this.lastAmount("ahorros-cspx", ym)),
                         of(EQUITY, this.lastAmount("ahorros-eimi", ym)),

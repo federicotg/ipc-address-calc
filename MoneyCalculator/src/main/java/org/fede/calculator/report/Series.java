@@ -263,6 +263,7 @@ public class Series {
                 "ahorros-peso",
                 "ahorros-dolar-liq",
                 "ahorros-euro",
+                "ahorros-euro-liq",
                 "ahorros-dai",
                 "ahorros-cspx",
                 "ahorros-rtwo",
@@ -337,6 +338,7 @@ public class Series {
                     readSeries("income/unlp.json"),
                     readSeries("income/other-ars.json"),
                     readSeries("income/other-usd.json"),
+                    readSeries("income/other-eur.json"),
                     readSeries("income/despegar.json"),
                     readSeries("income/despegar-split.json"))
                     .map(is -> is.exchangeInto(Currency.USD))
@@ -413,6 +415,7 @@ public class Series {
                 "ahorros-dolar-banco",
                 "ahorros-dolar-liq",
                 "ahorros-euro",
+                "ahorros-euro-liq",
                 "ahorros-dai")
                 .map(this::asRealUSDSeries)
                 .reduce(MoneyAmountSeries::add)
@@ -461,6 +464,7 @@ public class Series {
                 of("LIQ", "ahorros-peso"),
                 of("LIQ", "ahorros-dolar-liq"),
                 of("LIQ", "ahorros-euro"),
+                of("LIQ", "ahorros-euro-liq"),
                 of("LIQ", "ahorros-dai"),
                 of("EQ", "ahorros-cspx"),
                 of("EQ", "ahorros-eimi"),

@@ -167,6 +167,11 @@ public class BBPP {
                                 .amount()
                                 .multiply(bbpp.usd(), C)),
                 Map.entry(
+                        Currency.RTWOE, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), EUR)
+                                .apply(item, ym)
+                                .amount()
+                                .multiply(bbpp.eur(), C)),
+                Map.entry(
                         RTWO, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
                                 .apply(item, ym)
                                 .amount()
@@ -177,10 +182,25 @@ public class BBPP {
                                 .amount()
                                 .multiply(bbpp.usd(), C)),
                 Map.entry(
+                        Currency.SXR8, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), EUR)
+                                .apply(item, ym)
+                                .amount()
+                                .multiply(bbpp.eur(), C)),
+                Map.entry(
                         EIMI, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
                                 .apply(item, ym)
                                 .amount()
                                 .multiply(bbpp.usd(), C)),
+                Map.entry(
+                        Currency.EMIM, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
+                                .apply(item, ym)
+                                .amount()
+                                .multiply(bbpp.usd(), C)),
+                Map.entry(
+                        Currency.MEUS, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), EUR)
+                                .apply(item, ym)
+                                .amount()
+                                .multiply(bbpp.eur(), C)),
                 Map.entry(
                         Currency.XUSE, (MoneyAmount item) -> getMoneyAmountForeignExchange(item.currency(), USD)
                                 .apply(item, ym)
@@ -381,7 +401,6 @@ public class BBPP {
 
         final var foreign = bbpp.items()
                 .stream()
-                //.filter(i -> ibkr || !i.name().equals("IBKR USD"))
                 .filter(Predicate.not(BBPPItem::domestic))
                 .filter(Predicate.not(BBPPItem::exempt))
                 .map(i -> this.toARS(i, bbpp.usd(), bbpp.eur()))

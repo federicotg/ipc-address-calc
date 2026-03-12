@@ -901,6 +901,10 @@ public class ConsoleReports {
         final var other = agg.sum(this.series.incomeSource("other-usd"));
         other.setName("Other USD");
 
+        final var otherEur = agg.sum(this.series.incomeSource("other-eur"));
+        otherEur.setName("Other €");
+
+        
         final var otherARS = agg.sum(this.series.incomeSource("other-ars"));
         otherARS.setName("Other ARS");
 
@@ -914,7 +918,7 @@ public class ConsoleReports {
         despUSD.setName("DESP USD");
 
         new TimeSeriesChart()
-                .create("Income", List.of(other, lifia, unlp, despARS, despUSD, otherARS), "income_acc");
+                .create("Income", List.of(other, otherEur, lifia, unlp, despARS, despUSD, otherARS), "income_acc");
     }
 
     private void expensesChart(int m, boolean grouped) throws IOException {

@@ -69,7 +69,9 @@ public class PortfolioReturns {
                         .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
                         .add(SeriesReader.readSeries("/saving/ahorros-peso.json").exchangeInto(Currency.USD))
                         .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto(Currency.USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(Currency.USD)));
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(Currency.USD))
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro-liq.json").exchangeInto(Currency.USD))
+        );
     }
 
     private static LocalDate min(LocalDate d1, LocalDate d2) {
@@ -117,8 +119,8 @@ public class PortfolioReturns {
                 this.series.getInvestments().stream())
                 .toList();
 
-        var end = 
-                inv.stream()
+        var end
+                = inv.stream()
                         .map(i -> i.getOut() == null ? Inflation.USD_INFLATION.getTo() : YearMonth.from(i.getOut().getDate()))
                         .max(Comparator.naturalOrder())
                         .orElse(Inflation.USD_INFLATION.getTo());

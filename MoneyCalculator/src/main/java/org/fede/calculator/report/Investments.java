@@ -156,7 +156,9 @@ public class Investments {
                         .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
                         .add(SeriesReader.readSeries("/saving/ahorros-peso.json").exchangeInto(Currency.USD))
                         .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto(Currency.USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(Currency.USD)));
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(Currency.USD))
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro-liq.json").exchangeInto(Currency.USD))
+        );
     }
 
     public void cashInv(boolean nominal) {
@@ -366,31 +368,6 @@ public class Investments {
                 .sorted(Comparator.comparing(Pair::second, Comparator.reverseOrder()))
                 .map(p -> this.row(p.first(), nominal))
                 .forEach(this.console::appendLine);
-
-        // this.test(CSPX, SXR8);
-        // this.test(EIMI, EMIM);
-        // this.test(RTWO, RTWOE);
-        // this.test(MEUS, MEUD);
-    }
-
-    private void test(Currency usd, Currency eur) {
-
-        var a = new MoneyAmount(BigDecimal.TEN, usd);
-        var b = new MoneyAmount(BigDecimal.TEN, eur);
-        var now = YearMonth.now();
-
-        this.console.appendLine(MessageFormat.format("{0} = {1} => {2} = {3}",
-                this.format.currency(a, 16),
-                this.format.currency(b, 16),
-                this.format.currency(ForeignExchanges.getForeignExchange(
-                        a.currency(),
-                        USD)
-                        .exchange(a, USD, now), 16),
-                this.format.currency(ForeignExchanges.getForeignExchange(
-                        b.currency(),
-                        USD)
-                        .exchange(b, USD, now), 16)
-        ));
 
     }
 
@@ -678,7 +655,7 @@ public class Investments {
 
         final var useBenchmarks = !iwdaList.isEmpty() && !cspxList.isEmpty();
 
-        Map<String, String> currencies = ETF_NAME.keySet()
+        final Map<String, String> currencies = ETF_NAME.keySet()
                 .stream()
                 .collect(Collectors.toMap(Currency::name, ETF_NAME::get));
 
@@ -1094,21 +1071,23 @@ public class Investments {
         }
     }
 
+    // todo nominal
     public void ppiTransfer(String type) {
 
         final Function<InvestmentEvent, MoneyAmount> grossSaleMapper
-                = (InvestmentEvent e) -> e.getRealUSDMoneyAmount()
-                        .add(e.getRealUSDFeeMoneyAmount())
-                        .add(e.getRealUSDTransferFeeMoneyAmount());
+                = (InvestmentEvent e) -> e.getMoneyAmount()
+                        .add(e.getFeeMoneyAmount())
+                        .add(new MoneyAmount(e.getTransferFee(), USD));
 
         final SoldAndBought<MoneyAmount> netAmountSummary
                 = this.summarize(
                         grossSaleMapper,
-                        InvestmentEvent::getRealUSDMoneyAmount,
+                        InvestmentEvent::getMoneyAmount,
                         MoneyAmount.zero(USD),
                         MoneyAmount::add);
 
-        final Function<InvestmentEvent, MoneyAmount> feeMapper = e -> e.getRealUSDTransferFeeMoneyAmount().add(e.getRealUSDFeeMoneyAmount());
+        final Function<InvestmentEvent, MoneyAmount> feeMapper = e -> new MoneyAmount(e.getTransferFee(), USD)
+                .add(e.getRealUSDFeeMoneyAmount());
 
         final SoldAndBought<MoneyAmount> feeSummary
                 = this.summarize(
@@ -1399,15 +1378,15 @@ public class Investments {
                                 this.portfolioValue(false, i -> true)),
                         "growth-all-real");
 
-        var savings = this.series.realSavings(null);
+        final var savings = this.series.realSavings(null);
         savings.setName("Real Savings");
 
-        var investments = this.portfolioValue(false, i -> true);
+        final var investments = this.portfolioValue(false, i -> true);
 
-        var uninvested = savings.map((ym, ma) -> ma.subtract(investments.getAmountOrElseZero(ym)));
+        final var uninvested = savings.map((ym, ma) -> ma.subtract(investments.getAmountOrElseZero(ym)));
         uninvested.setName("Cash");
 
-        var income = new Accumulator().sum(this.series.realIncome());
+        final var income = new Accumulator().sum(this.series.realIncome());
         income.setName("Real Income");
 
         new TimeSeriesChart().create("Real Income, Savings & Investments",
@@ -1422,14 +1401,14 @@ public class Investments {
     public void savingsInvestmentsPercentChart() {
 
         final var income = new Accumulator().sum(this.series.realIncome());
-        var savings = this.series.realSavings(null);
+        final var savings = this.series.realSavings(null);
 
-        var savedIncomePercent = savings.map((ym, s) -> s.adjust(income.getAmount(ym).amount(), ONE));
+        final var savedIncomePercent = savings.map((ym, s) -> s.adjust(income.getAmount(ym).amount(), ONE));
         savedIncomePercent.setName("% Saved of all Income");
 
-        var investments = this.portfolioValue(false, i -> true);
+        final var investments = this.portfolioValue(false, i -> true);
 
-        var cashSavingsPercent = savings
+        final var cashSavingsPercent = savings
                 .map((ym, ma) -> ma
                 .subtract(investments.getAmountOrElseZero(ym))
                 .adjust(savings.getAmount(ym).amount(), ONE));
@@ -1444,20 +1423,20 @@ public class Investments {
 
     public void investmentsByClassChart() {
 
-        var localUSDBonds = List.of(USD, LETE, AY24, CONBALA);
-        var localARSBonds = List.of(ARS, CAPLUSA, LECAP, UVA);
-        var localStocks = List.of(CONAAFA);
-        var globalStocks = etfCurrencies;
+        final var localUSDBonds = List.of(USD, LETE, AY24, CONBALA);
+        final var localARSBonds = List.of(ARS, CAPLUSA, LECAP, UVA);
+        final var localStocks = List.of(CONAAFA);
+        final var globalStocks = etfCurrencies;
 
-        var savings = this.series.realSavings(null);
+        final var savings = this.series.realSavings(null);
         savings.setName("Real Savings");
 
-        var investments = this.portfolioValue(false, i -> true);
+        final var investments = this.portfolioValue(false, i -> true);
 
-        var cash = savings.map((ym, ma) -> ma.subtract(investments.getAmountOrElseZero(ym)));
+        final var cash = savings.map((ym, ma) -> ma.subtract(investments.getAmountOrElseZero(ym)));
         cash.setName("Cash");
 
-        var ss = List.of(
+        final var ss = List.of(
                 this.currencyInvestment("Local USD Bonds", localUSDBonds),
                 this.currencyInvestment("Local ARS Bonds", localARSBonds),
                 this.currencyInvestment("Local Stocks", localStocks),
@@ -1477,7 +1456,7 @@ public class Investments {
     }
 
     private MoneyAmountSeries currencyInvestment(String name, List<Currency> currencies) {
-        var res = this.portfolioValue(false, i -> currencies.contains(i.getCurrency()));
+        final var res = this.portfolioValue(false, i -> currencies.contains(i.getCurrency()));
 
         res.setName(name);
         return res;
@@ -1486,7 +1465,7 @@ public class Investments {
 
     private MoneyAmountSeries portfolioValue(boolean nominal, Predicate<Investment> filter) {
 
-        var start = this.series.getInvestments()
+        final var start = this.series.getInvestments()
                 .stream()
                 .filter(filter)
                 .map(Investment::getIn)
@@ -1494,7 +1473,7 @@ public class Investments {
                 .map(YearMonth::from)
                 .min(YearMonth::compareTo).get();
 
-        var valueSeries = new SortedMapMoneyAmountSeries(USD, (nominal ? "Nominal" : "Real") + " Investments");
+        final var valueSeries = new SortedMapMoneyAmountSeries(USD, (nominal ? "Nominal" : "Real") + " Investments");
         final var end = Inflation.USD_INFLATION.getTo();
 
         for (YearMonth ym = start; ym.compareTo(end) <= 0; ym = ym.plusMonths(1)) {
@@ -1522,7 +1501,7 @@ public class Investments {
 
     private MoneyAmountSeries accumulatedNetContributions(boolean nominal, Predicate<Investment> filter) {
 
-        Map<YearMonth, InvestmentEvent> contributions = this.series.getInvestments()
+        final Map<YearMonth, InvestmentEvent> contributions = this.series.getInvestments()
                 .stream()
                 .filter(filter)
                 .map(i -> ForeignExchanges.exchange(i, USD))
@@ -1532,7 +1511,7 @@ public class Investments {
                         Collectors.reducing(null, this::union)
                 ));
 
-        Map<YearMonth, InvestmentEvent> withdrawals = this.series.getInvestments()
+        final Map<YearMonth, InvestmentEvent> withdrawals = this.series.getInvestments()
                 .stream()
                 .filter(filter)
                 .filter(i -> i.getOut() != null)
@@ -1543,10 +1522,10 @@ public class Investments {
                         Collectors.reducing(null, this::union)
                 ));
 
-        var start = contributions.keySet().stream().min(YearMonth::compareTo).get();
+        final var start = contributions.keySet().stream().min(YearMonth::compareTo).get();
 
-        var accSeries = new SortedMapMoneyAmountSeries(USD, (nominal ? "Nominal" : "Real") + " Contributions");
-        var end = YearMonth.now();
+        final var accSeries = new SortedMapMoneyAmountSeries(USD, (nominal ? "Nominal" : "Real") + " Contributions");
+        final var end = YearMonth.now();
 
         var acc = MoneyAmount.zero(USD);
 
@@ -1555,11 +1534,11 @@ public class Investments {
                 : InvestmentEvent::getRealUSDMoneyAmount;
 
         for (YearMonth ym = start; ym.compareTo(end) <= 0; ym = ym.plusMonths(1)) {
-            var contribution = Optional.ofNullable(contributions.get(ym))
+            final var contribution = Optional.ofNullable(contributions.get(ym))
                     .map(realFunction)
                     .orElse(MoneyAmount.zero(USD));
 
-            var withdrawal = Optional.ofNullable(withdrawals.get(ym))
+            final var withdrawal = Optional.ofNullable(withdrawals.get(ym))
                     .map(realFunction)
                     .orElse(MoneyAmount.zero(USD));
             acc = acc.add(contribution.subtract(withdrawal))
@@ -1572,19 +1551,19 @@ public class Investments {
     }
 
     private BigDecimal cagr() {
-        var p = SeriesReader.readPercent("futureReturn");
+        final var p = SeriesReader.readPercent("futureReturn");
         return p
                 .subtract(SeriesReader.readPercent("expectedInflation"), C);
     }
 
     public MoneyAmount projectedPortfolioSize(MoneyAmount presentValue, MoneyAmount yearlySavings, double pValue) {
-        var years = SeriesReader.readInt("retirementHorizon");
+        final var years = SeriesReader.readInt("retirementHorizon");
         final var expectedReturn = this.cagr()
                 .doubleValue();
 
-        var expectedVolatility = SeriesReader.readPercent("futureVolatility").doubleValue();
+        final var expectedVolatility = SeriesReader.readPercent("futureVolatility").doubleValue();
 
-        var projection = this.predictedValues(
+        final var projection = this.predictedValues(
                 Inflation.USD_INFLATION.getTo(),
                 years,
                 pValue,
@@ -1601,15 +1580,15 @@ public class Investments {
         final var expectedReturn = this.cagr()
                 .doubleValue();
 
-        var expectedVolatility = SeriesReader.readPercent("futureVolatility").doubleValue();
+        final var expectedVolatility = SeriesReader.readPercent("futureVolatility").doubleValue();
 
-        var portfolio = this.portfolioValue(false, Investment::isETF);
+        final var portfolio = this.portfolioValue(false, Investment::isETF);
 
-        var presentValue = portfolio.getAmount(portfolio.getTo());
+        final var presentValue = portfolio.getAmount(portfolio.getTo());
 
-        var years = SeriesReader.readInt("retirementHorizon");
+        final var years = SeriesReader.readInt("retirementHorizon");
 
-        var p10 = this.predictedValues(
+        final var p10 = this.predictedValues(
                 portfolio.getTo(),
                 years,
                 0.1d,
@@ -1617,7 +1596,7 @@ public class Investments {
                 expectedReturn,
                 expectedVolatility, savings);
 
-        var p50 = this.predictedValues(
+        final var p50 = this.predictedValues(
                 portfolio.getTo(),
                 years,
                 0.5d,
@@ -1625,7 +1604,7 @@ public class Investments {
                 expectedReturn,
                 expectedVolatility, savings);
 
-        var p90 = this.predictedValues(
+        final var p90 = this.predictedValues(
                 portfolio.getTo(),
                 years,
                 0.9d,
@@ -1653,7 +1632,7 @@ public class Investments {
             double volatility,
             MoneyAmount savings) {
 
-        List<MoneyAmountSeries> s = new ArrayList<>(years);
+        final List<MoneyAmountSeries> s = new ArrayList<>(years);
 
         s.add(this.predictedValues(start, years, percentile, initial, carg, volatility));
         for (int y = 1; y < years; y++) {
@@ -1677,7 +1656,7 @@ public class Investments {
             double carg,
             double volatility) {
 
-        var valueSeries = new SortedMapMoneyAmountSeries(USD,
+        final var valueSeries = new SortedMapMoneyAmountSeries(USD,
                 " P"
                 + (int) (percentile * 100d));
         valueSeries.putAmount(start, initial);
@@ -1689,8 +1668,8 @@ public class Investments {
         }
 
         for (var i = 1; i <= years; i++) {
-            var ym = YearMonth.of(start.getYear() + i, start.getMonthValue());
-            var amount = new MoneyAmount(
+            final var ym = YearMonth.of(start.getYear() + i, start.getMonthValue());
+            final var amount = new MoneyAmount(
                     BigDecimal.valueOf(
                             PortfolioProjections.calculatePortfolioPercentile(
                                     initial.amount().doubleValue(),
@@ -1721,9 +1700,9 @@ public class Investments {
 
         final var ss = new XYSeries("Quantity");
 
-        var fx = ForeignExchanges.getForeignExchange(currency, USD);
-        Predicate<Investment> isCurrent = i -> i.isCurrent(LocalDate.now());
-        var fxFrom = this.series.getInvestments()
+        final var fx = ForeignExchanges.getForeignExchange(currency, USD);
+        final Predicate<Investment> isCurrent = i -> i.isCurrent(LocalDate.now());
+        final var fxFrom = this.series.getInvestments()
                 .stream()
                 .filter(isCurrent)
                 .filter(i -> i.getCurrency() == currency)
@@ -1732,8 +1711,8 @@ public class Investments {
                 .min(Comparator.naturalOrder())
                 .get();
 
-        var fxTo = fx.getTo();
-        var one = new MoneyAmount(ONE, currency);
+        final var fxTo = fx.getTo();
+        final var one = new MoneyAmount(ONE, currency);
 
         Stream.concat(
                 Stream.iterate(fxFrom, ym -> ym.compareTo(fxTo) <= 0, (YearMonth ym) -> ym.plusMonths(1))

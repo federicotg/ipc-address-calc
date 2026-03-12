@@ -93,7 +93,8 @@ public class Fire {
         final var futureHealth = this.futureHealth();
         final var futureRent = SeriesReader.readUSD("futureRent");
 
-        final var pensionPresentValue = new Pension().discountedCashFlowValue();
+        final var currentlyEstimated = this.currentlyEstimatedSavings();
+        
         this.conceptLine("Essential", essential);
         this.conceptLine("Other", other);
         this.conceptLine("Future Rent", futureRent);
@@ -101,8 +102,8 @@ public class Fire {
         this.conceptLine("Discretionary", discretionary);
         this.conceptLine("Irregular", irregular);
         this.conceptLine("Current Savings", totalSavings);
-        this.conceptLine("Future Income Present Value", expectedFutureIncome);
-        this.conceptLine("Future Pension Present Value", pensionPresentValue);
+        this.conceptLine("Current Estimated", currentlyEstimated);
+        this.conceptLine("Future Estimated", expectedFutureIncome);
 
         this.console.appendLine(
                 this.format.text("Capital Gains", 20),
@@ -154,8 +155,8 @@ public class Fire {
                         -> this.retirementWithdrawalRow(
                         monthlySpending,
                         totalSavings,
-                        totalSavings.add(pensionPresentValue),
-                        totalSavings.add(expectedFutureIncome).add(pensionPresentValue),
+                        totalSavings.add(currentlyEstimated),
+                        totalSavings.add(currentlyEstimated).add(expectedFutureIncome),
                         percents,
                         alreadyThere,
                         withGrowth,
@@ -277,8 +278,8 @@ public class Fire {
     private String retirementWithdrawalRow(
             BigDecimal monthlySpending,
             MoneyAmount currentPortfolioSize,
-            MoneyAmount plusPension,
-            MoneyAmount plusPensionAndIncome,
+            MoneyAmount plusCurrentlyEstimated,
+            MoneyAmount plusCurrenttlyEstimatedAndFutureEstamiated,
             List<BigDecimal> percents,
             Attribute alreadyThere,
             Attribute withGrowth,
@@ -303,8 +304,8 @@ public class Fire {
                         .map(portfolioLevel -> this.coloredAmount(
                         portfolioLevel,
                         currentPortfolioSize,
-                        plusPension,
-                        plusPensionAndIncome,
+                        plusCurrentlyEstimated,
+                        plusCurrenttlyEstimatedAndFutureEstamiated,
                         alreadyThere,
                         withGrowth,
                         withGrowthAndIncome,
@@ -315,8 +316,8 @@ public class Fire {
     private String coloredAmount(
             BigDecimal amount,
             MoneyAmount currentPortfolioSize,
-            MoneyAmount plusPension,
-            MoneyAmount plusPensionAndIncome,
+            MoneyAmount plusCurrentlyEstimated,
+            MoneyAmount plusCurrenttlyEstimatedAndFutureEstamiated,
             Attribute alreadyThere,
             Attribute withGrowth,
             Attribute withGrowthAndIncome,
@@ -326,9 +327,9 @@ public class Fire {
 
         if (amount.compareTo(currentPortfolioSize.amount()) <= 0) {
             return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(alreadyThere));
-        } else if (amount.compareTo(plusPension.amount()) <= 0) {
+        } else if (amount.compareTo(plusCurrentlyEstimated.amount()) <= 0) {
             return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(withGrowth));
-        } else if (amount.compareTo(plusPensionAndIncome.amount()) <= 0) {
+        } else if (amount.compareTo(plusCurrenttlyEstimatedAndFutureEstamiated.amount()) <= 0) {
             return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(withGrowthAndIncome));
         } else {
             return this.format.center(this.format.currencyShort(amount), cols, new AnsiFormat(farAway));
@@ -465,6 +466,16 @@ public class Fire {
                 this.format.currencyShort(fireNumber));
     }
 
+    private MoneyAmount currentlyEstimatedSavings() {
+        return SeriesReader.readUSD("xau")
+                .adjust(
+                        BigDecimal.TWO,
+                        SeriesReader.readBigDecimal("currentGoldTrOz")
+                                .multiply(BigDecimal.valueOf(75)
+                                        .movePointLeft(2),
+                                        C));
+    }
+
     /**
      * DCF future income.
      *
@@ -479,21 +490,12 @@ public class Fire {
                 .pow(10); // 10 years
 
         final var cashDivisor = SeriesReader
-                .readBigDecimal("futureReturn")
+                .readBigDecimal("pensionDiscountRate")
                 .movePointLeft(2)
                 .add(ONE)
                 .pow(5); // 5 years
 
-        final var current = SeriesReader.readUSD("currentEstimateUSD")
-                .add(SeriesReader.readUSD("currentEstimateGold"))
-                .add(
-                        ForeignExchanges.getForeignExchange(USD, Currency.EUR)
-                                .exchange(
-                                        new MoneyAmount(SeriesReader.readBigDecimal("currentEstimateEUR"), Currency.EUR),
-                                        USD,
-                                        YearMonth.now()));
-
-        return current
+        return new Pension().discountedCashFlowValue()
                 .add(SeriesReader.readUSD("futureRealState")
                         .adjust(realStateDivisor, ONE))
                 .add(SeriesReader.readUSD("futureCash")

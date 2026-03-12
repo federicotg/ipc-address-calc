@@ -94,7 +94,7 @@ public class Savings {
             case 3, 4, 5, 6, 7, 8, 9 ->
                 200;
             case 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 ->
-                100;
+                150;
             default ->
                 60;
         };
@@ -301,7 +301,8 @@ public class Savings {
         final var despARS = agg.average(this.series.incomeSource("despegar"));
         final var despUSD = agg.average(this.series.incomeSource("despegar-split"));
         final var other = agg.average(this.series.incomeSource("other-ars")
-                .add(this.series.incomeSource("other-usd")));
+                .add(this.series.incomeSource("other-usd"))
+                .add(this.series.incomeSource("other-eur")));
 
         if (pct) {
             unlp.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
@@ -329,17 +330,17 @@ public class Savings {
     public int incomeScale(int months) {
         return switch (months) {
             case 1, 2 ->
-                400;
+                500;
             case 3, 4, 5 ->
-                220;
+                250;
             case 6, 7 ->
-                120;
+                140;
             case 8, 9, 10 ->
-                100;
+                140;
             case 11, 12 ->
-                90;
+                140;
             default ->
-                80;
+                120;
         };
     }
 
