@@ -76,6 +76,8 @@ public class Series {
     private MoneyAmountSeries realIncome;
     private MoneyAmountSeries realExpense;
 
+    private MoneyAmountSeries realOtherExpenses;
+
     public List<Investment> getInvestments() {
         if (this.investments == null) {
             this.investments = SeriesReader.read("investments.json", TR);
@@ -127,6 +129,7 @@ public class Series {
                     of(ESSENTIAL, "gas"),
                     of(ESSENTIAL, "luz"),
                     of(DISCRETIONARY, "santander"),
+                    of(DISCRETIONARY, "box"),
                     of(DISCRETIONARY, "cablevision"),
                     of(DISCRETIONARY, "comida-disc"),
                     of(DISCRETIONARY, "sellos"),
@@ -147,10 +150,25 @@ public class Series {
                             Pair::first,
                             mapping(p -> this.asRealUSDSeries("expense/", p.second()),
                                     Collectors.toList())));
-            this.realUSDExpensesByType.get(IRREGULAR).add(
-                    this.investingExpenses()
-            );
-            this.realUSDExpensesByType.put(OTHER, List.of(this.realOtherExpenses())
+
+            this.realUSDExpensesByType.get(IRREGULAR)
+                    .add(this.investingExpenses());
+
+            final var income = this.realIncome();
+            final var netSaving = this.realNetSavings();
+            final var spending = this.realUSDExpensesByType.values()
+                    .stream()
+                    .flatMap(Collection::stream)
+                    .reduce(MoneyAmountSeries::add)
+                    .get();
+
+            final var otherSpending = income
+                    .subtract(spending)
+                    .subtract(netSaving);
+            otherSpending.setName("Other spending");
+            this.realOtherExpenses = otherSpending;
+
+            this.realUSDExpensesByType.put(OTHER, List.of(this.realOtherExpenses)
             );
         }
 
@@ -180,6 +198,7 @@ public class Series {
                         "luz",
                         "cablevision",
                         "santander",
+                        "box",
                         "comida-disc",
                         "other",
                         "other-usd",
@@ -397,16 +416,12 @@ public class Series {
     }
 
     public MoneyAmountSeries realOtherExpenses() {
+        if (this.realOtherExpenses == null) {
+            // initializes realOtherExpenses
+            this.getRealUSDExpensesByType();
+        }
+        return this.realOtherExpenses;
 
-        final var income = this.realIncome();
-        final var netSaving = this.realNetSavings();
-        final var spending = this.realExpenses(null);
-
-        var otherSpending = income
-                .subtract(spending)
-                .subtract(netSaving);
-        otherSpending.setName("Other spending");
-        return otherSpending;
     }
 
     public MoneyAmountSeries realCash() {

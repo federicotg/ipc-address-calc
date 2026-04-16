@@ -168,7 +168,7 @@ public class Fire {
 
         new References(console, format)
                 .refsLabels(
-                        List.of("Savings", "Savings+Pension", "Savings+Pension+Income", "Far Away"),
+                        List.of("Savings", "Savings+Current", "Savings+Current+Future", "Far Away"),
                         List.of(alreadyThere,
                                 withGrowth,
                                 withGrowthAndIncome,
@@ -183,7 +183,7 @@ public class Fire {
     }
 
     private List<BigDecimal> percents() {
-        final var step = BigDecimal.valueOf(25L).movePointLeft(4); //new BigDecimal("0.0025");
+        final var step = BigDecimal.valueOf(25L).movePointLeft(4);
         return Stream.concat(
                 LongStream.range(11l, 25l)
                         .mapToObj(i -> BigDecimal.valueOf(i).multiply(step, C)),
@@ -201,7 +201,7 @@ public class Fire {
     private List<BigDecimal> spendingAmounts(SpendingBudgets budgets) {
         return Stream.concat(
                 budgets.asStream(),
-                IntStream.range(12, 41)
+                IntStream.range(14, 41)
                         .map(i -> i * 100)
                         .mapToObj(BigDecimal::valueOf))
                 .sorted()
