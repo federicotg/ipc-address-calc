@@ -602,13 +602,6 @@ public class RebalancingReport {
                             c,
                             this.format.currency(m, 20),
                             this.format.percent(m.amount().divide(total.amount(), C), 12)));
-        } else {
-            this.console.appendLine(
-                    MessageFormat.format("{0} {1} {2}",
-                            c,
-                            ZERO,
-                            this.format.percent(ZERO, 12)));
-
         }
     }
 

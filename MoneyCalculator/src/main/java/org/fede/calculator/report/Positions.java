@@ -301,7 +301,9 @@ public class Positions {
         this.potentialTaxLine(" Potential Wealth Tax ", taxAmount(savings), savings);
 
         var futureSavings = savings
-                .add(SeriesReader.readUSD("futureRealState"))
+                .add(SeriesReader.readUSD("futureRealState.1"))
+                .add(SeriesReader.readUSD("futureRealState.2"))
+                .add(SeriesReader.readUSD("futureRealState.3"))
                 .add(SeriesReader.readUSD("futureCash"));
 
         this.potentialTaxLine(" Potential Future Wealth Tax ",

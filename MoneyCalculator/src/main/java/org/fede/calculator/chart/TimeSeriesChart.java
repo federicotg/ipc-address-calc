@@ -49,6 +49,16 @@ public class TimeSeriesChart {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TimeSeriesChart.class);
 
+    private static final Color[] COLORS = new Color[]{
+        new Color(0, 114, 178), // blue
+        new Color(213, 94, 0), // orange
+        new Color(0, 158, 115), // green
+        new Color(204, 121, 167), // purple
+        new Color(86, 180, 233), // light blue
+        new Color(230, 159, 0), // yellow/orange
+        new Color(240, 228, 66), // yellow
+        new Color(0, 0, 0) // black (use sparingly)
+    };
     private final Font font;
     private final Stroke stroke;
     private final ChartStyle style;
@@ -115,6 +125,12 @@ public class TimeSeriesChart {
         xyPlot.setRangeGridlinePaint(Color.BLACK);
         xyPlot.setDomainGridlinePaint(Color.BLACK);
 
+        final var renderer = xyPlot.getRenderer();
+
+        for (int i = 0; i < COLORS.length; i++) {
+            renderer.setSeriesPaint(i, COLORS[i]);
+        }
+
         NumberFormat valueFormatter = (NumberFormat) this.style.valueFormat().format();
 
         if (this.style.scale() == Scale.LOG) {
@@ -130,8 +146,6 @@ public class TimeSeriesChart {
 
         xyPlot.getDomainAxis().setLabelFont(this.font);
         xyPlot.getDomainAxis().setTickLabelFont(this.font);
-
-        var renderer = xyPlot.getRenderer();
 
         if (renderer instanceof AbstractRenderer r) {
             r.setAutoPopulateSeriesStroke(false);

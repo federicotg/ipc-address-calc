@@ -20,9 +20,16 @@ import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import java.math.RoundingMode;
+import java.text.MessageFormat;
+import java.time.LocalDate;
+import java.time.Period;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -51,6 +58,9 @@ import org.jfree.data.xy.XYSeries;
  * @author fede
  */
 public class Fire {
+
+    private static final DateTimeFormatter DF = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
+            .withLocale(Locale.ENGLISH);
 
     private final Format format;
     private final Series series;
@@ -94,7 +104,7 @@ public class Fire {
         final var futureRent = SeriesReader.readUSD("futureRent");
 
         final var currentlyEstimated = this.currentlyEstimatedSavings();
-        
+
         this.conceptLine("Essential", essential);
         this.conceptLine("Other", other);
         this.conceptLine("Future Rent", futureRent);
@@ -119,6 +129,28 @@ public class Fire {
             this.conceptLine("Everything + Rent", budgets.everythingWithRent(), "✅✅✅");
         }
         this.console.appendLine("");
+
+        final var currentCash = this.series.realSavings("LIQ").getAmount(YearMonth.now())
+                .add(currentlyEstimated);
+
+        final var futureCash = currentCash.add(SeriesReader.readUSD("futureCash"));
+
+        final var sales1 = SeriesReader.readUSD("futureRealState.1");
+        final var sales2 = SeriesReader.readUSD("futureRealState.2");
+        final var sales3 = SeriesReader.readUSD("futureRealState.3");
+
+        final var spending = essential
+                .add(discretionary)
+                .add(other)
+                .add(this.futureHealth());
+
+        this.console.appendLine("Spending ", this.format.currency(spending, 12));
+        this.coveredCashLine("Metals", currentlyEstimated, spending, false);
+        this.coveredCashLine("Current cash", currentCash, spending);
+        this.coveredCashLine("Future cash", futureCash, spending);
+        this.coveredCashLine("Near future sales", futureCash.add(sales1), spending, false);
+        this.coveredCashLine("Future sales", futureCash.add(sales1).add(sales2), spending, false);
+        this.coveredCashLine("All sales", futureCash.add(sales1).add(sales2).add(sales3), spending, false);
 
         this.console.appendLine(this.format.subtitle("Failsafe Around Prominent Market Peaks"));
 
@@ -173,6 +205,32 @@ public class Fire {
                                 withGrowth,
                                 withGrowthAndIncome,
                                 farAway));
+    }
+
+    private void coveredCashLine(String name, MoneyAmount amount, MoneyAmount essential) {
+        this.coveredCashLine(name, amount, essential, true);
+    }
+
+    private void coveredCashLine(String name, MoneyAmount amount, MoneyAmount essential, boolean singular) {
+        final var coveredMonths = amount
+                .adjust(essential.amount(), ONE)
+                .amount();
+
+        final BigDecimal[] result = coveredMonths
+                .divideAndRemainder(BigDecimal.valueOf(12));
+
+        final var moment = LocalDate.now()
+                .plusDays(coveredMonths.multiply(BigDecimal.valueOf(30L)).intValue());
+
+        this.console.appendLine(
+                MessageFormat.format(
+                        "{3} " + (singular ? "covers" : "cover") + " essentials for {0} years and {1} months until {2}, age {4}.",
+                        result[0],
+                        result[1].setScale(0, RoundingMode.FLOOR),
+                        DF.format(moment),
+                        name,
+                        Period.between(SeriesReader.readDate("dob"), moment).getYears()
+                ));
     }
 
     private String refLine(String label, String pct) {
@@ -483,21 +541,28 @@ public class Fire {
      */
     private MoneyAmount expectedFutureSavings() {
 
-        final var realStateDivisor = SeriesReader
+        final var discountRate = SeriesReader
                 .readBigDecimal("futureReturn")
                 .movePointLeft(2)
-                .add(ONE)
-                .pow(10); // 10 years
+                .add(ONE);
 
-        final var cashDivisor = SeriesReader
-                .readBigDecimal("pensionDiscountRate")
-                .movePointLeft(2)
-                .add(ONE)
+        final var realStateDivisor1 = discountRate
+                .pow(SeriesReader.readBigDecimal("futureRealStateYears.1").intValue());
+        final var realStateDivisor2 = discountRate
+                .pow(SeriesReader.readBigDecimal("futureRealStateYears.2").intValue());
+        final var realStateDivisor3 = discountRate
+                .pow(SeriesReader.readBigDecimal("futureRealStateYears.3").intValue());
+
+        final var cashDivisor = discountRate
                 .pow(5); // 5 years
 
         return new Pension().discountedCashFlowValue()
-                .add(SeriesReader.readUSD("futureRealState")
-                        .adjust(realStateDivisor, ONE))
+                .add(SeriesReader.readUSD("futureRealState.1")
+                        .adjust(realStateDivisor1, ONE))
+                .add(SeriesReader.readUSD("futureRealState.2")
+                        .adjust(realStateDivisor2, ONE))
+                .add(SeriesReader.readUSD("futureRealState.3")
+                        .adjust(realStateDivisor3, ONE))
                 .add(SeriesReader.readUSD("futureCash")
                         .adjust(cashDivisor, ONE));
 
