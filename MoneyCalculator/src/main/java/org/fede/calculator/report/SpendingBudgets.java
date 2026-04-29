@@ -28,14 +28,16 @@ public record SpendingBudgets(MoneyAmount essentialWithRent,
         MoneyAmount essentialWithoutRent,
         MoneyAmount everythingWithRent,
         MoneyAmount everythingWithoutRent,
-        MoneyAmount current) {
+        MoneyAmount current,
+        MoneyAmount currentWithHealth
+        ) {
 
     public Stream<BigDecimal> asStream() {
-        return Stream.of(
-                essentialWithRent, 
-                essentialWithoutRent, 
-                everythingWithRent, 
+        return Stream.of(essentialWithRent,
+                essentialWithoutRent,
+                everythingWithRent,
                 everythingWithoutRent,
+                currentWithHealth,
                 current)
                 .distinct()
                 .map(MoneyAmount::amount);

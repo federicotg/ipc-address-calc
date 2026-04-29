@@ -1122,43 +1122,26 @@ public class Investments {
                 "2025-05-16", BigDecimal.valueOf(1142),
                 "2025-05-23", BigDecimal.valueOf(11335).movePointLeft(1)
         );
-        final var col2Width = 20;
+        final var col2Width = 25;
         final var col1Width = 9;
-        final var taxAmount
-                = this.series.getInvestments()
-                        .stream()
-                        .filter(Investment::isETF)
-                        .filter(i -> i.getOut() != null)
-                        .map(i -> i.getOut().getMoneyAmount().subtract(this.cost(i)))
-                        //.peek(m -> this.console.appendLine(this.format.currency(m, 20)))
-                        .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
-                        .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
 
-        this.console.appendLine(this.format.text("", col1Width),
-                this.format.currency(taxAmount, col2Width),
-                " ",
-                this.format.percent(taxAmount.amount().divide(netAmountSummary.sold.amount(), C))
-        );
-
-        final var arsTax = this.series.getInvestments()
+        final  var arsCapitalGain = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
                 .filter(i -> i.getOut() != null)
                 .map(i -> this.capitalGainARS(i, bnaFX))
-                .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add)
+                .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add);
+        
+        final var arsTax = arsCapitalGain
                 .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
 
-        this.console.appendLine(this.format.text("", col1Width),
+        this.console.appendLine(this.format.text("Capital Gains", col1Width),
+                this.format.currency(arsCapitalGain,
+                        col2Width));
+        
+        this.console.appendLine(this.format.text("Tax", col1Width),
                 this.format.currency(arsTax,
                         col2Width));
-
-        final var currentTaxAmount = ForeignExchanges.getForeignExchange(Currency.ARS, USD)
-                .exchange(arsTax, USD, LocalDate.now());
-        this.console.appendLine(this.format.text("Current", col1Width),
-                this.format.currency(currentTaxAmount, col2Width),
-                " ",
-                this.format.percent(currentTaxAmount.amount().divide(netAmountSummary.sold.amount(), C))
-        );
 
         this.console.appendLine(this.format.subtitle("Detail"));
 

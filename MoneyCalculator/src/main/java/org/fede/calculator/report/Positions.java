@@ -295,85 +295,8 @@ public class Positions {
                                     .limit(n)
                                     .toList()
                             ))));
-        }
-        final var savings = this.series.currentSavingsUSD();
-
-        this.potentialTaxLine(" Potential Wealth Tax ", taxAmount(savings), savings);
-
-        var futureSavings = savings
-                .add(SeriesReader.readUSD("futureRealState.1"))
-                .add(SeriesReader.readUSD("futureRealState.2"))
-                .add(SeriesReader.readUSD("futureRealState.3"))
-                .add(SeriesReader.readUSD("futureCash"));
-
-        this.potentialTaxLine(" Potential Future Wealth Tax ",
-                taxAmount(futureSavings),
-                futureSavings);
-
-        this.console.appendLine(this.format.subtitle("Post Retirement"));
-
-        var ym = YearMonth.now();
-
-        final var items = this.portfolioItems(null, ym.getYear(), ym.getMonthValue());
-
-        final var currentCash = byAssetClass(items, CASH);
-
-        final var everythingWithoutRent = new Fire(format, series, console)
-                .budgets(12)
-                .everythingWithoutRent();
-
-        final var currentBonds = byAssetClass(items, BONDS);
-
-        final var currentEquity = byAssetClass(items, EQUITY);
-
-        this.console.appendLine("Cash ", this.format.currency(currentCash.amount()));
-        this.console.appendLine("Bonds ", this.format.currency(currentBonds.amount()));
-        this.console.appendLine("Equity ", this.format.currency(currentEquity.amount()));
-
-        this.console.appendLine(this.format.subtitle("Targets"));
-
-        var targetCash = everythingWithoutRent.amount().multiply(BigDecimal.valueOf(24L), C);
-        var targetBonds = everythingWithoutRent.amount().multiply(BigDecimal.valueOf(48L), C);
-
-        this.console.appendLine(
-                "2 years of spending in cash  ",
-                this.format.currency(targetCash),
-                " ",
-                this.format.currencyPL(currentCash.amount().subtract(targetCash, C), 14));
-        this.console.appendLine(
-                "4 years of spending in bonds ",
-                this.format.currency(targetBonds),
-                " ",
-                this.format.currencyPL(currentBonds.amount().subtract(targetBonds, C), 14));
-    }
-
-    private MoneyAmount byAssetClass(List<PortfolioItem> items, AssetClass assetClass) {
-        return items.stream()
-                .filter(i -> assetClass == i.getType())
-                .map(PortfolioItem::getDollarAmount)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
-    }
-
-    private BigDecimal taxAmount(MoneyAmount savings) {
-        final var bbppTaxRate = SeriesReader.readPercent("projected.bbpp.tax");
-        final var bbppMinimum = SeriesReader.readUSD("projected.bbpp.min").amount();
-        final var bbppUsdDiff = SeriesReader.readPercent("projected.bbpp.usddiff");
-
-        return savings.amount()
-                .multiply(BigDecimal.ONE.subtract(bbppUsdDiff))
-                .subtract(bbppMinimum, C)
-                .multiply(bbppTaxRate);
-    }
-
-    private void potentialTaxLine(String title, BigDecimal taxAmount, MoneyAmount savings) {
-        this.console.appendLine("");
-        this.console.appendLine(
-                title,
-                this.format.currency(taxAmount
-                        .divide(BigDecimal.valueOf(12l), C), 8),
-                "/month, ",
-                this.format.percent(taxAmount.divide(savings.amount(), C), 5),
-                " a year.");
+        }       
+       
     }
 
     private void egrReportLine(String title, List<Position> positions) {
@@ -812,7 +735,7 @@ public class Positions {
                         of(CASH, this.lastAmount("ahorros-peso", ym)),
                         of(CASH, this.lastAmount("ahorros-dolar-liq", ym)),
                         of(CASH, this.lastAmount("ahorros-euro", ym)),
-                         of(CASH, this.lastAmount("ahorros-euro-liq", ym)),
+                        of(CASH, this.lastAmount("ahorros-euro-liq", ym)),
                         of(CASH, this.lastAmount("ahorros-dai", ym)),
                         of(EQUITY, this.lastAmount("ahorros-cspx", ym)),
                         of(EQUITY, this.lastAmount("ahorros-eimi", ym)),

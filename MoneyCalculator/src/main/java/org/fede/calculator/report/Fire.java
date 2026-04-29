@@ -27,6 +27,7 @@ import java.time.Period;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -73,8 +74,16 @@ public class Fire {
     }
 
     private MoneyAmount futureHealth() {
+        return this.health("futureHealth");
+    }
+
+    private MoneyAmount currentHealth() {
+        return this.health("currentHealth");
+    }
+
+    private MoneyAmount health(String price) {
         final var ars = new MoneyAmount(
-                SeriesReader.readBigDecimal("futureHealth")
+                SeriesReader.readBigDecimal(price)
                         .multiply(BigDecimal.TWO, C)
                         .multiply(BigDecimal.valueOf(121).movePointLeft(2), C),
                 Currency.ARS);
@@ -101,48 +110,42 @@ public class Fire {
         this.console.appendLine(this.format.subtitle(months + "-Month Average Spending"));
 
         final var futureHealth = this.futureHealth();
+        final var currentHealth = this.currentHealth();
         final var futureRent = SeriesReader.readUSD("futureRent");
 
         final var currentlyEstimated = this.currentlyEstimatedSavings();
+        final var currentCash = this.series.realSavings("LIQ").getAmount(YearMonth.now())
+                .add(currentlyEstimated);
+        final var futureCash = currentCash.add(SeriesReader.readUSD("futureCash"));
 
         this.conceptLine("Essential", essential);
         this.conceptLine("Other", other);
-        this.conceptLine("Future Rent", futureRent);
-        this.conceptLine("Future Health Cost", futureHealth);
+        if (!futureRent.isZero()) {
+            this.conceptLine("Future Rent", futureRent);
+        }
+        this.conceptLine("Current Health Cost", currentHealth);
+        this.conceptLine("  => Future Health Cost", futureHealth);
         this.conceptLine("Discretionary", discretionary);
         this.conceptLine("Irregular", irregular);
-        this.conceptLine("Current Savings", totalSavings);
-        this.conceptLine("Current Estimated", currentlyEstimated);
-        this.conceptLine("Future Estimated", expectedFutureIncome);
 
-        this.console.appendLine(
-                this.format.text("Capital Gains", 20),
-                this.format.percent(capitalGainsTaxRate, 6));
+        this.console.appendLine(this.format.subtitle("Savings"));
+
+        this.conceptLine("Current", totalSavings);
+        this.conceptLine("  => Current Estimated", currentlyEstimated);
+        this.conceptLine("  => Future", expectedFutureIncome);
+
+        this.console.appendLine(this.format.subtitle("Income"));
+        this.conceptLine("  => Future Pension DCF", new Pension().discountedCashFlowValue());
 
         this.console.appendLine(this.format.subtitle("Portfolio Size by Spending and Withdrawal Percent"));
 
-        this.conceptLine("Curr. " + months + " months", budgets.current(), "❌");
-        this.conceptLine("Essential - Rent", budgets.essentialWithoutRent(), "✅");
-        this.conceptLine("Everything - Rent", budgets.everythingWithoutRent(), "✅✅");
-        if (!futureRent.isZero()) {
-            this.conceptLine("Essential + Rent", budgets.essentialWithRent(), "✅✅");
-            this.conceptLine("Everything + Rent", budgets.everythingWithRent(), "✅✅✅");
-        }
         this.console.appendLine("");
-
-        final var currentCash = this.series.realSavings("LIQ").getAmount(YearMonth.now())
-                .add(currentlyEstimated);
-
-        final var futureCash = currentCash.add(SeriesReader.readUSD("futureCash"));
 
         final var sales1 = SeriesReader.readUSD("futureRealState.1");
         final var sales2 = SeriesReader.readUSD("futureRealState.2");
         final var sales3 = SeriesReader.readUSD("futureRealState.3");
 
-        final var spending = essential
-                .add(discretionary)
-                .add(other)
-                .add(this.futureHealth());
+        final var spending = budgets.currentWithHealth();
 
         this.console.appendLine("Spending ", this.format.currency(spending, 12));
         this.coveredCashLine("Metals", currentlyEstimated, spending, false);
@@ -151,6 +154,19 @@ public class Fire {
         this.coveredCashLine("Near future sales", futureCash.add(sales1), spending, false);
         this.coveredCashLine("Future sales", futureCash.add(sales1).add(sales2), spending, false);
         this.coveredCashLine("All sales", futureCash.add(sales1).add(sales2).add(sales3), spending, false);
+
+        final var unlp = this.series.incomeSource("unlp");
+        var initialMonth = unlp.yearMonthStream().filter(ym -> !unlp.getAmountOrElseZero(ym).isZero())
+                .findFirst()
+                .get();
+        var worked = initialMonth.until(YearMonth.now(), ChronoUnit.MONTHS);
+        this.console.appendLine(MessageFormat.format(
+                "Worked since {3} {0} years and {1} months. {2} months left.",
+                Math.floorDiv(worked, 12),
+                Math.floorMod(worked, 12),
+                360L - worked,
+                initialMonth.toString())
+        );
 
         this.console.appendLine(this.format.subtitle("Failsafe Around Prominent Market Peaks"));
 
@@ -205,6 +221,16 @@ public class Fire {
                                 withGrowth,
                                 withGrowthAndIncome,
                                 farAway));
+
+        this.conceptLine("Current Avg. " + months + " months", budgets.current(), "❌");
+        this.conceptLine("Current + Health - CGT", budgets.currentWithHealth(), "✅");
+        this.conceptLine("Essential", budgets.essentialWithoutRent(), "✅");
+        this.conceptLine("Everything", budgets.everythingWithoutRent(), "✅✅");
+        if (!futureRent.isZero()) {
+            this.conceptLine("Essential + Rent", budgets.essentialWithRent(), "✅✅");
+            this.conceptLine("Everything + Rent", budgets.everythingWithRent(), "✅✅✅");
+        }
+
     }
 
     private void coveredCashLine(String name, MoneyAmount amount, MoneyAmount essential) {
@@ -297,7 +323,11 @@ public class Fire {
                 adjustforCapitalGains(everythingWithoutRent, capitalGainsTaxRate, costBasisPct),
                 adjustforCapitalGains(Stream.of(essential, discretionary, irregular, other)
                         .reduce(MoneyAmount.zero(USD), MoneyAmount::add),
-                        capitalGainsTaxRate, costBasisPct));
+                        capitalGainsTaxRate, costBasisPct),
+                essential
+                        .add(this.currentHealth())
+                        .add(discretionary)
+                        .add(other));
     }
 
     private MoneyAmount adjustforCapitalGains(
@@ -491,9 +521,7 @@ public class Fire {
         } else {
             ss = List.of(
                     this.fireSeries("Essential", budgets.essentialWithoutRent()),
-                    // this.fireSeries("Essential+Rent", budgets.essentialWithRent()),
                     this.fireSeries("Everything", budgets.everythingWithoutRent()),
-                    //this.fireSeries("Everything+Rent", budgets.everythingWithRent()),
                     this.fireSeries("Curr. Spending", budgets.current()));
         }
         this.fireChart(ss,
