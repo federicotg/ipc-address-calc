@@ -17,6 +17,7 @@
 package org.fede.calculator.chart;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.jfree.data.time.Day;
@@ -31,22 +32,38 @@ public class ChartSeriesMapper {
 
     public static TimeSeries asTimeSeries(List<TimeSeriesDatapoint> series, String name) {
         final TimeSeries ts = new TimeSeries(name);
-
-        series.stream().forEach(dp -> ts.add(day(dp.ym().atEndOfMonth()), dp.value()));
+        final var nextMonth = YearMonth.now().plusMonths(1);
+        series.stream().forEach(dp -> {
+            if (dp.ym().isBefore(nextMonth)) {
+                ts.add(day(dp.ym().atEndOfMonth()), dp.value());
+            }
+        });
         return ts;
     }
 
     public static TimeSeries asTimeSeries(MoneyAmountSeries series) {
+        final var nextMonth = YearMonth.now().plusMonths(1);
+
         final TimeSeries ts = new TimeSeries(series.getName());
-        series.forEach((ym, ma) -> ts.add(day(ym.atEndOfMonth()), ma.amount()));
+        series.forEach((ym, ma) -> {
+            if (ym.isBefore(nextMonth)) {
+                ts.add(day(ym.atEndOfMonth()), ma.amount());
+            }
+        });
         return ts;
     }
 
     public static TimeTableXYDataset asTimeTableXYDataset(List<MoneyAmountSeries> series) {
         var dataset = new TimeTableXYDataset();
+        final var nextMonth = YearMonth.now().plusMonths(1);
 
         for (var s : series) {
-            s.forEach((ym, ma) -> dataset.add(day(ym.atEndOfMonth()), ma.amount(), s.getName(), false));
+            s.forEach((ym, ma) -> {
+                if (ym.isBefore(nextMonth)) {
+                    dataset.add(day(ym.atEndOfMonth()), ma.amount(), s.getName(), false);
+                }
+            }
+            );
         }
 
         return dataset;

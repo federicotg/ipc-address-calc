@@ -295,8 +295,8 @@ public class Positions {
                                     .limit(n)
                                     .toList()
                             ))));
-        }       
-       
+        }
+
     }
 
     private void egrReportLine(String title, List<Position> positions) {
@@ -672,10 +672,26 @@ public class Positions {
                         .add(usaAmount, C)
                         .add(emergingAmount, C));
 
+        final var metals = new PieItem(
+                "Metals",
+                SeriesReader.readUSD("xau")
+                        .adjust(
+                                BigDecimal.TWO,
+                                SeriesReader.readBigDecimal("currentGoldTrOz")
+                                        .multiply(BigDecimal.valueOf(75)
+                                                .movePointLeft(2),
+                                                C))
+                        .amount());
+
         chart.create(
                 title,
                 List.of(cash, equity),
                 MessageFormat.format("p-asset-class-{1}-{0}", monthString, type));
+
+        chart.create(
+                title,
+                List.of(cash, equity, metals),
+                MessageFormat.format("p-asset-class2-{1}-{0}", monthString, type));
 
         final var sp500 = new PieItem(
                 "S&P 500",

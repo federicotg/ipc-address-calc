@@ -50,7 +50,6 @@ import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.XRSU;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.chart.ChartStyle;
-import org.fede.calculator.chart.PieChart;
 import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.TimeSeriesChart;
 import org.fede.calculator.chart.ValueFormat;
@@ -189,9 +188,6 @@ public class ConsoleReports {
 
             case "savings-dist-pct" ->
                 new Savings(format, series, bar, console)::savingsDistributionPercentEvolution;
-
-            case "saved-salaries-evo" ->
-                () -> me.averageSavedSalaries(args, "saved-salaries-evo");
 
             case "income" ->
                 () -> me.income(args);
@@ -388,7 +384,6 @@ public class ConsoleReports {
                 new CmdParam("inv-evo-pct", "curency=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                 new CmdParam("invested", "type=(long*|all|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all) nominal=false"),
                 new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false"),
-                new CmdParam("saved-salaries-evo", "months=12"),
                 new CmdParam("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
                 new CmdParam("income-evo", "months=12 ars=false"),
                 new CmdParam("bbpp", "year=yyyy"),
@@ -417,7 +412,7 @@ public class ConsoleReports {
 
     private static void handleCommand(String[] args, ConsoleReports me, Format format, Bar bar, Series series, Console console) throws IOException {
 
-        final var st = System.nanoTime();
+        //final var st = System.nanoTime();
         final var params = Arrays.stream(args)
                 .map(String::toLowerCase)
                 .collect(toSet());
@@ -429,7 +424,7 @@ public class ConsoleReports {
             getAction(args, me, format, bar, series, console).run();
             me.appendLine("");
         }
-        console.appendLine(MessageFormat.format("{0}ms", (System.nanoTime() - st) / 1_000_000.0d));
+        //console.appendLine(MessageFormat.format("{0}ms", (System.nanoTime() - st) / 1_000_000.0d));
         console.printReport();
 
     }
@@ -717,11 +712,6 @@ public class ConsoleReports {
                 .bbpp(Integer.parseInt(params.getOrDefault("year", SeriesReader.readEnvironment().getProperty("bbpp.year"))));
     }
 
-    private void averageSavedSalaries(String[] args, String name) {
-        new Savings(format, series, bar, console)
-                .averageSavedSalaries(months(this.paramsValue(args, name)));
-    }
-
     private void monthlySavings(String[] args, String name) {
         new Savings(format, series, bar, console)
                 .monthlySavings(months(this.paramsValue(args, name)));
@@ -904,7 +894,6 @@ public class ConsoleReports {
         final var otherEur = agg.sum(this.series.incomeSource("other-eur"));
         otherEur.setName("Other €");
 
-        
         final var otherARS = agg.sum(this.series.incomeSource("other-ars"));
         otherARS.setName("Other ARS");
 
@@ -1067,33 +1056,45 @@ public class ConsoleReports {
     }
 
     private TimeSeries portfolioSpendingSeries(
+            String prefix,
             int months,
             MoneyAmountSeries savings,
             MoneyAmountSeries expenses) {
-        var averageSpenses = new SlidingWindow(months).average(expenses);
-        List<TimeSeriesDatapoint> s = new ArrayList<>();
+        final var averageSpenses = new SlidingWindow(months).average(expenses);
+        final List<TimeSeriesDatapoint> s = new ArrayList<>();
 
-        var monthsInAYear = BigDecimal.valueOf(12l);
+        final var monthsInAYear = BigDecimal.valueOf(12l);
         var ym = YearMonth.of(2015, 1);
         while (ym.compareTo(savings.getTo()) <= 0) {
             s.add(
                     new TimeSeriesDatapoint(
                             ym,
-                            averageSpenses.getAmount(ym).amount()
+                            averageSpenses
+                                    .getAmount(ym)
+                                    .amount()
                                     .multiply(monthsInAYear, MathConstants.C)
                                     .divide(savings.getAmount(ym).amount(), MathConstants.C)));
             ym = ym.plusMonths(1);
         }
-        return ChartSeriesMapper.asTimeSeries(s, "Avg. " + months + "-month");
+        return ChartSeriesMapper.asTimeSeries(s, prefix + " Avg. " + months + "-month");
     }
 
     private void averageSpendingPortfolioPercent() {
 
-        MoneyAmountSeries savings = this.series.realSavings(null);
+        final MoneyAmountSeries savings = this.series.realSavings(null);
 
-        MoneyAmountSeries expenses = this.series.getRealUSDExpensesByType()
+        final MoneyAmountSeries actualExpenses = this.series.getRealUSDExpensesByType()
                 .values()
                 .stream()
+                .flatMap(Collection::stream)
+                .reduce(MoneyAmountSeries::add)
+                .get();
+
+        final MoneyAmountSeries regularExpenses = this.series.getRealUSDExpensesByType()
+                .entrySet()
+                .stream()
+                .filter(e -> !e.getKey().equals(Series.IRREGULAR))
+                .map(Map.Entry::getValue)
                 .flatMap(Collection::stream)
                 .reduce(MoneyAmountSeries::add)
                 .get();
@@ -1101,13 +1102,20 @@ public class ConsoleReports {
         new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
                 .createFromTimeSeries("Portfolio Spending",
                         List.of(
-                                //this.portfolioSpendingSeries(6, savings, expenses),
-                                this.portfolioSpendingSeries(12, savings, expenses),
-                                this.portfolioSpendingSeries(18, savings, expenses),
-                                this.portfolioSpendingSeries(24, savings, expenses),
-                                this.portfolioSpendingSeries(36, savings, expenses)
+                                this.portfolioSpendingSeries("Actual", 12, savings, actualExpenses),
+                                this.portfolioSpendingSeries("Actual", 18, savings, actualExpenses),
+                                this.portfolioSpendingSeries("Actual", 24, savings, actualExpenses),
+                                this.portfolioSpendingSeries("Actual", 36, savings, actualExpenses)
                         ),
                         "portfolio-spending");
+
+        new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
+                .createFromTimeSeries("Portfolio Regular Spending",
+                        List.of(
+                                this.portfolioSpendingSeries("Actual", 12, savings, actualExpenses),
+                                this.portfolioSpendingSeries("Regular", 12, savings, regularExpenses)
+                        ),
+                        "portfolio-regular-spending");
 
     }
 
@@ -1124,7 +1132,7 @@ public class ConsoleReports {
         RebalancingReport.equity(format, series, console)
                 .sell(new MoneyAmount(usd, USD), allowOversell, detail);
     }
-    
+
     private void inflation() {
 
         var inflation = new CPIInflation(

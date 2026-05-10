@@ -17,6 +17,7 @@
 package org.fede.calculator.report;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.time.Month;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
@@ -45,11 +46,77 @@ public class Pension {
 
     public MoneyAmount discountedCashFlowValue() {
 
+        final var now = YearMonth.now();
+
         final var futurePension = ForeignExchanges.getForeignExchange(Currency.ARS, USD)
-                        .exchange(
-                                new MoneyAmount(
-                                        SeriesReader.readBigDecimal("goal.pension"), Currency.ARS),
-                                USD, YearMonth.now());
+                .exchange(
+                        new MoneyAmount(
+                                SeriesReader.readBigDecimal("goal.pension"), Currency.ARS),
+                        USD,
+                        now);
+
+        final int retirementAge = SeriesReader.readInt("goal.retirement");
+        final int maxAge = SeriesReader.readInt("goal.maxage");
+        final var dob = SeriesReader.readDate("dob");
+
+        // Monthly pension → yearly (13 payments)
+        final BigDecimal yearlyPension = futurePension.amount()
+                .multiply(BigDecimal.valueOf(13));
+
+        // Real discount rate (must be consistent with pension being in real USD)
+        final BigDecimal r = SeriesReader.readPercent("pensionDiscountRate");
+
+        // Precise time handling (fractional years)
+        final double yearsToRetire = monthsBetween(now, YearMonth.from(dob).plusYears(retirementAge)) / 12.0;
+        final int yearsInRetirement = maxAge - retirementAge;
+
+        if (yearsInRetirement <= 0) {
+            return new MoneyAmount(BigDecimal.ZERO, USD);
+        }
+
+        final MathContext mc = MathContext.DECIMAL64;
+
+        final BigDecimal one = BigDecimal.ONE;
+        final BigDecimal onePlusR = one.add(r, mc);
+
+        // (1 + r)^(-T)
+        final BigDecimal discountToRetirement
+                = BigDecimal.valueOf(Math.pow(onePlusR.doubleValue(), -yearsToRetire));
+
+        // (1 + r)^(-N)
+        final BigDecimal discountOverRetirement
+                = BigDecimal.valueOf(Math.pow(onePlusR.doubleValue(), -yearsInRetirement));
+
+        final BigDecimal annuityFactor;
+
+        if (r.compareTo(BigDecimal.ZERO) == 0) {
+            // Edge case: zero discount rate
+            annuityFactor = BigDecimal.valueOf(yearsInRetirement);
+        } else {
+            // (1 - (1+r)^(-N)) / r
+            annuityFactor = one.subtract(discountOverRetirement, mc)
+                    .divide(r, mc);
+        }
+
+        final BigDecimal pv = yearlyPension
+                .multiply(annuityFactor, mc)
+                .multiply(discountToRetirement, mc);
+
+        return new MoneyAmount(pv, USD);
+    }
+
+    private static long monthsBetween(YearMonth start, YearMonth end) {
+        return (end.getYear() - start.getYear()) * 12L
+                + (end.getMonthValue() - start.getMonthValue());
+    }
+
+    private MoneyAmount discountedCashFlowValueOld() {
+
+        final var futurePension = ForeignExchanges.getForeignExchange(Currency.ARS, USD)
+                .exchange(
+                        new MoneyAmount(
+                                SeriesReader.readBigDecimal("goal.pension"), Currency.ARS),
+                        USD, YearMonth.now());
         final var retirementAge = SeriesReader.readInt("goal.retirement");
         final var maxAge = SeriesReader.readInt("goal.maxage");
         final var dob = SeriesReader.readDate("dob");

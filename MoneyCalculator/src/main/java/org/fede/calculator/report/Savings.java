@@ -741,19 +741,6 @@ public class Savings {
                 120);
     }
 
-    public void averageSavedSalaries(int months) {
-
-        final var title = format("Average {0}-month real USD saved salaries", months);
-        this.console.appendLine(this.format.title(title));
-
-        final var savings = this.series.realSavings(null);
-        final var income = new SlidingWindow(months).average(this.series.realRegularIncome());
-
-        this.bar.evolution(title,
-                income.map((ym, ma) -> new MoneyAmount(savings.getAmountOrElseZero(ym).amount().divide(ONE.max(ma.amount()), C), ma.currency())),
-                2);
-    }
-
     public void incomeAverageEvolution(int months, boolean ars) {
         this.console.appendLine(this.format.title(format("Average {0}-month income evolution", months)));
 

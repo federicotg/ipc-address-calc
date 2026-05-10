@@ -33,6 +33,7 @@ import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import java.time.YearMonth;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 import org.fede.calculator.money.SlidingWindow;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
@@ -103,9 +104,9 @@ public class Expenses {
         };
 
         new By().by(
-                params, 
-                this::quarterExpenses, 
-                this::halfExpenses, 
+                params,
+                this::quarterExpenses,
+                this::halfExpenses,
                 this::yearlyExpenses,
                 this::monthlyExpenses,
                 otherwise);
@@ -195,11 +196,25 @@ public class Expenses {
                 20;
         };
 
+        final var nextMonth = YearMonth.now().plusMonths(1);
+
         oldestSeries.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, ss, colorList), scale)));
+                //.forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, ss, colorList), scale)));
+                .forEach((ym, savingMa)
+                        -> this.printIf(
+                        currentYm -> currentYm.isBefore(nextMonth),
+                        () -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, ss, colorList), scale)),
+                        ym)
+                );
 
         new References(console, format).refs(title, labels, colorList);
 
+    }
+
+    private void printIf(Predicate<YearMonth> condition, Runnable action, YearMonth ym) {
+        if (condition.test(ym)) {
+            action.run();;
+        }
     }
 
     private List<AmountAndColor> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
@@ -243,8 +258,7 @@ public class Expenses {
 
     private MoneyAmountSeries realKnownCCSpending(YearMonth seriesStart) {
         var knownCCSpending = new SortedMapMoneyAmountSeries(Currency.USD, "Known Credit Card");
-        
-        
+
         SeriesReader.readSeries("expense/other-usd.json")
                 .add(SeriesReader.readSeries("expense/cablevision.json"))
                 .add(SeriesReader.readSeries("expense/comida-disc.json"))

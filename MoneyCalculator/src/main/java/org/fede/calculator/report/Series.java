@@ -74,6 +74,8 @@ public class Series {
     private MoneyAmountSeries realNetSavings;
 
     private MoneyAmountSeries realIncome;
+    private MoneyAmountSeries realRegularIncome;
+
     private MoneyAmountSeries realExpense;
 
     private MoneyAmountSeries realOtherExpenses;
@@ -168,8 +170,7 @@ public class Series {
             otherSpending.setName("Other spending");
             this.realOtherExpenses = otherSpending;
 
-            this.realUSDExpensesByType.put(OTHER, List.of(this.realOtherExpenses)
-            );
+            this.realUSDExpensesByType.put(OTHER, List.of(this.realOtherExpenses));
         }
 
         return realUSDExpensesByType;
@@ -315,13 +316,13 @@ public class Series {
     }
 
     public MoneyAmountSeries realRegularIncome() {
-        if (this.realIncome == null) {
-            this.realIncome = this.getRegularIncomeSeries()
+        if (this.realRegularIncome == null) {
+            this.realRegularIncome = this.getRegularIncomeSeries()
                     .stream()
                     .reduce(MoneyAmountSeries::add)
                     .get();
         }
-        return this.realIncome;
+        return this.realRegularIncome;
     }
 
     public MoneyAmountSeries realNetSavings() {
