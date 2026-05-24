@@ -185,38 +185,15 @@ public class Positions {
                 this.format.currencyPL(totalPnL.amount(), pnlWidth),
                 this.format.percent(totalPnL.amount().divide(totalCostBasis.amount(), C), pnlPctWidth)));
 
-        var iva = SeriesReader.readPercent("iva").add(ONE);
-
-        final var realizedList = this.series.getInvestments()
+        final var realized = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
                 .filter(investment -> investment.getOut() != null)
-                .map(inv -> ForeignExchanges.exchange(inv, USD))
-                .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
-                .map(i
-                        -> new BoughtSold(
-                        i.getInitialMoneyAmount()
-                                .add(i.getIn().getFeeMoneyAmount()
-                                        .adjust(ONE, i.getComment() == null
-                                                ? iva
-                                                : ONE)),
-                        i.getOut().getMoneyAmount()))
-                .toList();
-
-        final var realized = realizedList
-                .stream()
-                .map(BoughtSold::capitalGain)
+                .map(i -> this.capitalGain(i, nominal))
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
-        final var realizedInvested = realizedList.stream()
-                .map(BoughtSold::bought)
-                .map(MoneyAmount::amount)
-                .reduce(ZERO, BigDecimal::add);
-
-        final var gainPct = realized.amount().divide(realizedInvested, C);
-
-        this.console.appendLine(MessageFormat.format(" Realized {0} {1}", this.format.currencyPL(
-                realized.amount(), 104), this.format.percent(gainPct, 8)));
+        this.console.appendLine(MessageFormat.format(
+                " Realized {0}", this.format.currencyPL(realized.amount(), 104)));
 
         this.console.appendLine(MessageFormat.format(" Total {0}", this.format.currencyPL(
                 realized.add(totalPnL).amount(), 107)));
@@ -296,7 +273,24 @@ public class Positions {
                                     .toList()
                             ))));
         }
+    }
 
+    private MoneyAmount capitalGain(Investment i, boolean nominal) {
+
+        var bought = i.getIn().getFx() != null
+                ? new MoneyAmount(i.getInitialMoneyAmount().amount().multiply(i.getIn().getFx(), C), USD)
+                : i.getInitialMoneyAmount();
+
+        var sold = i.getOut().getFx() != null
+                ? new MoneyAmount(i.getOut().getMoneyAmount().amount().multiply(i.getOut().getFx(), C), USD)
+                : i.getOut().getMoneyAmount();
+
+        return nominal
+                ? sold.subtract(bought)
+                : Inflation.USD_INFLATION.adjust(
+                        sold.subtract(bought),
+                        i.getOut().getDate(),
+                        LocalDate.now());
     }
 
     private void egrReportLine(String title, List<Position> positions) {
@@ -331,13 +325,6 @@ public class Positions {
                 .stream()
                 .map(Position::getCostBasis)
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
-    }
-
-    private record BoughtSold(MoneyAmount bought, MoneyAmount sold) {
-
-        public MoneyAmount capitalGain() {
-            return this.sold.subtract(bought);
-        }
     }
 
     public void dca(boolean nominal, String type) {

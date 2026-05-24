@@ -1125,13 +1125,13 @@ public class Investments {
         final var col2Width = 25;
         final var col1Width = 9;
 
-        final  var arsCapitalGain = this.series.getInvestments()
+        final var arsCapitalGain = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
                 .filter(i -> i.getOut() != null)
                 .map(i -> this.capitalGainARS(i, bnaFX))
                 .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add);
-        
+
         final var arsTax = arsCapitalGain
                 .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
 
@@ -1139,6 +1139,30 @@ public class Investments {
                 this.format.currency(arsCapitalGain,
                         col2Width));
         
+        final var country = Map.of(
+                MEUD, "Luxemburg",
+                MEUS, "Luxemburg"
+                );
+        
+        Map<String, MoneyAmount> byCountry = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .filter(i -> i.getOut() != null)
+                .collect(Collectors.groupingBy(
+                        i -> country.getOrDefault(i.getCurrency(), "Ireland"), 
+                        Collectors.reducing(
+                                MoneyAmount.zero(Currency.ARS), 
+                                i->this.capitalGainARS(i, bnaFX),
+                                MoneyAmount::add)
+                        ));
+        
+        this.console.appendLine(this.format.text("Ireland", col1Width),
+                this.format.currency(byCountry.get("Ireland"),col2Width));
+        
+        this.console.appendLine(this.format.text("Luxemburg", col1Width),
+                this.format.currency(byCountry.get("Luxemburg"),col2Width));
+        
+
         this.console.appendLine(this.format.text("Tax", col1Width),
                 this.format.currency(arsTax,
                         col2Width));
@@ -1557,55 +1581,7 @@ public class Investments {
         return projection.getAmount(projection.getTo());
 
     }
-
-    public void projection(MoneyAmount savings) {
-
-        final var expectedReturn = this.cagr()
-                .doubleValue();
-
-        final var expectedVolatility = SeriesReader.readPercent("futureVolatility").doubleValue();
-
-        final var portfolio = this.portfolioValue(false, Investment::isETF);
-
-        final var presentValue = portfolio.getAmount(portfolio.getTo());
-
-        final var years = SeriesReader.readInt("retirementHorizon");
-
-        final var p10 = this.predictedValues(
-                portfolio.getTo(),
-                years,
-                0.1d,
-                presentValue,
-                expectedReturn,
-                expectedVolatility, savings);
-
-        final var p50 = this.predictedValues(
-                portfolio.getTo(),
-                years,
-                0.5d,
-                presentValue,
-                expectedReturn,
-                expectedVolatility, savings);
-
-        final var p90 = this.predictedValues(
-                portfolio.getTo(),
-                years,
-                0.9d,
-                presentValue,
-                expectedReturn,
-                expectedVolatility, savings);
-
-        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
-                .create("Future Return Saving " + this.format.currency(savings.amount()),
-                        List.of(portfolio,
-                                p10,
-                                p50,
-                                p90),
-                        "future" + (savings.isZero()
-                        ? "-with-0"
-                        : "-with-" + savings.amount().intValue()));
-    }
-
+    
     private MoneyAmountSeries predictedValues(
             YearMonth start,
             int years,

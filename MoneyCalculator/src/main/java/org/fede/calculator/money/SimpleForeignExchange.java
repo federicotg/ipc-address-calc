@@ -107,19 +107,6 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
     }
 
     @Override
-    public MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) {
-
-        final MoneyAmountSeries answer = new SortedMapMoneyAmountSeries(targetCurrency, targetCurrency.name() + " series");
-
-        for (YearMonth ym = this.getFrom(); !ym.isAfter(this.getTo()); ym = ym.plusMonths(1)) {
-            answer.putAmount(ym, this.exchange(amount, targetCurrency, ym));
-        }
-
-        return answer;
-
-    }
-
-    @Override
     public Currency getTargetCurrency() {
         return targetCurrency;
     }

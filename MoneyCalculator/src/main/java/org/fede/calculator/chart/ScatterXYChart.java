@@ -25,7 +25,6 @@ import java.text.DateFormat;
 import java.text.Format;
 import java.text.NumberFormat;
 import java.util.List;
-import org.fede.calculator.money.Currency;
 import static org.fede.calculator.chart.ValueFormat.DATE;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
@@ -77,18 +76,17 @@ public class ScatterXYChart {
     public void create(
             String chartName,
             String chartSubtitle,
-            //Currency currency2,
             List<XYSeries> series,
             String xLabel,
             String yLabel,
             RectangleEdge legendPosition,
             String filename) {
 
-        XYSeriesCollection dataset = new XYSeriesCollection();
+        final XYSeriesCollection dataset = new XYSeriesCollection();
         for (var s : series) {
             dataset.addSeries(s);
         }
-        JFreeChart chart = ChartFactory.createScatterPlot(
+        final JFreeChart chart = ChartFactory.createScatterPlot(
                 chartName,
                 xLabel,
                 yLabel,
@@ -101,14 +99,14 @@ public class ScatterXYChart {
             t.setFont(this.font);
             chart.addSubtitle(t);
         }
-        var xyPlot = chart.getXYPlot();
+        final var xyPlot = chart.getXYPlot();
         xyPlot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
         xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
         xyPlot.setRangeGridlinePaint(Color.BLACK);
         xyPlot.setDomainGridlinePaint(Color.BLACK);
 
-        Format valueFormatterX = this.styleX.valueFormat().format();
-        Format valueFormatterY = this.styleY.valueFormat().format();
+        final Format valueFormatterX = this.styleX.valueFormat().format();
+        final Format valueFormatterY = this.styleY.valueFormat().format();
 
         if (this.styleY.scale() == Scale.LOG) {
             xyPlot.setRangeAxis(new LogarithmicAxis(yLabel));
@@ -137,7 +135,7 @@ public class ScatterXYChart {
         xyPlot.getDomainAxis().setLabelFont(this.font);
         xyPlot.getDomainAxis().setTickLabelFont(this.font);
 
-        var renderer = xyPlot.getRenderer();
+        final var renderer = xyPlot.getRenderer();
 
         renderer.setDefaultItemLabelGenerator((XYDataset dataset1, int seriesIndex, int itemIndex) -> {
             XYDataItem item = ((XYSeriesCollection) dataset1).getSeries(seriesIndex).getDataItem(itemIndex);

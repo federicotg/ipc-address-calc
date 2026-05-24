@@ -966,28 +966,13 @@ public class ConsoleReports {
             savings.spendingByYear();
             inv.savedAndInvestedChart();
             inv.investmentsByClassChart();
-
-            inv.projection(MoneyAmount.zero(USD));
-            inv.projection(SeriesReader.readUSD("futureSavingsByYear"));
-            inv.projection(SeriesReader.readUSD("futureSavingsByYear2"));
             fire.fireChartFuture();
             fire.fireChartBudgets(12);
             fire.fireChartBudgets(24);
             savings.savingRate(12);
             savings.savingRate(24);
             savings.savingRate(6);
-            inv.investmentScatterChart(Currency.CSPX);
-            inv.investmentScatterChart(Currency.SXR8);
-            inv.investmentScatterChart(Currency.MEUD);
-            inv.investmentScatterChart(Currency.MEUS);
-            inv.investmentScatterChart(Currency.XRSU);
-            inv.investmentScatterChart(Currency.EIMI, ValueFormat.CURRENCY_DECIMALS);
-            inv.investmentScatterChart(Currency.EMIM, ValueFormat.CURRENCY_DECIMALS);
-            inv.investmentScatterChart(Currency.XUSE, ValueFormat.CURRENCY_DECIMALS);
-            inv.investmentScatterChart(Currency.RTWO);
-            inv.investmentScatterChart(Currency.RTWOE);
             this.averageSpendingPortfolioPercent();
-            //this.averageIncomePortfolioPercent();
             this.inflation();
             inv.benchmarks();
 

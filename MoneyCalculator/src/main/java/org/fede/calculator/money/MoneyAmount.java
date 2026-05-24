@@ -49,7 +49,7 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
     }
 
     public MoneyAmount exchange(Currency newCurrency, BigDecimal exchangeRate) {
-        if (this.isZero()) {
+        if (exchangeRate == null || this.isZero()) {
             return MoneyAmount.zero(newCurrency);
         }
         return new MoneyAmount(this.amount.multiply(exchangeRate, MathConstants.C), newCurrency);

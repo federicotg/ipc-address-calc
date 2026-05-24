@@ -74,11 +74,6 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
     }
 
     @Override
-    public MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency) {
-        return this.second.exchange(this.first.exchange(amount, this.getFirstTargetCurrency(amount.currency())), targetCurrency);
-    }
-
-    @Override
     public Currency getTargetCurrency() {
         return this.second.getTargetCurrency();
     }

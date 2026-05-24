@@ -44,19 +44,6 @@ public interface ForeignExchange extends Series {
      */
     MoneyAmountSeries exchange(MoneyAmountSeries series, Currency targetCurrency);
 
-    /**
-     * Convierte el money amount especificado en la serie de valores donde en
-     * valor en cada fecha es la conversión según el tipo de cambio de la fecha.
-     * Útil para saber la evolución de un valor nominal según el tipo de cambio
-     * en diferentes momentos.
-     *
-     * @param amount
-     * @param targetCurrency
-     * @return
-     * @throws NoSeriesDataFoundException
-     */
-    MoneyAmountSeries exchange(MoneyAmount amount, Currency targetCurrency);
-
     Currency getTargetCurrency();
 
     Currency getSourceCurrency();
