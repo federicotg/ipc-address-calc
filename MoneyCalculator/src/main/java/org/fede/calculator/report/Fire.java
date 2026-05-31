@@ -123,7 +123,7 @@ public class Fire {
                 .add(currentlyEstimated);
         final var futureCash = currentCash
                 .add(readUSD("futureCash.1"))
-                .add(this.severance())
+                .add(this.severance().getTotal())
                 .add(readUSD("futureCash.3"));
 
         this.conceptLine("Essential", essential);
@@ -166,7 +166,7 @@ public class Fire {
         this.coveredCashLine("Metals", currentlyEstimated, budgets.currentWithHealth(), false);
         this.coveredCashLine("Current cash", currentCash, budgets.currentWithHealth());
         this.coveredCashLine("Current cash & sev.", currentCash
-                .add(this.severance()), budgets.currentWithHealth(), false);
+                .add(this.severance().getTotal()), budgets.currentWithHealth(), false);
         this.console.appendLine("");
         this.coveredCashLine("Future cash", futureCash, budgets.currentWithHealth());
         this.coveredCashLine("Near future sales", futureCash.add(sales1), budgets.currentWithHealth(), false);
@@ -179,12 +179,18 @@ public class Fire {
                 .findFirst()
                 .get();
         final var worked = initialMonth.until(YearMonth.now(), ChronoUnit.MONTHS);
+
+        final BigDecimal[] result = BigDecimal.valueOf((30L * 12L) - worked)
+                .divideAndRemainder(BigDecimal.valueOf(12L));
+
         this.console.appendLine(MessageFormat.format(
-                "Worked since {3} {0} years and {1} months. {2} months left.",
+                "Worked since {3} {0} years and {1} months. {2} months left ({4} years and {5} months).",
                 Math.floorDiv(worked, 12),
                 Math.floorMod(worked, 12),
                 (30L * 12L) - worked,
-                initialMonth.toString())
+                initialMonth.toString(),
+                result[0],
+                result[1])
         );
 
         this.currentSustainableARS(
@@ -193,7 +199,7 @@ public class Fire {
 
         this.currentSustainableARS(
                 "  => With Sev.",
-                totalSavingAndMetals.add(this.severance()));
+                totalSavingAndMetals.add(this.severance().getTotal()));
 
         this.console.appendLine(MessageFormat.format(
                 "Current Spending {0}",
@@ -246,13 +252,6 @@ public class Fire {
                 ))
                 .forEach(this.console::appendLine);
 
-        //new References(console, format)
-        //        .refsLabels(
-        //                List.of("Savings", "Savings+Current", "Savings+Current+Future", "Far Away"),
-        //                List.of(alreadyThere,
-        //                        withGrowth,
-        //                        withGrowthAndIncome,
-        //                        farAway));
         this.conceptLine("Current Avg. " + months + " months", budgets.current(), "❌");
         this.conceptLine("Current + Health - CGT", budgets.currentWithHealth(), "✅");
         this.conceptLine("Essential", budgets.essentialWithoutRent(), "✅");
@@ -324,13 +323,6 @@ public class Fire {
                         name,
                         Period.between(SeriesReader.readDate("dob"), moment).getYears()
                 ));
-    }
-
-    private String refLine(String label, String pct) {
-
-        return label
-                + " "
-                + this.format.percent(new BigDecimal(pct).movePointLeft(2), 6);
     }
 
     private List<BigDecimal> percents() {
@@ -670,12 +662,21 @@ public class Fire {
                 .add(readUSD("futureRealState.3")
                         .adjust(realStateDivisor3, ONE))
                 .add(readUSD("futureCash.1").adjust(cashDivisor1, ONE))
-                .add(this.severance().adjust(cashDivisor2, ONE))
+                .add(this.severance().getTotal().adjust(cashDivisor2, ONE))
                 .add(readUSD("futureCash.3").adjust(cashDivisor3, ONE));
 
     }
 
-    private MoneyAmount severance() {
+    public Severance severance() {
+
+        if (SeriesReader.readBoolean("useFullSalaryForSeverance")) {
+            return this.severance(BigDecimal.ONE);
+
+        }
+        return this.severance(BigDecimal.valueOf(67).movePointLeft(2));
+    }
+
+    public Severance severance(BigDecimal maxSalaryFactor) {
         final long totalMonths = YearMonth.of(2015, Month.DECEMBER)
                 .until(YearMonth.now(), ChronoUnit.MONTHS);
 
@@ -683,7 +684,10 @@ public class Fire {
 
         final long months = Math.floorMod(totalMonths, 12);
 
-        final var toppedSalaries = BigDecimal.valueOf(years + (months > 3 ? 1 : 0));
+        final var toppedSalaries = BigDecimal.valueOf(years)
+                .add((months > 3
+                        ? BigDecimal.ONE
+                        : BigDecimal.ZERO));
 
         var currentMonth = LocalDate.now().getMonthValue();
 
@@ -706,20 +710,27 @@ public class Fire {
                 .multiply(sacFactor, C)
                 .add(sacPart, C);
 
-        // 67%
-        final var maxSalaryFactor = BigDecimal.valueOf(67).movePointLeft(2);
-
-        // 70%
-        final var taxSalaryFactor = BigDecimal.valueOf(70).movePointLeft(2);
+        // 65% => 35% ganacias
+        final var taxSalaryFactor = BigDecimal.valueOf(65).movePointLeft(2);
         final var salary = SeriesReader.readBigDecimal("salary");
 
-        return new MoneyAmount(
+        return new Severance(
+                salary,
+                salary
+                        .multiply(taxedSalaries, C)
+                        .multiply(taxSalaryFactor, C),
                 salary
                         .multiply(toppedSalaries, C)
-                        .multiply(maxSalaryFactor, C)
-                        .add(salary
-                                .multiply(taxedSalaries, C)
-                                .multiply(taxSalaryFactor, C)),
-                USD);
+                        .multiply(maxSalaryFactor, C));
+    }
+
+    public record Severance(
+            BigDecimal salary,
+            BigDecimal taxedAmount,
+            BigDecimal untaxedAmount) {
+
+        public MoneyAmount getTotal() {
+            return new MoneyAmount(taxedAmount.add(untaxedAmount, C), USD);
+        }
     }
 }

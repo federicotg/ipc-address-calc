@@ -158,10 +158,10 @@ public class Pension {
                 .exchange(ma, ARS, unlp.getTo());
 
         final Function<MoneyAmount, MoneyAmount> toUSD = ma -> ForeignExchanges.getForeignExchange(ARS, USD)
-                .exchange(ma, USD, Inflation.USD_INFLATION.getTo());
+                .exchange(ma, USD, Inflation.usdInflation().getTo());
 
-        final Function<MoneyAmount, MoneyAmount> real = ma -> Inflation.USD_INFLATION
-                .adjust(ma, unlp.getTo(), Inflation.USD_INFLATION.getTo());
+        final Function<MoneyAmount, MoneyAmount> real = ma -> Inflation.usdInflation()
+                .adjust(ma, unlp.getTo(), Inflation.usdInflation().getTo());
 
         final var extra = toUSD
                 .andThen(real)
@@ -169,7 +169,7 @@ public class Pension {
                 .apply(bestArsUNLP)
                 .adjust(BigDecimal.ONE, pctUNLP);
 
-        final var adjustedDespegar = Inflation.ANSES.adjust(despegar, Inflation.ANSES.getTo());
+        final var adjustedDespegar = Inflation.anses().adjust(despegar, Inflation.anses().getTo());
 
         var total10YearsSalary = MoneyAmount.zero(ARS);
         for (var ym = YearMonth.now().plusMonths(-120); !ym.isAfter(adjustedDespegar.getTo()); ym = ym.plusMonths(1)) {
@@ -208,7 +208,7 @@ public class Pension {
                 .min(new MoneyAmount(SeriesReader.readBigDecimal("max.pension"), ARS));
 
         return ForeignExchanges.getForeignExchange(ARS, USD)
-                .exchange(pension, USD, Inflation.USD_INFLATION.getTo());
+                .exchange(pension, USD, Inflation.usdInflation().getTo());
 
     }
 }

@@ -31,10 +31,6 @@ import java.time.YearMonth;
  */
 public interface Inflation extends Series {
 
-    public static final Inflation USD_INFLATION = new CPIInflation(SeriesReader.readIndexSeries("index/bls.json"), Currency.USD);
-
-    public static final Inflation ANSES = new CPIInflation(SeriesReader.readIndexSeries("index/anses.json"), Currency.ARS);
-
     /**
      * Ajusta por inflación un monto.
      *
@@ -112,6 +108,26 @@ public interface Inflation extends Series {
                         moment).amount());
         answer.setFx(event.getFx());
         return answer;
+    }
+
+    static Inflation usdInflation() {
+        return UsdHolder.INSTANCE;
+    }
+
+    static Inflation anses() {
+        return AnsesHolder.INSTANCE;
+    }
+
+    final class UsdHolder {
+
+        static final Inflation INSTANCE
+                = new CPIInflation(SeriesReader.readIndexSeries("index/bls.json"), Currency.USD);
+    }
+
+    final class AnsesHolder {
+
+        static final Inflation INSTANCE
+                = new CPIInflation(SeriesReader.readIndexSeries("index/anses.json"), Currency.ARS);
     }
 
 }

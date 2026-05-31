@@ -25,7 +25,7 @@ import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import static org.fede.calculator.money.Inflation.usdInflation;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
@@ -58,7 +58,7 @@ public class House {
 
     public void houseCostsEvolution() {
 
-        final var limit = USD_INFLATION.getTo();
+        final var limit = usdInflation().getTo();
 
         final var nominalInitialCost = SeriesReader.readBigDecimal("houseNominalCost");
 
@@ -74,7 +74,7 @@ public class House {
         //this.console.appendLine(" "+nominalTransactionCost);
 
         final var start = YearMonth.of(2010, 8);
-        final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalTransactionCost, USD),
+        final var realInitialCost = usdInflation().adjust(new MoneyAmount(nominalTransactionCost, USD),
                 start,
                 limit);
 
@@ -95,7 +95,7 @@ public class House {
                 Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto(USD))
-                .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit))
+                .map(usdExpenses -> usdInflation().adjust(usdExpenses, limit))
                 .get();
 
         final var allExpenses = new SlidingWindow(1200).sum(ongoingExpenses.add(initialCostSeries));
@@ -109,7 +109,7 @@ public class House {
 
     public void houseIrrecoverableCosts(YearMonth timeLimit) {
 
-        final var limit = USD_INFLATION.getTo();
+        final var limit = usdInflation().getTo();
 
         final var proportionalExpenses = SeriesReader.readSeries("expense/consorcio-reparaciones.json")
                 .map((ym, amount) -> amount.adjust(ONE, COEFFICIENT));
@@ -119,7 +119,7 @@ public class House {
                 Stream.of(proportionalExpenses))
                 .reduce(MoneyAmountSeries::add)
                 .map(expenses -> expenses.exchangeInto(USD))
-                .map(usdExpenses -> USD_INFLATION.adjust(usdExpenses, limit))
+                .map(usdExpenses -> usdInflation().adjust(usdExpenses, limit))
                 .map(s -> s.map((ym, amount) -> this.limit(timeLimit, ym, amount)))
                 .map(MoneyAmountSeries::moneyAmountStream)
                 .orElseGet(Stream::empty)
@@ -136,7 +136,7 @@ public class House {
     }
 
     private void buyVsRent(MoneyAmount realExpensesInUSD, BigDecimal rate, YearMonth timeLimit) {
-        final var limit = USD_INFLATION.getTo();
+        final var limit = usdInflation().getTo();
 
         final var ivaFactor = SeriesReader.readPercent("iva").add(ONE, C);
         final var notaryFee = SeriesReader.readPercent("house.notary").multiply(ivaFactor);
@@ -151,7 +151,7 @@ public class House {
         //this.console.appendLine(" "+nominalTransactionCost);
         
         final var start = YearMonth.of(2010, 8);
-        final var realInitialCost = USD_INFLATION.adjust(new MoneyAmount(nominalInitialCost, Currency.USD),
+        final var realInitialCost = usdInflation().adjust(new MoneyAmount(nominalInitialCost, Currency.USD),
                 start,
                 limit);
 

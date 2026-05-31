@@ -152,7 +152,7 @@ public class BBPP {
                 .get();
 
         final var ym = YearMonthUtil.min(
-                Inflation.USD_INFLATION.getTo(),
+                Inflation.usdInflation().getTo(),
                 YearMonth.of(year, 12));
 
         final Map<Currency, Function<MoneyAmount, BigDecimal>> arsFunction = Map.ofEntries(
@@ -275,7 +275,7 @@ public class BBPP {
         result.taxAmount = bbpp.tax();
 
         final var usdFxYearMonth = YearMonthUtil.min(
-                Inflation.USD_INFLATION.getTo(),
+                Inflation.usdInflation().getTo(),
                 YearMonth.of(ym.getYear() + 1, 6));
 
         result.usdTaxAmount = getMoneyAmountForeignExchange(ARS, USD)

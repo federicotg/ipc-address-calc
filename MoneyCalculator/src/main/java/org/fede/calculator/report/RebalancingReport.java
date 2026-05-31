@@ -211,9 +211,11 @@ public class RebalancingReport {
         for (var i : soldInvestments) {
 
             var fx = ForeignExchanges.getForeignExchange(i.getCurrency(), USD);
-            var initial = i.getIn().getFx() == null
+            var initial = i.getInitialMoneyAmount(USD);
+                    
+                    /*i.getIn().getFx() == null
                     ? i.getInitialMoneyAmount()
-                    : new MoneyAmount(i.getIn().getAmount().multiply(i.getIn().getFx(), C), USD);
+                    : new MoneyAmount(i.getIn().getAmount().multiply(i.getIn().getFx(), C), USD);*/
             var current = fx.exchange(i.getInvestment().getMoneyAmount(), USD, now);
             cgt = cgt.add(current.subtract(initial).adjust(ONE, cgtr));
 

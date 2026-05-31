@@ -33,7 +33,7 @@ import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import static org.fede.calculator.money.Inflation.usdInflation;
 import static org.fede.calculator.money.MathConstants.C;
 import static org.fede.calculator.money.MathConstants.RM;
 import static org.fede.calculator.money.MathConstants.SCALE;
@@ -222,7 +222,7 @@ public class Goal {
         final var birthYear = SeriesReader.readDate("dob").getYear();
 
         final var retirementYear = birthYear + retirementAge;
-        final int startingYear = USD_INFLATION.getTo().getYear();
+        final int startingYear = usdInflation().getTo().getYear();
         final var end = birthYear + age;
         final var yearsLeft = 2088 - startingYear;
 

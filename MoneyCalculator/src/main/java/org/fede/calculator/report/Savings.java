@@ -47,7 +47,7 @@ import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Currency.USD;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import static org.fede.calculator.money.Inflation.usdInflation;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.chart.ChartStyle;
 import org.fede.calculator.chart.LabeledXYDataItem;
@@ -134,8 +134,8 @@ public class Savings {
 
     public SpendingAndSaving averageSpendingAndSaving(int months) {
         final var agg = new SlidingWindow(months);
-        final var income = agg.average(this.series.realIncome()).getAmount(Inflation.USD_INFLATION.getTo());
-        final var netSaving = agg.average(this.series.realNetSavings()).getAmount(Inflation.USD_INFLATION.getTo());
+        final var income = agg.average(this.series.realIncome()).getAmount(Inflation.usdInflation().getTo());
+        final var netSaving = agg.average(this.series.realNetSavings()).getAmount(Inflation.usdInflation().getTo());
         return new SpendingAndSaving(income.subtract(netSaving), netSaving);
     }
 
@@ -216,7 +216,7 @@ public class Savings {
     }
 
     private void income(int months) {
-        final var limit = USD_INFLATION.getTo();
+        final var limit = usdInflation().getTo();
         final var averageRealUSDIncome = this.series.getRegularIncomeSeries()
                 .stream()
                 .collect(reducing(MoneyAmountSeries::add))
@@ -455,19 +455,19 @@ public class Savings {
                 .stream()
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(new SlidingWindow(years * 12)::average)
-                .map(allRealUSDIncome -> allRealUSDIncome.getAmount(USD_INFLATION.getTo()))
+                .map(allRealUSDIncome -> allRealUSDIncome.getAmount(usdInflation().getTo()))
                 .orElse(MoneyAmount.zero(Currency.USD));
     }
 
     private MoneyAmount savingsAverage(int years) {
         return new SlidingWindow(years * 12)
                 .average(this.series.realNetSavings())
-                .getAmount(USD_INFLATION.getTo());
+                .getAmount(usdInflation().getTo());
     }
 
     public void yearSavingsIncomeTable() {
 
-        final int[] years = IntStream.rangeClosed(1999, USD_INFLATION.getTo().getYear()).toArray();
+        final int[] years = IntStream.rangeClosed(1999, usdInflation().getTo().getYear()).toArray();
 
         final var incomes = IntStream.of(years)
                 .mapToObj(i -> Map.entry(i, this.yearIncome(i)))
@@ -486,7 +486,7 @@ public class Savings {
         this.console.appendLine(this.row(Stream.of("-= Year =-", "Income", "Sav.", "Spend.", "Sav. %", "Sav./Spend.")));
 
         IntStream.of(years)
-                .mapToObj(y -> this.row(Stream.of(format("-= {0} =-", String.valueOf(y) + (y == 2011 || y == USD_INFLATION.getTo().getYear() ? "*" : " ")),
+                .mapToObj(y -> this.row(Stream.of(format("-= {0} =-", String.valueOf(y) + (y == 2011 || y == usdInflation().getTo().getYear() ? "*" : " ")),
                 this.format.currency(incomes.get(y).amount()),
                 this.format.currency(savings.get(y).amount()),
                 this.format.currency(incomes.get(y).subtract(savings.get(y)).amount()),
@@ -512,9 +512,9 @@ public class Savings {
     }
 
     private MoneyAmount yearIncome(int year, Supplier<List<MoneyAmountSeries>> supplier) {
-        final var months = year < USD_INFLATION.getTo().getYear()
+        final var months = year < usdInflation().getTo().getYear()
                 ? 12
-                : USD_INFLATION.getTo().getMonthValue();
+                : usdInflation().getTo().getMonthValue();
 
         return supplier.get()
                 .stream()
@@ -535,9 +535,9 @@ public class Savings {
 
     private MoneyAmount yearSavings(int year) {
 
-        final var months = year < USD_INFLATION.getTo().getYear()
+        final var months = year < usdInflation().getTo().getYear()
                 ? 12
-                : USD_INFLATION.getTo().getMonthValue();
+                : usdInflation().getTo().getMonthValue();
 
         return this.series.realNetSavings()
                 .filter((ym, ma) -> ym.getYear() == year)
@@ -558,7 +558,7 @@ public class Savings {
     private void otherwise() {
         this.console.appendLine(this.format.title("Historical Real USD Savings Stats"));
 
-        final var limit = USD_INFLATION.getTo();
+        final var limit = usdInflation().getTo();
 
         final var totalSavings = this.series.currentSavingsUSD();
         // total income
@@ -578,12 +578,12 @@ public class Savings {
                 totalSavings.amount().divide(avgSalary, C)));
 
         //ingreso promedio de N meses
-        final var agg = new SlidingWindow((int) YearMonth.of(2012, 1).until(USD_INFLATION.getTo(), ChronoUnit.MONTHS));
+        final var agg = new SlidingWindow((int) YearMonth.of(2012, 1).until(usdInflation().getTo(), ChronoUnit.MONTHS));
 
-        final var averageIncome = agg.average(this.series.realIncome()).getAmount(USD_INFLATION.getTo());
+        final var averageIncome = agg.average(this.series.realIncome()).getAmount(usdInflation().getTo());
 
         // ahorro promedio de N meses
-        final var averagNetSavings = agg.average(this.series.realNetSavings()).getAmount(USD_INFLATION.getTo());
+        final var averagNetSavings = agg.average(this.series.realNetSavings()).getAmount(usdInflation().getTo());
 
         final var m = totalSavings.amount().divide(averageIncome.subtract(averagNetSavings).amount(), C);
 
@@ -692,7 +692,7 @@ public class Savings {
         final var agg = new SlidingWindow(months);
         final var average = agg.average(allIncomeSeries);
         final var change = agg.change(average);
-        final var limit = Inflation.USD_INFLATION.getTo();
+        final var limit = Inflation.usdInflation().getTo();
         average.forEachNonZero((ym, ch) -> {
             if (ym.compareTo(limit) <= 0) {
                 percentEvolutionReport(
@@ -751,7 +751,7 @@ public class Savings {
                 : this.series.realIncome();
 
         final var barSize = ars
-                ? Math.round((float) (baseBarSize - 10) / ForeignExchanges.USD_ARS.exchange(new MoneyAmount(ONE, Currency.ARS), Currency.USD, Inflation.USD_INFLATION.getTo()).amount().floatValue())
+                ? Math.round((float) (baseBarSize - 10) / ForeignExchanges.USD_ARS.exchange(new MoneyAmount(ONE, Currency.ARS), Currency.USD, Inflation.usdInflation().getTo()).amount().floatValue())
                 : baseBarSize;
 
         this.bar.evolution(format("Average {0}-month income {1}", months, ars ? "ARS" : "USD"),
@@ -773,7 +773,7 @@ public class Savings {
                 .subtract(arsSavings.getAmount(ym));
 
         var usd = ForeignExchanges.getForeignExchange(ARS, USD).exchange(ars, USD, ym);
-        return Inflation.USD_INFLATION.adjust(usd, ym, Inflation.USD_INFLATION.getTo());
+        return Inflation.usdInflation().adjust(usd, ym, Inflation.usdInflation().getTo());
 
     }
 
@@ -782,7 +782,7 @@ public class Savings {
 
         Map<Integer, BigDecimal> values = new HashMap<>();
         final var months = BigDecimal.valueOf(12l);
-        IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
+        IntStream.rangeClosed(2007, usdInflation().getTo().getYear())
                 .forEach(year
                         -> values.put(year - 2000,
                         this.yearIncome(year)
@@ -817,7 +817,7 @@ public class Savings {
 
         final var ss = new XYSeries("Year");
 
-        IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
+        IntStream.rangeClosed(2007, usdInflation().getTo().getYear())
                 .forEach(year
                         -> ss.add(
                         new LabeledXYDataItem(
@@ -847,7 +847,7 @@ public class Savings {
 
         final var ss = new XYSeries("Year");
         final var months = BigDecimal.valueOf(12);
-        IntStream.rangeClosed(2007, USD_INFLATION.getTo().getYear())
+        IntStream.rangeClosed(2007, usdInflation().getTo().getYear())
                 .forEach(year -> {
                     ss.add(new LabeledXYDataItem(
                             this.yearRegularIncome(year).amount(),
@@ -889,7 +889,7 @@ public class Savings {
                 .get();
 
         final var from = YearMonth.of(2007, 1);
-        final var to = Inflation.USD_INFLATION.getTo();
+        final var to = Inflation.usdInflation().getTo();
 
         List<TimeSeriesDatapoint> spendingRate = new ArrayList<>((int) from.until(to, ChronoUnit.MONTHS));
         List<TimeSeriesDatapoint> savingRate = new ArrayList<>((int) from.until(to, ChronoUnit.MONTHS));

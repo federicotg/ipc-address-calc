@@ -40,7 +40,7 @@ import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.ForeignExchanges.getMoneyAmountForeignExchange;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import static org.fede.calculator.money.Inflation.usdInflation;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
 import org.fede.calculator.money.series.SeriesReader;
@@ -121,9 +121,9 @@ public class PortfolioReturns {
 
         var end
                 = inv.stream()
-                        .map(i -> i.getOut() == null ? Inflation.USD_INFLATION.getTo() : YearMonth.from(i.getOut().getDate()))
+                        .map(i -> i.getOut() == null ? Inflation.usdInflation().getTo() : YearMonth.from(i.getOut().getDate()))
                         .max(Comparator.naturalOrder())
-                        .orElse(Inflation.USD_INFLATION.getTo());
+                        .orElse(Inflation.usdInflation().getTo());
 
         return returnTypeFunction.apply(new ModifiedDietzReturn(
                 inv,
@@ -131,6 +131,28 @@ public class PortfolioReturns {
                 nominal,
                 LocalDate.of(year, Month.JANUARY, 1),
                 end.atEndOfMonth()));
+    }
+
+    private ModifiedDietzReturnResult xirrResult(int year, boolean nominal, boolean withCash) {
+
+        final var inv = Stream.concat(
+                withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
+                this.series.getInvestments().stream())
+                .toList();
+
+        var end
+                = inv.stream()
+                        .map(i -> i.getOut() == null ? Inflation.usdInflation().getTo() : YearMonth.from(i.getOut().getDate()))
+                        .max(Comparator.naturalOrder())
+                        .orElse(Inflation.usdInflation().getTo());
+
+        return new XirrReturn(
+                inv,
+                USD,
+                nominal,
+                LocalDate.of(year, Month.JANUARY, 1),
+                end.atEndOfMonth())
+                .get();
     }
 
     public void modifiedDietzReturn(int startYear, boolean nominal, boolean withCash, Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction) {
@@ -177,6 +199,50 @@ public class PortfolioReturns {
 
     }
 
+    public void xirrReturn(int startYear, boolean nominal, boolean withCash) {
+
+        final var xirrReturn = this.xirrResult(startYear, nominal, withCash);
+
+        final var inv = Stream.concat(
+                withCash ? this.cashInvestments.cashInvestments().stream() : Stream.empty(),
+                this.series.getInvestments().stream())
+                .toList();
+
+        final var from = inv.stream()
+                .map(Investment::getInitialDate)
+                .reduce(PortfolioReturns::min)
+                .get();
+
+        final var to = inv.stream()
+                .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate).orElseGet(LocalDate::now))
+                .reduce(PortfolioReturns::max)
+                .get();
+
+        this.console.appendLine(
+                format(
+                        "From {0} to {1}. Return: {2}. Annualized {3}.",
+                        DateTimeFormatter.ISO_LOCAL_DATE.format(from),
+                        DateTimeFormatter.ISO_LOCAL_DATE.format(to),
+                        this.format.percent(xirrReturn.getMoneyWeighted()),
+                        this.format.percent(xirrReturn.getAnnualizedMoneyWeighted())));
+
+        final Function<Map.Entry<Integer, ModifiedDietzReturnResult>, String> lineFunction
+                = (p) -> format("{0} {1} {2}",
+                        this.format.text(String.valueOf(p.getKey()), 10),
+                        this.format.percent(p.getValue().getMoneyWeighted(), 8),
+                        this.bar.pctBar(p.getValue().getAnnualizedMoneyWeighted()));
+
+        this.console.appendLine(this.format.text(" ", 10), this.format.text(" Return", 10), this.format.text("    Annualized", 8));
+
+        this.xirrByYear(inv, from, to, nominal)
+                .entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(lineFunction)
+                .forEach(this.console::appendLine);
+
+    }
+
     private Map<Integer, ModifiedDietzReturnResult> mdrByYear(List<Investment> inv, LocalDate from, LocalDate to, boolean nominal, Function<ModifiedDietzReturn, ModifiedDietzReturnResult> returnTypeFunction) {
 
         return IntStream.rangeClosed(from.getYear(), to.getYear())
@@ -184,6 +250,15 @@ public class PortfolioReturns {
                 .collect(Collectors.toMap(
                         year -> year,
                         year -> returnTypeFunction.apply(new ModifiedDietzReturn(inv, USD, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)))));
+    }
+
+    private Map<Integer, ModifiedDietzReturnResult> xirrByYear(List<Investment> inv, LocalDate from, LocalDate to, boolean nominal) {
+
+        return IntStream.rangeClosed(from.getYear(), to.getYear())
+                .boxed()
+                .collect(Collectors.toMap(
+                        year -> year,
+                        year -> new XirrReturn(inv, USD, nominal, LocalDate.of(year, Month.JANUARY, 1), LocalDate.of(year, Month.DECEMBER, 31)).get()));
     }
 
     public void returns(boolean nominal, boolean withCash, int startYear, boolean timeWeighted) {
@@ -203,6 +278,40 @@ public class PortfolioReturns {
         final var withoutCashNominal = this.mdrResult(startYear, true, false, f);
         final var withCashReal = this.mdrResult(startYear, false, true, f);
         final var withoutCashReal = this.mdrResult(startYear, false, false, f);
+
+        final var col1 = 14;
+        final var col2 = 18;
+        final var col3 = 18;
+
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}",
+                this.format.text("", col1),
+                this.format.text("     Nominal", col2),
+                this.format.text("      Real", col3)));
+
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}",
+                this.format.text("With Cash", col1),
+                this.format.text(this.summaryItem(withCashNominal), col2),
+                this.format.text(this.summaryItem(withCashReal), col3)));
+
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}",
+                this.format.text("Without Cash", col1),
+                this.format.text(this.summaryItem(withoutCashNominal), col2),
+                this.format.text(this.summaryItem(withoutCashReal), col3)));
+
+    }
+
+    public void xirrReturns(boolean nominal, boolean withCash, int startYear) {
+
+        this.console.appendLine(this.format.title((nominal ? "Nominal " : "Real ") + "XIRR Returns" + (withCash ? "" : " Without Cash")));
+
+        this.xirrReturn(startYear, nominal, withCash);
+
+        this.console.appendLine(this.format.subtitle("Summary"));
+
+        final var withCashNominal = this.xirrResult(startYear, true, true);
+        final var withoutCashNominal = this.xirrResult(startYear, true, false);
+        final var withCashReal = this.xirrResult(startYear, false, true);
+        final var withoutCashReal = this.xirrResult(startYear, false, false);
 
         final var col1 = 14;
         final var col2 = 18;
@@ -265,7 +374,7 @@ public class PortfolioReturns {
                         .map(InvestmentEvent::getDate)
                         .map(YearMonth::from)
                         .map(YearMonth::getYear)
-                        .orElse(USD_INFLATION.getTo().getYear()))
+                        .orElse(usdInflation().getTo().getYear()))
                 .mapToObj(year -> this.dayDollarsInYear(year, i));
 
     }

@@ -30,7 +30,6 @@ import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
@@ -137,6 +136,7 @@ public class Series {
                     of(DISCRETIONARY, "sellos"),
                     of(IRREGULAR, "other"),
                     of(IRREGULAR, "other-usd"),
+                    of(IRREGULAR, "colon"),
                     of(IRREGULAR, "reparaciones"),
                     of(DISCRETIONARY, "limpieza"),
                     of(ESSENTIAL, "expensas"),
@@ -197,6 +197,7 @@ public class Series {
                         "seguro",
                         "gas",
                         "luz",
+                        "colon",
                         "cablevision",
                         "santander",
                         "box",
@@ -226,8 +227,8 @@ public class Series {
                         .stream()
                         .filter(Investment::isETF)
                         .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
-                        .map(Inflation.USD_INFLATION::real)
-                        .map(i -> new Cost(YearMonth.from(i.getIn().getDate()), i.getCost()))
+                        .map(Inflation.usdInflation()::real)
+                        .map(i -> new Cost(YearMonth.from(i.getIn().getDate()), i.getCost(Currency.USD)))
                         .toList();
 
         final var iva = SeriesReader.readPercent("iva").add(ONE);
@@ -238,12 +239,12 @@ public class Series {
                         .filter(Investment::isETF)
                         .filter(i -> i.getOut() != null)
                         .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
-                        .map(Inflation.USD_INFLATION::real)
+                        .map(Inflation.usdInflation()::real)
                         .map(i
                                 -> new Cost(
                                 YearMonth.from(i.getOut().getDate()),
-                                i.getOut().getFeeMoneyAmount().adjust(ONE, iva)
-                                        .add(new MoneyAmount(i.getOut().getTransferFee(), i.getOut().getCurrency()))))
+                                i.getOut().getFeeMoneyAmount(Currency.USD).adjust(ONE, i.getComment() == null ? iva : ONE)
+                                        .add(i.getOut().getTransferFeeMoneyAmount(Currency.USD))))
                         .toList();
 
         final var zero = MoneyAmount.zero(Currency.USD);
@@ -255,7 +256,7 @@ public class Series {
 
         final var expenseSeries = new SortedMapMoneyAmountSeries(Currency.USD, "investing");
 
-        for (YearMonth ym = YearMonth.of(2016, 1); ym.until(Inflation.USD_INFLATION.getTo(), ChronoUnit.MONTHS) >= 0; ym = ym.plusMonths(1)) {
+        for (YearMonth ym = YearMonth.of(2016, 1); ym.until(Inflation.usdInflation().getTo(), ChronoUnit.MONTHS) >= 0; ym = ym.plusMonths(1)) {
             expenseSeries.putAmount(ym, feesByMonth.getOrDefault(ym, zero));
         }
 
@@ -329,12 +330,12 @@ public class Series {
 
         if (this.realNetSavings == null) {
 
-            final var limit = USD_INFLATION.getTo();
+            final var limit = Inflation.usdInflation().getTo();
 
             this.realNetSavings = this.savingsSeries()
                     .map(new SlidingWindow(1)::change)
                     .map(series -> series.exchangeInto(Currency.USD))
-                    .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
+                    .map(usdSeries -> Inflation.usdInflation().adjust(usdSeries, limit))
                     .reduce(MoneyAmountSeries::add)
                     .get();
         }
@@ -342,17 +343,17 @@ public class Series {
     }
 
     public MoneyAmountSeries incomeSource(String name) {
-        return USD_INFLATION.adjust(
+        return Inflation.usdInflation().adjust(
                 readSeries("income/" + name + ".json")
                         .exchangeInto(Currency.USD),
-                Inflation.USD_INFLATION.getTo());
+                Inflation.usdInflation().getTo());
     }
 
     public List<MoneyAmountSeries> getIncomeSeries() {
 
         if (this.incomeSeries == null) {
 
-            final var limit = USD_INFLATION.getTo();
+            final var limit = Inflation.usdInflation().getTo();
             this.incomeSeries = Stream.of(
                     readSeries("income/lifia.json"),
                     readSeries("income/unlp.json"),
@@ -362,7 +363,7 @@ public class Series {
                     readSeries("income/despegar.json"),
                     readSeries("income/despegar-split.json"))
                     .map(is -> is.exchangeInto(Currency.USD))
-                    .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
+                    .map(usdSeries -> Inflation.usdInflation().adjust(usdSeries, limit))
                     .toList();
         }
         return this.incomeSeries;
@@ -372,14 +373,14 @@ public class Series {
 
         if (this.regularIncomeSeries == null) {
 
-            final var limit = USD_INFLATION.getTo();
+            final var limit = Inflation.usdInflation().getTo();
             this.regularIncomeSeries = Stream.of(
                     readSeries("income/lifia.json"),
                     readSeries("income/unlp.json"),
                     readSeries("income/despegar.json"),
                     readSeries("income/despegar-split.json"))
                     .map(is -> is.exchangeInto(Currency.USD))
-                    .map(usdSeries -> USD_INFLATION.adjust(usdSeries, limit))
+                    .map(usdSeries -> Inflation.usdInflation().adjust(usdSeries, limit))
                     .toList();
         }
         return this.regularIncomeSeries;
@@ -394,7 +395,7 @@ public class Series {
     }
 
     public MoneyAmount currentSavingsUSD() {
-        return this.nominalSavings().getAmount(Inflation.USD_INFLATION.getTo());
+        return this.nominalSavings().getAmount(Inflation.usdInflation().getTo());
     }
 
     public MoneyAmountSeries realSavings(String type) {
@@ -455,7 +456,7 @@ public class Series {
     }
 
     private MoneyAmountSeries asRealUSDSeries(String prefix, String fileName) {
-        return USD_INFLATION.adjust(this.readSeriesInUSD(prefix, fileName), USD_INFLATION.getTo());
+        return Inflation.usdInflation().adjust(this.readSeriesInUSD(prefix, fileName), Inflation.usdInflation().getTo());
     }
 
     private MoneyAmountSeries readSeriesInUSD(String prefix, String fileName) {

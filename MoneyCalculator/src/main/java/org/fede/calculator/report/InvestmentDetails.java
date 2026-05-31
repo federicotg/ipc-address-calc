@@ -146,7 +146,7 @@ public class InvestmentDetails {
             this.investmentYM = YearMonth.of(this.getInvestmentDate().getYear(), this.getInvestmentDate().getMonthValue());
         }
 
-        return Inflation.USD_INFLATION.adjust(nominal, this.investmentYM, Inflation.USD_INFLATION.getTo());
+        return Inflation.usdInflation().adjust(nominal, this.investmentYM, Inflation.usdInflation().getTo());
     }
 
     public void setInvestmentQuantity(BigDecimal investmentQuantity) {

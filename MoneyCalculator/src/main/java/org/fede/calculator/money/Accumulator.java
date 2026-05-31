@@ -31,7 +31,7 @@ public class Accumulator implements Aggregator {
         // extend last value up to inflation end (same behaviour as your original)
         var last = result.getAmount(result.getTo());
         var ym = result.getTo();
-        while (ym.isBefore(Inflation.USD_INFLATION.getTo())) {
+        while (ym.isBefore(Inflation.usdInflation().getTo())) {
             ym = ym.plusMonths(1);
             result.putAmount(ym, last);
         }
@@ -56,7 +56,7 @@ public class Accumulator implements Aggregator {
         // extend last value up to inflation end
         var last = result.getAmount(result.getTo());
         var ym = result.getTo();
-        while (ym.isBefore(Inflation.USD_INFLATION.getTo())) {
+        while (ym.isBefore(Inflation.usdInflation().getTo())) {
             ym = ym.plusMonths(1);
             result.putAmount(ym, last);
         }

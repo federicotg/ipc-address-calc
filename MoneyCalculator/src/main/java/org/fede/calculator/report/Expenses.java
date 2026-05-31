@@ -29,7 +29,7 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import static org.fede.calculator.money.Inflation.usdInflation;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import java.time.YearMonth;
 import java.util.function.BiConsumer;
@@ -120,7 +120,7 @@ public class Expenses {
 
     private MoneyAmount lastMonths(MoneyAmountSeries s, int months) {
 
-        var ym = USD_INFLATION.getTo();
+        var ym = usdInflation().getTo();
         var amount = MoneyAmount.zero(Currency.USD);
 
         for (var i = 0; i < months; i++) {
@@ -289,6 +289,6 @@ public class Expenses {
     }
 
     private MoneyAmountSeries real(MoneyAmountSeries s) {
-        return USD_INFLATION.adjust(s, USD_INFLATION.getTo());
+        return usdInflation().adjust(s, usdInflation().getTo());
     }
 }

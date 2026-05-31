@@ -62,11 +62,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
     }
 
     private static BigDecimal price(Investment i) {
-
-        final var fx = Optional.ofNullable(i.getIn().getFx())
-                .orElse(BigDecimal.ONE);
-
-        return i.getIn().getAmount().multiply(fx, MathConstants.C)
+        return i.getInitialMoneyAmount(USD).amount()
                 .divide(i.getInvestment().getAmount(), MathConstants.C);
     }
 
@@ -98,16 +94,16 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
         var price = this.seenUSDPrices.get(dmy(t));
 
         if (price != null) {
-            final var fxFactor = Optional.ofNullable(t.getIn().getFx()).orElse(ONE);
-            var usdInvested = t.getIn().getAmount().multiply(fxFactor, C);
+            //final var fxFactor = Optional.ofNullable(t.getIn().getFx()).orElse(ONE);
+            var usdInvested = t.getInitialMoneyAmount(USD).amount();
             asset.setAmount(usdInvested.divide(price, C));
         } else if (this.benchmark == USD) {
-            final var fxFactor = Optional.ofNullable(t.getIn().getFx()).orElse(ONE);
-            var usdInvested = t.getIn().getAmount().multiply(fxFactor, C);
+            //final var fxFactor = Optional.ofNullable(t.getIn().getFx()).orElse(ONE);
+            var usdInvested = t.getInitialMoneyAmount(USD).amount();
             asset.setAmount(usdInvested);
         } else {
-            var fx = ForeignExchanges.getMoneyAmountForeignExchange(t.getInitialCurrency(), this.benchmark);
-            asset.setAmount(fx.apply(t.getInitialMoneyAmount(), YearMonth.from(t.getInitialDate())).amount());
+            //var fx = ForeignExchanges.getMoneyAmountForeignExchange(t.getInitialCurrency(), this.benchmark);
+            asset.setAmount(t.getInitialMoneyAmount(this.benchmark).amount());
         }
         var answer = new Investment();
         answer.setIn(t.getIn());

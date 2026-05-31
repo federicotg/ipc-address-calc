@@ -256,13 +256,13 @@ public class ForeignExchanges {
         answer.setCurrency(ma.currency());
         answer.setDate(in.getDate());
         answer.setFee(fx(in.getFx(), fx, fee, currency, in.getDate()).amount());
-        answer.setTransferFee(
-                Optional.ofNullable(in.getTransferFee())
+        answer.setTransferFee(in.getTransferFeeMoneyAmount(currency).amount());
+                /*Optional.ofNullable(in.getTransferFee())
                         .map(trfee -> fx(
                         in.getFx(),
                         fx,
                         new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).amount())
-                        .orElse(null));
+                        .orElse(null));*/
         answer.setFx(in.getFx());
         return answer;
     }

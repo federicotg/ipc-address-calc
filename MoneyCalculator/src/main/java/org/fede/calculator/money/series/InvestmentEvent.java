@@ -11,6 +11,7 @@ import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
+import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 
 /*
@@ -89,9 +90,36 @@ public class InvestmentEvent {
         return new MoneyAmount(this.getAmount(), this.getCurrency());
     }
 
-    @JsonIgnore
-    public MoneyAmount getFeeMoneyAmount() {
+   
+    private MoneyAmount getFeeMoneyAmount() {
         return new MoneyAmount(this.getFee(), this.getCurrency());
+    }
+
+    @JsonIgnore
+    public MoneyAmount getFeeMoneyAmount(Currency currency) {
+        final var feeAmount = this.fx == null
+                ? this.getFeeMoneyAmount()
+                : new MoneyAmount(this.getFee().multiply(this.fx, C), USD);
+        if (currency == feeAmount.currency()) {
+            return feeAmount;
+        }
+        return ForeignExchanges.getForeignExchange(feeAmount.currency(), currency)
+                .exchange(feeAmount, currency, this.date);
+    }
+
+    @JsonIgnore
+    public MoneyAmount getTransferFeeMoneyAmount(Currency currency) {
+        if (this.transferFee == null) {
+            return MoneyAmount.zero(currency);
+        }
+        final var feeAmount = this.fx == null
+                ? new MoneyAmount(this.getTransferFee(), this.currency)
+                : new MoneyAmount(this.getTransferFee().multiply(this.fx, C), USD);
+        if (currency == feeAmount.currency()) {
+            return feeAmount;
+        }
+        return ForeignExchanges.getForeignExchange(feeAmount.currency(), currency)
+                .exchange(feeAmount, currency, this.date);
     }
 
     @Override
@@ -112,45 +140,41 @@ public class InvestmentEvent {
     }
 
     @JsonIgnore
-    public MoneyAmount getRealUSDTransferFeeMoneyAmount() {
-        return this.real(new MoneyAmount(this.getTransferFee(), this.getCurrency()));
+    private MoneyAmount getRealUSDTransferFeeMoneyAmount() {
+        return this.real(this.getTransferFeeMoneyAmount(USD));
     }
 
     @JsonIgnore
-    public MoneyAmount getRealUSDFeeMoneyAmount() {
-        return this.real(this.getFeeMoneyAmount());
+    private MoneyAmount getRealUSDFeeMoneyAmount() {
+        return this.real(this.getFeeMoneyAmount(USD));
+    }
+
+    @JsonIgnore
+    public MoneyAmount getMoneyAmount(Currency currency) {
+
+        final var amountValue = this.fx == null
+                ? this.getMoneyAmount()
+                : new MoneyAmount(this.getAmount().multiply(this.fx, C), USD);
+        if (currency == amountValue.currency()) {
+            return amountValue;
+        }
+        return ForeignExchanges.getForeignExchange(amountValue.currency(), currency)
+                .exchange(amountValue, currency, this.date);
     }
 
     private MoneyAmount real(MoneyAmount nominal) {
-        final var now = Inflation.USD_INFLATION.getTo();
-        MoneyAmount ma = null;
-        //var logger = LoggerFactory.getLogger(ConsoleReports.class);
 
-        if (this.getCurrency() != Currency.USD) {
-            if (this.fx != null) {
-                ma = new MoneyAmount(nominal.adjust(BigDecimal.ONE, this.fx).amount(), Currency.USD);
-
-                //logger.error("ma {} curr {}  fx {} => new ma {}", this.getMoneyAmount(), this.currency, this.fx, ma);
-            } else {
-                final var toUSD = ForeignExchanges.getMoneyAmountForeignExchange(this.getCurrency(), USD);
-
-                ma = toUSD.apply(nominal, YearMonth.from(this.getDate()));
-            }
-        } else {
-            ma = nominal;
-        }
-
-        return Inflation.USD_INFLATION.adjust(
-                ma,
+        return Inflation.usdInflation().adjust(
+                nominal,
                 YearMonth.from(this.getDate()),
-                now);
+                Inflation.usdInflation().getTo());
 
     }
 
     @JsonIgnore
     public MoneyAmount getRealUSDMoneyAmount() {
 
-        return this.real(this.getMoneyAmount());
+        return this.real(this.getMoneyAmount(USD));
 
     }
 

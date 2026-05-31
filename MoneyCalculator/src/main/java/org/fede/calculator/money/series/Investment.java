@@ -21,14 +21,10 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import java.time.LocalDate;
 import java.time.Month;
-import java.time.YearMonth;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 import org.fede.calculator.money.Currency;
-import static org.fede.calculator.money.Currency.USD;
-import org.fede.calculator.money.ForeignExchanges;
-import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 
@@ -94,15 +90,20 @@ public class Investment {
     }
 
     @JsonIgnore
+    public MoneyAmount getInitialMoneyAmount(Currency currency) {
+        return this.getIn().getMoneyAmount(currency);
+    }
+
+    @JsonIgnore
     public MoneyAmount getMoneyAmount() {
         return this.getInvestment().getMoneyAmount();
     }
 
-    @JsonIgnore
+    /*@JsonIgnore
     public MoneyAmount getRealUSDInitialMoneyAmount() {
 
         return this.getIn().getRealUSDMoneyAmount();
-    }
+    }*/
 
     @JsonIgnore
     public Currency getCurrency() {
@@ -166,11 +167,11 @@ public class Investment {
                 && sellDate.isAfter(reference);
     }
 
-    @JsonIgnore
+    /*@JsonIgnore
     public MoneyAmount getRealUSDCost() {
-        final var now = Inflation.USD_INFLATION.getTo();
+        final var now = Inflation.usdInflation().getTo();
         final var then = YearMonth.from(this.getInitialDate());
-        final var cost = this.getCost();
+        final var cost = this.getCost(USD);
 
         MoneyAmount ma = null;
         if (this.getIn().getCurrency() != USD && this.getIn().getFx() != null) {
@@ -186,46 +187,47 @@ public class Investment {
                     .apply(cost, then);
         }
 
-        return Inflation.USD_INFLATION.adjust(
+        return Inflation.usdInflation().adjust(
                 ma,
                 then,
                 now);
-    }
+    }*/
 
     @JsonIgnore
-    public MoneyAmount getCost() {
-        return new MoneyAmount(
+    public MoneyAmount getCost(Currency curr) {
+        return 
                 Optional.ofNullable(this.getComment())
-                        .map(c -> this.ibkrCost())
-                        .orElseGet(this::ppiCost), this.getIn().getCurrency());
+                        .map(c -> this.ibkrCost(curr))
+                        .orElseGet(() -> this.ppiCost(curr));
     }
 
-    private BigDecimal ccl() {
+    private MoneyAmount ccl(Currency currency) {
         var iva = SeriesReader.readPercent("iva").add(ONE);
 
-        final var totalInvestment = this.getIn().getFee()
-                .multiply(iva, C)
-                .add(this.getIn().getAmount());
+        final var totalInvestment = this.getIn().getFeeMoneyAmount(currency)
+                .adjust(ONE, iva)
+                .add(this.getIn().getMoneyAmount(currency));
 
         BigDecimal cclFeeFactor = BigDecimal.ONE.subtract(new BigDecimal("0.006"), C);
 
-        return totalInvestment
+        return new MoneyAmount(totalInvestment.amount()
                 .divide(cclFeeFactor, C)
                 .divide(cclFeeFactor, C)
-                .subtract(totalInvestment, C);
+                .subtract(totalInvestment.amount(), C), currency);
     }
 
-    private BigDecimal ppiCost() {
+    private MoneyAmount ppiCost(Currency currency) {
         var iva = SeriesReader.readPercent("iva").add(ONE);
 
-        return this.getIn().getFee()
-                .multiply(iva, C)
-                .add(Optional.ofNullable(this.getIn().getTransferFee()).orElseGet(this::ccl));
+        return this.getIn().getFeeMoneyAmount(currency)
+               .adjust(ONE, iva)
+               .add(Optional.ofNullable(this.getIn().getTransferFeeMoneyAmount(currency))
+                       .orElseGet(() -> this.ccl(currency)));
     }
 
-    private BigDecimal ibkrCost() {
-        return this.getIn().getFee()
-                .add(this.getIn().getTransferFee(), C);
+    private MoneyAmount ibkrCost(Currency currency) {
+        return this.getIn().getFeeMoneyAmount(currency)
+                .add(this.getIn().getTransferFeeMoneyAmount(currency));
     }
 
     @JsonIgnore

@@ -41,7 +41,7 @@ import org.fede.calculator.chart.ChartSeriesMapper;
 
 import org.fede.calculator.criptoya.CriptoYaAPI;
 import static org.fede.calculator.money.Currency.ARS;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
+import static org.fede.calculator.money.Inflation.usdInflation;
 import org.fede.calculator.money.series.Investment;
 import java.time.YearMonth;
 import static org.fede.calculator.money.Currency.EIMI;
@@ -54,7 +54,6 @@ import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.TimeSeriesChart;
 import org.fede.calculator.chart.ValueFormat;
 import org.fede.calculator.money.Currency;
-import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.Accumulator;
@@ -67,6 +66,7 @@ import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
+import org.fede.calculator.report.Fire.Severance;
 import org.fede.util.Pair;
 import org.jfree.data.time.TimeSeries;
 import org.jline.reader.EndOfFileException;
@@ -192,6 +192,9 @@ public class ConsoleReports {
             case "income" ->
                 () -> me.income(args);
 
+            case "sev" ->
+                me::severance;
+
             case "income-table" ->
                 new Savings(format, series, bar, console)::savingsIncomeTable;
 
@@ -275,6 +278,8 @@ public class ConsoleReports {
 
             case "mdr" ->
                 () -> me.returns(args, "mdr", new PortfolioReturns(series, console, format, bar));
+            case "xirr" ->
+                () -> me.xirrReturns(args, "xirr", new PortfolioReturns(series, console, format, bar));
             case "inv-evo" ->
                 () -> me.invEvo(args, "inv-evo");
 
@@ -363,6 +368,7 @@ public class ConsoleReports {
                 new CmdParam("balances"),
                 new CmdParam("all-charts"),
                 new CmdParam("cash"),
+                new CmdParam("sev"),
                 new CmdParam("income-src", "m=12"),
                 new CmdParam("pf", "detail=false nominal=false"),
                 new CmdParam("income-src-pct", "m=12"),
@@ -384,6 +390,7 @@ public class ConsoleReports {
                 new CmdParam("inv-evo-pct", "curency=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                 new CmdParam("invested", "type=(long*|all|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all) nominal=false"),
                 new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false"),
+                new CmdParam("xirr", "nominal=false cash=true start=1999"),
                 new CmdParam("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
                 new CmdParam("income-evo", "months=12 ars=false"),
                 new CmdParam("bbpp", "year=yyyy"),
@@ -438,8 +445,6 @@ public class ConsoleReports {
             final var series = new Series();
             final var me = new ConsoleReports(console, format, bar, series);
 
-            new Positions(console, format, series).checkConsistency();
-
             if (args.length > 0) {
                 handleCommand(args, me, format, bar, series, console);
             } else {
@@ -473,7 +478,9 @@ public class ConsoleReports {
                     handleCommand(line.split("\\s+"), me, format, bar, series, console);
 
                 }
+                new Positions(console, format, series).checkConsistency();
             }
+
         } catch (Exception ex) {
             LOGGER.error("Unexpected error.", ex);
         }
@@ -532,7 +539,7 @@ public class ConsoleReports {
 
         if (years == null) {
             new House(console, format, bar)
-                    .houseIrrecoverableCosts(USD_INFLATION.getTo());
+                    .houseIrrecoverableCosts(usdInflation().getTo());
         } else {
             new House(console, format, bar)
                     .houseIrrecoverableCosts(YearMonth.of(2010 + Integer.parseInt(years), 8));
@@ -689,7 +696,7 @@ public class ConsoleReports {
 
         final var todaySavings = this.series.currentSavingsUSD();
 
-        final var invested = this.series.realSavings("EQ").getAmount(Inflation.USD_INFLATION.getTo());
+        final var invested = this.series.realSavings("EQ").getAmount(usdInflation().getTo());
 
         goal.goal(
                 trials,
@@ -751,10 +758,10 @@ public class ConsoleReports {
         final var params = this.paramsValue(args, name);
         final var year = Optional.ofNullable(params.get("y"))
                 .map(Integer::parseInt)
-                .orElseGet(USD_INFLATION.getTo()::getYear);
+                .orElseGet(usdInflation().getTo()::getYear);
         final var month = Optional.ofNullable(params.get("m"))
                 .map(Integer::parseInt)
-                .orElseGet(USD_INFLATION.getTo()::getMonthValue);
+                .orElseGet(usdInflation().getTo()::getMonthValue);
 
         final var grouped = Optional.ofNullable(params.get("g"))
                 .map(Boolean::parseBoolean)
@@ -774,10 +781,10 @@ public class ConsoleReports {
                 .orElse(null);
         final var year = Optional.ofNullable(params.get("y"))
                 .map(Integer::parseInt)
-                .orElseGet(USD_INFLATION.getTo()::getYear);
+                .orElseGet(usdInflation().getTo()::getYear);
         final var month = Optional.ofNullable(params.get("m"))
                 .map(Integer::parseInt)
-                .orElseGet(USD_INFLATION.getTo()::getMonthValue);
+                .orElseGet(usdInflation().getTo()::getMonthValue);
         new Positions(console, format, series)
                 .portfolio(type, subtype, year, month);
     }
@@ -789,6 +796,14 @@ public class ConsoleReports {
         final var withCash = Boolean.parseBoolean(params.getOrDefault("cash", "true"));
         final var startYear = Integer.parseInt(params.getOrDefault("start", SeriesReader.readEnvironment().getProperty("start.year")));
         pr.returns(nominal(params), withCash, startYear, timeWeighted);
+    }
+
+    private void xirrReturns(String[] args, String paranName, PortfolioReturns pr) {
+
+        final var params = this.paramsValue(args, paranName);
+        final var withCash = Boolean.parseBoolean(params.getOrDefault("cash", "true"));
+        final var startYear = Integer.parseInt(params.getOrDefault("start", SeriesReader.readEnvironment().getProperty("start.year")));
+        pr.xirrReturns(nominal(params), withCash, startYear);
     }
 
     private void ibkrPositions(int year) {
@@ -958,7 +973,7 @@ public class ConsoleReports {
             inv.mdrChart(true);
             inv.mdrChart(false);
             inv.mdrByYearChart();
-            pos.portfolioChartByGeography(false, "pct", USD_INFLATION.getTo().getYear(), USD_INFLATION.getTo().getMonthValue());
+            pos.portfolioChartByGeography(false, "pct", usdInflation().getTo().getYear(), usdInflation().getTo().getMonthValue());
             this.savingsChart();
             inv.savingsInvestmentsPercentChart();
             savings.savingsByIncomeChart();
@@ -1141,6 +1156,27 @@ public class ConsoleReports {
                                                 YearMonth.now()))),
                         USD,
                         "inflation");
+    }
+
+    private void severance() {
+
+        this.console.appendLine(this.format.subtitle("Floor"));
+
+        var fire = new Fire(format, series, console);
+        var sev = fire.severance(BigDecimal.valueOf(67).movePointLeft(2));
+        this.console.appendLine(this.format.text("Salary", 8), this.format.currency(new MoneyAmount(sev.salary(), USD), 18));
+
+        this.printSev(sev);
+
+        this.console.appendLine(this.format.subtitle("Full"));
+        this.printSev(fire.severance(BigDecimal.ONE));
+    }
+
+    private void printSev(Severance sev) {
+        this.console.appendLine(this.format.text("Taxed", 8), this.format.currency(new MoneyAmount(sev.taxedAmount(), USD), 18));
+        this.console.appendLine(this.format.text("Untaxed", 8), this.format.currency(new MoneyAmount(sev.untaxedAmount(), USD), 18));
+        this.console.appendLine(this.format.text("Total", 8), this.format.currency(sev.getTotal(), 18));
+
     }
 
 }

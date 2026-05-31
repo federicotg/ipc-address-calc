@@ -154,10 +154,10 @@ public class Investments {
         this.cashInvestments = new CashInvestmentBuilder(()
                 -> SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
                         .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
-                        .add(SeriesReader.readSeries("/saving/ahorros-peso.json").exchangeInto(Currency.USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto(Currency.USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(Currency.USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro-liq.json").exchangeInto(Currency.USD))
+                        .add(SeriesReader.readSeries("/saving/ahorros-peso.json").exchangeInto(USD))
+                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto(USD))
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(USD))
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro-liq.json").exchangeInto(USD))
         );
     }
 
@@ -183,7 +183,7 @@ public class Investments {
             boolean nominal) {
         this.console.appendLine(this.format.title(format("{0} Investment Results", nominal ? "Nominal" : "Real")));
 
-        final var ics = new InvestmentCostStrategy(Currency.USD);
+        final var ics = new InvestmentCostStrategy(USD);
 
         final var mw = 13;
         final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, 10, 1, 24};
@@ -326,7 +326,7 @@ public class Investments {
         final var now = LocalDate.now();
         final var realInitialAmount = nominal
                 ? pf.getInitialMoneyAmount()
-                : Inflation.USD_INFLATION.adjust(pf.getInitialMoneyAmount(), from, now);
+                : Inflation.usdInflation().adjust(pf.getInitialMoneyAmount(), from, now);
         final var nominalFinalAmount = pf.getOut() != null
                 ? pf.getOut().getMoneyAmount()
                 : pf.getInitialMoneyAmount();
@@ -334,7 +334,7 @@ public class Investments {
         final var maxInflationDate = to.compareTo(now) > 0 ? now : to;
         final var realFinalAmount = nominal
                 ? nominalFinalAmount
-                : Inflation.USD_INFLATION.adjust(nominalFinalAmount, maxInflationDate, now);
+                : Inflation.usdInflation().adjust(nominalFinalAmount, maxInflationDate, now);
 
         return new InvestmentReturn(pf.getCurrency(), from, to, realInitialAmount, realFinalAmount);
 
@@ -382,8 +382,8 @@ public class Investments {
 
     private BigDecimal annualRealReturn(Currency symbol, int year, boolean nominal) {
 
-        final var from = Inflation.USD_INFLATION.getFrom();
-        final var to = Inflation.USD_INFLATION.getTo();
+        final var from = Inflation.usdInflation().getFrom();
+        final var to = Inflation.usdInflation().getTo();
 
         if (year != 0 && (from.getYear() > year || to.getYear() < year)) {
             return BigDecimal.ZERO;
@@ -396,11 +396,11 @@ public class Investments {
                 : YearMonthUtil.min(YearMonth.of(year, 12), to);
 
         final var fx = ForeignExchanges.getForeignExchange(symbol, USD);
-        var startValue = fx.exchange(amount, Currency.USD, startYm);
-        var endValue = fx.exchange(amount, Currency.USD, endYm);
+        var startValue = fx.exchange(amount, USD, startYm);
+        var endValue = fx.exchange(amount, USD, endYm);
         if (!nominal) {
-            startValue = Inflation.USD_INFLATION.adjust(startValue, startYm, Inflation.USD_INFLATION.getTo());
-            endValue = Inflation.USD_INFLATION.adjust(endValue, endYm, Inflation.USD_INFLATION.getTo());
+            startValue = Inflation.usdInflation().adjust(startValue, startYm, Inflation.usdInflation().getTo());
+            endValue = Inflation.usdInflation().adjust(endValue, endYm, Inflation.usdInflation().getTo());
         }
 
         return endValue.amount().divide(startValue.amount(), MathConstants.C).subtract(ONE);
@@ -421,7 +421,7 @@ public class Investments {
 
     public void mdrByYearChart() {
 
-        final var to = Inflation.USD_INFLATION.getTo().getYear();
+        final var to = Inflation.usdInflation().getTo().getYear();
         final var inv = Stream.concat(this.series.getInvestments().stream(),
                 this.cashInvestments.cashInvestments().stream())
                 .toList();
@@ -555,7 +555,7 @@ public class Investments {
             Function<ModifiedDietzReturnResult, BigDecimal> resultFunction) {
 
         var startLocalDate = start.atEndOfMonth();
-        var end = Inflation.USD_INFLATION.getTo();
+        var end = Inflation.usdInflation().getTo();
 
         final List<TimeSeriesDatapoint> ss = new ArrayList<>((int) start.until(end, ChronoUnit.MONTHS));
 
@@ -575,7 +575,7 @@ public class Investments {
     }
 
     private IntStream range() {
-        return IntStream.concat(IntStream.rangeClosed(2019, Inflation.USD_INFLATION.getTo().getYear()), IntStream.of(0));
+        return IntStream.concat(IntStream.rangeClosed(2019, Inflation.usdInflation().getTo().getYear()), IntStream.of(0));
     }
 
     private void matrix(Map<String, List<LabelAndMDR>> matrix, boolean nominal) {
@@ -826,15 +826,15 @@ public class Investments {
         final var end = inv
                 .stream()
                 .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate)
-                .map(YearMonth::from).orElse(Inflation.USD_INFLATION.getTo()))
+                .map(YearMonth::from).orElse(Inflation.usdInflation().getTo()))
                 //.reduce((left, right) -> left.max(right))
                 .reduce(YearMonthUtil::max)
                 .get();
 
-        final var investmentSeries = new SortedMapMoneyAmountSeries(Currency.USD, "investment");
-        final var costSeries = new SortedMapMoneyAmountSeries(Currency.USD, "costs");
-        final var totalValuesSeries = new SortedMapMoneyAmountSeries(Currency.USD, "total");
-        final var taxesValuesSeries = new SortedMapMoneyAmountSeries(Currency.USD, "taxes");
+        final var investmentSeries = new SortedMapMoneyAmountSeries(USD, "investment");
+        final var costSeries = new SortedMapMoneyAmountSeries(USD, "costs");
+        final var totalValuesSeries = new SortedMapMoneyAmountSeries(USD, "total");
+        final var taxesValuesSeries = new SortedMapMoneyAmountSeries(USD, "taxes");
 
         var ym = start;
         while (ym.compareTo(end) <= 0) {
@@ -846,7 +846,7 @@ public class Investments {
 
             investmentSeries.putAmount(ym, accum(inv, ym, nominal ? invested : realInvested));
 
-            final Function<Investment, MoneyAmount> cost = i -> this.asUSD(i.getCost(), i.getInitialDate());
+            final Function<Investment, MoneyAmount> cost = i -> i.getCost(USD);
             final Function<Investment, MoneyAmount> realCost = i -> this.real(i, moment, cost);
 
             costSeries.putAmount(ym, accum(inv, ym, nominal ? cost : realCost));
@@ -869,7 +869,7 @@ public class Investments {
     }
 
     private MoneyAmount real(Investment i, YearMonth moment, Function<Investment, MoneyAmount> extrator) {
-        return Inflation.USD_INFLATION
+        return Inflation.usdInflation()
                 .adjust(extrator.apply(i), YearMonth.from(i.getInitialDate()), moment);
     }
 
@@ -882,7 +882,7 @@ public class Investments {
             return capitalGains.adjust(ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
         }
 
-        return MoneyAmount.zero(Currency.USD);
+        return MoneyAmount.zero(USD);
     }
 
     private MoneyAmount asUSD(MoneyAmount ma, LocalDate d) {
@@ -890,7 +890,7 @@ public class Investments {
     }
 
     private MoneyAmount asUSD(MoneyAmount ma, YearMonth ym) {
-        return ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), Currency.USD).apply(ma, ym);
+        return ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), USD).apply(ma, ym);
     }
 
     private MoneyAmount accum(List<Investment> investments, YearMonth yearMonth, Function<Investment, MoneyAmount> extractor) {
@@ -899,7 +899,7 @@ public class Investments {
                 .filter(i -> YearMonth.from(i.getIn().getDate()).compareTo(yearMonth) <= 0)
                 .filter(i -> i.isCurrent(yearMonth.atEndOfMonth()))
                 .map(extractor)
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
     }
 
     public void portfolioEvo(String type, boolean pct) {
@@ -911,7 +911,7 @@ public class Investments {
                 .map(InvestmentEvent::getDate)
                 .map(YearMonth::from)
                 .map(ym -> ym.plusMonths(-1))
-                .orElseGet(Inflation.USD_INFLATION::getTo);
+                .orElseGet(Inflation.usdInflation()::getTo);
 
         Function<Investment, String> classifier = i
                 -> switch (i.getType()) {
@@ -953,7 +953,7 @@ public class Investments {
                 .map(InvestmentEvent::getDate)
                 .map(YearMonth::from)
                 .map(ym -> ym.plusMonths(-1))
-                .orElseGet(Inflation.USD_INFLATION::getTo);
+                .orElseGet(Inflation.usdInflation()::getTo);
 
         new Evolution<Investment>(this.console, this.bar)
                 .evo(totalFunction, startFunction, endFunction, this::classifier, i -> true, comparator, this.getAllInvestments(), pct);
@@ -997,14 +997,14 @@ public class Investments {
 
     private Currency grouping(Currency currency) {
         return switch (currency) {
-            case Currency.RTWOE ->
-                Currency.RTWO;
-            case Currency.MEUS ->
-                Currency.MEUD;
-            case Currency.SXR8 ->
-                Currency.CSPX;
-            case Currency.EMIM ->
-                Currency.EIMI;
+            case RTWOE ->
+                RTWO;
+            case MEUS ->
+                MEUD;
+            case SXR8 ->
+                CSPX;
+            case EMIM ->
+                EIMI;
             default ->
                 currency;
         };
@@ -1076,8 +1076,8 @@ public class Investments {
 
         final Function<InvestmentEvent, MoneyAmount> grossSaleMapper
                 = (InvestmentEvent e) -> e.getMoneyAmount()
-                        .add(e.getFeeMoneyAmount())
-                        .add(new MoneyAmount(e.getTransferFee(), USD));
+                        .add(e.getFeeMoneyAmount(USD))
+                        .add(e.getTransferFeeMoneyAmount(USD));
 
         final SoldAndBought<MoneyAmount> netAmountSummary
                 = this.summarize(
@@ -1086,8 +1086,8 @@ public class Investments {
                         MoneyAmount.zero(USD),
                         MoneyAmount::add);
 
-        final Function<InvestmentEvent, MoneyAmount> feeMapper = e -> new MoneyAmount(e.getTransferFee(), USD)
-                .add(e.getRealUSDFeeMoneyAmount());
+        final Function<InvestmentEvent, MoneyAmount> feeMapper = e -> e.getTransferFeeMoneyAmount(USD)
+                .add(e.getFeeMoneyAmount(USD));
 
         final SoldAndBought<MoneyAmount> feeSummary
                 = this.summarize(
@@ -1130,7 +1130,7 @@ public class Investments {
                 .filter(Investment::isETF)
                 .filter(i -> i.getOut() != null)
                 .map(i -> this.capitalGainARS(i, bnaFX))
-                .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add);
+                .reduce(MoneyAmount.zero(ARS), MoneyAmount::add);
 
         final var arsTax = arsCapitalGain
                 .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
@@ -1138,30 +1138,29 @@ public class Investments {
         this.console.appendLine(this.format.text("Capital Gains", col1Width),
                 this.format.currency(arsCapitalGain,
                         col2Width));
-        
+
         final var country = Map.of(
                 MEUD, "Luxemburg",
                 MEUS, "Luxemburg"
-                );
-        
+        );
+
         Map<String, MoneyAmount> byCountry = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
                 .filter(i -> i.getOut() != null)
                 .collect(Collectors.groupingBy(
-                        i -> country.getOrDefault(i.getCurrency(), "Ireland"), 
+                        i -> country.getOrDefault(i.getCurrency(), "Ireland"),
                         Collectors.reducing(
-                                MoneyAmount.zero(Currency.ARS), 
-                                i->this.capitalGainARS(i, bnaFX),
+                                MoneyAmount.zero(ARS),
+                                i -> this.capitalGainARS(i, bnaFX),
                                 MoneyAmount::add)
-                        ));
-        
+                ));
+
         this.console.appendLine(this.format.text("Ireland", col1Width),
-                this.format.currency(byCountry.get("Ireland"),col2Width));
-        
+                this.format.currency(byCountry.get("Ireland"), col2Width));
+
         this.console.appendLine(this.format.text("Luxemburg", col1Width),
-                this.format.currency(byCountry.get("Luxemburg"),col2Width));
-        
+                this.format.currency(byCountry.get("Luxemburg"), col2Width));
 
         this.console.appendLine(this.format.text("Tax", col1Width),
                 this.format.currency(arsTax,
@@ -1290,8 +1289,8 @@ public class Investments {
         return new MoneyAmount(i.getOut()
                 .getMoneyAmount()
                 .subtract(this.cost(i))
-                .adjust(BigDecimal.ONE, bnaFX.get(dtf.format(i.getOut().getDate()))).amount(),
-                Currency.ARS);
+                .adjust(ONE, bnaFX.get(dtf.format(i.getOut().getDate()))).amount(),
+                ARS);
     }
 
     private String sellReport(Investment i, Map<String, BigDecimal> bnaFX) {
@@ -1302,9 +1301,9 @@ public class Investments {
                 i.getCurrency(),
                 this.format.number(i.getInvestment().getAmount(), 8),
                 this.format.currency(i.getOut().getMoneyAmount(), 18),
-                this.format.currency(i.getOut().getFeeMoneyAmount(), 16),
+                this.format.currency(i.getOut().getFeeMoneyAmount(USD), 16),
                 this.format.currency(i.getOut().getMoneyAmount().subtract(this.cost(i)), 16),
-                this.format.currency(new MoneyAmount(bnaFX.get(dtf.format(i.getOut().getDate())), Currency.ARS), 16),
+                this.format.currency(new MoneyAmount(bnaFX.get(dtf.format(i.getOut().getDate())), ARS), 16),
                 this.format.currency(this.capitalGainARS(i, bnaFX), 20)
         );
     }
@@ -1312,20 +1311,9 @@ public class Investments {
     private MoneyAmount cost(Investment i) {
 
         var iva = SeriesReader.readPercent("iva").add(ONE);
-        if (i.getIn().getFx() != null) {
-            return new MoneyAmount(
-                    i.getIn().getFx()
-                            .multiply(
-                                    i.getIn().getAmount()
-                                            .add(i.getIn().getFee()
-                                                    .multiply(iva, C)
-                                            ),
-                                    C),
-                    USD
-            );
-        }
-        return i.getIn().getMoneyAmount()
-                .add(i.getIn().getFeeMoneyAmount().adjust(BigDecimal.ONE, iva));
+        
+        return i.getIn().getMoneyAmount(USD)
+                .add(i.getIn().getFeeMoneyAmount(USD).adjust(BigDecimal.ONE, iva));
     }
 
     private <T> SoldAndBought<T> summarize(
@@ -1481,7 +1469,7 @@ public class Investments {
                 .min(YearMonth::compareTo).get();
 
         final var valueSeries = new SortedMapMoneyAmountSeries(USD, (nominal ? "Nominal" : "Real") + " Investments");
-        final var end = Inflation.USD_INFLATION.getTo();
+        final var end = Inflation.usdInflation().getTo();
 
         for (YearMonth ym = start; ym.compareTo(end) <= 0; ym = ym.plusMonths(1)) {
 
@@ -1498,7 +1486,7 @@ public class Investments {
                             .map(ma -> ForeignExchanges.getForeignExchange(ma.currency(), USD).exchange(ma, USD, moment))
                             .map(ma -> nominal
                             ? ma
-                            : Inflation.USD_INFLATION.adjust(ma, momentYm, end))
+                            : Inflation.usdInflation().adjust(ma, momentYm, end))
                             .reduce(MoneyAmount.zero(USD), MoneyAmount::add));
         }
 
@@ -1571,7 +1559,7 @@ public class Investments {
         final var expectedVolatility = SeriesReader.readPercent("futureVolatility").doubleValue();
 
         final var projection = this.predictedValues(
-                Inflation.USD_INFLATION.getTo(),
+                Inflation.usdInflation().getTo(),
                 years,
                 pValue,
                 presentValue,
@@ -1581,7 +1569,7 @@ public class Investments {
         return projection.getAmount(projection.getTo());
 
     }
-    
+
     private MoneyAmountSeries predictedValues(
             YearMonth start,
             int years,
@@ -1686,7 +1674,7 @@ public class Investments {
                         .filter(i -> i.getCurrency() == currency)
                         .map((Investment i) -> new LabeledXYDataItem(
                         i.getInitialDate(),
-                        this.initialMoneyAmountUSD(i).adjust(i.getInvestment().getAmount(), ONE).amount(),
+                        i.getInitialMoneyAmount(USD).adjust(i.getInvestment().getAmount(), ONE).amount(),
                         i.getInvestment().getAmount().toString()
                 )))
                 .forEach(ss::add);
@@ -1699,12 +1687,5 @@ public class Investments {
                         "Date",
                         "Price",
                         "inv-" + currency.name());
-    }
-
-    private MoneyAmount initialMoneyAmountUSD(Investment i) {
-        if (i.getIn().getFx() == null) {
-            return i.getInitialMoneyAmount();
-        }
-        return i.getInitialMoneyAmount().adjust(ONE, i.getIn().getFx());
     }
 }

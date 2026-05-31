@@ -129,7 +129,7 @@ public class Positions {
                 .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(inv -> ForeignExchanges.exchange(inv, USD))
-                .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
+                .map(inv -> nominal ? inv : Inflation.usdInflation().real(inv))
                 .collect(groupingBy(Investment::getCurrency))
                 .values()
                 .stream()
@@ -192,8 +192,18 @@ public class Positions {
                 .map(i -> this.capitalGain(i, nominal))
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
+        final var realizedInvestment = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .filter(investment -> investment.getOut() != null)
+                .map(i -> this.investment(i, nominal))
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+
         this.console.appendLine(MessageFormat.format(
-                " Realized {0}", this.format.currencyPL(realized.amount(), 104)));
+                " Realized {0} {1}",
+                this.format.currencyPL(realized.amount(), 104),
+                this.format.percent(realized.amount().divide(realizedInvestment.amount(), C), 8)
+        ));
 
         this.console.appendLine(MessageFormat.format(" Total {0}", this.format.currencyPL(
                 realized.add(totalPnL).amount(), 107)));
@@ -277,17 +287,17 @@ public class Positions {
 
     private MoneyAmount capitalGain(Investment i, boolean nominal) {
 
-        var bought = i.getIn().getFx() != null
+        var bought = i.getInitialMoneyAmount(USD);/*i.getIn().getFx() != null
                 ? new MoneyAmount(i.getInitialMoneyAmount().amount().multiply(i.getIn().getFx(), C), USD)
-                : i.getInitialMoneyAmount();
+                : i.getInitialMoneyAmount();*/
 
-        var sold = i.getOut().getFx() != null
+        var sold = i.getOut().getMoneyAmount(USD);/*i.getOut().getFx() != null
                 ? new MoneyAmount(i.getOut().getMoneyAmount().amount().multiply(i.getOut().getFx(), C), USD)
-                : i.getOut().getMoneyAmount();
+                : i.getOut().getMoneyAmount();*/
 
         return nominal
                 ? sold.subtract(bought)
-                : Inflation.USD_INFLATION.adjust(
+                : Inflation.usdInflation().adjust(
                         sold.subtract(bought),
                         i.getOut().getDate(),
                         LocalDate.now());
@@ -304,6 +314,21 @@ public class Positions {
                 this.format.percent(tax, 6),
                 ". Saving on $2.5k/mo: ",
                 format.currency(new BigDecimal("2500").multiply(tax, C), 9));
+    }
+
+    private MoneyAmount investment(Investment i, boolean nominal) {
+
+        final var nominalAmount = i.getInitialMoneyAmount(USD);
+        /*fx == null
+                ? i.getInitialMoneyAmount()
+                : new MoneyAmount(i.getIn().getAmount().multiply(fx, C), USD);*/
+
+        return nominal
+                ? nominalAmount
+                : Inflation.usdInflation().adjust(
+                        nominalAmount,
+                        i.getInitialDate(),
+                        i.getOut().getDate());
     }
 
     // EGR = ratio de ganancia embebida
@@ -443,7 +468,7 @@ public class Positions {
                 .stream()
                 .filter(filter)
                 .map(inv -> ForeignExchanges.exchange(inv, USD))
-                .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
+                .map(inv -> nominal ? inv : Inflation.usdInflation().real(inv))
                 .flatMap(i
                         -> i.getOut() == null
                 ? Stream.of(new CashFlow(i.getIn().getDate(), i.getIn().getAmount()))
@@ -473,7 +498,7 @@ public class Positions {
     private MoneyAmount current(Currency currency) {
         final var ma = new MoneyAmount(ONE, currency);
         return ForeignExchanges.getMoneyAmountForeignExchange(ma.currency(), USD)
-                .apply(ma, Inflation.USD_INFLATION.getTo());
+                .apply(ma, Inflation.usdInflation().getTo());
     }
 
     private String currentPice(Currency currency) {
@@ -486,7 +511,7 @@ public class Positions {
                 .filter(investment -> investment.isCurrent(now))
                 .filter(Investment::isETF)
                 .map(inv -> ForeignExchanges.exchange(inv, USD))
-                .map(inv -> nominal ? inv : Inflation.USD_INFLATION.real(inv))
+                .map(inv -> nominal ? inv : Inflation.usdInflation().real(inv))
                 .collect(groupingBy(i -> new CurrencyAndGroupKey(i.getCurrency(), groupingFunction.apply(i))))
                 .entrySet()
                 .stream()

@@ -46,7 +46,7 @@ public enum InterpolationStrategy {
     }, USD_INFLATION_INTERPOLATION {
         @Override
         public MoneyAmount interpolate(MoneyAmount lastValue, YearMonth lastValueYearMonth, Currency currency) {
-            return inflationInterpolation(Inflation.USD_INFLATION, lastValue, lastValueYearMonth, currency);
+            return inflationInterpolation(Inflation.usdInflation(), lastValue, lastValueYearMonth, currency);
         }
     };
 

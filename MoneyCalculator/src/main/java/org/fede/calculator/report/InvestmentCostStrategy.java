@@ -42,13 +42,13 @@ public class InvestmentCostStrategy {
 
         //post sell fee
         final var presentValue = ForeignExchanges.getMoneyAmountForeignExchange(inv.getMoneyAmount().currency(), this.currency)
-                .apply(inv.getMoneyAmount(), Inflation.USD_INFLATION.getTo())
+                .apply(inv.getMoneyAmount(), Inflation.usdInflation().getTo())
                 .amount();
 
         // ccl
         final var d = new InvestmentDetails();
 
-        d.setCostBasis(inv.getCost());
+        d.setCostBasis(inv.getCost(this.currency));
 
         d.setInvestmentDate(inv.getInitialDate());
         d.setInvestedAmount(new MoneyAmount(investedAmount, this.currency));

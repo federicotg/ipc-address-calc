@@ -32,9 +32,9 @@ import static java.util.stream.Collectors.joining;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.fede.calculator.money.MoneyAmount;
-import static org.fede.calculator.money.Inflation.USD_INFLATION;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import java.time.YearMonth;
+import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.MathConstants.C;
 
 /**
@@ -258,7 +258,7 @@ public class Bar {
     }
 
     public void evolution(String name, MoneyAmountSeries s, int scale) {
-        final var limit = USD_INFLATION.getTo();
+        final var limit = Inflation.usdInflation().getTo();
 
         s.forEach((ym, ma) -> {
             if (ym.compareTo(limit) <= 0) {

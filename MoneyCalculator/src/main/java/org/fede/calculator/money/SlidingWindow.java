@@ -154,7 +154,7 @@ public class SlidingWindow implements Aggregator, Differencer {
         // the last inflation data available.
         var ym = series.getTo();
         Stream.Builder<MoneyAmountItem> sb = Stream.builder();
-        while (ym.isBefore(Inflation.USD_INFLATION.getTo())) {
+        while (ym.isBefore(Inflation.usdInflation().getTo())) {
             ym = ym.plusMonths(1);
             sb.add(new MoneyAmountItem(ym, MoneyAmount.zero(series.getCurrency())));
         }
