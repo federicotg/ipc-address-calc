@@ -44,10 +44,15 @@ import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Inflation.usdInflation;
 import org.fede.calculator.money.series.Investment;
 import java.time.YearMonth;
+import java.util.EnumMap;
+import java.util.Set;
 import static org.fede.calculator.money.Currency.EIMI;
-import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.XRSU;
+import static org.fede.calculator.money.Currency.CSPX;
+import static org.fede.calculator.money.Currency.RTWOE;
+import static org.fede.calculator.money.Currency.MEUS;
+import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.chart.ChartStyle;
 import org.fede.calculator.chart.Scale;
@@ -58,6 +63,7 @@ import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.Accumulator;
 import org.fede.calculator.money.CPIInflation;
+import static org.fede.calculator.money.Currency.EMIM;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.SingleHttpClientSupplier;
 import org.fede.calculator.money.SlidingWindow;
@@ -132,7 +138,37 @@ public class ConsoleReports {
     }
 
     private boolean investmentFilter(Investment i, String type) {
-        if ("all".equalsIgnoreCase(type)) {
+
+        Map<Currency, Set<Currency>> equivalences = new EnumMap<>(
+                Map.of(EIMI, Set.of(EIMI, EMIM),
+                        CSPX, Set.of(CSPX, Currency.SXR8),
+                        RTWO, Set.of(RTWO, RTWOE),
+                        MEUD, Set.of(MEUD, MEUS, Currency.XUSE)
+                ));
+
+        return switch (type.toLowerCase()) {
+            case "all" ->
+                true;
+            case "r2k" ->
+                i.getCurrency() == XRSU || i.getCurrency() == RTWO || i.getCurrency() == Currency.RTWOE;
+
+            case "us" ->
+                !(i.getCurrency() != Currency.SXR8
+                && i.getCurrency() != CSPX
+                && i.getCurrency() != RTWO
+                && i.getCurrency() != RTWOE);
+
+            case "exus" ->
+                i.getCurrency() != Currency.SXR8
+                && i.getCurrency() != CSPX
+                && i.getCurrency() != RTWO
+                && i.getCurrency() != RTWOE;
+            default ->
+                equivalences.getOrDefault(Currency.valueOf(type.toUpperCase()), Set.of(Currency.valueOf(type.toUpperCase())))
+                .contains(i.getCurrency());
+        };
+
+        /* if ("all".equalsIgnoreCase(type)) {
             return true;
         }
         if ("r2k".equalsIgnoreCase(type)) {
@@ -142,7 +178,7 @@ public class ConsoleReports {
             return i.getCurrency() == EIMI || i.getCurrency() == MEUD || i.getCurrency() == Currency.XUSE;
         }
 
-        return i.getCurrency().name().equalsIgnoreCase(type);
+        return i.getCurrency().name().equalsIgnoreCase(type);*/
     }
 
     private static Runnable getAction(String[] args, ConsoleReports me, Format format, Bar bar, Series series, Console console) {
@@ -167,6 +203,15 @@ public class ConsoleReports {
 
             case "savings-evo" ->
                 () -> me.savingEvolution(args, "savings-evo");
+
+            case "safe-withdrawal" ->
+                () -> {
+                    try {
+                        me.safeWithdrawalChart();
+                    } catch (IOException ex) {
+                        LOGGER.error("Error generating safe withdrawal chart.", ex);
+                    }
+                };
 
             case "savings-change" ->
                 () -> me.savingChange(args, "savings-change");
@@ -350,6 +395,7 @@ public class ConsoleReports {
                 )),
                 new CmdParam("savings-change", "m=1"),
                 new CmdParam("savings-change-pct", "m=1"),
+                new CmdParam("safe-withdrawal"),
                 new CmdParam("i", "y=current m=current g=false"),
                 new CmdParam("pa"),
                 new CmdParam("house-evo"),
@@ -888,6 +934,26 @@ public class ConsoleReports {
                 .create("Savings", List.of(s, nominal), "savings");
     }
 
+    private void safeWithdrawalChart() throws IOException {
+        final var realSavings = this.series.realSavings(null);
+
+        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
+                .create(
+                        "Monthly Safe Withdrawal Amount",
+                        List.of(
+                                this.safeWithdrawalSeries(realSavings, "3.25%", new BigDecimal("0.0325")),
+                                this.safeWithdrawalSeries(realSavings, "4.00%", new BigDecimal("0.040")),
+                                this.safeWithdrawalSeries(realSavings, "4.50%", new BigDecimal("0.045"))),
+                        "safe-withdrawal");
+    }
+
+    private MoneyAmountSeries safeWithdrawalSeries(MoneyAmountSeries savings, String name, BigDecimal annualRate) {
+        final var monthsInYear = BigDecimal.valueOf(12);
+        final var withdrawal = savings.map((ym, amount) -> amount.adjust(monthsInYear, annualRate));
+        withdrawal.setName(name);
+        return withdrawal;
+    }
+
     private void savingsARSEvoChart() throws IOException {
 
         var s = this.series.realSavings(null).exchangeInto(ARS);
@@ -967,6 +1033,7 @@ public class ConsoleReports {
             this.expensesChart(12, true);
             this.incomeAccChart();
             this.savingsEvoChart();
+            this.safeWithdrawalChart();
             this.savingsARSEvoChart();
             savings.netAvgSavingSpentChart(12);
             savings.netAvgSavingSpentChart(3);

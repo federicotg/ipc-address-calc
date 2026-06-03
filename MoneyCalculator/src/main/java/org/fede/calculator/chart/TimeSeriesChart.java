@@ -33,7 +33,6 @@ import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
-import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.data.time.TimeSeries;
@@ -134,7 +133,7 @@ public class TimeSeriesChart {
         NumberFormat valueFormatter = (NumberFormat) this.style.valueFormat().format();
 
         if (this.style.scale() == Scale.LOG) {
-            xyPlot.setRangeAxis(new LogarithmicAxis(label));
+            xyPlot.setRangeAxis(new DenseLogarithmicAxis(label));
         }
 
         if (xyPlot.getRangeAxis() instanceof NumberAxis na) {

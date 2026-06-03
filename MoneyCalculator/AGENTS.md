@@ -17,6 +17,12 @@ mvn package
 mvn install
 ```
 
+Maven is installes in this PATH
+
+```
+/Applications/Apache NetBeans.app/Contents/Resources/netbeans/java/maven/bin/mvn
+```
+
 The Maven compiler plugin is configured with `<release>26</release>` and `-Xlint`.
 
 ## Entry Point
