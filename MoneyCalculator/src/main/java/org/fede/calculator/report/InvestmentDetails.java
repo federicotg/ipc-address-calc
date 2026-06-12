@@ -103,7 +103,7 @@ public class InvestmentDetails {
 
         final double x = Math.pow(
                 ONE.add(cumulativeProfit).doubleValue(),
-                365.0d / (double) days) - 1.0d;
+                365.2425d / (double) days) - 1.0d;
 
         if (Double.isNaN(x)) {
             return ZERO;

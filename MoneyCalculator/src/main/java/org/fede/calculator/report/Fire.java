@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import java.math.RoundingMode;
 import java.text.MessageFormat;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Period;
@@ -165,13 +164,12 @@ public class Fire {
         this.console.appendLine("Spending ", this.format.currency(budgets.currentWithHealth(), 12));
         this.coveredCashLine("Metals", currentlyEstimated, budgets.currentWithHealth(), false);
         this.coveredCashLine("Current cash", currentCash, budgets.currentWithHealth());
-        this.coveredCashLine("Current cash & sev.", currentCash
+        this.coveredCashLine(" ? Current cash & sev.", currentCash
                 .add(this.severance().getTotal()), budgets.currentWithHealth(), false);
-        this.console.appendLine("");
-        this.coveredCashLine("Future cash", futureCash, budgets.currentWithHealth());
-        this.coveredCashLine("Near future sales", futureCash.add(sales1), budgets.currentWithHealth(), false);
-        this.coveredCashLine("Future sales", futureCash.add(sales1).add(sales2), budgets.currentWithHealth(), false);
-        this.coveredCashLine("All sales", futureCash.add(sales1).add(sales2).add(sales3), budgets.currentWithHealth(), false);
+        this.coveredCashLine(" ➞ Future cash", futureCash, budgets.currentWithHealth());
+        this.coveredCashLine("   ➞ Near future sales", futureCash.add(sales1), budgets.currentWithHealth(), false);
+        this.coveredCashLine("     ➞ Future sales", futureCash.add(sales1).add(sales2), budgets.currentWithHealth(), false);
+        this.coveredCashLine("       ➞ All sales", futureCash.add(sales1).add(sales2).add(sales3), budgets.currentWithHealth(), false);
 
         final var unlp = this.series.incomeSource("unlp");
         final var initialMonth = unlp.yearMonthStream()
@@ -374,18 +372,30 @@ public class Fire {
         final var everythingWithoutRent = essential
                 .add(futureHealth)
                 .add(other)
-                .add(discretionary)
-                .add(irregular);
+                .add(discretionary);
+                //.add(irregular);
         final var everythingWithRent = everythingWithoutRent
                 .add(futureRent);
+        
         return new SpendingBudgets(
+                //essentialWithRent
                 adjustforCapitalGains(essentialWithRent, capitalGainsTaxRate, costBasisPct),
+                
+                //essentialWithoutRent
                 adjustforCapitalGains(essentialWithoutRent, capitalGainsTaxRate, costBasisPct),
+                
+                //everythingWithRent
                 adjustforCapitalGains(everythingWithRent, capitalGainsTaxRate, costBasisPct),
+                
+                //everythingWithoutRent
                 adjustforCapitalGains(everythingWithoutRent, capitalGainsTaxRate, costBasisPct),
+                
+                //current
                 adjustforCapitalGains(Stream.of(essential, discretionary, irregular, other)
                         .reduce(MoneyAmount.zero(USD), MoneyAmount::add),
                         capitalGainsTaxRate, costBasisPct),
+                
+                //currentWithHealth
                 essential
                         .add(this.currentHealth())
                         .add(discretionary)

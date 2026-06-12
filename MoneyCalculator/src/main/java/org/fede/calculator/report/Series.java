@@ -120,26 +120,22 @@ public class Series {
                     of(ESSENTIAL, "municipal-43"),
                     of(ESSENTIAL, "salud"),
                     of(ESSENTIAL, "contadora"),
-                    of(DISCRETIONARY, "celular-a"),
-                    of(DISCRETIONARY, "celular-f"),
-                    of(DISCRETIONARY, "telefono-43"),
                     of(ESSENTIAL, "emergencia"),
                     of(ESSENTIAL, "ioma"),
                     of(ESSENTIAL, "seguro"),
                     of(ESSENTIAL, "comida"),
                     of(ESSENTIAL, "gas"),
                     of(ESSENTIAL, "luz"),
+                    of(ESSENTIAL, "expensas"),
+                    of(DISCRETIONARY, "celular-a"),
+                    of(DISCRETIONARY, "celular-f"),
+                    of(DISCRETIONARY, "telefono-43"),
                     of(DISCRETIONARY, "santander"),
                     of(DISCRETIONARY, "box"),
                     of(DISCRETIONARY, "cablevision"),
                     of(DISCRETIONARY, "comida-disc"),
                     of(DISCRETIONARY, "sellos"),
-                    of(IRREGULAR, "other"),
-                    of(IRREGULAR, "other-usd"),
-                    of(IRREGULAR, "colon"),
-                    of(IRREGULAR, "reparaciones"),
                     of(DISCRETIONARY, "limpieza"),
-                    of(ESSENTIAL, "expensas"),
                     of(DISCRETIONARY, "netflix"),
                     of(DISCRETIONARY, "suscripciones-usd"),
                     of(DISCRETIONARY, "suscripciones-ars"),
@@ -147,11 +143,15 @@ public class Series {
                     of(DISCRETIONARY, "viajes-usd"),
                     of(DISCRETIONARY, "xbox"),
                     of(DISCRETIONARY, "atlantico"),
-                    of(DISCRETIONARY, "itau-uy"))
-                    .collect(groupingBy(
-                            Pair::first,
-                            mapping(p -> this.asRealUSDSeries("expense/", p.second()),
-                                    Collectors.toList())));
+                    of(DISCRETIONARY, "itau-uy"),
+                    of(IRREGULAR, "other"),
+                    of(IRREGULAR, "other-usd"),
+                    of(IRREGULAR, "colon"),
+                    of(IRREGULAR, "reparaciones")
+            ).collect(groupingBy(
+                    Pair::first,
+                    mapping(p -> this.asRealUSDSeries("expense/", p.second()),
+                            Collectors.toList())));
 
             this.realUSDExpensesByType.get(IRREGULAR)
                     .add(this.investingExpenses());
@@ -432,8 +432,37 @@ public class Series {
                 "ahorros-dolar-banco",
                 "ahorros-dolar-liq",
                 "ahorros-euro",
+                "ahorros-uva",
+                "ahorros-caplusa",
+                "ahorros-dolar-pf",
                 "ahorros-euro-liq",
                 "ahorros-dai")
+                .map(this::asRealUSDSeries)
+                .reduce(MoneyAmountSeries::add)
+                .get();
+    }
+
+    public MoneyAmountSeries ripteInRealUSD() {
+
+        var ripte = this.asRealUSDSeries("income/", "ripte");
+        ripte.setName("RIPTE Real USD");
+        return ripte;
+    }
+
+    public MoneyAmountSeries realInvested() {
+        return Stream.of(
+                "ahorros-cspx",
+                "ahorros-eimi",
+                "ahorros-rtwo",
+                "ahorros-meud",
+                "ahorros-xrsu",
+                "ahorros-xuse",
+                "ahorros-ay24",
+                "ahorros-conaafa",
+                "ahorros-conbala",
+                "ahorros-dolar-ON",
+                "ahorros-lecap",
+                "ahorros-lete")
                 .map(this::asRealUSDSeries)
                 .reduce(MoneyAmountSeries::add)
                 .get();
@@ -460,7 +489,8 @@ public class Series {
     }
 
     private MoneyAmountSeries readSeriesInUSD(String prefix, String fileName) {
-        return SeriesReader.readSeries(prefix.concat(fileName).concat(".json")).exchangeInto(Currency.USD);
+        return SeriesReader.readSeries(prefix + fileName + ".json")
+                .exchangeInto(Currency.USD);
     }
 
     public List<BBPPYear> bbppSeries() {

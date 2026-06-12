@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import static java.time.Month.DECEMBER;
 import static java.time.Month.JANUARY;
+import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -605,6 +606,35 @@ public class Investments {
                 .map(e -> this.matrixRow(e.getKey(), e.getValue().stream().map(LabelAndMDR::mdr).toList(), matrix))
                 .forEach(this.console::appendLine);
 
+        final var now = LocalDate.now();
+        
+        var growthFactor = matrix.get("Portfolio")
+                .getLast()
+                .mdr()
+                .moneyWeighted()
+                .add(BigDecimal.ONE, C);
+
+        var oldest = this.series.getInvestments()
+                .stream()
+                .filter(i -> i.isETF())
+                .map(Investment::getInitialDate)
+                .min(LocalDate::compareTo)
+                .orElseThrow();
+
+        var days = ChronoUnit.DAYS.between(oldest, now);
+
+        double years = days / 365.2425;
+        double cagr = Math.pow(growthFactor.doubleValue(), 1.0 / years) - 1.0;
+
+        var cagrBd = BigDecimal.valueOf(cagr);
+
+        Period p = Period.between(oldest, now);
+
+        this.console.appendLine(this.format.subtitle("CAGR"));
+        this.console.appendLine(MessageFormat.format("Over {0} years and {1} months {2}",
+                p.getYears(),
+                p.getMonths(),
+                this.format.percent(cagrBd, 8)));
     }
 
     private void yearMatrix(
@@ -1311,7 +1341,7 @@ public class Investments {
     private MoneyAmount cost(Investment i) {
 
         var iva = SeriesReader.readPercent("iva").add(ONE);
-        
+
         return i.getIn().getMoneyAmount(USD)
                 .add(i.getIn().getFeeMoneyAmount(USD).adjust(BigDecimal.ONE, iva));
     }

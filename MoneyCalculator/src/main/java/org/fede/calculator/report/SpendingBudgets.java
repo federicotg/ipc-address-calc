@@ -24,7 +24,8 @@ import org.fede.calculator.money.MoneyAmount;
  *
  * @author fede
  */
-public record SpendingBudgets(MoneyAmount essentialWithRent,
+public record SpendingBudgets(
+        MoneyAmount essentialWithRent,
         MoneyAmount essentialWithoutRent,
         MoneyAmount everythingWithRent,
         MoneyAmount everythingWithoutRent,

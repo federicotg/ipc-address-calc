@@ -23,6 +23,8 @@ import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
+import java.time.Month;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,6 +46,7 @@ import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Inflation.usdInflation;
 import org.fede.calculator.money.series.Investment;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.EnumMap;
 import java.util.Set;
 import static org.fede.calculator.money.Currency.EIMI;
@@ -201,17 +204,14 @@ public class ConsoleReports {
             case "savings" ->
                 () -> me.savings(args, "savings");
 
+            case "eras" ->
+                () -> me.investmentEras(
+                nominal(me.paramsValue(args, "eras")),
+                Boolean.parseBoolean(me.paramsValue(args, "eras").getOrDefault("cash", "false"))
+                );
+
             case "savings-evo" ->
                 () -> me.savingEvolution(args, "savings-evo");
-
-            case "safe-withdrawal" ->
-                () -> {
-                    try {
-                        me.safeWithdrawalChart();
-                    } catch (IOException ex) {
-                        LOGGER.error("Error generating safe withdrawal chart.", ex);
-                    }
-                };
 
             case "savings-change" ->
                 () -> me.savingChange(args, "savings-change");
@@ -395,7 +395,6 @@ public class ConsoleReports {
                 )),
                 new CmdParam("savings-change", "m=1"),
                 new CmdParam("savings-change-pct", "m=1"),
-                new CmdParam("safe-withdrawal"),
                 new CmdParam("i", "y=current m=current g=false"),
                 new CmdParam("pa"),
                 new CmdParam("house-evo"),
@@ -417,6 +416,7 @@ public class ConsoleReports {
                 new CmdParam("sev"),
                 new CmdParam("income-src", "m=12"),
                 new CmdParam("pf", "detail=false nominal=false"),
+                new CmdParam("eras", "nominal=false cash=false"),
                 new CmdParam("income-src-pct", "m=12"),
                 new CmdParam("income-acc"),
                 new CmdParam("income-acc-pct"),
@@ -647,7 +647,7 @@ public class ConsoleReports {
                 ? this.series.realExpense()
                 : this.series.realExpenses(type);
 
-        this.bar.evolution(format("Average {0}-month expenses.", months), new SlidingWindow(months).average(s), 30);
+        this.bar.evolution(format("Average {0}-month expenses.", months), new SlidingWindow(months).average(s), 40);
     }
 
     private void savingChange(String[] args, String paramName) {
@@ -934,21 +934,20 @@ public class ConsoleReports {
                 .create("Savings", List.of(s, nominal), "savings");
     }
 
-    private void safeWithdrawalChart() throws IOException {
+    private void safeWithdrawalChart() {
         final var realSavings = this.series.realSavings(null);
 
         new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
                 .create(
                         "Monthly Safe Withdrawal Amount",
                         List.of(
-                                this.safeWithdrawalSeries(realSavings, "3.25%", new BigDecimal("0.0325")),
-                                this.safeWithdrawalSeries(realSavings, "4.00%", new BigDecimal("0.040")),
-                                this.safeWithdrawalSeries(realSavings, "4.50%", new BigDecimal("0.045"))),
+                                this.safeWithdrawalSeries(realSavings, "3.00%", new BigDecimal("0.0300")),
+                                this.safeWithdrawalSeries(realSavings, "4.00%", new BigDecimal("0.0400"))),
                         "safe-withdrawal");
     }
 
     private MoneyAmountSeries safeWithdrawalSeries(MoneyAmountSeries savings, String name, BigDecimal annualRate) {
-        final var monthsInYear = BigDecimal.valueOf(12);
+        final var monthsInYear = BigDecimal.valueOf(12L);
         final var withdrawal = savings.map((ym, amount) -> amount.adjust(monthsInYear, annualRate));
         withdrawal.setName(name);
         return withdrawal;
@@ -1057,6 +1056,8 @@ public class ConsoleReports {
             this.averageSpendingPortfolioPercent();
             this.inflation();
             inv.benchmarks();
+            this.averageMonthsSavedInCash(12);
+            this.ripte();
 
         } catch (IOException ex) {
             LOGGER.error("Error generating charts.", ex);
@@ -1184,6 +1185,18 @@ public class ConsoleReports {
                         ),
                         "portfolio-regular-spending");
 
+        final var agg = new SlidingWindow(12);
+        var ripte = this.series.ripteInRealUSD();
+        final var avgRipte = agg.average(ripte);
+
+        new TimeSeriesChart(new ChartStyle(ValueFormat.NUMBER, Scale.LINEAR))
+                .createFromTimeSeries("RIPTE Spending",
+                        List.of(
+                                this.relativeSeries("Actual", avgRipte, agg.average(actualExpenses), 1, ripte.getTo()),
+                                this.relativeSeries("Regular", avgRipte, agg.average(regularExpenses), 1, ripte.getTo())
+                        ),
+                        "ripte-regular-spending");
+
     }
 
     private void buy(BigDecimal usd, BigDecimal eur, BigDecimal transfer, boolean detail) {
@@ -1244,6 +1257,150 @@ public class ConsoleReports {
         this.console.appendLine(this.format.text("Untaxed", 8), this.format.currency(new MoneyAmount(sev.untaxedAmount(), USD), 18));
         this.console.appendLine(this.format.text("Total", 8), this.format.currency(sev.getTotal(), 18));
 
+    }
+
+    private record InvestmentEra(String name, YearMonth from, YearMonth to) {
+
+        public boolean contains(Investment i) {
+            var investment = YearMonth.from(i.getInitialDate());
+            return investment.compareTo(from) >= 0
+                    && investment.compareTo(to) <= 0;
+        }
+    }
+
+    private void investmentEras(boolean nominal, boolean cash) {
+
+        this.console.appendLine(this.format.title("Investment Eras"));
+
+        final var cib = new CashInvestmentBuilder(()
+                -> SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
+                        .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
+                        .add(SeriesReader.readSeries("/saving/ahorros-peso.json").exchangeInto(USD))
+                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto(USD))
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(USD))
+                        .add(SeriesReader.readSeries("/saving/ahorros-euro-liq.json").exchangeInto(USD))
+        );
+
+        // non overlapping
+        Stream.of(
+                new InvestmentEra("Convertibility",
+                        YearMonth.of(1999, Month.NOVEMBER),
+                        YearMonth.of(2001, Month.DECEMBER)),
+                new InvestmentEra("PF Era",
+                        YearMonth.of(2002, Month.JANUARY),
+                        YearMonth.of(2011, Month.JULY)),
+                new InvestmentEra("Cepo",
+                        YearMonth.of(2011, Month.AUGUST),
+                        YearMonth.of(2016, Month.MARCH)),
+                new InvestmentEra("FCI",
+                        YearMonth.of(2016, Month.APRIL),
+                        YearMonth.of(2019, Month.JUNE)),
+                new InvestmentEra("Transition",
+                        YearMonth.of(2019, Month.JULY),
+                        YearMonth.of(2020, Month.JULY)),
+                new InvestmentEra("ETF",
+                        YearMonth.of(2020, Month.AUGUST),
+                        YearMonth.now())
+        ).forEach(era -> this.era(era, nominal, cash, cib));
+
+    }
+
+    private void era(InvestmentEra era, boolean nominal, boolean withCash, CashInvestmentBuilder cib) {
+
+        var investments = withCash
+                ? Stream.concat(this.series.getInvestments().stream(),
+                        cib.cashInvestments().stream())
+                        .toList()
+                : this.series.getInvestments();
+
+        final var mdr = new ModifiedDietzReturn(investments.stream().filter(era::contains).toList(), nominal)
+                .get()
+                .getMoneyWeighted()
+                .add(BigDecimal.ONE);
+
+        final var days = ChronoUnit.DAYS.between(era.from.atDay(1), era.to.atEndOfMonth());
+
+        final double years = days / 365.2425;
+        final double cagr = Math.pow(mdr.doubleValue(), 1.0 / years) - 1.0;
+
+        final var cagrBd = BigDecimal.valueOf(cagr);
+
+        final Period p = Period.between(era.from.atDay(1), era.to.atEndOfMonth());
+
+        this.console.appendLine(MessageFormat.format("{0} Over {1} years and {2} months CAGR: {3}",
+                this.format.text(era.name, 15),
+                p.getYears(),
+                this.format.text(String.valueOf(p.getMonths()), 2),
+                this.format.percent(cagrBd, 7)));
+
+    }
+
+    private void averageMonthsSavedInCash(int months) {
+        final var realCash = this.series.realCash();
+        final var realInvested = this.series.realInvested();
+
+        final Map<String, List<MoneyAmountSeries>> expenseSeriesMap = this.series.getRealUSDExpensesByType();
+
+        final MoneyAmountSeries regularExpenses = expenseSeriesMap.entrySet()
+                .stream()
+                .filter(e -> !e.getKey().equals(Series.IRREGULAR))
+                .flatMap(e -> e.getValue().stream())
+                .reduce(MoneyAmountSeries::add)
+                .get();
+
+        final var avgSpending = new SlidingWindow(months).average(regularExpenses);
+
+        new TimeSeriesChart(new ChartStyle(ValueFormat.NUMBER, Scale.LINEAR))
+                .createFromTimeSeries(
+                        "Years of Spending Covered",
+                        List.of(
+                                this.relativeSeries("Years Saved in Cash", avgSpending, realCash),
+                                this.relativeSeries("Years Invested", avgSpending, realInvested)
+                        ),
+                        USD,
+                        "covered-years");
+    }
+
+    private TimeSeries relativeSeries(String title, MoneyAmountSeries regularExpenses, MoneyAmountSeries realSavings) {
+        return this.relativeSeries(
+                title,
+                regularExpenses,
+                realSavings,
+                12,
+                YearMonthUtil.min(realSavings.getTo(), regularExpenses.getTo()));
+    }
+
+    private TimeSeries relativeSeries(String title, MoneyAmountSeries regularExpenses, MoneyAmountSeries realSavings, int months, YearMonth to) {
+
+        final List<TimeSeriesDatapoint> s = new ArrayList<>();
+        var ym = YearMonth.of(2008, 1);
+        var monthsInAYear = BigDecimal.valueOf(months);
+
+        while (ym.compareTo(to) <= 0) {
+            s.add(
+                    new TimeSeriesDatapoint(
+                            ym,
+                            realSavings
+                                    .getAmountOrElseZero(ym)
+                                    .amount()
+                                    .divide(regularExpenses.getAmount(ym).amount(), MathConstants.C)
+                                    .divide(monthsInAYear, MathConstants.C)));
+            ym = ym.plusMonths(1);
+        }
+        return ChartSeriesMapper.asTimeSeries(s, title);
+
+    }
+
+    private void ripte() {
+        new TimeSeriesChart(new ChartStyle(ValueFormat.NUMBER, Scale.LINEAR))
+                .createFromTimeSeries(
+                        "RIPTE Real USD avg. 12 months",
+                        List.of(
+                                ChartSeriesMapper.asTimeSeries(
+                                        new SlidingWindow(12).average(this.series.ripteInRealUSD()))
+                        ),
+                        USD,
+                        "ripte");
     }
 
 }
