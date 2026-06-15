@@ -98,14 +98,12 @@ public class Fire {
                 .exchange(ars, USD, YearMonth.now());
     }
 
-    public void fire(int months) {
+    public void fi(int months) {
 
-        this.console.appendLine(this.format.title("F.I.R.E."));
         final var budgets = this.budgets(months);
-
         final var essential = this.sumExpenses(ESSENTIAL, months);
         final var discretionary = this.sumExpenses(DISCRETIONARY, months);
-        final var irregular = this.sumExpenses(IRREGULAR, months);
+        final var irregular = this.sumExpenses(IRREGULAR, 3 * months);
         final var other = this.sumExpenses(OTHER, months);
         final var totalSavings = this.series.currentSavingsUSD();
 
@@ -120,10 +118,6 @@ public class Fire {
         final var currentlyEstimated = this.currentlyEstimatedSavings();
         final var currentCash = this.series.realSavings("LIQ").getAmount(YearMonth.now())
                 .add(currentlyEstimated);
-        final var futureCash = currentCash
-                .add(readUSD("futureCash.1"))
-                .add(this.severance().getTotal())
-                .add(readUSD("futureCash.3"));
 
         this.conceptLine("Essential", essential);
         this.conceptLine("Other", other);
@@ -131,15 +125,38 @@ public class Fire {
             this.conceptLine("Future Rent", futureRent);
         }
         this.conceptLine("Current Health Cost", currentHealth);
-        this.conceptLine("  => Future Health Cost", futureHealth);
+        this.conceptLine(" ➞ Future Health Cost", futureHealth);
         this.conceptLine("Discretionary", discretionary);
-        this.conceptLine("Irregular", irregular);
+        this.conceptLine("Irregular (*)", irregular);
+
+        this.console.appendLine("");
+
+        this.conceptLine("Current " + months + " months",
+                budgets.current(),
+                this.format.currency(
+                        ForeignExchanges.getMoneyAmountForeignExchange(USD, Currency.ARS)
+                                .apply(budgets.current(), YearMonth.now()), 18)
+        );
+
+        this.conceptLine("Current + Health - CGT",
+                budgets.currentWithHealth(),
+                this.format.currency(
+                        ForeignExchanges.getMoneyAmountForeignExchange(USD, Currency.ARS)
+                                .apply(budgets.currentWithHealth(), YearMonth.now()), 18)
+        );
+
+        this.conceptLine("Future Essential",
+                budgets.essentialWithoutRent(),
+                this.format.currency(
+                        ForeignExchanges.getMoneyAmountForeignExchange(USD, Currency.ARS)
+                                .apply(budgets.essentialWithoutRent(), YearMonth.now()), 18)
+        );
 
         this.console.appendLine(this.format.subtitle("Savings"));
 
         this.conceptLine("Current", totalSavings);
-        this.conceptLine("  => Current Estimated", currentlyEstimated);
-        this.conceptLine("  => Future", expectedFutureIncome);
+        this.conceptLine(" ➞ Current Estimated", currentlyEstimated);
+        this.conceptLine("   ➞ Future", expectedFutureIncome);
 
         var allEquity = this.series.realSavings("EQ").getAmount(YearMonth.now());
         var sp500 = this.lastUSDAmount("ahorros-cspx", YearMonth.now());
@@ -153,15 +170,16 @@ public class Fire {
         this.compositionLine("Cash", currentCash, totalSavingAndMetals);
 
         this.console.appendLine(this.format.subtitle("Income"));
-        this.conceptLine("  => Future Pension DCF", new Pension().discountedCashFlowValue());
 
-        this.console.appendLine(this.format.subtitle("Portfolio Size by Spending and Withdrawal Percent"));
+        final var futureCash = currentCash
+                .add(readUSD("futureCash.1"))
+                .add(this.severance().getTotal())
+                .add(readUSD("futureCash.3"));
 
         final var sales1 = readUSD("futureRealState.1");
         final var sales2 = readUSD("futureRealState.2");
         final var sales3 = readUSD("futureRealState.3");
 
-        this.console.appendLine("Spending ", this.format.currency(budgets.currentWithHealth(), 12));
         this.coveredCashLine("Metals", currentlyEstimated, budgets.currentWithHealth(), false);
         this.coveredCashLine("Current cash", currentCash, budgets.currentWithHealth());
         this.coveredCashLine(" ? Current cash & sev.", currentCash
@@ -170,6 +188,11 @@ public class Fire {
         this.coveredCashLine("   ➞ Near future sales", futureCash.add(sales1), budgets.currentWithHealth(), false);
         this.coveredCashLine("     ➞ Future sales", futureCash.add(sales1).add(sales2), budgets.currentWithHealth(), false);
         this.coveredCashLine("       ➞ All sales", futureCash.add(sales1).add(sales2).add(sales3), budgets.currentWithHealth(), false);
+        this.conceptLine(" ➞ Future Pension DCF", new Pension().discountedCashFlowValue());
+
+    }
+
+    public void re(int months) {
 
         final var unlp = this.series.incomeSource("unlp");
         final var initialMonth = unlp.yearMonthStream()
@@ -191,33 +214,35 @@ public class Fire {
                 result[1])
         );
 
-        this.currentSustainableARS(
-                "Current Monthly Sustainable Portfolio Spending",
-                totalSavingAndMetals);
+        final var budgets = this.budgets(months);
+        final var currentlyEstimated = this.currentlyEstimatedSavings();
 
-        this.currentSustainableARS(
-                "  => With Sev.",
-                totalSavingAndMetals.add(this.severance().getTotal()));
+        final var totalSavings = this.series.currentSavingsUSD()
+                .add(currentlyEstimated);
+
+        var wr = this.capeWR();
+
+        final var spending = totalSavings
+                .adjust(ONE, wr.divide(BigDecimal.valueOf(12L), C));
+
+        final int col = 18;
+        final int col2 = 20;
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}{3}",
+                this.format.text("CAPE Spending", col),
+                this.format.currency(spending, col2),
+                this.format.currency(ForeignExchanges.getForeignExchange(USD, Currency.ARS).exchange(spending, Currency.ARS, YearMonth.now()), col2),
+                this.format.percent(wr, 6)
+        ));
 
         this.console.appendLine(MessageFormat.format(
-                "Current Spending {0}",
+                "{0}{1}{2}",
+                this.format.text("Current Spending", col),
+                this.format.currency(budgets.currentWithHealth(), col2),
                 this.format.currency(
                         ForeignExchanges.getMoneyAmountForeignExchange(USD, Currency.ARS)
-                                .apply(budgets.currentWithHealth(), YearMonth.now()), 18)));
+                                .apply(budgets.currentWithHealth(), YearMonth.now()), col2)
+        ));
 
-        //this.console.appendLine(this.format.subtitle("Failsafe Around Prominent Market Peaks"));
-
-        /*this.console.appendLine(
-                Stream.of(
-                        this.refLine("pre-1900", "3.95"),
-                        this.refLine("1900-1910", "3.38"),
-                        this.refLine("1911-1928", "3.57"),
-                        this.refLine("1929", "3.25"),
-                        this.refLine("1964-69", "3.66"),
-                        this.refLine("1972/73", "4.07"),
-                        this.refLine("1999-2000", "3.53"),
-                        this.refLine("2008/09", "4.42"))
-                        .collect(Collectors.joining(", ")));*/
         final var percents = this.percents();
 
         this.console.appendLine("");
@@ -233,6 +258,7 @@ public class Fire {
                         percents.stream()
                                 .map(pct -> this.format.center(this.format.percent(pct), 8)))
                         .collect(Collectors.joining()));
+        final var expectedFutureIncome = this.expectedFutureSavings();
         this.spendingAmounts(budgets)
                 .stream()
                 .map(monthlySpending
@@ -254,6 +280,7 @@ public class Fire {
         this.conceptLine("Current + Health - CGT", budgets.currentWithHealth(), "✅");
         this.conceptLine("Essential", budgets.essentialWithoutRent(), "✅");
         this.conceptLine("Everything", budgets.everythingWithoutRent(), "✅✅");
+        final var futureRent = SeriesReader.readUSD("futureRent");
         if (!futureRent.isZero()) {
             this.conceptLine("Essential + Rent", budgets.essentialWithRent(), "✅✅");
             this.conceptLine("Everything + Rent", budgets.everythingWithRent(), "✅✅✅");
@@ -261,22 +288,78 @@ public class Fire {
 
     }
 
-    private void currentSustainableARS(String title, MoneyAmount savings) {
-        final var swr = readPercent("safewithdrawalrate");
-        final var fx = ForeignExchanges.getMoneyAmountForeignExchange(USD, Currency.ARS);
+    private record CAPEWeight(String key, BigDecimal pct) {
 
-        this.console.appendLine(MessageFormat.format(
-                title + " {0}",
-                this.format.currency(
-                        fx.apply(
-                                new MoneyAmount(
-                                        savings.amount()
-                                                .multiply(swr, C)
-                                                .divide(BigDecimal.valueOf(12L), C),
-                                        USD),
-                                YearMonth.now()),
-                        18)
-        ));
+    }
+
+    private BigDecimal capeWR() {
+
+        var now = YearMonth.now();
+
+        var currentlyEstimated = this.currentlyEstimatedSavings();
+
+        var usEquity = this.lastUSDAmount("ahorros-cspx", now)
+                .add(this.lastUSDAmount("ahorros-rtwo", now))
+                .add(this.lastUSDAmount("ahorros-xrsu", now));
+
+        var devExUs = this.lastUSDAmount("ahorros-meud", now)
+                .add(this.lastUSDAmount("ahorros-xuse", now));
+
+        var emerging = this.lastUSDAmount("ahorros-eimi", now);
+
+        var totalEquity = usEquity.add(devExUs).add(emerging).amount();
+
+        var cash = this.series.realSavings("LIQ").getAmount(now)
+                .add(currentlyEstimated);
+
+        var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
+
+        var totalPortfolioValue = Stream.of(usEquity, devExUs, emerging, cash, bonds)
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+
+        var cashYield = SeriesReader.readPercent("expectedInflation").negate(C);
+
+        if (this.series.currentSavingsUSD()
+                .add(currentlyEstimated)
+                .subtract(totalPortfolioValue)
+                .amount()
+                .compareTo(BigDecimal.TWO) > 0) {
+            throw new IllegalArgumentException("Missing amount.");
+        }
+
+        final var caey = Stream.of(
+                new CAPEWeight("cape", usEquity.adjust(totalEquity, ONE).amount()),
+                new CAPEWeight("cape.exus", devExUs.adjust(totalEquity, ONE).amount()),
+                new CAPEWeight("cape.em", emerging.adjust(totalEquity, ONE).amount()))
+                .map(cw -> ONE.divide(SeriesReader.readBigDecimal(cw.key), C)
+                .multiply(cw.pct, C))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return SeriesReader.readPercent("cape.a")
+                .add(SeriesReader.readPercent("cape.b").multiply(caey, C))
+                .add(SeriesReader.readPercent("bond10").multiply(bonds.adjust(totalPortfolioValue.amount(), ONE).amount()))
+                .add(cashYield.multiply(cash.adjust(totalPortfolioValue.amount(), ONE).amount()));
+    }
+
+    public void fiReport(int months) {
+        this.console.appendLine(this.format.title("F.I.R.E."));
+        this.fi(months);
+
+    }
+
+    public void reReport(int months) {
+        this.console.appendLine(this.format.title("F.I.R.E."));
+        this.re(months);
+
+    }
+
+    public void fire(int months) {
+
+        this.console.appendLine(this.format.title("F.I.R.E."));
+
+        this.fi(months);
+        this.re(months);
+
     }
 
     private void compositionLine(String categoryName, MoneyAmount amount, MoneyAmount total) {
@@ -307,7 +390,7 @@ public class Fire {
                 .amount();
 
         final BigDecimal[] result = coveredMonths
-                .divideAndRemainder(BigDecimal.valueOf(12));
+                .divideAndRemainder(BigDecimal.valueOf(12L));
 
         final var moment = LocalDate.now()
                 .plusDays(coveredMonths.multiply(BigDecimal.valueOf(30L)).intValue());
@@ -326,15 +409,16 @@ public class Fire {
     private List<BigDecimal> percents() {
         final var step = BigDecimal.valueOf(25L).movePointLeft(4);
         return Stream.concat(
-                LongStream.range(11l, 25l)
+                LongStream.range(12L, 22L)
                         .mapToObj(i -> BigDecimal.valueOf(i).multiply(step, C)),
-                Stream.of(
-                        BigDecimal.valueOf(366L),
-                        BigDecimal.valueOf(338L),
-                        BigDecimal.valueOf(353L),
-                        BigDecimal.valueOf(442L),
-                        BigDecimal.valueOf(407L))
-                        .map(v -> v.movePointLeft(4)))
+                Stream.concat(Stream.of(this.capeWR()),
+                        Stream.of(
+                                BigDecimal.valueOf(366L),
+                                BigDecimal.valueOf(338L),
+                                BigDecimal.valueOf(353L),
+                                BigDecimal.valueOf(442L),
+                                BigDecimal.valueOf(407L))
+                                .map(v -> v.movePointLeft(4))))
                 .sorted()
                 .toList();
     }
@@ -352,7 +436,7 @@ public class Fire {
                 .toList();
     }
 
-    public SpendingBudgets budgets(int months) {
+    private SpendingBudgets budgets(int months) {
 
         final var capitalGainsTaxRate = readPercent("capitalGainsTaxRate");
         final var costBasisPct = readPercent("costBasisPct");
@@ -361,7 +445,7 @@ public class Fire {
         final var futureRent = readUSD("futureRent");
         final var essential = this.sumExpenses(ESSENTIAL, months);
         final var discretionary = this.sumExpenses(DISCRETIONARY, months);
-        final var irregular = this.sumExpenses(Series.IRREGULAR, months);
+        final var irregular = this.sumExpenses(Series.IRREGULAR, 3 * months);
         final var other = this.sumExpenses(Series.OTHER, months);
 
         final var essentialWithoutRent = essential
@@ -372,33 +456,29 @@ public class Fire {
         final var everythingWithoutRent = essential
                 .add(futureHealth)
                 .add(other)
-                .add(discretionary);
-                //.add(irregular);
+                .add(discretionary)
+                .add(irregular);
         final var everythingWithRent = everythingWithoutRent
                 .add(futureRent);
-        
+
         return new SpendingBudgets(
                 //essentialWithRent
                 adjustforCapitalGains(essentialWithRent, capitalGainsTaxRate, costBasisPct),
-                
                 //essentialWithoutRent
                 adjustforCapitalGains(essentialWithoutRent, capitalGainsTaxRate, costBasisPct),
-                
                 //everythingWithRent
                 adjustforCapitalGains(everythingWithRent, capitalGainsTaxRate, costBasisPct),
-                
                 //everythingWithoutRent
                 adjustforCapitalGains(everythingWithoutRent, capitalGainsTaxRate, costBasisPct),
-                
                 //current
                 adjustforCapitalGains(Stream.of(essential, discretionary, irregular, other)
                         .reduce(MoneyAmount.zero(USD), MoneyAmount::add),
                         capitalGainsTaxRate, costBasisPct),
-                
                 //currentWithHealth
                 essential
                         .add(this.currentHealth())
                         .add(discretionary)
+                        .add(irregular)
                         .add(other));
     }
 
@@ -512,7 +592,7 @@ public class Fire {
     public void fireChartFuture() {
 
         final var totalSavings = this.series.currentSavingsUSD();
-        final var basePct = readPercent("safewithdrawalrate");
+        final var basePct = this.capeWR();//readPercent("safewithdrawalrate");
         final var monthsInAYear = BigDecimal.valueOf(12l);
         final var expectedFutureIncome = this.expectedFutureSavings();
         final var years = SeriesReader.readInt("retirementHorizon");
@@ -571,7 +651,7 @@ public class Fire {
     }
 
     private MoneyAmount asMonthlySpending(double portfiolioAmount) {
-        final var safeWithdrawalRate = readPercent("safewithdrawalrate").doubleValue();
+        final var safeWithdrawalRate = this.capeWR().doubleValue();//readPercent("safewithdrawalrate").doubleValue();
         return new MoneyAmount(
                 BigDecimal.valueOf((portfiolioAmount / 12.0d) * safeWithdrawalRate),
                 USD);

@@ -171,17 +171,6 @@ public class ConsoleReports {
                 .contains(i.getCurrency());
         };
 
-        /* if ("all".equalsIgnoreCase(type)) {
-            return true;
-        }
-        if ("r2k".equalsIgnoreCase(type)) {
-            return i.getCurrency() == XRSU || i.getCurrency() == RTWO;
-        }
-        if ("exus".equalsIgnoreCase(type)) {
-            return i.getCurrency() == EIMI || i.getCurrency() == MEUD || i.getCurrency() == Currency.XUSE;
-        }
-
-        return i.getCurrency().name().equalsIgnoreCase(type);*/
     }
 
     private static Runnable getAction(String[] args, ConsoleReports me, Format format, Bar bar, Series series, Console console) {
@@ -200,6 +189,13 @@ public class ConsoleReports {
             case "fire" ->
                 () -> new Fire(format, series, console)
                 .fire(Integer.parseInt(me.paramsValue(args, "fire").getOrDefault("m", "12")));
+
+            case "fi" ->
+                () -> new Fire(format, series, console)
+                .fiReport(Integer.parseInt(me.paramsValue(args, "fi").getOrDefault("m", "12")));
+            case "re" ->
+                () -> new Fire(format, series, console)
+                .reReport(Integer.parseInt(me.paramsValue(args, "re").getOrDefault("m", "12")));
 
             case "savings" ->
                 () -> me.savings(args, "savings");
@@ -400,6 +396,8 @@ public class ConsoleReports {
                 new CmdParam("house-evo"),
                 new CmdParam("expenses-src", "m=12"),
                 new CmdParam("fire", "m=12"),
+                new CmdParam("fi", "m=12"),
+                new CmdParam("re", "m=12"),
                 new CmdParam("p-type-evo"),
                 new CmdParam("p-type-evo-pct"),
                 new CmdParam("condo"),
@@ -465,7 +463,6 @@ public class ConsoleReports {
 
     private static void handleCommand(String[] args, ConsoleReports me, Format format, Bar bar, Series series, Console console) throws IOException {
 
-        //final var st = System.nanoTime();
         final var params = Arrays.stream(args)
                 .map(String::toLowerCase)
                 .collect(toSet());
@@ -477,7 +474,6 @@ public class ConsoleReports {
             getAction(args, me, format, bar, series, console).run();
             me.appendLine("");
         }
-        //console.appendLine(MessageFormat.format("{0}ms", (System.nanoTime() - st) / 1_000_000.0d));
         console.printReport();
 
     }

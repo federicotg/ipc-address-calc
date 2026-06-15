@@ -287,13 +287,9 @@ public class Positions {
 
     private MoneyAmount capitalGain(Investment i, boolean nominal) {
 
-        var bought = i.getInitialMoneyAmount(USD);/*i.getIn().getFx() != null
-                ? new MoneyAmount(i.getInitialMoneyAmount().amount().multiply(i.getIn().getFx(), C), USD)
-                : i.getInitialMoneyAmount();*/
+        var bought = i.getInitialMoneyAmount(USD);
 
-        var sold = i.getOut().getMoneyAmount(USD);/*i.getOut().getFx() != null
-                ? new MoneyAmount(i.getOut().getMoneyAmount().amount().multiply(i.getOut().getFx(), C), USD)
-                : i.getOut().getMoneyAmount();*/
+        var sold = i.getOut().getMoneyAmount(USD);
 
         return nominal
                 ? sold.subtract(bought)
@@ -319,10 +315,7 @@ public class Positions {
     private MoneyAmount investment(Investment i, boolean nominal) {
 
         final var nominalAmount = i.getInitialMoneyAmount(USD);
-        /*fx == null
-                ? i.getInitialMoneyAmount()
-                : new MoneyAmount(i.getIn().getAmount().multiply(fx, C), USD);*/
-
+        
         return nominal
                 ? nominalAmount
                 : Inflation.usdInflation().adjust(

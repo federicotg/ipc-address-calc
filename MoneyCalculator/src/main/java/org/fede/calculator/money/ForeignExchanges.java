@@ -21,7 +21,6 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import org.fede.calculator.money.series.IndexSeriesSupport;
@@ -257,12 +256,6 @@ public class ForeignExchanges {
         answer.setDate(in.getDate());
         answer.setFee(fx(in.getFx(), fx, fee, currency, in.getDate()).amount());
         answer.setTransferFee(in.getTransferFeeMoneyAmount(currency).amount());
-                /*Optional.ofNullable(in.getTransferFee())
-                        .map(trfee -> fx(
-                        in.getFx(),
-                        fx,
-                        new MoneyAmount(trfee, in.getCurrency()), currency, in.getDate()).amount())
-                        .orElse(null));*/
         answer.setFx(in.getFx());
         return answer;
     }
