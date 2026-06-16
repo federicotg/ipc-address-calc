@@ -192,6 +192,20 @@ public class Fire {
 
     }
 
+    private void spendingReport(String title, BigDecimal wr, MoneyAmount totalPortfolioValue) {
+        final int col = 20;
+        final var spending = totalPortfolioValue
+                .adjust(ONE, wr.divide(BigDecimal.valueOf(12L), C));
+
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}{3}",
+                this.format.text(title, col),
+                this.format.currency(spending, col),
+                this.format.currency(ForeignExchanges.getForeignExchange(USD, Currency.ARS).exchange(spending, Currency.ARS, YearMonth.now()), col),
+                this.format.percent(wr, 6)
+        ));
+
+    }
+
     public void re(int months) {
 
         final var unlp = this.series.incomeSource("unlp");
@@ -220,27 +234,18 @@ public class Fire {
         final var totalSavings = this.series.currentSavingsUSD()
                 .add(currentlyEstimated);
 
-        var wr = this.capeWR();
+        var swr = new CAEYSafeWithdrawalRate();
+        this.spendingReport("Spending", this.withdrawalRate(swr), totalSavings);
 
-        final var spending = totalSavings
-                .adjust(ONE, wr.divide(BigDecimal.valueOf(12L), C));
-
-        final int col = 18;
-        final int col2 = 20;
-        this.console.appendLine(MessageFormat.format("{0}{1}{2}{3}",
-                this.format.text("CAPE Spending", col),
-                this.format.currency(spending, col2),
-                this.format.currency(ForeignExchanges.getForeignExchange(USD, Currency.ARS).exchange(spending, Currency.ARS, YearMonth.now()), col2),
-                this.format.percent(wr, 6)
-        ));
+        this.spendingReport("All Equity Spending", this.allEquityWithdrawalRate(swr), totalSavings);
 
         this.console.appendLine(MessageFormat.format(
                 "{0}{1}{2}",
-                this.format.text("Current Spending", col),
-                this.format.currency(budgets.currentWithHealth(), col2),
+                this.format.text("Current Spending", 20),
+                this.format.currency(budgets.currentWithHealth(), 20),
                 this.format.currency(
                         ForeignExchanges.getMoneyAmountForeignExchange(USD, Currency.ARS)
-                                .apply(budgets.currentWithHealth(), YearMonth.now()), col2)
+                                .apply(budgets.currentWithHealth(), YearMonth.now()), 20)
         ));
 
         final var percents = this.percents();
@@ -288,11 +293,7 @@ public class Fire {
 
     }
 
-    private record CAPEWeight(String key, BigDecimal pct) {
-
-    }
-
-    private BigDecimal capeWR() {
+    private BigDecimal allEquityWithdrawalRate(CAEYSafeWithdrawalRate swr) {
 
         var now = YearMonth.now();
 
@@ -307,38 +308,47 @@ public class Fire {
 
         var emerging = this.lastUSDAmount("ahorros-eimi", now);
 
-        var totalEquity = usEquity.add(devExUs).add(emerging).amount();
+        var cash = this.series.realSavings("LIQ").getAmount(now)
+                .add(currentlyEstimated);
+
+        var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
+
+        var allEquity = usEquity.add(devExUs).add(emerging).amount();
+        var allCash = bonds.add(cash);
+
+        return swr.capeWR(usEquity.add(allCash.adjust(ONE, usEquity.amount().divide(allEquity, C))),
+                devExUs.add(allCash.adjust(ONE, devExUs.amount().divide(allEquity, C))),
+                emerging.add(allCash.adjust(ONE, emerging.amount().divide(allEquity, C))),
+                MoneyAmount.zero(USD),
+                MoneyAmount.zero(USD));
+
+    }
+
+    private BigDecimal withdrawalRate() {
+        return this.withdrawalRate(new CAEYSafeWithdrawalRate());
+    }
+
+    private BigDecimal withdrawalRate(CAEYSafeWithdrawalRate swr) {
+
+        var now = YearMonth.now();
+
+        var currentlyEstimated = this.currentlyEstimatedSavings();
+
+        var usEquity = this.lastUSDAmount("ahorros-cspx", now)
+                .add(this.lastUSDAmount("ahorros-rtwo", now))
+                .add(this.lastUSDAmount("ahorros-xrsu", now));
+
+        var devExUs = this.lastUSDAmount("ahorros-meud", now)
+                .add(this.lastUSDAmount("ahorros-xuse", now));
+
+        var emerging = this.lastUSDAmount("ahorros-eimi", now);
 
         var cash = this.series.realSavings("LIQ").getAmount(now)
                 .add(currentlyEstimated);
 
         var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
 
-        var totalPortfolioValue = Stream.of(usEquity, devExUs, emerging, cash, bonds)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
-
-        var cashYield = SeriesReader.readPercent("expectedInflation").negate(C);
-
-        if (this.series.currentSavingsUSD()
-                .add(currentlyEstimated)
-                .subtract(totalPortfolioValue)
-                .amount()
-                .compareTo(BigDecimal.TWO) > 0) {
-            throw new IllegalArgumentException("Missing amount.");
-        }
-
-        final var caey = Stream.of(
-                new CAPEWeight("cape", usEquity.adjust(totalEquity, ONE).amount()),
-                new CAPEWeight("cape.exus", devExUs.adjust(totalEquity, ONE).amount()),
-                new CAPEWeight("cape.em", emerging.adjust(totalEquity, ONE).amount()))
-                .map(cw -> ONE.divide(SeriesReader.readBigDecimal(cw.key), C)
-                .multiply(cw.pct, C))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        return SeriesReader.readPercent("cape.a")
-                .add(SeriesReader.readPercent("cape.b").multiply(caey, C))
-                .add(SeriesReader.readPercent("bond10").multiply(bonds.adjust(totalPortfolioValue.amount(), ONE).amount()))
-                .add(cashYield.multiply(cash.adjust(totalPortfolioValue.amount(), ONE).amount()));
+        return swr.capeWR(usEquity, devExUs, emerging, bonds, cash);
     }
 
     public void fiReport(int months) {
@@ -411,7 +421,7 @@ public class Fire {
         return Stream.concat(
                 LongStream.range(12L, 22L)
                         .mapToObj(i -> BigDecimal.valueOf(i).multiply(step, C)),
-                Stream.concat(Stream.of(this.capeWR()),
+                Stream.concat(Stream.of(this.withdrawalRate()),
                         Stream.of(
                                 BigDecimal.valueOf(366L),
                                 BigDecimal.valueOf(338L),
@@ -592,7 +602,7 @@ public class Fire {
     public void fireChartFuture() {
 
         final var totalSavings = this.series.currentSavingsUSD();
-        final var basePct = this.capeWR();//readPercent("safewithdrawalrate");
+        final var basePct = this.withdrawalRate();//readPercent("safewithdrawalrate");
         final var monthsInAYear = BigDecimal.valueOf(12l);
         final var expectedFutureIncome = this.expectedFutureSavings();
         final var years = SeriesReader.readInt("retirementHorizon");
@@ -651,7 +661,7 @@ public class Fire {
     }
 
     private MoneyAmount asMonthlySpending(double portfiolioAmount) {
-        final var safeWithdrawalRate = this.capeWR().doubleValue();//readPercent("safewithdrawalrate").doubleValue();
+        final var safeWithdrawalRate = this.withdrawalRate().doubleValue();//readPercent("safewithdrawalrate").doubleValue();
         return new MoneyAmount(
                 BigDecimal.valueOf((portfiolioAmount / 12.0d) * safeWithdrawalRate),
                 USD);

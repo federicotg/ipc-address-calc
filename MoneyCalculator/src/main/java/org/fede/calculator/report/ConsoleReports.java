@@ -929,26 +929,7 @@ public class ConsoleReports {
         new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
                 .create("Savings", List.of(s, nominal), "savings");
     }
-
-    private void safeWithdrawalChart() {
-        final var realSavings = this.series.realSavings(null);
-
-        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
-                .create(
-                        "Monthly Safe Withdrawal Amount",
-                        List.of(
-                                this.safeWithdrawalSeries(realSavings, "3.00%", new BigDecimal("0.0300")),
-                                this.safeWithdrawalSeries(realSavings, "4.00%", new BigDecimal("0.0400"))),
-                        "safe-withdrawal");
-    }
-
-    private MoneyAmountSeries safeWithdrawalSeries(MoneyAmountSeries savings, String name, BigDecimal annualRate) {
-        final var monthsInYear = BigDecimal.valueOf(12L);
-        final var withdrawal = savings.map((ym, amount) -> amount.adjust(monthsInYear, annualRate));
-        withdrawal.setName(name);
-        return withdrawal;
-    }
-
+    
     private void savingsARSEvoChart() throws IOException {
 
         var s = this.series.realSavings(null).exchangeInto(ARS);
@@ -1028,7 +1009,6 @@ public class ConsoleReports {
             this.expensesChart(12, true);
             this.incomeAccChart();
             this.savingsEvoChart();
-            this.safeWithdrawalChart();
             this.savingsARSEvoChart();
             savings.netAvgSavingSpentChart(12);
             savings.netAvgSavingSpentChart(3);
