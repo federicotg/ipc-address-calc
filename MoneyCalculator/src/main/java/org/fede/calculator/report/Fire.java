@@ -237,7 +237,7 @@ public class Fire {
         var swr = new CAEYSafeWithdrawalRate();
         this.spendingReport("Spending", this.withdrawalRate(swr), totalSavings);
 
-        this.spendingReport("All Equity Spending", this.allEquityWithdrawalRate(swr), totalSavings);
+        this.spendingReport(" ➞ All Equity", this.allEquityWithdrawalRate(swr), totalSavings);
 
         this.console.appendLine(MessageFormat.format(
                 "{0}{1}{2}",

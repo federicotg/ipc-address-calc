@@ -25,6 +25,7 @@ import org.fede.calculator.chart.LabeledXYDataItem;
 import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.ScatterXYChart;
 import org.fede.calculator.chart.ValueFormat;
+import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
@@ -49,28 +50,28 @@ public class CAEYSafeWithdrawalRate {
     private static final BigDecimal EQUITY_STEP = new BigDecimal("0.05");
     private static final BigDecimal MONTHS_IN_A_YEAR = new BigDecimal("12");
 
+    private static final MoneyAmount IMMEDIATE_CASH = MoneyAmount.zero(Currency.USD);
+
     private final BigDecimal cashRealYield;
     private final BigDecimal bondsRealYield;
     private final BigDecimal cape;
     private final BigDecimal capeExUs;
     private final BigDecimal capeEmerging;
 
-    public CAEYSafeWithdrawalRate(BigDecimal expectedInflation, BigDecimal bondsRealYield, BigDecimal cape, BigDecimal capeExUs, BigDecimal capeEmerging) {
+    public CAEYSafeWithdrawalRate(BigDecimal expectedInflation, BigDecimal bondsNominalYield, BigDecimal cape, BigDecimal capeExUs, BigDecimal capeEmerging) {
         this.cashRealYield = expectedInflation.negate(C);
-        this.bondsRealYield = bondsRealYield;
+        this.bondsRealYield = bondsNominalYield.subtract(expectedInflation, C);
         this.cape = cape;
         this.capeExUs = capeExUs;
         this.capeEmerging = capeEmerging;
     }
 
     public CAEYSafeWithdrawalRate() {
-        this(
-                SeriesReader.readPercent("expectedInflation"),
+        this(SeriesReader.readPercent("expectedInflation"),
                 SeriesReader.readPercent("bond10"),
                 SeriesReader.readBigDecimal("cape"),
                 SeriesReader.readBigDecimal("cape.exus"),
-                SeriesReader.readBigDecimal("cape.em")
-        );
+                SeriesReader.readBigDecimal("cape.em"));
     }
 
     public BigDecimal capeWR(
@@ -112,12 +113,15 @@ public class CAEYSafeWithdrawalRate {
     private PortfolioAllocation portfolioFor(MoneyAmount portfolio, BigDecimal equityPct) {
         var equity = portfolio.adjust(ONE, equityPct);
         var cash = portfolio.subtract(equity);
+
+        var bonds = cash.subtract(IMMEDIATE_CASH).max(MoneyAmount.zero(USD));
+
         return new PortfolioAllocation(
                 equity.adjust(ONE, US_EQUITY_SHARE),
                 equity.adjust(ONE, DEV_EX_US_SHARE),
                 equity.adjust(ONE, EMERGING_SHARE),
-                MoneyAmount.zero(USD),
-                cash);
+                bonds,
+                cash.subtract(bonds));
     }
 
     public void monthlySafeWithdrawalChart(String filename) {
@@ -126,14 +130,14 @@ public class CAEYSafeWithdrawalRate {
 
         Stream.iterate(PORTFOLIO_MIN, amount -> amount.compareTo(PORTFOLIO_MAX) <= 0, amount -> amount.add(PORTFOLIO_STEP))
                 .flatMap(amount -> Stream.iterate(EQUITY_MIN, equityPct -> equityPct.compareTo(EQUITY_MAX) <= 0, equityPct -> equityPct.add(EQUITY_STEP))
-                        .map(equityPct -> {
-                            var portfolio = new MoneyAmount(amount, USD);
-                            var monthly = this.monthlySafeWithdrawal(portfolio, equityPct);
-                            return new LabeledXYDataItem(
-                                    amount,
-                                    equityPct,
-                                    currencyFormat.format(monthly));
-                        }))
+                .map(equityPct -> {
+                    var portfolio = new MoneyAmount(amount, USD);
+                    var monthly = this.monthlySafeWithdrawal(portfolio, equityPct);
+                    return new LabeledXYDataItem(
+                            amount,
+                            equityPct,
+                            currencyFormat.format(monthly));
+                }))
                 .forEach(series::add);
 
         new ScatterXYChart(
@@ -153,6 +157,7 @@ public class CAEYSafeWithdrawalRate {
             MoneyAmount emerging,
             MoneyAmount bonds,
             MoneyAmount cash) {
+
     }
 
 }
