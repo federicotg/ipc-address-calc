@@ -18,17 +18,36 @@ package org.fede.calculator.report;
 
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import java.util.List;
 import java.util.stream.Stream;
+import org.fede.calculator.chart.ChartStyle;
+import org.fede.calculator.chart.LabeledXYDataItem;
+import org.fede.calculator.chart.Scale;
+import org.fede.calculator.chart.ScatterXYChart;
+import org.fede.calculator.chart.ValueFormat;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.SeriesReader;
+import org.jfree.data.xy.XYSeries;
 
 /**
  *
  * @author fede
  */
 public class CAEYSafeWithdrawalRate {
+
+    private static final BigDecimal US_EQUITY_SHARE = new BigDecimal("0.75");
+    private static final BigDecimal DEV_EX_US_SHARE = new BigDecimal("0.15");
+    private static final BigDecimal EMERGING_SHARE = new BigDecimal("0.10");
+
+    private static final BigDecimal PORTFOLIO_MIN = new BigDecimal("500000");
+    private static final BigDecimal PORTFOLIO_MAX = new BigDecimal("1000000");
+    private static final BigDecimal PORTFOLIO_STEP = new BigDecimal("50000");
+    private static final BigDecimal EQUITY_MIN = new BigDecimal("0.70");
+    private static final BigDecimal EQUITY_MAX = ONE;
+    private static final BigDecimal EQUITY_STEP = new BigDecimal("0.05");
+    private static final BigDecimal MONTHS_IN_A_YEAR = new BigDecimal("12");
 
     private final BigDecimal cashRealYield;
     private final BigDecimal bondsRealYield;
@@ -76,6 +95,64 @@ public class CAEYSafeWithdrawalRate {
                 .add(SeriesReader.readPercent("cape.b").multiply(caey, C))
                 .add(this.bondsRealYield.multiply(bonds.adjust(totalPortfolioValue.amount(), ONE).amount(), C))
                 .add(this.cashRealYield.multiply(cash.adjust(totalPortfolioValue.amount(), ONE).amount(), C));
+    }
+
+    public BigDecimal monthlySafeWithdrawal(MoneyAmount portfolio, BigDecimal equityPct) {
+        var allocation = this.portfolioFor(portfolio, equityPct);
+        return portfolio.amount()
+                .multiply(this.capeWR(
+                        allocation.usEquity(),
+                        allocation.devExUs(),
+                        allocation.emerging(),
+                        allocation.bonds(),
+                        allocation.cash()), C)
+                .divide(MONTHS_IN_A_YEAR, C);
+    }
+
+    private PortfolioAllocation portfolioFor(MoneyAmount portfolio, BigDecimal equityPct) {
+        var equity = portfolio.adjust(ONE, equityPct);
+        var cash = portfolio.subtract(equity);
+        return new PortfolioAllocation(
+                equity.adjust(ONE, US_EQUITY_SHARE),
+                equity.adjust(ONE, DEV_EX_US_SHARE),
+                equity.adjust(ONE, EMERGING_SHARE),
+                MoneyAmount.zero(USD),
+                cash);
+    }
+
+    public void monthlySafeWithdrawalChart(String filename) {
+        final var series = new XYSeries("Monthly Safe Withdrawal");
+        final var currencyFormat = ValueFormat.CURRENCY.format();
+
+        Stream.iterate(PORTFOLIO_MIN, amount -> amount.compareTo(PORTFOLIO_MAX) <= 0, amount -> amount.add(PORTFOLIO_STEP))
+                .flatMap(amount -> Stream.iterate(EQUITY_MIN, equityPct -> equityPct.compareTo(EQUITY_MAX) <= 0, equityPct -> equityPct.add(EQUITY_STEP))
+                        .map(equityPct -> {
+                            var portfolio = new MoneyAmount(amount, USD);
+                            var monthly = this.monthlySafeWithdrawal(portfolio, equityPct);
+                            return new LabeledXYDataItem(
+                                    amount,
+                                    equityPct,
+                                    currencyFormat.format(monthly));
+                        }))
+                .forEach(series::add);
+
+        new ScatterXYChart(
+                new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR),
+                new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
+                .create(
+                        "CAEY Safe Monthly Withdrawal",
+                        List.of(series),
+                        "Portfolio (USD)",
+                        "Equity %",
+                        filename);
+    }
+
+    private record PortfolioAllocation(
+            MoneyAmount usEquity,
+            MoneyAmount devExUs,
+            MoneyAmount emerging,
+            MoneyAmount bonds,
+            MoneyAmount cash) {
     }
 
 }
