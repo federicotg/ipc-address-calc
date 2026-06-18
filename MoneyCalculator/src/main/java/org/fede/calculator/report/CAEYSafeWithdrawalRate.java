@@ -25,7 +25,6 @@ import org.fede.calculator.chart.LabeledXYDataItem;
 import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.ScatterXYChart;
 import org.fede.calculator.chart.ValueFormat;
-import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
@@ -49,8 +48,6 @@ public class CAEYSafeWithdrawalRate {
     private static final BigDecimal EQUITY_MAX = ONE;
     private static final BigDecimal EQUITY_STEP = new BigDecimal("0.05");
     private static final BigDecimal MONTHS_IN_A_YEAR = new BigDecimal("12");
-
-    private static final MoneyAmount IMMEDIATE_CASH = MoneyAmount.zero(Currency.USD);
 
     private final BigDecimal cashRealYield;
     private final BigDecimal bondsRealYield;
@@ -81,9 +78,9 @@ public class CAEYSafeWithdrawalRate {
             MoneyAmount bonds,
             MoneyAmount cash) {
 
-        var totalEquity = usEquity.add(devExUs).add(emerging).amount();
+        final var totalEquity = usEquity.add(devExUs).add(emerging).amount();
 
-        var totalPortfolioValue = Stream.of(usEquity, devExUs, emerging, cash, bonds)
+        final var totalPortfolioValue = Stream.of(usEquity, devExUs, emerging, cash, bonds)
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
         final var caey = Stream.of(
@@ -99,7 +96,7 @@ public class CAEYSafeWithdrawalRate {
     }
 
     public BigDecimal monthlySafeWithdrawal(MoneyAmount portfolio, BigDecimal equityPct) {
-        var allocation = this.portfolioFor(portfolio, equityPct);
+        final var allocation = this.portfolioFor(portfolio, equityPct);
         return portfolio.amount()
                 .multiply(this.capeWR(
                         allocation.usEquity(),
@@ -111,17 +108,14 @@ public class CAEYSafeWithdrawalRate {
     }
 
     private PortfolioAllocation portfolioFor(MoneyAmount portfolio, BigDecimal equityPct) {
-        var equity = portfolio.adjust(ONE, equityPct);
-        var cash = portfolio.subtract(equity);
-
-        var bonds = cash.subtract(IMMEDIATE_CASH).max(MoneyAmount.zero(USD));
-
+        final var equity = portfolio.adjust(ONE, equityPct);
+        final var cash = portfolio.subtract(equity);
         return new PortfolioAllocation(
                 equity.adjust(ONE, US_EQUITY_SHARE),
                 equity.adjust(ONE, DEV_EX_US_SHARE),
                 equity.adjust(ONE, EMERGING_SHARE),
-                bonds,
-                cash.subtract(bonds));
+                MoneyAmount.zero(USD),
+                cash);
     }
 
     public void monthlySafeWithdrawalChart(String filename) {

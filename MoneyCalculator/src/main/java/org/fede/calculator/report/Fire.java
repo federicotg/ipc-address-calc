@@ -789,22 +789,27 @@ public class Fire {
                         ? BigDecimal.ONE
                         : BigDecimal.ZERO));
 
-        var currentMonth = LocalDate.now().getMonthValue();
+        final var currentMonth = LocalDate.now().getMonthValue();
 
-        var notice = years < 5 ? ONE : BigDecimal.TWO;
-        var severanceMonth = ONE;
-        var vacationsPart = BigDecimal.valueOf(
+        final var notice = years < 5 ? ONE : BigDecimal.TWO;
+        final var severanceMonth = ONE;
+        
+        final var vacationsFactor = BigDecimal.valueOf(28)
+                .divide(BigDecimal.valueOf(25), C);
+        
+        final var vacationsPart = BigDecimal.valueOf(
                 ChronoUnit.DAYS.between(LocalDate.now().withMonth(1).withDayOfMonth(1), LocalDate.now()))
-                .divide(BigDecimal.valueOf(365L), C);
-        var sacPart = BigDecimal.valueOf(
+                .divide(BigDecimal.valueOf(365L), C)
+                .multiply(vacationsFactor, C);
+        final var sacPart = BigDecimal.valueOf(
                 ChronoUnit.DAYS.between(LocalDate.now().withMonth(currentMonth > 6 ? 7 : 1).withDayOfMonth(1), LocalDate.now()))
                 .divide(BigDecimal.valueOf(180L), C)
                 .divide(BigDecimal.TWO, C);
-        var sacFactor = ONE
+        final var sacFactor = ONE
                 .add(ONE
                         .divide(BigDecimal.valueOf(12), C), C);
 
-        var taxedSalaries = notice
+        final var taxedSalaries = notice
                 .add(severanceMonth, C)
                 .add(vacationsPart, C)
                 .multiply(sacFactor, C)
