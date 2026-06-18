@@ -1026,8 +1026,8 @@ public class ConsoleReports {
             fire.fireChartFuture();
             fire.fireChartBudgets(12);
             fire.fireChartBudgets(24);
-            new CAEYSafeWithdrawalRate().monthlySafeWithdrawalChart("caey-monthly-withdrawal");
-            new CAEYSafeWithdrawalRate().monthlySafeWithdrawalByCapeChart("caey-monthly-withdrawal-by-cape");
+            new CAEYSafeWithdrawalRate().monthlySafeWithdrawalChart("caey-swr");
+            new CAEYSafeWithdrawalRate().monthlySafeWithdrawalByCapeChart("caey-swr-by-cape");
             savings.savingRate(12);
             savings.savingRate(24);
             savings.savingRate(6);

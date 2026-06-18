@@ -83,7 +83,7 @@ public class CAEYSafeWithdrawalRate {
             MoneyAmount bonds,
             MoneyAmount cash) {
 
-        final var caey = this.caey(usEquity, devExUs, emerging, bonds, cash);
+        final var caey = this.caey(usEquity, devExUs, emerging);
 
         final var totalPortfolioValue = Stream.of(usEquity, devExUs, emerging, cash, bonds)
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
@@ -182,18 +182,18 @@ public class CAEYSafeWithdrawalRate {
         final var currencyFormat = ValueFormat.CURRENCY.format();
 
         final var byCape = new XYSeries("Monthly Safe Withdrawal by CAPE");
-        Stream.iterate(CAPE_MIN, cape -> cape.compareTo(CAPE_MAX) <= 0, cape -> cape.add(CAPE_STEP))
-                .forEach(cape -> {
-                    var swr = new CAEYSafeWithdrawalRate(expectedInflation, bondsNominalYield, cape, cape, cape);
+        Stream.iterate(CAPE_MIN, capeVal -> capeVal.compareTo(CAPE_MAX) <= 0, capeVal -> capeVal.add(CAPE_STEP))
+                .forEach(capeVal -> {
+                    var swr = new CAEYSafeWithdrawalRate(expectedInflation, bondsNominalYield, capeVal, capeVal, capeVal);
                     var monthly = swr.monthlySafeWithdrawal(usEquity, devExUs, emerging, bonds, cash);
                     byCape.add(new LabeledXYDataItem(
-                            cape,
+                            capeVal,
                             monthly,
                             currencyFormat.format(monthly)));
                 });
 
         final var currentSwr = new CAEYSafeWithdrawalRate();
-        final var currentCape = SeriesReader.readBigDecimal("cape");
+        final var currentCape = ONE.divide(currentSwr.caey(usEquity, devExUs, emerging),C);
         final var currentMonthly = currentSwr.monthlySafeWithdrawal(usEquity, devExUs, emerging, bonds, cash);
         final var current = new XYSeries("Current CAPE");
         current.add(new LabeledXYDataItem(
@@ -237,11 +237,9 @@ public class CAEYSafeWithdrawalRate {
 
     }
 
-    public BigDecimal caey(MoneyAmount usEquity,
+    private BigDecimal caey(MoneyAmount usEquity,
             MoneyAmount devExUs,
-            MoneyAmount emerging,
-            MoneyAmount bonds,
-            MoneyAmount cash) {
+            MoneyAmount emerging) {
 
         final var totalEquity = usEquity.add(devExUs).add(emerging).amount();
 
