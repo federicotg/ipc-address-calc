@@ -1029,6 +1029,7 @@ public class ConsoleReports {
             var swr = new CAEYSafeWithdrawalRate();
             swr.monthlySafeWithdrawalChart("caey-swr");
             swr.monthlySafeWithdrawalByCapeChart("caey-swr-by-cape");
+            swr.portfolioFanChart("portfolio-fan");
             savings.savingRate(12);
             savings.savingRate(24);
             savings.savingRate(6);

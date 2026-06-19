@@ -26,6 +26,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Stream;
 import org.fede.calculator.chart.ChartStyle;
+import org.fede.calculator.chart.FanChart;
 import org.fede.calculator.chart.LabeledXYDataItem;
 import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.ScatterXYChart;
@@ -34,7 +35,10 @@ import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
+import org.fede.calculator.money.PortfolioProjections;
 import org.fede.calculator.money.series.SeriesReader;
+import org.jfree.data.time.Day;
+import org.jfree.data.time.TimeSeries;
 import org.jfree.data.xy.XYSeries;
 
 /**
@@ -178,25 +182,35 @@ public class CAEYSafeWithdrawalRate {
                         filename);
     }
 
+    public void portfolioFanChart(String filename) {
+        final int years = 10;
+        final var now = YearMonth.now();
+        final var portfolio = this.currentPortfolio(now);
+        final var initial = this.totalPortfolio(portfolio);
+        final var cagr = this.expectedReturn(portfolio).doubleValue();
+        final var vol = SeriesReader.readPercent("futureVolatility").doubleValue();
+
+        final var p10 = this.projectionSeries(now, years, initial, cagr, vol, 0.10, "P10");
+        final var p25 = this.projectionSeries(now, years, initial, cagr, vol, 0.25, "P25");
+        final var p50 = this.projectionSeries(now, years, initial, cagr, vol, 0.50, "P50");
+
+        final var title = MessageFormat.format(
+                "Portfolio Projection ({0} expected return, {1} volatility)",
+                PCT_FORMAT2.format(cagr),
+                PCT_FORMAT.format(vol));
+
+        new FanChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
+                .create(title, p10, p25, p50, filename);
+    }
+
     public void monthlySafeWithdrawalByCapeChart(String filename) {
         var now = YearMonth.now();
-        var series = new Series();
-
-        var currentlyEstimated = this.currentlyEstimatedSavings();
-
-        var usEquity = this.lastUSDAmount("ahorros-cspx", now)
-                .add(this.lastUSDAmount("ahorros-rtwo", now))
-                .add(this.lastUSDAmount("ahorros-xrsu", now));
-
-        var devExUs = this.lastUSDAmount("ahorros-meud", now)
-                .add(this.lastUSDAmount("ahorros-xuse", now));
-
-        var emerging = this.lastUSDAmount("ahorros-eimi", now);
-
-        var cash = series.realSavings("LIQ").getAmount(now)
-                .add(currentlyEstimated);
-
-        var bonds = series.realSavings("BO").getAmountOrElseZero(now);
+        final var portfolio = this.currentPortfolio(now);
+        final var usEquity = portfolio.usEquity();
+        final var devExUs = portfolio.devExUs();
+        final var emerging = portfolio.emerging();
+        final var cash = portfolio.cash();
+        final var bonds = portfolio.bonds();
 
         final var expectedInflation = SeriesReader.readPercent("expectedInflation");
         final var bondsNominalYield = SeriesReader.readPercent("bond10");
@@ -256,6 +270,87 @@ public class CAEYSafeWithdrawalRate {
                 .apply(amount, ym);
     }
 
+    private PortfolioAllocation currentPortfolio(YearMonth now) {
+        var series = new Series();
+        return new PortfolioAllocation(
+                this.lastUSDAmount("ahorros-cspx", now)
+                        .add(this.lastUSDAmount("ahorros-rtwo", now))
+                        .add(this.lastUSDAmount("ahorros-xrsu", now)),
+                this.lastUSDAmount("ahorros-meud", now)
+                        .add(this.lastUSDAmount("ahorros-xuse", now)),
+                this.lastUSDAmount("ahorros-eimi", now),
+                series.realSavings("BO").getAmountOrElseZero(now),
+                series.realSavings("LIQ").getAmount(now)
+                        .add(this.currentlyEstimatedSavings()));
+    }
+
+    private MoneyAmount totalPortfolio(PortfolioAllocation portfolio) {
+        return Stream.of(
+                        portfolio.usEquity(),
+                        portfolio.devExUs(),
+                        portfolio.emerging(),
+                        portfolio.bonds(),
+                        portfolio.cash())
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+    }
+
+    private BigDecimal expectedReturn(PortfolioAllocation portfolio) {
+        final var totalAmount = this.totalPortfolio(portfolio).amount();
+        final var equityWeight = portfolio.usEquity()
+                .add(portfolio.devExUs())
+                .add(portfolio.emerging())
+                .amount()
+                .divide(totalAmount, C);
+        final var bondsWeight = portfolio.bonds().amount().divide(totalAmount, C);
+        final var cashWeight = portfolio.cash().amount().divide(totalAmount, C);
+
+        return this.caey(portfolio.usEquity(), portfolio.devExUs(), portfolio.emerging()).multiply(equityWeight, C)
+                .add(this.bondsRealYield.multiply(bondsWeight, C))
+                .add(this.cashRealYield.multiply(cashWeight, C));
+    }
+
+    private TimeSeries projectionSeries(
+            YearMonth start,
+            int years,
+            MoneyAmount initial,
+            double cagr,
+            double volatility,
+            double percentile,
+            String name) {
+
+        final var ts = new TimeSeries(name);
+        ts.add(day(start.atEndOfMonth()), initial.amount());
+
+        YearMonth filledMonth = start.plusMonths(1);
+        for (int i = 0; i < 11; i++) {
+            ts.add(day(filledMonth.atEndOfMonth()), initial.amount());
+            filledMonth = filledMonth.plusMonths(1);
+        }
+
+        for (int i = 1; i <= years; i++) {
+            final var ym = YearMonth.of(start.getYear() + i, start.getMonthValue());
+            final var amount = BigDecimal.valueOf(
+                    PortfolioProjections.calculatePortfolioPercentile(
+                            initial.amount().doubleValue(),
+                            cagr,
+                            volatility,
+                            i,
+                            percentile));
+            ts.add(day(ym.atEndOfMonth()), amount);
+
+            filledMonth = ym.plusMonths(1);
+            for (int j = 0; j < 11; j++) {
+                ts.add(day(filledMonth.atEndOfMonth()), amount);
+                filledMonth = filledMonth.plusMonths(1);
+            }
+        }
+        return ts;
+    }
+
+    private static Day day(LocalDate d) {
+        return new Day(d.getDayOfMonth(), d.getMonthValue(), d.getYear());
+    }
+
     private record PortfolioAllocation(
             MoneyAmount usEquity,
             MoneyAmount devExUs,
@@ -265,7 +360,7 @@ public class CAEYSafeWithdrawalRate {
 
     }
 
-    private BigDecimal caey(
+    public BigDecimal caey(
             MoneyAmount usEquity,
             MoneyAmount devExUs,
             MoneyAmount emerging) {
