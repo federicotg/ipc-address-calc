@@ -85,7 +85,7 @@ public class FanChart {
                 "Date",
                 "USD",
                 median,
-                false,
+                true,
                 true,
                 false);
         chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
