@@ -18,7 +18,11 @@ package org.fede.calculator.report;
 
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import java.text.MessageFormat;
+import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Stream;
 import org.fede.calculator.chart.ChartStyle;
@@ -53,6 +57,12 @@ public class CAEYSafeWithdrawalRate {
     private static final BigDecimal CAPE_MAX = new BigDecimal("45");
     private static final BigDecimal CAPE_STEP = new BigDecimal("5");
     private static final BigDecimal MONTHS_IN_A_YEAR = new BigDecimal("12");
+    private static final NumberFormat PCT_FORMAT2 = NumberFormat.getPercentInstance();
+    private static final NumberFormat PCT_FORMAT = NumberFormat.getPercentInstance();
+
+    static {
+        PCT_FORMAT2.setMinimumFractionDigits(2);
+    }
 
     private final BigDecimal cashRealYield;
     private final BigDecimal bondsRealYield;
@@ -60,12 +70,23 @@ public class CAEYSafeWithdrawalRate {
     private final BigDecimal capeExUs;
     private final BigDecimal capeEmerging;
 
+    private final BigDecimal capeA;
+    private final BigDecimal capeB;
+
     public CAEYSafeWithdrawalRate(BigDecimal expectedInflation, BigDecimal bondsNominalYield, BigDecimal cape, BigDecimal capeExUs, BigDecimal capeEmerging) {
         this.cashRealYield = expectedInflation.negate(C);
         this.bondsRealYield = bondsNominalYield.subtract(expectedInflation, C);
         this.cape = cape;
         this.capeExUs = capeExUs;
         this.capeEmerging = capeEmerging;
+        
+        final var age = BigDecimal.valueOf(ChronoUnit.MONTHS.between(SeriesReader.readDate("dob"), LocalDate.now())).divide(MONTHS_IN_A_YEAR, C);
+        final var yearsLeft = BigDecimal.ONE.movePointRight(2).subtract(age, C);
+        
+        this.capeA = ONE
+                .divide(yearsLeft, C).multiply(BigDecimal.valueOf(80).movePointLeft(2), C);
+        this.capeB = SeriesReader.readPercent("cape.b");
+
     }
 
     public CAEYSafeWithdrawalRate() {
@@ -88,8 +109,8 @@ public class CAEYSafeWithdrawalRate {
         final var totalPortfolioValue = Stream.of(usEquity, devExUs, emerging, cash, bonds)
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
-        return SeriesReader.readPercent("cape.a")
-                .add(SeriesReader.readPercent("cape.b").multiply(caey, C))
+        return this.capeA
+                .add(this.capeB.multiply(caey, C))
                 .add(this.bondsRealYield.multiply(bonds.adjust(totalPortfolioValue.amount(), ONE).amount(), C))
                 .add(this.cashRealYield.multiply(cash.adjust(totalPortfolioValue.amount(), ONE).amount(), C));
     }
@@ -150,7 +171,7 @@ public class CAEYSafeWithdrawalRate {
                 new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR),
                 new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
                 .create(
-                        "CAEY Safe Monthly Withdrawal",
+                        this.reportTitle(),
                         List.of(series),
                         "Portfolio (USD)",
                         "Equity %",
@@ -193,7 +214,7 @@ public class CAEYSafeWithdrawalRate {
                 });
 
         final var currentSwr = new CAEYSafeWithdrawalRate();
-        final var currentCape = ONE.divide(currentSwr.caey(usEquity, devExUs, emerging),C);
+        final var currentCape = ONE.divide(currentSwr.caey(usEquity, devExUs, emerging), C);
         final var currentMonthly = currentSwr.monthlySafeWithdrawal(usEquity, devExUs, emerging, bonds, cash);
         final var current = new XYSeries("Current CAPE");
         current.add(new LabeledXYDataItem(
@@ -205,11 +226,18 @@ public class CAEYSafeWithdrawalRate {
                 new ChartStyle(ValueFormat.NUMBER, Scale.LINEAR),
                 new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
                 .create(
-                        "CAEY Safe Monthly Withdrawal by CAPE",
+                        this.reportTitle(),
                         List.of(byCape, current),
                         "CAPE",
                         "Monthly Withdrawal (USD)",
                         filename);
+    }
+
+    private String reportTitle() {
+        return MessageFormat.format(
+                "Safe Withdrawal ({0} + {1} x CAEY)",
+                PCT_FORMAT2.format(this.capeA),
+                PCT_FORMAT.format(this.capeB));
     }
 
     private MoneyAmount currentlyEstimatedSavings() {
@@ -237,7 +265,8 @@ public class CAEYSafeWithdrawalRate {
 
     }
 
-    private BigDecimal caey(MoneyAmount usEquity,
+    private BigDecimal caey(
+            MoneyAmount usEquity,
             MoneyAmount devExUs,
             MoneyAmount emerging) {
 

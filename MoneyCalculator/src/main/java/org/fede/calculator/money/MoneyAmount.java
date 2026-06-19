@@ -55,12 +55,6 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
         return new MoneyAmount(this.amount.multiply(exchangeRate, MathConstants.C), newCurrency);
     }
 
-    public void assertCurrency(Currency currency) {
-        if (this.currency != currency) {
-            throw new IllegalArgumentException("Unexpected currency.  " + this.currency + " is not " + currency);
-        }
-    }
-
     public MoneyAmount add(MoneyAmount other) {
         if (other.currency() != this.currency()) {
             throw new IllegalArgumentException("Money amounts must be in the same currency.");
@@ -82,6 +76,10 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
     public MoneyAmount max(MoneyAmount other) {
         //this.assertCurrency(other.currency());
 
+        if (other.currency() != this.currency()) {
+            throw new IllegalArgumentException("Money amounts must be in the same currency.");
+        }
+        
         if (this.amount().compareTo(other.amount()) >= 0) {
             return this;
         }
@@ -89,6 +87,10 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
     }
 
     public MoneyAmount min(MoneyAmount other) {
+        if (other.currency() != this.currency()) {
+            throw new IllegalArgumentException("Money amounts must be in the same currency.");
+        }
+        
         if (this.amount().compareTo(other.amount()) >= 0) {
             return other;
         }
