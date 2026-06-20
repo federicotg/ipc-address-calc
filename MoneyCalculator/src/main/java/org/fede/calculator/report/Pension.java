@@ -110,31 +110,6 @@ public class Pension {
                 + (end.getMonthValue() - start.getMonthValue());
     }
 
-    private MoneyAmount discountedCashFlowValueOld() {
-
-        final var futurePension = ForeignExchanges.getForeignExchange(Currency.ARS, USD)
-                .exchange(
-                        new MoneyAmount(
-                                SeriesReader.readBigDecimal("goal.pension"), Currency.ARS),
-                        USD, YearMonth.now());
-        final var retirementAge = SeriesReader.readInt("goal.retirement");
-        final var maxAge = SeriesReader.readInt("goal.maxage");
-        final var dob = SeriesReader.readDate("dob");
-
-        final var yearlyPension = futurePension.amount().doubleValue() * 13.0d;
-
-        double sum = 0.0d;
-        final double discountRate = 1.0d + SeriesReader.readPercent("pensionDiscountRate").doubleValue();
-        final var retirementYear = dob.getYear() + retirementAge;
-        final var yearsToRetire = retirementYear - YearMonth.now().getYear();
-        final var endYear = dob.getYear() + maxAge - YearMonth.now().getYear();
-
-        for (int i = yearsToRetire; i < endYear; i++) {
-            sum += yearlyPension / Math.pow(discountRate, i);
-        }
-        return new MoneyAmount(new BigDecimal(sum), USD);
-    }
-
     public MoneyAmount value() {
         final var unlp = readSeries("income/unlp.json");
         final var despegar = readSeries("income/despegar.json")

@@ -80,7 +80,7 @@ public class SeriesReader {
 
     public static Properties readEnvironment() {
         if (ENVIRONMENT == null) {
-            try (var is = new BufferedInputStream(new FileInputStream(SeriesReader.ENV), 128 * 1024)) {
+            try (var is = new BufferedInputStream(new FileInputStream(SeriesReader.ENV), 16 * 1024)) {
                 ENVIRONMENT = new Properties();
                 ENVIRONMENT.load(is);
             } catch (IOException ioEx) {
@@ -126,7 +126,7 @@ public class SeriesReader {
     }
 
     public static <T> T read(String name, TypeReference<T> typeReference) {
-        try (InputStream in = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name), 1024 * 1024);) {
+        try (InputStream in = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name), 16 * 1024);) {
             return OM.readValue(in, typeReference);
         } catch (IOException ioEx) {
             LOGGER.error("Unexpected error.", ioEx);
@@ -147,7 +147,7 @@ public class SeriesReader {
 
     private static MoneyAmountSeries read(String name) {
 
-        try (InputStream is = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name), 1024 * 1024)) {
+        try (InputStream is = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name), 16 * 1024)) {
 
             JSONSeries series = OM.readValue(is, JSONSeries.class);
 

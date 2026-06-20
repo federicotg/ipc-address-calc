@@ -315,7 +315,7 @@ public class Positions {
     private MoneyAmount investment(Investment i, boolean nominal) {
 
         final var nominalAmount = i.getInitialMoneyAmount(USD);
-        
+
         return nominal
                 ? nominalAmount
                 : Inflation.usdInflation().adjust(
@@ -579,13 +579,13 @@ public class Positions {
     }
 
     public void checkConsistency() {
-        final var ym = YearMonth.now();
-        final var cspx = this.lastAmount("ahorros-cspx", ym);
-        final var rtwo = this.lastAmount("ahorros-rtwo", ym);
-        final var xrsu = this.lastAmount("ahorros-xrsu", ym);
-        final var eimi = this.lastAmount("ahorros-eimi", ym);
-        final var xuse = this.lastAmount("ahorros-xuse", ym);
-        final var meud = this.lastAmount("ahorros-meud", ym);
+
+        final var cspx = new LastAmounts(Currency.CSPX).lastAmount(Currency.CSPX);
+        final var rtwo = new LastAmounts(Currency.RTWO).lastAmount(Currency.RTWO);
+        final var xrsu = new LastAmounts(Currency.XRSU).lastAmount(Currency.XRSU);
+        final var eimi = new LastAmounts(Currency.EIMI).lastAmount(Currency.EIMI);
+        final var xuse = new LastAmounts(Currency.XUSE).lastAmount(Currency.XUSE);
+        final var meud = new LastAmounts(Currency.MEUD).lastAmount(Currency.MEUD);
 
         final Map<Currency, BigDecimal> investedAmounts = this.series.getInvestments().stream()
                 .filter(Investment::isETF)
@@ -623,31 +623,18 @@ public class Positions {
     public void portfolioChartByGeography(boolean showAbsoluteValues, String type, int year, int month) throws IOException {
         final var ym = YearMonth.of(year, month);
 
-        final var cspx = this.lastUSDAmount("ahorros-cspx", ym);
-        final var rtwo = this.lastUSDAmount("ahorros-rtwo", ym);
-        final var xrsu = this.lastUSDAmount("ahorros-xrsu", ym);
-        final var xuse = this.lastUSDAmount("ahorros-xuse", ym);
-        final var meud = this.lastUSDAmount("ahorros-meud", ym);
-        final var eimi = this.lastUSDAmount("ahorros-eimi", ym);
+        var la = new LastAmounts();
+        var last = la.last();
 
-        final var usaAmount = cspx
-                .add(rtwo)
-                .add(xrsu)
-                .amount();
-
-        final var exUsaAmount = xuse.add(meud).amount();
-
-        final var emergingAmount = eimi.amount();
-
-        final var cashAmount = this.lastUSDAmount("ahorros-dolar-banco", ym)
-                .add(this.lastUSDAmount("ahorros-dolar-liq", ym))
-                .add(this.lastUSDAmount("ahorros-peso", ym))
-                .add(this.lastUSDAmount("ahorros-euro", ym))
-                .add(this.lastUSDAmount("ahorros-euro-liq", ym))
+        final var cashAmount = LastAmounts.lastUSD("ahorros-dolar-banco", ym)
+                .add(LastAmounts.lastUSD("ahorros-dolar-liq", ym))
+                .add(LastAmounts.lastUSD("ahorros-peso", ym))
+                .add(LastAmounts.lastUSD("ahorros-euro", ym))
+                .add(LastAmounts.lastUSD("ahorros-euro-liq", ym))
                 .amount();
 
         final var em = new PieItem("MSCI Emerging Markets IMI",
-                emergingAmount);
+                last.em().amount());
 
         final var cash = new PieItem(
                 "Cash",
@@ -655,11 +642,11 @@ public class Positions {
 
         final var us = new PieItem(
                 "USA",
-                usaAmount);
+                last.us().amount());
 
         final var exUS = new PieItem(
                 "MSCI World ex USA",
-                exUsaAmount);
+                last.exUs().amount());
 
         final var chart = new PieChart(showAbsoluteValues);
         final var monthString = YearMonthUtil.monthString(ym);
@@ -673,9 +660,7 @@ public class Positions {
 
         final var equity = new PieItem(
                 "Equity",
-                exUsaAmount
-                        .add(usaAmount, C)
-                        .add(emergingAmount, C));
+                last.total().amount());
 
         final var metals = new PieItem(
                 "Metals",
@@ -700,23 +685,17 @@ public class Positions {
 
         final var sp500 = new PieItem(
                 "S&P 500",
-                cspx.amount());
+                la.lastAmount(Currency.CSPX).amount());
 
         final var r2k = new PieItem(
                 "Russell 2000",
-                rtwo.add(xrsu).amount());
+                la.lastAmount(Currency.XRSU).add(la.lastAmount(Currency.RTWO)).amount());
 
         chart.create(
                 title,
                 List.of(cash, sp500, r2k, exUS, em),
                 MessageFormat.format("p-geo-break-{1}-{0}", monthString, type));
 
-    }
-
-    private MoneyAmount lastUSDAmount(String seriesName, YearMonth ym) {
-        var amount = this.lastAmount(seriesName, ym);
-        return ForeignExchanges.getMoneyAmountForeignExchange(amount.currency(), USD)
-                .apply(amount, ym);
     }
 
     public void portfolio(String type, AssetClass subtype, int year, int month) {
@@ -744,27 +723,27 @@ public class Positions {
 
         final Map<AssetClass, Map<String, Optional<MoneyAmount>>> grouped
                 = Stream.of(
-                        of(BONDS, this.lastAmount("ahorros-ay24", ym)),
-                        of(BONDS, this.lastAmount("ahorros-conbala", ym)),
-                        of(BONDS, this.lastAmount("ahorros-uva", ym)),
-                        of(BONDS, this.lastAmount("ahorros-dolar-ON", ym)),
-                        of(BONDS, this.lastAmount("ahorros-lecap", ym)),
-                        of(BONDS, this.lastAmount("ahorros-lete", ym)),
-                        of(BONDS, this.lastAmount("ahorros-dolar-pf", ym)),
-                        of(BONDS, this.lastAmount("ahorros-caplusa", ym)),
-                        of(CASH, this.lastAmount("ahorros-dolar-banco", ym)),
-                        of(CASH, this.lastAmount("ahorros-peso", ym)),
-                        of(CASH, this.lastAmount("ahorros-dolar-liq", ym)),
-                        of(CASH, this.lastAmount("ahorros-euro", ym)),
-                        of(CASH, this.lastAmount("ahorros-euro-liq", ym)),
-                        of(CASH, this.lastAmount("ahorros-dai", ym)),
-                        of(EQUITY, this.lastAmount("ahorros-cspx", ym)),
-                        of(EQUITY, this.lastAmount("ahorros-eimi", ym)),
-                        of(EQUITY, this.lastAmount("ahorros-rtwo", ym)),
-                        of(EQUITY, this.lastAmount("ahorros-meud", ym)),
-                        of(EQUITY, this.lastAmount("ahorros-conaafa", ym)),
-                        of(EQUITY, this.lastAmount("ahorros-xrsu", ym)),
-                        of(EQUITY, this.lastAmount("ahorros-xuse", ym)))
+                        of(BONDS, LastAmounts.last("ahorros-ay24", ym)),
+                        of(BONDS, LastAmounts.last("ahorros-conbala", ym)),
+                        of(BONDS, LastAmounts.last("ahorros-uva", ym)),
+                        of(BONDS, LastAmounts.last("ahorros-dolar-ON", ym)),
+                        of(BONDS, LastAmounts.last("ahorros-lecap", ym)),
+                        of(BONDS, LastAmounts.last("ahorros-lete", ym)),
+                        of(BONDS, LastAmounts.last("ahorros-dolar-pf", ym)),
+                        of(BONDS, LastAmounts.last("ahorros-caplusa", ym)),
+                        of(CASH, LastAmounts.last("ahorros-dolar-banco", ym)),
+                        of(CASH, LastAmounts.last("ahorros-peso", ym)),
+                        of(CASH, LastAmounts.last("ahorros-dolar-liq", ym)),
+                        of(CASH, LastAmounts.last("ahorros-euro", ym)),
+                        of(CASH, LastAmounts.last("ahorros-euro-liq", ym)),
+                        of(CASH, LastAmounts.last("ahorros-dai", ym)),
+                        of(EQUITY, LastAmounts.last("ahorros-cspx", ym)),
+                        of(EQUITY, LastAmounts.last("ahorros-eimi", ym)),
+                        of(EQUITY, LastAmounts.last("ahorros-rtwo", ym)),
+                        of(EQUITY, LastAmounts.last("ahorros-meud", ym)),
+                        of(EQUITY, LastAmounts.last("ahorros-conaafa", ym)),
+                        of(EQUITY, LastAmounts.last("ahorros-xrsu", ym)),
+                        of(EQUITY, LastAmounts.last("ahorros-xuse", ym)))
                         .filter(p -> subtype == null || p.first() == subtype)
                         .collect(groupingBy(
                                 Pair::first,
@@ -791,10 +770,6 @@ public class Positions {
                 .flatMap(Optional::stream)
                 .filter(Predicate.not(MoneyAmount::isZero))
                 .map(amount -> new PortfolioItem(amount, type, ym));
-    }
-
-    private MoneyAmount lastAmount(String seriesName, YearMonth ym) {
-        return SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
     }
 
     private record CurrencyAndGroupKey(Currency currency, String groupKey) {

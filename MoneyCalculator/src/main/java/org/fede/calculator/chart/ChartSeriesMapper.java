@@ -33,11 +33,11 @@ public class ChartSeriesMapper {
     public static TimeSeries asTimeSeries(List<TimeSeriesDatapoint> series, String name) {
         final TimeSeries ts = new TimeSeries(name);
         final var nextMonth = YearMonth.now().plusMonths(1);
-        series.stream().forEach(dp -> {
+        for (var dp : series) {
             if (dp.ym().isBefore(nextMonth)) {
                 ts.add(day(dp.ym().atEndOfMonth()), dp.value());
             }
-        });
+        }
         return ts;
     }
 

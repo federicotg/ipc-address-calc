@@ -23,7 +23,6 @@ import static java.math.BigDecimal.ONE;
 import java.math.RoundingMode;
 import java.text.MessageFormat;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.Period;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
@@ -72,6 +71,7 @@ public class Fire {
     private final Format format;
     private final Series series;
     private final Console console;
+    private final LastAmounts last = new LastAmounts();
 
     public Fire(Format format, Series series, Console console) {
         this.format = format;
@@ -159,7 +159,7 @@ public class Fire {
         this.conceptLine("   ➞ Future", expectedFutureIncome);
 
         var allEquity = this.series.realSavings("EQ").getAmount(YearMonth.now());
-        var sp500 = this.lastUSDAmount("ahorros-cspx", YearMonth.now());
+        var sp500 = this.last.lastAmount(Currency.CSPX);
         var nonSP500 = allEquity.subtract(sp500);
 
         var totalSavingAndMetals = totalSavings.add(currentlyEstimated);
@@ -171,9 +171,11 @@ public class Fire {
 
         this.console.appendLine(this.format.subtitle("Income"));
 
+        final var sev = Future.severance();
+
         final var futureCash = currentCash
                 .add(readUSD("futureCash.1"))
-                .add(severance().getTotal())
+                .add(sev.getTotal())
                 .add(readUSD("futureCash.3"));
 
         final var sales1 = readUSD("futureRealState.1");
@@ -183,7 +185,7 @@ public class Fire {
         this.coveredCashLine("Metals", currentlyEstimated, budgets.currentWithHealth(), false);
         this.coveredCashLine("Current cash", currentCash, budgets.currentWithHealth());
         this.coveredCashLine(" ? Current cash & sev.", currentCash
-                .add(severance().getTotal()), budgets.currentWithHealth(), false);
+                .add(sev.getTotal()), budgets.currentWithHealth(), false);
         this.coveredCashLine(" ➞ Future cash", futureCash, budgets.currentWithHealth());
         this.coveredCashLine("   ➞ Near future sales", futureCash.add(sales1), budgets.currentWithHealth(), false);
         this.coveredCashLine("     ➞ Future sales", futureCash.add(sales1).add(sales2), budgets.currentWithHealth(), false);
@@ -230,14 +232,17 @@ public class Fire {
 
         final var budgets = this.budgets(months);
         final var currentlyEstimated = this.currentlyEstimatedSavings();
-
-        final var totalSavings = this.series.currentSavingsUSD()
+        final var currentSavings = this.series.currentSavingsUSD();
+        final var totalSavingsPlusCurrentlyEstimated = currentSavings
                 .add(currentlyEstimated);
 
         var swr = new CAEYSafeWithdrawalRate();
-        this.spendingReport("Spending", this.withdrawalRate(swr), totalSavings);
+        this.spendingReport("Spending", this.withdrawalRate(swr), totalSavingsPlusCurrentlyEstimated);
 
-        this.spendingReport(" ➞ All Equity", this.allEquityWithdrawalRate(swr), totalSavings);
+        this.spendingReport(" ➞ All Equity", this.allEquityWithdrawalRate(swr), totalSavingsPlusCurrentlyEstimated);
+
+        var additional = Future.expectedWealth();
+        this.spendingReport(" ➞ Future", this.futureWealthWithdrawalRate(swr, additional), totalSavingsPlusCurrentlyEstimated.add(additional));
 
         this.console.appendLine(MessageFormat.format(
                 "{0}{1}{2}",
@@ -269,9 +274,9 @@ public class Fire {
                 .map(monthlySpending
                         -> this.retirementWithdrawalRow(
                         monthlySpending,
-                        totalSavings,
-                        totalSavings.add(currentlyEstimated),
-                        totalSavings.add(currentlyEstimated).add(expectedFutureIncome),
+                        currentSavings,
+                        totalSavingsPlusCurrentlyEstimated,
+                        totalSavingsPlusCurrentlyEstimated.add(expectedFutureIncome),
                         percents,
                         alreadyThere,
                         withGrowth,
@@ -297,31 +302,41 @@ public class Fire {
 
         var now = YearMonth.now();
 
-        var currentlyEstimated = this.currentlyEstimatedSavings();
-
-        var usEquity = this.lastUSDAmount("ahorros-cspx", now)
-                .add(this.lastUSDAmount("ahorros-rtwo", now))
-                .add(this.lastUSDAmount("ahorros-xrsu", now));
-
-        var devExUs = this.lastUSDAmount("ahorros-meud", now)
-                .add(this.lastUSDAmount("ahorros-xuse", now));
-
-        var emerging = this.lastUSDAmount("ahorros-eimi", now);
+        var equity = last.last();
 
         var cash = this.series.realSavings("LIQ").getAmount(now)
-                .add(currentlyEstimated);
+                .add(this.currentlyEstimatedSavings());
 
         var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
 
-        var allEquity = usEquity.add(devExUs).add(emerging).amount();
         var allCash = bonds.add(cash);
 
-        return swr.capeWR(usEquity.add(allCash.adjust(ONE, usEquity.amount().divide(allEquity, C))),
-                devExUs.add(allCash.adjust(ONE, devExUs.amount().divide(allEquity, C))),
-                emerging.add(allCash.adjust(ONE, emerging.amount().divide(allEquity, C))),
+        return swr.capeWR(
+                equity.us().add(allCash.adjust(ONE, equity.usWeight())),
+                equity.exUs().add(allCash.adjust(ONE, equity.exUsWeight())),
+                equity.em().add(allCash.adjust(ONE, equity.emWeight())),
                 MoneyAmount.zero(USD),
                 MoneyAmount.zero(USD));
 
+    }
+
+    private BigDecimal futureWealthWithdrawalRate(CAEYSafeWithdrawalRate swr, MoneyAmount additional) {
+
+        var now = YearMonth.now();
+
+        var equity = last.last();
+
+        var cash = this.series.realSavings("LIQ").getAmount(now)
+                .add(this.currentlyEstimatedSavings());
+
+        var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
+
+        return swr.capeWR(
+                equity.us().add(additional.adjust(ONE, equity.usWeight())),
+                equity.exUs().add(additional.adjust(ONE, equity.exUsWeight())),
+                equity.em().add(additional.adjust(ONE, equity.emWeight())),
+                bonds,
+                cash);
     }
 
     private BigDecimal withdrawalRate() {
@@ -332,23 +347,14 @@ public class Fire {
 
         var now = YearMonth.now();
 
-        var currentlyEstimated = this.currentlyEstimatedSavings();
-
-        var usEquity = this.lastUSDAmount("ahorros-cspx", now)
-                .add(this.lastUSDAmount("ahorros-rtwo", now))
-                .add(this.lastUSDAmount("ahorros-xrsu", now));
-
-        var devExUs = this.lastUSDAmount("ahorros-meud", now)
-                .add(this.lastUSDAmount("ahorros-xuse", now));
-
-        var emerging = this.lastUSDAmount("ahorros-eimi", now);
+        var equity = last.last();
 
         var cash = this.series.realSavings("LIQ").getAmount(now)
-                .add(currentlyEstimated);
+                .add(this.currentlyEstimatedSavings());
 
         var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
 
-        return swr.capeWR(usEquity, devExUs, emerging, bonds, cash);
+        return swr.capeWR(equity.us(), equity.exUs(), equity.em(), bonds, cash);
     }
 
     public void fiReport(int months) {
@@ -380,16 +386,6 @@ public class Fire {
                 this.format.percent(amount.amount().divide(total.amount(), C), 12)));
     }
 
-    private MoneyAmount lastAmount(String seriesName, YearMonth ym) {
-        return SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
-    }
-
-    private MoneyAmount lastUSDAmount(String seriesName, YearMonth ym) {
-        var amount = this.lastAmount(seriesName, ym);
-        return ForeignExchanges.getMoneyAmountForeignExchange(amount.currency(), USD)
-                .apply(amount, ym);
-    }
-
     private void coveredCashLine(String name, MoneyAmount amount, MoneyAmount essential) {
         this.coveredCashLine(name, amount, essential, true);
     }
@@ -417,11 +413,16 @@ public class Fire {
     }
 
     private List<BigDecimal> percents() {
+        var swr = new CAEYSafeWithdrawalRate();
         final var step = BigDecimal.valueOf(25L).movePointLeft(4);
         return Stream.concat(
-                LongStream.range(12L, 22L)
+                LongStream.range(13L, 20L)
                         .mapToObj(i -> BigDecimal.valueOf(i).multiply(step, C)),
-                Stream.concat(Stream.of(this.withdrawalRate()),
+                Stream.concat(Stream.of(
+                        this.withdrawalRate(),
+                        this.futureWealthWithdrawalRate(swr, Future.expectedWealth()),
+                        this.allEquityWithdrawalRate(swr)
+                ),
                         Stream.of(
                                 BigDecimal.valueOf(366L),
                                 BigDecimal.valueOf(338L),
@@ -731,111 +732,7 @@ public class Fire {
      */
     private MoneyAmount expectedFutureSavings() {
 
-        final var discountRate = readBigDecimal("realstateDiscountRate")
-                .movePointLeft(2)
-                .add(ONE);
-
-        final var realStateDivisor1 = discountRate
-                .pow(readBigDecimal("futureRealStateYears.1").intValue(), C);
-        final var realStateDivisor2 = discountRate
-                .pow(readBigDecimal("futureRealStateYears.2").intValue(), C);
-        final var realStateDivisor3 = discountRate
-                .pow(readBigDecimal("futureRealStateYears.3").intValue(), C);
-
-        final var inflation = readPercent("expectedInflation")
-                .add(ONE);
-
-        final var cashDivisor1 = inflation
-                .pow(readBigDecimal("futureCashYears.1").intValue(), C);
-
-        final var cashDivisor2 = inflation
-                .pow(readBigDecimal("futureCashYears.2").intValue(), C);
-
-        final var cashDivisor3 = inflation
-                .pow(readBigDecimal("futureCashYears.3").intValue(), C);
-
-        return new Pension().discountedCashFlowValue()
-                .add(readUSD("futureRealState.1")
-                        .adjust(realStateDivisor1, ONE))
-                .add(readUSD("futureRealState.2")
-                        .adjust(realStateDivisor2, ONE))
-                .add(readUSD("futureRealState.3")
-                        .adjust(realStateDivisor3, ONE))
-                .add(readUSD("futureCash.1").adjust(cashDivisor1, ONE))
-                .add(severance().getTotal().adjust(cashDivisor2, ONE))
-                .add(readUSD("futureCash.3").adjust(cashDivisor3, ONE));
-
+        return Future.expectedWealth();
     }
 
-    public static Severance severance() {
-
-        if (SeriesReader.readBoolean("useFullSalaryForSeverance")) {
-            return severance(BigDecimal.ONE);
-
-        }
-        return severance(BigDecimal.valueOf(67).movePointLeft(2));
-    }
-
-    public static Severance severance(BigDecimal maxSalaryFactor) {
-        final long totalMonths = YearMonth.of(2015, Month.DECEMBER)
-                .until(YearMonth.now(), ChronoUnit.MONTHS);
-
-        final long years = Math.floorDiv(totalMonths, 12);
-
-        final long months = Math.floorMod(totalMonths, 12);
-
-        final var toppedSalaries = BigDecimal.valueOf(years)
-                .add((months > 3
-                        ? BigDecimal.ONE
-                        : BigDecimal.ZERO));
-
-        final var currentMonth = LocalDate.now().getMonthValue();
-
-        final var notice = years < 5 ? ONE : BigDecimal.TWO;
-        final var severanceMonth = ONE;
-        
-        final var vacationsFactor = BigDecimal.valueOf(28)
-                .divide(BigDecimal.valueOf(25), C);
-        
-        final var vacationsPart = BigDecimal.valueOf(
-                ChronoUnit.DAYS.between(LocalDate.now().withMonth(1).withDayOfMonth(1), LocalDate.now()))
-                .divide(BigDecimal.valueOf(365L), C)
-                .multiply(vacationsFactor, C);
-        final var sacPart = BigDecimal.valueOf(
-                ChronoUnit.DAYS.between(LocalDate.now().withMonth(currentMonth > 6 ? 7 : 1).withDayOfMonth(1), LocalDate.now()))
-                .divide(BigDecimal.valueOf(180L), C)
-                .divide(BigDecimal.TWO, C);
-        final var sacFactor = ONE
-                .add(ONE
-                        .divide(BigDecimal.valueOf(12), C), C);
-
-        final var taxedSalaries = notice
-                .add(severanceMonth, C)
-                .add(vacationsPart, C)
-                .multiply(sacFactor, C)
-                .add(sacPart, C);
-
-        // 65% => 35% ganacias
-        final var taxSalaryFactor = BigDecimal.valueOf(65).movePointLeft(2);
-        final var salary = SeriesReader.readBigDecimal("salary");
-
-        return new Severance(
-                salary,
-                salary
-                        .multiply(taxedSalaries, C)
-                        .multiply(taxSalaryFactor, C),
-                salary
-                        .multiply(toppedSalaries, C)
-                        .multiply(maxSalaryFactor, C));
-    }
-
-    public record Severance(
-            BigDecimal salary,
-            BigDecimal taxedAmount,
-            BigDecimal untaxedAmount) {
-
-        public MoneyAmount getTotal() {
-            return new MoneyAmount(taxedAmount.add(untaxedAmount, C), USD);
-        }
-    }
 }

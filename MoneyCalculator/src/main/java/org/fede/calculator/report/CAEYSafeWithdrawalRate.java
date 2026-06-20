@@ -24,8 +24,6 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.function.Function;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.fede.calculator.chart.ChartStyle;
 import org.fede.calculator.chart.LabeledXYDataItem;
@@ -33,7 +31,6 @@ import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.ScatterXYChart;
 import org.fede.calculator.chart.ValueFormat;
 import static org.fede.calculator.money.Currency.USD;
-import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.SeriesReader;
@@ -62,8 +59,6 @@ public class CAEYSafeWithdrawalRate {
     private static final NumberFormat PCT_FORMAT2 = NumberFormat.getPercentInstance();
     private static final NumberFormat PCT_FORMAT = NumberFormat.getPercentInstance();
 
-    private static final String FUTURE_CASH_KEY = "futureCash";
-
     static {
         PCT_FORMAT2.setMinimumFractionDigits(2);
     }
@@ -77,6 +72,8 @@ public class CAEYSafeWithdrawalRate {
     private final BigDecimal capeA;
     private final BigDecimal capeB;
 
+    private final LastAmounts last = new LastAmounts();
+
     public CAEYSafeWithdrawalRate(BigDecimal expectedInflation, BigDecimal bondsNominalYield, BigDecimal cape, BigDecimal capeExUs, BigDecimal capeEmerging) {
         this.cashRealYield = expectedInflation.negate(C);
         this.bondsRealYield = bondsNominalYield.subtract(expectedInflation, C);
@@ -87,8 +84,9 @@ public class CAEYSafeWithdrawalRate {
         final var age = BigDecimal.valueOf(ChronoUnit.MONTHS.between(SeriesReader.readDate("dob"), LocalDate.now())).divide(MONTHS_IN_A_YEAR, C);
         final var yearsLeft = BigDecimal.ONE.movePointRight(2).subtract(age, C);
 
-        this.capeA = ONE
-                .divide(yearsLeft, C).multiply(BigDecimal.valueOf(80).movePointLeft(2), C);
+        this.capeA = new BigDecimal("0.04")
+                .min(ONE
+                        .divide(yearsLeft, C).multiply(BigDecimal.valueOf(80).movePointLeft(2), C));
         this.capeB = SeriesReader.readPercent("cape.b");
 
     }
@@ -188,15 +186,7 @@ public class CAEYSafeWithdrawalRate {
 
         var currentlyEstimated = this.currentlyEstimatedSavings();
 
-        var usEquity = this.lastUSDAmount("ahorros-cspx", now)
-                .add(this.lastUSDAmount("ahorros-rtwo", now))
-                .add(this.lastUSDAmount("ahorros-xrsu", now));
-
-        var devExUs = this.lastUSDAmount("ahorros-meud", now)
-                .add(this.lastUSDAmount("ahorros-xuse", now));
-
-        var emerging = this.lastUSDAmount("ahorros-eimi", now);
-
+        var equity = last.last();
         var cash = series.realSavings("LIQ").getAmount(now)
                 .add(currentlyEstimated);
 
@@ -210,7 +200,7 @@ public class CAEYSafeWithdrawalRate {
         Stream.iterate(CAPE_MIN, capeVal -> capeVal.compareTo(CAPE_MAX) <= 0, capeVal -> capeVal.add(CAPE_STEP))
                 .forEach(capeVal -> {
                     var swr = new CAEYSafeWithdrawalRate(expectedInflation, bondsNominalYield, capeVal, capeVal, capeVal);
-                    var monthly = swr.monthlySafeWithdrawal(usEquity, devExUs, emerging, bonds, cash);
+                    var monthly = swr.monthlySafeWithdrawal(equity.us(), equity.exUs(), equity.em(), bonds, cash);
                     byCape.add(new LabeledXYDataItem(
                             capeVal,
                             monthly,
@@ -219,8 +209,8 @@ public class CAEYSafeWithdrawalRate {
 
         // current 
         final var currentSwr = new CAEYSafeWithdrawalRate();
-        final var currentCape = ONE.divide(currentSwr.caey(usEquity, devExUs, emerging), C);
-        final var currentMonthly = currentSwr.monthlySafeWithdrawal(usEquity, devExUs, emerging, bonds, cash);
+        final var currentCape = ONE.divide(currentSwr.caey(equity.us(), equity.exUs(), equity.em()), C);
+        final var currentMonthly = currentSwr.monthlySafeWithdrawal(equity.us(), equity.exUs(), equity.em(), bonds, cash);
         final var current = new XYSeries("Current SWR");
         current.add(new LabeledXYDataItem(
                 currentCape,
@@ -228,22 +218,11 @@ public class CAEYSafeWithdrawalRate {
                 currencyFormat.format(currentMonthly)));
 
         // current + total wealth SW
-        var futureRealStateKey = "futureRealState";
-        var futureCashKey = FUTURE_CASH_KEY;
+        var additionalWealth = Future.expectedWealth();
 
-        final var discountRate = SeriesReader.readPercent("expectedInflation").doubleValue();
-        var additionalWealth = IntStream.range(1, 3)
-                .mapToObj(index -> Stream.of(futureRealStateKey, futureCashKey).map(k -> new FutureCashFlows(k, index)))
-                .flatMap(Function.identity())
-                .map(fcf -> this.presentValue(fcf.name, fcf.index, fcf.name.equals(FUTURE_CASH_KEY) ? discountRate : 0.0d))
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
-                .add(new Pension().discountedCashFlowValue());
-
-        var totalEquity = usEquity.add(devExUs).add(emerging);
-
-        var usTotal = usEquity.add(usEquity.adjust(totalEquity.amount(), additionalWealth.amount()));
-        var exUsTotal = devExUs.add(devExUs.adjust(totalEquity.amount(), additionalWealth.amount()));
-        var emTotal = emerging.add(emerging.adjust(totalEquity.amount(), additionalWealth.amount()));
+        var usTotal = equity.us().add(additionalWealth.adjust(ONE, equity.usWeight()));
+        var exUsTotal = equity.exUs().add(additionalWealth.adjust(ONE, equity.exUsWeight()));
+        var emTotal = equity.em().add(additionalWealth.adjust(ONE, equity.emWeight()));
 
         final var totalWealthMonthly = currentSwr.monthlySafeWithdrawal(usTotal, exUsTotal, emTotal, bonds, cash);
         final var totalWealth = new XYSeries("Total Wealth SWR");
@@ -252,37 +231,33 @@ public class CAEYSafeWithdrawalRate {
                 totalWealthMonthly,
                 currencyFormat.format(totalWealthMonthly)));
 
+        // all cash
+        var allCash = cash.add(bonds);
+        var usWithCash = equity.us().add(allCash.adjust(ONE, equity.usWeight()));
+        var exUswithCash = equity.exUs().add(allCash.adjust(ONE, equity.exUsWeight()));
+        var emWithCash = equity.em().add(allCash.adjust(ONE, equity.emWeight()));
+
+        final var allEquityMonthly = currentSwr.monthlySafeWithdrawal(
+                usWithCash,
+                exUswithCash,
+                emWithCash,
+                MoneyAmount.zero(USD), 
+                MoneyAmount.zero(USD));
+        final var allEquity = new XYSeries("All Equity SWR");
+        allEquity.add(new LabeledXYDataItem(
+                currentCape,
+                allEquityMonthly,
+                currencyFormat.format(allEquityMonthly)));
+
         new ScatterXYChart(
                 new ChartStyle(ValueFormat.NUMBER, Scale.LINEAR),
                 new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
                 .create(
                         this.reportTitle(),
-                        List.of(byCape, current, totalWealth),
+                        List.of(byCape, current, totalWealth, allEquity),
                         "CAPE",
                         "Monthly Withdrawal (USD)",
                         filename);
-    }
-
-    private record FutureCashFlows(String name, int index) {
-
-    }
-
-    private MoneyAmount presentValue(String key, int index, double discountRate) {
-
-        MoneyAmount amount;
-        if (FUTURE_CASH_KEY.equals(key) && index == 2) {
-            amount = Fire.severance().getTotal();
-        } else {
-            amount = SeriesReader.readUSD(key + "." + index);
-        }
-
-        var years = SeriesReader.readInt(key + "Years." + index);
-        var probability = SeriesReader.readPercent(key + "Prob." + index);
-
-        return new MoneyAmount(
-                BigDecimal.valueOf(amount.adjust(ONE, probability).amount().doubleValue() / Math.pow(1.0d + discountRate, years)),
-                USD);
-
     }
 
     private String reportTitle() {
@@ -300,12 +275,6 @@ public class CAEYSafeWithdrawalRate {
                                 .multiply(BigDecimal.valueOf(75)
                                         .movePointLeft(2),
                                         C));
-    }
-
-    private MoneyAmount lastUSDAmount(String seriesName, YearMonth ym) {
-        var amount = SeriesReader.readSeries("saving/".concat(seriesName).concat(".json")).getAmountOrElseZero(ym);
-        return ForeignExchanges.getMoneyAmountForeignExchange(amount.currency(), USD)
-                .apply(amount, ym);
     }
 
     private record PortfolioAllocation(

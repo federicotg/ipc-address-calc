@@ -75,7 +75,6 @@ import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
-import org.fede.calculator.report.Fire.Severance;
 import org.fede.util.Pair;
 import org.jfree.data.time.TimeSeries;
 import org.jline.reader.EndOfFileException;
@@ -1221,13 +1220,13 @@ public class ConsoleReports {
 
         this.console.appendLine(this.format.subtitle("Floor"));
 
-        var sev = Fire.severance(BigDecimal.valueOf(67).movePointLeft(2));
+        org.fede.calculator.report.Severance sev = Future.severance(BigDecimal.valueOf(67).movePointLeft(2));
         this.console.appendLine(this.format.text("Salary", 8), this.format.currency(new MoneyAmount(sev.salary(), USD), 18));
 
         this.printSev(sev);
 
         this.console.appendLine(this.format.subtitle("Full"));
-        this.printSev(Fire.severance(BigDecimal.ONE));
+        this.printSev(Future.severance(BigDecimal.ONE));
     }
 
     private void printSev(Severance sev) {
