@@ -59,12 +59,21 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
         if (other.currency() != this.currency()) {
             throw new IllegalArgumentException("Money amounts must be in the same currency.");
         }
+        if (other.isZero()) {
+            return this;
+        }
+        if (this.isZero()) {
+            return other;
+        }
         return new MoneyAmount(this.amount().add(other.amount(), MathConstants.C), this.currency());
     }
 
     public MoneyAmount subtract(MoneyAmount other) {
         if (other.currency() != this.currency()) {
             throw new IllegalArgumentException("Money amounts must be in the same currency.");
+        }
+        if (other.isZero()) {
+            return this;
         }
         return new MoneyAmount(this.amount().subtract(other.amount(), MathConstants.C), this.currency());
     }
@@ -74,12 +83,11 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
     }
 
     public MoneyAmount max(MoneyAmount other) {
-        //this.assertCurrency(other.currency());
 
         if (other.currency() != this.currency()) {
             throw new IllegalArgumentException("Money amounts must be in the same currency.");
         }
-        
+
         if (this.amount().compareTo(other.amount()) >= 0) {
             return this;
         }
@@ -90,7 +98,7 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
         if (other.currency() != this.currency()) {
             throw new IllegalArgumentException("Money amounts must be in the same currency.");
         }
-        
+
         if (this.amount().compareTo(other.amount()) >= 0) {
             return other;
         }

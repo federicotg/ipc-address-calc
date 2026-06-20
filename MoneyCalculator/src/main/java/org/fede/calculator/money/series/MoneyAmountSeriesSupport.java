@@ -155,12 +155,11 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
 
     @Override
     public final MoneyAmount getAmountOrElseZero(YearMonth moment) {
-        if (this.hasValue(moment)) {
-            return this.getAmount(moment);
-        }
+        MoneyAmount amount = this.getAmountOrNull(moment);
 
-        return MoneyAmount.zero(this.currency);
-
+        return amount != null
+                ? amount
+                : MoneyAmount.zero(this.currency);
     }
 
     protected abstract boolean hasValue(YearMonth moment);

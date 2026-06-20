@@ -24,6 +24,8 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.fede.calculator.chart.ChartStyle;
 import org.fede.calculator.chart.LabeledXYDataItem;
@@ -60,6 +62,8 @@ public class CAEYSafeWithdrawalRate {
     private static final NumberFormat PCT_FORMAT2 = NumberFormat.getPercentInstance();
     private static final NumberFormat PCT_FORMAT = NumberFormat.getPercentInstance();
 
+    private static final String FUTURE_CASH_KEY = "futureCash";
+
     static {
         PCT_FORMAT2.setMinimumFractionDigits(2);
     }
@@ -79,10 +83,10 @@ public class CAEYSafeWithdrawalRate {
         this.cape = cape;
         this.capeExUs = capeExUs;
         this.capeEmerging = capeEmerging;
-        
+
         final var age = BigDecimal.valueOf(ChronoUnit.MONTHS.between(SeriesReader.readDate("dob"), LocalDate.now())).divide(MONTHS_IN_A_YEAR, C);
         final var yearsLeft = BigDecimal.ONE.movePointRight(2).subtract(age, C);
-        
+
         this.capeA = ONE
                 .divide(yearsLeft, C).multiply(BigDecimal.valueOf(80).movePointLeft(2), C);
         this.capeB = SeriesReader.readPercent("cape.b");
@@ -213,24 +217,72 @@ public class CAEYSafeWithdrawalRate {
                             currencyFormat.format(monthly)));
                 });
 
+        // current 
         final var currentSwr = new CAEYSafeWithdrawalRate();
         final var currentCape = ONE.divide(currentSwr.caey(usEquity, devExUs, emerging), C);
         final var currentMonthly = currentSwr.monthlySafeWithdrawal(usEquity, devExUs, emerging, bonds, cash);
-        final var current = new XYSeries("Current CAPE");
+        final var current = new XYSeries("Current SWR");
         current.add(new LabeledXYDataItem(
                 currentCape,
                 currentMonthly,
                 currencyFormat.format(currentMonthly)));
+
+        // current + total wealth SW
+        var futureRealStateKey = "futureRealState";
+        var futureCashKey = FUTURE_CASH_KEY;
+
+        final var discountRate = SeriesReader.readPercent("expectedInflation").doubleValue();
+        var additionalWealth = IntStream.range(1, 3)
+                .mapToObj(index -> Stream.of(futureRealStateKey, futureCashKey).map(k -> new FutureCashFlows(k, index)))
+                .flatMap(Function.identity())
+                .map(fcf -> this.presentValue(fcf.name, fcf.index, fcf.name.equals(FUTURE_CASH_KEY) ? discountRate : 0.0d))
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
+                .add(new Pension().discountedCashFlowValue());
+
+        var totalEquity = usEquity.add(devExUs).add(emerging);
+
+        var usTotal = usEquity.add(usEquity.adjust(totalEquity.amount(), additionalWealth.amount()));
+        var exUsTotal = devExUs.add(devExUs.adjust(totalEquity.amount(), additionalWealth.amount()));
+        var emTotal = emerging.add(emerging.adjust(totalEquity.amount(), additionalWealth.amount()));
+
+        final var totalWealthMonthly = currentSwr.monthlySafeWithdrawal(usTotal, exUsTotal, emTotal, bonds, cash);
+        final var totalWealth = new XYSeries("Total Wealth SWR");
+        totalWealth.add(new LabeledXYDataItem(
+                currentCape,
+                totalWealthMonthly,
+                currencyFormat.format(totalWealthMonthly)));
 
         new ScatterXYChart(
                 new ChartStyle(ValueFormat.NUMBER, Scale.LINEAR),
                 new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
                 .create(
                         this.reportTitle(),
-                        List.of(byCape, current),
+                        List.of(byCape, current, totalWealth),
                         "CAPE",
                         "Monthly Withdrawal (USD)",
                         filename);
+    }
+
+    private record FutureCashFlows(String name, int index) {
+
+    }
+
+    private MoneyAmount presentValue(String key, int index, double discountRate) {
+
+        MoneyAmount amount;
+        if (FUTURE_CASH_KEY.equals(key) && index == 2) {
+            amount = Fire.severance().getTotal();
+        } else {
+            amount = SeriesReader.readUSD(key + "." + index);
+        }
+
+        var years = SeriesReader.readInt(key + "Years." + index);
+        var probability = SeriesReader.readPercent(key + "Prob." + index);
+
+        return new MoneyAmount(
+                BigDecimal.valueOf(amount.adjust(ONE, probability).amount().doubleValue() / Math.pow(1.0d + discountRate, years)),
+                USD);
+
     }
 
     private String reportTitle() {

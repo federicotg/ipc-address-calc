@@ -1221,14 +1221,13 @@ public class ConsoleReports {
 
         this.console.appendLine(this.format.subtitle("Floor"));
 
-        var fire = new Fire(format, series, console);
-        var sev = fire.severance(BigDecimal.valueOf(67).movePointLeft(2));
+        var sev = Fire.severance(BigDecimal.valueOf(67).movePointLeft(2));
         this.console.appendLine(this.format.text("Salary", 8), this.format.currency(new MoneyAmount(sev.salary(), USD), 18));
 
         this.printSev(sev);
 
         this.console.appendLine(this.format.subtitle("Full"));
-        this.printSev(fire.severance(BigDecimal.ONE));
+        this.printSev(Fire.severance(BigDecimal.ONE));
     }
 
     private void printSev(Severance sev) {

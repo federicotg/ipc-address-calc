@@ -173,7 +173,7 @@ public class Fire {
 
         final var futureCash = currentCash
                 .add(readUSD("futureCash.1"))
-                .add(this.severance().getTotal())
+                .add(severance().getTotal())
                 .add(readUSD("futureCash.3"));
 
         final var sales1 = readUSD("futureRealState.1");
@@ -183,7 +183,7 @@ public class Fire {
         this.coveredCashLine("Metals", currentlyEstimated, budgets.currentWithHealth(), false);
         this.coveredCashLine("Current cash", currentCash, budgets.currentWithHealth());
         this.coveredCashLine(" ? Current cash & sev.", currentCash
-                .add(this.severance().getTotal()), budgets.currentWithHealth(), false);
+                .add(severance().getTotal()), budgets.currentWithHealth(), false);
         this.coveredCashLine(" ➞ Future cash", futureCash, budgets.currentWithHealth());
         this.coveredCashLine("   ➞ Near future sales", futureCash.add(sales1), budgets.currentWithHealth(), false);
         this.coveredCashLine("     ➞ Future sales", futureCash.add(sales1).add(sales2), budgets.currentWithHealth(), false);
@@ -762,21 +762,21 @@ public class Fire {
                 .add(readUSD("futureRealState.3")
                         .adjust(realStateDivisor3, ONE))
                 .add(readUSD("futureCash.1").adjust(cashDivisor1, ONE))
-                .add(this.severance().getTotal().adjust(cashDivisor2, ONE))
+                .add(severance().getTotal().adjust(cashDivisor2, ONE))
                 .add(readUSD("futureCash.3").adjust(cashDivisor3, ONE));
 
     }
 
-    public Severance severance() {
+    public static Severance severance() {
 
         if (SeriesReader.readBoolean("useFullSalaryForSeverance")) {
-            return this.severance(BigDecimal.ONE);
+            return severance(BigDecimal.ONE);
 
         }
-        return this.severance(BigDecimal.valueOf(67).movePointLeft(2));
+        return severance(BigDecimal.valueOf(67).movePointLeft(2));
     }
 
-    public Severance severance(BigDecimal maxSalaryFactor) {
+    public static Severance severance(BigDecimal maxSalaryFactor) {
         final long totalMonths = YearMonth.of(2015, Month.DECEMBER)
                 .until(YearMonth.now(), ChronoUnit.MONTHS);
 
