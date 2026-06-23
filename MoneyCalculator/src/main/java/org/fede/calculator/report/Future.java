@@ -25,7 +25,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
+import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.SeriesReader;
@@ -39,8 +41,8 @@ public class Future {
     private static final String FUTURE_CASH_KEY = "futureCash";
 
     public static MoneyAmount expectedWealth() {
-        var futureRealStateKey = "futureRealState";
-        var futureCashKey = FUTURE_CASH_KEY;
+        final var futureRealStateKey = "futureRealState";
+        final var futureCashKey = FUTURE_CASH_KEY;
 
         final var inflationRate = SeriesReader.readPercent("expectedInflation").doubleValue();
         return IntStream.range(1, 3)
@@ -60,13 +62,12 @@ public class Future {
             amount = SeriesReader.readUSD(key + "." + index);
         }
 
-        var years = SeriesReader.readInt(key + "Years." + index);
-        var probability = SeriesReader.readPercent(key + "Prob." + index);
+        final var years = SeriesReader.readInt(key + "Years." + index);
+        final var probability = SeriesReader.readPercent(key + "Prob." + index);
 
         return new MoneyAmount(
                 BigDecimal.valueOf(amount.adjust(ONE, probability).amount().doubleValue() / Math.pow(1.0d + discountRate, years)),
                 USD);
-
     }
 
     private record FutureCashFlows(String name, int index) {
@@ -121,8 +122,8 @@ public class Future {
                 .multiply(sacFactor, C)
                 .add(sacPart, C);
 
-        // 65% => 35% ganacias
-        final var taxSalaryFactor = BigDecimal.valueOf(65).movePointLeft(2);
+        // 65% - 7% => 35% ganacias + 7% payroll taxes
+        final var taxSalaryFactor = BigDecimal.valueOf(65-7).movePointLeft(2);
         final var salary = SeriesReader.readBigDecimal("salary");
 
         return new Severance(
@@ -135,4 +136,22 @@ public class Future {
                         .multiply(maxSalaryFactor, C));
     }
 
+    private static MoneyAmount health(String key) {
+        var ars = new MoneyAmount(
+                SeriesReader.readBigDecimal(key)
+                        .multiply(BigDecimal.TWO, C)
+                        .multiply(ONE.add(SeriesReader.readPercent("iva"), C)),
+                Currency.ARS);
+
+        return ForeignExchanges.getForeignExchange(Currency.ARS, USD)
+                .exchange(ars, USD, YearMonth.now());
+    }
+
+    public static MoneyAmount futureHealth() {
+        return health("futureHealth");
+    }
+    
+    public static MoneyAmount contingencyHealth() {
+        return health("currentHealth");
+    }
 }

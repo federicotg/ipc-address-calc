@@ -194,16 +194,7 @@ public class Goal {
                 badReturnYears);
     }
 
-    private MoneyAmount futureHealth() {
-        var ars = new MoneyAmount(
-                SeriesReader.readBigDecimal("futureHealth")
-                        .multiply(BigDecimal.TWO, C)
-                        .multiply(BigDecimal.valueOf(121).movePointLeft(2), C),
-                Currency.ARS);
-
-        return ForeignExchanges.getForeignExchange(Currency.ARS, USD)
-                .exchange(ars, USD, YearMonth.now());
-    }
+   
 
     private void goal(
             final int trials,
@@ -240,7 +231,7 @@ public class Goal {
         final var deposit = monthlyDeposit.multiply(MONTHS_IN_A_YEAR, C).doubleValue();
 
         final var withdraw = (monthlyWithdraw
-                .add(this.futureHealth().amount(), C)
+                .add(Future.futureHealth().amount(), C)
                 .multiply(MONTHS_IN_A_YEAR, C)
                 .subtract(BigDecimal.valueOf(pension * 13), C))
                 .multiply(ONE.divide(ONE.subtract(SELL_FEE, C), C), C)
@@ -280,7 +271,7 @@ public class Goal {
                 this.bbppTaxRate * 100.0d,
                 bbppMin,
                 SeriesReader.readPercent("capitalGainsTaxRate"),
-                this.futureHealth().amount(),
+                Future.futureHealth().amount(),
                 pension,
                 inflation,
                 badReturnYears,

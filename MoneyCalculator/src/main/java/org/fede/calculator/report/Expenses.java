@@ -19,7 +19,6 @@ package org.fede.calculator.report;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
-import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
@@ -32,11 +31,8 @@ import org.fede.calculator.money.MoneyAmount;
 import static org.fede.calculator.money.Inflation.usdInflation;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import java.time.YearMonth;
-import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import org.fede.calculator.money.SlidingWindow;
-import org.fede.calculator.money.series.SeriesReader;
-import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonthUtil;
 
 /**
@@ -224,71 +220,5 @@ public class Expenses {
                 .toList();
     }
 
-    private void otherCashSpending() {
 
-        this.console.appendLine(this.format.subtitle("Untracked Credit Card Spending"));
-
-        final var taxRate = new BigDecimal("0.012");
-
-        var totalCreditCardSpending = new SortedMapMoneyAmountSeries(Currency.USD, "Credit Card");
-        SeriesReader.readSeries("expense/sellos.json")
-                .exchangeInto(Currency.USD)
-                .forEach((ym, ma) -> totalCreditCardSpending.putAmount(ym, ma.adjust(taxRate, BigDecimal.ONE)));
-
-        // sumar gastos conocidos que se hacen con la tarjeta
-        final var seriesStart = totalCreditCardSpending.getFrom();
-
-        // sumar gastos cash conocidos
-        var cardUnknowSpending = this.shiftMonth(
-                real(totalCreditCardSpending)
-                        .subtract(this.realKnownCCSpending(seriesStart)));
-
-        cardUnknowSpending.forEachNonZero((ym, ma) -> this.console.appendLine(
-                MessageFormat.format(
-                        "{0} {1}",
-                        ym, this.format.currency(ma, 20))));
-
-    }
-
-    private MoneyAmountSeries shiftMonth(MoneyAmountSeries s) {
-        var shifted = new SortedMapMoneyAmountSeries(Currency.USD, "Shifted " + s.getName());
-        s.forEach((ym, ma) -> shifted.putAmount(ym.plusMonths(-1), ma));
-        return shifted;
-    }
-
-    private MoneyAmountSeries realKnownCCSpending(YearMonth seriesStart) {
-        var knownCCSpending = new SortedMapMoneyAmountSeries(Currency.USD, "Known Credit Card");
-
-        SeriesReader.readSeries("expense/other-usd.json")
-                .add(SeriesReader.readSeries("expense/cablevision.json"))
-                .add(SeriesReader.readSeries("expense/comida-disc.json"))
-                .add(SeriesReader.readSeries("expense/gas.json"))
-                .add(SeriesReader.readSeries("expense/luz.json"))
-                .add(SeriesReader.readSeries("expense/terceros.json"))// terceros
-                .add(SeriesReader.readSeries("expense/municipal-43.json"))
-                .add(SeriesReader.readSeries("expense/other.json"))
-                .add(SeriesReader.readSeries("expense/reparaciones.json"))
-                .add(SeriesReader.readSeries("expense/sellos.json"))
-                .add(SeriesReader.readSeries("expense/telefono-43.json"))
-                .add(SeriesReader.readSeries("expense/viajes.json"))
-                .add(SeriesReader.readSeries("expense/viajes-usd.json"))
-                .add(SeriesReader.readSeries("expense/suscripciones-ars.json"))
-                .add(SeriesReader.readSeries("expense/suscripciones-usd.json"))
-                .exchangeInto(Currency.USD)
-                .forEach(this.from(knownCCSpending, seriesStart));
-        return this.real(knownCCSpending);
-    }
-
-    private BiConsumer<YearMonth, MoneyAmount> from(MoneyAmountSeries filtered, YearMonth from) {
-        return (ym, ma) -> filtered
-                .putAmount(
-                        ym,
-                        ym.isBefore(from)
-                        ? MoneyAmount.zero(Currency.USD)
-                        : ma);
-    }
-
-    private MoneyAmountSeries real(MoneyAmountSeries s) {
-        return usdInflation().adjust(s, usdInflation().getTo());
-    }
 }

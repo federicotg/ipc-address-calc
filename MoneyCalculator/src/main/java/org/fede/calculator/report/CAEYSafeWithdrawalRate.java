@@ -211,60 +211,76 @@ public class CAEYSafeWithdrawalRate {
         final var currentSwr = new CAEYSafeWithdrawalRate();
         final var currentCape = ONE.divide(currentSwr.caey(equity.us(), equity.exUs(), equity.em()), C);
         final var currentMonthly = currentSwr.monthlySafeWithdrawal(equity.us(), equity.exUs(), equity.em(), bonds, cash);
-        final var current = new XYSeries("Current SWR");
-        current.add(new LabeledXYDataItem(
-                currentCape,
-                currentMonthly,
-                currencyFormat.format(currentMonthly)));
+
+        final var current = this.xySeries("Current", currentCape, currentMonthly);
 
         // current + total wealth SW
-        var additionalWealth = Future.expectedWealth();
+        final var additionalWealth = Future.expectedWealth();
 
-        var usTotal = equity.us().add(additionalWealth.adjust(ONE, equity.usWeight()));
-        var exUsTotal = equity.exUs().add(additionalWealth.adjust(ONE, equity.exUsWeight()));
-        var emTotal = equity.em().add(additionalWealth.adjust(ONE, equity.emWeight()));
+        final var usTotal = equity.us().add(additionalWealth.adjust(ONE, equity.usWeight()));
+        final var exUsTotal = equity.exUs().add(additionalWealth.adjust(ONE, equity.exUsWeight()));
+        final var emTotal = equity.em().add(additionalWealth.adjust(ONE, equity.emWeight()));
 
         final var totalWealthMonthly = currentSwr.monthlySafeWithdrawal(usTotal, exUsTotal, emTotal, bonds, cash);
-        final var totalWealth = new XYSeries("Total Wealth SWR");
-        totalWealth.add(new LabeledXYDataItem(
-                currentCape,
-                totalWealthMonthly,
-                currencyFormat.format(totalWealthMonthly)));
+        final var totalWealth = this.xySeries("Total Wealth", currentCape, totalWealthMonthly);
 
-        // all cash
-        var allCash = cash.add(bonds);
-        var usWithCash = equity.us().add(allCash.adjust(ONE, equity.usWeight()));
-        var exUswithCash = equity.exUs().add(allCash.adjust(ONE, equity.exUsWeight()));
-        var emWithCash = equity.em().add(allCash.adjust(ONE, equity.emWeight()));
+        // total wealth with less cash
+        final var minCash = new MoneyAmount(BigDecimal.valueOf(60000L), USD)
+                .min(cash.add(bonds));
+
+        final var totalWealthLessCash = additionalWealth.add(cash).add(bonds).subtract(minCash);
+
+        final var totalWealthWithLessCashMonthly = currentSwr.monthlySafeWithdrawal(
+                equity.us().add(totalWealthLessCash.adjust(ONE, equity.usWeight())),
+                equity.exUs().add(totalWealthLessCash.adjust(ONE, equity.exUsWeight())),
+                equity.em().add(totalWealthLessCash.adjust(ONE, equity.emWeight())),
+                MoneyAmount.zero(USD), 
+                minCash);
+
+        final var lessCash = this.xySeries("Total Wealth (less cash)",
+                currentCape, totalWealthWithLessCashMonthly);
+
+        // all equity
+        final var allCash = cash.add(bonds);
+        final var usWithCash = equity.us().add(allCash.adjust(ONE, equity.usWeight()));
+        final var exUswithCash = equity.exUs().add(allCash.adjust(ONE, equity.exUsWeight()));
+        final var emWithCash = equity.em().add(allCash.adjust(ONE, equity.emWeight()));
 
         final var allEquityMonthly = currentSwr.monthlySafeWithdrawal(
                 usWithCash,
                 exUswithCash,
                 emWithCash,
-                MoneyAmount.zero(USD), 
+                MoneyAmount.zero(USD),
                 MoneyAmount.zero(USD));
-        final var allEquity = new XYSeries("All Equity SWR");
-        allEquity.add(new LabeledXYDataItem(
-                currentCape,
-                allEquityMonthly,
-                currencyFormat.format(allEquityMonthly)));
+
+        final var allEquity = this.xySeries("All Equity", currentCape, allEquityMonthly);
 
         new ScatterXYChart(
                 new ChartStyle(ValueFormat.NUMBER, Scale.LINEAR),
                 new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
                 .create(
                         this.reportTitle(),
-                        List.of(byCape, current, totalWealth, allEquity),
+                        List.of(byCape, current, allEquity, totalWealth, lessCash),
                         "CAPE",
                         "Monthly Withdrawal (USD)",
                         filename);
     }
 
+    private XYSeries xySeries(String seriesName, BigDecimal xValue, BigDecimal yValue) {
+        var series = new XYSeries(seriesName);
+        series.add(new LabeledXYDataItem(
+                xValue,
+                yValue,
+                ValueFormat.CURRENCY.format().format(yValue)));
+        return series;
+    }
+
     private String reportTitle() {
         return MessageFormat.format(
-                "Safe Withdrawal ({0} + {1} x CAEY)",
+                "Safe Withdrawal ({0} + {1} x CAEY) CAPE {2}",
                 PCT_FORMAT2.format(this.capeA),
-                PCT_FORMAT.format(this.capeB));
+                PCT_FORMAT.format(this.capeB),
+                ONE.divide(this.caey(this.last.last()), C));
     }
 
     private MoneyAmount currentlyEstimatedSavings() {
@@ -290,13 +306,14 @@ public class CAEYSafeWithdrawalRate {
             MoneyAmount usEquity,
             MoneyAmount devExUs,
             MoneyAmount emerging) {
+        return this.caey(new Equity(usEquity, devExUs, emerging));
+    }
 
-        final var totalEquity = usEquity.add(devExUs).add(emerging).amount();
-
+    private BigDecimal caey(Equity eq) {
         return Stream.of(
-                ONE.divide(this.cape, C).multiply(usEquity.adjust(totalEquity, ONE).amount(), C),
-                ONE.divide(this.capeExUs, C).multiply(devExUs.adjust(totalEquity, ONE).amount(), C),
-                ONE.divide(this.capeEmerging, C).multiply(emerging.adjust(totalEquity, ONE).amount(), C))
+                ONE.divide(this.cape, C).multiply(eq.usWeight(), C),
+                ONE.divide(this.capeExUs, C).multiply(eq.exUsWeight(), C),
+                ONE.divide(this.capeEmerging, C).multiply(eq.emWeight(), C))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
