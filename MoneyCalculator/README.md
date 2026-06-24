@@ -1,6 +1,6 @@
 ### SWR
 
-
+```latex
 $$
 \text{SWR}
 =
@@ -15,3 +15,4 @@ w_{ExUS}\frac{1}{\text{CAPE}_{ExUS}}
 w_{EM}\frac{1}{\text{CAPE}_{EM}}
 \right)
 $$
+```
