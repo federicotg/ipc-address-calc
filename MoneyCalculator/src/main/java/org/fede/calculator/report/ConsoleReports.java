@@ -298,9 +298,6 @@ public class ConsoleReports {
             case "expenses-change" ->
                 () -> me.expensesChange(args, "expenses-change");
 
-            case "goal" ->
-                () -> me.goal(args, "goal");
-
             case "bbpp" ->
                 () -> me.bbpp(args, "bbpp");
 
@@ -376,18 +373,6 @@ public class ConsoleReports {
 
     private static Stream<CmdParam> commandParams() {
         return Stream.of(
-                new CmdParam("goal", format("trials={0} retirement={1} age={2} inflation={3} cash={4} bbpp={5} pension={6} exp={7} m={8} srr={9}",
-                        SeriesReader.readEnvironment().getProperty("goal.trials"),
-                        SeriesReader.readEnvironment().getProperty("goal.retirement"),
-                        SeriesReader.readEnvironment().getProperty("goal.maxage"),
-                        SeriesReader.readPercent("expectedInflation"),
-                        SeriesReader.readEnvironment().getProperty("goal.cash"),
-                        SeriesReader.readEnvironment().getProperty("goal.bbpp"),
-                        SeriesReader.readEnvironment().getProperty("goal.pension"),
-                        SeriesReader.readEnvironment().getProperty("goal.expectedreturns"),
-                        SeriesReader.readInt("goal.months"),
-                        SeriesReader.readEnvironment().getProperty("goal.badreturns")
-                )),
                 new CmdParam("savings-change", "m=1"),
                 new CmdParam("savings-change-pct", "m=1"),
                 new CmdParam("i", "y=current m=current g=false"),
@@ -697,62 +682,6 @@ public class ConsoleReports {
         return Boolean.parseBoolean(this.paramsValue(args, paramName).getOrDefault(key, "false"));
     }
 
-    private void goal(String[] args, String paramName) {
-
-        this.appendLine(this.format.title("Goals"));
-
-        final var params = this.paramsValue(args, paramName);
-
-        final var trials = Integer.parseInt(params.getOrDefault("trials", SeriesReader.readEnvironment().getProperty("goal.trials")));
-
-        final var inflation = Optional.ofNullable(params.get("inflation"))
-                .map(BigDecimal::new)
-                .orElseGet(() -> SeriesReader.readBigDecimal("expectedInflation"));
-
-        final var retirementAge = Integer.parseInt(params.getOrDefault("retirement", SeriesReader.readEnvironment().getProperty("goal.retirement")));
-        final var age = Integer.parseInt(params.getOrDefault("age", SeriesReader.readEnvironment().getProperty("goal.maxage")));
-        final var months = Integer.parseInt(params.getOrDefault(MONTHS_PARAM, SeriesReader.readEnvironment().getProperty("goal.months")));
-        final var extraCash = Integer.parseInt(params.getOrDefault("cash", SeriesReader.readEnvironment().getProperty("goal.cash")));
-        final var expected = params.getOrDefault("exp", SeriesReader.readEnvironment().getProperty("goal.expectedreturns"));
-
-        final var pensionARS = SeriesReader.readEnvironment().getProperty("goal.pension");
-
-        int pensionAsIntValue = 0;
-        final var pension = params.get("pension");
-        if (pension == null) {
-            pensionAsIntValue
-                    = ForeignExchanges.getForeignExchange(Currency.ARS, Currency.USD)
-                            .exchange(
-                                    new MoneyAmount(
-                                            new BigDecimal(pensionARS), Currency.ARS),
-                                    Currency.USD, YearMonth.now()).amount().intValue();
-        } else {
-            pensionAsIntValue = Integer.parseInt(pension);
-        }
-
-        final var badReturnYears = Integer.parseInt(params.getOrDefault("srr", SeriesReader.readEnvironment().getProperty("goal.badreturns")));
-        final var bbppTax = Double.parseDouble(params.getOrDefault("bbpp", SeriesReader.readEnvironment().getProperty("goal.bbpp"))) / 100.0d;
-
-        final var goal = new Goal(this.console, this.format, this.series, this.bar, bbppTax);
-
-        final var todaySavings = this.series.currentSavingsUSD();
-
-        final var invested = this.series.realSavings("EQ").getAmount(usdInflation().getTo());
-
-        goal.goal(
-                trials,
-                months,
-                inflation,
-                retirementAge,
-                BigDecimal.valueOf(extraCash),
-                age,
-                pensionAsIntValue,
-                todaySavings,
-                invested,
-                expected,
-                badReturnYears);
-    }
-
     private void bbpp(String[] args, String paramName) {
         final var params = this.paramsValue(args, paramName);
 
@@ -928,7 +857,7 @@ public class ConsoleReports {
         new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
                 .create("Savings", List.of(s, nominal), "savings");
     }
-    
+
     private void savingsARSEvoChart() throws IOException {
 
         var s = this.series.realSavings(null).exchangeInto(ARS);

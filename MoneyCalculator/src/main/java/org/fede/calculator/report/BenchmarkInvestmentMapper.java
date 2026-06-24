@@ -17,13 +17,11 @@
 package org.fede.calculator.report;
 
 import java.math.BigDecimal;
-import static java.math.BigDecimal.ONE;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.ForeignExchanges;
@@ -94,15 +92,12 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
         var price = this.seenUSDPrices.get(dmy(t));
 
         if (price != null) {
-            //final var fxFactor = Optional.ofNullable(t.getIn().getFx()).orElse(ONE);
             var usdInvested = t.getInitialMoneyAmount(USD).amount();
             asset.setAmount(usdInvested.divide(price, C));
         } else if (this.benchmark == USD) {
-            //final var fxFactor = Optional.ofNullable(t.getIn().getFx()).orElse(ONE);
             var usdInvested = t.getInitialMoneyAmount(USD).amount();
             asset.setAmount(usdInvested);
         } else {
-            //var fx = ForeignExchanges.getMoneyAmountForeignExchange(t.getInitialCurrency(), this.benchmark);
             asset.setAmount(t.getInitialMoneyAmount(this.benchmark).amount());
         }
         var answer = new Investment();

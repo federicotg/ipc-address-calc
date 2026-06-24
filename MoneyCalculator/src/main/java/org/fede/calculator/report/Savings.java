@@ -619,9 +619,14 @@ public class Savings {
                 this.format.percent(simultaneousPercent
                         .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
 
-        this.console.appendLine("Pension: ", this.format.currency(
-                new Pension().value(),
-                20));
+        this.console.appendLine("Expected Pension: ", this.format.currency(
+                ForeignExchanges.getMoneyAmountForeignExchange(ARS, USD)
+                        .apply(
+                                new MoneyAmount(
+                                        SeriesReader.readBigDecimal("expected.pension"),
+                                        Currency.ARS),
+                                YearMonth.now()),
+                16));
 
         final long daysWorked = Duration.between(LocalDateTime.of(2015, Month.DECEMBER, 22, 0, 0, 0), LocalDateTime.now()).toDays();
         final long yearsWorked = daysWorked / 365 + ((daysWorked % 365 > 180) ? 1 : 0);
@@ -647,7 +652,7 @@ public class Savings {
 
         final var currentIlliquidAssets = new MoneyAmount(BigDecimal.valueOf(75000), Currency.USD);// 50% 43 y d80
 
-        final var futureIlliquidAssets = new MoneyAmount( BigDecimal.valueOf(137500), Currency.USD);// 50% 47 53 moreno colon
+        final var futureIlliquidAssets = new MoneyAmount(BigDecimal.valueOf(137500), Currency.USD);// 50% 47 53 moreno colon
 
         // 50% caja, severance y deuda casa
         final var futureCash = new MoneyAmount(BigDecimal.valueOf(69320), Currency.USD);
