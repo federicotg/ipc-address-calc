@@ -1,5 +1,9 @@
 ### SWR
 
+<img width="1449" height="162" alt="swr" src="https://github.com/user-attachments/assets/0a1b9e33-7031-4040-9fbe-83d39983c202" />
+
+
+
 <img width="347" height="38" alt="swr" src="https://github.com/user-attachments/assets/df65f932-2a11-4518-bf7e-0f6e2ac0f6fc" />
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" version="1.1" width="347.7" height="38.85" viewBox="0 0 347.7 38.85">
 <defs>
