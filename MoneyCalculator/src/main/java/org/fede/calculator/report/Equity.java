@@ -24,21 +24,54 @@ import org.fede.calculator.money.MoneyAmount;
  *
  * @author fede
  */
-public record Equity(MoneyAmount us, MoneyAmount exUs, MoneyAmount em) {
+public class Equity {
+
+    private final MoneyAmount us;
+    private final MoneyAmount exUs;
+    private final MoneyAmount em;
+
+    private final MoneyAmount total;
+    private final BigDecimal usWeight;
+    private final BigDecimal exUsWeight;
+    private final BigDecimal emWeight;
+
+    public Equity(MoneyAmount us, MoneyAmount exUs, MoneyAmount em) {
+        this.us = us;
+        this.exUs = exUs;
+        this.em = em;
+        final var totalValue = us.add(em).add(exUs);
+        this.total = totalValue;
+        this.usWeight = us.amount().divide(totalValue.amount(), MathConstants.C);
+        this.exUsWeight = exUs.amount().divide(totalValue.amount(), MathConstants.C);
+        this.emWeight = em.amount().divide(totalValue.amount(), MathConstants.C);
+
+    }
+
+    public MoneyAmount us() {
+        return us;
+    }
+
+    public MoneyAmount em() {
+        return em;
+    }
+
+    public MoneyAmount exUs() {
+        return exUs;
+    }
 
     public MoneyAmount total() {
-        return us.add(em).add(exUs);
+        return total;
     }
 
     public BigDecimal usWeight() {
-        return this.us.amount().divide(this.total().amount(), MathConstants.C);
+        return usWeight;
     }
 
     public BigDecimal exUsWeight() {
-        return this.exUs.amount().divide(this.total().amount(), MathConstants.C);
+        return exUsWeight;
     }
 
     public BigDecimal emWeight() {
-        return this.em.amount().divide(this.total().amount(), MathConstants.C);
+        return this.emWeight;
     }
 }

@@ -234,7 +234,7 @@ public class CAEYSafeWithdrawalRate {
                 equity.us().add(totalWealthLessCash.adjust(ONE, equity.usWeight())),
                 equity.exUs().add(totalWealthLessCash.adjust(ONE, equity.exUsWeight())),
                 equity.em().add(totalWealthLessCash.adjust(ONE, equity.emWeight())),
-                MoneyAmount.zero(USD), 
+                MoneyAmount.zero(USD),
                 minCash);
 
         final var lessCash = this.xySeries("Total Wealth (less cash)",
@@ -310,11 +310,9 @@ public class CAEYSafeWithdrawalRate {
     }
 
     private BigDecimal caey(Equity eq) {
-        return Stream.of(
-                ONE.divide(this.cape, C).multiply(eq.usWeight(), C),
-                ONE.divide(this.capeExUs, C).multiply(eq.exUsWeight(), C),
-                ONE.divide(this.capeEmerging, C).multiply(eq.emWeight(), C))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return ONE.divide(this.cape, C).multiply(eq.usWeight(), C)
+                .add(ONE.divide(this.capeExUs, C).multiply(eq.exUsWeight(), C))
+                .add(ONE.divide(this.capeEmerging, C).multiply(eq.emWeight(), C));
     }
 
 }
