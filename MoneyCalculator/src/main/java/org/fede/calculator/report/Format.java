@@ -23,8 +23,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.fede.calculator.money.MoneyAmount;
 
 /**
@@ -33,7 +33,7 @@ import org.fede.calculator.money.MoneyAmount;
  */
 public class Format {
 
-    private static final Map<String, MessageFormat> FORMATS = new ConcurrentHashMap<>();
+    private static final Map<String, MessageFormat> FORMATS = HashMap.newHashMap(16);
 
     private final BigDecimal ONE_THOUSAND = BigDecimal.ONE.movePointRight(3);
     private final BigDecimal ONE_MILLION = BigDecimal.ONE.movePointRight(6);
@@ -46,8 +46,8 @@ public class Format {
     private final NumberFormat NUMBER_FORMAT2 = NumberFormat.getNumberInstance();
     private final NumberFormat NUMBER_FORMAT4 = NumberFormat.getNumberInstance();
 
-    private final Map<Integer, String> rightAlignedFormat = new ConcurrentHashMap<>();
-    private final Map<Integer, String> leftAlignedFormat = new ConcurrentHashMap<>();
+    private final Map<Integer, String> rightAlignedFormat = HashMap.newHashMap(16);
+    private final Map<Integer, String> leftAlignedFormat = HashMap.newHashMap(16);
     
     public Format() {
         PERCENT_FORMAT.setMinimumFractionDigits(2);

@@ -38,6 +38,7 @@ import org.fede.calculator.money.series.SeriesReader;
  */
 public class Future {
 
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
     private static final String FUTURE_CASH_KEY = "futureCash";
 
     public static MoneyAmount expectedWealth() {
@@ -49,7 +50,7 @@ public class Future {
                 .mapToObj(index -> Stream.of(futureRealStateKey, futureCashKey).map(k -> new FutureCashFlows(k, index)))
                 .flatMap(Function.identity())
                 .map(fcf -> presentValue(fcf.name, fcf.index, fcf.name.equals(FUTURE_CASH_KEY) ? inflationRate : 0.0d))
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
+                .reduce(ZERO_USD, MoneyAmount::add)
                 .add(new Pension().discountedCashFlowValue());
     }
 
@@ -123,7 +124,7 @@ public class Future {
                 .add(sacPart, C);
 
         // 65% - 7% => 35% ganacias + 7% payroll taxes
-        final var taxSalaryFactor = BigDecimal.valueOf(65-7).movePointLeft(2);
+        final var taxSalaryFactor = BigDecimal.valueOf(65 - 7).movePointLeft(2);
         final var salary = SeriesReader.readBigDecimal("salary");
 
         return new Severance(
@@ -150,7 +151,7 @@ public class Future {
     public static MoneyAmount futureHealth() {
         return health("futureHealth");
     }
-    
+
     public static MoneyAmount contingencyHealth() {
         return health("currentHealth");
     }

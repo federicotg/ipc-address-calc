@@ -42,6 +42,8 @@ import org.fede.calculator.money.series.YearMonthUtil;
  */
 public class Evolution<T> {
 
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
+
     private final Console console;
     private final Bar bar;
 
@@ -140,7 +142,7 @@ public class Evolution<T> {
         this.console.appendLine("References:");
 
         this.console.appendLine(refs.stream().collect(Collectors.joining(" ")));
-        
+
     }
 
     private MoneyAmount accum(
@@ -151,7 +153,7 @@ public class Evolution<T> {
         return investments.stream()
                 .filter(i -> i.isCurrent(yearMonth.atDay(14)))
                 .map(i -> extractor.apply(i, yearMonth))
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
     }
 
     private String bar(YearMonth ym, List<AmountAndColor> elements, int scale) {

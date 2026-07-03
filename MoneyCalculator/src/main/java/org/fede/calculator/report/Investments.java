@@ -96,6 +96,8 @@ import org.jfree.data.xy.XYSeries;
  * @author fede
  */
 public class Investments {
+    
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
 
     private final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault());
 
@@ -912,7 +914,7 @@ public class Investments {
             return capitalGains.adjust(ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
         }
 
-        return MoneyAmount.zero(USD);
+        return ZERO_USD;
     }
 
     private MoneyAmount asUSD(MoneyAmount ma, LocalDate d) {
@@ -929,7 +931,7 @@ public class Investments {
                 .filter(i -> YearMonth.from(i.getIn().getDate()).compareTo(yearMonth) <= 0)
                 .filter(i -> i.isCurrent(yearMonth.atEndOfMonth()))
                 .map(extractor)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
     }
 
     public void portfolioEvo(String type, boolean pct) {
@@ -1113,7 +1115,7 @@ public class Investments {
                 = this.summarize(
                         grossSaleMapper,
                         InvestmentEvent::getMoneyAmount,
-                        MoneyAmount.zero(USD),
+                        ZERO_USD,
                         MoneyAmount::add);
 
         final Function<InvestmentEvent, MoneyAmount> feeMapper = e -> e.getTransferFeeMoneyAmount(USD)
@@ -1123,7 +1125,7 @@ public class Investments {
                 = this.summarize(
                         feeMapper,
                         feeMapper,
-                        MoneyAmount.zero(USD),
+                        ZERO_USD,
                         MoneyAmount::add);
 
         final var fees = feeSummary.sold.add(feeSummary.bought);
@@ -1517,7 +1519,7 @@ public class Investments {
                             .map(ma -> nominal
                             ? ma
                             : Inflation.usdInflation().adjust(ma, momentYm, end))
-                            .reduce(MoneyAmount.zero(USD), MoneyAmount::add));
+                            .reduce(ZERO_USD, MoneyAmount::add));
         }
 
         return valueSeries;
@@ -1552,7 +1554,7 @@ public class Investments {
         final var accSeries = new SortedMapMoneyAmountSeries(USD, (nominal ? "Nominal" : "Real") + " Contributions");
         final var end = YearMonth.now();
 
-        var acc = MoneyAmount.zero(USD);
+        var acc = ZERO_USD;
 
         Function<InvestmentEvent, MoneyAmount> realFunction = nominal
                 ? InvestmentEvent::getMoneyAmount
@@ -1561,13 +1563,13 @@ public class Investments {
         for (YearMonth ym = start; ym.compareTo(end) <= 0; ym = ym.plusMonths(1)) {
             final var contribution = Optional.ofNullable(contributions.get(ym))
                     .map(realFunction)
-                    .orElse(MoneyAmount.zero(USD));
+                    .orElse(ZERO_USD);
 
             final var withdrawal = Optional.ofNullable(withdrawals.get(ym))
                     .map(realFunction)
-                    .orElse(MoneyAmount.zero(USD));
+                    .orElse(ZERO_USD);
             acc = acc.add(contribution.subtract(withdrawal))
-                    .max(MoneyAmount.zero(USD));
+                    .max(ZERO_USD);
 
             accSeries.putAmount(ym, acc);
         }

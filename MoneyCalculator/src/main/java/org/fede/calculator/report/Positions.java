@@ -76,6 +76,8 @@ import static org.fede.util.Pair.of;
  */
 public class Positions {
 
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
+    
     private final String AVERAGE_KEY = "Avg.";
 
     private final Console console;
@@ -150,7 +152,7 @@ public class Positions {
         final var totalMarketValue = positions
                 .stream()
                 .map(Position::getMarketValue)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
 
         final var totalCostBasis = this.costBasis(positions);
 
@@ -190,14 +192,14 @@ public class Positions {
                 .filter(Investment::isETF)
                 .filter(investment -> investment.getOut() != null)
                 .map(i -> this.capitalGain(i, nominal))
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
 
         final var realizedInvestment = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
                 .filter(investment -> investment.getOut() != null)
                 .map(i -> this.investment(i, nominal))
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
 
         this.console.appendLine(MessageFormat.format(
                 " Realized {0} {1}",
@@ -212,7 +214,7 @@ public class Positions {
 
         var cost = invesmentExpenses
                 .moneyAmountStream()
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)
+                .reduce(ZERO_USD, MoneyAmount::add)
                 .adjust(ONE, ONE.negate());
 
         this.console.appendLine("");
@@ -229,7 +231,7 @@ public class Positions {
                                 Collectors.mapping(
                                         invesmentExpenses::getAmount,
                                         Collectors.reducing(
-                                                MoneyAmount.zero(USD),
+                                                ZERO_USD,
                                                 MoneyAmount::add))));
         grouped.keySet()
                 .stream()
@@ -334,7 +336,7 @@ public class Positions {
         return positions
                 .stream()
                 .map(Position::getUnrealizedPnL)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
     }
 
     private MoneyAmount costBasis(List<Position> positions) {
@@ -342,7 +344,7 @@ public class Positions {
         return positions
                 .stream()
                 .map(Position::getCostBasis)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
     }
 
     public void dca(boolean nominal, String type) {
@@ -563,7 +565,7 @@ public class Positions {
                         .apply(new MoneyAmount(ONE, symbol), now),
                 investments.stream()
                         .map(i -> i.getIn().getMoneyAmount())
-                        .reduce(MoneyAmount.zero(USD), MoneyAmount::add),
+                        .reduce(ZERO_USD, MoneyAmount::add),
                 ForeignExchanges.getMoneyAmountForeignExchange(symbol, USD)
                         .apply(investments.stream()
                                 .map(Investment::getMoneyAmount)
@@ -704,7 +706,7 @@ public class Positions {
 
         final var total = items.stream()
                 .map(PortfolioItem::getDollarAmount)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
 
         final var pct = "pct".equals(type);
 

@@ -25,7 +25,7 @@ import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -54,23 +54,23 @@ public class SeriesReader {
 
     private static final String ENV = APP_RESOURCES + "environment.properties";
 
-    private static final Map<String, BigDecimal> PROPERTY_CACHE = new ConcurrentHashMap<>(128);
-    private static final Map<String, Boolean> BOOL_PROPERTY_CACHE = new ConcurrentHashMap<>(32);
+    private static final Map<String, BigDecimal> PROPERTY_CACHE = HashMap.newHashMap(32);
+    private static final Map<String, Boolean> BOOL_PROPERTY_CACHE = HashMap.newHashMap(32);
 
-    private static final Map<String, Integer> INT_PROPERTY_CACHE = new ConcurrentHashMap<>(32);
-    
+    private static final Map<String, Integer> INT_PROPERTY_CACHE = HashMap.newHashMap(32);
+
     private static final ObjectMapper OM = JsonMapper.builder()
             .addModule(new BlackbirdModule())
             .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .build();
 
-    private static final Map<String, JSONIndexSeries> CACHE = new ConcurrentHashMap<>(128);
+    private static final Map<String, JSONIndexSeries> CACHE = HashMap.newHashMap(128);
 
     public static final TypeReference<List<JSONDataPoint>> INDEX_SERIES_TYPE_REFERENCE = new TypeReference<List<JSONDataPoint>>() {
     };
 
-    private static final Map<String, MoneyAmountSeries> MACACHE = new ConcurrentHashMap<>(128);
+    private static final Map<String, MoneyAmountSeries> MACACHE = HashMap.newHashMap(128);
 
     private static Properties ENVIRONMENT = null;
 

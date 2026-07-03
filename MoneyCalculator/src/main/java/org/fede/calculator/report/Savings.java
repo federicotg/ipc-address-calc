@@ -72,6 +72,8 @@ import org.jfree.data.xy.XYSeries;
  */
 public class Savings {
 
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
+
     private final Format format;
     private final Series series;
     private final Bar bar;
@@ -208,11 +210,11 @@ public class Savings {
     private List<AmountAndColor> series(YearMonth ym, MoneyAmountSeries spending, MoneyAmountSeries income, MoneyAmount savingMa) {
         return List.of(
                 new AmountAndColor(spending.getAmountOrElseZero(ym), Attribute.RED_BACK()),
-                new AmountAndColor(MoneyAmount.zero(Currency.USD).max(
+                new AmountAndColor(ZERO_USD.max(
                         income.getAmountOrElseZero(ym)
                                 .subtract(savingMa)
                                 .subtract(spending.getAmountOrElseZero(ym))), Attribute.YELLOW_BACK()),
-                new AmountAndColor(MoneyAmount.zero(Currency.USD).max(savingMa), Attribute.BLUE_BACK()));
+                new AmountAndColor(ZERO_USD.max(savingMa), Attribute.BLUE_BACK()));
     }
 
     private void income(int months) {
@@ -222,7 +224,7 @@ public class Savings {
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(new SlidingWindow(months)::average)
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(YearMonthUtil.min(limit, allRealUSDIncome.getTo())))
-                .orElse(MoneyAmount.zero(Currency.USD));
+                .orElse(ZERO_USD);
 
         this.console.appendLine(this.format.title(format("Average {0}-month income in {1}/{2} real USD",
                 months,
@@ -262,7 +264,7 @@ public class Savings {
                     .stream()
                     .flatMap(MoneyAmountSeries::moneyAmountStream)
                     .collect(reducing(MoneyAmount::add))
-                    .orElse(MoneyAmount.zero(Currency.USD))
+                    .orElse(ZERO_USD)
                     .amount();
             this.console.appendLine(format("Total income: {0}", this.format.currency(totalIncome)));
         };
@@ -305,7 +307,7 @@ public class Savings {
                 .add(this.series.incomeSource("other-eur")));
 
         if (pct) {
-            unlp.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
+            unlp.map((ym, ma) -> ZERO_USD.max(ma))
                     .forEach((ym, savingMa) -> this.console.appendLine(
                     this.bar.percentBar(
                             ym,
@@ -313,7 +315,7 @@ public class Savings {
         } else {
             var scale = this.incomeScale(months);
 
-            unlp.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
+            unlp.map((ym, ma) -> ZERO_USD.max(ma))
                     .forEach((ym, savingMa) -> this.console.appendLine(
                     this.bar.genericBar(
                             ym,
@@ -360,7 +362,7 @@ public class Savings {
 
         final var maSeries = List.of(unlp, lifia, despARS, despUSD, other);
 
-        unlp.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
+        unlp.map((ym, ma) -> ZERO_USD.max(ma))
                 .forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, maSeries, colorList), 6000)));
 
         new References(console, format).refs(
@@ -386,7 +388,7 @@ public class Savings {
 
         final var maSeries = List.of(unlp, lifia, despARS, despUSD, other);
 
-        unlp.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
+        unlp.map((ym, ma) -> ZERO_USD.max(ma))
                 .forEach((ym, savingMa) -> this.console.appendLine(this.bar.percentBar(ym, this.independenSeries(ym, maSeries, colorList))));
 
         new References(console, format).refs(
@@ -399,7 +401,7 @@ public class Savings {
     private List<AmountAndColor> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
 
         return IntStream.range(0, series.size())
-                .mapToObj(i -> new AmountAndColor(MoneyAmount.zero(Currency.USD).max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
+                .mapToObj(i -> new AmountAndColor(ZERO_USD.max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
                 .toList();
     }
 
@@ -456,7 +458,7 @@ public class Savings {
                 .collect(reducing(MoneyAmountSeries::add))
                 .map(new SlidingWindow(years * 12)::average)
                 .map(allRealUSDIncome -> allRealUSDIncome.getAmount(usdInflation().getTo()))
-                .orElse(MoneyAmount.zero(Currency.USD));
+                .orElse(ZERO_USD);
     }
 
     private MoneyAmount savingsAverage(int years) {
@@ -478,7 +480,7 @@ public class Savings {
                 .add(year == 2011
                         ? this.spendingAdjustment()
                                 .adjust(BigDecimal.valueOf(12), ONE)
-                        : MoneyAmount.zero(USD))))
+                        : ZERO_USD)))
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         this.console.appendLine(this.format.title("Income / Spending by Year"));
@@ -520,7 +522,7 @@ public class Savings {
                 .stream()
                 .map(s -> s.filter((ym, ma) -> ym.getYear() == year))
                 .flatMap(Function.identity())
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add)
+                .reduce(ZERO_USD, MoneyAmount::add)
                 .adjust(BigDecimal.valueOf(months), ONE);
     }
 
@@ -541,7 +543,7 @@ public class Savings {
 
         return this.series.realNetSavings()
                 .filter((ym, ma) -> ym.getYear() == year)
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add)
+                .reduce(ZERO_USD, MoneyAmount::add)
                 .adjust(BigDecimal.valueOf(months), ONE);
     }
 
@@ -564,7 +566,7 @@ public class Savings {
         // total income
         final var totalIncome = this.series.realIncome()
                 .moneyAmountStream()
-                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
 
         final var months = this.series.realIncome().getFrom().until(limit, ChronoUnit.MONTHS);
 
@@ -832,7 +834,7 @@ public class Savings {
                                         .subtract(year == 2011
                                                 ? new MoneyAmount(this.spendingAdjustment().amount()
                                                         .divide(BigDecimal.valueOf(12), C), USD)
-                                                : MoneyAmount.zero(USD))
+                                                : ZERO_USD)
                                         .adjust(this.yearRegularIncome(year).amount(), ONE)
                                         .amount(),
                                 year == 2011 ? "2011(*)" : String.valueOf(year)
@@ -860,7 +862,7 @@ public class Savings {
                                     .add(year == 2011
                                             ? new MoneyAmount(this.spendingAdjustment().amount()
                                                     .divide(months, C), USD)
-                                            : MoneyAmount.zero(USD))
+                                            : ZERO_USD)
                                     .adjust(this.yearRegularIncome(year).amount(), ONE).amount(),
                             year == 2011 ? "2011(*)" : String.valueOf(year)));
                 });

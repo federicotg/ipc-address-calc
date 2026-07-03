@@ -42,6 +42,8 @@ import org.jfree.data.xy.XYSeries;
  */
 public class CAEYSafeWithdrawalRate {
 
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
+
     private static final BigDecimal US_EQUITY_SHARE = new BigDecimal("0.75");
     private static final BigDecimal DEV_EX_US_SHARE = new BigDecimal("0.15");
     private static final BigDecimal EMERGING_SHARE = new BigDecimal("0.10");
@@ -109,7 +111,7 @@ public class CAEYSafeWithdrawalRate {
         final var caey = this.caey(usEquity, devExUs, emerging);
 
         final var totalPortfolioValue = Stream.of(usEquity, devExUs, emerging, cash, bonds)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
 
         return this.capeA
                 .add(this.capeB.multiply(caey, C))
@@ -135,7 +137,7 @@ public class CAEYSafeWithdrawalRate {
             MoneyAmount cash) {
 
         final var totalPortfolioValue = Stream.of(usEquity, devExUs, emerging, cash, bonds)
-                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+                .reduce(ZERO_USD, MoneyAmount::add);
 
         return totalPortfolioValue.amount()
                 .multiply(this.capeWR(usEquity, devExUs, emerging, bonds, cash), C)
@@ -149,7 +151,7 @@ public class CAEYSafeWithdrawalRate {
                 equity.adjust(ONE, US_EQUITY_SHARE),
                 equity.adjust(ONE, DEV_EX_US_SHARE),
                 equity.adjust(ONE, EMERGING_SHARE),
-                MoneyAmount.zero(USD),
+                ZERO_USD,
                 cash);
     }
 
@@ -234,7 +236,7 @@ public class CAEYSafeWithdrawalRate {
                 equity.us().add(totalWealthLessCash.adjust(ONE, equity.usWeight())),
                 equity.exUs().add(totalWealthLessCash.adjust(ONE, equity.exUsWeight())),
                 equity.em().add(totalWealthLessCash.adjust(ONE, equity.emWeight())),
-                MoneyAmount.zero(USD),
+                ZERO_USD,
                 minCash);
 
         final var lessCash = this.xySeries("Total Wealth (less cash)",
@@ -250,8 +252,8 @@ public class CAEYSafeWithdrawalRate {
                 usWithCash,
                 exUswithCash,
                 emWithCash,
-                MoneyAmount.zero(USD),
-                MoneyAmount.zero(USD));
+                ZERO_USD,
+                ZERO_USD);
 
         final var allEquity = this.xySeries("All Equity", currentCape, allEquityMonthly);
 

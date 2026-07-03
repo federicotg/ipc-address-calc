@@ -17,7 +17,7 @@
 package org.fede.calculator.money;
 
 import java.math.BigDecimal;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,23 +26,35 @@ import java.util.Map;
  */
 public record MoneyAmount(BigDecimal amount, Currency currency) {
 
-    private static final Map<Currency, MoneyAmount> ZERO_AMOUNTS;
-
-    static {
-        ZERO_AMOUNTS = new EnumMap<>(Currency.class);
-        for (Currency c : Currency.values()) {
-            ZERO_AMOUNTS.put(c, new MoneyAmount(BigDecimal.ZERO, c));
-        }
-    }
+    private static final Map<Currency, MoneyAmount> ZERO_AMOUNTS = HashMap.newHashMap(Currency.values().length);
 
     public static MoneyAmount zero(Currency currency) {
-        return ZERO_AMOUNTS.get(currency);
+        return ZERO_AMOUNTS.computeIfAbsent(currency, c -> new MoneyAmount(BigDecimal.ZERO, c));
     }
 
     public MoneyAmount adjust(BigDecimal divisor, BigDecimal factor) {
         if (this.isZero() || divisor.compareTo(factor) == 0) {
             return this;
         }
+
+        // optimize multiplication by 0
+        if (factor.signum() == 0) {
+            return MoneyAmount.zero(this.currency);
+        }
+
+        // optimize divide and multiply by 1
+        if (divisor.compareTo(BigDecimal.ONE) == 0) {
+            return new MoneyAmount(
+                    this.amount.multiply(factor, MathConstants.C),
+                    this.currency);
+        }
+
+        if (factor.compareTo(BigDecimal.ONE) == 0) {
+            return new MoneyAmount(
+                    this.amount.divide(divisor, MathConstants.C),
+                    this.currency);
+        }
+
         return new MoneyAmount(this.amount
                 .multiply(factor, MathConstants.C)
                 .divide(divisor, MathConstants.C), this.currency);
@@ -52,6 +64,11 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
         if (exchangeRate == null || this.isZero()) {
             return MoneyAmount.zero(newCurrency);
         }
+
+        if (exchangeRate.compareTo(BigDecimal.ONE) == 0) {
+            return new MoneyAmount(this.amount, newCurrency);
+        }
+
         return new MoneyAmount(this.amount.multiply(exchangeRate, MathConstants.C), newCurrency);
     }
 
@@ -103,5 +120,22 @@ public record MoneyAmount(BigDecimal amount, Currency currency) {
             return other;
         }
         return this;
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * currency.hashCode()
+                + amount.stripTrailingZeros().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (this == obj) {
+            return true;
+        }
+        return obj instanceof MoneyAmount other
+                && currency == other.currency
+                && amount.compareTo(other.amount) == 0;
     }
 }

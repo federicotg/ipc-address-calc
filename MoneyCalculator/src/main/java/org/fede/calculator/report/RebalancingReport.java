@@ -54,7 +54,6 @@ import org.fede.calculator.money.ForeignExchange;
 import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
-import static org.fede.calculator.money.MoneyAmount.zero;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
@@ -70,6 +69,8 @@ import tools.jackson.databind.json.JsonMapper;
  * @author fede
  */
 public class RebalancingReport {
+
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
 
     private final Format format;
     private final Series series;
@@ -158,7 +159,7 @@ public class RebalancingReport {
 
         var lots = this.lots(LocalDate.now());
 
-        var sold = zero(USD);
+        var sold = ZERO_USD;
 
         final List<Investment> soldInvestments = new ArrayList<>();
 
@@ -205,7 +206,7 @@ public class RebalancingReport {
         this.console.appendLine("");
         this.console.appendLine("Sold: ", this.format.currency(sold, 16));
 
-        var cgt = zero(USD);
+        var cgt = ZERO_USD;
         final var cgtr = SeriesReader.readPercent("capitalGainsTaxRate");
 
         for (var i : soldInvestments) {
@@ -552,7 +553,7 @@ public class RebalancingReport {
                     curr,
                     sum(e.getValue()
                             .stream()
-                            .map(c -> newValues.getOrDefault(c, zero(USD)))));
+                            .map(c -> newValues.getOrDefault(c, ZERO_USD))));
 
         }
 
@@ -644,7 +645,7 @@ public class RebalancingReport {
     }
 
     private static MoneyAmount sum(Stream<MoneyAmount> s) {
-        return s.reduce(zero(USD), MoneyAmount::add);
+        return s.reduce(ZERO_USD, MoneyAmount::add);
     }
 
     private record Sale(

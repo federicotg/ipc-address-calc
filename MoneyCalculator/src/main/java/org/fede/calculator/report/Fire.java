@@ -65,6 +65,8 @@ import org.jfree.data.xy.XYSeries;
  */
 public class Fire {
 
+    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
+
     private static final DateTimeFormatter DF = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
             .withLocale(Locale.ENGLISH);
 
@@ -313,8 +315,8 @@ public class Fire {
                 equity.us().add(allCash.adjust(ONE, equity.usWeight())),
                 equity.exUs().add(allCash.adjust(ONE, equity.exUsWeight())),
                 equity.em().add(allCash.adjust(ONE, equity.emWeight())),
-                MoneyAmount.zero(USD),
-                MoneyAmount.zero(USD));
+                ZERO_USD,
+                ZERO_USD);
 
     }
 
@@ -357,7 +359,7 @@ public class Fire {
                 equity.us().add(everything.adjust(ONE, equity.usWeight())),
                 equity.exUs().add(everything.adjust(ONE, equity.exUsWeight())),
                 equity.em().add(everything.adjust(ONE, equity.emWeight())),
-                MoneyAmount.zero(USD),
+                ZERO_USD,
                 minCash);
     }
 
@@ -441,12 +443,12 @@ public class Fire {
         return Stream.concat(
                 LongStream.range(13L, 20L)
                         .mapToObj(i -> BigDecimal.valueOf(i).multiply(step, C)),
-                Stream.concat(Stream.of(
-                        this.withdrawalRate(),
-                        this.futureWealthWithdrawalRate(swr, futureWealth),
-                        this.allEquityWithdrawalRate(swr),
-                        this.futureWealthWithLessCashWithdrawalRate(swr, futureWealth)
-                ),
+                Stream.concat(
+                        Stream.of(
+                                this.withdrawalRate(),
+                                this.futureWealthWithdrawalRate(swr, futureWealth),
+                                this.allEquityWithdrawalRate(swr),
+                                this.futureWealthWithLessCashWithdrawalRate(swr, futureWealth)),
                         Stream.of(
                                 BigDecimal.valueOf(366L),
                                 BigDecimal.valueOf(338L),
@@ -509,7 +511,7 @@ public class Fire {
                 adjustforCapitalGains(everythingWithoutRent, capitalGainsTaxRate, costBasisPct),
                 //current
                 adjustforCapitalGains(Stream.of(essential, discretionary, irregular, other)
-                        .reduce(MoneyAmount.zero(USD), MoneyAmount::add),
+                        .reduce(ZERO_USD, MoneyAmount::add),
                         capitalGainsTaxRate, costBasisPct),
                 //currentWithHealth
                 essential

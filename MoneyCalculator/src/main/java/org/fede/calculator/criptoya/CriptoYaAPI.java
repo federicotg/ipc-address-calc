@@ -142,15 +142,6 @@ public class CriptoYaAPI {
 
     private CriptoYaFx fx(String exchange, String coin, String fiat, BigDecimal amount) throws URISyntaxException, IOException, InterruptedException {
 
-//        final var answer = this.fxCache.computeIfAbsent(exchange, t -> new ConcurrentHashMap<>())
-//                .computeIfAbsent(coin, t -> new ConcurrentHashMap<>())
-//                .get(fiat);
-//
-//        if (answer != null) {
-//            System.out.print("+");
-//            return answer;
-//        }
-//        System.out.print("-");
         // "/api/letsbit/usdt/ars/1000"
         final var req = this.requestBuilderFor(MessageFormat.format("{0}/api/{1}/{2}/{3}/{4}", API, exchange, coin.toLowerCase(), fiat.toLowerCase(), amount.setScale(0, RoundingMode.HALF_UP).toString()))
                 .GET()
@@ -163,9 +154,6 @@ public class CriptoYaAPI {
 
             final var newAnswer = this.jsonMapper.readValue(response.body(), CriptoYaFx.class);
 
-//            this.fxCache.computeIfAbsent(exchange, t -> new ConcurrentHashMap<>())
-//                    .computeIfAbsent(coin, t -> new ConcurrentHashMap<>())
-//                    .put(fiat, newAnswer);
             return newAnswer;
 
         } else {

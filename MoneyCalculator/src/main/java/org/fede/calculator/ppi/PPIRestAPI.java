@@ -72,7 +72,6 @@ public class PPIRestAPI {
     private final ObjectMapper jsonMapper;
     private final Supplier<HttpClient> clientSupplier;
     private PPIToken token;
-    //private final Map<String, Map<InstrumentType, Map<SettlementType, PPIMarketData>>> marketDataCache = new ConcurrentHashMap<>();
 
     public PPIRestAPI(Supplier<HttpClient> clientSupplier) throws FileNotFoundException, IOException, URISyntaxException, InterruptedException {
 
@@ -192,15 +191,6 @@ public class PPIRestAPI {
 
     private PPIMarketData marketData(String ticker, InstrumentType type, SettlementType settlement) throws URISyntaxException, IOException, InterruptedException {
 
-//        final var answer = this.marketDataCache.computeIfAbsent(ticker, t -> new ConcurrentHashMap<>())
-//                .computeIfAbsent(type, t -> new ConcurrentHashMap<>())
-//                .get(settlement);
-//
-//        if (answer != null) {
-//            System.out.print("+");
-//            return answer;
-//        }
-        //System.out.print("-");
         final var req = this.requestBuilderFor(MessageFormat.format(CURRENT_MARKET_DATA, PPI_API, VERSION, ticker, type.toString(), settlement.toString()))
                 .GET()
                 .build();
@@ -212,9 +202,6 @@ public class PPIRestAPI {
 
             final var newAnswer = this.jsonMapper.readValue(response.body(), PPIMarketData.class);
 
-//            this.marketDataCache.computeIfAbsent(ticker, t -> new ConcurrentHashMap<>())
-//                    .computeIfAbsent(type, t -> new ConcurrentHashMap<>())
-//                    .put(settlement, newAnswer);
             return newAnswer;
 
         } else {

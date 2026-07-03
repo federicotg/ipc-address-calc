@@ -21,7 +21,6 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import org.fede.calculator.money.series.IndexSeriesSupport;
 import org.fede.calculator.money.series.Investment;
@@ -39,7 +38,7 @@ import static org.fede.calculator.money.Currency.*;
  */
 public class ForeignExchanges {
 
-    private static final Map<FromTo, BiFunction<MoneyAmount, YearMonth, MoneyAmount>> FX_FUNCTION_CACHE = new ConcurrentHashMap<>();
+    private static final Map<FromTo, BiFunction<MoneyAmount, YearMonth, MoneyAmount>> FX_FUNCTION_CACHE = HashMap.newHashMap(32);
 
     private static final Map<Currency, ForeignExchange> IDENTITY_FX = new EnumMap<>(Currency.class);
 

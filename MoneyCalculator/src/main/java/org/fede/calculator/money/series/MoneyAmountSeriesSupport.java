@@ -85,24 +85,11 @@ public abstract class MoneyAmountSeriesSupport extends SeriesSupport implements 
             return this.exchangeInto(Currency.USD)
                     .add(other.exchangeInto(Currency.USD));
         }
-
-        if (this.getFrom().compareTo(other.getFrom()) > 0) {
-            return other.add(this);
-        }
-
-        final YearMonth minStart = YearMonthUtil.min(this.getFrom(), other.getFrom());
-        final YearMonth maxEnd = YearMonthUtil.max(this.getTo(), other.getTo());
-
         final MoneyAmountSeries answer = this.createNew();
 
-        for (var ym = minStart; ym.compareTo(maxEnd) <= 0; ym = ym.plusMonths(1l)) {
+        this.forEach(answer::putAmount);
+        other.forEach((ym, ma) -> answer.putAmount(ym, answer.getAmountOrElseZero(ym).add(ma)));
 
-            answer.putAmount(
-                    ym,
-                    this.getAmountOrElseZero(ym)
-                            .add(other.getAmountOrElseZero(ym)));
-
-        }
         return answer;
     }
 
