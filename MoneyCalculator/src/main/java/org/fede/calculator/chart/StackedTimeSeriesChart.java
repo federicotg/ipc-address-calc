@@ -67,11 +67,11 @@ public class StackedTimeSeriesChart {
         this.style = style;
     }
 
-    public void create(
+     public void create(
             String chartName,
             List<MoneyAmountSeries> series,
             String filename) {
-
+    
         var c = series.stream()
                 .findFirst()
                 .map(MoneyAmountSeries::getCurrency)

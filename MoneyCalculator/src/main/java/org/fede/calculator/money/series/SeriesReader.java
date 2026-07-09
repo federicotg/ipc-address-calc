@@ -38,7 +38,6 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.module.blackbird.BlackbirdModule;
 
 /**
  *
@@ -60,7 +59,6 @@ public class SeriesReader {
     private static final Map<String, Integer> INT_PROPERTY_CACHE = HashMap.newHashMap(32);
 
     private static final ObjectMapper OM = JsonMapper.builder()
-            .addModule(new BlackbirdModule())
             .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .build();
@@ -114,7 +112,7 @@ public class SeriesReader {
     }
 
     public static BigDecimal readPercent(String key) {
-        return new BigDecimal(readEnvironment().getProperty(key)).movePointLeft(2);
+        return readBigDecimal(key).movePointLeft(2);
     }
 
     public static LocalDate readDate(String key) {
@@ -129,7 +127,7 @@ public class SeriesReader {
         try (InputStream in = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name), 16 * 1024);) {
             return OM.readValue(in, typeReference);
         } catch (IOException ioEx) {
-            LOGGER.error("Unexpected error.", ioEx);
+            LOGGER.error("Unexpected error: " + name, ioEx);
             throw new IllegalArgumentException("Could not read series from resource " + name, ioEx);
         }
     }
@@ -173,7 +171,7 @@ public class SeriesReader {
             return maSeries;
 
         } catch (IOException ioEx) {
-            LOGGER.error("Unexpected error.", ioEx);
+            LOGGER.error("Unexpected error: " + name, ioEx);
             throw new IllegalArgumentException(MessageFormat.format("Could not read series named {0}", name), ioEx);
         }
 

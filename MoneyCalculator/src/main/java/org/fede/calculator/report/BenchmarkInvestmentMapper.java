@@ -42,8 +42,10 @@ import tools.jackson.core.type.TypeReference;
  */
 public class BenchmarkInvestmentMapper implements Function<Investment, Investment> {
 
-    private final TypeReference<Map<Currency, List<SeenPrice>>> tr = new TypeReference<Map<Currency, List<SeenPrice>>>() {
-    };
+    private static final Map<Currency, List<SeenPrice>> SP = SeriesReader.read(
+            "index/seen-prices.json",
+            new TypeReference<Map<Currency, List<SeenPrice>>>() {
+    });
 
     private final DateTimeFormatter dmy = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
@@ -74,7 +76,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
                 .collect(toMap(this::dmy, BenchmarkInvestmentMapper::price, (x, y) -> x));
 
         this.seenUSDPrices.putAll(
-                SeriesReader.read("index/seen-prices.json", tr).getOrDefault(benchmark, Collections.emptyList())
+                SP.getOrDefault(benchmark, Collections.emptyList())
                         .stream()
                         .collect(toMap(SeenPrice::dmy, SeenPrice::price)));
     }

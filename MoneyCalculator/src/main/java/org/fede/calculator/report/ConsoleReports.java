@@ -1298,12 +1298,16 @@ public class ConsoleReports {
     }
 
     private void ripte() {
+        final var ripteSeries = this.series.ripteInRealUSD();
+
         new TimeSeriesChart(new ChartStyle(ValueFormat.NUMBER, Scale.LINEAR))
                 .createFromTimeSeries(
                         "RIPTE Real USD avg. 12 months",
                         List.of(
                                 ChartSeriesMapper.asTimeSeries(
-                                        new SlidingWindow(12).average(this.series.ripteInRealUSD()))
+                                        new SlidingWindow(12).average(ripteSeries),
+                                        ripteSeries.getTo()
+                                )
                         ),
                         USD,
                         "ripte");

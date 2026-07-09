@@ -20,9 +20,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.YearMonth;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
 
 /**
  *
@@ -30,21 +27,17 @@ import java.util.function.Function;
  */
 public record JSONDataPoint(YearMonth yearMonth, BigDecimal value) implements Comparable<JSONDataPoint> {
 
-    private static final Map<YearMonth, YearMonth> POOL = HashMap.newHashMap(2000);
-
     @JsonCreator
     public JSONDataPoint(
             @JsonProperty("year") int year,
             @JsonProperty("month") int month,
             @JsonProperty("value") BigDecimal value) {
-        this(POOL.computeIfAbsent(YearMonth.of(year, month), Function.identity()), value);
+        this(YearMonth.of(year, month), value);
     }
 
     @Override
     public int compareTo(JSONDataPoint o) {
-
         return this.yearMonth.compareTo(o.yearMonth);
-
     }
 
 }

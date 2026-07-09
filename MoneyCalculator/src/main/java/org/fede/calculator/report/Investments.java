@@ -1473,12 +1473,12 @@ public class Investments {
         new StackedTimeSeriesChart()
                 .create("Real Investments by Currency (Grouped)",
                         ss,
-                        "investments-by-class-s.png");
+                        "investments-by-class-s");
 
         new TimeSeriesChart()
                 .create("Real Investments by Currency (Grouped)",
                         ss,
-                        "investments-by-class.png");
+                        "investments-by-class");
 
     }
 

@@ -123,7 +123,7 @@ public class TimeSeriesChart {
         xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
         xyPlot.setRangeGridlinePaint(Color.BLACK);
         xyPlot.setDomainGridlinePaint(Color.BLACK);
-
+                
         final var renderer = xyPlot.getRenderer();
 
         for (int i = 0; i < COLORS.length; i++) {

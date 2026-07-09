@@ -31,6 +31,7 @@ public class JSONIndexSeries extends IndexSeriesSupport {
     private final Map<YearMonth, BigDecimal> data;
     private final YearMonth from;
     private final YearMonth to;
+    private final BigDecimal lastValue;
 
     public JSONIndexSeries(SequencedCollection<JSONDataPoint> datapoints) {
         JSONDataPoint first = datapoints.getFirst();
@@ -43,11 +44,12 @@ public class JSONIndexSeries extends IndexSeriesSupport {
         for (var d : datapoints) {
             this.data.put(d.yearMonth(), d.value());
         }
+        this.lastValue = this.data.get(this.to);
     }
 
     @Override
     public BigDecimal getIndex(YearMonth ym) {
-        return this.data.get(YearMonthUtil.min(ym, this.to));
+        return this.data.getOrDefault(ym, this.lastValue);
 
     }
 

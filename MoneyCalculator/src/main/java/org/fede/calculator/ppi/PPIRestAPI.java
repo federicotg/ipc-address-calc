@@ -40,7 +40,6 @@ import org.fede.calculator.money.series.SeriesReader;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.module.blackbird.BlackbirdModule;
 
 /**
  *
@@ -81,8 +80,6 @@ public class PPIRestAPI {
         }
 
         this.jsonMapper = JsonMapper.builder()
-                //.addModule(new JavaTimeModule())
-                .addModule(new BlackbirdModule())
                 .build();
 
         this.clientSupplier = clientSupplier;

@@ -59,7 +59,7 @@ public class CAEYSafeWithdrawalRate {
     private static final BigDecimal CAPE_STEP = new BigDecimal("5");
     private static final BigDecimal MONTHS_IN_A_YEAR = new BigDecimal("12");
     private static final NumberFormat PCT_FORMAT2 = NumberFormat.getPercentInstance();
-    private static final NumberFormat PCT_FORMAT = NumberFormat.getPercentInstance();
+    //private static final NumberFormat PCT_FORMAT = NumberFormat.getPercentInstance();
 
     static {
         PCT_FORMAT2.setMinimumFractionDigits(2);
@@ -119,7 +119,7 @@ public class CAEYSafeWithdrawalRate {
                 .add(this.cashRealYield.multiply(cash.adjust(totalPortfolioValue.amount(), ONE).amount(), C));
     }
 
-    public BigDecimal monthlySafeWithdrawal(MoneyAmount portfolio, BigDecimal equityPct) {
+    private SafeWithdrawal monthlySafeWithdrawal(MoneyAmount portfolio, BigDecimal equityPct) {
         final var allocation = this.portfolioFor(portfolio, equityPct);
         return this.monthlySafeWithdrawal(
                 allocation.usEquity(),
@@ -129,7 +129,7 @@ public class CAEYSafeWithdrawalRate {
                 allocation.cash());
     }
 
-    public BigDecimal monthlySafeWithdrawal(
+    private SafeWithdrawal monthlySafeWithdrawal(
             MoneyAmount usEquity,
             MoneyAmount devExUs,
             MoneyAmount emerging,
@@ -139,9 +139,13 @@ public class CAEYSafeWithdrawalRate {
         final var totalPortfolioValue = Stream.of(usEquity, devExUs, emerging, cash, bonds)
                 .reduce(ZERO_USD, MoneyAmount::add);
 
-        return totalPortfolioValue.amount()
-                .multiply(this.capeWR(usEquity, devExUs, emerging, bonds, cash), C)
+        final var rate = this.capeWR(usEquity, devExUs, emerging, bonds, cash);
+        final var amount = totalPortfolioValue.amount()
+                .multiply(rate, C)
                 .divide(MONTHS_IN_A_YEAR, C);
+
+        return new SafeWithdrawal(rate, amount);
+
     }
 
     private PortfolioAllocation portfolioFor(MoneyAmount portfolio, BigDecimal equityPct) {
@@ -167,7 +171,7 @@ public class CAEYSafeWithdrawalRate {
                     return new LabeledXYDataItem(
                             amount,
                             equityPct,
-                            currencyFormat.format(monthly));
+                            currencyFormat.format(monthly.amount()));
                 }))
                 .forEach(series::add);
 
@@ -182,21 +186,26 @@ public class CAEYSafeWithdrawalRate {
                         filename);
     }
 
+    private String swrChartLabel(SafeWithdrawal monthly) {
+        return MessageFormat.format("{0} {1}",
+                ValueFormat.CURRENCY.format().format(monthly.amount()),
+                ValueFormat.PERCENTAGE.format().format(monthly.rate()));
+    }
+
     public void monthlySafeWithdrawalByCapeChart(String filename) {
-        var now = YearMonth.now();
-        var series = new Series();
+        final var now = YearMonth.now();
+        final var series = new Series();
 
-        var currentlyEstimated = this.currentlyEstimatedSavings();
+        final var currentlyEstimated = this.currentlyEstimatedSavings();
 
-        var equity = last.last();
-        var cash = series.realSavings("LIQ").getAmount(now)
+        final var equity = last.last();
+        final var cash = series.realSavings("LIQ").getAmount(now)
                 .add(currentlyEstimated);
 
-        var bonds = series.realSavings("BO").getAmountOrElseZero(now);
+        final var bonds = series.realSavings("BO").getAmountOrElseZero(now);
 
         final var expectedInflation = SeriesReader.readPercent("expectedInflation");
         final var bondsNominalYield = SeriesReader.readPercent("bond10");
-        final var currencyFormat = ValueFormat.CURRENCY.format();
 
         final var byCape = new XYSeries("Monthly Safe Withdrawal by CAPE");
         Stream.iterate(CAPE_MIN, capeVal -> capeVal.compareTo(CAPE_MAX) <= 0, capeVal -> capeVal.add(CAPE_STEP))
@@ -205,8 +214,8 @@ public class CAEYSafeWithdrawalRate {
                     var monthly = swr.monthlySafeWithdrawal(equity.us(), equity.exUs(), equity.em(), bonds, cash);
                     byCape.add(new LabeledXYDataItem(
                             capeVal,
-                            monthly,
-                            currencyFormat.format(monthly)));
+                            monthly.amount(),
+                            this.swrChartLabel(monthly)));
                 });
 
         // current 
@@ -268,20 +277,21 @@ public class CAEYSafeWithdrawalRate {
                         filename);
     }
 
-    private XYSeries xySeries(String seriesName, BigDecimal xValue, BigDecimal yValue) {
-        var series = new XYSeries(seriesName);
+    private XYSeries xySeries(String seriesName, BigDecimal xValue, SafeWithdrawal yValue) {
+        final var series = new XYSeries(seriesName);
         series.add(new LabeledXYDataItem(
                 xValue,
-                yValue,
-                ValueFormat.CURRENCY.format().format(yValue)));
+                yValue.amount(),
+                this.swrChartLabel(yValue)
+        ));
         return series;
     }
 
     private String reportTitle() {
         return MessageFormat.format(
-                "Safe Withdrawal ({0} + {1} x CAEY) CAPE {2}",
+                "Safe Withdrawal ({0} + {1} / {2})",
                 PCT_FORMAT2.format(this.capeA),
-                PCT_FORMAT.format(this.capeB),
+                NumberFormat.getNumberInstance().format(this.capeB),
                 ONE.divide(this.caey(this.last.last()), C));
     }
 
@@ -315,6 +325,10 @@ public class CAEYSafeWithdrawalRate {
         return ONE.divide(this.cape, C).multiply(eq.usWeight(), C)
                 .add(ONE.divide(this.capeExUs, C).multiply(eq.exUsWeight(), C))
                 .add(ONE.divide(this.capeEmerging, C).multiply(eq.emWeight(), C));
+    }
+
+    private record SafeWithdrawal(BigDecimal rate, BigDecimal amount) {
+
     }
 
 }

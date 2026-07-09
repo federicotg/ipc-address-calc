@@ -212,7 +212,7 @@ public class Fire {
         final var initialMonth = unlp.yearMonthStream()
                 .filter(ym -> !unlp.getAmountOrElseZero(ym).isZero())
                 .findFirst()
-                .get();
+                .get().plusMonths(-1);
         final var worked = initialMonth.until(YearMonth.now(), ChronoUnit.MONTHS);
 
         final BigDecimal[] result = BigDecimal.valueOf((30L * 12L) - worked)

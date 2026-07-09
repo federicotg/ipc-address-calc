@@ -86,16 +86,10 @@
             <artifactId>jackson-databind</artifactId>
             <version>3.2.0</version>
         </dependency>
-        
-        <dependency>
-            <groupId>tools.jackson.module</groupId>
-            <artifactId>jackson-module-blackbird</artifactId>
-            <version>3.2.0</version>
-        </dependency>
         <dependency>
             <groupId>org.jline</groupId>
             <artifactId>jline</artifactId>
-            <version>4.2.1</version>
+            <version>4.3.1</version>
         </dependency>
         <dependency>
             <groupId>com.diogonunes</groupId>
@@ -106,7 +100,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.5.36</version>
+            <version>1.5.37</version>
         </dependency>
         
         <dependency>

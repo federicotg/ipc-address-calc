@@ -140,16 +140,6 @@ public class InvestmentEvent {
     }
 
     @JsonIgnore
-    private MoneyAmount getRealUSDTransferFeeMoneyAmount() {
-        return this.real(this.getTransferFeeMoneyAmount(USD));
-    }
-
-    @JsonIgnore
-    private MoneyAmount getRealUSDFeeMoneyAmount() {
-        return this.real(this.getFeeMoneyAmount(USD));
-    }
-
-    @JsonIgnore
     public MoneyAmount getMoneyAmount(Currency currency) {
 
         final var amountValue = this.fx == null

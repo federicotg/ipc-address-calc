@@ -42,11 +42,14 @@ public class ChartSeriesMapper {
     }
 
     public static TimeSeries asTimeSeries(MoneyAmountSeries series) {
-        final var nextMonth = YearMonth.now().plusMonths(1);
+        return asTimeSeries(series, YearMonth.now().plusMonths(1));
+    }
+
+    public static TimeSeries asTimeSeries(MoneyAmountSeries series, YearMonth seriesEnd) {
 
         final TimeSeries ts = new TimeSeries(series.getName());
         series.forEach((ym, ma) -> {
-            if (ym.isBefore(nextMonth)) {
+            if (ym.isBefore(seriesEnd)) {
                 ts.add(day(ym.atEndOfMonth()), ma.amount());
             }
         });
