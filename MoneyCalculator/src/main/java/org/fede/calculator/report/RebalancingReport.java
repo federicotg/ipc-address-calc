@@ -275,10 +275,11 @@ public class RebalancingReport {
     }
 
     private Map<Currency, MoneyAmount> virtualPortfolioValues() {
+        final var now = LocalDate.now();
         final Map<Currency, BigDecimal> quantities = this.series.getInvestments()
                 .stream()
                 .filter(Investment::isETF)
-                .filter(i -> i.isCurrent(LocalDate.now()))
+                .filter(i -> i.isCurrent(now))
                 .collect(Collectors.groupingBy(
                         Investment::getCurrency,
                         currencyMapSupplier(),
@@ -287,7 +288,6 @@ public class RebalancingReport {
                                 Collectors.reducing(ZERO, BigDecimal::add))));
 
         final Map<Currency, MoneyAmount> values = new EnumMap<>(Currency.class);
-        final var now = YearMonth.now();
         for (var e : quantities.entrySet()) {
             final Currency curr = e.getKey();
             values.put(

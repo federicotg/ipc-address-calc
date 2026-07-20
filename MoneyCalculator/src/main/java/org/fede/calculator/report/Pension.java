@@ -31,7 +31,7 @@ import org.fede.calculator.money.series.SeriesReader;
  */
 public class Pension {
 
-    public MoneyAmount discountedCashFlowValue() {
+    private MoneyAmount discountedCashFlowValue() {
 
         final var now = YearMonth.now();
 

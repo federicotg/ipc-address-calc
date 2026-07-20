@@ -49,6 +49,7 @@ import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.EnumMap;
 import java.util.Set;
+import java.util.function.Function;
 import static org.fede.calculator.money.Currency.EIMI;
 import static org.fede.calculator.money.Currency.RTWO;
 import static org.fede.calculator.money.Currency.XRSU;
@@ -67,7 +68,6 @@ import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.Accumulator;
 import org.fede.calculator.money.CPIInflation;
 import static org.fede.calculator.money.Currency.EMIM;
-import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.SingleHttpClientSupplier;
 import org.fede.calculator.money.SlidingWindow;
 import org.fede.calculator.money.series.JSONDataPoint;
@@ -84,16 +84,12 @@ import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.TerminalBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Federico Tello Gentile <federicotg@gmail.com>
  */
 public class ConsoleReports {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleReports.class);
 
     private static final String MONTHS_PARAM = "m";
 
@@ -508,7 +504,8 @@ public class ConsoleReports {
             }
 
         } catch (Exception ex) {
-            LOGGER.error("Unexpected error.", ex);
+            System.err.println("Unexpected error. " + ex.getMessage());
+            ex.printStackTrace(System.err);
         }
     }
 
@@ -540,7 +537,8 @@ public class ConsoleReports {
             this.console.appendLine(MessageFormat.format("Considering blue fee of {0}", this.format.percent(feePct)));
 
         } catch (Exception ex) {
-            LOGGER.error("Unexpected error.", ex);
+            System.err.println("Unexpected error. " + ex.getMessage());
+            ex.printStackTrace(System.err);
         }
     }
 
@@ -954,20 +952,31 @@ public class ConsoleReports {
             fire.fireChartFuture();
             fire.fireChartBudgets(12);
             fire.fireChartBudgets(24);
-            var swr = new CAEYSafeWithdrawalRate();
-            swr.monthlySafeWithdrawalChart("caey-swr");
-            swr.monthlySafeWithdrawalByCapeChart("caey-swr-by-cape");
+
+            final var swr = new CAEYSafeWithdrawalRate();
+
+            Function<BigDecimal, String> shortFormat = this.format::currencyShort;
+            
+            swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-050", new BigDecimal("0.5"), shortFormat);
+            swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-060", new BigDecimal("0.6"), shortFormat);
+            swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-065", new BigDecimal("0.65"), shortFormat);
+            swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-070", new BigDecimal("0.7"), shortFormat);
+            swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-075", new BigDecimal("0.75"), shortFormat);
+
             savings.savingRate(12);
             savings.savingRate(24);
             savings.savingRate(6);
             this.averageSpendingPortfolioPercent();
-            this.inflation();
+            //this.inflation();
             inv.benchmarks();
             this.averageMonthsSavedInCash(12);
-            this.ripte();
+            //this.ripte();
+            pos.investedChart(false, "all");
 
         } catch (IOException ex) {
-            LOGGER.error("Error generating charts.", ex);
+
+            System.err.println("Error generating charts. " + ex.getMessage());
+            ex.printStackTrace(System.err);
         }
     }
 

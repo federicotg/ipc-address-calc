@@ -38,16 +38,12 @@ import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StackedXYAreaRenderer2;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class StackedTimeSeriesChart {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(StackedTimeSeriesChart.class);
 
     private final Font font;
     private final Stroke stroke;
@@ -67,11 +63,11 @@ public class StackedTimeSeriesChart {
         this.style = style;
     }
 
-     public void create(
+    public void create(
             String chartName,
             List<MoneyAmountSeries> series,
             String filename) {
-    
+
         var c = series.stream()
                 .findFirst()
                 .map(MoneyAmountSeries::getCurrency)
@@ -132,7 +128,8 @@ public class StackedTimeSeriesChart {
                             SeriesReader.readInt("chart.width"),
                             SeriesReader.readInt("chart.height"));
         } catch (IOException ioEx) {
-            LOGGER.error("Error.", ioEx);
+            System.err.println("Unexpected error. " + ioEx.getMessage());
+            ioEx.printStackTrace(System.err);
         }
     }
 

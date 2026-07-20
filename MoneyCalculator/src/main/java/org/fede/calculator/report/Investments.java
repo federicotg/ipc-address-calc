@@ -23,6 +23,7 @@ import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
+import java.math.RoundingMode;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
@@ -96,7 +97,7 @@ import org.jfree.data.xy.XYSeries;
  * @author fede
  */
 public class Investments {
-    
+
     private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
 
     private final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault());
@@ -609,7 +610,7 @@ public class Investments {
                 .forEach(this.console::appendLine);
 
         final var now = LocalDate.now();
-        
+
         var growthFactor = matrix.get("Portfolio")
                 .getLast()
                 .mdr()
@@ -851,7 +852,6 @@ public class Investments {
                 .map(Investment::getIn)
                 .map(InvestmentEvent::getDate)
                 .map(YearMonth::from)
-                //.reduce((left, right) -> left.min(right))
                 .reduce(YearMonthUtil::min)
                 .get();
 
@@ -859,7 +859,6 @@ public class Investments {
                 .stream()
                 .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate)
                 .map(YearMonth::from).orElse(Inflation.usdInflation().getTo()))
-                //.reduce((left, right) -> left.max(right))
                 .reduce(YearMonthUtil::max)
                 .get();
 
@@ -1057,6 +1056,9 @@ public class Investments {
                 ? this::grouping
                 : Function.identity();
 
+        
+        this.console.appendLine("Symbol,Name,Quantity,Price");
+
         this.series.getInvestments()
                 .stream()
                 .filter(investment -> investment.isCurrent(moment))
@@ -1072,28 +1074,40 @@ public class Investments {
                         .exchange(new MoneyAmount(ONE, e.currency()), USD, moment)))
                 .forEach(this.console::appendLine);
 
-        this.console.appendLine(this.investmentLine(EUR, ONE, ForeignExchanges.getForeignExchange(EUR, USD)
+        final var ym = YearMonth.from(moment);
+
+        final var euros = LastAmounts.last("ahorros-euro", ym)
+                .add(LastAmounts.last("ahorros-euro-liq", ym));
+        final var dollars = LastAmounts.last("ahorros-dolar-banco", ym)
+                        .add(LastAmounts.last("ahorros-dolar-liq", ym));
+        final var pesos = LastAmounts.last("ahorros-peso", ym);
+
+        this.console.appendLine(this.investmentLine(EUR, euros.amount(), ForeignExchanges.getForeignExchange(EUR, USD)
                 .exchange(new MoneyAmount(ONE, EUR), USD, moment)));
-        this.console.appendLine(this.investmentLine(USD, ONE,
-                ForeignExchanges.getForeignExchange(USD, ARS)
-                        .exchange(new MoneyAmount(ONE, USD), ARS, moment)));
 
-        if (this.series.getInvestments()
-                .stream()
-                .filter(investment -> investment.isCurrent(moment))
-                .anyMatch(i -> i.getCurrency() == MEUD)) {
+        this.console.appendLine(this.investmentLine(USD, dollars.amount(),
+                new MoneyAmount(ONE, USD)));
 
-            this.console.appendLine(this.investmentLine(MEUD, ONE,
-                    ForeignExchanges.getForeignExchange(MEUD, EUR)
-                            .exchange(new MoneyAmount(ONE, MEUD), EUR, moment)));
-        }
+        this.console.appendLine(this.investmentLine(ARS, pesos.amount(), ForeignExchanges.getForeignExchange(ARS, USD)
+                .exchange(new MoneyAmount(ONE, ARS), USD, moment)));
+
+        //if (this.series.getInvestments()
+        //        .stream()
+        //        .filter(investment -> investment.isCurrent(moment))
+        //        .anyMatch(i -> i.getCurrency() == MEUD)) {
+        //    this.console.appendLine(this.investmentLine(MEUD, ONE,
+        //            ForeignExchanges.getForeignExchange(MEUD, EUR)
+        //                    .exchange(new MoneyAmount(ONE, MEUD), EUR, moment)));
+        //}
     }
 
     private String investmentLine(Currency currency, BigDecimal quantity, MoneyAmount price) {
-        return format("{0}{1} {2}",
-                this.format.text(currency.name(), 5),
-                this.format.number(quantity, 12),
-                this.format.currency(price, 10));
+        return format("{0},{1},{2},{3} {4}",
+                currency.name(),
+                ETF_NAME.getOrDefault(currency, currency.name()),
+                quantity.toString(),
+                price.currency(),
+                price.amount().setScale(6, RoundingMode.HALF_UP).toString());
     }
 
     private record LabelAndMDR(String label, ModifiedDietzReturnResult mdr) {

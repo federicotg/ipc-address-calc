@@ -40,16 +40,12 @@ import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class ScatterXYChart {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ScatterXYChart.class);
 
     private final Font font;
     private final Stroke stroke;
@@ -160,7 +156,8 @@ public class ScatterXYChart {
                             SeriesReader.readInt("chart.width"),
                             SeriesReader.readInt("chart.height"));
         } catch (IOException ioEx) {
-            LOGGER.error("Error.", ioEx);
+            System.err.println("Unexpected error. " + ioEx.getMessage());
+            ioEx.printStackTrace(System.err);
         }
     }
 

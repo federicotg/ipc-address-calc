@@ -150,8 +150,9 @@ public class Evolution<T> {
             YearMonth yearMonth,
             BiFunction<Investment, YearMonth, MoneyAmount> extractor) {
 
+        final var date = yearMonth.atDay(14);
         return investments.stream()
-                .filter(i -> i.isCurrent(yearMonth.atDay(14)))
+                .filter(i -> i.isCurrent(date))
                 .map(i -> extractor.apply(i, yearMonth))
                 .reduce(ZERO_USD, MoneyAmount::add);
     }

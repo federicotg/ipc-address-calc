@@ -19,8 +19,6 @@ package org.fede.calculator.report;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -28,15 +26,16 @@ import org.slf4j.LoggerFactory;
  */
 public class FastConsole implements Console {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FastConsole.class);
-
     private final BufferedWriter out;
 
     public FastConsole() {
         try {
-            this.out = new BufferedWriter(new OutputStreamWriter(System.out, "UTF-8"), 16*1024);
+            this.out = new BufferedWriter(new OutputStreamWriter(System.out, "UTF-8"), 16 * 1024);
         } catch (IOException ioEx) {
-            LOGGER.error("Could not initialize output buffer.", ioEx);
+
+            System.err.println("Could not initialize output buffer. " + ioEx.getMessage());
+            ioEx.printStackTrace(System.err);
+
             throw new RuntimeException(ioEx);
         }
     }
@@ -49,7 +48,10 @@ public class FastConsole implements Console {
             }
             this.out.newLine();
         } catch (IOException ioEx) {
-            LOGGER.error("Could not write output.", ioEx);
+
+            System.err.println("Could not write output. " + ioEx.getMessage());
+            ioEx.printStackTrace(System.err);
+
         }
     }
 

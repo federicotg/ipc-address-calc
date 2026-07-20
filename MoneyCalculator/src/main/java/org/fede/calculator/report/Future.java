@@ -50,8 +50,8 @@ public class Future {
                 .mapToObj(index -> Stream.of(futureRealStateKey, futureCashKey).map(k -> new FutureCashFlows(k, index)))
                 .flatMap(Function.identity())
                 .map(fcf -> presentValue(fcf.name, fcf.index, fcf.name.equals(FUTURE_CASH_KEY) ? inflationRate : 0.0d))
-                .reduce(ZERO_USD, MoneyAmount::add)
-                .add(new Pension().discountedCashFlowValue());
+                .reduce(ZERO_USD, MoneyAmount::add);
+                //.add(new Pension().discountedCashFlowValue());
     }
 
     private static MoneyAmount presentValue(String key, int index, double discountRate) {

@@ -52,10 +52,16 @@ import static org.fede.calculator.money.Currency.UVA;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import java.time.YearMonth;
+import java.time.temporal.TemporalAdjusters;
 import java.util.EnumMap;
+import org.fede.calculator.chart.ChartStyle;
+import org.fede.calculator.chart.LabeledXYDataItem;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.chart.PieChart;
 import org.fede.calculator.chart.PieItem;
+import org.fede.calculator.chart.Scale;
+import org.fede.calculator.chart.ScatterXYChart;
+import org.fede.calculator.chart.ValueFormat;
 import org.fede.calculator.money.series.InvestmentEvent;
 import static org.fede.calculator.money.series.InvestmentType.ETF;
 import static org.fede.calculator.money.series.InvestmentType.FCI;
@@ -69,6 +75,8 @@ import static org.fede.calculator.report.AssetClass.CASH;
 import static org.fede.calculator.report.AssetClass.EQUITY;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
+import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.data.xy.XYSeries;
 
 /**
  *
@@ -77,7 +85,7 @@ import static org.fede.util.Pair.of;
 public class Positions {
 
     private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
-    
+
     private final String AVERAGE_KEY = "Avg.";
 
     private final Console console;
@@ -411,17 +419,8 @@ public class Positions {
                         .collect(joining()));
     }
 
-    private void netInvested(boolean nominal, String type, String group) {
-
-        final Map<String, Function<CashFlow, String>> groupings = Map.of(
-                "h", i -> YearMonthUtil.half(YearMonth.from(i.date())),
-                "y", i -> Integer.toString(YearMonth.from(i.date()).getYear()),
-                "m", i -> YearMonthUtil.monthString(YearMonth.from(i.date())),
-                "q", i -> YearMonthUtil.quarter(YearMonth.from(i.date())),
-                "all", i -> ""
-        );
-
-        Predicate<Investment> filter = switch (type) {
+    private Predicate<Investment> invetmentFilter(String type) {
+        return switch (type) {
             case "long" ->
                 this::isLong;
             case "etf" ->
@@ -439,6 +438,36 @@ public class Positions {
             default ->
                 (Investment i) -> i.getCurrency().name().equals(type);
         };
+    }
+
+    public void investedChart(boolean nominal, String type) {
+
+        final Map<LocalDate, BigDecimal> grouped = this.netInvestedByGrouping(
+                nominal,
+                this.invetmentFilter(type),
+                cf -> cf.date.with(TemporalAdjusters.lastDayOfYear()));
+
+        final var invested = new XYSeries("USD");
+        grouped.forEach((date, value)
+                -> invested.add(
+                        new LabeledXYDataItem(date, value, this.format.currencyShort(value))));
+
+        new ScatterXYChart(new ChartStyle(ValueFormat.DATE, Scale.LINEAR), new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
+                .create("Invested", List.of(invested), "Date", "USD", "invested");
+
+    }
+
+    private void netInvested(boolean nominal, String type, String group) {
+
+        final Map<String, Function<CashFlow, String>> groupings = Map.of(
+                "h", i -> YearMonthUtil.half(YearMonth.from(i.date())),
+                "y", i -> Integer.toString(YearMonth.from(i.date()).getYear()),
+                "m", i -> YearMonthUtil.monthString(YearMonth.from(i.date())),
+                "q", i -> YearMonthUtil.quarter(YearMonth.from(i.date())),
+                "all", i -> ""
+        );
+
+        Predicate<Investment> filter = this.invetmentFilter(type);
 
         final Function<CashFlow, String> groupingFunction = groupings.get(group);
 
@@ -454,10 +483,10 @@ public class Positions {
                 e.getKey() + " " + this.format.currencyPL(e.getValue(), 20)));
     }
 
-    private Map<String, BigDecimal> netInvestedByGrouping(
+    private <T> Map<T, BigDecimal> netInvestedByGrouping(
             boolean nominal,
             Predicate<Investment> filter,
-            Function<CashFlow, String> groupingFunction) {
+            Function<CashFlow, T> groupingFunction) {
 
         return this.series.getInvestments()
                 .stream()
@@ -628,11 +657,7 @@ public class Positions {
         var la = new LastAmounts();
         var last = la.last();
 
-        final var cashAmount = LastAmounts.lastUSD("ahorros-dolar-banco", ym)
-                .add(LastAmounts.lastUSD("ahorros-dolar-liq", ym))
-                .add(LastAmounts.lastUSD("ahorros-peso", ym))
-                .add(LastAmounts.lastUSD("ahorros-euro", ym))
-                .add(LastAmounts.lastUSD("ahorros-euro-liq", ym))
+        final var cashAmount = LastAmounts.lastCashUSD(ym)
                 .amount();
 
         final var em = new PieItem("MSCI Emerging Markets IMI",

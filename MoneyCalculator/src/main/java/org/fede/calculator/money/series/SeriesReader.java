@@ -32,8 +32,6 @@ import java.util.Properties;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -44,8 +42,6 @@ import tools.jackson.databind.json.JsonMapper;
  * @author fede
  */
 public class SeriesReader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SeriesReader.class);
 
     public static final String APP_RESOURCES = System.getProperty("user.home") + File.separator + "Documents" + File.separator + "app-resources" + File.separator;
 
@@ -81,9 +77,10 @@ public class SeriesReader {
             try (var is = new BufferedInputStream(new FileInputStream(SeriesReader.ENV), 16 * 1024)) {
                 ENVIRONMENT = new Properties();
                 ENVIRONMENT.load(is);
-            } catch (IOException ioEx) {
-                LOGGER.error("Error reading env.", ioEx);
-                throw new RuntimeException(ioEx);
+            } catch (IOException ex) {
+                System.err.println("Error reading env. " + ex.getMessage());
+                ex.printStackTrace(System.err);
+                throw new RuntimeException(ex);
             }
         }
         return ENVIRONMENT;
@@ -126,9 +123,10 @@ public class SeriesReader {
     public static <T> T read(String name, TypeReference<T> typeReference) {
         try (InputStream in = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name), 16 * 1024);) {
             return OM.readValue(in, typeReference);
-        } catch (IOException ioEx) {
-            LOGGER.error("Unexpected error: " + name, ioEx);
-            throw new IllegalArgumentException("Could not read series from resource " + name, ioEx);
+        } catch (IOException ex) {
+            System.err.println("Unexpected error. " + ex.getMessage());
+            ex.printStackTrace(System.err);
+            throw new IllegalArgumentException("Could not read series from resource " + name, ex);
         }
     }
 
@@ -170,9 +168,10 @@ public class SeriesReader {
             }
             return maSeries;
 
-        } catch (IOException ioEx) {
-            LOGGER.error("Unexpected error: " + name, ioEx);
-            throw new IllegalArgumentException(MessageFormat.format("Could not read series named {0}", name), ioEx);
+        } catch (IOException ex) {
+            System.err.println("Unexpected error. " + ex.getMessage());
+            ex.printStackTrace(System.err);
+            throw new IllegalArgumentException(MessageFormat.format("Could not read series named {0}", name), ex);
         }
 
     }

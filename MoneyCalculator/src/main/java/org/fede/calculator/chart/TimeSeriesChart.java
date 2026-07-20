@@ -37,16 +37,12 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class TimeSeriesChart {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TimeSeriesChart.class);
 
     private static final Color[] COLORS = new Color[]{
         new Color(0, 114, 178), // blue
@@ -109,7 +105,9 @@ public class TimeSeriesChart {
         };
 
         var collection = new TimeSeriesCollection();
-        series.stream().forEach(collection::addSeries);
+        for(var s:series){
+            collection.addSeries(s);
+        }
 
         JFreeChart chart = ChartFactory.createTimeSeriesChart(
                 chartName,
@@ -123,7 +121,7 @@ public class TimeSeriesChart {
         xyPlot.setBackgroundPaint(Color.LIGHT_GRAY);
         xyPlot.setRangeGridlinePaint(Color.BLACK);
         xyPlot.setDomainGridlinePaint(Color.BLACK);
-                
+
         final var renderer = xyPlot.getRenderer();
 
         for (int i = 0; i < COLORS.length; i++) {
@@ -161,7 +159,8 @@ public class TimeSeriesChart {
                             SeriesReader.readInt("chart.width"),
                             SeriesReader.readInt("chart.height"));
         } catch (IOException ioEx) {
-            LOGGER.error("Error.", ioEx);
+            System.err.println("Unexpected error. " + ioEx.getMessage());
+            ioEx.printStackTrace(System.err);
         }
     }
 

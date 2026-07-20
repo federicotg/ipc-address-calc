@@ -29,16 +29,12 @@ import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author fede
  */
 public class BarChart {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(BarChart.class);
 
     private final Font font;
     private final Stroke stroke;
@@ -99,7 +95,8 @@ public class BarChart {
                     SeriesReader.readInt("chart.height"));
 
         } catch (IOException ioEx) {
-            LOGGER.error("Error.", ioEx);
+            System.err.println("Unexpected error. " + ioEx.getMessage());
+            ioEx.printStackTrace(System.err);
         }
     }
 

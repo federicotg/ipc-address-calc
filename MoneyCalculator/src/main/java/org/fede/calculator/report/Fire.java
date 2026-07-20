@@ -188,7 +188,7 @@ public class Fire {
         this.coveredCashLine("   ➞ Near future sales", futureCash.add(sales1), budgets.currentWithHealth(), false);
         this.coveredCashLine("     ➞ Future sales", futureCash.add(sales1).add(sales2), budgets.currentWithHealth(), false);
         this.coveredCashLine("       ➞ All sales", futureCash.add(sales1).add(sales2).add(sales3), budgets.currentWithHealth(), false);
-        this.conceptLine(" ➞ Future Pension DCF", new Pension().discountedCashFlowValue());
+        //this.conceptLine(" ➞ Future Pension DCF", new Pension().discountedCashFlowValue());
 
     }
 
@@ -197,10 +197,13 @@ public class Fire {
         final var spending = totalPortfolioValue
                 .adjust(ONE, wr.divide(BigDecimal.valueOf(12L), C));
 
-        this.console.appendLine(MessageFormat.format("{0}{1}{2}{3}",
+        this.console.appendLine(MessageFormat.format("{0}{1} ARS {2}{3}",
                 this.format.text(title, col),
                 this.format.currency(spending, col),
-                this.format.currency(ForeignExchanges.getForeignExchange(USD, Currency.ARS).exchange(spending, Currency.ARS, YearMonth.now()), col),
+                this.format.text(
+                        this.format.currencyShort(
+                                ForeignExchanges.getForeignExchange(USD, Currency.ARS).exchange(spending, Currency.ARS, YearMonth.now()).amount()),
+                        8),
                 this.format.percent(wr, 6)
         ));
 
@@ -245,12 +248,13 @@ public class Fire {
         this.spendingReport(" ➞ Future less cash", this.futureWealthWithLessCashWithdrawalRate(swr, additional), totalSavingsPlusCurrentlyEstimated.add(additional));
 
         this.console.appendLine(MessageFormat.format(
-                "{0}{1}{2}",
+                "{0}{1} ARS {2}",
                 this.format.text("Current Spending", 20),
                 this.format.currency(budgets.currentWithHealth(), 20),
-                this.format.currency(
+                this.format.text(
+                        this.format.currencyShort(
                         ForeignExchanges.getMoneyAmountForeignExchange(USD, Currency.ARS)
-                                .apply(budgets.currentWithHealth(), YearMonth.now()), 20)
+                                .apply(budgets.currentWithHealth(), YearMonth.now()).amount()), 20)
         ));
 
         final var percents = this.percents();

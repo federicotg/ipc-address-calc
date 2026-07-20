@@ -209,7 +209,7 @@ public class Expenses {
 
     private void printIf(Predicate<YearMonth> condition, Runnable action, YearMonth ym) {
         if (condition.test(ym)) {
-            action.run();;
+            action.run();
         }
     }
 

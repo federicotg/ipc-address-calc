@@ -25,8 +25,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import org.fede.calculator.report.ConsoleReports;
 import org.fede.calculator.report.CCL;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -34,8 +32,6 @@ import tools.jackson.databind.ObjectMapper;
  * @author fede
  */
 public class CachedCCL implements CCL {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CachedCCL.class);
 
     private final ObjectMapper om;
     private final CCL ccl;
@@ -62,7 +58,8 @@ public class CachedCCL implements CCL {
             return data;
 
         } catch (IOException ex) {
-            LOGGER.error("Unexpected error.", ex);
+            System.err.println("Unexpected error. " + ex.getMessage());
+            ex.printStackTrace(System.err);
             return Map.of();
         }
 

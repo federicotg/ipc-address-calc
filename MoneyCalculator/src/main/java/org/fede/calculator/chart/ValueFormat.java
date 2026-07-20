@@ -28,40 +28,50 @@ public enum ValueFormat {
     PERCENTAGE {
         @Override
         public Format format() {
-            var answer = NumberFormat.getPercentInstance();
-            answer.setMinimumFractionDigits(2);
-            return answer;
+            return ValueFormat.PCT;
         }
 
     },
     CURRENCY {
         @Override
         public Format format() {
-            var nf = NumberFormat.getCurrencyInstance();
-            nf.setMaximumFractionDigits(0);
-            return nf;
+            return ValueFormat.CURR;
         }
     },
     CURRENCY_DECIMALS {
         @Override
         public Format format() {
-            var nf = NumberFormat.getCurrencyInstance();
-            nf.setMaximumFractionDigits(2);
-            return nf;
+            return ValueFormat.CURR_DEC;
         }
     },
     NUMBER {
         @Override
         public Format format() {
-            return NumberFormat.getNumberInstance();
+            return NUM;
         }
     },
     DATE {
         @Override
         public Format format() {
-            return new SimpleDateFormat("dd-MMM-yy");
+            return DATE_FMT;
         }
     };
+
+    private static final NumberFormat PCT = NumberFormat.getPercentInstance();
+
+    private static final NumberFormat CURR_DEC = NumberFormat.getCurrencyInstance();
+
+    private static final NumberFormat CURR = NumberFormat.getCurrencyInstance();
+
+    private static final NumberFormat NUM = NumberFormat.getNumberInstance();
+
+    private static final Format DATE_FMT = new SimpleDateFormat("dd-MMM-yy");
+
+    static {
+        PCT.setMinimumFractionDigits(2);
+        CURR_DEC.setMinimumFractionDigits(2);
+        CURR.setMaximumFractionDigits(0);
+    }
 
     public abstract Format format();
 

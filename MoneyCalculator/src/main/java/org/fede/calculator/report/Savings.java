@@ -621,15 +621,6 @@ public class Savings {
                 this.format.percent(simultaneousPercent
                         .multiply(BigDecimal.valueOf(simultaneousYears), MathConstants.C))));
 
-        this.console.appendLine("Expected Pension: ", this.format.currency(
-                ForeignExchanges.getMoneyAmountForeignExchange(ARS, USD)
-                        .apply(
-                                new MoneyAmount(
-                                        SeriesReader.readBigDecimal("expected.pension"),
-                                        Currency.ARS),
-                                YearMonth.now()),
-                16));
-
         final long daysWorked = Duration.between(LocalDateTime.of(2015, Month.DECEMBER, 22, 0, 0, 0), LocalDateTime.now()).toDays();
         final long yearsWorked = daysWorked / 365 + ((daysWorked % 365 > 180) ? 1 : 0);
 
@@ -701,7 +692,7 @@ public class Savings {
         final var change = agg.change(average);
         final var limit = Inflation.usdInflation().getTo();
         average.forEachNonZero((ym, ch) -> {
-            if (ym.compareTo(limit) <= 0) {
+            if (ym.compareTo(change.getFrom()) >= 0 && ym.compareTo(limit) <= 0) {
                 percentEvolutionReport(
                         ym,
                         change.getAmount(ym).amount().divide(average.getAmount(ym).amount(), C),

@@ -42,8 +42,6 @@ import static org.fede.calculator.ppi.SettlementType.*;
 import static org.fede.calculator.ppi.PPIRestAPI.PPIFXFee;
 import static org.fede.calculator.ppi.PPIRestAPI.PPIFXParams;
 import org.fede.util.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -51,8 +49,6 @@ import org.slf4j.LoggerFactory;
  */
 public class PPI implements CCL {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PPI.class);
-    
     private static final int LABEL_WIDTH = 30;
 
     private static final PPIFXFee PPI_PROMO_FEE = new PPIFXFee(new BigDecimal("0.004"), new BigDecimal("0.004"));
@@ -130,7 +126,8 @@ public class PPI implements CCL {
                     .forEach(p -> this.console.appendLine(this.format.text(p.first(), LABEL_WIDTH), this.format.currency(p.second(), 10)));
 
         } catch (Exception ex) {
-            LOGGER.error("Unexpected error.", ex);
+            System.err.println("Unexpected error. " + ex.getMessage());
+            ex.printStackTrace(System.err);
         }
     }
 
@@ -142,7 +139,8 @@ public class PPI implements CCL {
                     .forEach(this::showBalance);
 
         } catch (Exception ex) {
-            LOGGER.error("Unexpected error.", ex);
+            System.err.println("Unexpected error. " + ex.getMessage());
+            ex.printStackTrace(System.err);
         }
 
     }
@@ -156,7 +154,8 @@ public class PPI implements CCL {
                     .forEach(this::showPosition);
 
         } catch (Exception ex) {
-            LOGGER.error("Unexpected error.", ex);
+            System.err.println("Unexpected error. " + ex.getMessage());
+            ex.printStackTrace(System.err);
         }
 
     }
@@ -184,7 +183,8 @@ public class PPI implements CCL {
             var fx = this.getApi().exchangeRate(new PPIFXParams("AL30C", "AL30", BONOS, INMEDIATA, PPI_PROMO_FEE));
             return Map.of(fx.currency().name(), fx.amount());
         } catch (Exception ex) {
-            LOGGER.error("Unexpected error.", ex);
+            System.err.println("Unexpected error. " + ex.getMessage());
+            ex.printStackTrace(System.err);
             return Map.of();
         }
     }
