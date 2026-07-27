@@ -69,6 +69,8 @@ public class CAEYSafeWithdrawalRate {
 
     private final LastAmounts last = new LastAmounts();
 
+    private final CAEYSWRParams params;
+
     public CAEYSafeWithdrawalRate(
             BigDecimal expectedInflation,
             BigDecimal bondsNominalYield,
@@ -102,19 +104,44 @@ public class CAEYSafeWithdrawalRate {
         final var age = BigDecimal.valueOf(ChronoUnit.MONTHS.between(dob, LocalDate.now())).divide(MONTHS_IN_A_YEAR, C);
         final var yearsLeft = BigDecimal.ONE.movePointRight(2).subtract(age, C);
 
-        final var deltaA = deltaA(age);
-        this.capeA = new BigDecimal("0.02")
+        final var pensionDiscountRate = SeriesReader.readPercent("pensionDiscountRate");
+
+        final var pensionCapeADelta = this.pensionDeltaA(age, pensionDiscountRate);
+        final var futureIncomeCapeADelta = this.deltaA(Future.expectedWealth().amount(), YearMonth.now());
+
+        final var longTermCare = this.deltaAFromPresentValue(
+                this.presentValueOfDeferredAnnuity(
+                        SeriesReader.readUSD("longTermCare")
+                                .adjust(ONE, MONTHS_IN_A_YEAR)
+                                .amount()
+                                .negate(C),
+                        SeriesReader.readBigDecimal("longTermCare.age").subtract(age, C),
+                        SeriesReader.readInt("longTermCare.years"),
+                        pensionDiscountRate));
+
+        final var baseCapeA = new BigDecimal("0.02")
                 .min(ONE
-                        .divide(yearsLeft, C).multiply(BigDecimal.valueOf(80).movePointLeft(2), C))
-                .add(deltaA, C);
-
+                        .divide(yearsLeft, C).multiply(BigDecimal.valueOf(80).movePointLeft(2), C));
+        this.capeA = baseCapeA
+                .add(pensionCapeADelta, C)
+                .add(futureIncomeCapeADelta, C)
+                .add(longTermCare, C);
         this.capeB = capeB;
-
+        this.params = new CAEYSWRParams(
+                cashRealYield, 
+                bondsRealYield, 
+                cape, 
+                capeExUs, 
+                capeEmerging, 
+                baseCapeA, 
+                pensionCapeADelta, 
+                futureIncomeCapeADelta, 
+                longTermCare, 
+                capeB);
     }
 
-    private BigDecimal deltaA(BigDecimal age) {
+    private BigDecimal pensionDeltaA(BigDecimal age, BigDecimal pensionDiscountRate) {
         final var now = YearMonth.now();
-        final var pensionDiscountRate = SeriesReader.readPercent("pensionDiscountRate");
 
         final var futureOneYearMinPension = ForeignExchanges.getForeignExchange(Currency.ARS, USD)
                 .exchange(
@@ -129,36 +156,56 @@ public class CAEYSafeWithdrawalRate {
 
         final int yearsReceivingPension = LIFE_EXPECTANCY - RETIREMENT_AGE;
 
-        // 1. Calcular la base de la tasa: (1 + r)
-        final var rateBase = ONE.add(pensionDiscountRate, C);
+        var pv = this.presentValueOfDeferredAnnuity(
+                futureOneYearMinPension.amount(),
+                yearsToStartPension,
+                yearsReceivingPension,
+                pensionDiscountRate);
 
-        // 2. Calcular la potencia con exponente positivo: (1 + r)^years
-        final var positivePower = rateBase.pow(yearsReceivingPension, C);
+        return deltaAFromPresentValue(pv);
+    }
 
-        // 3. Traer al presente simulando el exponente negativo: (1 + r)^-years = 1 / (1 + r)^years
+    private BigDecimal deltaAFromPresentValue(BigDecimal pv) {
+        return deltaA(pv, YearMonth.now());
+    }
+
+    private BigDecimal presentValueOfDeferredAnnuity(
+            BigDecimal annualAmount,
+            BigDecimal yearsUntilStart,
+            int durationYears,
+            BigDecimal discountRate) {
+
+        // (1 + r)
+        final var rateBase = ONE.add(discountRate, C);
+
+        // (1 + r)^durationYears
+        final var positivePower = rateBase.pow(durationYears, C);
+
+        // (1 + r)^-durationYears
         final var presentValueFactorTerm = ONE.divide(positivePower, C);
 
-        // 4. Calcular el numerador de la anualidad: 1 - (1 + r)^-years
-        final var numerator = ONE.subtract(presentValueFactorTerm, C);
+        // [1 - (1 + r)^-n] / r
+        final var annuityFactor = ONE
+                .subtract(presentValueFactorTerm, C)
+                .divide(discountRate, C);
 
-        // 5. Calcular el factor de anualidad final: [1 - (1 + r)^-years] / r
-        final var annuityFactor = numerator.divide(pensionDiscountRate, C);
-
+        // Descuento desde el inicio de la anualidad hasta hoy
         final var discountFactor = BigDecimal.valueOf(
                 1.0 / Math.pow(
                         rateBase.doubleValue(),
-                        yearsToStartPension.doubleValue()));
+                        yearsUntilStart.doubleValue()));
 
-        // 6. Multiplicar el factor por el monto anual de la pensión
-        final var presentPensionValue = annuityFactor
-                .multiply(discountFactor, C)
-                .multiply(futureOneYearMinPension.amount(), C);
+        return annualAmount
+                .multiply(annuityFactor, C)
+                .multiply(discountFactor, C);
+    }
 
+    private BigDecimal deltaA(BigDecimal presentValue, YearMonth now) {
         final var cashAmount = LastAmounts.lastCashUSD(now);
-        return presentPensionValue
+        final var futureIncomeWithdrawalRate = SeriesReader.readPercent("futureIncomeWithdrawalRate");
+        return presentValue
                 .divide(this.last.last().total().add(cashAmount).amount(), C)
-                .multiply(pensionDiscountRate, C);
-
+                .multiply(futureIncomeWithdrawalRate, C);
     }
 
     public CAEYSafeWithdrawalRate() {
@@ -203,7 +250,6 @@ public class CAEYSafeWithdrawalRate {
                 .divide(MONTHS_IN_A_YEAR, C);
 
         return new SafeWithdrawal(rate, amount);
-
     }
 
     private String swrChartLabel(SafeWithdrawal monthly, Function<BigDecimal, String> currencyFormatter) {
@@ -259,32 +305,6 @@ public class CAEYSafeWithdrawalRate {
 
         final var current = this.xySeries("Current", currentCape, currentMonthly, currencyFormatter);
 
-        // current + total wealth SW
-        final var additionalWealth = Future.expectedWealth();
-
-        final var usTotal = equity.us().add(additionalWealth.adjust(ONE, equity.usWeight()));
-        final var exUsTotal = equity.exUs().add(additionalWealth.adjust(ONE, equity.exUsWeight()));
-        final var emTotal = equity.em().add(additionalWealth.adjust(ONE, equity.emWeight()));
-
-        final var totalWealthMonthly = currentSwr.monthlySafeWithdrawal(usTotal, exUsTotal, emTotal, bonds, cash);
-        final var totalWealth = this.xySeries("Total Wealth", currentCape, totalWealthMonthly, currencyFormatter);
-
-        // total wealth with less cash
-        final var minCash = new MoneyAmount(BigDecimal.valueOf(60000L), USD)
-                .min(cash.add(bonds));
-
-        final var totalWealthLessCash = additionalWealth.add(cash).add(bonds).subtract(minCash);
-
-        final var totalWealthWithLessCashMonthly = currentSwr.monthlySafeWithdrawal(
-                equity.us().add(totalWealthLessCash.adjust(ONE, equity.usWeight())),
-                equity.exUs().add(totalWealthLessCash.adjust(ONE, equity.exUsWeight())),
-                equity.em().add(totalWealthLessCash.adjust(ONE, equity.emWeight())),
-                ZERO_USD,
-                minCash);
-
-        final var lessCash = this.xySeries("Total Wealth (less cash)",
-                currentCape, totalWealthWithLessCashMonthly, currencyFormatter);
-
         // all equity
         final var allCash = cash.add(bonds);
         final var usWithCash = equity.us().add(allCash.adjust(ONE, equity.usWeight()));
@@ -305,7 +325,7 @@ public class CAEYSafeWithdrawalRate {
                 new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
                 .create(
                         this.reportTitle(capeBValue),
-                        List.of(byCape, current, allEquity, totalWealth, lessCash),
+                        List.of(byCape, current, allEquity),
                         "CAPE",
                         "Monthly Withdrawal (USD)",
                         filename);
@@ -323,8 +343,11 @@ public class CAEYSafeWithdrawalRate {
 
     private String reportTitle(BigDecimal b) {
         return MessageFormat.format(
-                "Safe Withdrawal ({0} + {1} / {2})",
-                PCT_FORMAT2.format(this.capeA),
+                "Safe Withdrawal ({0} + {1} + {2} - {3} + {4} / {5})",
+                PCT_FORMAT2.format(this.params.capeA),
+                PCT_FORMAT2.format(this.params.pensionCapeADelta),
+                PCT_FORMAT2.format(this.params.futureIncomeCapeADelta),
+                PCT_FORMAT2.format(this.params.longTermCareDelta.negate(C)),
                 NumberFormat.getNumberInstance().format(b),
                 ONE.divide(this.caey(this.last.last()), C));
     }
@@ -356,4 +379,18 @@ public class CAEYSafeWithdrawalRate {
 
     }
 
+    public static record CAEYSWRParams(
+            BigDecimal cashRealYield,
+            BigDecimal bondsRealYield,
+            BigDecimal cape,
+            BigDecimal capeExUs,
+            BigDecimal capeEmerging,
+            BigDecimal capeA,
+            BigDecimal pensionCapeADelta,
+            BigDecimal futureIncomeCapeADelta,
+            BigDecimal longTermCareDelta,
+            BigDecimal capeB
+            ) {
+
+    }
 }

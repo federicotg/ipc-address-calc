@@ -97,7 +97,6 @@ public class Format {
     }
 
     public String currency(BigDecimal value) {
-        //return format("{0,number,currency}", value);
         return CURRENCY_FORMAT.format(value);
 
     }
@@ -107,17 +106,14 @@ public class Format {
     }
 
     public String number(BigDecimal value) {
-        //return format("{0,number,0.00}", value);
         return NUMBER_FORMAT2.format(value);
     }
 
     public String number2(BigDecimal value) {
-        //return format("{0,number,0.##}", value);
         return NUMBER_FORMAT.format(value);
     }
 
     public String numberLong(BigDecimal value) {
-        //return format("{0,number,0.0000}", value);
         return NUMBER_FORMAT4.format(value);
     }
 

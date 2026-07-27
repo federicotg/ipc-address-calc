@@ -190,7 +190,7 @@ public class Investments {
         final var ics = new InvestmentCostStrategy(USD);
 
         final var mw = 13;
-        final var colWidths = new int[]{5, 11, 9, mw, mw, mw, 9, 10, 1, 24};
+        final var colWidths = new int[]{5, 5, 11, 9, mw, mw, mw, 9, 10, 1, 24};
 
         this.invHeader(colWidths, true);
 
@@ -737,6 +737,7 @@ public class Investments {
 
         var i = 0;
         this.console.appendLine(
+                this.format.text(d.getBroker().name(), colWidths[i++]),
                 this.format.text(d.getInvestmentCurrency().name(), colWidths[i++]),
                 this.format.text(DateTimeFormatter.ISO_LOCAL_DATE.format(d.getInvestmentDate()), colWidths[i++]),
                 this.format.currency(d.getInvestmentPrice(), colWidths[i++]),
@@ -756,6 +757,7 @@ public class Investments {
             this.console.appendLine(separator);
         }
         this.console.appendLine(
+                this.format.text("Br.", colWidths[i++]),
                 this.format.text(" ETF", colWidths[i++]),
                 this.format.text("  Date", colWidths[i++]),
                 this.format.text("  Price", colWidths[i++]),

@@ -33,6 +33,8 @@ import static org.fede.calculator.money.Currency.USD;
  * @author fede
  */
 public class InvestmentDetails {
+    
+    public enum Broker { IBKR, PPI;}
 
     private final boolean nominal;
     private Currency investmentCurrency;
@@ -42,6 +44,8 @@ public class InvestmentDetails {
     private MoneyAmount investedAmount;
     private MoneyAmount costBasis;
     private MoneyAmount currentAmount;
+    private Broker broker;
+    
 
     public InvestmentDetails(boolean nominal) {
         this.nominal = nominal;
@@ -133,6 +137,7 @@ public class InvestmentDetails {
             real.setInvestmentDate(this.getInvestmentDate());
             real.setInvestmentCurrency(this.getInvestmentCurrency());
             real.setInvestmentQuantity(this.investmentQuantity);
+            real.setBroker(this.getBroker());
 
             return real;
         }
@@ -163,6 +168,14 @@ public class InvestmentDetails {
 
     public void setCostBasis(MoneyAmount costBasis) {
         this.costBasis = costBasis;
+    }
+
+    public Broker getBroker() {
+        return broker;
+    }
+
+    public void setBroker(Broker broker) {
+        this.broker = broker;
     }
 
 }

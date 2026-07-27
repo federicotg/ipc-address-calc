@@ -43,15 +43,14 @@ public class Future {
 
     public static MoneyAmount expectedWealth() {
         final var futureRealStateKey = "futureRealState";
-        final var futureCashKey = FUTURE_CASH_KEY;
 
         final var inflationRate = SeriesReader.readPercent("expectedInflation").doubleValue();
+        final var realStateDiscountRate = SeriesReader.readPercent("realStateDiscountRate").doubleValue();
         return IntStream.range(1, 3)
-                .mapToObj(index -> Stream.of(futureRealStateKey, futureCashKey).map(k -> new FutureCashFlows(k, index)))
+                .mapToObj(index -> Stream.of(futureRealStateKey, FUTURE_CASH_KEY).map(k -> new FutureCashFlows(k, index)))
                 .flatMap(Function.identity())
-                .map(fcf -> presentValue(fcf.name, fcf.index, fcf.name.equals(FUTURE_CASH_KEY) ? inflationRate : 0.0d))
+                .map(fcf -> presentValue(fcf.name, fcf.index, fcf.name.equals(FUTURE_CASH_KEY) ? inflationRate : realStateDiscountRate))
                 .reduce(ZERO_USD, MoneyAmount::add);
-                //.add(new Pension().discountedCashFlowValue());
     }
 
     private static MoneyAmount presentValue(String key, int index, double discountRate) {

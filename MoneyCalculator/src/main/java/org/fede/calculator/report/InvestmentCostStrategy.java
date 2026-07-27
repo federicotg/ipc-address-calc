@@ -27,7 +27,7 @@ import org.fede.calculator.money.series.Investment;
  * @author fede
  */
 public class InvestmentCostStrategy {
-    
+
     private final Currency currency;
 
     public InvestmentCostStrategy(Currency currency) {
@@ -55,6 +55,9 @@ public class InvestmentCostStrategy {
         d.setInvestmentCurrency(inv.getInvestment().getCurrency());
         d.setCurrentAmount(new MoneyAmount(presentValue, this.currency));
         d.setInvestmentQuantity(investment.getInvestment().getAmount());
+        d.setBroker(investment.getComment() != null
+                ? InvestmentDetails.Broker.IBKR
+                : InvestmentDetails.Broker.PPI);
         return d;
     }
 }
