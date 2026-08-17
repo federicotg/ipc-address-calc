@@ -141,6 +141,17 @@ public class SeriesReader {
                 : new MoneyAmount(value, currency);
     }
 
+    public static JSONSeries readJSONSeries(String name) {
+        try (InputStream is = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name), 16 * 1024)) {
+
+            return OM.readValue(is, JSONSeries.class);
+        } catch (IOException ex) {
+            System.err.println("Unexpected error. " + ex.getMessage());
+            ex.printStackTrace(System.err);
+            throw new IllegalArgumentException(MessageFormat.format("Could not read series named {0}", name), ex);
+        }
+    }
+
     private static MoneyAmountSeries read(String name) {
 
         try (InputStream is = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name), 16 * 1024)) {

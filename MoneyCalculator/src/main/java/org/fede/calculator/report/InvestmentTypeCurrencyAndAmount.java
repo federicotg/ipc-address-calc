@@ -1,6 +1,5 @@
 package org.fede.calculator.report;
 
-
 import java.math.BigDecimal;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.series.InvestmentType;

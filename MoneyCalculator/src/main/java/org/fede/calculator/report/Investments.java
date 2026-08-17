@@ -165,6 +165,11 @@ public class Investments {
         );
     }
 
+    public void soldInv() {
+        var sold = this.getInvestments().filter(i -> i.getOut() != null);
+        this.investmentReport(sold, x -> true, Investment::isETF, x -> true, true);
+    }
+
     public void cashInv(boolean nominal) {
         Predicate<Investment> isCurrent = i -> i.isCurrent(LocalDate.now());
         this.investmentReport(
@@ -487,10 +492,10 @@ public class Investments {
             final var uninvestedPct = uninvested.yearMonthStream()
                     .filter(ym -> ym.compareTo(start) >= 0)
                     .map(ym -> new TimeSeriesDatapoint(
-                    ym,
-                    uninvested.getAmount(ym)
-                            .adjust(savings.getAmount(ym).amount(), ONE)
-                            .amount()))
+                            ym,
+                            uninvested.getAmount(ym)
+                                    .adjust(savings.getAmount(ym).amount(), ONE)
+                                    .amount()))
                     .toList();
 
             mdrSeries.add(ChartSeriesMapper.asTimeSeries(uninvestedPct, "Uninvested Cash"));
@@ -611,33 +616,37 @@ public class Investments {
 
         final var now = LocalDate.now();
 
-        var growthFactor = matrix.get("Portfolio")
+        final var growthFactor = matrix.get("Portfolio")
                 .getLast()
                 .mdr()
                 .moneyWeighted()
                 .add(BigDecimal.ONE, C);
 
-        var oldest = this.series.getInvestments()
+        final var oldest = this.series.getInvestments()
                 .stream()
                 .filter(i -> i.isETF())
                 .map(Investment::getInitialDate)
                 .min(LocalDate::compareTo)
                 .orElseThrow();
 
-        var days = ChronoUnit.DAYS.between(oldest, now);
+        final var days = ChronoUnit.DAYS.between(oldest, now);
 
-        double years = days / 365.2425;
-        double cagr = Math.pow(growthFactor.doubleValue(), 1.0 / years) - 1.0;
-
-        var cagrBd = BigDecimal.valueOf(cagr);
+        final double years = days / 365.2425;
+        final var cagr = BigDecimal.valueOf(Math.pow(growthFactor.doubleValue(), 1.0 / years) - 1.0);
 
         Period p = Period.between(oldest, now);
 
-        this.console.appendLine(this.format.subtitle("CAGR"));
-        this.console.appendLine(MessageFormat.format("Over {0} years and {1} months {2}",
-                p.getYears(),
-                p.getMonths(),
-                this.format.percent(cagrBd, 8)));
+        this.console.appendLine("");
+        if (p.getMonths() == 0) {
+            this.console.appendLine(MessageFormat.format("CAGR over {0} years {1}",
+                    p.getYears(),
+                    this.format.percent(cagr, 6)));
+        } else {
+            this.console.appendLine(MessageFormat.format("CAGR over {0} years and {1} months {2}",
+                    p.getYears(),
+                    p.getMonths(),
+                    this.format.percent(cagr, 6)));
+        }
     }
 
     private void yearMatrix(
@@ -860,7 +869,7 @@ public class Investments {
         final var end = inv
                 .stream()
                 .map(i -> Optional.ofNullable(i.getOut()).map(InvestmentEvent::getDate)
-                .map(YearMonth::from).orElse(Inflation.usdInflation().getTo()))
+                        .map(YearMonth::from).orElse(Inflation.usdInflation().getTo()))
                 .reduce(YearMonthUtil::max)
                 .get();
 
@@ -1058,7 +1067,6 @@ public class Investments {
                 ? this::grouping
                 : Function.identity();
 
-        
         this.console.appendLine("Symbol,Name,Quantity,Price");
 
         this.series.getInvestments()
@@ -1070,10 +1078,10 @@ public class Investments {
                 .map(e -> new InvestmentTypeCurrencyAndAmount(e.getKey(), e.getValue()))
                 .sorted(TYPE_CURRENCY_COMPARATOR)
                 .map(e -> this.investmentLine(
-                e.currency(),
-                e.amount(),
-                ForeignExchanges.getForeignExchange(e.currency(), USD)
-                        .exchange(new MoneyAmount(ONE, e.currency()), USD, moment)))
+                        e.currency(),
+                        e.amount(),
+                        ForeignExchanges.getForeignExchange(e.currency(), USD)
+                                .exchange(new MoneyAmount(ONE, e.currency()), USD, moment)))
                 .forEach(this.console::appendLine);
 
         final var ym = YearMonth.from(moment);
@@ -1081,7 +1089,7 @@ public class Investments {
         final var euros = LastAmounts.last("ahorros-euro", ym)
                 .add(LastAmounts.last("ahorros-euro-liq", ym));
         final var dollars = LastAmounts.last("ahorros-dolar-banco", ym)
-                        .add(LastAmounts.last("ahorros-dolar-liq", ym));
+                .add(LastAmounts.last("ahorros-dolar-liq", ym));
         final var pesos = LastAmounts.last("ahorros-peso", ym);
 
         this.console.appendLine(this.investmentLine(EUR, euros.amount(), ForeignExchanges.getForeignExchange(EUR, USD)
@@ -1388,12 +1396,12 @@ public class Investments {
                         .map(Investment::getIn)
                         .filter(e
                                 -> e.getDate()
-                                .atTime(23, 59, 59, 999999)
-                                .isAfter(limitDate))
+                                        .atTime(23, 59, 59, 999999)
+                                        .isAfter(limitDate))
                         .filter(e
                                 -> e.getDate()
-                                .atTime(23, 59, 59, 999999)
-                                .isBefore(lastBuyDate))
+                                        .atTime(23, 59, 59, 999999)
+                                        .isBefore(lastBuyDate))
                         .map(buyMapper)
                         .reduce(identity, reduction));
 
@@ -1453,8 +1461,8 @@ public class Investments {
 
         final var cashSavingsPercent = savings
                 .map((ym, ma) -> ma
-                .subtract(investments.getAmountOrElseZero(ym))
-                .adjust(savings.getAmount(ym).amount(), ONE));
+                        .subtract(investments.getAmountOrElseZero(ym))
+                        .adjust(savings.getAmount(ym).amount(), ONE));
 
         cashSavingsPercent.setName("% Cash Savings");
 
@@ -1533,8 +1541,8 @@ public class Investments {
                             .map(InvestmentAsset::getMoneyAmount)
                             .map(ma -> ForeignExchanges.getForeignExchange(ma.currency(), USD).exchange(ma, USD, moment))
                             .map(ma -> nominal
-                            ? ma
-                            : Inflation.usdInflation().adjust(ma, momentYm, end))
+                                    ? ma
+                                    : Inflation.usdInflation().adjust(ma, momentYm, end))
                             .reduce(ZERO_USD, MoneyAmount::add));
         }
 
@@ -1712,19 +1720,19 @@ public class Investments {
         Stream.concat(
                 Stream.iterate(fxFrom, ym -> ym.compareTo(fxTo) <= 0, (YearMonth ym) -> ym.plusMonths(1))
                         .map((YearMonth ym) -> new LabeledXYDataItem(
-                        ym.atEndOfMonth(),
-                        fx.exchange(one, USD, ym).amount(),
-                        ""
-                )),
+                                ym.atEndOfMonth(),
+                                fx.exchange(one, USD, ym).amount(),
+                                ""
+                        )),
                 this.series.getInvestments()
                         .stream()
                         .filter(isCurrent)
                         .filter(i -> i.getCurrency() == currency)
                         .map((Investment i) -> new LabeledXYDataItem(
-                        i.getInitialDate(),
-                        i.getInitialMoneyAmount(USD).adjust(i.getInvestment().getAmount(), ONE).amount(),
-                        i.getInvestment().getAmount().toString()
-                )))
+                                i.getInitialDate(),
+                                i.getInitialMoneyAmount(USD).adjust(i.getInvestment().getAmount(), ONE).amount(),
+                                i.getInvestment().getAmount().toString()
+                        )))
                 .forEach(ss::add);
 
         new ScatterXYChart(new ChartStyle(ValueFormat.DATE, Scale.LINEAR),

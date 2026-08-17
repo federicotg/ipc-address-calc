@@ -25,14 +25,20 @@ import java.time.YearMonth;
  *
  * @author fede
  */
-public record JSONDataPoint(YearMonth yearMonth, BigDecimal value) implements Comparable<JSONDataPoint> {
+public record JSONDataPoint(YearMonth yearMonth, BigDecimal value, String comment) implements Comparable<JSONDataPoint> {
 
     @JsonCreator
     public JSONDataPoint(
             @JsonProperty("year") int year,
             @JsonProperty("month") int month,
-            @JsonProperty("value") BigDecimal value) {
-        this(YearMonth.of(year, month), value);
+            @JsonProperty("value") BigDecimal value,
+            @JsonProperty("comment") String comment) {
+        this(YearMonth.of(year, month), value, comment);
+    }
+
+    public JSONDataPoint(
+            YearMonth yearMonth, BigDecimal value) {
+        this(yearMonth, value, "");
     }
 
     @Override

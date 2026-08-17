@@ -102,4 +102,56 @@ public class SortedMapMoneyAmountSeries extends MoneyAmountSeriesSupport {
 
     }
 
+    @Override
+    public MoneyAmountSeries add(final MoneyAmountSeries o) {
+        SortedMapMoneyAmountSeries other = (SortedMapMoneyAmountSeries) o;
+        if (other.getCurrency() != this.getCurrency()) {
+            return this.exchangeInto(Currency.USD)
+                    .add(other.exchangeInto(Currency.USD));
+        }
+
+        var answer = this.createNew();
+
+        var i = this.values.entrySet().iterator();
+        var j = other.values.entrySet().iterator();
+
+        Map.Entry<YearMonth, MoneyAmount> a = i.hasNext() ? i.next() : null;
+        Map.Entry<YearMonth, MoneyAmount> b = j.hasNext() ? j.next() : null;
+
+        while (a != null || b != null) {
+
+            if (a == null) {
+                answer.putAmount(b.getKey(), b.getValue());
+                b = j.hasNext() ? j.next() : null;
+
+            } else if (b == null) {
+                answer.putAmount(a.getKey(), a.getValue());
+                a = i.hasNext() ? i.next() : null;
+
+            } else {
+                int comparison = a.getKey().compareTo(b.getKey());
+
+                if (comparison < 0) {
+                    answer.putAmount(a.getKey(), a.getValue());
+                    a = i.hasNext() ? i.next() : null;
+
+                } else if (comparison > 0) {
+                    answer.putAmount(b.getKey(), b.getValue());
+                    b = j.hasNext() ? j.next() : null;
+
+                } else {
+                    answer.putAmount(
+                            a.getKey(),
+                            a.getValue().add(b.getValue())
+                    );
+
+                    a = i.hasNext() ? i.next() : null;
+                    b = j.hasNext() ? j.next() : null;
+                }
+            }
+        }
+
+        return answer;
+    }
+
 }

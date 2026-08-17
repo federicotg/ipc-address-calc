@@ -124,6 +124,10 @@ public class ConsoleReports {
         this.console.appendLine(texts);
     }
 
+    private void soldInv() {
+        new Investments(this.console, this.format, this.bar, this.series).soldInv();
+    }
+
     private void invReport(String[] args, String paramName) {
 
         final var params = this.paramsValue(args, paramName);
@@ -180,6 +184,9 @@ public class ConsoleReports {
 
             case "inv" ->
                 () -> me.invReport(args, "inv");
+
+            case "inv-sold" ->
+                me::soldInv;
 
             case "fire" ->
                 () -> new Fire(format, series, console)
@@ -956,7 +963,7 @@ public class ConsoleReports {
             final var swr = new CAEYSafeWithdrawalRate();
 
             Function<BigDecimal, String> shortFormat = this.format::currencyShort;
-            
+
             swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-050", new BigDecimal("0.5"), shortFormat);
             swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-060", new BigDecimal("0.6"), shortFormat);
             swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-065", new BigDecimal("0.65"), shortFormat);

@@ -33,8 +33,10 @@ import static org.fede.calculator.money.Currency.USD;
  * @author fede
  */
 public class InvestmentDetails {
-    
-    public enum Broker { IBKR, PPI;}
+
+    public enum Broker {
+        IBKR, PPI;
+    }
 
     private final boolean nominal;
     private Currency investmentCurrency;
@@ -45,7 +47,6 @@ public class InvestmentDetails {
     private MoneyAmount costBasis;
     private MoneyAmount currentAmount;
     private Broker broker;
-    
 
     public InvestmentDetails(boolean nominal) {
         this.nominal = nominal;

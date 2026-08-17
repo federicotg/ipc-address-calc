@@ -75,8 +75,8 @@ public class LastAmounts {
         return SeriesReader.readSeries("saving/" + seriesName + ".json").getAmountOrElseZero(ym);
 
     }
-    
-    public static MoneyAmount lastCashUSD(YearMonth now){
+
+    public static MoneyAmount lastCashUSD(YearMonth now) {
         return lastUSD("ahorros-dolar-banco", now)
                 .add(LastAmounts.lastUSD("ahorros-dolar-liq", now))
                 .add(LastAmounts.lastUSD("ahorros-peso", now))
