@@ -955,17 +955,19 @@ public class Investments {
                 .map(ym -> ym.plusMonths(-1))
                 .orElseGet(Inflation.usdInflation()::getTo);
 
-        Function<Investment, String> classifier = i
-                -> switch (i.getType()) {
-            case ETF, FCI ->
-                i.getCurrency().name();
-            case BONO ->
-                i.getType().name();
-            case PF ->
-                i.getType().toString().concat(" ").concat(i.getCurrency().name());
-            case USD, USD_CASH ->
-                "USD Cash";
+        Function<Investment, String> classifier = i -> switch (i.getType()) {
+            case ETF -> switch (i.getCurrency()) {
+                case CSPX, SXR8 -> CSPX.name();
+                case EMIM, EIMI -> EIMI.name();
+                case RTWO, RTWOE -> RTWO.name();
+                case MEUD, MEUS -> MEUD.name();
+                default -> i.getCurrency().name();
+            };
+            case BONO -> i.getType().name();
+            case PF, FCI -> i.getType().name();
+            case USD, USD_CASH -> "USD Cash";
         };
+        
         Predicate<Investment> filterPredicate = i -> Objects.isNull(type) || i.getType().toString().equals(type);
 
         final var list = this.getAllInvestments();

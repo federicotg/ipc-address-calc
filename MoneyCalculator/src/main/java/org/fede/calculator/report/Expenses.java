@@ -32,6 +32,7 @@ import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import java.time.YearMonth;
 import java.util.HashSet;
+import static org.fede.calculator.report.SpendingSeries.*;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -118,14 +119,26 @@ public class Expenses {
             this.console.appendLine("");
             this.investmentExpensesReport(monthSet);
 
-            this.console.appendLine(this.format.subtitle("Banking Detail"));
+            this.console.appendLine(this.format.subtitle("Banking"));
             this.bankingExpensesReport(monthSet);
 
-            this.console.appendLine(this.format.subtitle("Vacations Detail"));
+            this.console.appendLine(this.format.subtitle("Vacations"));
             this.vacationsExpensesReport(monthSet);
 
-            this.console.appendLine(this.format.subtitle("Credit Card Detail"));
+            this.console.appendLine(this.format.subtitle("Credit Card"));
             this.creditCardExpensesReport(monthSet);
+
+            this.console.appendLine(this.format.subtitle("Taxes"));
+            this.expenseDetailReport(monthSet, List.of(BBPP, INMOBILIARIO_43, MUNICIPAL_43));
+
+            this.console.appendLine(this.format.subtitle("Power and Heating"));
+            this.expenseDetailReport(monthSet,
+                    List.of(LUZ, GAS));
+
+            this.console.appendLine(this.format.subtitle("Subscriptions"));
+            this.expenseDetailReport(monthSet,
+                    List.of(SUSCRIPCIONES_ARS, SUSCRIPCIONES_USD));
+
         };
 
         new By()
@@ -138,11 +151,9 @@ public class Expenses {
                         otherwise);
     }
 
-    
     private void creditCardExpensesReport(Set<YearMonth> months) {
         var totalStampDuty = this.expenseDetailReport(months,
-                List.of(
-                        "expense/sellos.json"));
+                List.of(SELLOS));
 
         this.console.appendLine("Spending ~ ",
                 this.format.currency(totalStampDuty.adjust(new BigDecimal("0.012"), BigDecimal.ONE), 14));
@@ -150,18 +161,19 @@ public class Expenses {
 
     private void bankingExpensesReport(Set<YearMonth> months) {
         this.expenseDetailReport(months,
-                List.of(
-                        "expense/itau-uy.json",
-                        "expense/box.json",
-                        "expense/santander.json",
-                        "expense/atlantico.json"));
+                List.of(ITAU_UY, BOX, SANTANDER, ATLANTICO));
     }
 
     private void vacationsExpensesReport(Set<YearMonth> months) {
         this.expenseDetailReport(months,
-                List.of(
-                        "expense/viajes.json",
-                        "expense/viajes-usd.json"));
+                List.of(VIAJES,
+                        VIAJES_USD,
+                        COLON_CAMUZZI,
+                        COLON_EDEA,
+                        COLON_EXPENSAS,
+                        COLON_FLOW,
+                        COLON_MUNICIPAL,
+                        COLON_OSSE));
     }
 
     private void investmentExpensesReport(Set<YearMonth> months) {
@@ -181,16 +193,14 @@ public class Expenses {
 
     private void irregularExpenseDetailReport(Set<YearMonth> months) {
         this.expenseDetailReport(months,
-                List.of(
-                        "expense/reparaciones.json",
-                        "expense/other.json",
-                        "expense/other-usd.json"));
+                List.of(REPARACIONES, OTHER, OTHER_USD));
     }
 
-    private MoneyAmount expenseDetailReport(Set<YearMonth> months, List<String> series) {
+    private MoneyAmount expenseDetailReport(Set<YearMonth> months, List<SpendingSeries> series) {
 
         Map<YearMonth, Optional<ExpenseDetail>> grouped = series
                 .stream()
+                .map(s -> "expense/" + s.getSeriesName() + ".json")
                 .map(SeriesReader::readJSONSeries)
                 .flatMap(s
                         -> s.data()
@@ -199,7 +209,8 @@ public class Expenses {
                                 .map(dp -> this.detail(s.currency(), dp)))
                 .filter(d -> !d.amount().isZero())
                 .collect(Collectors.groupingBy(
-                        ExpenseDetail::ym, Collectors.reducing(this::merge)
+                        ExpenseDetail::ym,
+                        Collectors.reducing(this::merge)
                 ));
 
         for (var ym : grouped.keySet().stream().sorted().toList()) {
@@ -246,12 +257,6 @@ public class Expenses {
                         this.format.currency(d.amount(), 14),
                         d.comment() == null ? "" : d.comment())
         );
-    }
-
-    private boolean between(YearMonth ym, YearMonth from, YearMonth to) {
-        return (ym.equals(from) || ym.isAfter(from))
-                && (ym.equals(to) || ym.isBefore(to));
-
     }
 
     private ExpenseDetail detail(Currency c, JSONDataPoint dp) {
@@ -334,8 +339,8 @@ public class Expenses {
                 80;
             case 2 ->
                 60;
-            case 3 ->
-                40;
+            case 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ->
+                36;
             default ->
                 20;
         };
@@ -343,7 +348,6 @@ public class Expenses {
         final var nextMonth = YearMonth.now().plusMonths(1);
 
         oldestSeries.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
-                //.forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, ss, colorList), scale)));
                 .forEach((ym, savingMa)
                         -> this.printIf(
                                 currentYm -> currentYm.isBefore(nextMonth),

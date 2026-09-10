@@ -53,7 +53,6 @@ import static org.fede.calculator.report.Series.IRREGULAR;
 import static org.fede.calculator.report.Series.DISCRETIONARY;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
-import static org.fede.calculator.money.series.SeriesReader.readBigDecimal;
 import static org.fede.calculator.money.series.SeriesReader.readPercent;
 import static org.fede.calculator.money.series.SeriesReader.readUSD;
 import org.jfree.chart.ui.RectangleEdge;
@@ -104,9 +103,8 @@ public class Fire {
         final var currentHealth = this.currentHealth();
         final var futureRent = SeriesReader.readUSD("futureRent");
 
-        final var currentlyEstimated = this.currentlyEstimatedSavings();
-        final var currentCash = this.series.realSavings("LIQ").getAmount(YearMonth.now())
-                .add(currentlyEstimated);
+        //final var currentlyEstimated = this.currentlyEstimatedSavings();
+        final var currentCash = this.series.realSavings("LIQ").getAmount(YearMonth.now());
 
         this.conceptLine("Essential", essential);
         this.conceptLine("Other", other);
@@ -144,13 +142,13 @@ public class Fire {
         this.console.appendLine(this.format.subtitle("Savings"));
 
         this.conceptLine("Current", totalSavings);
-        this.conceptLine(" ➞ Current Estimated", currentlyEstimated);
+        //this.conceptLine(" ➞ Current Estimated", currentlyEstimated);
 
         var allEquity = this.series.realSavings("EQ").getAmount(YearMonth.now());
         var sp500 = this.last.lastAmount(Currency.CSPX);
         var nonSP500 = allEquity.subtract(sp500);
 
-        var totalSavingAndMetals = totalSavings.add(currentlyEstimated);
+        var totalSavingAndMetals = totalSavings;
         this.console.appendLine("");
 
         this.compositionLine("SP500", sp500, totalSavingAndMetals);
@@ -168,23 +166,27 @@ public class Fire {
 
         final var sev = Future.severance();
 
-        final var futureCash = currentCash
-                .add(readUSD("futureCash.1"))
-                .add(sev.getTotal())
-                .add(readUSD("futureCash.3"));
-
         final var sales1 = readUSD("futureRealState.1");
         final var sales2 = readUSD("futureRealState.2");
         final var sales3 = readUSD("futureRealState.3");
 
-        this.coveredCashLine("Metals", currentlyEstimated, budgets.currentWithHealth(), false);
         this.coveredCashLine("Current cash", currentCash, budgets.currentWithHealth());
         this.coveredCashLine(" ? Current cash & sev.", currentCash
                 .add(sev.getTotal()), budgets.currentWithHealth(), false);
-        this.coveredCashLine(" ➞ Future cash", futureCash, budgets.currentWithHealth());
-        this.coveredCashLine("   ➞ Near future sales", futureCash.add(sales1), budgets.currentWithHealth(), false);
-        this.coveredCashLine("     ➞ Future sales", futureCash.add(sales1).add(sales2), budgets.currentWithHealth(), false);
-        this.coveredCashLine("       ➞ All sales", futureCash.add(sales1).add(sales2).add(sales3), budgets.currentWithHealth(), false);
+        this.coveredCashLine(" ➞ Near future sales", 
+                currentCash
+                .add(sales1), 
+                budgets.currentWithHealth(), false);
+        this.coveredCashLine("   ➞ Future sales",
+                currentCash
+                        .add(sales1)
+                        .add(sales2), 
+                budgets.currentWithHealth(), false);
+        this.coveredCashLine("     ➞ All sales", 
+                currentCash
+                        .add(sales1)
+                        .add(sales2)
+                        .add(sales3), budgets.currentWithHealth(), false);
 
     }
 
@@ -228,10 +230,9 @@ public class Fire {
         );
 
         final var budgets = this.budgets(months);
-        final var currentlyEstimated = this.currentlyEstimatedSavings();
+        //final var currentlyEstimated = this.currentlyEstimatedSavings();
         final var currentSavings = this.series.currentSavingsUSD();
-        final var totalSavingsPlusCurrentlyEstimated = currentSavings
-                .add(currentlyEstimated);
+        final var totalSavingsPlusCurrentlyEstimated = currentSavings;
 
         var swr = new CAEYSafeWithdrawalRate();
         this.spendingReport("Current", this.withdrawalRate(swr), totalSavingsPlusCurrentlyEstimated);
@@ -264,15 +265,15 @@ public class Fire {
                 .stream()
                 .map(monthlySpending
                         -> this.retirementWithdrawalRow(
-                        monthlySpending,
-                        currentSavings,
-                        totalSavingsPlusCurrentlyEstimated,
-                        percents,
-                        alreadyThere,
-                        withGrowth,
-                        farAway,
-                        budgets
-                ))
+                                monthlySpending,
+                                currentSavings,
+                                totalSavingsPlusCurrentlyEstimated,
+                                percents,
+                                alreadyThere,
+                                withGrowth,
+                                farAway,
+                                budgets
+                        ))
                 .forEach(this.console::appendLine);
 
         this.conceptLine("Current Avg. " + months + " months", budgets.current(), "❌");
@@ -293,8 +294,7 @@ public class Fire {
 
         var equity = last.last();
 
-        var cash = this.series.realSavings("LIQ").getAmount(now)
-                .add(this.currentlyEstimatedSavings());
+        var cash = this.series.realSavings("LIQ").getAmount(now);
 
         var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
 
@@ -315,8 +315,7 @@ public class Fire {
 
         var equity = last.last();
 
-        var cash = this.series.realSavings("LIQ").getAmount(now)
-                .add(this.currentlyEstimatedSavings());
+        var cash = this.series.realSavings("LIQ").getAmount(now);
 
         var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
 
@@ -334,8 +333,7 @@ public class Fire {
 
         var equity = last.last();
 
-        var cash = this.series.realSavings("LIQ").getAmount(now)
-                .add(this.currentlyEstimatedSavings());
+        var cash = this.series.realSavings("LIQ").getAmount(now);
 
         var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
 
@@ -362,8 +360,7 @@ public class Fire {
 
         var equity = last.last();
 
-        var cash = this.series.realSavings("LIQ").getAmount(now)
-                .add(this.currentlyEstimatedSavings());
+        var cash = this.series.realSavings("LIQ").getAmount(now);
 
         var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
 
@@ -568,12 +565,12 @@ public class Fire {
                 + percents.stream()
                         .map(percent -> annualSpendingFromPortfolio.divide(percent, C))
                         .map(portfolioLevel -> this.coloredAmount(
-                        portfolioLevel,
-                        currentPortfolioSize,
-                        plusCurrentlyEstimated,
-                        alreadyThere,
-                        withGrowth,
-                        farAway))
+                                portfolioLevel,
+                                currentPortfolioSize,
+                                plusCurrentlyEstimated,
+                                alreadyThere,
+                                withGrowth,
+                                farAway))
                         .collect(Collectors.joining());
     }
 
@@ -719,16 +716,6 @@ public class Fire {
         return new LabeledXYDataItem(portfolioPercent,
                 fireNumber,
                 this.format.currencyShort(fireNumber));
-    }
-
-    private MoneyAmount currentlyEstimatedSavings() {
-        return readUSD("xau")
-                .adjust(
-                        BigDecimal.TWO,
-                        readBigDecimal("currentGoldTrOz")
-                                .multiply(BigDecimal.valueOf(75)
-                                        .movePointLeft(2),
-                                        C));
     }
 
 }

@@ -82,28 +82,16 @@ public class Evolution<T> {
         final var refs = new HashSet<String>();
 
         final var colorList = List.of(
-                Attribute.BLUE_BACK(),
-                Attribute.CYAN_BACK(),
-                Attribute.GREEN_BACK(),
-                Attribute.MAGENTA_BACK(),
-                Attribute.RED_BACK(),
-                Attribute.YELLOW_BACK(),
-                Attribute.WHITE_BACK(),
-                Attribute.BRIGHT_BLUE_BACK(),
-                Attribute.BRIGHT_CYAN_BACK(),
-                Attribute.BRIGHT_GREEN_BACK(),
-                Attribute.BRIGHT_MAGENTA_BACK(),
-                Attribute.BRIGHT_YELLOW_BACK(),
-                Attribute.BRIGHT_RED_BACK(),
-                Attribute.BACK_COLOR(48),
-                Attribute.BACK_COLOR(16),
-                Attribute.BACK_COLOR(32),
-                Attribute.BLUE_BACK(),
-                Attribute.CYAN_BACK(),
-                Attribute.GREEN_BACK(),
-                Attribute.MAGENTA_BACK(),
-                Attribute.RED_BACK(),
-                Attribute.YELLOW_BACK()
+                Attribute.BACK_COLOR(230, 25, 75),
+                Attribute.BACK_COLOR(245, 130, 48),
+                Attribute.BACK_COLOR(255, 225, 25),
+                Attribute.BACK_COLOR(60, 180, 75),
+                Attribute.BACK_COLOR(0, 130, 200),
+                Attribute.BACK_COLOR(70, 240, 240),
+                Attribute.BACK_COLOR(145, 30, 180),
+                Attribute.BACK_COLOR(240, 50, 230),
+                Attribute.BACK_COLOR(0, 0, 0),
+                Attribute.BACK_COLOR(166, 86, 40)
         );
 
         final Map<String, List<Investment>> grouped = inv

@@ -262,11 +262,8 @@ public class CAEYSafeWithdrawalRate {
         final var now = YearMonth.now();
         final var series = new Series();
 
-        final var currentlyEstimated = this.currentlyEstimatedSavings();
-
         final var equity = last.last();
-        final var cash = series.realSavings("LIQ").getAmount(now)
-                .add(currentlyEstimated);
+        final var cash = series.realSavings("LIQ").getAmount(now);
 
         final var bonds = series.realSavings("BO").getAmountOrElseZero(now);
 
@@ -350,16 +347,6 @@ public class CAEYSafeWithdrawalRate {
                 PCT_FORMAT2.format(this.params.longTermCareDelta.negate(C)),
                 NumberFormat.getNumberInstance().format(b),
                 ONE.divide(this.caey(this.last.last()), C));
-    }
-
-    private MoneyAmount currentlyEstimatedSavings() {
-        return SeriesReader.readUSD("xau")
-                .adjust(
-                        BigDecimal.TWO,
-                        SeriesReader.readBigDecimal("currentGoldTrOz")
-                                .multiply(BigDecimal.valueOf(75)
-                                        .movePointLeft(2),
-                                        C));
     }
 
     private BigDecimal caey(

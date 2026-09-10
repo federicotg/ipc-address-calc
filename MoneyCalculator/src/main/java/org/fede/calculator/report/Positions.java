@@ -67,6 +67,7 @@ import static org.fede.calculator.money.series.InvestmentType.ETF;
 import static org.fede.calculator.money.series.InvestmentType.FCI;
 import static org.fede.calculator.money.series.InvestmentType.PF;
 import static org.fede.calculator.money.series.InvestmentType.BONO;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
@@ -170,17 +171,17 @@ public class Positions {
                 .stream()
                 .sorted(comparing((Position p) -> p.getMarketValue().amount(), reverseOrder()))
                 .map(p -> MessageFormat.format(
-                fmt,
-                this.format.text(p.getFundName(), descWidth),
-                String.format("%" + posWidth + "d", p.getPosition().intValue()),
-                this.format.currency(p.getLast().amount(), lastWidth),
-                this.format.currency(p.getCostBasis().amount(), costWidth),
-                this.format.percent(p.getCostBasis().amount().divide(totalCostBasis.amount(), C), costPct),
-                this.format.currency(p.getMarketValue().amount(), mkvWidth),
-                this.format.percent(p.getMarketValue().amount().divide(totalMarketValue.amount(), C), mkvPctWidth),
-                this.format.currency(p.getAveragePrice().amount(), avgWidth),
-                this.format.currencyPL(p.getUnrealizedPnL().amount(), pnlWidth),
-                this.format.percent(p.getUnrealizedPnL().amount().divide(p.getCostBasis().amount(), C), pnlPctWidth)))
+                        fmt,
+                        this.format.text(p.getFundName(), descWidth),
+                        String.format("%" + posWidth + "d", p.getPosition().intValue()),
+                        this.format.currency(p.getLast().amount(), lastWidth),
+                        this.format.currency(p.getCostBasis().amount(), costWidth),
+                        this.format.percent(p.getCostBasis().amount().divide(totalCostBasis.amount(), C), costPct),
+                        this.format.currency(p.getMarketValue().amount(), mkvWidth),
+                        this.format.percent(p.getMarketValue().amount().divide(totalMarketValue.amount(), C), mkvPctWidth),
+                        this.format.currency(p.getAveragePrice().amount(), avgWidth),
+                        this.format.currencyPL(p.getUnrealizedPnL().amount(), pnlWidth),
+                        this.format.percent(p.getUnrealizedPnL().amount().divide(p.getCostBasis().amount(), C), pnlPctWidth)))
                 .forEach(this.console::appendLine);
 
         this.console.appendLine(MessageFormat.format(fmt,
@@ -247,9 +248,9 @@ public class Positions {
                 .sorted()
                 .map(groupName
                         -> MessageFormat.format(
-                        "{0}{1}",
-                        this.format.text(groupName, 6),
-                        this.format.currencyPL(grouped.get(groupName).amount().negate(), 12)))
+                                "{0}{1}",
+                                this.format.text(groupName, 6),
+                                this.format.currencyPL(grouped.get(groupName).amount().negate(), 12)))
                 .forEach(this.console::appendLine);
 
         if (egr) {
@@ -285,13 +286,13 @@ public class Positions {
                     .sorted(Map.Entry.comparingByKey())
                     .forEach(e
                             -> this.egrReportLine(
-                            " Oldest " + n + " " + e.getKey().name(),
-                            List.of(this.position(e.getValue()
-                                    .stream()
-                                    .sorted(Comparator.comparing(Investment::getInitialDate))
-                                    .limit(n)
-                                    .toList()
-                            ))));
+                                    " Oldest " + n + " " + e.getKey().name(),
+                                    List.of(this.position(e.getValue()
+                                            .stream()
+                                            .sorted(Comparator.comparing(Investment::getInitialDate))
+                                            .limit(n)
+                                            .toList()
+                                    ))));
         }
     }
 
@@ -370,9 +371,9 @@ public class Positions {
 
     }
 
-    public void invested(boolean nominal, String type, String group) {
-        this.console.appendLine(this.format.subtitle("Inv"));
-        this.netInvested(nominal, type, group);
+    public void invested(String type, String group) {
+        this.console.appendLine(this.format.title("Invested"));
+        this.netInvested(type, group);
     }
 
     private void dca(boolean nominal, Function<Investment, String> groupingFunction, LocalDate now) {
@@ -457,8 +458,9 @@ public class Positions {
 
     }
 
-    private void netInvested(boolean nominal, String type, String group) {
+    private void netInvested(String type, String group) {
 
+        final boolean nominal = false;
         final Map<String, Function<CashFlow, String>> groupings = Map.of(
                 "h", i -> YearMonthUtil.half(YearMonth.from(i.date())),
                 "y", i -> Integer.toString(YearMonth.from(i.date()).getYear()),
@@ -471,16 +473,61 @@ public class Positions {
 
         final Function<CashFlow, String> groupingFunction = groupings.get(group);
 
-        final Map<String, BigDecimal> grouped = this.netInvestedByGrouping(
+        final Map<String, BigDecimal> groupedInvestmentedAmount = this.netInvestedByGrouping(
                 nominal,
                 filter,
                 groupingFunction);
 
-        grouped.entrySet()
+        final Map<String, Function<YearMonth, String>> incomeGroupings = Map.of(
+                "h", YearMonthUtil::half,
+                "y", ym -> String.valueOf(ym.getYear()),
+                "m", YearMonthUtil::monthString,
+                "q", YearMonthUtil::quarter,
+                "all", ym -> ""
+        );
+
+        final Map<String, BigDecimal> groupedTotalIncome = this.incomeByGrouping(
+                this.series.getIncomeSeries(),
+                incomeGroupings.get(group));
+
+        final Map<String, BigDecimal> groupedRegularIncome = this.incomeByGrouping(
+                this.series.getRegularIncomeSeries(),
+                incomeGroupings.get(group));
+
+        this.console.appendLine(MessageFormat.format("{0}{1}{2}{3}{4}{5}",
+                this.format.center("Period", 12),
+                this.format.center("Invested", 16),
+                this.format.center("Regular Income", 16),
+                this.format.center("%", 10),
+                this.format.center("Total Income", 16),
+                this.format.center("%", 10)
+        ));
+
+        groupedInvestmentedAmount.entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByKey())
-                .forEach(e -> this.console.appendLine(
-                e.getKey() + " " + this.format.currencyPL(e.getValue(), 20)));
+                .forEach(e -> this.console.appendLine(MessageFormat.format("{0}{1}{2}{3}{4}{5}",
+                        this.format.text(e.getKey(), 12),
+                        this.format.currencyPL(e.getValue(), 16),
+                        this.format.currencyPL(groupedRegularIncome.getOrDefault(e.getKey(), ZERO), 16),
+                        this.format.percent(e.getValue().divide(groupedRegularIncome.getOrDefault(e.getKey(), ZERO), C), 10),
+                        this.format.currencyPL(groupedTotalIncome.getOrDefault(e.getKey(), ZERO), 16),
+                        this.format.percent(e.getValue().divide(groupedTotalIncome.getOrDefault(e.getKey(), ZERO), C), 10)
+                )));
+    }
+
+    private Map<String, BigDecimal> incomeByGrouping(
+            List<MoneyAmountSeries> incomeSeries,
+            Function<YearMonth, String> groupingFunction) {
+
+        var allIncome = incomeSeries.stream().reduce(MoneyAmountSeries::add).get();
+        return allIncome.yearMonthStream()
+                .collect(
+                        Collectors.groupingBy(
+                                groupingFunction,
+                                Collectors.mapping(ym -> allIncome.getAmountOrElseZero(ym).amount(),
+                                        Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
+
     }
 
     private <T> Map<T, BigDecimal> netInvestedByGrouping(
@@ -495,11 +542,11 @@ public class Positions {
                 .map(inv -> nominal ? inv : Inflation.usdInflation().real(inv))
                 .flatMap(i
                         -> i.getOut() == null
-                ? Stream.of(new CashFlow(i.getIn().getDate(), i.getIn().getAmount()))
-                : Stream.of(
-                        new CashFlow(i.getOut().getDate(), i.getOut().getAmount().negate()),
-                        new CashFlow(i.getIn().getDate(), i.getIn().getAmount())
-                ))
+                        ? Stream.of(new CashFlow(i.getIn().getDate(), i.getIn().getAmount()))
+                        : Stream.of(
+                                new CashFlow(i.getOut().getDate(), i.getOut().getAmount().negate()),
+                                new CashFlow(i.getIn().getDate(), i.getIn().getAmount())
+                        ))
                 .collect(Collectors.groupingBy(
                         groupingFunction,
                         Collectors.mapping(CashFlow::amount,
@@ -689,26 +736,10 @@ public class Positions {
                 "Equity",
                 last.total().amount());
 
-        final var metals = new PieItem(
-                "Metals",
-                SeriesReader.readUSD("xau")
-                        .adjust(
-                                BigDecimal.TWO,
-                                SeriesReader.readBigDecimal("currentGoldTrOz")
-                                        .multiply(BigDecimal.valueOf(75)
-                                                .movePointLeft(2),
-                                                C))
-                        .amount());
-
         chart.create(
                 title,
                 List.of(cash, equity),
                 MessageFormat.format("p-asset-class-{1}-{0}", monthString, type));
-
-        chart.create(
-                title,
-                List.of(cash, equity, metals),
-                MessageFormat.format("p-asset-class2-{1}-{0}", monthString, type));
 
         final var sp500 = new PieItem(
                 "S&P 500",

@@ -21,11 +21,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import java.util.stream.Stream;
 import org.fede.calculator.money.Cost;
-import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
@@ -37,9 +37,14 @@ import static org.fede.calculator.money.series.SeriesReader.readSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.function.Function;
 import org.fede.calculator.money.SlidingWindow;
 import org.fede.util.Pair;
 import static org.fede.util.Pair.of;
+import static org.fede.calculator.money.Currency.USD;
 import tools.jackson.core.type.TypeReference;
 
 /**
@@ -64,8 +69,6 @@ public class Series {
     private Map<String, List<MoneyAmountSeries>> realUSDSavingsByType;
     private Map<String, List<MoneyAmountSeries>> realUSDExpensesByType;
 
-    private MoneyAmountSeries realUSDCondoExpenses;
-
     private List<MoneyAmountSeries> incomeSeries;
 
     private List<MoneyAmountSeries> regularIncomeSeries;
@@ -87,80 +90,40 @@ public class Series {
         return investments;
     }
 
-    public MoneyAmountSeries getRealUSDCondoExpenses() {
-        if (this.realUSDCondoExpenses == null) {
-            this.realUSDCondoExpenses = Stream.of(
-                    "consorcio-administracion",
-                    "consorcio-ascensor",
-                    "consorcio-bomba",
-                    "consorcio-gasto-administrativo",
-                    "consorcio-limpieza",
-                    "consorcio-internet",
-                    "consorcio-luz",
-                    "consorcio-matafuegos",
-                    "consorcio-reparaciones",
-                    "consorcio-seguros",
-                    "absa")
-                    .map(p -> this.asRealUSDSeries("expense/", p))
-                    .reduce(MoneyAmountSeries::add)
-                    .get();
+    public <E> Map<E, Optional<MoneyAmountSeries>> groupedExpenses(Function<SpendingSeries, E> classifier) {
+        if (this.realUSDExpensesByType == null) {
+            this.getRealUSDExpensesByType();
         }
-        return this.realUSDCondoExpenses;
+        return Arrays.stream(SpendingSeries.values())
+                .collect(groupingBy(
+                        classifier,
+                        mapping(this::asSeries, Collectors.reducing(MoneyAmountSeries::add))));
     }
+
+   
+    private String essentialDiscretionaryClassification(SpendingSeries s) {
+        return switch (s) {
+            case BBPP, COMIDA, INMOBILIARIO_43, MONOTRIBUTO, SALUD, LUZ, EXPENSAS, MONOTRIBUTO_ANGELES, GAS, MUNICIPAL_43, REPARACIONES ->
+                ESSENTIAL;
+            case OTHER, OTHER_USD, DEPARTAMENTOS, INVESTMENTS ->
+                IRREGULAR;
+            case ATLANTICO, BOX, COLON_CAMUZZI,COLON_EXPENSAS,COLON_EDEA,COLON_FLOW,COLON_OSSE,COLON_MUNICIPAL, CABLEVISION, CELULAR_A, CELULAR_F, COMIDA_DISC, CONTADORA, EMERGENCIA, IOMA, ITAU_UY, NETFLIX, SUSCRIPCIONES_ARS, SUSCRIPCIONES_USD, SELLOS, LIMPIEZA, SANTANDER, SEGURO, TELEFONO_43, VIAJES, VIAJES_USD, XBOX ->
+                DISCRETIONARY;
+            case UNCLASSIFIED ->
+                OTHER;
+        };
+    }
+    
+    
 
     public Map<String, List<MoneyAmountSeries>> getRealUSDExpensesByType() {
 
         if (this.realUSDExpensesByType == null) {
 
-            this.realUSDExpensesByType = Stream.of(
-                    of(ESSENTIAL, "bbpp"),
-                    of(ESSENTIAL, "inmobiliario-43"),
-                    of(ESSENTIAL, "monotributo-angeles"),
-                    of(ESSENTIAL, "monotributo"),
-                    of(ESSENTIAL, "municipal-43"),
-                    of(ESSENTIAL, "salud"),
-                    of(ESSENTIAL, "contadora"),
-                    of(ESSENTIAL, "emergencia"),
-                    of(ESSENTIAL, "ioma"),
-                    of(ESSENTIAL, "seguro"),
-                    of(ESSENTIAL, "comida"),
-                    of(ESSENTIAL, "gas"),
-                    of(ESSENTIAL, "luz"),
-                    of(ESSENTIAL, "expensas"),
-                    of(DISCRETIONARY, "celular-a"),
-                    of(DISCRETIONARY, "celular-f"),
-                    of(DISCRETIONARY, "telefono-43"),
-                    of(DISCRETIONARY, "santander"),
-                    of(DISCRETIONARY, "box"),
-                    of(DISCRETIONARY, "cablevision"),
-                    of(DISCRETIONARY, "comida-disc"),
-                    of(DISCRETIONARY, "sellos"),
-                    of(DISCRETIONARY, "limpieza"),
-                    of(DISCRETIONARY, "netflix"),
-                    of(DISCRETIONARY, "suscripciones-usd"),
-                    of(DISCRETIONARY, "suscripciones-ars"),
-                    of(DISCRETIONARY, "viajes"),
-                    of(DISCRETIONARY, "viajes-usd"),
-                    of(DISCRETIONARY, "xbox"),
-                    of(DISCRETIONARY, "atlantico"),
-                    of(DISCRETIONARY, "itau-uy"),
-                    of(IRREGULAR, "other"),
-                    of(IRREGULAR, "other-usd"),
-                    of(IRREGULAR, "colon"),
-                    of(IRREGULAR, "reparaciones")
-            ).collect(groupingBy(
-                    Pair::first,
-                    mapping(p -> this.asRealUSDSeries("expense/", p.second()),
-                            Collectors.toList())));
-
-            this.realUSDExpensesByType.get(IRREGULAR)
-                    .add(this.investingExpenses());
-
             final var income = this.realIncome();
             final var netSaving = this.realNetSavings();
-            final var spending = this.realUSDExpensesByType.values()
+            final var spending = this.getRealUSDExpenses()
                     .stream()
-                    .flatMap(Collection::stream)
                     .reduce(MoneyAmountSeries::add)
                     .get();
 
@@ -170,54 +133,40 @@ public class Series {
             otherSpending.setName("Other spending");
             this.realOtherExpenses = otherSpending;
 
-            this.realUSDExpensesByType.put(OTHER, List.of(this.realOtherExpenses));
+            return Arrays.stream(SpendingSeries.values())
+                    .collect(groupingBy(
+                            this::essentialDiscretionaryClassification,
+                            mapping(this::asSeries, toList())));
         }
 
-        return realUSDExpensesByType;
+        return this.realUSDExpensesByType;
     }
 
-    public List<MoneyAmountSeries> getRealUSDExpenses() {
+    private MoneyAmountSeries asSeries(SpendingSeries s) {
+        return switch (s) {
+            case INVESTMENTS ->
+                this.investingExpenses();
+            case UNCLASSIFIED ->
+                this.realOtherExpenses;
+            default ->
+                this.asRealUSDSeries("expense/", s.getSeriesName());
+        };
 
-        return Stream.concat(
-                Stream.of(
-                        "bbpp",
-                        "inmobiliario-43",
-                        "monotributo-angeles",
-                        "monotributo",
-                        "municipal-43",
-                        "contadora",
-                        "celular-a",
-                        "celular-f",
-                        "telefono-43",
-                        "emergencia",
-                        "ioma",
-                        "comida",
-                        "sellos",
-                        "salud",
-                        "seguro",
-                        "gas",
-                        "luz",
-                        "colon",
-                        "cablevision",
-                        "santander",
-                        "box",
-                        "comida-disc",
-                        "other",
-                        "other-usd",
-                        "reparaciones",
-                        "limpieza",
-                        "expensas",
-                        "netflix",
-                        "suscripciones-usd",
-                        "suscripciones-ars",
-                        "viajes",
-                        "xbox",
-                        "atlantico",
-                        "itau-uy")
-                        .map(p -> this.asRealUSDSeries("expense/", p)),
-                Stream.of(this.investingExpenses()))
-                .collect(Collectors.toList());
+    }
 
+    private List<MoneyAmountSeries> getRealUSDExpenses() {
+        var list = new ArrayList<MoneyAmountSeries>(SpendingSeries.values().length);
+        for (var spending : SpendingSeries.values()) {
+            switch (spending) {
+                case INVESTMENTS ->
+                    list.add(this.investingExpenses());
+                case UNCLASSIFIED -> {
+                }
+                default ->
+                    list.add(this.asRealUSDSeries("expense/", spending.getSeriesName()));
+            }
+        }
+        return list;
     }
 
     public MoneyAmountSeries investingExpenses() {
@@ -226,9 +175,9 @@ public class Series {
                 = this.getInvestments()
                         .stream()
                         .filter(Investment::isETF)
-                        .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
+                        .map(inv -> ForeignExchanges.exchange(inv, USD))
                         .map(Inflation.usdInflation()::real)
-                        .map(i -> new Cost(YearMonth.from(i.getIn().getDate()), i.getCost(Currency.USD)))
+                        .map(i -> new Cost(YearMonth.from(i.getIn().getDate()), i.getCost(USD)))
                         .toList();
 
         final var iva = SeriesReader.readPercent("iva").add(ONE);
@@ -238,23 +187,23 @@ public class Series {
                         .stream()
                         .filter(Investment::isETF)
                         .filter(i -> i.getOut() != null)
-                        .map(inv -> ForeignExchanges.exchange(inv, Currency.USD))
+                        .map(inv -> ForeignExchanges.exchange(inv, USD))
                         .map(Inflation.usdInflation()::real)
                         .map(i
                                 -> new Cost(
-                                YearMonth.from(i.getOut().getDate()),
-                                i.getOut().getFeeMoneyAmount(Currency.USD).adjust(ONE, i.getComment() == null ? iva : ONE)
-                                        .add(i.getOut().getTransferFeeMoneyAmount(Currency.USD))))
+                                        YearMonth.from(i.getOut().getDate()),
+                                        i.getOut().getFeeMoneyAmount(USD).adjust(ONE, i.getComment() == null ? iva : ONE)
+                                                .add(i.getOut().getTransferFeeMoneyAmount(USD))))
                         .toList();
 
-        final var zero = MoneyAmount.zero(Currency.USD);
+        final var zero = MoneyAmount.zero(USD);
         final var feesByMonth = Stream.concat(buyCost.stream(), sellCost.stream())
                 .collect(
                         Collectors.groupingBy(
                                 Cost::ym,
                                 Collectors.reducing(zero, Cost::amount, MoneyAmount::add)));
 
-        final var expenseSeries = new SortedMapMoneyAmountSeries(Currency.USD, "investing");
+        final var expenseSeries = new SortedMapMoneyAmountSeries(USD, "investing");
 
         for (YearMonth ym = YearMonth.of(2016, 1); ym.until(Inflation.usdInflation().getTo(), ChronoUnit.MONTHS) >= 0; ym = ym.plusMonths(1)) {
             expenseSeries.putAmount(ym, feesByMonth.getOrDefault(ym, zero));
@@ -262,13 +211,6 @@ public class Series {
 
         return expenseSeries;
 
-    }
-
-    public MoneyAmountSeries getExpense(String name, boolean nominal) {
-        if (nominal) {
-            return this.readSeriesInUSD("expense/", name);
-        }
-        return this.asRealUSDSeries("expense/", name);
     }
 
     private Stream<MoneyAmountSeries> savingsSeries() {
@@ -334,7 +276,7 @@ public class Series {
 
             this.realNetSavings = this.savingsSeries()
                     .map(new SlidingWindow(1)::change)
-                    .map(series -> series.exchangeInto(Currency.USD))
+                    .map(series -> series.exchangeInto(USD))
                     .map(usdSeries -> Inflation.usdInflation().adjust(usdSeries, limit))
                     .reduce(MoneyAmountSeries::add)
                     .get();
@@ -345,7 +287,7 @@ public class Series {
     public MoneyAmountSeries incomeSource(String name) {
         return Inflation.usdInflation().adjust(
                 readSeries("income/" + name + ".json")
-                        .exchangeInto(Currency.USD),
+                        .exchangeInto(USD),
                 Inflation.usdInflation().getTo());
     }
 
@@ -362,7 +304,7 @@ public class Series {
                     readSeries("income/other-eur.json"),
                     readSeries("income/despegar.json"),
                     readSeries("income/despegar-split.json"))
-                    .map(is -> is.exchangeInto(Currency.USD))
+                    .map(is -> is.exchangeInto(USD))
                     .map(usdSeries -> Inflation.usdInflation().adjust(usdSeries, limit))
                     .toList();
         }
@@ -379,7 +321,7 @@ public class Series {
                     readSeries("income/unlp.json"),
                     readSeries("income/despegar.json"),
                     readSeries("income/despegar-split.json"))
-                    .map(is -> is.exchangeInto(Currency.USD))
+                    .map(is -> is.exchangeInto(USD))
                     .map(usdSeries -> Inflation.usdInflation().adjust(usdSeries, limit))
                     .toList();
         }
@@ -490,7 +432,7 @@ public class Series {
 
     private MoneyAmountSeries readSeriesInUSD(String prefix, String fileName) {
         return SeriesReader.readSeries(prefix + fileName + ".json")
-                .exchangeInto(Currency.USD);
+                .exchangeInto(USD);
     }
 
     public List<BBPPYear> bbppSeries() {

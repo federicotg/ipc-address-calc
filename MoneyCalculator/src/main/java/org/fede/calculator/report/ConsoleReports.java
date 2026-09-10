@@ -268,6 +268,9 @@ public class ConsoleReports {
             case "p-evo" ->
                 () -> me.portfolioEvo(args, "p-evo");
 
+            case "expenses-grouped" ->
+                me::groupedByYear;
+
             case "p-evo-pct" ->
                 () -> me.portfolioEvo(args, "p-evo-pct");
 
@@ -288,9 +291,6 @@ public class ConsoleReports {
 
             case "expenses" ->
                 () -> me.expenses(args, "expenses");
-
-            case "condo" ->
-                () -> me.condo();
 
             case "expenses-evo" ->
                 () -> me.expenseEvolution(args, "expenses-evo");
@@ -387,7 +387,6 @@ public class ConsoleReports {
                 new CmdParam("re", "m=12"),
                 new CmdParam("p-type-evo"),
                 new CmdParam("p-type-evo-pct"),
-                new CmdParam("condo"),
                 new CmdParam("ccl"),
                 new CmdParam("buy", "usd=9970 eur=0 transfer=50 detail=false"),
                 new CmdParam("sell", "usd=9970 oversell=false detail=false"),
@@ -419,7 +418,7 @@ public class ConsoleReports {
                 new CmdParam("inv", "type=(all*|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
                 new CmdParam("inv-evo", "type=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
                 new CmdParam("inv-evo-pct", "curency=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                new CmdParam("invested", "type=(long*|all|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all) nominal=false"),
+                new CmdParam("invested", "type=(long*|all|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all)"),
                 new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false"),
                 new CmdParam("xirr", "nominal=false cash=true start=1999"),
                 new CmdParam("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
@@ -427,6 +426,7 @@ public class ConsoleReports {
                 new CmdParam("bbpp", "year=yyyy"),
                 new CmdParam("bbppstatus"),
                 new CmdParam("q"),
+                new CmdParam("expenses-grouped"),
                 new CmdParam("exit"),
                 new CmdParam("ppi", "type=group|groupall|full*"),
                 new CmdParam("savings-net-change", "m=12"),
@@ -580,12 +580,6 @@ public class ConsoleReports {
     private void savings(String[] args, String paramName) {
         new Savings(format, series, bar, console)
                 .savings(this.paramsValue(args, paramName));
-    }
-
-    private void condo() {
-        this.bar.evolution(format("Average {0}-month condo expenses.", 12),
-                new SlidingWindow(12).average(this.series.getRealUSDCondoExpenses()),
-                25);
     }
 
     private void expenses(String[] args, String type) {
@@ -832,7 +826,7 @@ public class ConsoleReports {
         final var group = params.getOrDefault("group", "q");
         final var type = params.getOrDefault("type", "long");
         new Positions(this.console, this.format, this.series)
-                .invested(nominal(params), type, group);
+                .invested(type, group);
     }
 
     private void invEvo(String[] args, String paramName) {
@@ -908,7 +902,11 @@ public class ConsoleReports {
                         .stream()
                         .map(e -> this.sum(e.getKey(), e.getValue()))
                         .toList()
-                : this.series.getRealUSDExpenses();
+                : this.series.getRealUSDExpensesByType()
+                        .values()
+                        .stream()
+                        .flatMap(Collection::stream)
+                        .toList();
 
         if (m > 0) {
             var avg = new SlidingWindow(m);
@@ -1165,7 +1163,7 @@ public class ConsoleReports {
 
         this.console.appendLine(this.format.subtitle("Floor"));
 
-        org.fede.calculator.report.Severance sev = Future.severance(BigDecimal.valueOf(67).movePointLeft(2));
+        Severance sev = Future.severance(BigDecimal.valueOf(67).movePointLeft(2));
         this.console.appendLine(this.format.text("Salary", 8), this.format.currency(new MoneyAmount(sev.salary(), USD), 18));
 
         this.printSev(sev);
@@ -1327,6 +1325,55 @@ public class ConsoleReports {
                         ),
                         USD,
                         "ripte");
+    }
+
+    private SpendingTier tierClassification(SpendingSeries s) {
+        return switch (s) {
+            case ATLANTICO, CONTADORA, INVESTMENTS, ITAU_UY, SELLOS, SANTANDER, BOX ->
+                SpendingTier.FINANCIAL;
+            case UNCLASSIFIED ->
+                SpendingTier.OTHER;
+            case COMIDA_DISC, XBOX, VIAJES, VIAJES_USD, SUSCRIPCIONES_USD, SEGURO, SUSCRIPCIONES_ARS, NETFLIX, LIMPIEZA, EMERGENCIA ->
+                SpendingTier.OPTIONAL;
+            case REPARACIONES, EXPENSAS, DEPARTAMENTOS, COLON_EXPENSAS ->
+                SpendingTier.MAINTENANCE;
+            case SALUD, MUNICIPAL_43, MONOTRIBUTO_ANGELES, MONOTRIBUTO, IOMA, BBPP, INMOBILIARIO_43, GAS, LUZ, CABLEVISION, CELULAR_A, CELULAR_F, TELEFONO_43, COMIDA, COLON_CAMUZZI, COLON_EDEA, COLON_FLOW, COLON_OSSE, COLON_MUNICIPAL ->
+                SpendingTier.BASE;
+            case OTHER, OTHER_USD ->
+                SpendingTier.EXCEPTIONAL;
+        };
+    }
+
+    public void groupedByYear() {
+        for (var year = 2011; year <= YearMonth.now().getYear(); year++) {
+            this.groupedByYear(year);
+        }
+
+    }
+
+    public void groupedByYear(int year) {
+
+        this.console.appendLine(this.format.title("Expenses " + year));
+
+        Map<SpendingTier, Optional<MoneyAmountSeries>> map = this.series.groupedExpenses(this::tierClassification);
+
+        for (var e : map.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList()) {
+            this.console.appendLine(
+                    this.format.text(e.getKey().name(), 12),
+                    this.format.currency(this.yearSum(year, e.getValue()), 15));
+        }
+
+    }
+
+    private MoneyAmount yearSum(int year, Optional<MoneyAmountSeries> ma) {
+        return ma
+                .map(ss
+                        -> IntStream.rangeClosed(1, 12)
+                                .mapToObj(m -> YearMonth.of(year, m))
+                                .map(ss::getAmountOrElseZero)
+                                .reduce(MoneyAmount.zero(USD), MoneyAmount::add))
+                .orElse(MoneyAmount.zero(USD));
+
     }
 
 }

@@ -80,7 +80,6 @@ public class BBPP {
         private MoneyAmount taxedTotalUSD;
     }
 
-    //private final MoneyAmount ZERO_USD = MoneyAmount.zero(Currency.USD);
     private final Format format;
     private final Series series;
     private final Console console;

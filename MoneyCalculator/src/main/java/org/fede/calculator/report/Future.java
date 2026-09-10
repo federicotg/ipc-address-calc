@@ -39,28 +39,24 @@ import org.fede.calculator.money.series.SeriesReader;
 public class Future {
 
     private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
-    private static final String FUTURE_CASH_KEY = "futureCash";
 
     public static MoneyAmount expectedWealth() {
         final var futureRealStateKey = "futureRealState";
 
-        final var inflationRate = SeriesReader.readPercent("expectedInflation").doubleValue();
         final var realStateDiscountRate = SeriesReader.readPercent("realStateDiscountRate").doubleValue();
         return IntStream.range(1, 3)
-                .mapToObj(index -> Stream.of(futureRealStateKey, FUTURE_CASH_KEY).map(k -> new FutureCashFlows(k, index)))
+                .mapToObj(index -> Stream.of(futureRealStateKey).map(k -> new FutureCashFlows(k, index)))
                 .flatMap(Function.identity())
-                .map(fcf -> presentValue(fcf.name, fcf.index, fcf.name.equals(FUTURE_CASH_KEY) ? inflationRate : realStateDiscountRate))
+                .map(fcf -> presentValue(
+                        fcf.name,
+                        fcf.index,
+                        realStateDiscountRate))
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
 
     private static MoneyAmount presentValue(String key, int index, double discountRate) {
 
-        MoneyAmount amount;
-        if (FUTURE_CASH_KEY.equals(key) && index == 2) {
-            amount = Future.severance().getTotal();
-        } else {
-            amount = SeriesReader.readUSD(key + "." + index);
-        }
+        MoneyAmount amount = SeriesReader.readUSD(key + "." + index);
 
         final var years = SeriesReader.readInt(key + "Years." + index);
         final var probability = SeriesReader.readPercent(key + "Prob." + index);
