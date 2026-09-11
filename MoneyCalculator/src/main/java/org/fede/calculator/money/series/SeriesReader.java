@@ -162,7 +162,12 @@ public class SeriesReader {
             final var maSeries = new SortedMapMoneyAmountSeries(currency, name);
 
             for (JSONDataPoint dp : series.data()) {
-                maSeries.putAmount(dp.yearMonth(), moneyAmount(dp.value(), currency));
+                final var ym = dp.yearMonth();
+                if (maSeries.hasValue(ym)) {
+                    throw new IllegalArgumentException(
+                            MessageFormat.format("Duplicate data point for {0} in series {1}.", ym, name));
+                }
+                maSeries.putAmount(ym, moneyAmount(dp.value(), currency));
             }
 
             final InterpolationStrategy strategy = InterpolationStrategy.valueOf(series.interpolation());

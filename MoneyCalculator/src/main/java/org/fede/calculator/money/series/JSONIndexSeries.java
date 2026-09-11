@@ -17,6 +17,7 @@
 package org.fede.calculator.money.series;
 
 import java.math.BigDecimal;
+import java.text.MessageFormat;
 import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,7 +43,10 @@ public class JSONIndexSeries extends IndexSeriesSupport {
         this.data = HashMap.newHashMap(datapoints.size());
 
         for (var d : datapoints) {
-            this.data.put(d.yearMonth(), d.value());
+            if (this.data.put(d.yearMonth(), d.value()) != null) {
+                throw new IllegalArgumentException(
+                        MessageFormat.format("Duplicate data point for {0}.", d.yearMonth()));
+            }
         }
         this.lastValue = this.data.get(this.to);
     }
