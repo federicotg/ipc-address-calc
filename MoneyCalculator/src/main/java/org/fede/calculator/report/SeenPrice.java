@@ -16,12 +16,17 @@
  */
 package org.fede.calculator.report;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
  *
  * @author federicogentile
  */
-public record SeenPrice(String dmy, BigDecimal price) {
+public record SeenPrice(
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+        LocalDate dmy,
+        BigDecimal price) {
 
 }

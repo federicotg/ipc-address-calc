@@ -18,7 +18,6 @@ package org.fede.calculator.report;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -47,18 +46,12 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
             new TypeReference<Map<Currency, List<SeenPrice>>>() {
     });
 
-    private final DateTimeFormatter dmy = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-
-    private String dmy(Investment i) {
-        return dmy(i.getInitialDate());
+    private LocalDate dmy(Investment i) {
+        return i.getInitialDate();
     }
 
-    private String sellDmy(Investment i) {
-        return dmy(i.getOut().getDate());
-    }
-
-    private String dmy(LocalDate d) {
-        return dmy.format(d);
+    private LocalDate sellDmy(Investment i) {
+        return i.getOut().getDate();
     }
 
     private static BigDecimal price(Investment i) {
@@ -67,7 +60,7 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
     }
 
     private final Currency benchmark;
-    private final Map<String, BigDecimal> seenUSDPrices;
+    private final Map<LocalDate, BigDecimal> seenUSDPrices;
 
     public BenchmarkInvestmentMapper(Currency benchmark, List<Investment> investments) {
         this.benchmark = benchmark;
@@ -129,7 +122,6 @@ public class BenchmarkInvestmentMapper implements Function<Investment, Investmen
                 out.setDate(t.getOut().getDate());
                 out.setTransferFee(t.getOut().getTransferFee());
                 out.setFee(t.getOut().getFee());
-                out.setFx(t.getOut().getFx());
                 answer.setOut(out);
             }
         }

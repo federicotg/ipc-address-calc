@@ -302,27 +302,12 @@ public class CAEYSafeWithdrawalRate {
 
         final var current = this.xySeries("Current", currentCape, currentMonthly, currencyFormatter);
 
-        // all equity
-        final var allCash = cash.add(bonds);
-        final var usWithCash = equity.us().add(allCash.adjust(ONE, equity.usWeight()));
-        final var exUswithCash = equity.exUs().add(allCash.adjust(ONE, equity.exUsWeight()));
-        final var emWithCash = equity.em().add(allCash.adjust(ONE, equity.emWeight()));
-
-        final var allEquityMonthly = currentSwr.monthlySafeWithdrawal(
-                usWithCash,
-                exUswithCash,
-                emWithCash,
-                ZERO_USD,
-                ZERO_USD);
-
-        final var allEquity = this.xySeries("All Equity", currentCape, allEquityMonthly, currencyFormatter);
-
         new ScatterXYChart(
                 new ChartStyle(ValueFormat.NUMBER, Scale.LINEAR),
                 new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
                 .create(
                         this.reportTitle(capeBValue),
-                        List.of(byCape, current, allEquity),
+                        List.of(byCape, current),
                         "CAPE",
                         "Monthly Withdrawal (USD)",
                         filename);

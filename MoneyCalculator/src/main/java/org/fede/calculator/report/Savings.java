@@ -61,9 +61,11 @@ import org.fede.calculator.money.series.SeriesReader;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
+import java.util.stream.Collectors;
 import org.fede.calculator.money.Accumulator;
 import org.fede.calculator.money.SlidingWindow;
 import org.fede.calculator.money.series.YearMonthUtil;
+import org.fede.util.Pair;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.XYSeries;
 
@@ -588,12 +590,43 @@ public class Savings {
 
         final var avgSalary = totalIncome.amount().divide(BigDecimal.valueOf(months), C);
 
-        this.console.appendLine(format("Income USD {0}\nSavings USD {1} {2}\nAverage salary {3}\nSaved salaries {4}",
+        final var notSaved = Stream.of(
+                Pair.of(14_230L, YearMonth.of(2002, Month.DECEMBER)),
+                Pair.of(2_000L, YearMonth.of(2018, Month.APRIL)),
+                Pair.of(1_000L, YearMonth.of(2019, Month.MARCH)),
+                Pair.of(60_000L, YearMonth.of(2025, Month.AUGUST)),
+                Pair.of(4_500L, YearMonth.of(2025, Month.SEPTEMBER)),
+                Pair.of(5_000L, YearMonth.of(2025, Month.OCTOBER)),
+                Pair.of(5_000L, YearMonth.of(2025, Month.NOVEMBER)),
+                Pair.of(1_100L, YearMonth.of(2025, Month.JANUARY)),
+                Pair.of(3_720L, YearMonth.of(2026, Month.FEBRUARY)),
+                Pair.of(44_000L, YearMonth.of(2026, Month.MARCH)),
+                Pair.of(10_000L, YearMonth.of(2026, Month.AUGUST)),
+                Pair.of(100_000L, YearMonth.of(2010, Month.JULY)),
+                Pair.of(4_417L, YearMonth.of(2010, Month.JULY)),
+                Pair.of(31307L, YearMonth.of(2026, Month.FEBRUARY)),
+                Pair.of(7852L, YearMonth.of(2026, Month.FEBRUARY)))
+                .map(p -> Inflation.usdInflation()
+                        .adjust(new MoneyAmount(BigDecimal.valueOf(p.first()), Currency.USD), p.second(), limit))
+                .collect(Collectors.reducing(MoneyAmount.zero(USD), MoneyAmount::add));
+
+        this.console.appendLine(format(
+                """
+                Income USD {0}
+                Savings USD {1} {2}
+                Own Savings {5} {6}
+
+                Average salary {3}
+                Saved salaries {4}
+                """,
                 this.format.currency(totalIncome.amount()),
                 this.format.currency(totalSavings.amount()),
                 this.format.percent(totalSavings.amount().divide(totalIncome.amount(), C)),
                 this.format.currency(avgSalary),
-                totalSavings.amount().divide(avgSalary, C)));
+                totalSavings.amount().divide(avgSalary, C),
+                this.format.currency(totalSavings.subtract(notSaved), 14),
+                this.format.percent(totalSavings.subtract(notSaved).amount().divide(totalSavings.amount(), C)))
+        );
 
         //ingreso promedio de N meses
         final var agg = new SlidingWindow((int) YearMonth.of(2012, 1).until(usdInflation().getTo(), ChronoUnit.MONTHS));
@@ -669,7 +702,6 @@ public class Savings {
                 totalSavings
                         .add(currentIlliquidAssets)
                         .add(futureIlliquidAssets).amount()));
-
     }
 
     public void savings(Map<String, String> params) {

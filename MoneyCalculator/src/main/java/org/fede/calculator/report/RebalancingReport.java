@@ -94,6 +94,10 @@ public class RebalancingReport {
     }
 
     private RebalancingReport(Format format, Series series, Console console, Map<Currency, BigDecimal> weights) {
+        if (weights.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add).compareTo(ONE) != 0) {
+            throw new IllegalArgumentException("Weights don't add up to 100%.");
+        }
+
         this.format = format;
         this.series = series;
         this.console = console;
@@ -302,7 +306,7 @@ public class RebalancingReport {
             final Currency curr = e.getKey();
             virtualValues.put(
                     curr,
-                    sum(e.getValue().stream().map(c -> values.get(c))));
+                    sum(e.getValue().stream().map(c -> values.getOrDefault(c, ZERO_USD))));
         }
         return virtualValues;
     }
@@ -367,7 +371,7 @@ public class RebalancingReport {
             Currency max = null;
             for (var curr : p.keySet()) {
 
-                if (p.get(curr).amount().compareTo(remainder.amount()) < 0) {
+                if (p.get(curr).amount().compareTo(remainder.amount()) <= 0) {
 
                     final Map<Currency, BigDecimal> withOneMoreShare = new EnumMap<>(Currency.class);
                     withOneMoreShare.putAll(shares);

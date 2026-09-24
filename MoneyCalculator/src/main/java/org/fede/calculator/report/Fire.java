@@ -234,9 +234,7 @@ public class Fire {
         final var currentSavings = this.series.currentSavingsUSD();
         final var totalSavingsPlusCurrentlyEstimated = currentSavings;
 
-        var swr = new CAEYSafeWithdrawalRate();
-        this.spendingReport("Current", this.withdrawalRate(swr), totalSavingsPlusCurrentlyEstimated);
-        this.spendingReport(" ➞ All Equity", this.allEquityWithdrawalRate(swr), totalSavingsPlusCurrentlyEstimated);
+        this.spendingReport("Current", this.withdrawalRate(), totalSavingsPlusCurrentlyEstimated);
         this.console.appendLine(MessageFormat.format(
                 "{0}{1} ARS {2}",
                 this.format.text("Current Spending", 20),
@@ -288,73 +286,7 @@ public class Fire {
 
     }
 
-    private BigDecimal allEquityWithdrawalRate(CAEYSafeWithdrawalRate swr) {
-
-        var now = YearMonth.now();
-
-        var equity = last.last();
-
-        var cash = this.series.realSavings("LIQ").getAmount(now);
-
-        var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
-
-        var allCash = bonds.add(cash);
-
-        return swr.capeWR(
-                equity.us().add(allCash.adjust(ONE, equity.usWeight())),
-                equity.exUs().add(allCash.adjust(ONE, equity.exUsWeight())),
-                equity.em().add(allCash.adjust(ONE, equity.emWeight())),
-                ZERO_USD,
-                ZERO_USD);
-
-    }
-
-    private BigDecimal futureWealthWithdrawalRate(CAEYSafeWithdrawalRate swr, MoneyAmount additional) {
-
-        var now = YearMonth.now();
-
-        var equity = last.last();
-
-        var cash = this.series.realSavings("LIQ").getAmount(now);
-
-        var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
-
-        return swr.capeWR(
-                equity.us().add(additional.adjust(ONE, equity.usWeight())),
-                equity.exUs().add(additional.adjust(ONE, equity.exUsWeight())),
-                equity.em().add(additional.adjust(ONE, equity.emWeight())),
-                bonds,
-                cash);
-    }
-
-    private BigDecimal futureWealthWithLessCashWithdrawalRate(CAEYSafeWithdrawalRate swr, MoneyAmount additional) {
-
-        var now = YearMonth.now();
-
-        var equity = last.last();
-
-        var cash = this.series.realSavings("LIQ").getAmount(now);
-
-        var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
-
-        var minCash = new MoneyAmount(BigDecimal.valueOf(60000l), Currency.USD)
-                .min(cash.add(bonds));
-
-        var everything = additional.add(cash).add(bonds).subtract(minCash);
-
-        return swr.capeWR(
-                equity.us().add(everything.adjust(ONE, equity.usWeight())),
-                equity.exUs().add(everything.adjust(ONE, equity.exUsWeight())),
-                equity.em().add(everything.adjust(ONE, equity.emWeight())),
-                ZERO_USD,
-                minCash);
-    }
-
     private BigDecimal withdrawalRate() {
-        return this.withdrawalRate(new CAEYSafeWithdrawalRate());
-    }
-
-    private BigDecimal withdrawalRate(CAEYSafeWithdrawalRate swr) {
 
         var now = YearMonth.now();
 
@@ -364,7 +296,8 @@ public class Fire {
 
         var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
 
-        return swr.capeWR(equity.us(), equity.exUs(), equity.em(), bonds, cash);
+        return new CAEYSafeWithdrawalRate()
+                .capeWR(equity.us(), equity.exUs(), equity.em(), bonds, cash);
     }
 
     public void fiReport(int months) {
@@ -423,18 +356,12 @@ public class Fire {
     }
 
     private List<BigDecimal> percents() {
-        final var swr = new CAEYSafeWithdrawalRate();
         final var step = BigDecimal.valueOf(25L).movePointLeft(4);
-        final var futureWealth = Future.expectedWealth();
         return Stream.concat(
                 LongStream.range(13L, 20L)
                         .mapToObj(i -> BigDecimal.valueOf(i).multiply(step, C)),
                 Stream.concat(
-                        Stream.of(
-                                this.withdrawalRate(),
-                                this.futureWealthWithdrawalRate(swr, futureWealth),
-                                this.allEquityWithdrawalRate(swr),
-                                this.futureWealthWithLessCashWithdrawalRate(swr, futureWealth)),
+                        Stream.of(this.withdrawalRate()),
                         Stream.of(
                                 BigDecimal.valueOf(366L),
                                 BigDecimal.valueOf(338L),
