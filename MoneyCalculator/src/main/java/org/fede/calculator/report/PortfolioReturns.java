@@ -65,12 +65,12 @@ public class PortfolioReturns {
         this.format = format;
         this.bar = bar;
         this.cashInvestments = new CashInvestmentBuilder(()
-                -> SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
-                        .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
-                        .add(SeriesReader.readSeries("/saving/ahorros-peso.json").exchangeInto(Currency.USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto(Currency.USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(Currency.USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro-liq.json").exchangeInto(Currency.USD))
+                -> SeriesReader.readSeries("saving/ahorros-dolar-liq.json")
+                        .add(SeriesReader.readSeries("saving/ahorros-dolar-banco.json"))
+                        .add(SeriesReader.readSeries("saving/ahorros-peso.json").exchangeInto(Currency.USD))
+                        .add(SeriesReader.readSeries("saving/ahorros-dai.json").exchangeInto(Currency.USD))
+                        .add(SeriesReader.readSeries("saving/ahorros-euro.json").exchangeInto(Currency.USD))
+                        .add(SeriesReader.readSeries("saving/ahorros-euro-liq.json").exchangeInto(Currency.USD))
         );
     }
 

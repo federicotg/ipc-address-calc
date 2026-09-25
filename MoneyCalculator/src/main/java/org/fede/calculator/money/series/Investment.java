@@ -167,32 +167,6 @@ public class Investment {
                 && sellDate.isAfter(reference);
     }
 
-    /*@JsonIgnore
-    public MoneyAmount getRealUSDCost() {
-        final var now = Inflation.usdInflation().getTo();
-        final var then = YearMonth.from(this.getInitialDate());
-        final var cost = this.getCost(USD);
-
-        MoneyAmount ma = null;
-        if (this.getIn().getCurrency() != USD && this.getIn().getFx() != null) {
-
-            ma = new MoneyAmount(
-                    new MoneyAmount(this.getIn().getFee()
-                            .add(this.getIn().getTransferFee()),
-                            this.getIn().getCurrency())
-                            .adjust(BigDecimal.ONE, this.getIn().getFx()).amount(), USD);
-
-        } else {
-            ma = ForeignExchanges.getMoneyAmountForeignExchange(cost.currency(), USD)
-                    .apply(cost, then);
-        }
-
-        return Inflation.usdInflation().adjust(
-                ma,
-                then,
-                now);
-    }*/
-
     @JsonIgnore
     public MoneyAmount getCost(Currency curr) {
         return 

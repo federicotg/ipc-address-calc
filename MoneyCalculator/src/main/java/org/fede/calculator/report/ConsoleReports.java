@@ -361,7 +361,8 @@ public class ConsoleReports {
                 () -> me.sell(
                 new BigDecimal(me.paramsValue(args, "sell").getOrDefault("usd", "9970")),
                 Boolean.parseBoolean(me.paramsValue(args, "sell").getOrDefault("oversell", "false")),
-                Boolean.parseBoolean(me.paramsValue(args, "sell").getOrDefault("detail", "false"))
+                Boolean.parseBoolean(me.paramsValue(args, "sell").getOrDefault("detail", "false")),
+                me.paramsValue(args, "sell").getOrDefault("fifo", "symbol")
                 );
 
             case "ppi" ->
@@ -389,7 +390,7 @@ public class ConsoleReports {
                 new CmdParam("p-type-evo-pct"),
                 new CmdParam("ccl"),
                 new CmdParam("buy", "usd=9970 eur=0 transfer=50 detail=false"),
-                new CmdParam("sell", "usd=9970 oversell=false detail=false"),
+                new CmdParam("sell", "usd=9970 oversell=false detail=false fifo=symbol"),
                 new CmdParam("lti"),
                 new CmdParam("bbpp-evo"),
                 new CmdParam("routes"),
@@ -1129,9 +1130,12 @@ public class ConsoleReports {
                         detail);
     }
 
-    private void sell(BigDecimal usd, boolean allowOversell, boolean detail) {
+    private void sell(BigDecimal usd, boolean allowOversell, boolean detail, String fifo) {
+        if (!"isin".equalsIgnoreCase(fifo) && !"symbol".equalsIgnoreCase(fifo)) {
+            throw new IllegalArgumentException("fifo must be isin or symbol.");
+        }
         RebalancingReport.equity(format, series, console)
-                .sell(new MoneyAmount(usd, USD), allowOversell, detail);
+                .sell(new MoneyAmount(usd, USD), allowOversell, detail, "isin".equalsIgnoreCase(fifo));
     }
 
     private void inflation() {
@@ -1193,12 +1197,12 @@ public class ConsoleReports {
         this.console.appendLine(this.format.title("Investment Eras"));
 
         final var cib = new CashInvestmentBuilder(()
-                -> SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
-                        .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
-                        .add(SeriesReader.readSeries("/saving/ahorros-peso.json").exchangeInto(USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto(USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro-liq.json").exchangeInto(USD))
+                -> SeriesReader.readSeries("saving/ahorros-dolar-liq.json")
+                        .add(SeriesReader.readSeries("saving/ahorros-dolar-banco.json"))
+                        .add(SeriesReader.readSeries("saving/ahorros-peso.json").exchangeInto(USD))
+                        .add(SeriesReader.readSeries("saving/ahorros-dai.json").exchangeInto(USD))
+                        .add(SeriesReader.readSeries("saving/ahorros-euro.json").exchangeInto(USD))
+                        .add(SeriesReader.readSeries("saving/ahorros-euro-liq.json").exchangeInto(USD))
         );
 
         // non overlapping

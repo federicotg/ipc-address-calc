@@ -156,12 +156,12 @@ public class Investments {
         this.bar = bar;
         this.series = series;
         this.cashInvestments = new CashInvestmentBuilder(()
-                -> SeriesReader.readSeries("/saving/ahorros-dolar-liq.json")
-                        .add(SeriesReader.readSeries("/saving/ahorros-dolar-banco.json"))
-                        .add(SeriesReader.readSeries("/saving/ahorros-peso.json").exchangeInto(USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-dai.json").exchangeInto(USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro.json").exchangeInto(USD))
-                        .add(SeriesReader.readSeries("/saving/ahorros-euro-liq.json").exchangeInto(USD))
+                -> SeriesReader.readSeries("saving/ahorros-dolar-liq.json")
+                        .add(SeriesReader.readSeries("saving/ahorros-dolar-banco.json"))
+                        .add(SeriesReader.readSeries("saving/ahorros-peso.json").exchangeInto(USD))
+                        .add(SeriesReader.readSeries("saving/ahorros-dai.json").exchangeInto(USD))
+                        .add(SeriesReader.readSeries("saving/ahorros-euro.json").exchangeInto(USD))
+                        .add(SeriesReader.readSeries("saving/ahorros-euro-liq.json").exchangeInto(USD))
         );
     }
 

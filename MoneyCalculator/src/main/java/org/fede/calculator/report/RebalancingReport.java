@@ -77,6 +77,15 @@ public class RebalancingReport {
     private final Console console;
     private final Map<Currency, BigDecimal> weights;
 
+    private static final Map<String, List<Currency>> ISIN_MAP = Map.of(
+            "cspx", List.of(CSPX, SXR8),
+            "meus", List.of(MEUD, MEUS),
+            "xrsu", List.of(XRSU),
+            "rtwo", List.of(RTWO, RTWOE),
+            "eimi", List.of(EIMI, EMIM),
+            "Xuse", List.of(XUSE)
+    );
+
     private final Map<Currency, List<Currency>> currencyEquivalences = new EnumMap<>(Map.of(
             CSPX, List.of(CSPX, SXR8),
             RTWO, List.of(RTWO, XRSU, RTWOE),
@@ -148,7 +157,7 @@ public class RebalancingReport {
 
     }
 
-    public void sell(MoneyAmount c, boolean allowOverSell, boolean detail) {
+    public void sell(MoneyAmount c, boolean allowOverSell, boolean detail, boolean byIsin) {
 
         if (c.amount().compareTo(ZERO) < 0) {
             throw new IllegalArgumentException("Only positive amounts.");
@@ -157,11 +166,13 @@ public class RebalancingReport {
         final var now = YearMonth.now();
 
         this.console.appendLine(this.format.title("Greedy Proportional Rebalancing"));
+        this.console.appendLine(this.format.subtitle("FIFO " + (byIsin ? "by ISIN" : "by symbol")));
         this.console.appendLine(this.format.subtitle("Initial State"));
         this.print(this.virtualPortfolioValues());
         this.console.appendLine("Withdrawal: ", this.format.currency(c, 16));
 
         var lots = this.lots(LocalDate.now());
+        final var fifoGroups = this.fifoGroups(lots, byIsin);
 
         var sold = ZERO_USD;
 
@@ -173,8 +184,8 @@ public class RebalancingReport {
                 && sold.amount().compareTo(c.amount()) < 0) {
             Sale bestSale = null;
             BigDecimal trackingError = null;
-            for (var etf : lots.keySet()) {
-                var sale = this.sellingOldest(etf, lots);
+            for (var group : fifoGroups) {
+                var sale = this.sellingOldest(group, lots);
                 if (sale != null) {
 
                     var v = this.value(
@@ -210,18 +221,16 @@ public class RebalancingReport {
         this.console.appendLine("");
         this.console.appendLine("Sold: ", this.format.currency(sold, 16));
 
-        var cgt = ZERO_USD;
-        final var cgtr = SeriesReader.readPercent("capitalGainsTaxRate");
-
+        var capitalGain = ZERO_USD;
         for (var i : soldInvestments) {
 
             var fx = ForeignExchanges.getForeignExchange(i.getCurrency(), USD);
-            var initial = i.getInitialMoneyAmount(USD);
-
+            var initial = i.getInitialMoneyAmount(USD).add(i.getIn().getFeeMoneyAmount(USD));
             var current = fx.exchange(i.getInvestment().getMoneyAmount(), USD, now);
-            cgt = cgt.add(current.subtract(initial).adjust(ONE, cgtr));
-
+            capitalGain = capitalGain.add(current.subtract(initial));
         }
+        final var cgt = capitalGain.max(ZERO_USD)
+                .adjust(ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
 
         if (!sold.isZero()) {
             this.console.appendLine(
@@ -564,18 +573,54 @@ public class RebalancingReport {
         return virtualNewValues;
     }
 
-    private Sale sellingOldest(Currency c, Map<Currency, Deque<Investment>> lots) {
+    private List<List<Currency>> fifoGroups(Map<Currency, Deque<Investment>> lots, boolean byIsin) {
+        if (!byIsin) {
+            return lots.keySet()
+                    .stream()
+                    .map(List::of)
+                    .toList();
+        }
+        final var grouped = ISIN_MAP.values()
+                .stream()
+                .map(group -> group.stream().filter(lots::containsKey).toList())
+                .filter(group -> !group.isEmpty())
+                .toList();
+        final var groupedCurrencies = grouped.stream()
+                .flatMap(List::stream)
+                .collect(Collectors.toSet());
+        final var ungrouped = lots.keySet()
+                .stream()
+                .filter(c -> !groupedCurrencies.contains(c))
+                .map(List::of)
+                .toList();
+        return Stream.concat(grouped.stream(), ungrouped.stream())
+                .toList();
+    }
+
+    private Sale sellingOldest(List<Currency> group, Map<Currency, Deque<Investment>> lots) {
+
+        Currency oldest = null;
+        LocalDate oldestDate = null;
+        for (var c : group) {
+            var q = lots.get(c);
+            if (q == null || q.isEmpty()) {
+                continue;
+            }
+            var date = q.peekFirst().getInitialDate();
+            if (oldestDate == null || date.isBefore(oldestDate)) {
+                oldestDate = date;
+                oldest = c;
+            }
+        }
+        if (oldest == null) {
+            return null;
+        }
 
         final Map<Currency, Deque<Investment>> newLots = new EnumMap<>(Currency.class);
-
         for (var e : lots.entrySet()) {
             newLots.put(e.getKey(), new ArrayDeque<>(e.getValue()));
         }
-        var lot = newLots.get(c);
-        if (lot.isEmpty()) {
-            return null;
-        }
-        return new Sale(c, newLots, lot.removeFirst());
+        return new Sale(oldest, newLots, newLots.get(oldest).removeFirst());
     }
 
     private Map<Currency, Deque<Investment>> lots(LocalDate now) {

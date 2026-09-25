@@ -117,10 +117,12 @@ public class SeriesReader {
     }
 
     public static IndexSeries readIndexSeries(String name) {
+        requireRelativeName(name);
         return CACHE.computeIfAbsent(name, SeriesReader::createIndexSeries);
     }
 
     public static <T> T read(String name, TypeReference<T> typeReference) {
+        requireRelativeName(name);
         try (InputStream in = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name), 16 * 1024);) {
             return OM.readValue(in, typeReference);
         } catch (IOException ex) {
@@ -131,7 +133,15 @@ public class SeriesReader {
     }
 
     public static MoneyAmountSeries readSeries(String name) {
+        requireRelativeName(name);
         return MACACHE.computeIfAbsent(name, (seriesName) -> read(seriesName));
+    }
+
+    private static void requireRelativeName(String name) {
+        if (name.startsWith("/")) {
+            throw new IllegalArgumentException(
+                    "Resource name must be relative to APP_RESOURCES and must not start with '/': " + name);
+        }
     }
 
     private static MoneyAmount moneyAmount(BigDecimal value, Currency currency) {
@@ -142,6 +152,7 @@ public class SeriesReader {
     }
 
     public static JSONSeries readJSONSeries(String name) {
+        requireRelativeName(name);
         try (InputStream is = new BufferedInputStream(new FileInputStream(APP_RESOURCES + name), 16 * 1024)) {
 
             return OM.readValue(is, JSONSeries.class);

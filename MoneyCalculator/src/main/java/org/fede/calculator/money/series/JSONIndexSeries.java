@@ -19,9 +19,9 @@ package org.fede.calculator.money.series;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.time.YearMonth;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.SequencedCollection;
 
 /**
  *
@@ -34,20 +34,30 @@ public class JSONIndexSeries extends IndexSeriesSupport {
     private final YearMonth to;
     private final BigDecimal lastValue;
 
-    public JSONIndexSeries(SequencedCollection<JSONDataPoint> datapoints) {
-        JSONDataPoint first = datapoints.getFirst();
-        this.from = first.yearMonth();
-        JSONDataPoint last = datapoints.getLast();
-        this.to = last.yearMonth();
+    public JSONIndexSeries(Collection<JSONDataPoint> datapoints) {
+        if (datapoints.isEmpty()) {
+            throw new IllegalArgumentException("Index series must not be empty.");
+        }
 
         this.data = HashMap.newHashMap(datapoints.size());
+        YearMonth min = null;
+        YearMonth max = null;
 
         for (var d : datapoints) {
-            if (this.data.put(d.yearMonth(), d.value()) != null) {
+            var ym = d.yearMonth();
+            if (this.data.put(ym, d.value()) != null) {
                 throw new IllegalArgumentException(
-                        MessageFormat.format("Duplicate data point for {0}.", d.yearMonth()));
+                        MessageFormat.format("Duplicate data point for {0}.", ym));
+            }
+            if (min == null || ym.isBefore(min)) {
+                min = ym;
+            }
+            if (max == null || ym.isAfter(max)) {
+                max = ym;
             }
         }
+        this.from = min;
+        this.to = max;
         this.lastValue = this.data.get(this.to);
     }
 
