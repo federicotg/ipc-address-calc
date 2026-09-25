@@ -77,12 +77,14 @@ import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
 import org.fede.util.Pair;
 import org.jfree.data.time.TimeSeries;
+import org.jline.reader.Candidate;
+import org.jline.reader.Completer;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.ParsedLine;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
-import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.TerminalBuilder;
 
 /**
@@ -375,22 +377,32 @@ public class ConsoleReports {
         };
     }
 
+    private static CommandArgument arg(String name, String... values) {
+        return new CommandArgument(name, List.of(values));
+    }
+
+    private static CommandArgument bool(String name) {
+        return new CommandArgument(name, List.of("true", "false"));
+    }
+
     private static Stream<CmdParam> commandParams() {
         return Stream.of(
-                new CmdParam("savings-change", "m=1"),
-                new CmdParam("savings-change-pct", "m=1"),
-                new CmdParam("i", "y=current m=current g=false"),
+                new CmdParam("savings-change", "m=1", arg("m")),
+                new CmdParam("savings-change-pct", "m=1", arg("m")),
+                new CmdParam("i", "y=current m=current g=false", arg("y"), arg("m"), bool("g")),
                 new CmdParam("pa"),
                 new CmdParam("house-evo"),
-                new CmdParam("expenses-src", "m=12"),
-                new CmdParam("fire", "m=12"),
-                new CmdParam("fi", "m=12"),
-                new CmdParam("re", "m=12"),
+                new CmdParam("expenses-src", "m=12", arg("m")),
+                new CmdParam("fire", "m=12", arg("m")),
+                new CmdParam("fi", "m=12", arg("m")),
+                new CmdParam("re", "m=12", arg("m")),
                 new CmdParam("p-type-evo"),
                 new CmdParam("p-type-evo-pct"),
                 new CmdParam("ccl"),
-                new CmdParam("buy", "usd=9970 eur=0 transfer=50 detail=false"),
-                new CmdParam("sell", "usd=9970 oversell=false detail=false fifo=symbol"),
+                new CmdParam("buy", "usd=9970 eur=0 transfer=50 detail=false",
+                        arg("usd"), arg("eur"), arg("transfer"), bool("detail")),
+                new CmdParam("sell", "usd=9970 oversell=false detail=false fifo=symbol",
+                        arg("usd"), bool("oversell"), bool("detail"), arg("fifo", "symbol", "isin")),
                 new CmdParam("lti"),
                 new CmdParam("bbpp-evo"),
                 new CmdParam("routes"),
@@ -399,45 +411,68 @@ public class ConsoleReports {
                 new CmdParam("all-charts"),
                 new CmdParam("cash"),
                 new CmdParam("sev"),
-                new CmdParam("income-src", "m=12"),
-                new CmdParam("pf", "detail=false nominal=false"),
-                new CmdParam("eras", "nominal=false cash=false"),
-                new CmdParam("income-src-pct", "m=12"),
+                new CmdParam("income-src", "m=12", arg("m")),
+                new CmdParam("pf", "detail=false nominal=false", bool("detail"), bool("nominal")),
+                new CmdParam("eras", "nominal=false cash=false", bool("nominal"), bool("cash")),
+                new CmdParam("income-src-pct", "m=12", arg("m")),
                 new CmdParam("income-acc"),
                 new CmdParam("income-acc-pct"),
-                new CmdParam("savings-avg", "m=12"),
+                new CmdParam("savings-avg", "m=12", arg("m")),
                 new CmdParam("income-table"),
                 new CmdParam("income-year-table"),
                 new CmdParam("savings-dist"),
                 new CmdParam("savings-dist-pct"),
-                new CmdParam("income-avg-change", "m=12"),
-                new CmdParam("income", "by=(year|half|quarter*) months=12"),
-                new CmdParam("savings", "by=(year|half|quarter*)"),
-                new CmdParam("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current"),
-                new CmdParam("p-evo", "type=(all|ETF|BONO|PF|FCI)"),
-                new CmdParam("p-evo-pct", "type=(all*|ETF|BONO|PF|FCI)"),
-                new CmdParam("inv", "type=(all*|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false"),
-                new CmdParam("inv-evo", "type=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                new CmdParam("inv-evo-pct", "curency=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false"),
-                new CmdParam("invested", "type=(long*|all|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all)"),
-                new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false"),
-                new CmdParam("xirr", "nominal=false cash=true start=1999"),
-                new CmdParam("house", "years=(null|1|2|3|4|5|6|7|8|9|10)"),
-                new CmdParam("income-evo", "months=12 ars=false"),
-                new CmdParam("bbpp", "year=yyyy"),
+                new CmdParam("income-avg-change", "m=12", arg("m")),
+                new CmdParam("income", "by=(year|half|quarter*) months=12",
+                        arg("by", "year", "half", "quarter"), arg("months")),
+                new CmdParam("savings", "by=(year|half|quarter*)",
+                        arg("by", "year", "half", "quarter")),
+                new CmdParam("p", "type=(full*|pct) subtype=(all*|equity|bond|commodity|cash) y=current m=current",
+                        arg("type", "full", "pct"),
+                        arg("subtype", "all", "equity", "bond", "commodity", "cash"),
+                        arg("y"), arg("m")),
+                new CmdParam("p-evo", "type=(all|ETF|BONO|PF|FCI)",
+                        arg("type", "all", "ETF", "BONO", "PF", "FCI")),
+                new CmdParam("p-evo-pct", "type=(all*|ETF|BONO|PF|FCI)",
+                        arg("type", "all", "ETF", "BONO", "PF", "FCI")),
+                new CmdParam("inv", "type=(all*|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false",
+                        arg("type", "all", "CSPX", "MEUD", "EIMI", "XRSU", "exus", "r2k"), bool("nominal")),
+                new CmdParam("inv-evo", "type=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false",
+                        arg("type", "all", "CSPX", "MEUD", "EIMI", "XRSU"), bool("nominal")),
+                new CmdParam("inv-evo-pct", "type=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false",
+                        arg("type", "all", "CSPX", "MEUD", "EIMI", "XRSU"), bool("nominal")),
+                new CmdParam("invested", "type=(long*|all|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all)",
+                        arg("type", "long", "all", "CSPX", "MEUD", "EIMI", "XRSU", "fci", "etf", "pf", "pfusd", "pfars"),
+                        arg("group", "m", "q", "h", "y", "all")),
+                new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false",
+                        bool("nominal"), bool("cash"), arg("start"), bool("tw")),
+                new CmdParam("xirr", "nominal=false cash=true start=1999",
+                        bool("nominal"), bool("cash"), arg("start")),
+                new CmdParam("house", "years=(null|1|2|3|4|5|6|7|8|9|10)",
+                        arg("years", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")),
+                new CmdParam("income-evo", "months=12 ars=false", arg("months"), bool("ars")),
+                new CmdParam("bbpp", "year=yyyy", arg("year")),
                 new CmdParam("bbppstatus"),
                 new CmdParam("q"),
                 new CmdParam("expenses-grouped"),
                 new CmdParam("exit"),
-                new CmdParam("ppi", "type=group|groupall|full*"),
-                new CmdParam("savings-net-change", "m=12"),
-                new CmdParam("savings-avg-pct", "m=12"),
-                new CmdParam("expenses", "by=(year|half|quarter*|month) type=(taxes|insurance|phone|services|home|entertainment) m=12"),
-                new CmdParam("expenses-change", "m=12"),
-                new CmdParam("expenses-evo", "type=(full|taxes|insurance|services|home|entertainment) m=12"),
-                new CmdParam("savings-evo", "type=(BO|LIQ|EQ)"),
-                new CmdParam("dca", "type=(q*|h|y|m)"),
-                new CmdParam("pos", "nominal=false egr=false")
+                new CmdParam("ppi", "type=group|groupall|full*",
+                        arg("type", "group", "groupall", "full")),
+                new CmdParam("savings-net-change", "m=12", arg("m")),
+                new CmdParam("savings-avg-pct", "m=12", arg("m")),
+                new CmdParam("expenses", "by=(year|half|quarter*|month) type=(taxes|insurance|phone|services|home|entertainment) m=12",
+                        arg("by", "year", "half", "quarter", "month"),
+                        arg("type", "taxes", "insurance", "phone", "services", "home", "entertainment"),
+                        arg("m")),
+                new CmdParam("expenses-change", "m=12", arg("m")),
+                new CmdParam("expenses-evo", "type=(full|taxes|insurance|services|home|entertainment) m=12",
+                        arg("type", "full", "taxes", "insurance", "services", "home", "entertainment"),
+                        arg("m")),
+                new CmdParam("savings-evo", "type=(BO|LIQ|EQ)",
+                        arg("type", "BO", "LIQ", "EQ")),
+                new CmdParam("dca", "type=(q*|h|y|m)",
+                        arg("type", "q", "h", "y", "m")),
+                new CmdParam("pos", "nominal=false egr=false", bool("nominal"), bool("egr"))
         );
     }
 
@@ -485,11 +520,7 @@ public class ConsoleReports {
                                 .build())
                         .parser(new DefaultParser())
                         .variable(LineReader.HISTORY_FILE, Paths.get(CACHE_DIR + "/.command_history"))
-                        .completer(
-                                new StringsCompleter(
-                                        COMMANDS.stream()
-                                                .map(CmdParam::name)
-                                                .toList()))
+                        .completer(new CommandCompleter(COMMANDS))
                         .build();
 
                 while (true) {
@@ -986,15 +1017,62 @@ public class ConsoleReports {
         }
     }
 
-    public static record CmdParam(String name, String argsDesc) {
+    public static record CommandArgument(String name, List<String> values) {
+
+        public CommandArgument(String name) {
+            this(name, List.of());
+        }
+    }
+
+    public static record CmdParam(String name, String argsDesc, List<CommandArgument> arguments) {
+
+        public CmdParam(String name, String argsDesc, CommandArgument... arguments) {
+            this(name, argsDesc, List.of(arguments));
+        }
 
         public CmdParam(String name, String argsDesc) {
-            this.name = name;
-            this.argsDesc = argsDesc;
+            this(name, argsDesc, List.of());
         }
 
         public CmdParam(String name) {
-            this(name, "");
+            this(name, "", List.of());
+        }
+    }
+
+    private static final class CommandCompleter implements Completer {
+
+        private final Map<String, CmdParam> byName;
+
+        CommandCompleter(List<CmdParam> commands) {
+            this.byName = commands.stream()
+                    .collect(toMap(CmdParam::name, Function.identity(), (a, b) -> a));
+        }
+
+        @Override
+        public void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
+            if (line.wordIndex() <= 0) {
+                this.byName.keySet()
+                        .forEach(name -> candidates.add(new Candidate(name)));
+                return;
+            }
+
+            final var command = this.byName.get(line.words().get(0));
+            if (command == null) {
+                return;
+            }
+
+            for (var argument : command.arguments()) {
+                if (argument.values().isEmpty()) {
+                    final var key = argument.name() + "=";
+                    // complete=false so JLine does not append a trailing space
+                    // and the user can keep typing the value.
+                    candidates.add(new Candidate(key, key, null, null, null, null, false));
+                } else {
+                    for (var value : argument.values()) {
+                        candidates.add(new Candidate(argument.name() + "=" + value));
+                    }
+                }
+            }
         }
     }
 
