@@ -385,6 +385,21 @@ public class ConsoleReports {
         return new CommandArgument(name, List.of("true", "false"));
     }
 
+    private static CommandArgument currencies(String name, List<String> nonCurrencyvValues) {
+
+        return new CommandArgument(name, Stream.concat(
+                nonCurrencyvValues.stream(),
+                Arrays.stream(Currency.values()).map(Enum::name)).toList());
+    }
+
+    private static CommandArgument etfs(String name, List<String> nonCurrencyvValues) {
+
+        return new CommandArgument(name, Stream.concat(
+                nonCurrencyvValues.stream(),
+                Stream.of(CSPX, XRSU, EIMI, EMIM, MEUD, MEUS, RTWO, RTWOE, Currency.XUSE)
+                        .map(Enum::name)).toList());
+    }
+
     private static Stream<CmdParam> commandParams() {
         return Stream.of(
                 new CmdParam("savings-change", "m=1", arg("m")),
@@ -435,14 +450,18 @@ public class ConsoleReports {
                         arg("type", "all", "ETF", "BONO", "PF", "FCI")),
                 new CmdParam("p-evo-pct", "type=(all*|ETF|BONO|PF|FCI)",
                         arg("type", "all", "ETF", "BONO", "PF", "FCI")),
-                new CmdParam("inv", "type=(all*|CSPX|MEUD|EIMI|XRSU|exus|r2k) nominal=false",
-                        arg("type", "all", "CSPX", "MEUD", "EIMI", "XRSU", "exus", "r2k"), bool("nominal")),
-                new CmdParam("inv-evo", "type=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false",
-                        arg("type", "all", "CSPX", "MEUD", "EIMI", "XRSU"), bool("nominal")),
-                new CmdParam("inv-evo-pct", "type=(all*|CSPX|MEUD|EIMI|XRSU) nominal=false",
-                        arg("type", "all", "CSPX", "MEUD", "EIMI", "XRSU"), bool("nominal")),
+                new CmdParam("inv", "type=(all*|CSPX|MEUD|EIMI|XRSU|exus|r2k|us) nominal=false",
+                        etfs("type", List.of("all", "exus", "r2k", "us")),
+                        bool("nominal")),
+                new CmdParam("inv-evo", "type=(CSPX|MEUD|EIMI|XRSU) nominal=false",
+                        etfs("type", List.of()),
+                        bool("nominal")),
+                new CmdParam("inv-evo-pct", "type=(CSPX|MEUD|EIMI|XRSU) nominal=false",
+                        etfs("type", List.of()),
+                        bool("nominal")),
                 new CmdParam("invested", "type=(long*|all|CSPX|MEUD|EIMI|XRSU|fci|etf|pf|pfusd|pfars) group=(m|q*|h|y|all)",
-                        arg("type", "long", "all", "CSPX", "MEUD", "EIMI", "XRSU", "fci", "etf", "pf", "pfusd", "pfars"),
+                        currencies("type",
+                                List.of("long", "all", "fci", "etf", "pf", "pfusd", "pfars")),
                         arg("group", "m", "q", "h", "y", "all")),
                 new CmdParam("mdr", "nominal=false cash=true start=1999 tw=false",
                         bool("nominal"), bool("cash"), arg("start"), bool("tw")),
