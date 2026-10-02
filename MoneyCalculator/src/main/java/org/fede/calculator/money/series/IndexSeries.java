@@ -29,4 +29,6 @@ public interface IndexSeries extends Series {
     BigDecimal getIndex(LocalDate day);
 
     BigDecimal getIndex(YearMonth ym);
+
+    boolean hasIndex(YearMonth ym);
 }
