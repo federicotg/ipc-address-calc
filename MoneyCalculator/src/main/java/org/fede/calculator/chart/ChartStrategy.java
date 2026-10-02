@@ -27,10 +27,24 @@ import org.jfree.chart.JFreeChart;
 public interface ChartStrategy {
 
     static ChartStrategy currentStrategy() {
+        final String format = SeriesReader.readEnvironment().getProperty("chart.format");
+        if (format != null && !format.isBlank()) {
+            return switch (format.trim().toLowerCase()) {
+                case "jpg", "jpeg" ->
+                    new NonTransparentRGBStrategy();
+                case "png-indexed", "indexed" ->
+                    new IndexedPNGStrategy();
+                case "png" ->
+                    new JFreeChartDefaultStrategy();
+                default ->
+                    throw new IllegalArgumentException(
+                            "Unknown chart.format '" + format + "'. Use jpg, png, or png-indexed.");
+            };
+        }
+
         return SeriesReader.readBoolean("chart.transparency")
                 ? new JFreeChartDefaultStrategy()
                 : new NonTransparentRGBStrategy();
-
     }
 
     void saveChart(String file, JFreeChart chart, int width, int height) throws IOException;

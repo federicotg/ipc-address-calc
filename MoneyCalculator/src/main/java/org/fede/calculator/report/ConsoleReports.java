@@ -890,6 +890,11 @@ public class ConsoleReports {
                 .invEvo(currency, nominal);
     }
 
+    private void etfPrice(String[] args, String paramName) {
+        final var type = this.paramsValue(args, paramName).getOrDefault("type", "CSPX");
+        new EtfPriceChart(this.series).create(Currency.valueOf(type.toUpperCase()));
+    }
+
     private void portfolioEvo(String[] args, String paramName) {
         this.console.appendLine(this.format.title("Portfolio Evolution"));
         final var params = this.paramsValue(args, paramName);
@@ -1028,6 +1033,15 @@ public class ConsoleReports {
             this.averageMonthsSavedInCash(12);
             //this.ripte();
             pos.investedChart(false, "all");
+
+            EtfPriceChart etfPriceChart = new EtfPriceChart(this.series);
+
+            etfPriceChart.create(Currency.CSPX);
+            etfPriceChart.create(Currency.RTWO);
+            etfPriceChart.create(Currency.XUSE);
+            etfPriceChart.create(Currency.MEUD);
+            etfPriceChart.create(Currency.EIMI);
+            etfPriceChart.create(Currency.XRSU);
 
         } catch (IOException ex) {
 

@@ -48,4 +48,6 @@ public interface ForeignExchange extends Series {
 
     Currency getSourceCurrency();
 
+    boolean hasRate(YearMonth ym);
+
 }

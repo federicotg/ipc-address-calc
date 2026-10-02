@@ -68,6 +68,11 @@ public class JSONIndexSeries extends IndexSeriesSupport {
     }
 
     @Override
+    public boolean hasIndex(YearMonth ym) {
+        return this.data.containsKey(ym);
+    }
+
+    @Override
     public YearMonth getFrom() {
         return this.from;
     }

@@ -22,7 +22,9 @@ import java.awt.Font;
 import java.awt.Stroke;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import org.fede.calculator.money.Currency;
 import static org.fede.calculator.chart.ValueFormat.CURRENCY;
 import static org.fede.calculator.chart.ValueFormat.DATE;
@@ -34,7 +36,12 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.ItemLabelAnchor;
+import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.renderer.AbstractRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.ui.TextAnchor;
+import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
@@ -86,13 +93,22 @@ public class TimeSeriesChart {
             String chartName,
             List<TimeSeries> series,
             String filename) {
-        this.createFromTimeSeries(chartName, series, Currency.USD, filename);
+        this.createFromTimeSeries(chartName, series, Currency.USD, Map.of(), filename);
     }
 
     public void createFromTimeSeries(
             String chartName,
             List<TimeSeries> series,
             Currency c,
+            String filename) {
+        this.createFromTimeSeries(chartName, series, c, Map.of(), filename);
+    }
+
+    public void createFromTimeSeries(
+            String chartName,
+            List<TimeSeries> series,
+            Currency c,
+            Map<LocalDate, String> pointLabels,
             String filename) {
 
         var label = switch (this.style.valueFormat()) {
@@ -122,7 +138,11 @@ public class TimeSeriesChart {
         xyPlot.setRangeGridlinePaint(Color.BLACK);
         xyPlot.setDomainGridlinePaint(Color.BLACK);
 
-        final var renderer = xyPlot.getRenderer();
+        var renderer = xyPlot.getRenderer();
+        if (pointLabels != null && !pointLabels.isEmpty()) {
+            renderer = labeledRenderer(collection, pointLabels);
+            xyPlot.setRenderer(renderer);
+        }
 
         for (int i = 0; i < COLORS.length; i++) {
             renderer.setSeriesPaint(i, COLORS[i]);
@@ -162,6 +182,41 @@ public class TimeSeriesChart {
             System.err.println("Unexpected error. " + ioEx.getMessage());
             ioEx.printStackTrace(System.err);
         }
+    }
+
+    private XYLineAndShapeRenderer labeledRenderer(
+            TimeSeriesCollection collection,
+            Map<LocalDate, String> pointLabels) {
+        var renderer = new XYLineAndShapeRenderer(true, true) {
+            @Override
+            public boolean getItemShapeVisible(int series, int item) {
+                return pointLabel(collection, pointLabels, series, item) != null;
+            }
+
+            @Override
+            public boolean isItemLabelVisible(int series, int item) {
+                return pointLabel(collection, pointLabels, series, item) != null;
+            }
+        };
+        renderer.setDefaultItemLabelGenerator(
+                (dataset, series, item) -> pointLabel(collection, pointLabels, series, item));
+        renderer.setDefaultItemLabelFont(this.font);
+        renderer.setDefaultItemLabelPaint(Color.BLACK);
+        renderer.setDefaultPositiveItemLabelPosition(
+                new ItemLabelPosition(ItemLabelAnchor.OUTSIDE12, TextAnchor.BOTTOM_CENTER));
+        return renderer;
+    }
+
+    private static String pointLabel(
+            TimeSeriesCollection collection,
+            Map<LocalDate, String> pointLabels,
+            int series,
+            int item) {
+        var period = collection.getSeries(series).getDataItem(item).getPeriod();
+        if (period instanceof Day day) {
+            return pointLabels.get(LocalDate.of(day.getYear(), day.getMonth(), day.getDayOfMonth()));
+        }
+        return null;
     }
 
 }

@@ -44,6 +44,11 @@ public abstract class IndexSeriesSupport extends SeriesSupport implements IndexS
         }
 
         @Override
+        public boolean hasIndex(YearMonth ym) {
+            return true;
+        }
+
+        @Override
         public int hashCode() {
             return Objects.hashCode(this);
         }

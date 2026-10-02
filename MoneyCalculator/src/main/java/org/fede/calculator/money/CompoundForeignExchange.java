@@ -83,4 +83,9 @@ public class CompoundForeignExchange extends SeriesSupport implements ForeignExc
         return this.first.getSourceCurrency();
     }
 
+    @Override
+    public boolean hasRate(YearMonth ym) {
+        return this.first.hasRate(ym) && this.second.hasRate(ym);
+    }
+
 }

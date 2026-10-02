@@ -116,4 +116,9 @@ public class SimpleForeignExchange extends SeriesSupport implements ForeignExcha
         return this.fromCurrency;
     }
 
+    @Override
+    public boolean hasRate(YearMonth ym) {
+        return this.getSeries().hasIndex(ym);
+    }
+
 }
