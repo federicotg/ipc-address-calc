@@ -137,7 +137,7 @@ public class Expenses {
 
             this.console.appendLine(this.format.subtitle("Subscriptions"));
             this.expenseDetailReport(monthSet,
-                    List.of(SUSCRIPCIONES_ARS, SUSCRIPCIONES_USD));
+                    List.of(SUSCRIPCIONES_ARS, SUSCRIPCIONES_USD, EMERGENCIA, NETFLIX));
 
         };
 
