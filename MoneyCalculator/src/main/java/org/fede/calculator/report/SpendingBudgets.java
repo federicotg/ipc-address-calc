@@ -25,22 +25,14 @@ import org.fede.calculator.money.MoneyAmount;
  * @author fede
  */
 public record SpendingBudgets(
-        MoneyAmount essentialWithRent,
-        MoneyAmount essentialWithoutRent,
-        MoneyAmount everythingWithRent,
-        MoneyAmount everythingWithoutRent,
-        MoneyAmount current,
-        MoneyAmount currentWithHealth
+        MoneyAmount essential,
+        MoneyAmount everything
         ) {
 
     public Stream<BigDecimal> asStream() {
-        return Stream.of(essentialWithRent,
-                essentialWithoutRent,
-                everythingWithRent,
-                everythingWithoutRent,
-                currentWithHealth,
-                current)
-                .distinct()
+        return Stream.of(essential,
+                everything
+        )
                 .map(MoneyAmount::amount);
     }
 }

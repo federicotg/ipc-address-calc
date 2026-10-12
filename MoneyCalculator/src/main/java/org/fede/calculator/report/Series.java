@@ -100,21 +100,18 @@ public class Series {
                         mapping(this::asSeries, Collectors.reducing(MoneyAmountSeries::add))));
     }
 
-   
     private String essentialDiscretionaryClassification(SpendingSeries s) {
         return switch (s) {
             case BBPP, COMIDA, INMOBILIARIO_43, MONOTRIBUTO, SALUD, LUZ, EXPENSAS, MONOTRIBUTO_ANGELES, GAS, MUNICIPAL_43, REPARACIONES ->
                 ESSENTIAL;
             case OTHER, OTHER_USD, DEPARTAMENTOS, INVESTMENTS ->
                 IRREGULAR;
-            case ATLANTICO, BOX, COLON_CAMUZZI,COLON_EXPENSAS,COLON_EDEA,COLON_FLOW,COLON_OSSE,COLON_MUNICIPAL, CABLEVISION, CELULAR_A, CELULAR_F, COMIDA_DISC, CONTADORA, EMERGENCIA, IOMA, ITAU_UY, NETFLIX, SUSCRIPCIONES_ARS, SUSCRIPCIONES_USD, SELLOS, LIMPIEZA, SANTANDER, SEGURO, TELEFONO_43, VIAJES, VIAJES_USD, XBOX ->
+            case ATLANTICO, ANGELES_OTHER_DISC, BOX, COLON_CAMUZZI, COLON_EXPENSAS, COLON_EDEA, COLON_FLOW, COLON_OSSE, COLON_MUNICIPAL, CABLEVISION, CELULAR_A, CELULAR_F, COMIDA_DISC, CONTADORA, EMERGENCIA, IOMA, ITAU_UY, NETFLIX, SUSCRIPCIONES_ARS, SUSCRIPCIONES_USD, SELLOS, LIMPIEZA, SANTANDER, SEGURO, TELEFONO_43, VIAJES, VIAJES_USD, XBOX ->
                 DISCRETIONARY;
             case UNCLASSIFIED ->
                 OTHER;
         };
     }
-    
-    
 
     public Map<String, List<MoneyAmountSeries>> getRealUSDExpensesByType() {
 
@@ -140,6 +137,15 @@ public class Series {
         }
 
         return this.realUSDExpensesByType;
+    }
+
+    public Map<SpendingSeries, MoneyAmountSeries> allSpending() {
+        // init lazy values
+        this.getRealUSDExpensesByType();
+
+        return Arrays.stream(SpendingSeries.values())
+                .collect(Collectors.toMap(Function.identity(), this::asSeries));
+
     }
 
     private MoneyAmountSeries asSeries(SpendingSeries s) {

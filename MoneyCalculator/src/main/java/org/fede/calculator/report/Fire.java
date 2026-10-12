@@ -47,14 +47,9 @@ import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.PortfolioProjections;
 import org.fede.calculator.money.SlidingWindow;
-import static org.fede.calculator.report.Series.ESSENTIAL;
-import static org.fede.calculator.report.Series.OTHER;
-import static org.fede.calculator.report.Series.IRREGULAR;
-import static org.fede.calculator.report.Series.DISCRETIONARY;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import static org.fede.calculator.money.series.SeriesReader.readPercent;
-import static org.fede.calculator.money.series.SeriesReader.readUSD;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.xy.XYSeries;
 
@@ -63,8 +58,6 @@ import org.jfree.data.xy.XYSeries;
  * @author fede
  */
 public class Fire {
-
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
 
     private static final DateTimeFormatter DF = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
             .withLocale(Locale.ENGLISH);
@@ -88,61 +81,34 @@ public class Fire {
         return Future.contingencyHealth();
     }
 
-    public void fi(int months) {
+    public void fi() {
 
-        final var budgets = this.budgets(months);
-        final var essential = this.sumExpenses(ESSENTIAL, months);
-        final var discretionary = this.sumExpenses(DISCRETIONARY, months);
-        final var irregular = this.sumExpenses(IRREGULAR, 3 * months);
-        final var other = this.sumExpenses(OTHER, months);
+        final var budgets = this.budgets();
         final var totalSavings = this.series.currentSavingsUSD();
 
-        this.console.appendLine(this.format.subtitle(months + "-Month Average Spending"));
+        this.console.appendLine(this.format.subtitle("Retirement Monthly Average Spending"));
 
         final var futureHealth = this.futureHealth();
         final var currentHealth = this.currentHealth();
-        final var futureRent = SeriesReader.readUSD("futureRent");
 
-        //final var currentlyEstimated = this.currentlyEstimatedSavings();
         final var currentCash = this.series.realSavings("LIQ").getAmount(YearMonth.now());
 
-        this.conceptLine("Essential", essential);
-        this.conceptLine("Other", other);
-        if (!futureRent.isZero()) {
-            this.conceptLine("Future Rent", futureRent);
-        }
+        this.conceptLine("Essential", budgets.essential());
         this.conceptLine("Current Health Cost", currentHealth);
         this.conceptLine(" ➞ Future Health Cost", futureHealth);
-        this.conceptLine("Discretionary", discretionary);
-        this.conceptLine("Irregular (*)", irregular);
 
         this.console.appendLine("");
 
-        this.conceptLine("Current " + months + " months",
-                budgets.current(),
-                this.format.currency(
-                        ForeignExchanges.getMoneyAmountForeignExchange(USD, Currency.ARS)
-                                .apply(budgets.current(), YearMonth.now()), 18)
-        );
-
-        this.conceptLine("Current + Health - CGT",
-                budgets.currentWithHealth(),
-                this.format.currency(
-                        ForeignExchanges.getMoneyAmountForeignExchange(USD, Currency.ARS)
-                                .apply(budgets.currentWithHealth(), YearMonth.now()), 18)
-        );
-
         this.conceptLine("Future Essential",
-                budgets.essentialWithoutRent(),
+                budgets.essential(),
                 this.format.currency(
                         ForeignExchanges.getMoneyAmountForeignExchange(USD, Currency.ARS)
-                                .apply(budgets.essentialWithoutRent(), YearMonth.now()), 18)
+                                .apply(budgets.essential(), YearMonth.now()), 18)
         );
 
         this.console.appendLine(this.format.subtitle("Savings"));
 
         this.conceptLine("Current", totalSavings);
-        //this.conceptLine(" ➞ Current Estimated", currentlyEstimated);
 
         var allEquity = this.series.realSavings("EQ").getAmount(YearMonth.now());
         var sp500 = this.last.lastAmount(Currency.CSPX);
@@ -166,27 +132,9 @@ public class Fire {
 
         final var sev = Future.severance();
 
-        final var sales1 = readUSD("futureRealState.1");
-        final var sales2 = readUSD("futureRealState.2");
-        final var sales3 = readUSD("futureRealState.3");
-
-        this.coveredCashLine("Current cash", currentCash, budgets.currentWithHealth());
+        this.coveredCashLine("Current cash", currentCash, budgets.everything());
         this.coveredCashLine(" ? Current cash & sev.", currentCash
-                .add(sev.getTotal()), budgets.currentWithHealth(), false);
-        this.coveredCashLine(" ➞ Near future sales", 
-                currentCash
-                .add(sales1), 
-                budgets.currentWithHealth(), false);
-        this.coveredCashLine("   ➞ Future sales",
-                currentCash
-                        .add(sales1)
-                        .add(sales2), 
-                budgets.currentWithHealth(), false);
-        this.coveredCashLine("     ➞ All sales", 
-                currentCash
-                        .add(sales1)
-                        .add(sales2)
-                        .add(sales3), budgets.currentWithHealth(), false);
+                .add(sev.getTotal()), budgets.everything(), false);
 
     }
 
@@ -207,7 +155,7 @@ public class Fire {
 
     }
 
-    public void re(int months) {
+    public void re() {
 
         final var unlp = this.series.incomeSource("unlp");
         final var initialMonth = unlp.yearMonthStream()
@@ -229,21 +177,12 @@ public class Fire {
                 result[1])
         );
 
-        final var budgets = this.budgets(months);
+        final var budgets = this.budgets();
         //final var currentlyEstimated = this.currentlyEstimatedSavings();
         final var currentSavings = this.series.currentSavingsUSD();
         final var totalSavingsPlusCurrentlyEstimated = currentSavings;
 
         this.spendingReport("Current", this.withdrawalRate(), totalSavingsPlusCurrentlyEstimated);
-        this.console.appendLine(MessageFormat.format(
-                "{0}{1} ARS {2}",
-                this.format.text("Current Spending", 20),
-                this.format.currency(budgets.currentWithHealth(), 20),
-                this.format.text(
-                        this.format.currencyShort(
-                                ForeignExchanges.getMoneyAmountForeignExchange(USD, Currency.ARS)
-                                        .apply(budgets.currentWithHealth(), YearMonth.now()).amount()), 20)
-        ));
 
         final var percents = this.percents();
 
@@ -274,15 +213,8 @@ public class Fire {
                         ))
                 .forEach(this.console::appendLine);
 
-        this.conceptLine("Current Avg. " + months + " months", budgets.current(), "❌");
-        this.conceptLine("Current + Health - CGT", budgets.currentWithHealth(), "✅");
-        this.conceptLine("Essential", budgets.essentialWithoutRent(), "✅");
-        this.conceptLine("Everything", budgets.everythingWithoutRent(), "✅✅");
-        final var futureRent = SeriesReader.readUSD("futureRent");
-        if (!futureRent.isZero()) {
-            this.conceptLine("Essential + Rent", budgets.essentialWithRent(), "✅✅");
-            this.conceptLine("Everything + Rent", budgets.everythingWithRent(), "✅✅✅");
-        }
+        this.conceptLine("Essential", budgets.essential(), "✅");
+        this.conceptLine("Everything", budgets.everything(), "✅✅");
 
     }
 
@@ -300,24 +232,24 @@ public class Fire {
                 .capeWR(equity.us(), equity.exUs(), equity.em(), bonds, cash);
     }
 
-    public void fiReport(int months) {
+    public void fiReport() {
         this.console.appendLine(this.format.title("F.I.R.E."));
-        this.fi(months);
+        this.fi();
 
     }
 
-    public void reReport(int months) {
+    public void reReport() {
         this.console.appendLine(this.format.title("F.I.R.E."));
-        this.re(months);
+        this.re();
 
     }
 
-    public void fire(int months) {
+    public void fire() {
 
         this.console.appendLine(this.format.title("F.I.R.E."));
 
-        this.fi(months);
-        this.re(months);
+        this.fi();
+        this.re();
 
     }
 
@@ -388,50 +320,21 @@ public class Fire {
                 .toList();
     }
 
-    private SpendingBudgets budgets(int months) {
+    private SpendingBudgets budgets() {
+
+        var spendingTiers = new Future(series).retirementSpending();
+        final var essential = spendingTiers.get(Future.ExpenseTier.ESSENTIAL).getAmount(YearMonth.now());
+        final var everything = spendingTiers.get(Future.ExpenseTier.DISCRETIONARY).getAmount(YearMonth.now())
+                .add(essential)
+                .add(spendingTiers.get(Future.ExpenseTier.LUXURY).getAmount(YearMonth.now()));
 
         final var capitalGainsTaxRate = readPercent("capitalGainsTaxRate");
         final var costBasisPct = readPercent("costBasisPct");
 
-        final var futureHealth = this.futureHealth();
-        final var futureRent = readUSD("futureRent");
-        final var essential = this.sumExpenses(ESSENTIAL, months);
-        final var discretionary = this.sumExpenses(DISCRETIONARY, months);
-        final var irregular = this.sumExpenses(Series.IRREGULAR, 3 * months);
-        final var other = this.sumExpenses(Series.OTHER, months);
-
-        final var essentialWithoutRent = essential
-                .add(futureHealth)
-                .add(other);
-        final var essentialWithRent = essentialWithoutRent
-                .add(futureRent);
-        final var everythingWithoutRent = essential
-                .add(futureHealth)
-                .add(other)
-                .add(discretionary)
-                .add(irregular);
-        final var everythingWithRent = everythingWithoutRent
-                .add(futureRent);
-
         return new SpendingBudgets(
-                //essentialWithRent
-                adjustforCapitalGains(essentialWithRent, capitalGainsTaxRate, costBasisPct),
-                //essentialWithoutRent
-                adjustforCapitalGains(essentialWithoutRent, capitalGainsTaxRate, costBasisPct),
-                //everythingWithRent
-                adjustforCapitalGains(everythingWithRent, capitalGainsTaxRate, costBasisPct),
-                //everythingWithoutRent
-                adjustforCapitalGains(everythingWithoutRent, capitalGainsTaxRate, costBasisPct),
-                //current
-                adjustforCapitalGains(Stream.of(essential, discretionary, irregular, other)
-                        .reduce(ZERO_USD, MoneyAmount::add),
-                        capitalGainsTaxRate, costBasisPct),
-                //currentWithHealth
-                essential
-                        .add(this.currentHealth())
-                        .add(discretionary)
-                        .add(irregular)
-                        .add(other));
+                adjustforCapitalGains(essential, capitalGainsTaxRate, costBasisPct),
+                adjustforCapitalGains(everything, capitalGainsTaxRate, costBasisPct)
+        );
     }
 
     private MoneyAmount adjustforCapitalGains(
@@ -600,23 +503,13 @@ public class Fire {
 
     public void fireChartBudgets(int months) {
 
-        final var budgets = this.budgets(months);
+        final var budgets = this.budgets();
 
-        List<XYSeries> ss;
+        List<XYSeries> ss
+                = List.of(
+                        this.fireSeries("Essential", budgets.essential()),
+                        this.fireSeries("Everything", budgets.everything()));
 
-        if (budgets.essentialWithRent().amount().compareTo(budgets.essentialWithoutRent().amount()) != 0) {
-            ss = List.of(
-                    this.fireSeries("Essential-Rent", budgets.essentialWithoutRent()),
-                    this.fireSeries("Essential+Rent", budgets.essentialWithRent()),
-                    this.fireSeries("Everything-Rent", budgets.everythingWithoutRent()),
-                    this.fireSeries("Everything+Rent", budgets.everythingWithRent()),
-                    this.fireSeries("Curr. Spending", budgets.current()));
-        } else {
-            ss = List.of(
-                    this.fireSeries("Essential", budgets.essentialWithoutRent()),
-                    this.fireSeries("Everything", budgets.everythingWithoutRent()),
-                    this.fireSeries("Curr. Spending", budgets.current()));
-        }
         this.fireChart(ss,
                 "FIRE  Months",
                 "Fire numbers based on last " + months + " months of spending and retirement budget.",

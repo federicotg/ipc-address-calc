@@ -139,6 +139,9 @@ public class Expenses {
             this.expenseDetailReport(monthSet,
                     List.of(SUSCRIPCIONES_ARS, SUSCRIPCIONES_USD, EMERGENCIA, NETFLIX));
 
+            this.console.appendLine(this.format.subtitle("Ángeles Other Discretionary"));
+            this.expenseDetailReport(monthSet,
+                    List.of(ANGELES_OTHER_DISC));
         };
 
         new By()
@@ -167,7 +170,7 @@ public class Expenses {
     private void vacationsExpensesReport(Set<YearMonth> months) {
         this.expenseDetailReport(months,
                 List.of(VIAJES,
-                        VIAJES_USD,
+                        //VIAJES_USD,
                         COLON_CAMUZZI,
                         COLON_EDEA,
                         COLON_EXPENSAS,
@@ -193,7 +196,7 @@ public class Expenses {
 
     private void irregularExpenseDetailReport(Set<YearMonth> months) {
         this.expenseDetailReport(months,
-                List.of(REPARACIONES, OTHER, OTHER_USD));
+                List.of(REPARACIONES, OTHER, OTHER_USD, VIAJES_USD));
     }
 
     private MoneyAmount expenseDetailReport(Set<YearMonth> months, List<SpendingSeries> series) {

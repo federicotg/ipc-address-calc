@@ -22,14 +22,26 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.fede.calculator.chart.ChartStyle;
+import org.fede.calculator.chart.Scale;
+import org.fede.calculator.chart.StackedTimeSeriesChart;
+import org.fede.calculator.chart.ValueFormat;
 import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.ForeignExchanges;
+import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
+import org.fede.calculator.money.SlidingWindow;
+import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 
 /**
@@ -37,6 +49,12 @@ import org.fede.calculator.money.series.SeriesReader;
  * @author fede
  */
 public class Future {
+
+    private final Series series;
+
+    public Future(Series series) {
+        this.series = series;
+    }
 
     private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
 
@@ -149,5 +167,75 @@ public class Future {
 
     public static MoneyAmount contingencyHealth() {
         return health("currentHealth");
+    }
+
+
+    public Map<ExpenseTier, MoneyAmountSeries> retirementSpending() {
+        final var allSpeding = this.series.allSpending();
+        final var healthCostSeries = Inflation.usdInflation().adjust(futureHealth(), YearMonth.now());
+
+        // add future health cost
+        allSpeding.put(SpendingSeries.SALUD,
+                allSpeding.get(SpendingSeries.SALUD).add(healthCostSeries));
+
+        final var regularAverage = new SlidingWindow(12);
+        final var irregularAverage = new SlidingWindow(36);
+        final var veryIrregularAverage = new SlidingWindow(60);
+
+        for (var s : SpendingSeries.values()) {
+            final var avg = switch(s){
+                case REPARACIONES, OTHER, OTHER_USD -> irregularAverage;
+                case INVESTMENTS -> veryIrregularAverage;
+                default -> regularAverage;
+            };
+            allSpeding.put(s,
+                    avg.average(allSpeding.get(s)));
+        }
+
+        final Map<ExpenseTier, Optional<MoneyAmountSeries>> grouped = Arrays.stream(SpendingSeries.values())
+                .collect(
+                        Collectors.groupingBy(this::tier,
+                                Collectors.mapping(allSpeding::get,
+                                        Collectors.reducing(MoneyAmountSeries::add))));
+
+        final var essential = grouped.get(ExpenseTier.ESSENTIAL).get();
+        essential.setName("Essential");
+        final var discretionary = grouped.get(ExpenseTier.DISCRETIONARY).get();
+        discretionary.setName("Discretionary");
+        final var luxury = grouped.get(ExpenseTier.LUXURY).get();
+        luxury.setName("Luxury");
+        return Map.of(
+                ExpenseTier.ESSENTIAL, essential,
+                ExpenseTier.DISCRETIONARY, discretionary,
+                ExpenseTier.LUXURY, luxury
+        );
+    }
+
+    public void retirementSpendingEvolution() {
+
+        var map = this.retirementSpending();
+        new StackedTimeSeriesChart(
+                new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
+                .create("Retirement Spending",
+                        List.of(
+                                map.get(ExpenseTier.ESSENTIAL),
+                                map.get(ExpenseTier.DISCRETIONARY),
+                                map.get(ExpenseTier.LUXURY)),
+                        "retirement-spending");
+
+    }
+
+    private ExpenseTier tier(SpendingSeries s) {
+        return switch (s) {
+            case UNCLASSIFIED, BBPP, COMIDA, EMERGENCIA, EXPENSAS, GAS, INMOBILIARIO_43, IOMA, LUZ, MONOTRIBUTO, MONOTRIBUTO_ANGELES, MUNICIPAL_43, REPARACIONES, SALUD, CABLEVISION, CELULAR_A, CELULAR_F -> ExpenseTier.ESSENTIAL;
+            case INVESTMENTS, TELEFONO_43, ANGELES_OTHER_DISC, COMIDA_DISC, LIMPIEZA, SELLOS, CONTADORA, OTHER_USD, OTHER, VIAJES -> ExpenseTier.DISCRETIONARY;
+            case ATLANTICO, SANTANDER, BOX, COLON_CAMUZZI, COLON_EDEA, COLON_EXPENSAS, COLON_FLOW, COLON_MUNICIPAL, COLON_OSSE, DEPARTAMENTOS, ITAU_UY, NETFLIX, SEGURO, SUSCRIPCIONES_ARS, SUSCRIPCIONES_USD, VIAJES_USD, XBOX -> ExpenseTier.LUXURY;
+        };
+    }
+
+    public enum ExpenseTier {
+        ESSENTIAL,
+        DISCRETIONARY,
+        LUXURY
     }
 }

@@ -52,6 +52,9 @@ public enum SpendingSeries {
     SANTANDER("santander"),
     BOX("box"),
     COMIDA_DISC("comida-disc"),
+    
+    ANGELES_OTHER_DISC("angeles-other-disc"),
+    
     OTHER("other"),
     OTHER_USD("other-usd"),
     REPARACIONES("reparaciones"),

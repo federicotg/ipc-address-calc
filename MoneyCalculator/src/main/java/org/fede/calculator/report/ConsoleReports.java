@@ -66,12 +66,9 @@ import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.Accumulator;
-import org.fede.calculator.money.CPIInflation;
 import static org.fede.calculator.money.Currency.EMIM;
 import org.fede.calculator.money.SingleHttpClientSupplier;
 import org.fede.calculator.money.SlidingWindow;
-import org.fede.calculator.money.series.JSONDataPoint;
-import org.fede.calculator.money.series.JSONIndexSeries;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
@@ -192,14 +189,14 @@ public class ConsoleReports {
 
             case "fire" ->
                 () -> new Fire(format, series, console)
-                .fire(Integer.parseInt(me.paramsValue(args, "fire").getOrDefault("m", "12")));
+                .fire();
 
             case "fi" ->
                 () -> new Fire(format, series, console)
-                .fiReport(Integer.parseInt(me.paramsValue(args, "fi").getOrDefault("m", "12")));
+                .fiReport();
             case "re" ->
                 () -> new Fire(format, series, console)
-                .reReport(Integer.parseInt(me.paramsValue(args, "re").getOrDefault("m", "12")));
+                .reReport();
 
             case "savings" ->
                 () -> me.savings(args, "savings");
@@ -408,9 +405,9 @@ public class ConsoleReports {
                 new CmdParam("pa"),
                 new CmdParam("house-evo"),
                 new CmdParam("expenses-src", "m=12", arg("m")),
-                new CmdParam("fire", "m=12", arg("m")),
-                new CmdParam("fi", "m=12", arg("m")),
-                new CmdParam("re", "m=12", arg("m")),
+                new CmdParam("fire"),
+                new CmdParam("fi"),
+                new CmdParam("re"),
                 new CmdParam("p-type-evo"),
                 new CmdParam("p-type-evo-pct"),
                 new CmdParam("ccl"),
@@ -890,10 +887,6 @@ public class ConsoleReports {
                 .invEvo(currency, nominal);
     }
 
-    private void etfPrice(String[] args, String paramName) {
-        final var type = this.paramsValue(args, paramName).getOrDefault("type", "CSPX");
-        new EtfPriceChart(this.series).create(Currency.valueOf(type.toUpperCase()));
-    }
 
     private void portfolioEvo(String[] args, String paramName) {
         this.console.appendLine(this.format.title("Portfolio Evolution"));
@@ -1019,19 +1012,14 @@ public class ConsoleReports {
             Function<BigDecimal, String> shortFormat = this.format::currencyShort;
 
             swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-050", new BigDecimal("0.5"), shortFormat);
-            swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-060", new BigDecimal("0.6"), shortFormat);
-            swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-065", new BigDecimal("0.65"), shortFormat);
-            swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-070", new BigDecimal("0.7"), shortFormat);
             swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-075", new BigDecimal("0.75"), shortFormat);
 
             savings.savingRate(12);
             savings.savingRate(24);
             savings.savingRate(6);
             this.averageSpendingPortfolioPercent();
-            //this.inflation();
             inv.benchmarks();
             this.averageMonthsSavedInCash(12);
-            //this.ripte();
             pos.investedChart(false, "all");
 
             EtfPriceChart etfPriceChart = new EtfPriceChart(this.series);
@@ -1161,7 +1149,7 @@ public class ConsoleReports {
             int months,
             MoneyAmountSeries savings,
             MoneyAmountSeries expenses) {
-        final var averageSpenses = new SlidingWindow(months).average(expenses);
+        final var averageSpenses = months == 0 ? expenses : new SlidingWindow(months).average(expenses);
         final List<TimeSeriesDatapoint> s = new ArrayList<>();
 
         final var monthsInAYear = BigDecimal.valueOf(12l);
@@ -1191,14 +1179,7 @@ public class ConsoleReports {
                 .reduce(MoneyAmountSeries::add)
                 .get();
 
-        final MoneyAmountSeries regularExpenses = this.series.getRealUSDExpensesByType()
-                .entrySet()
-                .stream()
-                .filter(e -> !e.getKey().equals(Series.IRREGULAR))
-                .map(Map.Entry::getValue)
-                .flatMap(Collection::stream)
-                .reduce(MoneyAmountSeries::add)
-                .get();
+        final var future = new Future(this.series);
 
         new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
                 .createFromTimeSeries("Portfolio Spending",
@@ -1210,25 +1191,21 @@ public class ConsoleReports {
                         ),
                         "portfolio-spending");
 
+        final var retirementSpendingMap = future.retirementSpending();
+        final var essential = retirementSpendingMap.get(Future.ExpenseTier.ESSENTIAL);
+        final var total = retirementSpendingMap.get(Future.ExpenseTier.DISCRETIONARY)
+                .add(essential)
+                .add(retirementSpendingMap.get(Future.ExpenseTier.LUXURY));
+
         new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
-                .createFromTimeSeries("Portfolio Regular Spending",
+                .createFromTimeSeries("Portfolio Retirement Spending",
                         List.of(
-                                this.portfolioSpendingSeries("Actual", 12, savings, actualExpenses),
-                                this.portfolioSpendingSeries("Regular", 12, savings, regularExpenses)
+                                this.portfolioSpendingSeries("Total", 0, savings, total),
+                                this.portfolioSpendingSeries("Essential", 0, savings, essential)
                         ),
-                        "portfolio-regular-spending");
+                        "portfolio-retirement-spending");
 
-        final var agg = new SlidingWindow(12);
-        var ripte = this.series.ripteInRealUSD();
-        final var avgRipte = agg.average(ripte);
-
-        new TimeSeriesChart(new ChartStyle(ValueFormat.NUMBER, Scale.LINEAR))
-                .createFromTimeSeries("RIPTE Spending",
-                        List.of(
-                                this.relativeSeries("Actual", avgRipte, agg.average(actualExpenses), 1, ripte.getTo()),
-                                this.relativeSeries("Regular", avgRipte, agg.average(regularExpenses), 1, ripte.getTo())
-                        ),
-                        "ripte-regular-spending");
+        future.retirementSpendingEvolution();
 
     }
 
@@ -1247,31 +1224,6 @@ public class ConsoleReports {
         }
         RebalancingReport.equity(format, series, console)
                 .sell(new MoneyAmount(usd, USD), allowOversell, detail, "isin".equalsIgnoreCase(fifo));
-    }
-
-    private void inflation() {
-
-        var inflation = new CPIInflation(
-                new JSONIndexSeries(
-                        Stream.concat(
-                                SeriesReader.read("index/bls.json", SeriesReader.INDEX_SERIES_TYPE_REFERENCE).stream(),
-                                SeriesReader.read("index/bls-hist.json", SeriesReader.INDEX_SERIES_TYPE_REFERENCE).stream())
-                                .sorted(Comparator.comparing(JSONDataPoint::yearMonth))
-                                .toList()),
-                USD);
-
-        new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
-                .createFromTimeSeries(
-                        "Inflation",
-                        List.of(
-                                ChartSeriesMapper.asTimeSeries(
-                                        inflation.adjust(
-                                                new MoneyAmount(
-                                                        BigDecimal.ONE.movePointRight(2),
-                                                        USD),
-                                                YearMonth.now()))),
-                        USD,
-                        "inflation");
     }
 
     private void severance() {
@@ -1426,29 +1378,13 @@ public class ConsoleReports {
 
     }
 
-    private void ripte() {
-        final var ripteSeries = this.series.ripteInRealUSD();
-
-        new TimeSeriesChart(new ChartStyle(ValueFormat.NUMBER, Scale.LINEAR))
-                .createFromTimeSeries(
-                        "RIPTE Real USD avg. 12 months",
-                        List.of(
-                                ChartSeriesMapper.asTimeSeries(
-                                        new SlidingWindow(12).average(ripteSeries),
-                                        ripteSeries.getTo()
-                                )
-                        ),
-                        USD,
-                        "ripte");
-    }
-
     private SpendingTier tierClassification(SpendingSeries s) {
         return switch (s) {
             case ATLANTICO, CONTADORA, INVESTMENTS, ITAU_UY, SELLOS, SANTANDER, BOX ->
                 SpendingTier.FINANCIAL;
             case UNCLASSIFIED ->
                 SpendingTier.OTHER;
-            case COMIDA_DISC, XBOX, VIAJES, VIAJES_USD, SUSCRIPCIONES_USD, SEGURO, SUSCRIPCIONES_ARS, NETFLIX, LIMPIEZA, EMERGENCIA ->
+            case COMIDA_DISC, ANGELES_OTHER_DISC, XBOX, VIAJES, VIAJES_USD, SUSCRIPCIONES_USD, SEGURO, SUSCRIPCIONES_ARS, NETFLIX, LIMPIEZA, EMERGENCIA ->
                 SpendingTier.OPTIONAL;
             case REPARACIONES, EXPENSAS, DEPARTAMENTOS, COLON_EXPENSAS ->
                 SpendingTier.MAINTENANCE;
