@@ -123,7 +123,11 @@ public class RebalancingReport {
      * @param transfer
      * @param detail
      */
-    public void buy(MoneyAmount usd, MoneyAmount eur, MoneyAmount transfer, boolean detail) {
+    public void buy(
+            MoneyAmount usd,
+            MoneyAmount eur,
+            MoneyAmount transfer,
+            boolean detail) {
 
         if (usd.amount().compareTo(ZERO) < 0
                 || eur.amount().compareTo(ZERO) < 0
@@ -131,6 +135,13 @@ public class RebalancingReport {
             throw new IllegalArgumentException("Only positive amounts.");
         }
 
+        var transactionCurrency = USD;
+        
+        if(usd.isZero() && !eur.isZero()){
+            transactionCurrency = Currency.EUR;
+            transfer = ZERO_USD;
+        }
+        
         final var now = YearMonth.now();
         final var contribution = usd.isZero() && eur.isZero()
                 ? new MoneyAmount(BigDecimal.valueOf(9970l), USD)
@@ -153,7 +164,14 @@ public class RebalancingReport {
         this.console.appendLine(this.format.subtitle("Initial State"));
         this.print(virtualValues);
         this.console.appendLine("Contribution: ", this.format.currency(contribution, 16));
-        this.rebalance(weights, virtualValues, prices, contribution, transfer, detail);
+        this.rebalance(
+                transactionCurrency,
+                this.weights, 
+                virtualValues, 
+                prices, 
+                contribution, 
+                transfer, 
+                detail);
 
     }
 
@@ -321,6 +339,7 @@ public class RebalancingReport {
     }
 
     private void rebalance(
+            Currency transactionCurrency,
             Map<Currency, BigDecimal> w,
             Map<Currency, MoneyAmount> v,
             Map<Currency, MoneyAmount> p,
@@ -430,7 +449,7 @@ public class RebalancingReport {
                 this.console.appendLine(shares.entrySet()
                         .stream()
                         .filter(e -> e.getValue().signum() > 0)
-                        .map(e -> this.asInvestment(e.getKey(), e.getValue(), c, shares, p, feeAttrbution))
+                        .map(e -> this.asInvestment(transactionCurrency, e.getKey(), e.getValue(), shares, p, feeAttrbution))
                         .map(om::writeValueAsString)
                         .collect(Collectors.joining(",\n", ",\n", "")));
             }
@@ -447,26 +466,34 @@ public class RebalancingReport {
     }
 
     private Investment asInvestment(
-            Currency curr,
+            Currency transactionCurrency,
+            Currency investmentCurr,
             BigDecimal quantity,
-            MoneyAmount c,
             Map<Currency, BigDecimal> shares,
             Map<Currency, MoneyAmount> p,
             Map<Currency, MoneyAmount> feeAttribution) {
         var i = new Investment();
         var in = new InvestmentEvent();
-        in.setCurrency(c.currency());
-        in.setAmount(shares.get(curr)
-                .multiply(p.get(curr).amount(), C));
+        in.setCurrency(transactionCurrency);
+
+        // invested amount
+        final var investedUSD = new MoneyAmount(
+                shares.get(investmentCurr)
+                        .multiply(p.get(investmentCurr).amount(), C), USD);
+
+        final var investedInTargetCurrency = ForeignExchanges.getForeignExchange(USD, transactionCurrency)
+                .exchange(investedUSD, transactionCurrency, YearMonth.now());
+
+        in.setAmount(investedInTargetCurrency.amount().setScale(3, C.getRoundingMode()));
         in.setDate(LocalDate.now());
         in.setFee(ZERO);
-        in.setTransferFee(feeAttribution.get(curr).amount());
+        in.setTransferFee(feeAttribution.get(investmentCurr).amount().setScale(3, C.getRoundingMode()));
         in.setFx(null);
         i.setIn(in);
-        i.setComment("lse");
+        i.setComment(USD == transactionCurrency ? "lse" : "gettex");
         i.setType(InvestmentType.ETF);
         var asset = new InvestmentAsset();
-        asset.setCurrency(curr);
+        asset.setCurrency(investmentCurr);
         asset.setAmount(quantity);
         i.setInvestment(asset);
         return i;
@@ -703,4 +730,5 @@ public class RebalancingReport {
             Investment soldInvestment) {
 
     }
+
 }

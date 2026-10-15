@@ -361,7 +361,7 @@ public class ConsoleReports {
                 new BigDecimal(me.paramsValue(args, "sell").getOrDefault("usd", "9970")),
                 Boolean.parseBoolean(me.paramsValue(args, "sell").getOrDefault("oversell", "false")),
                 Boolean.parseBoolean(me.paramsValue(args, "sell").getOrDefault("detail", "false")),
-                me.paramsValue(args, "sell").getOrDefault("fifo", "symbol")
+                me.paramsValue(args, "sell").getOrDefault("fifo", "isin")
                 );
 
             case "ppi" ->
@@ -887,7 +887,6 @@ public class ConsoleReports {
                 .invEvo(currency, nominal);
     }
 
-
     private void portfolioEvo(String[] args, String paramName) {
         this.console.appendLine(this.format.title("Portfolio Evolution"));
         final var params = this.paramsValue(args, paramName);
@@ -1165,7 +1164,12 @@ public class ConsoleReports {
                                     .divide(savings.getAmount(ym).amount(), MathConstants.C)));
             ym = ym.plusMonths(1);
         }
-        return ChartSeriesMapper.asTimeSeries(s, prefix + " Avg. " + months + "-month");
+        
+        final var label = months == 0
+                ? " Average"
+                : " Avg. " + months + "-month";
+
+        return ChartSeriesMapper.asTimeSeries(s, prefix + label);
     }
 
     private void averageSpendingPortfolioPercent() {
@@ -1390,7 +1394,7 @@ public class ConsoleReports {
                 SpendingTier.MAINTENANCE;
             case SALUD, MUNICIPAL_43, MONOTRIBUTO_ANGELES, MONOTRIBUTO, IOMA, BBPP, INMOBILIARIO_43, GAS, LUZ, CABLEVISION, CELULAR_A, CELULAR_F, TELEFONO_43, COMIDA, COLON_CAMUZZI, COLON_EDEA, COLON_FLOW, COLON_OSSE, COLON_MUNICIPAL ->
                 SpendingTier.BASE;
-            case OTHER, OTHER_USD ->
+            case OTHER, OTHER_USD, EXTRAORDINARY ->
                 SpendingTier.EXCEPTIONAL;
         };
     }

@@ -40,9 +40,10 @@ import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.SlidingWindow;
+import org.fede.calculator.money.series.MoneyAmountItem;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
+import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 
 /**
  *
@@ -169,30 +170,50 @@ public class Future {
         return health("currentHealth");
     }
 
+    private MoneyAmountSeries ema(MoneyAmountSeries series, int n) {
+
+        MoneyAmountSeries result = new SortedMapMoneyAmountSeries(series.getCurrency(),
+                series.getName() + " EMA(" + n + ")");
+
+        final BigDecimal alpha = BigDecimal.TWO
+                .divide(BigDecimal.valueOf(n).add(BigDecimal.ONE, C), C);
+
+        final BigDecimal oneMinusAlpha = BigDecimal.ONE
+                .subtract(alpha, C);
+
+        final MoneyAmountItem[] items = series.items().toArray(MoneyAmountItem[]::new);
+
+        MoneyAmount ema = items[0].amount();
+
+        for (var i = 1; i < items.length; i++) {
+            ema = items[i].amount().adjust(ONE, alpha)
+                    .add(ema.adjust(ONE, oneMinusAlpha));
+
+            result.putAmount(items[i].ym(), ema);
+
+        }
+        return result;
+    }
 
     public Map<ExpenseTier, MoneyAmountSeries> retirementSpending() {
         final var allSpeding = this.series.allSpending();
+        allSpeding.remove(SpendingSeries.EXTRAORDINARY);
         final var healthCostSeries = Inflation.usdInflation().adjust(futureHealth(), YearMonth.now());
 
         // add future health cost
         allSpeding.put(SpendingSeries.SALUD,
                 allSpeding.get(SpendingSeries.SALUD).add(healthCostSeries));
 
-        final var regularAverage = new SlidingWindow(12);
-        final var irregularAverage = new SlidingWindow(36);
-        final var veryIrregularAverage = new SlidingWindow(60);
-
-        for (var s : SpendingSeries.values()) {
-            final var avg = switch(s){
-                case REPARACIONES, OTHER, OTHER_USD -> irregularAverage;
-                case INVESTMENTS -> veryIrregularAverage;
-                default -> regularAverage;
-            };
+        for (var s : allSpeding.keySet()) {
             allSpeding.put(s,
-                    avg.average(allSpeding.get(s)));
+                    this.ema(allSpeding.get(s), switch (s) {
+                case REPARACIONES, OTHER, OTHER_USD, VIAJES_USD, DEPARTAMENTOS -> 36;
+                default -> 12;
+            }));
         }
 
-        final Map<ExpenseTier, Optional<MoneyAmountSeries>> grouped = Arrays.stream(SpendingSeries.values())
+        final Map<ExpenseTier, Optional<MoneyAmountSeries>> grouped =  allSpeding.keySet()
+                .stream()
                 .collect(
                         Collectors.groupingBy(this::tier,
                                 Collectors.mapping(allSpeding::get,
@@ -227,7 +248,7 @@ public class Future {
 
     private ExpenseTier tier(SpendingSeries s) {
         return switch (s) {
-            case UNCLASSIFIED, BBPP, COMIDA, EMERGENCIA, EXPENSAS, GAS, INMOBILIARIO_43, IOMA, LUZ, MONOTRIBUTO, MONOTRIBUTO_ANGELES, MUNICIPAL_43, REPARACIONES, SALUD, CABLEVISION, CELULAR_A, CELULAR_F -> ExpenseTier.ESSENTIAL;
+            case UNCLASSIFIED, BBPP, COMIDA, EMERGENCIA, EXPENSAS, GAS, INMOBILIARIO_43, IOMA, LUZ, MONOTRIBUTO, MONOTRIBUTO_ANGELES, MUNICIPAL_43, REPARACIONES, SALUD, CABLEVISION, CELULAR_A, CELULAR_F, EXTRAORDINARY -> ExpenseTier.ESSENTIAL;
             case INVESTMENTS, TELEFONO_43, ANGELES_OTHER_DISC, COMIDA_DISC, LIMPIEZA, SELLOS, CONTADORA, OTHER_USD, OTHER, VIAJES -> ExpenseTier.DISCRETIONARY;
             case ATLANTICO, SANTANDER, BOX, COLON_CAMUZZI, COLON_EDEA, COLON_EXPENSAS, COLON_FLOW, COLON_MUNICIPAL, COLON_OSSE, DEPARTAMENTOS, ITAU_UY, NETFLIX, SEGURO, SUSCRIPCIONES_ARS, SUSCRIPCIONES_USD, VIAJES_USD, XBOX -> ExpenseTier.LUXURY;
         };

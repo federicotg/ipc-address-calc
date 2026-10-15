@@ -696,8 +696,6 @@ public class Savings {
 
         final var futureIlliquidAssets = new MoneyAmount(BigDecimal.valueOf(137500), Currency.USD);// 50% 47 53 moreno colon
 
-        // 50% caja, severance y deuda casa
-        //final var futureCash = new MoneyAmount(BigDecimal.valueOf(69320), Currency.USD);
         this.console.appendLine(format("Future est. net worth is {0,number,currency}.",
                 totalSavings
                         .add(currentIlliquidAssets)
@@ -824,6 +822,23 @@ public class Savings {
 
     }
 
+    private BigDecimal extraordinary(int year) {
+        final var extraordinary = this.series.allSpending().get(SpendingSeries.EXTRAORDINARY);
+
+        return IntStream.rangeClosed(1, 12)
+                .mapToObj(m -> YearMonth.of(year, m))
+                .map(extraordinary::getAmountOrElseZero)
+                .reduce(ZERO_USD, MoneyAmount::add)
+                .amount();
+    }
+
+    private BigDecimal adjustment(int year) {
+        return switch (year) {
+            case 2011 -> this.spendingAdjustment().amount();
+            default -> this.extraordinary(year);
+        };
+    }
+
     public void spendingByYear() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
@@ -836,9 +851,7 @@ public class Savings {
                                         .subtract(this.yearSavings(year))
                                         .amount()
                                         .multiply(months)
-                                        .subtract(year == 2011
-                                                ? this.spendingAdjustment().amount()
-                                                : ZERO)));
+                                        .subtract(this.adjustment(year))));
 
         var avg = values.values()
                 .stream()
@@ -871,10 +884,7 @@ public class Savings {
                                         this.yearRegularIncome(year).amount(),
                                         this.yearIncome(year)
                                                 .subtract(this.yearSavings(year))
-                                                .subtract(year == 2011
-                                                        ? new MoneyAmount(this.spendingAdjustment().amount()
-                                                                .divide(BigDecimal.valueOf(12), C), USD)
-                                                        : ZERO_USD)
+                                                .subtract(new MoneyAmount(this.adjustment(year).divide(BigDecimal.valueOf(12), C), USD))
                                                 .adjust(this.yearRegularIncome(year).amount(), ONE)
                                                 .amount(),
                                         year == 2011 ? "2011(*)" : String.valueOf(year)

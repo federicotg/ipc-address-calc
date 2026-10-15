@@ -69,6 +69,7 @@ public enum SpendingSeries {
     ATLANTICO("atlantico"),
     ITAU_UY("itau-uy"),
     INVESTMENTS("investments"),
+    EXTRAORDINARY("extraordinary"),
     UNCLASSIFIED("unclassified");
 
     private final String seriesName;

@@ -28,6 +28,6 @@ public interface Aggregator {
 
     MoneyAmountSeries sum(MoneyAmountSeries series);
 
-  
+
 
 }

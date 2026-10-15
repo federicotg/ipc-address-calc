@@ -196,7 +196,7 @@ public class Expenses {
 
     private void irregularExpenseDetailReport(Set<YearMonth> months) {
         this.expenseDetailReport(months,
-                List.of(REPARACIONES, OTHER, OTHER_USD, VIAJES_USD));
+                List.of(REPARACIONES, OTHER, OTHER_USD, VIAJES_USD, EXTRAORDINARY));
     }
 
     private MoneyAmount expenseDetailReport(Set<YearMonth> months, List<SpendingSeries> series) {
