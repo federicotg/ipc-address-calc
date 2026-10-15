@@ -21,19 +21,17 @@ import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import java.text.MessageFormat;
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.ARS;
 import static org.fede.calculator.money.Currency.EUR;
 import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.MathConstants.C;
-import org.fede.calculator.money.series.IndexSeries;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentEvent;
-import org.fede.calculator.money.series.SeriesReader;
 
 /**
  *
@@ -43,8 +41,17 @@ public class CedularTax {
 
     private static final BigDecimal TAX_RATE = new BigDecimal("0.15");
 
-    private static final String USD_OFFICIAL = "index/peso-dolar-oficial.json";
-    private static final String EUR_OFFICIAL = "index/peso-euro-oficial.json";
+    private static final Map<LocalDate, BigDecimal> USD_OFFICIAL = Map.ofEntries(
+            Map.entry(LocalDate.of(2025, 4, 3), new BigDecimal("1094.50")),
+            Map.entry(LocalDate.of(2025, 4, 8), new BigDecimal("1096.00")),
+            Map.entry(LocalDate.of(2025, 4, 14), new BigDecimal("1230.00")),
+            Map.entry(LocalDate.of(2025, 4, 24), new BigDecimal("1190.00")),
+            Map.entry(LocalDate.of(2025, 5, 1), new BigDecimal("1190.00")),
+            Map.entry(LocalDate.of(2025, 5, 9), new BigDecimal("1150.00")),
+            Map.entry(LocalDate.of(2025, 5, 16), new BigDecimal("1160.00")),
+            Map.entry(LocalDate.of(2025, 5, 23), new BigDecimal("1150.00")));
+
+    private static final Map<LocalDate, BigDecimal> EUR_OFFICIAL = Map.of();
 
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -174,7 +181,7 @@ public class CedularTax {
         if (currency == ARS) {
             return ONE;
         }
-        final var seriesName = switch (currency) {
+        final var rates = switch (currency) {
             case USD ->
                 USD_OFFICIAL;
             case EUR ->
@@ -182,16 +189,14 @@ public class CedularTax {
             default ->
                 throw new IllegalArgumentException("No hay tipo de cambio oficial para " + currency);
         };
-        final IndexSeries fx = SeriesReader.readIndexSeries(seriesName);
-        final var month = YearMonth.from(saleDate);
-        if (!fx.hasIndex(month)) {
+        final var rate = rates.get(saleDate);
+        if (rate == null) {
             throw new IllegalArgumentException(MessageFormat.format(
-                    "No hay tipo de cambio oficial de {0} para {1} en {2}.",
+                    "No hay tipo de cambio oficial de {0} para el {1}.",
                     currency,
-                    month,
-                    seriesName));
+                    DATE.format(saleDate)));
         }
-        return fx.getIndex(saleDate);
+        return rate;
     }
 
     private record Sale(
