@@ -303,6 +303,9 @@ public class ConsoleReports {
             case "bbpp" ->
                 () -> me.bbpp(args, "bbpp");
 
+            case "cedular" ->
+                () -> me.cedular(args, "cedular");
+
             case "bbppstatus" ->
                 new BBPP(format, series, console)::status;
 
@@ -468,6 +471,7 @@ public class ConsoleReports {
                         arg("years", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")),
                 new CmdParam("income-evo", "months=12 ars=false", arg("months"), bool("ars")),
                 new CmdParam("bbpp", "year=yyyy", arg("year")),
+                new CmdParam("cedular", "year=yyyy", arg("year")),
                 new CmdParam("bbppstatus"),
                 new CmdParam("q"),
                 new CmdParam("expenses-grouped"),
@@ -734,6 +738,13 @@ public class ConsoleReports {
 
         new BBPP(format, series, console)
                 .bbpp(Integer.parseInt(params.getOrDefault("year", SeriesReader.readEnvironment().getProperty("bbpp.year"))));
+    }
+
+    private void cedular(String[] args, String paramName) {
+        final var year = Optional.ofNullable(this.paramsValue(args, paramName).get("year"))
+                .map(Integer::parseInt)
+                .orElseGet(() -> YearMonth.now().getYear() - 1);
+        new CedularTax(this.format, this.series, this.console).report(year);
     }
 
     private void monthlySavings(String[] args, String name) {
