@@ -367,10 +367,7 @@ public class ConsoleReports {
                 me.paramsValue(args, "sell").getOrDefault("fifo", "isin")
                 );
 
-            case "ppi" ->
-                () -> new Investments(console, format, bar, series)
-                .ppiTransfer(me.paramsValue(args, "ppi").getOrDefault("type", "full"));
-
+            
             default ->
                 () -> console.appendLine("Unknown parameter.");
 
@@ -476,8 +473,6 @@ public class ConsoleReports {
                 new CmdParam("q"),
                 new CmdParam("expenses-grouped"),
                 new CmdParam("exit"),
-                new CmdParam("ppi", "type=group|groupall|full*",
-                        arg("type", "group", "groupall", "full")),
                 new CmdParam("savings-net-change", "m=12", arg("m")),
                 new CmdParam("savings-avg-pct", "m=12", arg("m")),
                 new CmdParam("expenses", "by=(year|half|quarter*|month) type=(taxes|insurance|phone|services|home|entertainment) m=12",

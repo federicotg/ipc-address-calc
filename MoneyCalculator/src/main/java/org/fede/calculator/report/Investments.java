@@ -27,7 +27,6 @@ import java.math.RoundingMode;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Month;
 import static java.time.Month.DECEMBER;
 import static java.time.Month.JANUARY;
@@ -46,7 +45,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
@@ -99,8 +97,6 @@ import org.jfree.data.xy.XYSeries;
 public class Investments {
 
     private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
-
-    private final DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneId.systemDefault());
 
     private final Comparator<Investment> comparator = comparing(Investment::getInitialDate, naturalOrder());
 
@@ -1129,192 +1125,9 @@ public class Investments {
         }
     }
 
-    // todo nominal
-    public void ppiTransfer(String type) {
 
-        final Function<InvestmentEvent, MoneyAmount> grossSaleMapper
-                = (InvestmentEvent e) -> e.getMoneyAmount()
-                        .add(e.getFeeMoneyAmount(USD))
-                        .add(e.getTransferFeeMoneyAmount(USD));
 
-        final SoldAndBought<MoneyAmount> netAmountSummary
-                = this.summarize(
-                        grossSaleMapper,
-                        InvestmentEvent::getMoneyAmount,
-                        ZERO_USD,
-                        MoneyAmount::add);
 
-        final Function<InvestmentEvent, MoneyAmount> feeMapper = e -> e.getTransferFeeMoneyAmount(USD)
-                .add(e.getFeeMoneyAmount(USD));
-
-        final SoldAndBought<MoneyAmount> feeSummary
-                = this.summarize(
-                        feeMapper,
-                        feeMapper,
-                        ZERO_USD,
-                        MoneyAmount::add);
-
-        final var fees = feeSummary.sold.add(feeSummary.bought);
-
-        this.console.appendLine(this.format.subtitle("Comisiones"));
-        this.console.appendLine("Sold ", this.format.currency(feeSummary.sold, 16));
-        this.console.appendLine("Bought ", this.format.currency(feeSummary.bought, 16));
-        this.console.appendLine("Total:", this.format.currencyPL(fees.amount().negate(), 16),
-                " ",
-                this.format.percent(fees.amount().divide(netAmountSummary.sold.amount(), C), 6)
-        );
-
-        this.console.appendLine(this.format.subtitle("Monto Neto"));
-        this.console.appendLine("Sold ", this.format.currency(netAmountSummary.sold, 16));
-
-        this.console.appendLine(this.format.subtitle("Tax"));
-
-        //bna comprador
-        final Map<String, BigDecimal> bnaFX = Map.of(
-                "2025-04-03", BigDecimal.valueOf(1075),
-                "2025-04-08", BigDecimal.valueOf(107625).movePointLeft(2),
-                "2025-04-14", BigDecimal.valueOf(1198),
-                "2025-04-24", BigDecimal.valueOf(1174),
-                "2025-05-01", BigDecimal.valueOf(1170),
-                "2025-05-09", BigDecimal.valueOf(1136),
-                "2025-05-16", BigDecimal.valueOf(1142),
-                "2025-05-23", BigDecimal.valueOf(11335).movePointLeft(1)
-        );
-        final var col2Width = 25;
-        final var col1Width = 9;
-
-        final var arsCapitalGain = this.series.getInvestments()
-                .stream()
-                .filter(Investment::isETF)
-                .filter(i -> i.getOut() != null)
-                .map(i -> this.capitalGainARS(i, bnaFX))
-                .reduce(MoneyAmount.zero(ARS), MoneyAmount::add);
-
-        final var arsTax = arsCapitalGain
-                .adjust(BigDecimal.ONE, SeriesReader.readPercent("capitalGainsTaxRate"));
-
-        this.console.appendLine(this.format.text("Capital Gains", col1Width),
-                this.format.currency(arsCapitalGain,
-                        col2Width));
-
-        final var country = Map.of(
-                MEUD, "Luxemburg",
-                MEUS, "Luxemburg"
-        );
-
-        Map<String, MoneyAmount> byCountry = this.series.getInvestments()
-                .stream()
-                .filter(Investment::isETF)
-                .filter(i -> i.getOut() != null)
-                .collect(Collectors.groupingBy(
-                        i -> country.getOrDefault(i.getCurrency(), "Ireland"),
-                        Collectors.reducing(
-                                MoneyAmount.zero(ARS),
-                                i -> this.capitalGainARS(i, bnaFX),
-                                MoneyAmount::add)
-                ));
-
-        this.console.appendLine(this.format.text("Ireland", col1Width),
-                this.format.currency(byCountry.get("Ireland"), col2Width));
-
-        this.console.appendLine(this.format.text("Luxemburg", col1Width),
-                this.format.currency(byCountry.get("Luxemburg"), col2Width));
-
-        this.console.appendLine(this.format.text("Tax", col1Width),
-                this.format.currency(arsTax,
-                        col2Width));
-
-        this.console.appendLine(this.format.subtitle("Detail"));
-
-        this.console.appendLine(MessageFormat.format("{0}{1}{2}{3}{4}{5}{6}{7}",
-                this.format.center("Date", 11),
-                this.format.center("Curr.", 6),
-                this.format.center("Cant.", 9),
-                this.format.center("Amount", 19),
-                this.format.center("Fee", 17),
-                this.format.center("CG USD", 17),
-                this.format.center("TC", 17),
-                this.format.center("CG ARS", 21)
-        ));
-
-        final Function<Investment, InvestmentGroup> classifier = switch (type) {
-            case "group" ->
-                (Investment i) -> new InvestmentGroup(i.getCurrency(), dtf.format(i.getOut().getDate()));
-            case "groupall" ->
-                (Investment i) -> new InvestmentGroup(i.getCurrency(), "");
-            default ->
-                null;
-        };
-
-        if (classifier != null) {
-
-            Map<InvestmentGroup, Investment> grouped
-                    = this.series.getInvestments()
-                            .stream()
-                            .filter(Investment::isETF)
-                            .filter(i -> i.getOut() != null)
-                            .collect(Collectors.groupingBy(
-                                    classifier,
-                                    Collectors.reducing(null, this::union)
-                            ));
-
-            grouped.values()
-                    .stream()
-                    .sorted(Comparator.comparing((Investment i) -> i.getOut().getDate())
-                            .thenComparing(Comparator.comparing((Investment i) -> i.getCurrency())))
-                    .map(e -> this.sellReport(e, bnaFX))
-                    .forEach(this.console::appendLine);
-        } else {
-            this.series.getInvestments()
-                    .stream()
-                    .filter(Investment::isETF)
-                    .filter(i -> i.getOut() != null)
-                    .sorted(Comparator.comparing((Investment i) -> i.getOut().getDate())
-                            .thenComparing(Comparator.comparing(Investment::getCurrency)))
-                    .map(i -> this.sellReport(i, bnaFX))
-                    .forEach(this.console::appendLine);
-        }
-    }
-
-    private record InvestmentGroup(Currency currency, String date) {
-
-    }
-
-    private Investment union(Investment left, Investment right) {
-
-        if (left == null) {
-            return right;
-        }
-        if (right == null) {
-            return left;
-        }
-
-        var res = new Investment();
-        res.setIn(this.union(left.getIn(), right.getIn()));
-        res.setOut(this.union(left.getOut(), right.getOut()));
-
-        var c1 = left.getComment();
-        var c2 = right.getComment();
-
-        if (c1 == null && c2 == null) {
-            res.setComment(null);
-        } else {
-            res.setComment(c1 == null ? c2 : c1);
-        }
-        res.setType(left.getType());
-        res.setInvestment(this.union(left.getInvestment(), right.getInvestment()));
-        return res;
-    }
-
-    private InvestmentAsset union(InvestmentAsset left, InvestmentAsset right) {
-
-        InvestmentAsset res = new InvestmentAsset();
-
-        res.setAmount(left.getAmount().add(right.getAmount()));
-        res.setCurrency(left.getCurrency());
-
-        return res;
-    }
 
     private InvestmentEvent union(InvestmentEvent left, InvestmentEvent right) {
 
@@ -1343,72 +1156,9 @@ public class Investments {
         return res;
     }
 
-    private MoneyAmount capitalGainARS(Investment i, Map<String, BigDecimal> bnaFX) {
-        return new MoneyAmount(i.getOut()
-                .getMoneyAmount()
-                .subtract(this.cost(i))
-                .adjust(ONE, bnaFX.get(dtf.format(i.getOut().getDate()))).amount(),
-                ARS);
-    }
-
-    private String sellReport(Investment i, Map<String, BigDecimal> bnaFX) {
-
-        return MessageFormat.format("{0} {1} {2} {3} {4} {5} {6} {7}",
-                DateTimeFormatter.ISO_DATE.format(
-                        i.getOut().getDate()),
-                i.getCurrency(),
-                this.format.number(i.getInvestment().getAmount(), 8),
-                this.format.currency(i.getOut().getMoneyAmount(), 18),
-                this.format.currency(i.getOut().getFeeMoneyAmount(USD), 16),
-                this.format.currency(i.getOut().getMoneyAmount().subtract(this.cost(i)), 16),
-                this.format.currency(new MoneyAmount(bnaFX.get(dtf.format(i.getOut().getDate())), ARS), 16),
-                this.format.currency(this.capitalGainARS(i, bnaFX), 20)
-        );
-    }
-
-    private MoneyAmount cost(Investment i) {
-
-        var iva = SeriesReader.readPercent("iva").add(ONE);
-
-        return i.getIn().getMoneyAmount(USD)
-                .add(i.getIn().getFeeMoneyAmount(USD).adjust(BigDecimal.ONE, iva));
-    }
-
-    private <T> SoldAndBought<T> summarize(
-            Function<InvestmentEvent, T> sellMapper,
-            Function<InvestmentEvent, T> buyMapper,
-            T identity,
-            BinaryOperator<T> reduction) {
-        final var limitDate = LocalDateTime.of(2025, Month.APRIL, 2, 0, 0, 0, 0);
-
-        final var lastBuyDate = LocalDateTime.of(2025, Month.JUNE, 30, 0, 0, 0, 0);
-        Predicate<Investment> isCurrent = i -> i.isCurrent(LocalDate.now());
-        return new SoldAndBought<>(
-                this.series.getInvestments()
-                        .stream()
-                        .filter(Investment::isETF)
-                        .map(Investment::getOut)
-                        .filter(Objects::nonNull)
-                        .map(sellMapper)
-                        .reduce(identity, reduction),
-                this.series.getInvestments()
-                        .stream()
-                        .filter(Investment::isETF)
-                        .filter(isCurrent)
-                        .map(Investment::getIn)
-                        .filter(e
-                                -> e.getDate()
-                                        .atTime(23, 59, 59, 999999)
-                                        .isAfter(limitDate))
-                        .filter(e
-                                -> e.getDate()
-                                        .atTime(23, 59, 59, 999999)
-                                        .isBefore(lastBuyDate))
-                        .map(buyMapper)
-                        .reduce(identity, reduction));
-
-    }
-
+  
+  
+  
     public record SoldAndBought<T>(T sold, T bought) {
 
     }
