@@ -75,7 +75,13 @@ public class CedularTax {
             return;
         }
 
+        final var salesByEtfAndDay = sales.stream()
+                .map(sale -> Map.entry(sale.sellDate(), sale.etf()))
+                .distinct()
+                .count();
+
         this.console.appendLine(MessageFormat.format("Operaciones: {0}", sales.size()));
+        this.console.appendLine(MessageFormat.format("Ventas del mismo ETF en el mismo día: {0}", salesByEtfAndDay));
         this.console.appendLine("El costo incluye la comisión de compra. La venta es neta de comisión. El transfer fee no entra en el costo.");
 
         this.console.appendLine(
