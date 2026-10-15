@@ -303,6 +303,9 @@ public class ConsoleReports {
             case "bbpp" ->
                 () -> me.bbpp(args, "bbpp");
 
+            case "cedular" ->
+                () -> me.cedular(args, "cedular");
+
             case "bbppstatus" ->
                 new BBPP(format, series, console)::status;
 
@@ -364,10 +367,7 @@ public class ConsoleReports {
                 me.paramsValue(args, "sell").getOrDefault("fifo", "isin")
                 );
 
-            case "ppi" ->
-                () -> new Investments(console, format, bar, series)
-                .ppiTransfer(me.paramsValue(args, "ppi").getOrDefault("type", "full"));
-
+            
             default ->
                 () -> console.appendLine("Unknown parameter.");
 
@@ -468,12 +468,11 @@ public class ConsoleReports {
                         arg("years", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")),
                 new CmdParam("income-evo", "months=12 ars=false", arg("months"), bool("ars")),
                 new CmdParam("bbpp", "year=yyyy", arg("year")),
+                new CmdParam("cedular", "year=yyyy", arg("year")),
                 new CmdParam("bbppstatus"),
                 new CmdParam("q"),
                 new CmdParam("expenses-grouped"),
                 new CmdParam("exit"),
-                new CmdParam("ppi", "type=group|groupall|full*",
-                        arg("type", "group", "groupall", "full")),
                 new CmdParam("savings-net-change", "m=12", arg("m")),
                 new CmdParam("savings-avg-pct", "m=12", arg("m")),
                 new CmdParam("expenses", "by=(year|half|quarter*|month) type=(taxes|insurance|phone|services|home|entertainment) m=12",
@@ -734,6 +733,13 @@ public class ConsoleReports {
 
         new BBPP(format, series, console)
                 .bbpp(Integer.parseInt(params.getOrDefault("year", SeriesReader.readEnvironment().getProperty("bbpp.year"))));
+    }
+
+    private void cedular(String[] args, String paramName) {
+        final var year = Optional.ofNullable(this.paramsValue(args, paramName).get("year"))
+                .map(Integer::parseInt)
+                .orElseGet(() -> YearMonth.now().getYear() - 1);
+        new CedularTax(this.format, this.series, this.console).report(year);
     }
 
     private void monthlySavings(String[] args, String name) {
