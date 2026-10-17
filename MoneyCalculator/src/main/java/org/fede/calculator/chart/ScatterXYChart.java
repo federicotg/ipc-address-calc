@@ -20,7 +20,6 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Stroke;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.Format;
 import java.text.NumberFormat;
@@ -88,7 +87,6 @@ public class ScatterXYChart {
                 yLabel,
                 dataset);
 
-        
         chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
         if (chartSubtitle != null) {
             var t = new TextTitle(chartSubtitle);
@@ -111,7 +109,11 @@ public class ScatterXYChart {
         if (this.styleX.valueFormat() == DATE) {
             DateAxis dateAxis = new DateAxis("Date");
             dateAxis.setDateFormatOverride((DateFormat) valueFormatterX);
+            dateAxis.setVerticalTickLabels(true);
+            dateAxis.setLabelFont(this.font);
+            dateAxis.setTickLabelFont(this.font);
             xyPlot.setDomainAxis(dateAxis);
+            chart.getLegend().setItemFont(this.font);
 
         } else {
             ((NumberAxis) xyPlot.getDomainAxis()).setNumberFormatOverride((NumberFormat) valueFormatterX);
@@ -148,17 +150,11 @@ public class ScatterXYChart {
         chart.getLegend().setPosition(legendPosition);
         renderer.setDefaultItemLabelsVisible(true);
         renderer.setDefaultItemLabelFont(this.font);
-        try {
-            ChartStrategy.currentStrategy()
-                    .saveChart(
-                            filename,
-                            chart,
-                            SeriesReader.readInt("chart.width"),
-                            SeriesReader.readInt("chart.height"));
-        } catch (IOException ioEx) {
-            System.err.println("Unexpected error. " + ioEx.getMessage());
-            ioEx.printStackTrace(System.err);
-        }
+        ChartSaver.save(
+                filename,
+                chart,
+                SeriesReader.readInt("chart.width"),
+                SeriesReader.readInt("chart.height"));
     }
 
 }

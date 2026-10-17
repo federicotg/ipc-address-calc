@@ -20,8 +20,8 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Stroke;
-import java.io.IOException;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +35,7 @@ import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
+import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
@@ -121,7 +122,7 @@ public class TimeSeriesChart {
         };
 
         var collection = new TimeSeriesCollection();
-        for(var s:series){
+        for (var s : series) {
             collection.addSeries(s);
         }
 
@@ -170,18 +171,20 @@ public class TimeSeriesChart {
 
         renderer.setDefaultStroke(this.stroke);
         chart.getLegend().setItemFont(this.font);
-        try {
 
-            ChartStrategy.currentStrategy()
-                    .saveChart(
-                            filename,
-                            chart,
-                            SeriesReader.readInt("chart.width"),
-                            SeriesReader.readInt("chart.height"));
-        } catch (IOException ioEx) {
-            System.err.println("Unexpected error. " + ioEx.getMessage());
-            ioEx.printStackTrace(System.err);
-        }
+        var dateAxis = new DateAxis("Date");
+        dateAxis.setDateFormatOverride(new SimpleDateFormat("MMM-yy"));
+        dateAxis.setVerticalTickLabels(true);
+        dateAxis.setLabelFont(this.font);
+        dateAxis.setTickLabelFont(this.font);
+        xyPlot.setDomainAxis(dateAxis);
+        chart.getLegend().setItemFont(this.font);
+
+        ChartSaver.save(
+                filename,
+                chart,
+                SeriesReader.readInt("chart.width"),
+                SeriesReader.readInt("chart.height"));
     }
 
     private XYLineAndShapeRenderer labeledRenderer(

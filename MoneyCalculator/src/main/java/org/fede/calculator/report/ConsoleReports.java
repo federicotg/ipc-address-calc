@@ -39,6 +39,7 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.fede.calculator.chart.ChartSaver;
 import org.fede.calculator.chart.ChartSeriesMapper;
 
 import org.fede.calculator.criptoya.CriptoYaAPI;
@@ -527,6 +528,7 @@ public class ConsoleReports {
 
             if (args.length > 0) {
                 handleCommand(args, me, format, bar, series, console);
+                ChartSaver.awaitPending();
             } else {
 
                 LineReader reader = LineReaderBuilder.builder()
@@ -552,6 +554,7 @@ public class ConsoleReports {
                         break;
                     }
                     handleCommand(line.split("\\s+"), me, format, bar, series, console);
+                    ChartSaver.awaitPending();
 
                 }
                 new Positions(console, format, series).checkConsistency();
@@ -560,6 +563,8 @@ public class ConsoleReports {
         } catch (Exception ex) {
             System.err.println("Unexpected error. " + ex.getMessage());
             ex.printStackTrace(System.err);
+        } finally {
+            ChartSaver.shutdown();
         }
     }
 
@@ -989,17 +994,18 @@ public class ConsoleReports {
             final var inv = new Investments(this.console, this.format, this.bar, this.series);
             final var pos = new Positions(console, format, series);
             final var savings = new Savings(format, series, bar, console);
-            final var fire = new Fire(format, series, console);
+            //final var fire = new Fire(format, series, console);
 
             this.expensesChart(12, true);
             this.incomeAccChart();
             this.savingsEvoChart();
             this.savingsARSEvoChart();
             savings.netAvgSavingSpentChart(12);
-            savings.netAvgSavingSpentChart(3);
+            //savings.netAvgSavingSpentChart(3);
             inv.mdrChart(true);
             inv.mdrChart(false);
             inv.mdrByYearChart();
+            inv.etfCompositionChart();
             pos.portfolioChartByGeography(false, "pct", usdInflation().getTo().getYear(), usdInflation().getTo().getMonthValue());
             this.savingsChart();
             inv.savingsInvestmentsPercentChart();
@@ -1008,9 +1014,9 @@ public class ConsoleReports {
             savings.spendingByYear();
             inv.savedAndInvestedChart();
             inv.investmentsByClassChart();
-            fire.fireChartFuture();
-            fire.fireChartBudgets(12);
-            fire.fireChartBudgets(24);
+            //fire.fireChartFuture();
+            //fire.fireChartBudgets(12);
+            //fire.fireChartBudgets(24);
 
             final var swr = new CAEYSafeWithdrawalRate();
 
@@ -1020,8 +1026,8 @@ public class ConsoleReports {
             swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-075", new BigDecimal("0.75"), shortFormat);
 
             savings.savingRate(12);
-            savings.savingRate(24);
-            savings.savingRate(6);
+            //savings.savingRate(24);
+            //savings.savingRate(6);
             this.averageSpendingPortfolioPercent();
             inv.benchmarks();
             this.averageMonthsSavedInCash(12);

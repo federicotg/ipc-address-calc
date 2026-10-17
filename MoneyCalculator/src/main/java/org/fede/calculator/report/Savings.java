@@ -534,7 +534,7 @@ public class Savings {
     private MoneyAmount yearIncome(int year, Supplier<List<MoneyAmountSeries>> supplier) {
         final var months = year < usdInflation().getTo().getYear()
                 ? 12
-                : usdInflation().getTo().getMonthValue();
+                : YearMonth.now().getMonthValue();
 
         return supplier.get()
                 .stream()
@@ -557,7 +557,7 @@ public class Savings {
 
         final var months = year < usdInflation().getTo().getYear()
                 ? 12
-                : usdInflation().getTo().getMonthValue();
+                : YearMonth.now().getMonthValue();
 
         return this.series.realNetSavings()
                 .filter((ym, ma) -> ym.getYear() == year)

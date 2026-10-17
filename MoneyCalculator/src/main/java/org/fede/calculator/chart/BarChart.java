@@ -19,7 +19,6 @@ package org.fede.calculator.chart;
 import java.awt.BasicStroke;
 import java.awt.Font;
 import java.awt.Stroke;
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
 import org.fede.calculator.money.series.SeriesReader;
@@ -67,37 +66,30 @@ public class BarChart {
             DefaultCategoryDataset dataset,
             String filename) {
 
-        try {
+        NumberFormat valueFormatter = (NumberFormat) this.style.valueFormat().format();
 
-            NumberFormat valueFormatter = (NumberFormat) this.style.valueFormat().format();
+        JFreeChart chart = ChartFactory.createBarChart(chartName, categoriesName, "USD", dataset);
+        chart.setAntiAlias(Boolean.parseBoolean(SeriesReader.readEnvironment().getProperty("chart.antialias")));
 
-            JFreeChart chart = ChartFactory.createBarChart(chartName, categoriesName, "USD", dataset);
-            chart.setAntiAlias(Boolean.parseBoolean(SeriesReader.readEnvironment().getProperty("chart.antialias")));
+        var plot = chart.getCategoryPlot();
+        plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
+        var renderer = plot.getRenderer();
+        ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
+        renderer.setDefaultStroke(this.stroke);
+        chart.getLegend().setItemFont(this.font);
 
-            var plot = chart.getCategoryPlot();
-            plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
-            var renderer = plot.getRenderer();
-            ((AbstractRenderer) renderer).setAutoPopulateSeriesStroke(false);
-            renderer.setDefaultStroke(this.stroke);
-            chart.getLegend().setItemFont(this.font);
+        ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
 
-            ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(valueFormatter);
+        plot.getRangeAxis().setLabelFont(this.font);
+        plot.getRangeAxis().setTickLabelFont(this.font);
+        plot.getDomainAxis().setLabelFont(this.font);
+        plot.getDomainAxis().setTickLabelFont(this.font);
 
-            plot.getRangeAxis().setLabelFont(this.font);
-            plot.getRangeAxis().setTickLabelFont(this.font);
-            plot.getDomainAxis().setLabelFont(this.font);
-            plot.getDomainAxis().setTickLabelFont(this.font);
-
-            ChartStrategy.currentStrategy().saveChart(
-                    filename,
-                    chart,
-                    SeriesReader.readInt("chart.width"),
-                    SeriesReader.readInt("chart.height"));
-
-        } catch (IOException ioEx) {
-            System.err.println("Unexpected error. " + ioEx.getMessage());
-            ioEx.printStackTrace(System.err);
-        }
+        ChartSaver.save(
+                filename,
+                chart,
+                SeriesReader.readInt("chart.width"),
+                SeriesReader.readInt("chart.height"));
     }
 
 }

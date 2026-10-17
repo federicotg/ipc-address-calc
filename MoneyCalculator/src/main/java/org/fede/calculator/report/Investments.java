@@ -1165,6 +1165,8 @@ public class Investments {
 
     public void savedAndInvestedChart() {
 
+        this.etfCompositionChart();
+
         new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
                 .create("ETF Real Growth",
                         List.of(
@@ -1256,6 +1258,108 @@ public class Investments {
                         ss,
                         "investments-by-class");
 
+    }
+
+    /**
+     * Stacked ETF chart: cumulative investing costs (fees + transfer fees on
+     * buys and sells), net amount invested at cost (no price gains; sales
+     * reduce the basis), and unrealized gains from price changes. Starts at the
+     * month of the first ETF purchase even if that lot was later sold.
+     */
+    public void etfCompositionChart() {
+
+        final var costs = this.accumulatedEtfCosts();
+        final var invested = this.etfNetInvested();
+        final var portfolio = this.portfolioValue(false, Investment::isETF);
+
+        final var gains = new SortedMapMoneyAmountSeries(USD, "Gains");
+        invested.forEach((ym, basis)
+                -> gains.putAmount(ym, portfolio.getAmountOrElseZero(ym).subtract(basis)));
+
+        new StackedTimeSeriesChart()
+                .create("ETF Costs, Invested & Gains",
+                        List.of(costs, invested, gains),
+                        "etf-composition");
+    }
+
+    private MoneyAmountSeries accumulatedEtfCosts() {
+
+        final var iva = SeriesReader.readPercent("iva").add(ONE);
+
+        final Map<YearMonth, MoneyAmount> feesByMonth = this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .map(inv -> ForeignExchanges.exchange(inv, USD))
+                .map(Inflation.usdInflation()::real)
+                .flatMap(i -> {
+                    final var buy = Stream.of(Map.entry(
+                            YearMonth.from(i.getIn().getDate()),
+                            i.getCost(USD)));
+                    if (i.getOut() == null) {
+                        return buy;
+                    }
+                    final var sellFee = i.getOut().getFeeMoneyAmount(USD)
+                            .adjust(ONE, i.getComment() == null ? iva : ONE)
+                            .add(i.getOut().getTransferFeeMoneyAmount(USD));
+                    return Stream.concat(buy, Stream.of(Map.entry(
+                            YearMonth.from(i.getOut().getDate()),
+                            sellFee)));
+                })
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getKey,
+                        Collectors.mapping(
+                                Map.Entry::getValue,
+                                Collectors.reducing(ZERO_USD, MoneyAmount::add))));
+
+        final var start = this.firstEtfYearMonth();
+        final var end = Inflation.usdInflation().getTo();
+        final var costs = new SortedMapMoneyAmountSeries(USD, "Costs");
+        var acc = ZERO_USD;
+
+        for (YearMonth ym = start; ym.compareTo(end) <= 0; ym = ym.plusMonths(1)) {
+            acc = acc.add(feesByMonth.getOrDefault(ym, ZERO_USD));
+            costs.putAmount(ym, acc);
+        }
+
+        return costs;
+    }
+
+    /**
+     * Cost basis of ETF holdings still open at each month-end: buys add the
+     * invested amount (net of fees), sells remove that lot's original basis so
+     * price changes never enter this series.
+     */
+    private MoneyAmountSeries etfNetInvested() {
+
+        final var start = this.firstEtfYearMonth();
+        final var end = Inflation.usdInflation().getTo();
+        final var invested = new SortedMapMoneyAmountSeries(USD, "Invested");
+
+        for (YearMonth ym = start; ym.compareTo(end) <= 0; ym = ym.plusMonths(1)) {
+            final var moment = ym.atEndOfMonth();
+            invested.putAmount(ym,
+                    this.series.getInvestments()
+                            .stream()
+                            .filter(Investment::isETF)
+                            .filter(i -> i.isCurrent(moment))
+                            .map(inv -> ForeignExchanges.exchange(inv, USD))
+                            .map(Inflation.usdInflation()::real)
+                            .map(i -> i.getIn().getMoneyAmount())
+                            .reduce(ZERO_USD, MoneyAmount::add));
+        }
+
+        return invested;
+    }
+
+    private YearMonth firstEtfYearMonth() {
+        return this.series.getInvestments()
+                .stream()
+                .filter(Investment::isETF)
+                .map(Investment::getIn)
+                .map(InvestmentEvent::getDate)
+                .map(YearMonth::from)
+                .min(YearMonth::compareTo)
+                .orElseGet(YearMonth::now);
     }
 
     private MoneyAmountSeries currencyInvestment(String name, List<Currency> currencies) {

@@ -18,7 +18,6 @@ package org.fede.calculator.chart;
 
 import static java.awt.Color.WHITE;
 import java.awt.Font;
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.List;
@@ -86,18 +85,11 @@ public class PieChart {
         p.setLabelOutlinePaint(WHITE);
         p.setLabelShadowPaint(WHITE);
         chart.getLegend().setItemFont(this.font);
-        try {
-            ChartStrategy.currentStrategy()
-                    .saveChart(
-                            fileName,
-                            chart,
-                            SeriesReader.readInt("chart.piewidth"),
-                            SeriesReader.readInt("chart.piewidth"));
-
-        } catch (IOException ioEx) {
-            System.err.println("Unexpected error. " + ioEx.getMessage());
-            ioEx.printStackTrace(System.err);
-        }
+        ChartSaver.save(
+                fileName,
+                chart,
+                SeriesReader.readInt("chart.piewidth"),
+                SeriesReader.readInt("chart.piewidth"));
     }
 
 }

@@ -20,8 +20,8 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Stroke;
-import java.io.IOException;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import org.fede.calculator.money.Currency;
 import static org.fede.calculator.chart.ValueFormat.CURRENCY;
@@ -68,24 +68,20 @@ public class StackedTimeSeriesChart {
             List<MoneyAmountSeries> series,
             String filename) {
 
-        var c = series.stream()
+        final var c = series.stream()
                 .findFirst()
                 .map(MoneyAmountSeries::getCurrency)
                 .orElse(Currency.USD);
 
-        var label = switch (this.style.valueFormat()) {
-            case NUMBER, DATE ->
-                "";
-            case CURRENCY, CURRENCY_DECIMALS ->
-                c.name();
-            case PERCENTAGE ->
-                "%";
-
+        final var label = switch (this.style.valueFormat()) {
+            case NUMBER, DATE -> "";
+            case CURRENCY, CURRENCY_DECIMALS -> c.name();
+            case PERCENTAGE -> "%";
         };
 
-        NumberFormat valueFormatter = (NumberFormat) this.style.valueFormat().format();
+        final NumberFormat valueFormatter = (NumberFormat) this.style.valueFormat().format();
 
-        JFreeChart chart = ChartFactory.createXYAreaChart(
+        final JFreeChart chart = ChartFactory.createXYAreaChart(
                 chartName,
                 "Date",
                 label,
@@ -95,7 +91,7 @@ public class StackedTimeSeriesChart {
         chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
 
         // Customize plot
-        XYPlot plot = (XYPlot) chart.getPlot();
+        final XYPlot plot = (XYPlot) chart.getPlot();
 
         plot.setRangeAxisLocation(AxisLocation.BOTTOM_OR_RIGHT);
         plot.setBackgroundPaint(Color.LIGHT_GRAY);
@@ -110,27 +106,23 @@ public class StackedTimeSeriesChart {
         plot.getRangeAxis().setLabelFont(this.font);
         plot.getRangeAxis().setTickLabelFont(this.font);
 
-        var renderer = new StackedXYAreaRenderer2();
+        final var renderer = new StackedXYAreaRenderer2();
 
         renderer.setDefaultStroke(this.stroke);
         plot.setRenderer(renderer);
 
-        plot.setDomainAxis(new DateAxis("Date"));
-
-        plot.getDomainAxis().setLabelFont(this.font);
-        plot.getDomainAxis().setTickLabelFont(this.font);
+        final var dateAxis = new DateAxis("Date");
+        dateAxis.setDateFormatOverride(new SimpleDateFormat("MMM-yy"));
+        dateAxis.setVerticalTickLabels(true);
+        dateAxis.setLabelFont(this.font);
+        dateAxis.setTickLabelFont(this.font);
+        plot.setDomainAxis(dateAxis);
         chart.getLegend().setItemFont(this.font);
-        try {
-            ChartStrategy.currentStrategy()
-                    .saveChart(
-                            filename,
-                            chart,
-                            SeriesReader.readInt("chart.width"),
-                            SeriesReader.readInt("chart.height"));
-        } catch (IOException ioEx) {
-            System.err.println("Unexpected error. " + ioEx.getMessage());
-            ioEx.printStackTrace(System.err);
-        }
+        ChartSaver.save(
+                filename,
+                chart,
+                SeriesReader.readInt("chart.width"),
+                SeriesReader.readInt("chart.height"));
     }
 
 }
