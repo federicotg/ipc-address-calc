@@ -27,7 +27,6 @@ import java.time.Month;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -291,16 +290,7 @@ public class ConsoleReports {
 
             case "expenses" ->
                 () -> me.expenses(args, "expenses");
-
-            case "expenses-evo" ->
-                () -> me.expenseEvolution(args, "expenses-evo");
-
-            case "expenses-src" ->
-                () -> me.expenseBySource(args, "expenses-src");
-
-            case "expenses-change" ->
-                () -> me.expensesChange(args, "expenses-change");
-
+                
             case "bbpp" ->
                 () -> me.bbpp(args, "bbpp");
 
@@ -368,7 +358,6 @@ public class ConsoleReports {
                 me.paramsValue(args, "sell").getOrDefault("fifo", "isin")
                 );
 
-            
             default ->
                 () -> console.appendLine("Unknown parameter.");
 
@@ -405,7 +394,6 @@ public class ConsoleReports {
                 new CmdParam("i", "y=current m=current g=false", arg("y"), arg("m"), bool("g")),
                 new CmdParam("pa"),
                 new CmdParam("house-evo"),
-                new CmdParam("expenses-src", "m=12", arg("m")),
                 new CmdParam("fire"),
                 new CmdParam("fi"),
                 new CmdParam("re"),
@@ -476,13 +464,9 @@ public class ConsoleReports {
                 new CmdParam("exit"),
                 new CmdParam("savings-net-change", "m=12", arg("m")),
                 new CmdParam("savings-avg-pct", "m=12", arg("m")),
-                new CmdParam("expenses", "by=(year|half|quarter*|month) type=(taxes|insurance|phone|services|home|entertainment) m=12",
+                new CmdParam("expenses", "by=(year|half|quarter*|month) type=(ESSENTIAL|DISCRETIONARY|LUXURY) m=12",
                         arg("by", "year", "half", "quarter", "month"),
-                        arg("type", "taxes", "insurance", "phone", "services", "home", "entertainment"),
-                        arg("m")),
-                new CmdParam("expenses-change", "m=12", arg("m")),
-                new CmdParam("expenses-evo", "type=(full|taxes|insurance|services|home|entertainment) m=12",
-                        arg("type", "full", "taxes", "insurance", "services", "home", "entertainment"),
+                        arg("type", "ESSENTIAL", "DISCRETIONARY", "LUXURY"),
                         arg("m")),
                 new CmdParam("savings-evo", "type=(BO|LIQ|EQ)",
                         arg("type", "BO", "LIQ", "EQ")),
@@ -659,28 +643,6 @@ public class ConsoleReports {
                 SeriesReader.readInt("scale"));
     }
 
-    private void expenseEvolution(String[] args, String paramName) {
-        this.appendLine(this.format.title("Expenses Evolution"));
-
-        final var params = this.paramsValue(args, paramName);
-
-        this.expenseEvolution(params.get("type"), Integer.parseInt(params.getOrDefault(MONTHS_PARAM, "1")));
-    }
-
-    private void expenseBySource(String[] args, String paramName) {
-        new Expenses(series, console, bar, format)
-                .expenseBySource(months(this.paramsValue(args, paramName)));
-    }
-
-    private void expenseEvolution(String type, int months) {
-
-        final var s = "full".equalsIgnoreCase(type)
-                ? this.series.realExpense()
-                : this.series.realExpenses(type);
-
-        this.bar.evolution(format("Average {0}-month expenses.", months), new SlidingWindow(months).average(s), 40);
-    }
-
     private void savingChange(String[] args, String paramName) {
 
         final var months = Integer.parseInt(this.paramsValue(args, paramName).getOrDefault(MONTHS_PARAM, "1"));
@@ -699,14 +661,6 @@ public class ConsoleReports {
         this.appendLine(this.format.title(format("{0}-month Savings Change", months)));
         this.bar.evolution(format("{0}-month Savings Change", months), new SlidingWindow(months)
                 .change(this.series.realSavings(null)), scale);
-    }
-
-    private void expensesChange(String[] args, String name) {
-
-        final var params = this.paramsValue(args, name);
-        final var months = months(params);
-        new Expenses(series, console, bar, format)
-                .expensesChange(months);
     }
 
     private void incomeAverageEvolution(String[] args, String paramName) {
@@ -953,40 +907,24 @@ public class ConsoleReports {
                 .create("Income", List.of(other, otherEur, lifia, unlp, despARS, despUSD, otherARS), "income_acc");
     }
 
-    private void expensesChart(int m, boolean grouped) throws IOException {
+    private void expensesChart(boolean grouped) throws IOException {
 
         var expenseSeries = grouped
-                ? this.series.getRealUSDExpensesByType()
-                        .entrySet()
-                        .stream()
-                        .map(e -> this.sum(e.getKey(), e.getValue()))
-                        .toList()
-                : this.series.getRealUSDExpensesByType()
+                ? this.series.summedExpensesBy(ExpenseTier::of, true)
                         .values()
                         .stream()
-                        .flatMap(Collection::stream)
-                        .toList();
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .toList()
+                : List.of(this.series.realExpenses(null, true));
 
-        if (m > 0) {
-            var avg = new SlidingWindow(m);
-            expenseSeries = expenseSeries.stream().map(avg::average).toList();
-        }
+        var chartName = "Average ";
 
-        var chartName = "Expenses";
-        if (m > 0) {
-            chartName = "Average " + m + " months " + chartName;
-        }
         if (grouped) {
             chartName = "Grouped " + chartName;
         }
         new TimeSeriesChart()
-                .create(chartName, expenseSeries, "expenses_" + (grouped ? "grouped" : "") + "_" + m);
-    }
-
-    private MoneyAmountSeries sum(String name, List<MoneyAmountSeries> series) {
-        var s = series.stream().reduce(MoneyAmountSeries::add).get();
-        s.setName(name);
-        return s;
+                .create(chartName, expenseSeries, "spending-" + (grouped ? "grouped" : ""));
     }
 
     private void allCharts() {
@@ -994,14 +932,12 @@ public class ConsoleReports {
             final var inv = new Investments(this.console, this.format, this.bar, this.series);
             final var pos = new Positions(console, format, series);
             final var savings = new Savings(format, series, bar, console);
-            //final var fire = new Fire(format, series, console);
 
-            this.expensesChart(12, true);
+            this.expensesChart(true);
             this.incomeAccChart();
             this.savingsEvoChart();
             this.savingsARSEvoChart();
             savings.netAvgSavingSpentChart(12);
-            //savings.netAvgSavingSpentChart(3);
             inv.mdrChart(true);
             inv.mdrChart(false);
             inv.mdrByYearChart();
@@ -1014,9 +950,6 @@ public class ConsoleReports {
             savings.spendingByYear();
             inv.savedAndInvestedChart();
             inv.investmentsByClassChart();
-            //fire.fireChartFuture();
-            //fire.fireChartBudgets(12);
-            //fire.fireChartBudgets(24);
 
             final var swr = new CAEYSafeWithdrawalRate();
 
@@ -1026,11 +959,10 @@ public class ConsoleReports {
             swr.monthlySafeWithdrawalByCapeChart("swr-by-cape-075", new BigDecimal("0.75"), shortFormat);
 
             savings.savingRate(12);
-            //savings.savingRate(24);
-            //savings.savingRate(6);
+
             this.averageSpendingPortfolioPercent();
             inv.benchmarks();
-            this.averageMonthsSavedInCash(12);
+            this.averageMonthsSavedInCash();
             pos.investedChart(false, "all");
 
             EtfPriceChart etfPriceChart = new EtfPriceChart(this.series);
@@ -1176,7 +1108,7 @@ public class ConsoleReports {
                                     .divide(savings.getAmount(ym).amount(), MathConstants.C)));
             ym = ym.plusMonths(1);
         }
-        
+
         final var label = months == 0
                 ? " Average"
                 : " Avg. " + months + "-month";
@@ -1188,30 +1120,20 @@ public class ConsoleReports {
 
         final MoneyAmountSeries savings = this.series.realSavings(null);
 
-        final MoneyAmountSeries actualExpenses = this.series.getRealUSDExpensesByType()
-                .values()
-                .stream()
-                .flatMap(Collection::stream)
-                .reduce(MoneyAmountSeries::add)
-                .get();
+        final MoneyAmountSeries actualExpenses = this.series.realExpenses(null, true);
 
         final var future = new Future(this.series);
 
         new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
                 .createFromTimeSeries("Portfolio Spending",
-                        List.of(
-                                this.portfolioSpendingSeries("Actual", 12, savings, actualExpenses),
-                                this.portfolioSpendingSeries("Actual", 18, savings, actualExpenses),
-                                this.portfolioSpendingSeries("Actual", 24, savings, actualExpenses),
-                                this.portfolioSpendingSeries("Actual", 36, savings, actualExpenses)
-                        ),
-                        "portfolio-spending");
+                        List.of(this.portfolioSpendingSeries("Actual", 0, savings, actualExpenses)),
+                        "spending-portfolio");
 
         final var retirementSpendingMap = future.retirementSpending();
-        final var essential = retirementSpendingMap.get(Future.ExpenseTier.ESSENTIAL);
-        final var total = retirementSpendingMap.get(Future.ExpenseTier.DISCRETIONARY)
+        final var essential = retirementSpendingMap.get(ExpenseTier.ESSENTIAL);
+        final var total = retirementSpendingMap.get(ExpenseTier.DISCRETIONARY)
                 .add(essential)
-                .add(retirementSpendingMap.get(Future.ExpenseTier.LUXURY));
+                .add(retirementSpendingMap.get(ExpenseTier.LUXURY));
 
         new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
                 .createFromTimeSeries("Portfolio Retirement Spending",
@@ -1219,7 +1141,7 @@ public class ConsoleReports {
                                 this.portfolioSpendingSeries("Total", 0, savings, total),
                                 this.portfolioSpendingSeries("Essential", 0, savings, essential)
                         ),
-                        "portfolio-retirement-spending");
+                        "spending-portfolio-retirement");
 
         future.retirementSpendingEvolution();
 
@@ -1338,20 +1260,11 @@ public class ConsoleReports {
 
     }
 
-    private void averageMonthsSavedInCash(int months) {
+    private void averageMonthsSavedInCash() {
         final var realCash = this.series.realCash();
         final var realInvested = this.series.realInvested();
 
-        final Map<String, List<MoneyAmountSeries>> expenseSeriesMap = this.series.getRealUSDExpensesByType();
-
-        final MoneyAmountSeries regularExpenses = expenseSeriesMap.entrySet()
-                .stream()
-                .filter(e -> !e.getKey().equals(Series.IRREGULAR))
-                .flatMap(e -> e.getValue().stream())
-                .reduce(MoneyAmountSeries::add)
-                .get();
-
-        final var avgSpending = new SlidingWindow(months).average(regularExpenses);
+        final MoneyAmountSeries avgSpending = this.series.realExpenses(null, true);
 
         new TimeSeriesChart(new ChartStyle(ValueFormat.NUMBER, Scale.LINEAR))
                 .createFromTimeSeries(
@@ -1394,23 +1307,6 @@ public class ConsoleReports {
 
     }
 
-    private SpendingTier tierClassification(SpendingSeries s) {
-        return switch (s) {
-            case ATLANTICO, CONTADORA, INVESTMENTS, ITAU_UY, SELLOS, SANTANDER, BOX ->
-                SpendingTier.FINANCIAL;
-            case UNCLASSIFIED ->
-                SpendingTier.OTHER;
-            case COMIDA_DISC, ANGELES_OTHER_DISC, XBOX, VIAJES, VIAJES_USD, SUSCRIPCIONES_USD, SEGURO, SUSCRIPCIONES_ARS, NETFLIX, LIMPIEZA, EMERGENCIA ->
-                SpendingTier.OPTIONAL;
-            case REPARACIONES, EXPENSAS, DEPARTAMENTOS, COLON_EXPENSAS ->
-                SpendingTier.MAINTENANCE;
-            case SALUD, MUNICIPAL_43, MONOTRIBUTO_ANGELES, MONOTRIBUTO, IOMA, BBPP, INMOBILIARIO_43, GAS, LUZ, CABLEVISION, CELULAR_A, CELULAR_F, TELEFONO_43, COMIDA, COLON_CAMUZZI, COLON_EDEA, COLON_FLOW, COLON_OSSE, COLON_MUNICIPAL ->
-                SpendingTier.BASE;
-            case OTHER, OTHER_USD, EXTRAORDINARY ->
-                SpendingTier.EXCEPTIONAL;
-        };
-    }
-
     public void groupedByYear() {
         for (var year = 2011; year <= YearMonth.now().getYear(); year++) {
             this.groupedByYear(year);
@@ -1422,7 +1318,7 @@ public class ConsoleReports {
 
         this.console.appendLine(this.format.title("Expenses " + year));
 
-        Map<SpendingTier, Optional<MoneyAmountSeries>> map = this.series.groupedExpenses(this::tierClassification);
+        Map<ExpenseTier, Optional<MoneyAmountSeries>> map = this.series.summedExpensesBy(ExpenseTier::of);
 
         for (var e : map.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList()) {
             this.console.appendLine(

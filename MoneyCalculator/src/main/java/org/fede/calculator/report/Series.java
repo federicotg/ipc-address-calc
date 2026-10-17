@@ -37,8 +37,8 @@ import static org.fede.calculator.money.series.SeriesReader.readSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.Optional;
 import java.util.function.Function;
 import org.fede.calculator.money.SlidingWindow;
@@ -53,11 +53,6 @@ import tools.jackson.core.type.TypeReference;
  */
 public class Series {
 
-    public static final String OTHER = "1-OTHER";
-    public static final String ESSENTIAL = "0-ESSENTIAL";
-    public static final String DISCRETIONARY = "2-DISCRETIONARY";
-    public static final String IRREGULAR = "3-IRREGULAR";
-
     private static final TypeReference<List<Investment>> TR = new TypeReference<List<Investment>>() {
     };
 
@@ -67,7 +62,8 @@ public class Series {
     private List<Investment> investments;
 
     private Map<String, List<MoneyAmountSeries>> realUSDSavingsByType;
-    private Map<String, List<MoneyAmountSeries>> realUSDExpensesByType;
+
+    private final Map<SpendingSeries, MoneyAmountSeries> spendingByType = new EnumMap<>(SpendingSeries.class);
 
     private List<MoneyAmountSeries> incomeSeries;
 
@@ -80,8 +76,6 @@ public class Series {
 
     private MoneyAmountSeries realExpense;
 
-    private MoneyAmountSeries realOtherExpenses;
-
     public List<Investment> getInvestments() {
         if (this.investments == null) {
             this.investments = SeriesReader.read("investments.json", TR);
@@ -90,89 +84,73 @@ public class Series {
         return investments;
     }
 
-    public <E> Map<E, Optional<MoneyAmountSeries>> groupedExpenses(Function<SpendingSeries, E> classifier) {
-        if (this.realUSDExpensesByType == null) {
-            this.getRealUSDExpensesByType();
+    public <E> Map<E, Optional<MoneyAmountSeries>> summedExpensesBy(Function<SpendingSeries, E> classifier) {
+        return this.summedExpensesBy(classifier, false);
+    }
+
+    public <E> Map<E, Optional<MoneyAmountSeries>> summedExpensesBy(Function<SpendingSeries, E> classifier, boolean average) {
+        var map = Arrays.stream(SpendingSeries.values())
+                .collect(groupingBy(
+                        classifier,
+                        mapping(s -> this.asSeries(s, average), Collectors.reducing(MoneyAmountSeries::add))));
+        for (var e : map.entrySet()) {
+            e.getValue().ifPresent(series -> series.setName(e.getKey().toString()));
         }
+        return map;
+    }
+
+    public <E> Map<E, List<MoneyAmountSeries>> expenseSeriesBy(Function<SpendingSeries, E> classifier) {
         return Arrays.stream(SpendingSeries.values())
                 .collect(groupingBy(
                         classifier,
-                        mapping(this::asSeries, Collectors.reducing(MoneyAmountSeries::add))));
-    }
-
-    private String essentialDiscretionaryClassification(SpendingSeries s) {
-        return switch (s) {
-            case BBPP, COMIDA, INMOBILIARIO_43, MONOTRIBUTO, SALUD, LUZ, EXPENSAS, MONOTRIBUTO_ANGELES, GAS, MUNICIPAL_43, REPARACIONES ->
-                ESSENTIAL;
-            case EXTRAORDINARY, OTHER, OTHER_USD, DEPARTAMENTOS, INVESTMENTS ->
-                IRREGULAR;
-            case ATLANTICO, ANGELES_OTHER_DISC, BOX, COLON_CAMUZZI, COLON_EXPENSAS, COLON_EDEA, COLON_FLOW, COLON_OSSE, COLON_MUNICIPAL, CABLEVISION, CELULAR_A, CELULAR_F, COMIDA_DISC, CONTADORA, EMERGENCIA, IOMA, ITAU_UY, NETFLIX, SUSCRIPCIONES_ARS, SUSCRIPCIONES_USD, SELLOS, LIMPIEZA, SANTANDER, SEGURO, TELEFONO_43, VIAJES, VIAJES_USD, XBOX ->
-                DISCRETIONARY;
-            case UNCLASSIFIED ->
-                OTHER;
-        };
-    }
-
-    public Map<String, List<MoneyAmountSeries>> getRealUSDExpensesByType() {
-
-        if (this.realUSDExpensesByType == null) {
-
-            final var income = this.realIncome();
-            final var netSaving = this.realNetSavings();
-            final var spending = this.getRealUSDExpenses()
-                    .stream()
-                    .reduce(MoneyAmountSeries::add)
-                    .get();
-
-            final var otherSpending = income
-                    .subtract(spending)
-                    .subtract(netSaving);
-            otherSpending.setName("Other spending");
-            this.realOtherExpenses = otherSpending;
-
-            return Arrays.stream(SpendingSeries.values())
-                    .collect(groupingBy(
-                            this::essentialDiscretionaryClassification,
-                            mapping(this::asSeries, toList())));
-        }
-
-        return this.realUSDExpensesByType;
+                        mapping(this::asSeries, toList())));
     }
 
     public Map<SpendingSeries, MoneyAmountSeries> allSpending() {
-        // init lazy values
-        this.getRealUSDExpensesByType();
-
         return Arrays.stream(SpendingSeries.values())
                 .collect(Collectors.toMap(Function.identity(), this::asSeries));
+    }
 
+    private MoneyAmountSeries asSeries(SpendingSeries s, boolean average) {
+        final var series = this.asSeries(s);
+        if (!average) {
+            return series;
+        }
+        return new SlidingWindow(s.getAverageMonths()).average(series);
     }
 
     private MoneyAmountSeries asSeries(SpendingSeries s) {
-        return switch (s) {
+        if (s == SpendingSeries.UNCLASSIFIED) {
+            return this.ensureUnclassified();
+        }
+        return this.spendingByType.computeIfAbsent(s, key -> switch (key) {
             case INVESTMENTS ->
                 this.investingExpenses();
             case UNCLASSIFIED ->
-                this.realOtherExpenses;
+                throw new IllegalStateException("UNCLASSIFIED is handled by ensureUnclassified");
             default ->
-                this.asRealUSDSeries("expense/", s.getSeriesName());
-        };
-
+                this.asRealUSDSeries("expense/", key.getSeriesName());
+        });
     }
 
-    private List<MoneyAmountSeries> getRealUSDExpenses() {
-        var list = new ArrayList<MoneyAmountSeries>(SpendingSeries.values().length);
-        for (var spending : SpendingSeries.values()) {
-            switch (spending) {
-                case INVESTMENTS ->
-                    list.add(this.investingExpenses());
-                case UNCLASSIFIED -> {
-                }
-                default ->
-                    list.add(this.asRealUSDSeries("expense/", spending.getSeriesName()));
-            }
+    private MoneyAmountSeries ensureUnclassified() {
+        final var cached = this.spendingByType.get(SpendingSeries.UNCLASSIFIED);
+        if (cached != null) {
+            return cached;
         }
-        return list;
+
+        final var classified = Arrays.stream(SpendingSeries.values())
+                .filter(s -> s != SpendingSeries.UNCLASSIFIED)
+                .map(this::asSeries)
+                .reduce(MoneyAmountSeries::add)
+                .orElseThrow();
+
+        final var otherSpending = this.realIncome()
+                .subtract(classified)
+                .subtract(this.realNetSavings());
+        otherSpending.setName("Other spending");
+        this.spendingByType.put(SpendingSeries.UNCLASSIFIED, otherSpending);
+        return otherSpending;
     }
 
     public MoneyAmountSeries investingExpenses() {
@@ -366,12 +344,7 @@ public class Series {
     }
 
     public MoneyAmountSeries realOtherExpenses() {
-        if (this.realOtherExpenses == null) {
-            // initializes realOtherExpenses
-            this.getRealUSDExpensesByType();
-        }
-        return this.realOtherExpenses;
-
+        return this.asSeries(SpendingSeries.UNCLASSIFIED);
     }
 
     public MoneyAmountSeries realCash() {
@@ -416,16 +389,20 @@ public class Series {
                 .get();
     }
 
-    public MoneyAmountSeries realExpenses(String type) {
+    public MoneyAmountSeries realExpenses(ExpenseTier type) {
+        return this.realExpenses(type, false);
+    }
 
-        return this.getRealUSDExpensesByType().entrySet()
-                .stream()
-                .filter(e -> type == null || e.getKey().equals(type))
-                .filter(e -> !e.getKey().equals(OTHER))
-                .map(Map.Entry::getValue)
-                .flatMap(Collection::stream)
-                .reduce(MoneyAmountSeries::add)
-                .get();
+    public MoneyAmountSeries realExpenses(ExpenseTier type, boolean average) {
+        if (type == null) {
+            return Arrays.stream(SpendingSeries.values())
+                    .map(s -> this.asSeries(s, average))
+                    .reduce(MoneyAmountSeries::add)
+                    .orElseThrow();
+        }
+        return this.summedExpensesBy(ExpenseTier::of, average)
+                .get(type)
+                .orElseThrow();
     }
 
     private MoneyAmountSeries asRealUSDSeries(String fileName) {

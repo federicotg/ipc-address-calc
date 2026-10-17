@@ -60,7 +60,6 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
 import java.util.stream.Collectors;
 import org.fede.calculator.money.Accumulator;
 import org.fede.calculator.money.SlidingWindow;
@@ -112,7 +111,7 @@ public class Savings {
         final var agg = new SlidingWindow(months);
         final var income = agg.average(this.series.realIncome());
         final var netSaving = agg.average(this.series.realNetSavings());
-        final var spending = agg.average(this.series.realExpenses(null));
+        final var spending = this.series.realExpenses(null, true);
 
         netSaving.forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.series(ym, spending, income, savingMa), this.getScale(months))));
 
@@ -125,15 +124,15 @@ public class Savings {
         final var agg = new SlidingWindow(months);
 
         final var netSaving = agg.average(this.series.realNetSavings());
-        final var spending = agg.average(this.series.realExpenses(null));
+        final var spending = this.series.realExpenses(null, true);
         spending.setName("Spending");
         netSaving.setName("Savings");
 
         new StackedTimeSeriesChart()
                 .create(
                         months + "-month Savings and Spending",
-                        List.of(spending, agg.average(this.series.realOtherExpenses()), netSaving),
-                        "savings-spending" + months);
+                        List.of(spending, netSaving),
+                        "spending-savings" + months);
 
     }
 
@@ -151,7 +150,7 @@ public class Savings {
         final var agg = new SlidingWindow(months);
         final var income = agg.average(this.series.realIncome());
         final var netSaving = agg.average(this.series.realNetSavings());
-        final var spending = agg.average(this.series.realExpenses(null));
+        final var spending = this.series.realExpenses(null, true);
 
         netSaving
                 .forEach((ym, savingMa) -> this.console.appendLine(this.bar.percentBar(ym, this.series(ym, spending, income, savingMa))));
@@ -938,14 +937,7 @@ public class Savings {
                 .map(avg)
                 .get();
 
-        var regularAvgExpenses
-                = this.series.getRealUSDExpensesByType()
-                        .values()
-                        .stream()
-                        .flatMap(Collection::stream)
-                        .reduce(MoneyAmountSeries::add)
-                        .map(avg)
-                        .get();
+        var regularAvgExpenses = this.series.realExpenses(null, true);
 
         final var from = YearMonth.of(2007, 1);
         final var to = Inflation.usdInflation().getTo();

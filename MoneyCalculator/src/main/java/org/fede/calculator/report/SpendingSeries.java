@@ -39,47 +39,59 @@ public enum SpendingSeries {
     SEGURO("seguro"),
     GAS("gas"),
     LUZ("luz"),
-    
+
     COLON_OSSE("colon-osse"),
     COLON_EDEA("colon-edea"),
     COLON_MUNICIPAL("colon-municipal"),
     COLON_FLOW("colon-flow"),
     COLON_CAMUZZI("colon-camuzzi"),
     COLON_EXPENSAS("colon-expensas"),
-    
-    DEPARTAMENTOS("departamentos"),
+
+    DEPARTAMENTOS("departamentos", 36),
     CABLEVISION("cablevision"),
     SANTANDER("santander"),
     BOX("box"),
     COMIDA_DISC("comida-disc"),
-    
+
     ANGELES_OTHER_DISC("angeles-other-disc"),
-    
-    OTHER("other"),
-    OTHER_USD("other-usd"),
-    REPARACIONES("reparaciones"),
+
+    OTHER("other", 36),
+    OTHER_USD("other-usd", 36),
+    REPARACIONES("reparaciones", 36),
     LIMPIEZA("limpieza"),
     EXPENSAS("expensas"),
     NETFLIX("netflix"),
     SUSCRIPCIONES_USD("suscripciones-usd"),
     SUSCRIPCIONES_ARS("suscripciones-ars"),
     VIAJES("viajes"),
-    VIAJES_USD("viajes-usd"),
+    VIAJES_USD("viajes-usd", 36),
     XBOX("xbox"),
     ATLANTICO("atlantico"),
     ITAU_UY("itau-uy"),
     INVESTMENTS("investments"),
-    EXTRAORDINARY("extraordinary"),
+    EXTRAORDINARY("extraordinary", 60),
     UNCLASSIFIED("unclassified");
 
+    private static final int DEFAULT_AVERAGE_MONTHS = 12;
+
     private final String seriesName;
+    private final int averageMonths;
 
     SpendingSeries(String seriesName) {
+        this(seriesName, DEFAULT_AVERAGE_MONTHS);
+    }
+
+    SpendingSeries(String seriesName, int averageMonths) {
         this.seriesName = seriesName;
+        this.averageMonths = averageMonths;
     }
 
     public String getSeriesName() {
         return seriesName;
+    }
+
+    public int getAverageMonths() {
+        return averageMonths;
     }
 
 }

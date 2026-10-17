@@ -16,7 +16,6 @@
  */
 package org.fede.calculator.report;
 
-import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import java.text.MessageFormat;
@@ -26,7 +25,6 @@ import static java.util.Comparator.comparing;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.MoneyAmountSeries;
@@ -35,11 +33,9 @@ import java.util.HashSet;
 import static org.fede.calculator.report.SpendingSeries.*;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
-import org.fede.calculator.money.SlidingWindow;
 import org.fede.calculator.money.series.JSONDataPoint;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
@@ -62,16 +58,6 @@ public class Expenses {
         this.format = format;
     }
 
-    public void expensesChange(int months) {
-
-        this.console.appendLine(this.format.title("Expenses Change"));
-
-        this.bar.evolution(format("{0}-month average expenses change", months),
-                new SlidingWindow(1)
-                        .change(new SlidingWindow(months)
-                                .average(this.series.realExpenses(null))), 3);
-    }
-
     public void expenses(Map<String, String> params) {
 
         Runnable otherwise = () -> {
@@ -88,11 +74,11 @@ public class Expenses {
 
             this.console.appendLine(this.format.title(format("Real USD expenses in the last {0} months", months)));
 
-            final List<TypeAndAmount> list = this.series.getRealUSDExpensesByType()
+            final List<TypeAndAmount> list = this.series.expenseSeriesBy(ExpenseTier::of)
                     .entrySet()
                     .stream()
-                    .filter(p -> exp == null || exp.equals(p.getKey()))
-                    .map(e -> new TypeAndAmount(e.getKey(), this.aggregate(e.getValue(), s -> this.lastMonths(s, monthSet)).amount()))
+                    .filter(p -> exp == null || ExpenseTier.valueOf(exp.toUpperCase()) == p.getKey())
+                    .map(e -> new TypeAndAmount(e.getKey().name(), this.aggregate(e.getValue(), s -> this.lastMonths(s, monthSet)).amount()))
                     .toList();
 
             final var total = list.stream()
@@ -112,7 +98,7 @@ public class Expenses {
                     this.format.text("Total", 5),
                     this.format.currency(total, 10)));
 
-            this.console.appendLine(this.format.subtitle(Series.IRREGULAR + " Detail"));
+            this.console.appendLine(this.format.subtitle("Irregular Detail"));
 
             this.irregularExpenseDetailReport(monthSet);
 
@@ -302,77 +288,6 @@ public class Expenses {
     private void halfExpenses() {
         new Group(console, format, bar)
                 .group("Half expenses", this.series.realExpense(), null, YearMonthUtil::half, 6);
-    }
-
-    public void expenseBySource(int months) {
-        this.expenseBySource(months, this.series.getRealUSDExpensesByType());
-
-    }
-
-    private void expenseBySource(int months, Map<String, List<MoneyAmountSeries>> source) {
-
-        final var title = format("Average {0}-month expenses by source", months);
-
-        final var colorList = List.of(
-                Attribute.BLUE_BACK(),
-                Attribute.RED_BACK(),
-                Attribute.YELLOW_BACK(),
-                Attribute.GREEN_BACK());
-        this.console.appendLine(this.format.title(title));
-
-        final var agg = new SlidingWindow(months);
-
-        final var seriesGroups = source;
-
-        final var ss = seriesGroups.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(e -> e.getValue().stream().reduce(MoneyAmountSeries::add).get())
-                .map(agg::average)
-                .toList();
-
-        final var labels = seriesGroups.entrySet().stream()
-                .map(Map.Entry::getKey)
-                .sorted()
-                .toList();
-
-        final var oldestSeries = ss.stream().min(Comparator.comparing(MoneyAmountSeries::getFrom)).get();
-
-        final var scale = switch (months) {
-            case 1 ->
-                80;
-            case 2 ->
-                60;
-            case 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ->
-                36;
-            default ->
-                20;
-        };
-
-        final var nextMonth = YearMonth.now().plusMonths(1);
-
-        oldestSeries.map((ym, ma) -> MoneyAmount.zero(Currency.USD).max(ma))
-                .forEach((ym, savingMa)
-                        -> this.printIf(
-                                currentYm -> currentYm.isBefore(nextMonth),
-                                () -> this.console.appendLine(this.bar.genericBar(ym, this.independenSeries(ym, ss, colorList), scale)),
-                                ym)
-                );
-
-        new References(console, format).refs(title, labels, colorList);
-
-    }
-
-    private void printIf(Predicate<YearMonth> condition, Runnable action, YearMonth ym) {
-        if (condition.test(ym)) {
-            action.run();
-        }
-    }
-
-    private List<AmountAndColor> independenSeries(YearMonth ym, List<MoneyAmountSeries> series, List<Attribute> colors) {
-
-        return IntStream.range(0, series.size())
-                .mapToObj(i -> new AmountAndColor(MoneyAmount.zero(Currency.USD).max(series.get(i).getAmountOrElseZero(ym)), colors.get(i)))
-                .toList();
     }
 
 }

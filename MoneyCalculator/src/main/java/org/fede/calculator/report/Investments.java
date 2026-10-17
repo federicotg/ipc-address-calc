@@ -1165,7 +1165,7 @@ public class Investments {
 
     public void savedAndInvestedChart() {
 
-        this.etfCompositionChart();
+        //this.etfCompositionChart();
 
         new TimeSeriesChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LOG))
                 .create("ETF Real Growth",

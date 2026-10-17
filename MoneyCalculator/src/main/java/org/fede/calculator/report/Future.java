@@ -204,17 +204,13 @@ public class Future {
                 allSpeding.get(SpendingSeries.SALUD).add(healthCostSeries));
 
         for (var s : allSpeding.keySet()) {
-            allSpeding.put(s,
-                    this.ema(allSpeding.get(s), switch (s) {
-                case REPARACIONES, OTHER, OTHER_USD, VIAJES_USD, DEPARTAMENTOS -> 36;
-                default -> 12;
-            }));
+            allSpeding.put(s, this.ema(allSpeding.get(s), s.getAverageMonths()));
         }
 
-        final Map<ExpenseTier, Optional<MoneyAmountSeries>> grouped =  allSpeding.keySet()
+        final Map<ExpenseTier, Optional<MoneyAmountSeries>> grouped = allSpeding.keySet()
                 .stream()
                 .collect(
-                        Collectors.groupingBy(this::tier,
+                        Collectors.groupingBy(ExpenseTier::of,
                                 Collectors.mapping(allSpeding::get,
                                         Collectors.reducing(MoneyAmountSeries::add))));
 
@@ -241,21 +237,7 @@ public class Future {
                                 map.get(ExpenseTier.ESSENTIAL),
                                 map.get(ExpenseTier.DISCRETIONARY),
                                 map.get(ExpenseTier.LUXURY)),
-                        "retirement-spending");
+                        "spending-retirement");
 
-    }
-
-    private ExpenseTier tier(SpendingSeries s) {
-        return switch (s) {
-            case UNCLASSIFIED, BBPP, COMIDA, EMERGENCIA, EXPENSAS, GAS, INMOBILIARIO_43, IOMA, LUZ, MONOTRIBUTO, MONOTRIBUTO_ANGELES, MUNICIPAL_43, REPARACIONES, SALUD, CABLEVISION, CELULAR_A, CELULAR_F, EXTRAORDINARY -> ExpenseTier.ESSENTIAL;
-            case INVESTMENTS, TELEFONO_43, ANGELES_OTHER_DISC, COMIDA_DISC, LIMPIEZA, SELLOS, CONTADORA, OTHER_USD, OTHER, VIAJES -> ExpenseTier.DISCRETIONARY;
-            case ATLANTICO, SANTANDER, BOX, COLON_CAMUZZI, COLON_EDEA, COLON_EXPENSAS, COLON_FLOW, COLON_MUNICIPAL, COLON_OSSE, DEPARTAMENTOS, ITAU_UY, NETFLIX, SEGURO, SUSCRIPCIONES_ARS, SUSCRIPCIONES_USD, VIAJES_USD, XBOX -> ExpenseTier.LUXURY;
-        };
-    }
-
-    public enum ExpenseTier {
-        ESSENTIAL,
-        DISCRETIONARY,
-        LUXURY
     }
 }
