@@ -290,7 +290,13 @@ public class ConsoleReports {
 
             case "expenses" ->
                 () -> me.expenses(args, "expenses");
-                
+
+            case "spend" ->
+                () -> me.spend(args, "spend");
+
+            case "spend-avg" ->
+                () -> me.spendAvg(args, "spend-avg");
+
             case "bbpp" ->
                 () -> me.bbpp(args, "bbpp");
 
@@ -387,6 +393,11 @@ public class ConsoleReports {
                         .map(Enum::name)).toList());
     }
 
+    private static CommandArgument spending(String name) {
+        return new CommandArgument(name,
+                Arrays.stream(SpendingSeries.values()).map(Enum::name).toList());
+    }
+
     private static Stream<CmdParam> commandParams() {
         return Stream.of(
                 new CmdParam("savings-change", "m=1", arg("m")),
@@ -468,6 +479,15 @@ public class ConsoleReports {
                         arg("by", "year", "half", "quarter", "month"),
                         arg("type", "ESSENTIAL", "DISCRETIONARY", "LUXURY"),
                         arg("m")),
+                new CmdParam("spend", "m=12 in=(SERIES,...) ex=(SERIES,...)",
+                        arg("m"),
+                        spending("in"),
+                        spending("ex")),
+                new CmdParam("spend-avg", "m=12 n=12 t=10 ex=UNCLASSIFIED",
+                        arg("m"),
+                        arg("n"),
+                        arg("t"),
+                        spending("ex")),
                 new CmdParam("savings-evo", "type=(BO|LIQ|EQ)",
                         arg("type", "BO", "LIQ", "EQ")),
                 new CmdParam("dca", "type=(q*|h|y|m)",
@@ -621,6 +641,16 @@ public class ConsoleReports {
     private void expenses(String[] args, String type) {
         new Expenses(series, console, bar, format)
                 .expenses(this.paramsValue(args, type));
+    }
+
+    private void spend(String[] args, String type) {
+        new Expenses(series, console, bar, format)
+                .spending(this.paramsValue(args, type));
+    }
+
+    private void spendAvg(String[] args, String type) {
+        new Expenses(series, console, bar, format)
+                .spendingAverageTop(this.paramsValue(args, type));
     }
 
     private void savingsPercentChange(String[] args, String paramName) {
@@ -927,26 +957,51 @@ public class ConsoleReports {
                 .create(chartName, expenseSeries, "spending-" + (grouped ? "grouped" : ""));
     }
 
+    private void spendingCharts(Savings savings) throws IOException {
+        // spending-grouped
+        this.expensesChart(true);
+
+        // spending-savings
+        savings.netAvgSavingSpentChart(12);
+
+        // spending-portfolio-retirement
+        // spending-portfolio
+        this.averageSpendingPortfolioPercent();
+
+        // spending-retirement
+        this.futurePortfolioSpending();
+
+        new Expenses(this.series, this.console, this.bar, this.format)
+                .regularExpensesByYearChart(savings);
+
+    }
+
     private void allCharts() {
         try {
             final var inv = new Investments(this.console, this.format, this.bar, this.series);
             final var pos = new Positions(console, format, series);
             final var savings = new Savings(format, series, bar, console);
 
-            this.expensesChart(true);
+            this.spendingCharts(savings);
+
             this.incomeAccChart();
             this.savingsEvoChart();
             this.savingsARSEvoChart();
-            savings.netAvgSavingSpentChart(12);
+
+            savings.spendingByRegularIncomeChart();
+
             inv.mdrChart(true);
             inv.mdrChart(false);
             inv.mdrByYearChart();
+
             inv.etfCompositionChart();
+
+            // pie
             pos.portfolioChartByGeography(false, "pct", usdInflation().getTo().getYear(), usdInflation().getTo().getMonthValue());
+
             this.savingsChart();
             inv.savingsInvestmentsPercentChart();
             savings.savingsByIncomeChart();
-            savings.spendingByRegularIncomeChart();
             savings.spendingByYear();
             inv.savedAndInvestedChart();
             inv.investmentsByClassChart();
@@ -960,7 +1015,6 @@ public class ConsoleReports {
 
             savings.savingRate(12);
 
-            this.averageSpendingPortfolioPercent();
             inv.benchmarks();
             this.averageMonthsSavedInCash();
             pos.investedChart(false, "all");
@@ -1143,8 +1197,10 @@ public class ConsoleReports {
                         ),
                         "spending-portfolio-retirement");
 
-        future.retirementSpendingEvolution();
+    }
 
+    private void futurePortfolioSpending() {
+        new Future(this.series).retirementSpendingEvolution();
     }
 
     private void buy(BigDecimal usd, BigDecimal eur, BigDecimal transfer, boolean detail) {

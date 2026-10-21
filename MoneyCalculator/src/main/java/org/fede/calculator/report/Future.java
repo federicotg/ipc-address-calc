@@ -197,6 +197,8 @@ public class Future {
     public Map<ExpenseTier, MoneyAmountSeries> retirementSpending() {
         final var allSpeding = this.series.allSpending();
         allSpeding.remove(SpendingSeries.EXTRAORDINARY);
+        allSpeding.remove(SpendingSeries.INVESTMENTS);
+
         final var healthCostSeries = Inflation.usdInflation().adjust(futureHealth(), YearMonth.now());
 
         // add future health cost

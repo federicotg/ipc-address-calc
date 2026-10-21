@@ -20,31 +20,45 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ZERO;
 import java.text.MessageFormat;
 import static java.text.MessageFormat.format;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import static java.util.Comparator.comparing;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import org.fede.calculator.chart.BarChart;
+import org.fede.calculator.chart.ChartStyle;
+import org.fede.calculator.chart.Scale;
+import org.fede.calculator.chart.ValueFormat;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.MoneyAmountSeries;
+import java.time.Year;
 import java.time.YearMonth;
+import java.util.HashMap;
 import java.util.HashSet;
 import static org.fede.calculator.report.SpendingSeries.*;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.Inflation;
+import org.fede.calculator.money.SlidingWindow;
 import org.fede.calculator.money.series.JSONDataPoint;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
+import org.jfree.data.category.DefaultCategoryDataset;
 
 /**
  *
  * @author federicogentile
  */
 public class Expenses {
+
+    private static final Set<SpendingSeries> IRREGULAR = Set.of(EXTRAORDINARY, OTHER, OTHER_USD, INVESTMENTS);
 
     private final Series series;
     private final Console console;
@@ -58,6 +72,153 @@ public class Expenses {
         this.format = format;
     }
 
+    private Set<YearMonth> monthSet(int months) {
+        final Set<YearMonth> monthSet = HashSet.newHashSet(months);
+        var ym = YearMonth.now();
+        for (int i = 0; i < months; i++) {
+            ym = ym.plusMonths(-1);
+            monthSet.add(ym);
+        }
+        return monthSet;
+    }
+
+    public void spending(Map<String, String> params) {
+
+        final int months = Integer.parseInt(params.getOrDefault("m", "12"));
+        final Set<YearMonth> monthSet = this.monthSet(months);
+        final List<SpendingSeries> selected = this.resolveSeries(params);
+
+        final var spending = this.series.allSpending();
+
+        this.console.appendLine(this.format.title(format(
+                "Spending last {0} months ({1})",
+                months,
+                this.seriesFilterLabel(params))));
+
+        MoneyAmount totalUSD = MoneyAmount.zero(Currency.USD);
+        MoneyAmount totalARS = MoneyAmount.zero(Currency.ARS);
+
+        for (var ym : monthSet.stream().sorted().toList()) {
+            final var usd = selected.stream()
+                    .map(spending::get)
+                    .map(s -> s.getAmountOrElseZero(ym))
+                    .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+            final var ars = this.ars(usd, ym);
+
+            totalUSD = totalUSD.add(usd);
+            totalARS = totalARS.add(ars);
+
+            this.console.appendLine(MessageFormat.format("{0} {1} {2}",
+                    ym,
+                    this.format.currency(usd, 14),
+                    this.format.currency(ars, 18)));
+        }
+
+        this.console.appendLine(MessageFormat.format(
+                "Total: {0} {1}",
+                this.format.currency(totalUSD, 14),
+                this.format.currency(totalARS, 20)));
+
+        final var monthsBd = BigDecimal.valueOf(months);
+        this.console.appendLine(MessageFormat.format(
+                "Avg:   {0} {1}",
+                this.format.currency(totalUSD.adjust(monthsBd, BigDecimal.ONE), 14),
+                this.format.currency(totalARS.adjust(monthsBd, BigDecimal.ONE), 20)));
+    }
+
+    public void spendingAverageTop(Map<String, String> params) {
+
+        final int months = Integer.parseInt(params.getOrDefault("m", "12"));
+        final int averageMonths = Integer.parseInt(params.getOrDefault("n", "12"));
+        final int top = Integer.parseInt(params.getOrDefault("t", "10"));
+
+        final Map<String, String> effectiveParams = new HashMap<>(params);
+        effectiveParams.putIfAbsent("ex", UNCLASSIFIED.name());
+        final List<SpendingSeries> selected = this.resolveSeries(effectiveParams);
+
+        final Set<YearMonth> monthSet = this.monthSet(months);
+        final var spending = this.series.allSpending();
+
+        final Map<SpendingSeries, MoneyAmountSeries> averages = selected.stream()
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        s -> new SlidingWindow(averageMonths).average(spending.get(s))));
+
+        final var monthsBd = BigDecimal.valueOf(months);
+        final MoneyAmount totalAvgUSD = monthSet.stream()
+                .map(ym -> selected.stream()
+                        .map(spending::get)
+                        .map(s -> s.getAmountOrElseZero(ym))
+                        .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add))
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add)
+                .adjust(monthsBd, BigDecimal.ONE);
+
+        this.console.appendLine(this.format.title(format(
+                "Top {0} {1}-month averages in last {2} months ({3})",
+                top,
+                averageMonths,
+                months,
+                this.seriesFilterLabel(effectiveParams))));
+
+        this.console.appendLine(MessageFormat.format(
+                "Avg total spending: {0}",
+                this.format.currency(totalAvgUSD, 14)));
+
+        averages.entrySet()
+                .stream()
+                .flatMap(e -> monthSet.stream()
+                        .map(ym -> new AverageRow(e.getKey(), ym, e.getValue().getAmountOrElseZero(ym)))
+                        .filter(row -> !row.amount().isZero()))
+                .sorted(comparing((AverageRow row) -> row.amount().amount(), Comparator.reverseOrder()))
+                .limit(top)
+                .forEach(row -> this.console.appendLine(MessageFormat.format(
+                        "{0} {1} {2} {3} {4}",
+                        this.format.text(row.series().name(), 22),
+                        row.ym(),
+                        this.format.currency(row.amount(), 14),
+                        this.format.currency(this.ars(row.amount(), row.ym()), 18),
+                        this.bar.pctBar(row.amount().amount(), totalAvgUSD.amount()))));
+    }
+
+    private record AverageRow(SpendingSeries series, YearMonth ym, MoneyAmount amount) {
+    }
+
+    private String seriesFilterLabel(Map<String, String> params) {
+        final var include = params.get("in");
+        if (include != null) {
+            return "in=" + include.toUpperCase();
+        }
+        final var exclude = params.get("ex");
+        if (exclude != null) {
+            return "ex=" + exclude.toUpperCase();
+        }
+        return "all";
+    }
+
+    private List<SpendingSeries> resolveSeries(Map<String, String> params) {
+        final var include = params.get("in");
+        final var exclude = params.get("ex");
+
+        if (include != null) {
+            return this.parseSeriesList(include);
+        }
+
+        final var all = Arrays.stream(SpendingSeries.values()).collect(Collectors.toCollection(ArrayList::new));
+        if (exclude != null) {
+            all.removeAll(this.parseSeriesList(exclude));
+        }
+        return all;
+    }
+
+    private List<SpendingSeries> parseSeriesList(String csv) {
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(String::toUpperCase)
+                .map(SpendingSeries::valueOf)
+                .toList();
+    }
+
     public void expenses(Map<String, String> params) {
 
         Runnable otherwise = () -> {
@@ -65,12 +226,7 @@ public class Expenses {
             final String exp = params.get("type");
             final int months = Integer.parseInt(params.getOrDefault("m", "12"));
 
-            final Set<YearMonth> monthSet = HashSet.newHashSet(months);
-            var ym = YearMonth.now();
-            for (int i = 0; i < months; i++) {
-                ym = ym.plusMonths(-1);
-                monthSet.add(ym);
-            }
+            final Set<YearMonth> monthSet = this.monthSet(months);
 
             this.console.appendLine(this.format.title(format("Real USD expenses in the last {0} months", months)));
 
@@ -128,6 +284,8 @@ public class Expenses {
             this.console.appendLine(this.format.subtitle("Ángeles Other Discretionary"));
             this.expenseDetailReport(monthSet,
                     List.of(ANGELES_OTHER_DISC));
+
+            this.regularExpenses(months);
         };
 
         new By()
@@ -207,14 +365,25 @@ public class Expenses {
             grouped.get(ym)
                     .ifPresent(this::expenseDetailReport);
         }
-        var total = grouped
+
+        final var totalARS = grouped
+                .values()
+                .stream()
+                .map(o -> o.map(ed -> this.ars(ed.amount(), ed.ym()))
+                        .orElse(MoneyAmount.zero(Currency.ARS)))
+                .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add);
+
+        final var total = grouped
                 .values()
                 .stream()
                 .map(o -> o.map(ExpenseDetail::amount)
                         .orElse(MoneyAmount.zero(Currency.USD)))
                 .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
-        this.console.appendLine("Total: ", this.format.currency(
-                total, 14));
+        this.console.appendLine(MessageFormat.format(
+                "Total: {0} {1}",
+                this.format.currency(total, 14),
+                this.format.currency(totalARS, 20)
+        ));
         return total;
     }
 
@@ -239,11 +408,17 @@ public class Expenses {
 
     }
 
+    private MoneyAmount ars(MoneyAmount usd, YearMonth ym) {
+        return ForeignExchanges.getForeignExchange(usd.currency(), Currency.ARS)
+                .exchange(usd, Currency.ARS, ym);
+    }
+
     private void expenseDetailReport(ExpenseDetail d) {
         this.console.appendLine(
-                MessageFormat.format("{0} {1} {2}",
+                MessageFormat.format("{0} {1} {2} {3}",
                         d.ym(),
                         this.format.currency(d.amount(), 14),
+                        this.format.currency(ars(d.amount(), d.ym()), 18),
                         d.comment() == null ? "" : d.comment())
         );
     }
@@ -288,6 +463,96 @@ public class Expenses {
     private void halfExpenses() {
         new Group(console, format, bar)
                 .group("Half expenses", this.series.realExpense(), null, YearMonthUtil::half, 6);
+    }
+
+    private ExpenseTotal regularExpenses(Set<YearMonth> monthSet) {
+        var details = this.series.allSpending()
+                .entrySet()
+                .stream()
+                .filter(entry -> !IRREGULAR.contains(entry.getKey()))
+                .flatMap(entry -> this.details(monthSet, entry.getValue()))
+                .toList();
+
+        final var totalARS = details
+                .stream()
+                .map(d -> this.ars(d.amount(), d.ym()))
+                .reduce(MoneyAmount.zero(Currency.ARS), MoneyAmount::add);
+
+        final var totalUSD = details
+                .stream()
+                .map(d -> d.amount())
+                .reduce(MoneyAmount.zero(Currency.USD), MoneyAmount::add);
+        return new ExpenseTotal(totalUSD, totalARS);
+
+    }
+
+    public void regularExpenses(int months) {
+
+        final var monthSet = this.monthSet(months);
+
+        var totals = this.regularExpenses(monthSet);
+
+        this.console.appendLine(this.format.subtitle("Total Regular"));
+
+        this.console.appendLine("Total ",
+                this.format.currency(totals.totalUSD, 14),
+                " ",
+                this.format.currency(totals.totalARS, 18)
+        );
+
+        this.console.appendLine("Month ",
+                this.format.currency(totals.totalUSD.adjust(BigDecimal.valueOf(months), BigDecimal.ONE), 14),
+                " ",
+                this.format.currency(totals.totalARS.adjust(BigDecimal.valueOf(months), BigDecimal.ONE), 18)
+        );
+
+    }
+
+    private Set<YearMonth> months(int year) {
+        return IntStream.rangeClosed(1, 12)
+                .mapToObj(m -> YearMonth.of(year, m))
+                .collect(Collectors.toSet());
+    }
+
+    private ExpenseTotal regularExpensesByYear(int year) {
+
+        return this.regularExpenses(this.months(year));
+
+    }
+
+    public void regularExpensesByYearChart(Savings savings) {
+        final var dataset = new DefaultCategoryDataset();
+
+        IntStream.rangeClosed(2008, Year.now().getValue())
+                .forEach(year -> {
+                    final var months = BigDecimal.valueOf(
+                            year < YearMonth.now().getYear()
+                            ? 12
+                            : YearMonth.now().getMonthValue());
+                    final var yearLabel = String.valueOf(year);
+
+                    dataset.addValue(
+                            this.regularExpensesByYear(year).totalUSD().amount(),
+                            "Gastos",
+                            yearLabel);
+                    dataset.addValue(
+                            savings.yearRegularIncome(year).amount().multiply(months),
+                            "Ingresos",
+                            yearLabel);
+                });
+
+        new BarChart(new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR))
+                .create("Gastos Regulares", "Año", dataset, "spending-regular");
+    }
+
+    private Stream<ExpenseDetail> details(Set<YearMonth> monthSet, MoneyAmountSeries series) {
+        return series.yearMonthStream()
+                .filter(monthSet::contains)
+                .map(ym -> new ExpenseDetail(series.getAmountOrElseZero(ym), ym, null));
+    }
+
+    private record ExpenseTotal(MoneyAmount totalUSD, MoneyAmount totalARS) {
+
     }
 
 }

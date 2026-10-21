@@ -363,13 +363,6 @@ public class Series {
                 .get();
     }
 
-    public MoneyAmountSeries ripteInRealUSD() {
-
-        var ripte = this.asRealUSDSeries("income/", "ripte");
-        ripte.setName("RIPTE Real USD");
-        return ripte;
-    }
-
     public MoneyAmountSeries realInvested() {
         return Stream.of(
                 "ahorros-cspx",

@@ -531,9 +531,10 @@ public class Savings {
     }
 
     private MoneyAmount yearIncome(int year, Supplier<List<MoneyAmountSeries>> supplier) {
-        final var months = year < usdInflation().getTo().getYear()
+        final var now = YearMonth.now();
+        final var months = year < now.getYear()
                 ? 12
-                : YearMonth.now().getMonthValue();
+                : now.getMonthValue();
 
         return supplier.get()
                 .stream()
