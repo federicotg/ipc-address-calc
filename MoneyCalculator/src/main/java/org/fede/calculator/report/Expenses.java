@@ -41,6 +41,7 @@ import java.util.HashSet;
 import static org.fede.calculator.report.SpendingSeries.*;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -57,8 +58,6 @@ import org.jfree.data.category.DefaultCategoryDataset;
  * @author federicogentile
  */
 public class Expenses {
-
-    private static final Set<SpendingSeries> IRREGULAR = Set.of(EXTRAORDINARY, OTHER, OTHER_USD, INVESTMENTS);
 
     private final Series series;
     private final Console console;
@@ -215,8 +214,21 @@ public class Expenses {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .map(String::toUpperCase)
-                .map(SpendingSeries::valueOf)
+                .flatMap(this::matchSeries)
+                .distinct()
                 .toList();
+    }
+
+    private Stream<SpendingSeries> matchSeries(String token) {
+        if (!token.contains("*")) {
+            return Stream.of(SpendingSeries.valueOf(token));
+        }
+        final var pattern = Pattern.compile(
+                Arrays.stream(token.split("\\*", -1))
+                        .map(Pattern::quote)
+                        .collect(Collectors.joining(".*")));
+        return Arrays.stream(SpendingSeries.values())
+                .filter(s -> pattern.matcher(s.name()).matches());
     }
 
     public void expenses(Map<String, String> params) {
@@ -469,7 +481,7 @@ public class Expenses {
         var details = this.series.allSpending()
                 .entrySet()
                 .stream()
-                .filter(entry -> !IRREGULAR.contains(entry.getKey()))
+                .filter(entry -> SpendingFrequency.of(entry.getKey()) == SpendingFrequency.REGULAR)
                 .flatMap(entry -> this.details(monthSet, entry.getValue()))
                 .toList();
 

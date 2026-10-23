@@ -14,7 +14,7 @@ public class Accumulator implements Aggregator {
     @Override
     public MoneyAmountSeries average(MoneyAmountSeries series) {
         final var currency = series.getCurrency();
-        MoneyAmountSeries result = new SortedMapMoneyAmountSeries(currency, series.getName() + " avg");
+        MoneyAmountSeries result = new SortedMapMoneyAmountSeries(currency, series.getName());
 
         List<MoneyAmountItem> items = series.items().toList();
 
@@ -37,7 +37,7 @@ public class Accumulator implements Aggregator {
     @Override
     public MoneyAmountSeries sum(MoneyAmountSeries series) {
         final var currency = series.getCurrency();
-        MoneyAmountSeries result = new SortedMapMoneyAmountSeries(currency, series.getName() + " sum");
+        MoneyAmountSeries result = new SortedMapMoneyAmountSeries(currency, series.getName());
 
         List<MoneyAmountItem> items = series.items().toList();
 

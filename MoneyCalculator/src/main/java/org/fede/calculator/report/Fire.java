@@ -80,7 +80,7 @@ public class Fire {
         final var futureHealth = this.futureHealth();
         final var currentHealth = this.currentHealth();
 
-        final var currentCash = this.series.realSavings("LIQ").getAmount(YearMonth.now());
+        final var currentCash = this.series.realSavings(AssetClass.CASH).getAmount(YearMonth.now());
 
         this.conceptLine("Essential", budgets.essential());
         this.conceptLine("Current Health Cost", currentHealth);
@@ -99,7 +99,7 @@ public class Fire {
 
         this.conceptLine("Current", totalSavings);
 
-        var allEquity = this.series.realSavings("EQ").getAmount(YearMonth.now());
+        var allEquity = this.series.realSavings(AssetClass.EQUITY).getAmount(YearMonth.now());
         var sp500 = this.last.lastAmount(Currency.CSPX);
         var nonSP500 = allEquity.subtract(sp500);
 
@@ -146,7 +146,7 @@ public class Fire {
 
     public void re() {
 
-        final var unlp = this.series.incomeSource("unlp");
+        final var unlp = this.series.incomeSource(IncomeSeries.UNLP);
         final var initialMonth = unlp.yearMonthStream()
                 .filter(ym -> !unlp.getAmountOrElseZero(ym).isZero())
                 .findFirst()
@@ -213,9 +213,9 @@ public class Fire {
 
         var equity = last.last();
 
-        var cash = this.series.realSavings("LIQ").getAmount(now);
+        var cash = this.series.realSavings(AssetClass.CASH).getAmount(now);
 
-        var bonds = this.series.realSavings("BO").getAmountOrElseZero(now);
+        var bonds = this.series.realSavings(AssetClass.BONDS).getAmountOrElseZero(now);
 
         return new CAEYSafeWithdrawalRate()
                 .capeWR(equity.us(), equity.exUs(), equity.em(), bonds, cash);

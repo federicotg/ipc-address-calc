@@ -31,7 +31,6 @@ import java.time.Month;
 import static java.time.Month.DECEMBER;
 import static java.time.Month.JANUARY;
 import java.time.Period;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -477,7 +476,7 @@ public class Investments {
 
         mdrSeries.add(ChartSeriesMapper.asTimeSeries(realWithCash, "Real Returns"));
         mdrSeries.add(ChartSeriesMapper.asTimeSeries(nominalWithCash, "Nominal Returns"));
-        final var savings = this.series.realSavings(null);
+        final var savings = this.series.realSavings();
 
         if (!cagr) {
 
@@ -1183,8 +1182,7 @@ public class Investments {
                                 this.portfolioValue(false, i -> true)),
                         "growth-all-real");
 
-        final var savings = this.series.realSavings(null);
-        savings.setName("Real Savings");
+        final var savings = this.series.realSavings();
 
         final var investments = this.portfolioValue(false, i -> true);
 
@@ -1192,7 +1190,6 @@ public class Investments {
         uninvested.setName("Cash");
 
         final var income = new Accumulator().sum(this.series.realIncome());
-        income.setName("Real Income");
 
         new TimeSeriesChart().create("Real Income, Savings & Investments",
                 List.of(
@@ -1206,7 +1203,7 @@ public class Investments {
     public void savingsInvestmentsPercentChart() {
 
         final var income = new Accumulator().sum(this.series.realIncome());
-        final var savings = this.series.realSavings(null);
+        final var savings = this.series.realSavings();
 
         final var savedIncomePercent = savings.map((ym, s) -> s.adjust(income.getAmount(ym).amount(), ONE));
         savedIncomePercent.setName("% Saved of all Income");
@@ -1233,8 +1230,7 @@ public class Investments {
         final var localStocks = List.of(CONAAFA);
         final var globalStocks = etfCurrencies;
 
-        final var savings = this.series.realSavings(null);
-        savings.setName("Real Savings");
+        final var savings = this.series.realSavings();
 
         final var investments = this.portfolioValue(false, i -> true);
 

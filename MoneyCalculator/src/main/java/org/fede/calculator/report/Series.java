@@ -17,7 +17,6 @@
 package org.fede.calculator.report;
 
 import static java.math.BigDecimal.ONE;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,20 +30,21 @@ import org.fede.calculator.money.Inflation;
 import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.Investment;
+import org.fede.calculator.money.series.InvestmentType;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
-import static org.fede.calculator.money.series.SeriesReader.readSeries;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import org.fede.calculator.money.SlidingWindow;
-import org.fede.util.Pair;
-import static org.fede.util.Pair.of;
 import static org.fede.calculator.money.Currency.USD;
+import static org.fede.calculator.report.SavingsSeries.*;
 import tools.jackson.core.type.TypeReference;
 
 /**
@@ -61,15 +61,17 @@ public class Series {
 
     private List<Investment> investments;
 
-    private Map<String, List<MoneyAmountSeries>> realUSDSavingsByType;
-
     private final Map<SpendingSeries, MoneyAmountSeries> spendingByType = new EnumMap<>(SpendingSeries.class);
 
-    private List<MoneyAmountSeries> incomeSeries;
+    private final Map<IncomeSeries, MoneyAmountSeries> incomeByType = new EnumMap<>(IncomeSeries.class);
 
-    private List<MoneyAmountSeries> regularIncomeSeries;
+    private final Map<SavingsSeries, MoneyAmountSeries> nominalSavingsByType = new EnumMap<>(SavingsSeries.class);
 
-    private MoneyAmountSeries realNetSavings;
+    private final Map<SavingsSeries, MoneyAmountSeries> realSavingsByType = new EnumMap<>(SavingsSeries.class);
+
+    private MoneyAmountSeries realNetSavingsByCashFlow;
+
+    private MoneyAmountSeries realNetSavingsByQuantityChange;
 
     private MoneyAmountSeries realIncome;
     private MoneyAmountSeries realRegularIncome;
@@ -197,32 +199,6 @@ public class Series {
 
     }
 
-    private Stream<MoneyAmountSeries> savingsSeries() {
-        return Stream.of("ahorros-ay24",
-                "ahorros-conbala",
-                "ahorros-uva",
-                "ahorros-dolar-ON",
-                "ahorros-lecap",
-                "ahorros-lete",
-                "ahorros-caplusa",
-                "ahorros-dolar-banco",
-                "ahorros-dolar-pf",
-                "ahorros-peso",
-                "ahorros-dolar-liq",
-                "ahorros-euro",
-                "ahorros-euro-liq",
-                "ahorros-dai",
-                "ahorros-cspx",
-                "ahorros-rtwo",
-                "ahorros-xuse",
-                "ahorros-eimi",
-                "ahorros-meud",
-                "ahorros-conaafa",
-                "ahorros-xrsu")
-                .map(f -> "saving/" + f + ".json")
-                .map(SeriesReader::readSeries);
-    }
-
     public MoneyAmountSeries realExpense() {
         if (this.realExpense == null) {
             final var negationFactor = ONE.negate(MathConstants.C);
@@ -238,6 +214,7 @@ public class Series {
                     .stream()
                     .reduce(MoneyAmountSeries::add)
                     .get();
+            this.realIncome.setName("Real Income");
         }
         return this.realIncome;
     }
@@ -248,99 +225,188 @@ public class Series {
                     .stream()
                     .reduce(MoneyAmountSeries::add)
                     .get();
+            this.realRegularIncome.setName("Real Regular Income");
         }
         return this.realRegularIncome;
     }
 
     public MoneyAmountSeries realNetSavings() {
-
-        if (this.realNetSavings == null) {
-
-            final var limit = Inflation.usdInflation().getTo();
-
-            this.realNetSavings = this.savingsSeries()
-                    .map(new SlidingWindow(1)::change)
-                    .map(series -> series.exchangeInto(USD))
-                    .map(usdSeries -> Inflation.usdInflation().adjust(usdSeries, limit))
-                    .reduce(MoneyAmountSeries::add)
-                    .get();
-        }
-        return this.realNetSavings;
+        return this.realNetSavingsByCashFlow();
     }
 
-    public MoneyAmountSeries incomeSource(String name) {
-        return Inflation.usdInflation().adjust(
-                readSeries("income/" + name + ".json")
-                        .exchangeInto(USD),
-                Inflation.usdInflation().getTo());
+    public MoneyAmountSeries realNetSavingsByCashFlow() {
+        if (this.realNetSavingsByCashFlow == null) {
+            final var limit = Inflation.usdInflation().getTo();
+            // para ahorros que son dolar , que no tienen cotizació en ForeignExchages
+            final var balances = this.realNetSavingsFromQuantityChange(s -> !s.usesInvestmentCashFlow());
+            
+            // para ETFs, FCI, DAI, UVA, cosas que tienen precio que varía.
+            final var investedCashFlows = Inflation.usdInflation()
+                    .adjust(this.investmentNetCashFlows(), limit);
+            this.realNetSavingsByCashFlow = balances.add(investedCashFlows);
+            this.realNetSavingsByCashFlow.setName("Real Net Savings");
+        }
+        return this.realNetSavingsByCashFlow;
+    }
+
+    public MoneyAmountSeries realNetSavingsByQuantityChange() {
+        if (this.realNetSavingsByQuantityChange == null) {
+            this.realNetSavingsByQuantityChange = this.realNetSavingsFromQuantityChange(s -> true);
+            this.realNetSavingsByQuantityChange.setName("Real Net Savings (quantity change)");
+        }
+        return this.realNetSavingsByQuantityChange;
+    }
+
+    private MoneyAmountSeries realNetSavingsFromQuantityChange(Predicate<SavingsSeries> filter) {
+        final var limit = Inflation.usdInflation().getTo();
+        return Arrays.stream(SavingsSeries.values())
+                .filter(filter)
+                .map(s -> SeriesReader.readSeries("saving/" + s.getSeriesName() + ".json"))
+                .map(new SlidingWindow(1)::change)
+                .map(series -> series.exchangeInto(USD))
+                .map(usdSeries -> Inflation.usdInflation().adjust(usdSeries, limit))
+                .reduce(MoneyAmountSeries::add)
+                .orElseThrow();
+    }
+
+    private MoneyAmountSeries investmentNetCashFlows() {
+        final var negation = ONE.negate(MathConstants.C);
+        final var zero = MoneyAmount.zero(USD);
+        final var byMonth = new HashMap<YearMonth, MoneyAmount>();
+        final var inflationFrom = Inflation.usdInflation().getFrom();
+        final var inflationTo = Inflation.usdInflation().getTo();
+
+        for (var inv : this.getInvestments()) {
+            if (!this.hasInvestmentCashFlow(inv)) {
+                continue;
+            }
+            final var in = inv.getIn();
+            final var inYm = YearMonth.from(in.getDate());
+            if (!inYm.isBefore(inflationFrom) && !inYm.isAfter(inflationTo)) {
+                byMonth.merge(inYm, in.getMoneyAmount(USD), MoneyAmount::add);
+            }
+            if (inv.getOut() != null) {
+                final var out = inv.getOut();
+                final var outYm = YearMonth.from(out.getDate());
+                if (!outYm.isBefore(inflationFrom) && !outYm.isAfter(inflationTo)) {
+                    byMonth.merge(
+                            outYm,
+                            out.getMoneyAmount(USD).adjust(ONE, negation),
+                            MoneyAmount::add);
+                }
+            }
+        }
+
+        final var series = new SortedMapMoneyAmountSeries(USD, "Investment net cash flows");
+        final var from = byMonth.keySet().stream().min(YearMonth::compareTo).orElse(inflationTo);
+        for (var ym = from; !ym.isAfter(inflationTo); ym = ym.plusMonths(1)) {
+            series.putAmount(ym, byMonth.getOrDefault(ym, zero));
+        }
+        return series;
+    }
+
+    private boolean hasInvestmentCashFlow(Investment inv) {
+        final var type = inv.getType();
+        return type == InvestmentType.ETF
+                || type == InvestmentType.FCI
+                || type == InvestmentType.BONO;
+    }
+
+    public MoneyAmountSeries incomeSource(IncomeSeries series) {
+        return this.asIncomeSeries(series);
+    }
+
+    public Map<IncomeSeries, MoneyAmountSeries> allIncome() {
+        return Arrays.stream(IncomeSeries.values())
+                .collect(Collectors.toMap(Function.identity(), this::asIncomeSeries));
+    }
+
+    public <E> Map<E, List<MoneyAmountSeries>> incomeSeriesBy(Function<IncomeSeries, E> classifier) {
+        return Arrays.stream(IncomeSeries.values())
+                .collect(groupingBy(
+                        classifier,
+                        mapping(this::asIncomeSeries, toList())));
     }
 
     public List<MoneyAmountSeries> getIncomeSeries() {
-
-        if (this.incomeSeries == null) {
-
-            final var limit = Inflation.usdInflation().getTo();
-            this.incomeSeries = Stream.of(
-                    readSeries("income/lifia.json"),
-                    readSeries("income/unlp.json"),
-                    readSeries("income/other-ars.json"),
-                    readSeries("income/other-usd.json"),
-                    readSeries("income/other-eur.json"),
-                    readSeries("income/despegar.json"),
-                    readSeries("income/despegar-split.json"))
-                    .map(is -> is.exchangeInto(USD))
-                    .map(usdSeries -> Inflation.usdInflation().adjust(usdSeries, limit))
-                    .toList();
-        }
-        return this.incomeSeries;
+        return Arrays.stream(IncomeSeries.values())
+                .map(this::asIncomeSeries)
+                .toList();
     }
 
     public List<MoneyAmountSeries> getRegularIncomeSeries() {
+        return Arrays.stream(IncomeSeries.values())
+                .filter(IncomeSeries::isRegular)
+                .map(this::asIncomeSeries)
+                .toList();
+    }
 
-        if (this.regularIncomeSeries == null) {
-
-            final var limit = Inflation.usdInflation().getTo();
-            this.regularIncomeSeries = Stream.of(
-                    readSeries("income/lifia.json"),
-                    readSeries("income/unlp.json"),
-                    readSeries("income/despegar.json"),
-                    readSeries("income/despegar-split.json"))
-                    .map(is -> is.exchangeInto(USD))
-                    .map(usdSeries -> Inflation.usdInflation().adjust(usdSeries, limit))
-                    .toList();
-        }
-        return this.regularIncomeSeries;
+    private MoneyAmountSeries asIncomeSeries(IncomeSeries s) {
+        return this.incomeByType.computeIfAbsent(s, key -> {
+            final var series = this.asRealUSDSeries("income/", key.getSeriesName());
+            series.setName(key.getDisplayName());
+            return series;
+        });
     }
 
     public MoneyAmountSeries nominalSavings() {
-        return this.savingsSeriesNames()
-                .map(Pair::second)
-                .map(name -> this.readSeriesInUSD("saving/", name))
+        final var series = Arrays.stream(SavingsSeries.values())
+                .map(this::asNominalSavingsSeries)
                 .reduce(MoneyAmountSeries::add)
-                .get();
+                .orElseThrow();
+        series.setName("Nominal Savings");
+        return series;
     }
 
     public MoneyAmount currentSavingsUSD() {
         return this.nominalSavings().getAmount(Inflation.usdInflation().getTo());
     }
 
-    public MoneyAmountSeries realSavings(String type) {
-
-        if (this.realUSDSavingsByType == null) {
-
-            this.realUSDSavingsByType = this.savingsSeriesNames()
-                    .collect(groupingBy(
-                            Pair::first,
-                            mapping(p -> this.asRealUSDSeries(p.second()),
-                                    Collectors.toList())));
-        }
-
-        return this.realUSDSavingsByType.entrySet().stream()
-                .filter(e -> type == null || e.getKey().equals(type))
-                .map(Map.Entry::getValue)
-                .flatMap(Collection::stream)
+    public MoneyAmountSeries realSavings() {
+        final var series = Arrays.stream(SavingsSeries.values())
+                .map(this::asRealSavingsSeries)
                 .reduce(MoneyAmountSeries::add)
-                .get();
+                .orElseThrow();
+        series.setName("Real Savings");
+        return series;
+    }
+
+    public MoneyAmountSeries realSavings(AssetClass type) {
+        final var series = Arrays.stream(SavingsSeries.values())
+                .filter(s -> s.getAssetClass() == type)
+                .map(this::asRealSavingsSeries)
+                .reduce(MoneyAmountSeries::add)
+                .orElseThrow();
+        series.setName(switch (type) {
+            case CASH ->
+                "Cash Savings";
+            case EQUITY ->
+                "Equity Savings";
+            case BONDS ->
+                "Bonds Savings";
+        });
+        return series;
+    }
+
+    public Map<SavingsSeries, MoneyAmountSeries> allRealSavings() {
+        return Arrays.stream(SavingsSeries.values())
+                .collect(Collectors.toMap(Function.identity(), this::asRealSavingsSeries));
+    }
+
+    public <E> Map<E, List<MoneyAmountSeries>> savingsSeriesBy(Function<SavingsSeries, E> classifier) {
+        return Arrays.stream(SavingsSeries.values())
+                .collect(groupingBy(
+                        classifier,
+                        mapping(this::asRealSavingsSeries, toList())));
+    }
+
+    private MoneyAmountSeries asNominalSavingsSeries(SavingsSeries s) {
+        return this.nominalSavingsByType.computeIfAbsent(s, key -> this.readSeriesInUSD("saving/", key.getSeriesName()));
+    }
+
+    private MoneyAmountSeries asRealSavingsSeries(SavingsSeries s) {
+        return this.realSavingsByType.computeIfAbsent(s, key
+                -> Inflation.usdInflation().adjust(this.asNominalSavingsSeries(key), Inflation.usdInflation().getTo()));
     }
 
     public MoneyAmountSeries realOtherExpenses() {
@@ -348,38 +414,17 @@ public class Series {
     }
 
     public MoneyAmountSeries realCash() {
-        return Stream.of(
-                "ahorros-peso",
-                "ahorros-dolar-banco",
-                "ahorros-dolar-liq",
-                "ahorros-euro",
-                "ahorros-uva",
-                "ahorros-caplusa",
-                "ahorros-dolar-pf",
-                "ahorros-euro-liq",
-                "ahorros-dai")
-                .map(this::asRealUSDSeries)
+        return Stream.of(PESO, DOLAR_BANCO, DOLAR_LIQ, EURO, UVA, CAPLUSA, DOLAR_PF, EURO_LIQ, DAI)
+                .map(this::asRealSavingsSeries)
                 .reduce(MoneyAmountSeries::add)
-                .get();
+                .orElseThrow();
     }
 
     public MoneyAmountSeries realInvested() {
-        return Stream.of(
-                "ahorros-cspx",
-                "ahorros-eimi",
-                "ahorros-rtwo",
-                "ahorros-meud",
-                "ahorros-xrsu",
-                "ahorros-xuse",
-                "ahorros-ay24",
-                "ahorros-conaafa",
-                "ahorros-conbala",
-                "ahorros-dolar-ON",
-                "ahorros-lecap",
-                "ahorros-lete")
-                .map(this::asRealUSDSeries)
+        return Stream.of(CSPX, EIMI, RTWO, MEUD, XRSU, XUSE, AY24, CONAAFA, CONBALA, DOLAR_ON, LECAP, LETE)
+                .map(this::asRealSavingsSeries)
                 .reduce(MoneyAmountSeries::add)
-                .get();
+                .orElseThrow();
     }
 
     public MoneyAmountSeries realExpenses(ExpenseTier type) {
@@ -398,8 +443,12 @@ public class Series {
                 .orElseThrow();
     }
 
-    private MoneyAmountSeries asRealUSDSeries(String fileName) {
-        return this.asRealUSDSeries("saving/", fileName);
+    public MoneyAmountSeries realRegularExpenses(boolean average) {
+        return Arrays.stream(SpendingSeries.values())
+                .filter(s -> SpendingFrequency.of(s) == SpendingFrequency.REGULAR)
+                .map(s -> this.asSeries(s, average))
+                .reduce(MoneyAmountSeries::add)
+                .orElseThrow();
     }
 
     private MoneyAmountSeries asRealUSDSeries(String prefix, String fileName) {
@@ -413,31 +462,6 @@ public class Series {
 
     public List<BBPPYear> bbppSeries() {
         return SeriesReader.read("bbpp.json", BBPP_TR);
-    }
-
-    private Stream<Pair<String, String>> savingsSeriesNames() {
-        return Stream.of(
-                of("BO", "ahorros-ay24"),
-                of("BO", "ahorros-conbala"),
-                of("BO", "ahorros-uva"),
-                of("BO", "ahorros-dolar-ON"),
-                of("BO", "ahorros-lecap"),
-                of("BO", "ahorros-lete"),
-                of("BO", "ahorros-caplusa"),
-                of("LIQ", "ahorros-dolar-banco"),
-                of("LIQ", "ahorros-dolar-pf"),
-                of("LIQ", "ahorros-peso"),
-                of("LIQ", "ahorros-dolar-liq"),
-                of("LIQ", "ahorros-euro"),
-                of("LIQ", "ahorros-euro-liq"),
-                of("LIQ", "ahorros-dai"),
-                of("EQ", "ahorros-cspx"),
-                of("EQ", "ahorros-eimi"),
-                of("EQ", "ahorros-rtwo"),
-                of("EQ", "ahorros-xuse"),
-                of("EQ", "ahorros-meud"),
-                of("EQ", "ahorros-conaafa"),
-                of("EQ", "ahorros-xrsu"));
     }
 
 }

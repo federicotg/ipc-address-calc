@@ -22,4 +22,13 @@ package org.fede.calculator.report;
  */
 public enum SpendingFrequency {
     REGULAR, IRREGULAR, EXCEPTIONAL;
+
+    public static SpendingFrequency of(SpendingSeries s) {
+        return switch (s) {
+            case EXTRAORDINARY, OTHER, OTHER_USD, INVESTMENTS ->
+                IRREGULAR;
+            default ->
+                REGULAR;
+        };
+    }
 }

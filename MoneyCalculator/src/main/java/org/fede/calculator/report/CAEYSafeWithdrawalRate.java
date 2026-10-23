@@ -263,9 +263,9 @@ public class CAEYSafeWithdrawalRate {
         final var series = new Series();
 
         final var equity = last.last();
-        final var cash = series.realSavings("LIQ").getAmount(now);
+        final var cash = series.realSavings(AssetClass.CASH).getAmount(now);
 
-        final var bonds = series.realSavings("BO").getAmountOrElseZero(now);
+        final var bonds = series.realSavings(AssetClass.BONDS).getAmountOrElseZero(now);
 
         final var expectedInflation = SeriesReader.readPercent("expectedInflation");
         final var bondsNominalYield = SeriesReader.readPercent("bond10");

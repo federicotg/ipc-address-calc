@@ -88,37 +88,6 @@ public class Savings {
         this.console = console;
     }
 
-    private int getScale(int months) {
-
-        return switch (months) {
-            case 1 ->
-                400;
-            case 2 ->
-                270;
-            case 3, 4, 5, 6, 7, 8, 9 ->
-                200;
-            case 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 ->
-                150;
-            default ->
-                60;
-        };
-    }
-
-    public void netAvgSavingSpent(int months, String title) {
-
-        this.console.appendLine(this.format.title(title));
-
-        final var agg = new SlidingWindow(months);
-        final var income = agg.average(this.series.realIncome());
-        final var netSaving = agg.average(this.series.realNetSavings());
-        final var spending = this.series.realExpenses(null, true);
-
-        netSaving.forEach((ym, savingMa) -> this.console.appendLine(this.bar.genericBar(ym, this.series(ym, spending, income, savingMa), this.getScale(months))));
-
-        this.savingsRefs(title);
-
-    }
-
     public void netAvgSavingSpentChart(int months) {
 
         final var agg = new SlidingWindow(months);
@@ -143,27 +112,13 @@ public class Savings {
         return new SpendingAndSaving(income.subtract(netSaving), netSaving);
     }
 
-    public void netAvgSavingSpentPct(int months, String title) {
-
-        this.console.appendLine(this.format.title(title));
-
-        final var agg = new SlidingWindow(months);
-        final var income = agg.average(this.series.realIncome());
-        final var netSaving = agg.average(this.series.realNetSavings());
-        final var spending = this.series.realExpenses(null, true);
-
-        netSaving
-                .forEach((ym, savingMa) -> this.console.appendLine(this.bar.percentBar(ym, this.series(ym, spending, income, savingMa))));
-        this.savingsRefs(title);
-    }
-
     public void savingsDistributionEvolution() {
 
         this.console.appendLine(this.format.title("Savings Distribution Evolution"));
 
-        final var cash = this.series.realSavings("LIQ");
-        final var eq = this.series.realSavings("EQ");
-        final var bo = this.series.realSavings("BO");
+        final var cash = this.series.realSavings(AssetClass.CASH);
+        final var eq = this.series.realSavings(AssetClass.EQUITY);
+        final var bo = this.series.realSavings(AssetClass.BONDS);
 
         cash.forEach((ym, cashMa) -> this.console.appendLine(
                 this.bar.bar(
@@ -189,34 +144,15 @@ public class Savings {
 
         this.console.appendLine(this.format.title("Savings Distribution Percent Evolution"));
 
-        final var cash = this.series.realSavings("LIQ");
-        final var eq = this.series.realSavings("EQ");
-        final var bo = this.series.realSavings("BO");
+        final var cash = this.series.realSavings(AssetClass.CASH);
+        final var eq = this.series.realSavings(AssetClass.EQUITY);
+        final var bo = this.series.realSavings(AssetClass.BONDS);
 
         cash.forEach((ym, cashMa) -> this.console.appendLine(
                 this.bar.percentBar(ym, cashMa, eq.getAmountOrElseZero(ym), bo.getAmountOrElseZero(ym))
         ));
 
         this.cashEquityBondsRef("Savings Distribution Percent Evolution");
-    }
-
-    private void savingsRefs(String title) {
-
-        new References(console, format).refs(
-                title,
-                List.of("saved", "spent", "other spending"),
-                List.of(Attribute.BLUE_BACK(), Attribute.RED_BACK(), Attribute.YELLOW_BACK()));
-
-    }
-
-    private List<AmountAndColor> series(YearMonth ym, MoneyAmountSeries spending, MoneyAmountSeries income, MoneyAmount savingMa) {
-        return List.of(
-                new AmountAndColor(spending.getAmountOrElseZero(ym), Attribute.RED_BACK()),
-                new AmountAndColor(ZERO_USD.max(
-                        income.getAmountOrElseZero(ym)
-                                .subtract(savingMa)
-                                .subtract(spending.getAmountOrElseZero(ym))), Attribute.YELLOW_BACK()),
-                new AmountAndColor(ZERO_USD.max(savingMa), Attribute.BLUE_BACK()));
     }
 
     private void income(int months) {
@@ -300,13 +236,13 @@ public class Savings {
 
         final var agg = new SlidingWindow(months);
 
-        final var unlp = agg.average(this.series.incomeSource("unlp"));
-        final var lifia = agg.average(this.series.incomeSource("lifia"));
-        final var despARS = agg.average(this.series.incomeSource("despegar"));
-        final var despUSD = agg.average(this.series.incomeSource("despegar-split"));
-        final var other = agg.average(this.series.incomeSource("other-ars")
-                .add(this.series.incomeSource("other-usd"))
-                .add(this.series.incomeSource("other-eur")));
+        final var unlp = agg.average(this.series.incomeSource(IncomeSeries.UNLP));
+        final var lifia = agg.average(this.series.incomeSource(IncomeSeries.LIFIA));
+        final var despARS = agg.average(this.series.incomeSource(IncomeSeries.DESPEGAR));
+        final var despUSD = agg.average(this.series.incomeSource(IncomeSeries.DESPEGAR_SPLIT));
+        final var other = agg.average(this.series.incomeSource(IncomeSeries.OTHER_ARS)
+                .add(this.series.incomeSource(IncomeSeries.OTHER_USD))
+                .add(this.series.incomeSource(IncomeSeries.OTHER_EUR)));
 
         if (pct) {
             unlp.map((ym, ma) -> ZERO_USD.max(ma))
@@ -356,12 +292,12 @@ public class Savings {
 
         final var agg = new Accumulator();
 
-        final var unlp = agg.sum(this.series.incomeSource("unlp"));
-        final var other = agg.sum(this.series.incomeSource("other-usd")
-                .add(this.series.incomeSource("other-ars")));
-        final var lifia = agg.sum(this.series.incomeSource("lifia"));
-        final var despARS = agg.sum(this.series.incomeSource("despegar"));
-        final var despUSD = agg.sum(this.series.incomeSource("despegar-split"));
+        final var unlp = agg.sum(this.series.incomeSource(IncomeSeries.UNLP));
+        final var other = agg.sum(this.series.incomeSource(IncomeSeries.OTHER_USD)
+                .add(this.series.incomeSource(IncomeSeries.OTHER_ARS)));
+        final var lifia = agg.sum(this.series.incomeSource(IncomeSeries.LIFIA));
+        final var despARS = agg.sum(this.series.incomeSource(IncomeSeries.DESPEGAR));
+        final var despUSD = agg.sum(this.series.incomeSource(IncomeSeries.DESPEGAR_SPLIT));
 
         final var maSeries = List.of(unlp, lifia, despARS, despUSD, other);
 
@@ -390,12 +326,12 @@ public class Savings {
 
         final var agg = new Accumulator();
 
-        final var unlp = agg.sum(this.series.incomeSource("unlp"));
-        final var other = agg.sum(this.series.incomeSource("other-usd")
-                .add(this.series.incomeSource("other-ars")));
-        final var lifia = agg.sum(this.series.incomeSource("lifia"));
-        final var despARS = agg.sum(this.series.incomeSource("despegar"));
-        final var despUSD = agg.sum(this.series.incomeSource("despegar-split"));
+        final var unlp = agg.sum(this.series.incomeSource(IncomeSeries.UNLP));
+        final var other = agg.sum(this.series.incomeSource(IncomeSeries.OTHER_USD)
+                .add(this.series.incomeSource(IncomeSeries.OTHER_ARS)));
+        final var lifia = agg.sum(this.series.incomeSource(IncomeSeries.LIFIA));
+        final var despARS = agg.sum(this.series.incomeSource(IncomeSeries.DESPEGAR));
+        final var despUSD = agg.sum(this.series.incomeSource(IncomeSeries.DESPEGAR_SPLIT));
 
         final var maSeries = List.of(unlp, lifia, despARS, despUSD, other);
 
@@ -755,7 +691,7 @@ public class Savings {
 
         this.console.appendLine(this.format.title(format("{0}-month Savings Change", months - 1)));
         final var s = new SlidingWindow(months)
-                .percentChange(this.series.realSavings(null));
+                .percentChange(this.series.realSavings());
 
         var ym = s.getFrom();
         var limit = s.getTo();
