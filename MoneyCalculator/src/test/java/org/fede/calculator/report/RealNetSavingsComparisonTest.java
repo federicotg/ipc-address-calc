@@ -18,7 +18,6 @@ package org.fede.calculator.report;
 
 import java.math.RoundingMode;
 import java.text.MessageFormat;
-import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.junit.jupiter.api.Test;
