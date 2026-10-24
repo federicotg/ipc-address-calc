@@ -59,6 +59,8 @@ import static org.fede.calculator.money.Currency.MEUS;
 import static org.fede.calculator.money.Currency.MEUD;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.chart.ChartStyle;
+import org.fede.calculator.chart.PieChart;
+import org.fede.calculator.chart.PieItem;
 import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.TimeSeriesChart;
 import org.fede.calculator.chart.ValueFormat;
@@ -67,10 +69,12 @@ import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.Accumulator;
 import static org.fede.calculator.money.Currency.EMIM;
+import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.SingleHttpClientSupplier;
 import org.fede.calculator.money.SlidingWindow;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
+import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.fede.calculator.money.series.YearMonthUtil;
 import org.fede.util.Pair;
 import org.jfree.data.time.TimeSeries;
@@ -961,6 +965,7 @@ public class ConsoleReports {
 
             // pie
             pos.portfolioChartByGeography(false, "pct", usdInflation().getTo().getYear(), usdInflation().getTo().getMonthValue());
+            this.incomeSourcePie();
 
             this.savingsChart();
             inv.savingsInvestmentsPercentChart();
@@ -996,6 +1001,66 @@ public class ConsoleReports {
             System.err.println("Error generating charts. " + ex.getMessage());
             ex.printStackTrace(System.err);
         }
+    }
+
+    private void incomeSourcePie() {
+
+        final var income = this.series.allIncome()
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> e.getValue()
+                                .moneyAmountStream()
+                                .reduce(MoneyAmount.zero(USD), MoneyAmount::add)));
+
+        final var inheritance = new SortedMapMoneyAmountSeries(USD, "Inheritance");
+
+        Stream.of(
+                Pair.of(60_000L, YearMonth.of(2025, Month.AUGUST)),
+                Pair.of(4_500L, YearMonth.of(2025, Month.SEPTEMBER)),
+                Pair.of(5_000L, YearMonth.of(2025, Month.OCTOBER)),
+                Pair.of(5_000L, YearMonth.of(2025, Month.NOVEMBER)),
+                Pair.of(1_100L, YearMonth.of(2025, Month.JANUARY)),
+                Pair.of(3_720L, YearMonth.of(2026, Month.FEBRUARY)),
+                Pair.of(44_000L, YearMonth.of(2026, Month.MARCH)), // C
+                Pair.of(10_000L, YearMonth.of(2026, Month.AUGUST)), // M
+                Pair.of(31_307L, YearMonth.of(2026, Month.FEBRUARY))) // gold
+                .forEach(p
+                        -> inheritance.putAmount(
+                                p.second(),
+                                new MoneyAmount(BigDecimal.valueOf(p.first()), USD))
+                );
+        final var feb26 = YearMonth.of(2026, Month.FEBRUARY);
+        inheritance.putAmount(
+                feb26,
+                inheritance.getAmountOrElseZero(feb26)
+                        .add(ForeignExchanges.getForeignExchange(Currency.EUR, USD)
+                                .exchange(
+                                        new MoneyAmount(BigDecimal.valueOf(7852L), Currency.EUR),
+                                        USD,
+                                        feb26)));
+        final var inheritanceAmount = inheritance.moneyAmountStream()
+                .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
+
+        new PieChart(true).create(
+                "Income",
+                List.of(
+                        new PieItem(IncomeSeries.UNLP.getDisplayName(),
+                                income.get(IncomeSeries.UNLP).amount()),
+                        new PieItem(IncomeSeries.DESPEGAR.getDisplayName(),
+                                income.get(IncomeSeries.DESPEGAR)
+                                        .add(income.get(IncomeSeries.DESPEGAR_SPLIT)).amount()),
+                        new PieItem(IncomeSeries.LIFIA.getDisplayName(),
+                                income.get(IncomeSeries.LIFIA).amount()),
+                        new PieItem("Inheritance", inheritanceAmount.amount()),
+                        new PieItem("Other",
+                                income.get(IncomeSeries.OTHER_ARS)
+                                        .add(income.get(IncomeSeries.OTHER_EUR))
+                                        .add(income.get(IncomeSeries.OTHER_USD))
+                                        .subtract(inheritanceAmount).amount()
+                        )),
+                "income-src");
     }
 
     public static record CommandArgument(String name, List<String> values) {
@@ -1156,7 +1221,6 @@ public class ConsoleReports {
                 .add(essential)
                 .add(retirementSpendingMap.get(ExpenseTier.LUXURY));
 
-        
         // Future Total / Essential over Portfolio
         new TimeSeriesChart(new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
                 .createFromTimeSeries("Portfolio Retirement Spending",

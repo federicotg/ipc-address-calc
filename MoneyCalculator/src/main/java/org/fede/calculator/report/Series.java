@@ -459,6 +459,10 @@ public class Series {
         return SeriesReader.readSeries(prefix + fileName + ".json")
                 .exchangeInto(USD);
     }
+    
+    public static MoneyAmountSeries readSeries(SavingsSeries s) {
+        return SeriesReader.readSeries("saving/" + s.getSeriesName() + ".json");
+    }
 
     public List<BBPPYear> bbppSeries() {
         return SeriesReader.read("bbpp.json", BBPP_TR);

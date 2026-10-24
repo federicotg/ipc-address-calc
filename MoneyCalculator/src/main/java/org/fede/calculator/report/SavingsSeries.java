@@ -65,7 +65,7 @@ public enum SavingsSeries {
     public boolean usesInvestmentCashFlow() {
         return switch (this) {
             case CSPX, EIMI, RTWO, XUSE, MEUD, XRSU, CONAAFA,
-                 AY24, CONBALA, DOLAR_ON, LECAP, LETE, CAPLUSA, UVA, DAI ->
+                 AY24, CONBALA, LECAP, LETE, CAPLUSA, UVA ->
                 true;
             default ->
                 false;

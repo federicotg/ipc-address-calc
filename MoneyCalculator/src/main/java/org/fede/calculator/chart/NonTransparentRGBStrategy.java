@@ -37,11 +37,11 @@ public class NonTransparentRGBStrategy implements ChartStrategy {
     @Override
     public void saveChart(String file, JFreeChart chart, int width, int height) throws IOException {
 
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED);
         Graphics2D g2 = image.createGraphics();
         g2.setRenderingHint(
                 RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_OFF);
+                RenderingHints.VALUE_ANTIALIAS_ON);
         chart.draw(g2, new Rectangle2D.Double(0, 0, width, height));
         g2.dispose();
 

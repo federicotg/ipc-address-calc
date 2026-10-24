@@ -1083,11 +1083,11 @@ public class Investments {
 
         final var ym = YearMonth.from(moment);
 
-        final var euros = LastAmounts.last("ahorros-euro", ym)
-                .add(LastAmounts.last("ahorros-euro-liq", ym));
-        final var dollars = LastAmounts.last("ahorros-dolar-banco", ym)
-                .add(LastAmounts.last("ahorros-dolar-liq", ym));
-        final var pesos = LastAmounts.last("ahorros-peso", ym);
+        final var euros = LastAmounts.last(SavingsSeries.EURO, ym)
+                .add(LastAmounts.last(SavingsSeries.EURO_LIQ, ym));
+        final var dollars = LastAmounts.last(SavingsSeries.DOLAR_BANCO, ym)
+                .add(LastAmounts.last(SavingsSeries.DOLAR_LIQ, ym));
+        final var pesos = LastAmounts.last(SavingsSeries.PESO, ym);
 
         this.console.appendLine(this.investmentLine(EUR, euros.amount(), ForeignExchanges.getForeignExchange(EUR, USD)
                 .exchange(new MoneyAmount(ONE, EUR), USD, moment)));
@@ -1098,14 +1098,6 @@ public class Investments {
         this.console.appendLine(this.investmentLine(ARS, pesos.amount(), ForeignExchanges.getForeignExchange(ARS, USD)
                 .exchange(new MoneyAmount(ONE, ARS), USD, moment)));
 
-        //if (this.series.getInvestments()
-        //        .stream()
-        //        .filter(investment -> investment.isCurrent(moment))
-        //        .anyMatch(i -> i.getCurrency() == MEUD)) {
-        //    this.console.appendLine(this.investmentLine(MEUD, ONE,
-        //            ForeignExchanges.getForeignExchange(MEUD, EUR)
-        //                    .exchange(new MoneyAmount(ONE, MEUD), EUR, moment)));
-        //}
     }
 
     private String investmentLine(Currency currency, BigDecimal quantity, MoneyAmount price) {

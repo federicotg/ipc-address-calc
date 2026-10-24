@@ -22,12 +22,16 @@ import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.fede.calculator.money.series.SeriesReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.PieSectionLabelGenerator;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
+import org.jfree.chart.plot.MultiplePiePlot;
 import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.util.TableOrder;
+import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 
 /**
@@ -76,20 +80,60 @@ public class PieChart {
         JFreeChart chart = ChartFactory.createPieChart(chartTitle, ds);
         chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
         chart.setBorderVisible(false);
-        var p = (PiePlot) chart.getPlot();
-        p.setOutlineVisible(false);
-        p.setBackgroundPaint(WHITE);
-        p.setLabelFont(this.font);
-        p.setLabelGenerator(this.labelGenerator);
-        p.setLabelBackgroundPaint(WHITE);
-        p.setLabelOutlinePaint(WHITE);
-        p.setLabelShadowPaint(WHITE);
+        this.stylePiePlot((PiePlot) chart.getPlot());
         chart.getLegend().setItemFont(this.font);
-        ChartSaver.save(
-                fileName,
-                chart,
-                SeriesReader.readInt("chart.piewidth"),
-                SeriesReader.readInt("chart.piewidth"));
+
+        final var size = SeriesReader.readInt("chart.piewidth");
+        ChartSaver.save(fileName, chart, size, size);
+    }
+
+    /*
+     * One image with several pies side by side. Each map entry is a pie:
+     * key = pie title, value = slices. Prefer a LinkedHashMap (or List.of(Map.entry(...)))
+     * so the left-to-right order is stable.
+     */
+    public void createMultiple(String chartTitle, List<Map.Entry<String, List<PieItem>>> pies, String fileName) {
+
+        // Row-key order is shared across all pies in a MultiplePiePlot, so we
+        // keep the caller’s list order instead of sorting each pie by size.
+        final var dataset = new DefaultCategoryDataset();
+        for (var pie : pies) {
+            final var pieTitle = pie.getKey();
+            for (var item : pie.getValue()) {
+                dataset.addValue(item.value(), item.label(), pieTitle);
+            }
+        }
+
+        JFreeChart chart = ChartFactory.createMultiplePieChart(
+                chartTitle,
+                dataset,
+                TableOrder.BY_COLUMN,
+                true,
+                false,
+                false);
+        chart.setAntiAlias(SeriesReader.readBoolean("chart.antialias"));
+        chart.setBorderVisible(false);
+
+        var multi = (MultiplePiePlot) chart.getPlot();
+        multi.setOutlineVisible(false);
+        multi.setBackgroundPaint(WHITE);
+        this.stylePiePlot((PiePlot) multi.getPieChart().getPlot());
+        if (chart.getLegend() != null) {
+            chart.getLegend().setItemFont(this.font);
+        }
+
+        final var size = SeriesReader.readInt("chart.piewidth");
+        ChartSaver.save(fileName, chart, size * Math.max(1, pies.size()), size);
+    }
+
+    private void stylePiePlot(PiePlot<?> plot) {
+        plot.setOutlineVisible(false);
+        plot.setBackgroundPaint(WHITE);
+        plot.setLabelFont(this.font);
+        plot.setLabelGenerator(this.labelGenerator);
+        plot.setLabelBackgroundPaint(WHITE);
+        plot.setLabelOutlinePaint(WHITE);
+        plot.setLabelShadowPaint(WHITE);
     }
 
 }

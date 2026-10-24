@@ -22,7 +22,6 @@ import java.util.Map;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.ForeignExchanges;
 import org.fede.calculator.money.MoneyAmount;
-import org.fede.calculator.money.series.SeriesReader;
 
 /**
  *
@@ -30,13 +29,13 @@ import org.fede.calculator.money.series.SeriesReader;
  */
 public class LastAmounts {
 
-    private static final Map<Currency, String> SERIES = new EnumMap<>(Map.of(
-            Currency.CSPX, "ahorros-cspx",
-            Currency.EIMI, "ahorros-eimi",
-            Currency.XRSU, "ahorros-xrsu",
-            Currency.RTWO, "ahorros-rtwo",
-            Currency.MEUD, "ahorros-meud",
-            Currency.XUSE, "ahorros-xuse"
+    private static final Map<Currency, SavingsSeries> SERIES = new EnumMap<>(Map.of(
+            Currency.CSPX, SavingsSeries.CSPX,
+            Currency.EIMI, SavingsSeries.EIMI,
+            Currency.XRSU, SavingsSeries.XRSU,
+            Currency.RTWO, SavingsSeries.RTWO,
+            Currency.MEUD, SavingsSeries.MEUD,
+            Currency.XUSE, SavingsSeries.XUSE
     ));
 
     private final Currency currency;
@@ -53,8 +52,8 @@ public class LastAmounts {
         return this.lastAmount(SERIES.get(c), YearMonth.now());
     }
 
-    private MoneyAmount lastAmount(String seriesName, YearMonth ym) {
-        var amount = last(seriesName, ym);
+    private MoneyAmount lastAmount(SavingsSeries series, YearMonth ym) {
+        var amount = last(series, ym);
         return ForeignExchanges.getMoneyAmountForeignExchange(amount.currency(), this.currency)
                 .apply(amount, ym);
     }
@@ -71,21 +70,21 @@ public class LastAmounts {
 
     }
 
-    public static MoneyAmount last(String seriesName, YearMonth ym) {
-        return SeriesReader.readSeries("saving/" + seriesName + ".json").getAmountOrElseZero(ym);
+    public static MoneyAmount last(SavingsSeries series, YearMonth ym) {
+        return Series.readSeries(series).getAmountOrElseZero(ym);
 
     }
 
     public static MoneyAmount lastCashUSD(YearMonth now) {
-        return lastUSD("ahorros-dolar-banco", now)
-                .add(LastAmounts.lastUSD("ahorros-dolar-liq", now))
-                .add(LastAmounts.lastUSD("ahorros-peso", now))
-                .add(LastAmounts.lastUSD("ahorros-euro", now))
-                .add(LastAmounts.lastUSD("ahorros-euro-liq", now));
+        return lastUSD(SavingsSeries.DOLAR_BANCO, now)
+                .add(LastAmounts.lastUSD(SavingsSeries.DOLAR_LIQ, now))
+                .add(LastAmounts.lastUSD(SavingsSeries.PESO, now))
+                .add(LastAmounts.lastUSD(SavingsSeries.EURO, now))
+                .add(LastAmounts.lastUSD(SavingsSeries.EURO_LIQ, now));
     }
 
-    private static MoneyAmount lastUSD(String seriesName, YearMonth ym) {
-        var amount = last(seriesName, ym);
+    private static MoneyAmount lastUSD(SavingsSeries series, YearMonth ym) {
+        var amount = last(series, ym);
         return ForeignExchanges.getMoneyAmountForeignExchange(amount.currency(), Currency.USD)
                 .apply(amount, ym);
     }

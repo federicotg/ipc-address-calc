@@ -53,6 +53,7 @@ import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Arrays;
 import java.util.EnumMap;
 import org.fede.calculator.chart.ChartStyle;
 import org.fede.calculator.chart.LabeledXYDataItem;
@@ -71,12 +72,7 @@ import org.fede.calculator.money.series.MoneyAmountSeries;
 
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.YearMonthUtil;
-import static org.fede.calculator.report.AssetClass.BONDS;
-import static org.fede.calculator.report.AssetClass.CASH;
-import static org.fede.calculator.report.AssetClass.EQUITY;
 import org.fede.util.Pair;
-import static org.fede.util.Pair.of;
-import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.xy.XYSeries;
 
 /**
@@ -727,19 +723,16 @@ public class Positions {
 
         final var title = MessageFormat.format("Portfolio {0}", monthString);
 
-        chart.create(
-                title,
-                List.of(cash, us, exUS, em),
-                MessageFormat.format("p-geo-{1}-{0}", monthString, type));
-
         final var equity = new PieItem(
                 "Equity",
                 last.total().amount());
 
-        chart.create(
+        chart.createMultiple(
                 title,
-                List.of(cash, equity),
-                MessageFormat.format("p-asset-class-{1}-{0}", monthString, type));
+                List.of(
+                        Map.entry("Asset Class", List.of(cash, equity)),
+                        Map.entry("Geography", List.of(cash, us, exUS, em))),
+                MessageFormat.format("p-geo-{1}-{0}", monthString, type));
 
         final var sp500 = new PieItem(
                 "S&P 500",
@@ -753,7 +746,6 @@ public class Positions {
                 title,
                 List.of(cash, sp500, r2k, exUS, em),
                 MessageFormat.format("p-geo-break-{1}-{0}", monthString, type));
-
     }
 
     public void portfolio(String type, AssetClass subtype, int year, int month) {
@@ -780,7 +772,11 @@ public class Positions {
         final var ym = YearMonth.of(year, month);
 
         final Map<AssetClass, Map<String, Optional<MoneyAmount>>> grouped
-                = Stream.of(
+                = 
+                
+                Arrays.stream(SavingsSeries.values())
+                        .map(s -> Pair.of(s.getAssetClass(), LastAmounts.last(s, ym)))
+                /*Stream.of(
                         of(BONDS, LastAmounts.last("ahorros-ay24", ym)),
                         of(BONDS, LastAmounts.last("ahorros-conbala", ym)),
                         of(BONDS, LastAmounts.last("ahorros-uva", ym)),
@@ -801,7 +797,7 @@ public class Positions {
                         of(EQUITY, LastAmounts.last("ahorros-meud", ym)),
                         of(EQUITY, LastAmounts.last("ahorros-conaafa", ym)),
                         of(EQUITY, LastAmounts.last("ahorros-xrsu", ym)),
-                        of(EQUITY, LastAmounts.last("ahorros-xuse", ym)))
+                        of(EQUITY, LastAmounts.last("ahorros-xuse", ym)))*/
                         .filter(p -> subtype == null || p.first() == subtype)
                         .collect(groupingBy(
                                 Pair::first,
