@@ -321,20 +321,9 @@ public class Fire {
         final var costBasisPct = readPercent("costBasisPct");
 
         return new SpendingBudgets(
-                adjustforCapitalGains(essential, capitalGainsTaxRate, costBasisPct),
-                adjustforCapitalGains(everything, capitalGainsTaxRate, costBasisPct)
+                Future.adjustForCapitalGains(essential, capitalGainsTaxRate, costBasisPct),
+                Future.adjustForCapitalGains(everything, capitalGainsTaxRate, costBasisPct)
         );
-    }
-
-    private MoneyAmount adjustforCapitalGains(
-            MoneyAmount netAmount,
-            BigDecimal capitalGainsTaxRate,
-            BigDecimal costBasisPct) {
-
-        final var divisor = ONE.subtract(capitalGainsTaxRate
-                .multiply(ONE.subtract(costBasisPct, C), C), C);
-
-        return netAmount.adjust(divisor, ONE);
     }
 
     private void conceptLine(String label, MoneyAmount value) {
