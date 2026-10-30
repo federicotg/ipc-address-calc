@@ -367,21 +367,74 @@ public class Investments {
                         .map(value -> this.format.center(value, 8))
                         .collect(joining()));
 
-        Stream.of(CSPX, EIMI, XRSU, RTWO, MEUD, IWDA)
+        final var symbols = Stream.of(CSPX, EIMI, XRSU, RTWO, MEUD, IWDA)
                 .map(symbol -> Pair.of(symbol, this.annualRealReturn(symbol, 0, nominal)))
                 .sorted(Comparator.comparing(Pair::second, Comparator.reverseOrder()))
-                .map(p -> this.row(p.first(), nominal))
+                .map(Pair::first)
+                .toList();
+
+        final var years = this.range().boxed().toList();
+
+        final var returns = symbols.stream()
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        symbol -> years.stream()
+                                .collect(Collectors.toMap(
+                                        Function.identity(),
+                                        y -> this.annualRealReturn(symbol, y, nominal))),
+                        (a, b) -> a,
+                        () -> new EnumMap<>(Currency.class)));
+
+        final var bestByYear = years.stream()
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        y -> symbols.stream()
+                                .map(s -> returns.get(s).get(y))
+                                .max(Comparator.naturalOrder())
+                                .orElse(ZERO)));
+
+        final var worstByYear = years.stream()
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        y -> symbols.stream()
+                                .map(s -> returns.get(s).get(y))
+                                .min(Comparator.naturalOrder())
+                                .orElse(ZERO)));
+
+        symbols.stream()
+                .map(symbol -> this.row(symbol, returns.get(symbol), bestByYear, worstByYear))
                 .forEach(this.console::appendLine);
 
     }
 
-    private String row(Currency symbol, boolean nominal) {
+    private String row(
+            Currency symbol,
+            Map<Integer, BigDecimal> returnsByYear,
+            Map<Integer, BigDecimal> bestByYear,
+            Map<Integer, BigDecimal> worstByYear) {
         return format("{0}{1}",
                 this.format.text(ETF_NAME.get(symbol), 25),
                 this.range()
-                        .mapToObj(y -> this.format.percent(this.annualRealReturn(symbol, y, nominal), 8))
+                        .mapToObj(y -> this.coloredReturn(
+                                returnsByYear.get(y),
+                                bestByYear.get(y),
+                                worstByYear.get(y)))
                         .collect(joining())
         );
+    }
+
+    private String coloredReturn(BigDecimal value, BigDecimal best, BigDecimal worst) {
+        final var text = this.format.percent(value, 8);
+        if (best.compareTo(worst) == 0) {
+            return text;
+        }
+        if (value.compareTo(best) == 0) {
+            return this.format.text(text, 8, GREEN_TEXT);
+        }
+        if (value.compareTo(worst) == 0) {
+            return this.format.text(text, 8, RED_TEXT);
+        }
+        return text;
     }
 
     private BigDecimal annualRealReturn(Currency symbol, int year, boolean nominal) {

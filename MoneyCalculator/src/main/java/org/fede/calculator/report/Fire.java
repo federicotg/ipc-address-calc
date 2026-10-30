@@ -279,7 +279,7 @@ public class Fire {
     private List<BigDecimal> percents() {
         final var step = BigDecimal.valueOf(25L).movePointLeft(4);
         return Stream.concat(
-                LongStream.range(13L, 20L)
+                LongStream.range(15L, 20L)
                         .mapToObj(i -> BigDecimal.valueOf(i).multiply(step, C)),
                 Stream.concat(
                         Stream.of(this.withdrawalRate()),
