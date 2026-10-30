@@ -191,6 +191,9 @@ public class ConsoleReports {
             case "inv-sold" ->
                 me::soldInv;
 
+            case "pnl" ->
+                () -> new InvestmentPnL(console, format, series).report();
+
             case "fire" ->
                 () -> new Fire(format, series, console)
                 .fire();
@@ -488,7 +491,8 @@ public class ConsoleReports {
                         arg("type", "BONDS", "CASH", "EQUITY")),
                 new CmdParam("dca", "type=(q*|h|y|m)",
                         arg("type", "q", "h", "y", "m")),
-                new CmdParam("pos", "nominal=false egr=false", bool("nominal"), bool("egr"))
+                new CmdParam("pos", "nominal=false egr=false", bool("nominal"), bool("egr")),
+                new CmdParam("pnl")
         );
     }
 

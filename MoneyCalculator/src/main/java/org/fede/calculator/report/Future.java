@@ -25,10 +25,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import org.fede.calculator.chart.ChartStyle;
 import org.fede.calculator.chart.LabeledXYDataItem;
 import org.fede.calculator.chart.Scale;
@@ -47,6 +44,7 @@ import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.xy.XYSeries;
+import tools.jackson.core.type.TypeReference;
 
 /**
  *
@@ -62,33 +60,59 @@ public class Future {
 
     private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
 
-    public static MoneyAmount expectedWealth() {
-        final var futureRealStateKey = "futureRealState";
+    private static final TypeReference<List<CashFlow>> FLOWS_TR = new TypeReference<>() {
+    };
 
-        final var realStateDiscountRate = SeriesReader.readPercent("realStateDiscountRate").doubleValue();
-        return IntStream.range(1, 3)
-                .mapToObj(index -> Stream.of(futureRealStateKey).map(k -> new FutureCashFlows(k, index)))
-                .flatMap(Function.identity())
-                .map(fcf -> presentValue(
-                        fcf.name,
-                        fcf.index,
-                        realStateDiscountRate))
+    public static MoneyAmount expectedWealth() {
+        return SeriesReader.read("flows.json", FLOWS_TR)
+                .stream()
+                .map(Future::presentValue)
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
 
-    private static MoneyAmount presentValue(String key, int index, double discountRate) {
+    private static MoneyAmount presentValue(CashFlow flow) {
+        final var now = YearMonth.now();
 
-        MoneyAmount amount = SeriesReader.readUSD(key + "." + index);
+        if (flow.end().isBefore(now)) {
+            return ZERO_USD;
+        }
 
-        final var years = SeriesReader.readInt(key + "Years." + index);
-        final var probability = SeriesReader.readPercent(key + "Prob." + index);
+        final var start = flow.start().isBefore(now) ? now : flow.start();
+        final long monthsToFirst = ChronoUnit.MONTHS.between(now, start);
+        final long payments = ChronoUnit.MONTHS.between(start, flow.end()) + 1;
+
+        final var monthlyUsd = asUSD(new MoneyAmount(flow.amount(), flow.currency()), now);
+        final double rate = flow.rate().doubleValue();
+
+        if (rate == 0.0d) {
+            return monthlyUsd.adjust(ONE, BigDecimal.valueOf(payments));
+        }
+
+        // PV = A * (1+r)^(-T/12) * (1 - d^N) / (1 - d),  d = (1+r)^(-1/12)
+        final double firstDiscount = Math.pow(1.0d + rate, -monthsToFirst / 12.0d);
+        final double monthlyDiscount = Math.pow(1.0d + rate, -1.0d / 12.0d);
+        final double annuityFactor = (1.0d - Math.pow(monthlyDiscount, payments)) / (1.0d - monthlyDiscount);
 
         return new MoneyAmount(
-                BigDecimal.valueOf(amount.adjust(ONE, probability).amount().doubleValue() / Math.pow(1.0d + discountRate, years)),
+                BigDecimal.valueOf(monthlyUsd.amount().doubleValue() * firstDiscount * annuityFactor),
                 USD);
     }
 
-    private record FutureCashFlows(String name, int index) {
+    private static MoneyAmount asUSD(MoneyAmount amount, YearMonth ym) {
+        if (amount.currency() == USD) {
+            return amount;
+        }
+        return ForeignExchanges.getForeignExchange(amount.currency(), USD)
+                .exchange(amount, USD, ym);
+    }
+
+    private record CashFlow(
+            String name,
+            BigDecimal amount,
+            Currency currency,
+            BigDecimal rate,
+            YearMonth start,
+            YearMonth end) {
 
     }
 

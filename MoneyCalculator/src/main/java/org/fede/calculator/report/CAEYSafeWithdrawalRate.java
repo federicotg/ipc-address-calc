@@ -31,9 +31,7 @@ import org.fede.calculator.chart.LabeledXYDataItem;
 import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.ScatterXYChart;
 import org.fede.calculator.chart.ValueFormat;
-import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
-import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.SeriesReader;
@@ -51,8 +49,6 @@ public class CAEYSafeWithdrawalRate {
     private static final BigDecimal CAPE_STEP = BigDecimal.valueOf(5L);
     private static final BigDecimal MONTHS_IN_A_YEAR = BigDecimal.valueOf(12L);
     private static final NumberFormat PCT_FORMAT2 = NumberFormat.getPercentInstance();
-    private static final int RETIREMENT_AGE = 65;
-    private static final int LIFE_EXPECTANCY = 90;
 
     static {
         PCT_FORMAT2.setMinimumFractionDigits(2);
@@ -83,7 +79,8 @@ public class CAEYSafeWithdrawalRate {
                 cape,
                 capeExUs,
                 capeEmerging,
-                SeriesReader.readPercent("cape.b"));
+                SeriesReader.readPercent("cape.b"),
+                CapeAStrategy.fromConfig());
     }
 
     public CAEYSafeWithdrawalRate(
@@ -93,6 +90,24 @@ public class CAEYSafeWithdrawalRate {
             BigDecimal capeExUs,
             BigDecimal capeEmerging,
             BigDecimal capeB) {
+        this(
+                expectedInflation,
+                bondsNominalYield,
+                cape,
+                capeExUs,
+                capeEmerging,
+                capeB,
+                CapeAStrategy.fromConfig());
+    }
+
+    public CAEYSafeWithdrawalRate(
+            BigDecimal expectedInflation,
+            BigDecimal bondsNominalYield,
+            BigDecimal cape,
+            BigDecimal capeExUs,
+            BigDecimal capeEmerging,
+            BigDecimal capeB,
+            CapeAStrategy capeAStrategy) {
         this.cashRealYield = expectedInflation.negate(C);
         this.bondsRealYield = bondsNominalYield.subtract(expectedInflation, C);
         this.cape = cape;
@@ -104,100 +119,20 @@ public class CAEYSafeWithdrawalRate {
         final var age = BigDecimal.valueOf(ChronoUnit.MONTHS.between(dob, LocalDate.now())).divide(MONTHS_IN_A_YEAR, C);
         final var yearsLeft = BigDecimal.ONE.movePointRight(2).subtract(age, C);
 
-        final var pensionDiscountRate = SeriesReader.readPercent("pensionDiscountRate");
-
-        final var pensionCapeADelta = this.pensionDeltaA(age, pensionDiscountRate);
         final var futureIncomeCapeADelta = this.deltaA(Future.expectedWealth().amount(), YearMonth.now());
 
-        final var longTermCare = this.deltaAFromPresentValue(
-                this.presentValueOfDeferredAnnuity(
-                        SeriesReader.readUSD("longTermCare")
-                                .adjust(ONE, MONTHS_IN_A_YEAR)
-                                .amount()
-                                .negate(C),
-                        SeriesReader.readBigDecimal("longTermCare.age").subtract(age, C),
-                        SeriesReader.readInt("longTermCare.years"),
-                        pensionDiscountRate));
-
-        final var baseCapeA = new BigDecimal("0.02")
-                .min(ONE
-                        .divide(yearsLeft, C).multiply(BigDecimal.valueOf(80).movePointLeft(2), C));
-        this.capeA = baseCapeA
-                .add(pensionCapeADelta, C)
-                .add(futureIncomeCapeADelta, C)
-                .add(longTermCare, C);
+        final var baseCapeA = capeAStrategy.baseCapeA(yearsLeft);
+        this.capeA = baseCapeA.add(futureIncomeCapeADelta, C);
         this.capeB = capeB;
         this.params = new CAEYSWRParams(
-                cashRealYield, 
-                bondsRealYield, 
-                cape, 
-                capeExUs, 
-                capeEmerging, 
-                baseCapeA, 
-                pensionCapeADelta, 
-                futureIncomeCapeADelta, 
-                longTermCare, 
+                cashRealYield,
+                bondsRealYield,
+                cape,
+                capeExUs,
+                capeEmerging,
+                baseCapeA,
+                futureIncomeCapeADelta,
                 capeB);
-    }
-
-    private BigDecimal pensionDeltaA(BigDecimal age, BigDecimal pensionDiscountRate) {
-        final var now = YearMonth.now();
-
-        final var futureOneYearMinPension = ForeignExchanges.getForeignExchange(Currency.ARS, USD)
-                .exchange(
-                        new MoneyAmount(
-                                SeriesReader.readBigDecimal("min.pension"), Currency.ARS),
-                        USD,
-                        now).adjust(ONE, MONTHS_IN_A_YEAR.add(ONE, C));
-
-        final var yearsToStartPension = BigDecimal.valueOf(RETIREMENT_AGE)
-                .subtract(age, C)
-                .max(BigDecimal.ZERO);
-
-        final int yearsReceivingPension = LIFE_EXPECTANCY - RETIREMENT_AGE;
-
-        var pv = this.presentValueOfDeferredAnnuity(
-                futureOneYearMinPension.amount(),
-                yearsToStartPension,
-                yearsReceivingPension,
-                pensionDiscountRate);
-
-        return deltaAFromPresentValue(pv);
-    }
-
-    private BigDecimal deltaAFromPresentValue(BigDecimal pv) {
-        return deltaA(pv, YearMonth.now());
-    }
-
-    private BigDecimal presentValueOfDeferredAnnuity(
-            BigDecimal annualAmount,
-            BigDecimal yearsUntilStart,
-            int durationYears,
-            BigDecimal discountRate) {
-
-        // (1 + r)
-        final var rateBase = ONE.add(discountRate, C);
-
-        // (1 + r)^durationYears
-        final var positivePower = rateBase.pow(durationYears, C);
-
-        // (1 + r)^-durationYears
-        final var presentValueFactorTerm = ONE.divide(positivePower, C);
-
-        // [1 - (1 + r)^-n] / r
-        final var annuityFactor = ONE
-                .subtract(presentValueFactorTerm, C)
-                .divide(discountRate, C);
-
-        // Descuento desde el inicio de la anualidad hasta hoy
-        final var discountFactor = BigDecimal.valueOf(
-                1.0 / Math.pow(
-                        rateBase.doubleValue(),
-                        yearsUntilStart.doubleValue()));
-
-        return annualAmount
-                .multiply(annuityFactor, C)
-                .multiply(discountFactor, C);
     }
 
     private BigDecimal deltaA(BigDecimal presentValue, YearMonth now) {
@@ -325,11 +260,9 @@ public class CAEYSafeWithdrawalRate {
 
     private String reportTitle(BigDecimal b) {
         return MessageFormat.format(
-                "Safe Withdrawal ({0} + {1} + {2} - {3} + {4} / {5})",
+                "Safe Withdrawal ({0} + {1} + {2} / {3})",
                 PCT_FORMAT2.format(this.params.capeA),
-                PCT_FORMAT2.format(this.params.pensionCapeADelta),
                 PCT_FORMAT2.format(this.params.futureIncomeCapeADelta),
-                PCT_FORMAT2.format(this.params.longTermCareDelta.negate(C)),
                 NumberFormat.getNumberInstance().format(b),
                 ONE.divide(this.caey(this.last.last()), C));
     }
@@ -358,11 +291,8 @@ public class CAEYSafeWithdrawalRate {
             BigDecimal capeExUs,
             BigDecimal capeEmerging,
             BigDecimal capeA,
-            BigDecimal pensionCapeADelta,
             BigDecimal futureIncomeCapeADelta,
-            BigDecimal longTermCareDelta,
-            BigDecimal capeB
-            ) {
+            BigDecimal capeB) {
 
     }
 }
