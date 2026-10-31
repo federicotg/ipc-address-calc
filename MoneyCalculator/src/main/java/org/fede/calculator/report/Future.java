@@ -63,14 +63,14 @@ public class Future {
     private static final TypeReference<List<CashFlow>> FLOWS_TR = new TypeReference<>() {
     };
 
-    public static MoneyAmount expectedWealth() {
+    public static MoneyAmount expectedWealth(BigDecimal discountRate) {
         return SeriesReader.read("flows.json", FLOWS_TR)
                 .stream()
-                .map(Future::presentValue)
+                .map(flow -> presentValue(flow, discountRate))
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
 
-    private static MoneyAmount presentValue(CashFlow flow) {
+    private static MoneyAmount presentValue(CashFlow flow, BigDecimal discountRate) {
         final var now = YearMonth.now();
 
         if (flow.end().isBefore(now)) {
@@ -83,11 +83,11 @@ public class Future {
 
         final var monthlyUsd = asUSD(new MoneyAmount(flow.amount(), flow.currency()), now);
 
-        if (flow.rate().signum() == 0) {
+        if (discountRate.signum() == 0) {
             return monthlyUsd.adjust(ONE, BigDecimal.valueOf(payments));
         }
-        
-        final double rate = flow.rate().doubleValue();
+
+        final double rate = discountRate.doubleValue();
 
         // PV = A * (1+r)^(-T/12) * (1 - d^N) / (1 - d),  d = (1+r)^(-1/12)
         final double firstDiscount = Math.pow(1.0d + rate, -monthsToFirst / 12.0d);
@@ -111,7 +111,6 @@ public class Future {
             String name,
             BigDecimal amount,
             Currency currency,
-            BigDecimal rate,
             YearMonth start,
             YearMonth end) {
 

@@ -196,14 +196,14 @@ public class ConsoleReports {
 
             case "fire" ->
                 () -> new Fire(format, series, console)
-                .fire();
+                .fire(me.paramsValueDefaultFalse(args, "fire", "detail"));
 
             case "fi" ->
                 () -> new Fire(format, series, console)
                 .fiReport();
             case "re" ->
                 () -> new Fire(format, series, console)
-                .reReport();
+                .reReport(me.paramsValueDefaultFalse(args, "re", "detail"));
 
             case "savings" ->
                 () -> me.savings(args, "savings");
@@ -406,9 +406,9 @@ public class ConsoleReports {
                 new CmdParam("i", "y=current m=current g=false", arg("y"), arg("m"), bool("g")),
                 new CmdParam("pa"),
                 new CmdParam("house-evo"),
-                new CmdParam("fire"),
+                new CmdParam("fire", "detail=false", bool("detail")),
                 new CmdParam("fi"),
-                new CmdParam("re"),
+                new CmdParam("re", "detail=false", bool("detail")),
                 new CmdParam("p-type-evo"),
                 new CmdParam("p-type-evo-pct"),
                 new CmdParam("ccl"),

@@ -31,7 +31,6 @@ import org.fede.calculator.chart.LabeledXYDataItem;
 import org.fede.calculator.chart.Scale;
 import org.fede.calculator.chart.ScatterXYChart;
 import org.fede.calculator.chart.ValueFormat;
-import static org.fede.calculator.money.Currency.USD;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.SeriesReader;
@@ -43,7 +42,6 @@ import org.jfree.data.xy.XYSeries;
  */
 public class CAEYSafeWithdrawalRate {
 
-    private static final MoneyAmount ZERO_USD = MoneyAmount.zero(USD);
     private static final BigDecimal CAPE_MIN = BigDecimal.valueOf(15L);
     private static final BigDecimal CAPE_MAX = BigDecimal.valueOf(45L);
     private static final BigDecimal CAPE_STEP = BigDecimal.valueOf(5L);
@@ -119,10 +117,7 @@ public class CAEYSafeWithdrawalRate {
         final var age = BigDecimal.valueOf(ChronoUnit.MONTHS.between(dob, LocalDate.now())).divide(MONTHS_IN_A_YEAR, C);
         final var yearsLeft = BigDecimal.ONE.movePointRight(2).subtract(age, C);
 
-        final var futureIncomeCapeADelta = this.deltaA(Future.expectedWealth().amount(), YearMonth.now());
-
-        final var baseCapeA = capeAStrategy.baseCapeA(yearsLeft);
-        this.capeA = baseCapeA.add(futureIncomeCapeADelta, C);
+        this.capeA = capeAStrategy.baseCapeA(yearsLeft);
         this.capeB = capeB;
         this.params = new CAEYSWRParams(
                 cashRealYield,
@@ -130,17 +125,8 @@ public class CAEYSafeWithdrawalRate {
                 cape,
                 capeExUs,
                 capeEmerging,
-                baseCapeA,
-                futureIncomeCapeADelta,
+                this.capeA,
                 capeB);
-    }
-
-    private BigDecimal deltaA(BigDecimal presentValue, YearMonth now) {
-        final var cashAmount = LastAmounts.lastCashUSD(now);
-        final var futureIncomeWithdrawalRate = SeriesReader.readPercent("futureIncomeWithdrawalRate");
-        return presentValue
-                .divide(this.last.last().total().add(cashAmount).amount(), C)
-                .multiply(futureIncomeWithdrawalRate, C);
     }
 
     public CAEYSafeWithdrawalRate() {
@@ -157,16 +143,88 @@ public class CAEYSafeWithdrawalRate {
             MoneyAmount emerging,
             MoneyAmount bonds,
             MoneyAmount cash) {
+        return this.capeRate(this.virtualPortfolio(usEquity, devExUs, emerging, bonds, cash));
+    }
 
-        final var caey = this.caey(usEquity, devExUs, emerging);
+    public MoneyAmount virtualPortfolioValue(
+            MoneyAmount usEquity,
+            MoneyAmount devExUs,
+            MoneyAmount emerging,
+            MoneyAmount bonds,
+            MoneyAmount cash) {
+        return this.virtualPortfolio(usEquity, devExUs, emerging, bonds, cash).total();
+    }
 
-        final var totalPortfolioValue = Stream.of(usEquity, devExUs, emerging, cash, bonds)
-                .reduce(ZERO_USD, MoneyAmount::add);
+    public WithdrawalDetail detail(
+            MoneyAmount usEquity,
+            MoneyAmount devExUs,
+            MoneyAmount emerging,
+            MoneyAmount bonds,
+            MoneyAmount cash) {
 
+        final var financial = new AssetAmounts(usEquity, devExUs, emerging, bonds, cash);
+        final var equityMix = new Equity(usEquity, devExUs, emerging);
+        final var caey = this.caey(equityMix);
+        final var total = financial.total().amount();
+        final var discountRate = this.capeRate(financial);
+        final var futureIncome = Future.expectedWealth(discountRate);
+        final var virtual = this.withFutureIncome(financial, futureIncome);
+        final var expectedInflation = this.cashRealYield.negate(C);
+
+        return new WithdrawalDetail(
+                this.capeA,
+                this.capeB,
+                this.cape,
+                this.capeExUs,
+                this.capeEmerging,
+                equityMix.usWeight(),
+                equityMix.exUsWeight(),
+                equityMix.emWeight(),
+                ONE.divide(caey, C),
+                this.capeA.add(this.capeB.multiply(caey, C), C),
+                expectedInflation,
+                this.bondsRealYield.add(expectedInflation, C),
+                this.cashRealYield,
+                cash.adjust(total, ONE).amount(),
+                this.bondsRealYield,
+                bonds.adjust(total, ONE).amount(),
+                discountRate,
+                futureIncome,
+                virtual.total(),
+                this.capeRate(virtual));
+    }
+
+    private AssetAmounts virtualPortfolio(
+            MoneyAmount usEquity,
+            MoneyAmount devExUs,
+            MoneyAmount emerging,
+            MoneyAmount bonds,
+            MoneyAmount cash) {
+
+        final var financial = new AssetAmounts(usEquity, devExUs, emerging, bonds, cash);
+        return this.withFutureIncome(financial, Future.expectedWealth(this.capeRate(financial)));
+    }
+
+    private AssetAmounts withFutureIncome(AssetAmounts financial, MoneyAmount futureIncome) {
+        final var equity = this.last.last();
+        final var portfolioCash = LastAmounts.lastCashUSD(YearMonth.now());
+        final var liquid = equity.total().add(portfolioCash).amount();
+        final var futureEquity = futureIncome.adjust(liquid, equity.total().amount());
+
+        return new AssetAmounts(
+                financial.usEquity().add(futureEquity.adjust(ONE, equity.usWeight())),
+                financial.devExUs().add(futureEquity.adjust(ONE, equity.exUsWeight())),
+                financial.emerging().add(futureEquity.adjust(ONE, equity.emWeight())),
+                financial.bonds(),
+                financial.cash().add(futureIncome.adjust(liquid, portfolioCash.amount())));
+    }
+
+    private BigDecimal capeRate(AssetAmounts portfolio) {
+        final var totalPortfolioValue = portfolio.total();
         return this.capeA
-                .add(this.capeB.multiply(caey, C))
-                .add(this.bondsRealYield.multiply(bonds.adjust(totalPortfolioValue.amount(), ONE).amount(), C))
-                .add(this.cashRealYield.multiply(cash.adjust(totalPortfolioValue.amount(), ONE).amount(), C));
+                .add(this.capeB.multiply(this.caey(portfolio.usEquity(), portfolio.devExUs(), portfolio.emerging()), C))
+                .add(this.bondsRealYield.multiply(portfolio.bonds().adjust(totalPortfolioValue.amount(), ONE).amount(), C))
+                .add(this.cashRealYield.multiply(portfolio.cash().adjust(totalPortfolioValue.amount(), ONE).amount(), C));
     }
 
     private SafeWithdrawal monthlySafeWithdrawal(
@@ -176,11 +234,9 @@ public class CAEYSafeWithdrawalRate {
             MoneyAmount bonds,
             MoneyAmount cash) {
 
-        final var totalPortfolioValue = Stream.of(usEquity, devExUs, emerging, cash, bonds)
-                .reduce(ZERO_USD, MoneyAmount::add);
-
-        final var rate = this.capeWR(usEquity, devExUs, emerging, bonds, cash);
-        final var amount = totalPortfolioValue.amount()
+        final var portfolio = this.virtualPortfolio(usEquity, devExUs, emerging, bonds, cash);
+        final var rate = this.capeRate(portfolio);
+        final var amount = portfolio.total().amount()
                 .multiply(rate, C)
                 .divide(MONTHS_IN_A_YEAR, C);
 
@@ -260,9 +316,8 @@ public class CAEYSafeWithdrawalRate {
 
     private String reportTitle(BigDecimal b) {
         return MessageFormat.format(
-                "Safe Withdrawal ({0} + {1} + {2} / {3})",
+                "Safe Withdrawal ({0} + {1} / {2})",
                 PCT_FORMAT2.format(this.params.capeA),
-                PCT_FORMAT2.format(this.params.futureIncomeCapeADelta),
                 NumberFormat.getNumberInstance().format(b),
                 ONE.divide(this.caey(this.last.last()), C));
     }
@@ -284,6 +339,42 @@ public class CAEYSafeWithdrawalRate {
 
     }
 
+    private record AssetAmounts(
+            MoneyAmount usEquity,
+            MoneyAmount devExUs,
+            MoneyAmount emerging,
+            MoneyAmount bonds,
+            MoneyAmount cash) {
+
+        private MoneyAmount total() {
+            return this.usEquity.add(this.devExUs).add(this.emerging).add(this.bonds).add(this.cash);
+        }
+    }
+
+    public static record WithdrawalDetail(
+            BigDecimal a,
+            BigDecimal b,
+            BigDecimal cape,
+            BigDecimal capeExUs,
+            BigDecimal capeEmerging,
+            BigDecimal usWeight,
+            BigDecimal exUsWeight,
+            BigDecimal emWeight,
+            BigDecimal blendedCape,
+            BigDecimal capeFormula,
+            BigDecimal expectedInflation,
+            BigDecimal bondNominalYield,
+            BigDecimal cashRealYield,
+            BigDecimal cashWeight,
+            BigDecimal bondsRealYield,
+            BigDecimal bondsWeight,
+            BigDecimal discountRate,
+            MoneyAmount futureIncome,
+            MoneyAmount virtualPortfolio,
+            BigDecimal withdrawalRate) {
+
+    }
+
     public static record CAEYSWRParams(
             BigDecimal cashRealYield,
             BigDecimal bondsRealYield,
@@ -291,7 +382,6 @@ public class CAEYSafeWithdrawalRate {
             BigDecimal capeExUs,
             BigDecimal capeEmerging,
             BigDecimal capeA,
-            BigDecimal futureIncomeCapeADelta,
             BigDecimal capeB) {
 
     }

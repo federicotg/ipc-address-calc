@@ -16,6 +16,7 @@
  */
 package org.fede.calculator.report;
 
+import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
 import java.math.BigDecimal;
@@ -144,7 +145,7 @@ public class Fire {
 
     }
 
-    public void re() {
+    public void re(boolean detail) {
 
         final var unlp = this.series.incomeSource(IncomeSeries.UNLP);
         final var initialMonth = unlp.yearMonthStream()
@@ -167,13 +168,21 @@ public class Fire {
         );
 
         final var budgets = this.budgets();
-        //final var currentlyEstimated = this.currentlyEstimatedSavings();
+        final var now = YearMonth.now();
+        final var equity = this.last.last();
+        final var cash = this.series.realSavings(AssetClass.CASH).getAmount(now);
+        final var bonds = this.series.realSavings(AssetClass.BONDS).getAmountOrElseZero(now);
+        final var swr = new CAEYSafeWithdrawalRate();
+        final var calc = swr.detail(equity.us(), equity.exUs(), equity.em(), bonds, cash);
         final var currentSavings = this.series.currentSavingsUSD();
-        final var totalSavingsPlusCurrentlyEstimated = currentSavings;
 
-        this.spendingReport("Current", this.withdrawalRate(), totalSavingsPlusCurrentlyEstimated);
+        if (detail) {
+            this.withdrawalDetail(calc, currentSavings);
+        }
 
-        final var percents = this.percents();
+        this.spendingReport("Current", calc.withdrawalRate(), calc.virtualPortfolio());
+
+        final var percents = this.percents(calc.withdrawalRate());
 
         this.console.appendLine("");
 
@@ -193,7 +202,7 @@ public class Fire {
                         -> this.retirementWithdrawalRow(
                                 monthlySpending,
                                 currentSavings,
-                                totalSavingsPlusCurrentlyEstimated,
+                                calc.virtualPortfolio(),
                                 percents,
                                 alreadyThere,
                                 withGrowth,
@@ -207,39 +216,56 @@ public class Fire {
 
     }
 
-    private BigDecimal withdrawalRate() {
-
-        var now = YearMonth.now();
-
-        var equity = last.last();
-
-        var cash = this.series.realSavings(AssetClass.CASH).getAmount(now);
-
-        var bonds = this.series.realSavings(AssetClass.BONDS).getAmountOrElseZero(now);
-
-        return new CAEYSafeWithdrawalRate()
-                .capeWR(equity.us(), equity.exUs(), equity.em(), bonds, cash);
-    }
-
     public void fiReport() {
         this.console.appendLine(this.format.title("F.I.R.E."));
         this.fi();
 
     }
 
-    public void reReport() {
+    public void reReport(boolean detail) {
         this.console.appendLine(this.format.title("F.I.R.E."));
-        this.re();
+        this.re(detail);
 
     }
 
-    public void fire() {
+    public void fire(boolean detail) {
 
         this.console.appendLine(this.format.title("F.I.R.E."));
 
         this.fi();
-        this.re();
+        this.re(detail);
 
+    }
+
+    private void withdrawalDetail(CAEYSafeWithdrawalRate.WithdrawalDetail calc, MoneyAmount portfolio) {
+        final var green = new AnsiFormat(Attribute.GREEN_TEXT());
+        final var yellow = new AnsiFormat(Attribute.BRIGHT_YELLOW_TEXT());
+
+        this.console.appendLine(this.format.subtitle("SWR"));
+        this.paramLine("a", this.format.percent(calc.a(), 12));
+        this.paramLine("b", this.format.number(calc.b(), 12));
+        this.paramLine("CAPE US", this.format.number(calc.cape(), 12) + this.format.percent(calc.usWeight(), 10));
+        this.paramLine("CAPE ex-US", this.format.number(calc.capeExUs(), 12) + this.format.percent(calc.exUsWeight(), 10));
+        this.paramLine("CAPE EM", this.format.number(calc.capeEmerging(), 12) + this.format.percent(calc.emWeight(), 10));
+        this.paramLine("CAPE", this.format.number(calc.blendedCape(), 12));
+        this.paramLine("a + b / CAPE", this.format.percent(calc.capeFormula(), 12));
+        this.paramLine("Expected inflation", this.format.percent(calc.expectedInflation(), 12));
+        this.paramLine("Bond nominal yield", this.format.percent(calc.bondNominalYield(), 12));
+        this.paramLine("Cash real yield", this.format.percent(calc.cashRealYield(), 12) + this.format.percent(calc.cashWeight(), 10));
+        this.paramLine("Bonds real yield", this.format.percent(calc.bondsRealYield(), 12) + this.format.percent(calc.bondsWeight(), 10));
+        this.paramLine("Discount rate", this.format.percent(calc.discountRate(), 12));
+        this.paramLine("Withdrawal rate", this.format.percent(calc.withdrawalRate(), 12));
+        this.paramLine("Future cash flows", this.format.currency(calc.futureIncome(), 22));
+        this.console.appendLine(
+                this.format.text("Portfolio", 28, green),
+                Ansi.colorize(this.format.currency(portfolio, 22), green));
+        this.console.appendLine(
+                this.format.text("Virtual portfolio", 28, yellow),
+                Ansi.colorize(this.format.currency(calc.virtualPortfolio(), 22), yellow));
+    }
+
+    private void paramLine(String label, String value) {
+        this.console.appendLine(this.format.text(label, 28), value);
     }
 
     private void compositionLine(String categoryName, MoneyAmount amount, MoneyAmount total) {
@@ -276,13 +302,13 @@ public class Fire {
                 ));
     }
 
-    private List<BigDecimal> percents() {
+    private List<BigDecimal> percents(BigDecimal withdrawalRate) {
         final var step = BigDecimal.valueOf(25L).movePointLeft(4);
         return Stream.concat(
                 LongStream.range(15L, 20L)
                         .mapToObj(i -> BigDecimal.valueOf(i).multiply(step, C)),
                 Stream.concat(
-                        Stream.of(this.withdrawalRate()),
+                        Stream.of(withdrawalRate),
                         Stream.of(
                                 BigDecimal.valueOf(366L),
                                 BigDecimal.valueOf(338L),
