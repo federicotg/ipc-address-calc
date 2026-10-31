@@ -82,11 +82,12 @@ public class Future {
         final long payments = ChronoUnit.MONTHS.between(start, flow.end()) + 1;
 
         final var monthlyUsd = asUSD(new MoneyAmount(flow.amount(), flow.currency()), now);
-        final double rate = flow.rate().doubleValue();
 
-        if (rate == 0.0d) {
+        if (flow.rate().signum() == 0) {
             return monthlyUsd.adjust(ONE, BigDecimal.valueOf(payments));
         }
+        
+        final double rate = flow.rate().doubleValue();
 
         // PV = A * (1+r)^(-T/12) * (1 - d^N) / (1 - d),  d = (1+r)^(-1/12)
         final double firstDiscount = Math.pow(1.0d + rate, -monthsToFirst / 12.0d);
@@ -226,6 +227,7 @@ public class Future {
         final var allSpeding = this.series.allSpending();
         allSpeding.remove(SpendingSeries.EXTRAORDINARY);
         allSpeding.remove(SpendingSeries.INVESTMENTS);
+        allSpeding.remove(SpendingSeries.DEPARTAMENTOS);
 
         final var healthCostSeries = Inflation.usdInflation().adjust(futureHealth(), YearMonth.now());
 
