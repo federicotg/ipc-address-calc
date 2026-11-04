@@ -47,29 +47,47 @@ public class InvestmentPnL {
     private final Format format;
     private final Series series;
 
+    public InvestmentPnL(Series series) {
+        this(null, null, series);
+    }
+
     public InvestmentPnL(Console console, Format format, Series series) {
         this.console = console;
         this.format = format;
         this.series = series;
     }
 
-    public void report() {
+    /**
+     * Realized and unrealized real-USD P&amp;L across all investment lots.
+     * @return 
+     */
+    public Summary summary() {
+        final var items = this.items();
+        return new Summary(sum(items, true), sum(items, false));
+    }
+
+    /**
+     * Per-lot real-USD P&amp;L items (realized and unrealized).
+     * @return 
+     */
+    public List<PnLItem> items() {
         final var now = LocalDate.now();
-        final var items = this.series.getInvestments()
+        return this.series.getInvestments()
                 .stream()
                 .map(inv -> this.toItem(inv, now))
                 .toList();
+    }
 
-        final var realized = sum(items, true);
-        final var unrealized = sum(items, false);
-        final var total = realized.add(unrealized);
+    public void report() {
+        final var items = this.items();
+        final var summary = new Summary(sum(items, true), sum(items, false));
 
         this.console.appendLine(this.format.title("Real USD Investment P&L"));
         this.console.appendLine(MessageFormat.format(
                 " Global {0}  (realized {1}  unrealized {2})",
-                this.format.currencyPL(total.amount(), 14),
-                this.format.currencyPL(realized.amount(), 14),
-                this.format.currencyPL(unrealized.amount(), 14)));
+                this.format.currencyPL(summary.total().amount(), 14),
+                this.format.currencyPL(summary.realized().amount(), 14),
+                this.format.currencyPL(summary.unrealized().amount(), 14)));
 
         this.byType(items);
         this.byYear(items);
@@ -236,6 +254,13 @@ public class InvestmentPnL {
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
 
-    private record PnLItem(InvestmentType type, int year, boolean realized, MoneyAmount amount) {
+    public record PnLItem(InvestmentType type, int year, boolean realized, MoneyAmount amount) {
+    }
+
+    public record Summary(MoneyAmount realized, MoneyAmount unrealized) {
+
+        public MoneyAmount total() {
+            return this.realized.add(this.unrealized);
+        }
     }
 }

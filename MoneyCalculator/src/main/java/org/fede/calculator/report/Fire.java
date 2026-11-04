@@ -180,7 +180,11 @@ public class Fire {
             this.withdrawalDetail(calc, currentSavings);
         }
 
-        this.spendingReport("Current", calc.withdrawalRate(), calc.virtualPortfolio());
+        this.spendingReport("Preservation", calc.withdrawalRate(), calc.virtualPortfolio());
+        this.spendingReport(
+                MessageFormat.format("Until {0}", calc.endYear()),
+                calc.finiteHorizonRate(),
+                calc.virtualPortfolio());
 
         final var percents = this.percents(calc.withdrawalRate());
 
@@ -256,6 +260,11 @@ public class Fire {
         this.paramLine("Discount rate", this.format.percent(calc.discountRate(), 12));
         this.paramLine("Withdrawal rate", this.format.percent(calc.withdrawalRate(), 12));
         this.paramLine("Future cash flows", this.format.currency(calc.futureIncome(), 22));
+        this.paramLine("Inheritance (FV)", this.format.currency(calc.inheritance(), 22));
+        this.paramLine("Horizon end year", this.format.number(BigDecimal.valueOf(calc.endYear()), 12));
+        this.paramLine("Horizon months", this.format.number(BigDecimal.valueOf(calc.months()), 12));
+        this.paramLine("Finite-horizon rate", this.format.percent(calc.finiteHorizonRate(), 12));
+        this.paramLine("Finite-horizon monthly", this.format.currency(calc.finiteHorizonMonthly(), 22));
         this.console.appendLine(
                 this.format.text("Portfolio", 28, green),
                 Ansi.colorize(this.format.currency(portfolio, 22), green));

@@ -170,6 +170,15 @@ public class CAEYSafeWithdrawalRate {
         final var futureIncome = Future.expectedWealth(discountRate);
         final var virtual = this.withFutureIncome(financial, futureIncome);
         final var expectedInflation = this.cashRealYield.negate(C);
+        final var withdrawalRate = this.capeRate(virtual);
+        final var inheritance = SeriesReader.readUSD("swr.inheritance");
+        final var endYear = SeriesReader.readInt("swr.endYear");
+        final var months = finiteHorizonMonths(endYear);
+        final var finiteHorizonMonthly = this.finiteHorizonMonthlyWithdrawal(
+                virtual.total(),
+                withdrawalRate,
+                inheritance,
+                months);
 
         return new WithdrawalDetail(
                 this.capeA,
@@ -191,7 +200,57 @@ public class CAEYSafeWithdrawalRate {
                 discountRate,
                 futureIncome,
                 virtual.total(),
-                this.capeRate(virtual));
+                withdrawalRate,
+                inheritance,
+                endYear,
+                months,
+                finiteHorizonMonthly,
+                finiteHorizonMonthly.amount()
+                        .multiply(MONTHS_IN_A_YEAR, C)
+                        .divide(virtual.total().amount(), C));
+    }
+
+    /**
+     * Months from next calendar month through December of {@code endYear}, inclusive.
+     */
+    private static long finiteHorizonMonths(int endYear) {
+        final var start = YearMonth.now().plusMonths(1);
+        final var end = YearMonth.of(endYear, 12);
+        return ChronoUnit.MONTHS.between(start, end) + 1;
+    }
+
+    /**
+     * Excel {@code PMT}-style monthly withdrawal that depletes (or leaves)
+     * {@code inheritance} after {@code months} periods, using the preservation
+     * SWR as the annual real return (monthly rate = annual / 12).
+     */
+    private MoneyAmount finiteHorizonMonthlyWithdrawal(
+            MoneyAmount portfolio,
+            BigDecimal annualRate,
+            MoneyAmount inheritance,
+            long months) {
+
+        final var monthlyRate = annualRate.divide(MONTHS_IN_A_YEAR, C);
+        final var payment = pmt(monthlyRate, months, portfolio.amount(), inheritance.amount());
+        return new MoneyAmount(payment, portfolio.currency());
+    }
+
+    /**
+     * Excel-compatible {@code PMT(rate, nper, -pv, fv)} for end-of-period cash
+     * flows: positive result is the amount that can be withdrawn each month.
+     */
+    private static BigDecimal pmt(BigDecimal rate, long nper, BigDecimal pv, BigDecimal fv) {
+        if (nper <= 0L) {
+            throw new IllegalArgumentException("nper must be positive, got " + nper);
+        }
+        final var periods = BigDecimal.valueOf(nper);
+        if (rate.signum() == 0) {
+            return pv.subtract(fv, C).divide(periods, C);
+        }
+        final var growth = ONE.add(rate, C).pow((int) nper, C);
+        return rate
+                .multiply(pv.multiply(growth, C).subtract(fv, C), C)
+                .divide(growth.subtract(ONE, C), C);
     }
 
     private AssetAmounts virtualPortfolio(
@@ -371,7 +430,12 @@ public class CAEYSafeWithdrawalRate {
             BigDecimal discountRate,
             MoneyAmount futureIncome,
             MoneyAmount virtualPortfolio,
-            BigDecimal withdrawalRate) {
+            BigDecimal withdrawalRate,
+            MoneyAmount inheritance,
+            int endYear,
+            long months,
+            MoneyAmount finiteHorizonMonthly,
+            BigDecimal finiteHorizonRate) {
 
     }
 

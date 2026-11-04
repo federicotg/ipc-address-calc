@@ -17,6 +17,7 @@
 package org.fede.calculator.report;
 
 import java.math.BigDecimal;
+import org.fede.calculator.money.series.SeriesReader;
 
 /**
  * Early Retirement Now capital-preservation intercept ({@code a = 1.75%}).
@@ -25,10 +26,8 @@ import java.math.BigDecimal;
  */
 public final class ERNCapeAStrategy implements CapeAStrategy {
 
-    static final BigDecimal PRESERVATION_INTERCEPT = new BigDecimal("0.02");
-
     @Override
     public BigDecimal baseCapeA(BigDecimal yearsLeft) {
-        return PRESERVATION_INTERCEPT;
+        return SeriesReader.readPercent("cape.a");
     }
 }

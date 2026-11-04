@@ -1049,6 +1049,8 @@ public class ConsoleReports {
         final var inheritanceAmount = inheritance.moneyAmountStream()
                 .reduce(MoneyAmount.zero(USD), MoneyAmount::add);
 
+        final var pnl = new InvestmentPnL(this.series).summary();
+
         new PieChart(true).create(
                 "Income",
                 List.of(
@@ -1060,6 +1062,8 @@ public class ConsoleReports {
                         new PieItem(IncomeSeries.LIFIA.getDisplayName(),
                                 income.get(IncomeSeries.LIFIA).amount()),
                         new PieItem("Inheritance", inheritanceAmount.amount()),
+                        new PieItem("Realized gains", pnl.realized().amount()),
+                        new PieItem("Unrealized gains", pnl.unrealized().amount()),
                         new PieItem("Other",
                                 income.get(IncomeSeries.OTHER_ARS)
                                         .add(income.get(IncomeSeries.OTHER_EUR))
