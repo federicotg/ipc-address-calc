@@ -186,7 +186,7 @@ public class Fire {
                 calc.finiteHorizonRate(),
                 calc.virtualPortfolio());
 
-        final var percents = this.percents(calc.withdrawalRate());
+        final var percents = this.percents(calc.withdrawalRate(), calc.finiteHorizonRate());
 
         this.console.appendLine("");
 
@@ -260,6 +260,11 @@ public class Fire {
         this.paramLine("Discount rate", this.format.percent(calc.discountRate(), 12));
         this.paramLine("Withdrawal rate", this.format.percent(calc.withdrawalRate(), 12));
         this.paramLine("Future cash flows", this.format.currency(calc.futureIncome(), 22));
+        Future.expectedWealthDetails(calc.discountRate())
+                .forEach(flow -> this.compositionLine(
+                        "  " + flow.name(),
+                        flow.presentValue(),
+                        calc.futureIncome()));
         this.paramLine("Inheritance (FV)", this.format.currency(calc.inheritance(), 22));
         this.paramLine("Horizon end year", this.format.number(BigDecimal.valueOf(calc.endYear()), 12));
         this.paramLine("Horizon months", this.format.number(BigDecimal.valueOf(calc.months()), 12));
@@ -311,13 +316,13 @@ public class Fire {
                 ));
     }
 
-    private List<BigDecimal> percents(BigDecimal withdrawalRate) {
+    private List<BigDecimal> percents(BigDecimal withdrawalRate, BigDecimal finiteHorizonRate) {
         final var step = BigDecimal.valueOf(25L).movePointLeft(4);
         return Stream.concat(
                 LongStream.range(15L, 20L)
                         .mapToObj(i -> BigDecimal.valueOf(i).multiply(step, C)),
                 Stream.concat(
-                        Stream.of(withdrawalRate),
+                        Stream.of(withdrawalRate, finiteHorizonRate),
                         Stream.of(
                                 BigDecimal.valueOf(366L),
                                 BigDecimal.valueOf(338L),

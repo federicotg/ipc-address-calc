@@ -279,11 +279,13 @@ public class CAEYSafeWithdrawalRate {
     }
 
     private BigDecimal capeRate(AssetAmounts portfolio) {
-        final var totalPortfolioValue = portfolio.total();
-        return this.capeA
-                .add(this.capeB.multiply(this.caey(portfolio.usEquity(), portfolio.devExUs(), portfolio.emerging()), C))
-                .add(this.bondsRealYield.multiply(portfolio.bonds().adjust(totalPortfolioValue.amount(), ONE).amount(), C))
-                .add(this.cashRealYield.multiply(portfolio.cash().adjust(totalPortfolioValue.amount(), ONE).amount(), C));
+        final var total = portfolio.total().amount();
+        final var equityWeight = portfolio.equity().adjust(total, ONE).amount();
+        final var equitySwr = this.capeA
+                .add(this.capeB.multiply(this.caey(portfolio.usEquity(), portfolio.devExUs(), portfolio.emerging()), C), C);
+        return equitySwr.multiply(equityWeight, C)
+                .add(this.bondsRealYield.multiply(portfolio.bonds().adjust(total, ONE).amount(), C), C)
+                .add(this.cashRealYield.multiply(portfolio.cash().adjust(total, ONE).amount(), C), C);
     }
 
     private SafeWithdrawal monthlySafeWithdrawal(
@@ -405,8 +407,12 @@ public class CAEYSafeWithdrawalRate {
             MoneyAmount bonds,
             MoneyAmount cash) {
 
+        private MoneyAmount equity() {
+            return this.usEquity.add(this.devExUs).add(this.emerging);
+        }
+
         private MoneyAmount total() {
-            return this.usEquity.add(this.devExUs).add(this.emerging).add(this.bonds).add(this.cash);
+            return this.equity().add(this.bonds).add(this.cash);
         }
     }
 

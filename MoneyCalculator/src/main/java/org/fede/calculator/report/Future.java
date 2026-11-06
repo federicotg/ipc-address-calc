@@ -64,10 +64,17 @@ public class Future {
     };
 
     public static MoneyAmount expectedWealth(BigDecimal discountRate) {
+        return expectedWealthDetails(discountRate)
+                .stream()
+                .map(CashFlowPresentValue::presentValue)
+                .reduce(ZERO_USD, MoneyAmount::add);
+    }
+
+    public static List<CashFlowPresentValue> expectedWealthDetails(BigDecimal discountRate) {
         return SeriesReader.read("flows.json", FLOWS_TR)
                 .stream()
-                .map(flow -> presentValue(flow, discountRate))
-                .reduce(ZERO_USD, MoneyAmount::add);
+                .map(flow -> new CashFlowPresentValue(flow.name(), presentValue(flow, discountRate)))
+                .toList();
     }
 
     private static MoneyAmount presentValue(CashFlow flow, BigDecimal discountRate) {
@@ -113,6 +120,10 @@ public class Future {
             Currency currency,
             YearMonth start,
             YearMonth end) {
+
+    }
+
+    public record CashFlowPresentValue(String name, MoneyAmount presentValue) {
 
     }
 
