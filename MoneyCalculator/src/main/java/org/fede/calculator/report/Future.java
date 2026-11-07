@@ -16,12 +16,14 @@
  */
 package org.fede.calculator.report;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,7 +37,6 @@ import org.fede.calculator.chart.ValueFormat;
 import org.fede.calculator.money.Currency;
 import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.ForeignExchanges;
-import org.fede.calculator.money.Inflation;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.MoneyAmountItem;
@@ -71,8 +72,9 @@ public class Future {
     }
 
     public static List<CashFlowPresentValue> expectedWealthDetails(BigDecimal discountRate) {
-        return SeriesReader.read("flows.json", FLOWS_TR)
+        return SeriesReader.read(SeriesReader.readEnvironment().getProperty("flows"), FLOWS_TR)
                 .stream()
+                .sorted(Comparator.comparing(CashFlow::start))
                 .map(flow -> new CashFlowPresentValue(flow.name(), presentValue(flow, discountRate)))
                 .toList();
     }
@@ -88,7 +90,7 @@ public class Future {
         final long monthsToFirst = ChronoUnit.MONTHS.between(now, start);
         final long payments = ChronoUnit.MONTHS.between(start, flow.end()) + 1;
 
-        final var monthlyUsd = asUSD(new MoneyAmount(flow.amount(), flow.currency()), now);
+        final var monthlyUsd = asUSD(flow.adjustedAmount(), now);
 
         if (discountRate.signum() == 0) {
             return monthlyUsd.adjust(ONE, BigDecimal.valueOf(payments));
@@ -119,8 +121,16 @@ public class Future {
             BigDecimal amount,
             Currency currency,
             YearMonth start,
-            YearMonth end) {
+            YearMonth end,
+            @JsonProperty("adjustment_strategy") AdjustmentStrategy adjustmentStrategy) {
 
+        private MoneyAmount adjustedAmount() {
+            final var nominal = new MoneyAmount(this.amount, this.currency);
+            if (this.adjustmentStrategy == null) {
+                return nominal;
+            }
+            return this.adjustmentStrategy.adjust(nominal);
+        }
     }
 
     public record CashFlowPresentValue(String name, MoneyAmount presentValue) {
@@ -128,15 +138,32 @@ public class Future {
     }
 
     public static Severance severance() {
-
-        if (SeriesReader.readBoolean("useFullSalaryForSeverance")) {
-            return severance(BigDecimal.ONE);
-
-        }
-        return severance(BigDecimal.valueOf(67).movePointLeft(2));
+        return severance(salary());
     }
 
+    public static Severance severance(MoneyAmount salary) {
+        if (SeriesReader.readBoolean("useFullSalaryForSeverance")) {
+            return severance(salary, BigDecimal.ONE);
+        }
+        return severance(salary, BigDecimal.valueOf(67).movePointLeft(2));
+    }
+
+    private static MoneyAmount salary(){
+        var salaryCashFlow = SeriesReader.read("flows.json", FLOWS_TR)
+                .stream().filter(cf -> cf.name.equals("Severance")).findFirst().get();
+        return ForeignExchanges.getForeignExchange(salaryCashFlow.currency, USD)
+                        .exchange(
+                                new MoneyAmount(salaryCashFlow.amount(), salaryCashFlow.currency), USD, YearMonth.now());
+ 
+    }
+    
     public static Severance severance(BigDecimal maxSalaryFactor) {
+
+       
+        return severance(salary(), maxSalaryFactor);
+    }
+
+    public static Severance severance(MoneyAmount salary, BigDecimal maxSalaryFactor) {
         final long totalMonths = YearMonth.of(2015, Month.DECEMBER)
                 .until(YearMonth.now(), ChronoUnit.MONTHS);
 
@@ -177,35 +204,16 @@ public class Future {
 
         // 65% - 7% => 35% ganacias + 7% payroll taxes
         final var taxSalaryFactor = BigDecimal.valueOf(65 - 7).movePointLeft(2);
-        final var salary = SeriesReader.readBigDecimal("salary");
+        final var salaryUsd = asUSD(salary, YearMonth.now()).amount();
 
         return new Severance(
-                salary,
-                salary
+                salaryUsd,
+                salaryUsd
                         .multiply(taxedSalaries, C)
                         .multiply(taxSalaryFactor, C),
-                salary
+                salaryUsd
                         .multiply(toppedSalaries, C)
                         .multiply(maxSalaryFactor, C));
-    }
-
-    private static MoneyAmount health(String key) {
-        var ars = new MoneyAmount(
-                SeriesReader.readBigDecimal(key)
-                        .multiply(BigDecimal.TWO, C)
-                        .multiply(ONE.add(SeriesReader.readPercent("iva"), C)),
-                Currency.ARS);
-
-        return ForeignExchanges.getForeignExchange(Currency.ARS, USD)
-                .exchange(ars, USD, YearMonth.now());
-    }
-
-    public static MoneyAmount futureHealth() {
-        return health("futureHealth");
-    }
-
-    public static MoneyAmount contingencyHealth() {
-        return health("currentHealth");
     }
 
     private MoneyAmountSeries ema(MoneyAmountSeries series, int n) {
@@ -238,12 +246,6 @@ public class Future {
         allSpeding.remove(SpendingSeries.EXTRAORDINARY);
         allSpeding.remove(SpendingSeries.INVESTMENTS);
         allSpeding.remove(SpendingSeries.DEPARTAMENTOS);
-
-        final var healthCostSeries = Inflation.usdInflation().adjust(futureHealth(), YearMonth.now());
-
-        // add future health cost
-        allSpeding.put(SpendingSeries.SALUD,
-                allSpeding.get(SpendingSeries.SALUD).add(healthCostSeries));
 
         for (var s : allSpeding.keySet()) {
             allSpeding.put(s, this.ema(allSpeding.get(s), s.getAverageMonths()));

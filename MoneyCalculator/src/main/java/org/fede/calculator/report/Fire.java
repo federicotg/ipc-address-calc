@@ -63,14 +63,6 @@ public class Fire {
         this.console = console;
     }
 
-    private MoneyAmount futureHealth() {
-        return Future.futureHealth();
-    }
-
-    private MoneyAmount currentHealth() {
-        return Future.contingencyHealth();
-    }
-
     public void fi() {
 
         final var budgets = this.budgets();
@@ -78,14 +70,9 @@ public class Fire {
 
         this.console.appendLine(this.format.subtitle("Retirement Monthly Average Spending"));
 
-        final var futureHealth = this.futureHealth();
-        final var currentHealth = this.currentHealth();
-
         final var currentCash = this.series.realSavings(AssetClass.CASH).getAmount(YearMonth.now());
 
         this.conceptLine("Essential", budgets.essential());
-        this.conceptLine("Current Health Cost", currentHealth);
-        this.conceptLine(" ➞ Future Health Cost", futureHealth);
 
         this.console.appendLine("");
 
