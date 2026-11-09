@@ -68,7 +68,6 @@ import org.fede.calculator.chart.ScatterXYChart;
 import org.fede.calculator.chart.StackedTimeSeriesChart;
 import org.fede.calculator.chart.TimeSeriesChart;
 import org.fede.calculator.chart.ValueFormat;
-import org.fede.calculator.money.PortfolioProjections;
 import org.fede.calculator.money.series.Investment;
 import org.fede.calculator.money.series.InvestmentAsset;
 import org.fede.calculator.money.series.InvestmentEvent;
@@ -1498,99 +1497,9 @@ public class Investments {
         return accSeries;
     }
 
-    private BigDecimal cagr() {
-        final var p = SeriesReader.readPercent("futureReturn");
-        return p
-                .subtract(SeriesReader.readPercent("expectedInflation"), C);
-    }
 
-    public MoneyAmount projectedPortfolioSize(MoneyAmount presentValue, MoneyAmount yearlySavings, double pValue) {
-        final var years = SeriesReader.readInt("retirementHorizon");
-        final var expectedReturn = this.cagr()
-                .doubleValue();
 
-        final var expectedVolatility = SeriesReader.readPercent("futureVolatility").doubleValue();
 
-        final var projection = this.predictedValues(
-                Inflation.usdInflation().getTo(),
-                years,
-                pValue,
-                presentValue,
-                expectedReturn,
-                expectedVolatility, yearlySavings);
-
-        return projection.getAmount(projection.getTo());
-
-    }
-
-    private MoneyAmountSeries predictedValues(
-            YearMonth start,
-            int years,
-            double percentile,
-            MoneyAmount initial,
-            double carg,
-            double volatility,
-            MoneyAmount savings) {
-
-        final List<MoneyAmountSeries> s = new ArrayList<>(years);
-
-        s.add(this.predictedValues(start, years, percentile, initial, carg, volatility));
-        for (int y = 1; y < years; y++) {
-            s.add(this.predictedValues(
-                    YearMonth.of(start.getYear() + y, start.getMonthValue()),
-                    years - y,
-                    percentile,
-                    savings,
-                    carg,
-                    volatility));
-
-        }
-        return s.stream().reduce(MoneyAmountSeries::add).get();
-    }
-
-    private MoneyAmountSeries predictedValues(
-            YearMonth start,
-            int years,
-            double percentile,
-            MoneyAmount initial,
-            double carg,
-            double volatility) {
-
-        final var valueSeries = new SortedMapMoneyAmountSeries(USD,
-                " P"
-                + (int) (percentile * 100d));
-        valueSeries.putAmount(start, initial);
-
-        YearMonth filledMonth = start.plusMonths(1L);
-        for (int i = 0; i < 11; i++) {
-            valueSeries.putAmount(filledMonth, initial);
-            filledMonth = filledMonth.plusMonths(1L);
-        }
-
-        for (var i = 1; i <= years; i++) {
-            final var ym = YearMonth.of(start.getYear() + i, start.getMonthValue());
-            final var amount = new MoneyAmount(
-                    BigDecimal.valueOf(
-                            PortfolioProjections.calculatePortfolioPercentile(
-                                    initial.amount().doubleValue(),
-                                    carg,
-                                    volatility,
-                                    i,
-                                    percentile)), USD);
-
-            valueSeries.putAmount(ym,
-                    amount);
-
-            filledMonth = ym.plusMonths(1L);
-            for (int j = 0; j < 11; j++) {
-                valueSeries.putAmount(filledMonth, amount);
-                filledMonth = filledMonth.plusMonths(1L);
-            }
-
-        }
-        // this.console.appendLine(""+valueSeries.getFrom() + " "+ valueSeries.getTo());
-        return valueSeries;
-    }
 
     public void investmentScatterChart(Currency currency) {
         this.investmentScatterChart(currency, ValueFormat.CURRENCY);

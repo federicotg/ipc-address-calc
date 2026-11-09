@@ -38,8 +38,8 @@ public class Format {
     private final BigDecimal ONE_THOUSAND = BigDecimal.ONE.movePointRight(3);
     private final BigDecimal ONE_MILLION = BigDecimal.ONE.movePointRight(6);
 
-    private final AnsiFormat PROFIT_FORMAT = new AnsiFormat(Attribute.GREEN_TEXT());
-    private final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
+    public static final AnsiFormat PROFIT_FORMAT = new AnsiFormat(Attribute.GREEN_TEXT());
+    public static final AnsiFormat LOSS_FORMAT = new AnsiFormat(Attribute.RED_TEXT());
     private final NumberFormat PERCENT_FORMAT = NumberFormat.getPercentInstance();
     private final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance();
     private final NumberFormat NUMBER_FORMAT = NumberFormat.getNumberInstance();

@@ -272,9 +272,14 @@ public class Fire {
     private void compositionLine(String categoryName, MoneyAmount amount, MoneyAmount total) {
         this.console.appendLine(MessageFormat.format(
                 "{0} {1} {2}",
-                this.format.text(categoryName, 20),
-                this.format.currency(amount, 16),
-                this.format.percent(amount.amount().divide(total.amount(), C), 12)));
+                this.format.text(categoryName, 21),
+                this.format.text(
+                        this.format.currencyShort(amount.amount()),
+                        8,
+                        amount.amount().signum() < 0
+                        ? Format.LOSS_FORMAT
+                        : Format.PROFIT_FORMAT),
+                this.format.percent(amount.amount().divide(total.amount(), C), 10)));
     }
 
     private void coveredCashLine(String name, MoneyAmount amount, MoneyAmount essential) {
@@ -338,11 +343,13 @@ public class Fire {
 
     private SpendingBudgets budgets() {
 
-        var spendingTiers = new Future(series).retirementSpending();
-        final var essential = spendingTiers.get(ExpenseTier.ESSENTIAL).getAmount(YearMonth.now());
-        final var everything = spendingTiers.get(ExpenseTier.DISCRETIONARY).getAmount(YearMonth.now())
+        final var lastMonth = YearMonth.now().plusMonths(-1);
+        
+        final var spendingTiers = new Future(series).retirementSpending();
+        final var essential = spendingTiers.get(ExpenseTier.ESSENTIAL).getAmount(lastMonth);
+        final var everything = spendingTiers.get(ExpenseTier.DISCRETIONARY).getAmount(lastMonth)
                 .add(essential)
-                .add(spendingTiers.get(ExpenseTier.LUXURY).getAmount(YearMonth.now()));
+                .add(spendingTiers.get(ExpenseTier.LUXURY).getAmount(lastMonth));
 
         final var capitalGainsTaxRate = readPercent("capitalGainsTaxRate");
         final var costBasisPct = readPercent("costBasisPct");
@@ -417,5 +424,4 @@ public class Fire {
         }
     }
 
-   
 }
