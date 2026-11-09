@@ -42,7 +42,7 @@ public class ChartSeriesMapper {
     }
 
     public static TimeSeries asTimeSeries(MoneyAmountSeries series) {
-        return asTimeSeries(series, YearMonth.now().plusMonths(1));
+        return asTimeSeries(series, YearMonth.now());
     }
 
     public static TimeSeries asTimeSeries(MoneyAmountSeries series, YearMonth seriesEnd) {
@@ -58,7 +58,7 @@ public class ChartSeriesMapper {
 
     public static TimeTableXYDataset asTimeTableXYDataset(List<MoneyAmountSeries> series) {
         var dataset = new TimeTableXYDataset();
-        final var nextMonth = YearMonth.now().plusMonths(1);
+        final var nextMonth = YearMonth.now();
 
         for (var s : series) {
             s.forEach((ym, ma) -> {

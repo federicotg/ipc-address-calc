@@ -1056,7 +1056,7 @@ public class ConsoleReports {
                 List.of(
                         new PieItem(IncomeSeries.UNLP.getDisplayName(),
                                 income.get(IncomeSeries.UNLP).amount()),
-                        new PieItem(IncomeSeries.DESPEGAR.getDisplayName(),
+                        new PieItem("Despegar",
                                 income.get(IncomeSeries.DESPEGAR)
                                         .add(income.get(IncomeSeries.DESPEGAR_SPLIT)).amount()),
                         new PieItem(IncomeSeries.LIFIA.getDisplayName(),
@@ -1187,9 +1187,10 @@ public class ConsoleReports {
         final var averageSpenses = months == 0 ? expenses : new SlidingWindow(months).average(expenses);
         final List<TimeSeriesDatapoint> s = new ArrayList<>();
 
+        final var lastMonth = YearMonth.now().plusMonths(-1);
         final var monthsInAYear = BigDecimal.valueOf(12l);
         var ym = YearMonth.of(2015, 1);
-        while (ym.compareTo(savings.getTo()) <= 0) {
+        while (ym.compareTo(lastMonth) <= 0) {
             s.add(
                     new TimeSeriesDatapoint(
                             ym,
