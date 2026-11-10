@@ -205,6 +205,87 @@ public class Fire {
         this.conceptLine("Essential", budgets.essential(), "✅");
         this.conceptLine("Everything", budgets.everything(), "✅✅");
 
+        final var preservationMonthly = this.monthlyFromRate(calc.virtualPortfolio(), calc.withdrawalRate());
+        final var untilMonthly = calc.finiteHorizonMonthly();
+        final var untilLabel = MessageFormat.format("Until {0}", calc.endYear());
+
+        this.console.appendLine(this.format.subtitle("Monthly Gap"));
+        this.gapMatrix(
+                "Preservation",
+                untilLabel,
+                preservationMonthly.subtract(budgets.essential()),
+                preservationMonthly.subtract(budgets.everything()),
+                untilMonthly.subtract(budgets.essential()),
+                untilMonthly.subtract(budgets.everything()),
+                false);
+
+        this.console.appendLine(this.format.subtitle("Portfolio Gap"));
+        final var portfolio = calc.virtualPortfolio();
+        this.gapMatrix(
+                "Preservation",
+                untilLabel,
+                portfolio.subtract(this.requiredPortfolio(budgets.essential(), calc.withdrawalRate())),
+                portfolio.subtract(this.requiredPortfolio(budgets.everything(), calc.withdrawalRate())),
+                portfolio.subtract(this.requiredPortfolio(budgets.essential(), calc.finiteHorizonRate())),
+                portfolio.subtract(this.requiredPortfolio(budgets.everything(), calc.finiteHorizonRate())),
+                true);
+
+    }
+
+    private MoneyAmount monthlyFromRate(MoneyAmount portfolio, BigDecimal annualRate) {
+        return portfolio.adjust(ONE, annualRate.divide(BigDecimal.valueOf(12L), C));
+    }
+
+    private MoneyAmount requiredPortfolio(MoneyAmount monthlySpending, BigDecimal annualRate) {
+        return new MoneyAmount(
+                monthlySpending.amount()
+                        .multiply(BigDecimal.valueOf(12L), C)
+                        .divide(annualRate, C),
+                monthlySpending.currency());
+    }
+
+    private void gapMatrix(
+            String row1Label,
+            String row2Label,
+            MoneyAmount r1Essential,
+            MoneyAmount r1Everything,
+            MoneyAmount r2Essential,
+            MoneyAmount r2Everything,
+            boolean shortCurrency) {
+
+        final int labelCol = 16;
+        final int valueCol = 14;
+
+        this.console.appendLine(
+                this.format.text("", labelCol),
+                this.format.center("Essential", valueCol),
+                this.format.center("Everything", valueCol));
+
+        this.gapMatrixRow(row1Label, r1Essential, r1Everything, labelCol, valueCol, shortCurrency);
+        this.gapMatrixRow(row2Label, r2Essential, r2Everything, labelCol, valueCol, shortCurrency);
+    }
+
+    private void gapMatrixRow(
+            String label,
+            MoneyAmount essentialGap,
+            MoneyAmount everythingGap,
+            int labelCol,
+            int valueCol,
+            boolean shortCurrency) {
+        this.console.appendLine(
+                this.format.text(label, labelCol),
+                this.gapCell(essentialGap, valueCol, shortCurrency),
+                this.gapCell(everythingGap, valueCol, shortCurrency));
+    }
+
+    private String gapCell(MoneyAmount gap, int width, boolean shortCurrency) {
+        if (shortCurrency) {
+            return this.format.center(
+                    this.format.currencyShort(gap.amount()),
+                    width,
+                    gap.amount().signum() >= 0 ? Format.PROFIT_FORMAT : Format.LOSS_FORMAT);
+        }
+        return this.format.currencyPL(gap.amount(), width);
     }
 
     public void fiReport() {
@@ -252,7 +333,6 @@ public class Fire {
                         "  " + flow.name(),
                         flow.presentValue(),
                         calc.futureIncome()));
-        this.paramLine("Inheritance (FV)", this.format.currency(calc.inheritance(), 22));
         this.paramLine("Horizon end year", this.format.number(BigDecimal.valueOf(calc.endYear()), 12));
         this.paramLine("Horizon months", this.format.number(BigDecimal.valueOf(calc.months()), 12));
         this.paramLine("Finite-horizon rate", this.format.percent(calc.finiteHorizonRate(), 12));
@@ -263,6 +343,11 @@ public class Fire {
         this.console.appendLine(
                 this.format.text("Virtual portfolio", 28, yellow),
                 Ansi.colorize(this.format.currency(calc.virtualPortfolio(), 22), yellow));
+        this.compositionLine("  US equity", calc.virtualUsEquity(), calc.virtualPortfolio());
+        this.compositionLine("  Dev. ex-US", calc.virtualDevExUs(), calc.virtualPortfolio());
+        this.compositionLine("  Emerging", calc.virtualEmerging(), calc.virtualPortfolio());
+        this.compositionLine("  Bonds", calc.virtualBonds(), calc.virtualPortfolio());
+        this.compositionLine("  Cash", calc.virtualCash(), calc.virtualPortfolio());
     }
 
     private void paramLine(String label, String value) {
