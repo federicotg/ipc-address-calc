@@ -71,6 +71,27 @@ public class Future {
                 .reduce(ZERO_USD, MoneyAmount::add);
     }
 
+    public static List<CashFlow> usdFlows() {
+        final var now = YearMonth.now();
+        return SeriesReader.read(SeriesReader.readEnvironment().getProperty("flows"), FLOWS_TR)
+                .stream()
+                .sorted(Comparator.comparing(CashFlow::start))
+                .map(cf
+                        -> new CashFlow(
+                                cf.name,
+                                asUSD(cf.adjustmentStrategy == null
+                                        ? new MoneyAmount(cf.amount, cf.currency)
+                                        : cf.adjustmentStrategy
+                                                .adjust(new MoneyAmount(cf.amount, cf.currency)), now)
+                                        .amount(),
+                                USD,
+                                cf.start,
+                                cf.end,
+                                null))
+                .toList();
+
+    }
+
     public static List<CashFlowPresentValue> expectedWealthDetails(BigDecimal discountRate) {
         return SeriesReader.read(SeriesReader.readEnvironment().getProperty("flows"), FLOWS_TR)
                 .stream()
@@ -116,7 +137,7 @@ public class Future {
                 .exchange(amount, USD, ym);
     }
 
-    private record CashFlow(
+    public record CashFlow(
             String name,
             BigDecimal amount,
             Currency currency,
@@ -148,18 +169,17 @@ public class Future {
         return severance(salary, BigDecimal.valueOf(67).movePointLeft(2));
     }
 
-    private static MoneyAmount salary(){
+    private static MoneyAmount salary() {
         var salaryCashFlow = SeriesReader.read("flows.json", FLOWS_TR)
                 .stream().filter(cf -> cf.name.equals("Severance")).findFirst().get();
         return ForeignExchanges.getForeignExchange(salaryCashFlow.currency, USD)
-                        .exchange(
-                                new MoneyAmount(salaryCashFlow.amount(), salaryCashFlow.currency), USD, YearMonth.now());
- 
+                .exchange(
+                        new MoneyAmount(salaryCashFlow.amount(), salaryCashFlow.currency), USD, YearMonth.now());
+
     }
-    
+
     public static Severance severance(BigDecimal maxSalaryFactor) {
 
-       
         return severance(salary(), maxSalaryFactor);
     }
 
@@ -313,7 +333,7 @@ public class Future {
                 .map(level -> {
                     final var xySeries = new XYSeries(level.getKey().name());
                     for (var taxRate : taxRates) {
-                        final var sell = adjustForCapitalGains(level.getValue(), taxRate, costBasisPct);
+                        final var sell = level.getValue();
                         xySeries.add(new LabeledXYDataItem(
                                 level.getValue().amount(),
                                 taxRate,
@@ -336,14 +356,4 @@ public class Future {
                         "retirement-withdrawal-capital-gains");
     }
 
-    public static MoneyAmount adjustForCapitalGains(
-            MoneyAmount netAmount,
-            BigDecimal capitalGainsTaxRate,
-            BigDecimal costBasisPct) {
-
-        final var divisor = ONE.subtract(capitalGainsTaxRate
-                .multiply(ONE.subtract(costBasisPct, C), C), C);
-
-        return netAmount.adjust(divisor, ONE);
-    }
 }

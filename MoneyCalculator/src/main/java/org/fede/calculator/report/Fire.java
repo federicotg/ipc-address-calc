@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import org.fede.calculator.money.Currency;
 import org.fede.calculator.money.MoneyAmount;
@@ -41,7 +40,6 @@ import static org.fede.calculator.money.Currency.USD;
 import org.fede.calculator.money.ForeignExchanges;
 import static org.fede.calculator.money.MathConstants.C;
 import org.fede.calculator.money.series.SeriesReader;
-import static org.fede.calculator.money.series.SeriesReader.readPercent;
 
 /**
  *
@@ -328,11 +326,11 @@ public class Fire {
         this.paramLine("Discount rate", this.format.percent(calc.discountRate(), 12));
         this.paramLine("Withdrawal rate", this.format.percent(calc.withdrawalRate(), 12));
         this.paramLine("Future cash flows", this.format.currency(calc.futureIncome(), 22));
-        Future.expectedWealthDetails(calc.discountRate())
-                .forEach(flow -> this.compositionLine(
-                        "  " + flow.name(),
-                        flow.presentValue(),
-                        calc.futureIncome()));
+        final var cashFlowPVs = Future.expectedWealthDetails(calc.discountRate());
+        cashFlowPVs.forEach(flow -> this.compositionLine(
+                "  " + flow.name(),
+                flow.presentValue(),
+                calc.futureIncome()));
         this.paramLine("Horizon end year", this.format.number(BigDecimal.valueOf(calc.endYear()), 12));
         this.paramLine("Horizon months", this.format.number(BigDecimal.valueOf(calc.months()), 12));
         this.paramLine("Finite-horizon rate", this.format.percent(calc.finiteHorizonRate(), 12));
@@ -340,6 +338,16 @@ public class Fire {
         this.console.appendLine(
                 this.format.text("Portfolio", 28, green),
                 Ansi.colorize(this.format.currency(portfolio, 22), green));
+        final var cashFlowTotals = this.cashFlowPresentValueTotals(cashFlowPVs);
+        this.paramLine("Gross CF / Portfolio", this.format.percent(
+                cashFlowTotals.gross().divide(portfolio.amount(), C),
+                12));
+        this.paramLine("Positive CF / Portfolio", this.format.percent(
+                cashFlowTotals.positive().divide(portfolio.amount(), C),
+                12));
+        this.paramLine("Negative CF / Portfolio", this.format.percent(
+                cashFlowTotals.negative().divide(portfolio.amount(), C),
+                12));
         this.console.appendLine(
                 this.format.text("Virtual portfolio", 28, yellow),
                 Ansi.colorize(this.format.currency(calc.virtualPortfolio(), 22), yellow));
@@ -348,6 +356,31 @@ public class Fire {
         this.compositionLine("  Emerging", calc.virtualEmerging(), calc.virtualPortfolio());
         this.compositionLine("  Bonds", calc.virtualBonds(), calc.virtualPortfolio());
         this.compositionLine("  Cash", calc.virtualCash(), calc.virtualPortfolio());
+    }
+
+    private CashFlowPresentValueTotals cashFlowPresentValueTotals(
+            List<Future.CashFlowPresentValue> cashFlowPVs) {
+        final var zero = MoneyAmount.zero(USD);
+        final var pvPositive = cashFlowPVs.stream()
+                .map(Future.CashFlowPresentValue::presentValue)
+                .filter(pv -> pv.amount().signum() > 0)
+                .reduce(zero, MoneyAmount::add)
+                .amount();
+        final var pvNegativeAbs = cashFlowPVs.stream()
+                .map(Future.CashFlowPresentValue::presentValue)
+                .filter(pv -> pv.amount().signum() < 0)
+                .reduce(zero, MoneyAmount::add)
+                .amount()
+                .abs();
+        return new CashFlowPresentValueTotals(pvPositive, pvNegativeAbs);
+    }
+
+    private record CashFlowPresentValueTotals(BigDecimal positive, BigDecimal negative) {
+        
+        public BigDecimal gross(){
+            return this.positive.add(this.negative);
+        }
+        
     }
 
     private void paramLine(String label, String value) {
@@ -394,23 +427,9 @@ public class Fire {
     }
 
     private List<BigDecimal> percents(BigDecimal withdrawalRate, BigDecimal finiteHorizonRate) {
-        final var step = BigDecimal.valueOf(25L).movePointLeft(4);
-        return Stream.concat(
-                LongStream.range(15L, 20L)
-                        .mapToObj(i -> BigDecimal.valueOf(i).multiply(step, C)),
-                Stream.concat(
-                        Stream.of(withdrawalRate, finiteHorizonRate),
-                        Stream.of(
-                                BigDecimal.valueOf(366L),
-                                BigDecimal.valueOf(338L),
-                                BigDecimal.valueOf(353L),
-                                BigDecimal.valueOf(442L),
-                                BigDecimal.valueOf(407L))
-                                .map(v -> v.movePointLeft(4))))
-                .map(BigDecimal::stripTrailingZeros)
-                .distinct()
-                .sorted()
-                .toList();
+        
+        return List.of(withdrawalRate, finiteHorizonRate);
+        
     }
 
     private List<BigDecimal> spendingAmounts(SpendingBudgets budgets) {
@@ -429,19 +448,15 @@ public class Fire {
     private SpendingBudgets budgets() {
 
         final var lastMonth = YearMonth.now().plusMonths(-1);
-        
+
         final var spendingTiers = new Future(series).retirementSpending();
         final var essential = spendingTiers.get(ExpenseTier.ESSENTIAL).getAmount(lastMonth);
         final var everything = spendingTiers.get(ExpenseTier.DISCRETIONARY).getAmount(lastMonth)
                 .add(essential)
                 .add(spendingTiers.get(ExpenseTier.LUXURY).getAmount(lastMonth));
 
-        final var capitalGainsTaxRate = readPercent("capitalGainsTaxRate");
-        final var costBasisPct = readPercent("costBasisPct");
-
         return new SpendingBudgets(
-                Future.adjustForCapitalGains(essential, capitalGainsTaxRate, costBasisPct),
-                Future.adjustForCapitalGains(everything, capitalGainsTaxRate, costBasisPct)
+                essential, everything
         );
     }
 

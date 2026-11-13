@@ -201,7 +201,7 @@ public class CAEYSafeWithdrawalRate {
      */
     private static long finiteHorizonMonths(int endYear) {
         final var start = YearMonth.now().plusMonths(1);
-        final var end = YearMonth.of(endYear, 12);
+        final var end = YearMonth.of(endYear, 6);
         return ChronoUnit.MONTHS.between(start, end) + 1;
     }
 
