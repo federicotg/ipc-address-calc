@@ -17,6 +17,7 @@
 package org.fede.calculator.report;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import java.text.MessageFormat;
@@ -78,6 +79,7 @@ public class BBPP {
         private MoneyAmount usdPaidAmount;
         private MoneyAmount minimum;
         private MoneyAmount taxedTotalUSD;
+        private boolean calculatedTax;
     }
 
     private final Format format;
@@ -271,7 +273,8 @@ public class BBPP {
                 .add(result.taxedForeignAmount, C)
                 .max(ZERO);
 
-        result.taxAmount = bbpp.tax();
+        result.taxAmount = this.determinedTax(bbpp.tax(), result.taxedTotal, bbpp.brakets());
+        result.calculatedTax = this.calculatedTax(bbpp.tax(), result.taxAmount);
 
         final var usdFxYearMonth = YearMonthUtil.min(
                 Inflation.usdInflation().getTo(),
@@ -344,8 +347,9 @@ public class BBPP {
         this.console.appendLine(format("Taxed foreign amount {0}", this.format.currency(bbpp.taxedForeignAmount)));
         this.console.appendLine(format("Taxed total {0}", this.format.currency(bbpp.taxedTotal)));
 
-        this.console.appendLine(format("Tax amount {0} / USD {1}. Advances {2}",
+        this.console.appendLine(format("Tax amount {0}{1} / USD {2}. Advances {3}",
                 this.format.currency(bbpp.taxAmount),
+                bbpp.calculatedTax ? " (calculated)" : "",
                 this.format.currency(bbpp.usdTaxAmount.amount()),
                 this.format.currency(bbpp.taxAmount.divide(BigDecimal.valueOf(5), C))));
 
@@ -420,11 +424,50 @@ public class BBPP {
                 "Base imponible {0}",
                 this.format.currency(base)));
 
-        if (bbpp.tax() != null) {
-            this.console.appendLine(MessageFormat.format(
-                    "Impuesto determinado {0}",
-                    this.format.currency(bbpp.tax())));
+        final var impuesto = this.determinedTax(bbpp.tax(), base, bbpp.brakets());
+        this.console.appendLine(MessageFormat.format(
+                "Impuesto determinado{0} {1}",
+                this.calculatedTax(bbpp.tax(), impuesto) ? " (calculado)" : "",
+                this.format.currency(impuesto)));
+    }
+
+    private BigDecimal determinedTax(BigDecimal informedTax, BigDecimal taxableBase, List<BBPPTaxBraket> brackets) {
+        if (informedTax != null && informedTax.signum() != 0) {
+            return informedTax;
         }
+        return this.scaleTax(taxableBase, brackets);
+    }
+
+    private boolean calculatedTax(BigDecimal informedTax, BigDecimal determined) {
+        return (informedTax == null || informedTax.signum() == 0) && determined.signum() != 0;
+    }
+
+    /**
+     * AFIP aplica 0 hasta el mínimo no imponible y, sobre el excedente, cada
+     * escala en forma marginal: el tramo hasta el próximo "from" paga su
+     * alícuota y el resto pasa a la escala siguiente.
+     */
+    private BigDecimal scaleTax(BigDecimal taxableBase, List<BBPPTaxBraket> brackets) {
+        if (taxableBase == null || taxableBase.signum() <= 0 || brackets == null || brackets.isEmpty()) {
+            return ZERO;
+        }
+        final var sorted = brackets.stream()
+                .sorted(Comparator.comparing(BBPPTaxBraket::from))
+                .toList();
+        var tax = ZERO;
+        for (var i = 0; i < sorted.size(); i++) {
+            final var bracket = sorted.get(i);
+            final var upper = i + 1 < sorted.size() ? sorted.get(i + 1).from() : null;
+            final var sliceEnd = upper == null ? taxableBase : taxableBase.min(upper);
+            final var slice = sliceEnd.subtract(bracket.from(), C);
+            if (slice.signum() > 0) {
+                tax = tax.add(slice.multiply(bracket.tax(), C), C);
+            }
+            if (upper != null && taxableBase.compareTo(upper) <= 0) {
+                break;
+            }
+        }
+        return tax.setScale(2, RoundingMode.HALF_UP);
     }
 
     private BBPPStatus status(YearCurrency yc) {

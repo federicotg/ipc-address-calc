@@ -368,7 +368,8 @@ public class Fire {
 
         this.paramLine("Curr. Ess. Coverage", this.format.percent(
                 portfolio.amount()
-                        .divide(essentialExpensePV.amount().add(cashFlowTotals.negative(), C), C),
+                        .divide(essentialExpensePV.amount()
+                                .add(cashFlowTotals.negative(), C), C),
                 12));
 
         final var totalExpensePV = Future.presentValueOfAnnuity(
@@ -379,25 +380,32 @@ public class Fire {
 
         this.paramLine("Curr. Tot. Coverage", this.format.percent(
                 portfolio.amount()
-                        .divide(totalExpensePV.amount().add(cashFlowTotals.negative()), C),
+                        .divide(totalExpensePV.amount()
+                                .add(cashFlowTotals.negative()), C),
                 12));
 
         final var certainCashFlowPVs = Future.expectedWealthDetails(calc.discountRate(), true);
         final var certainCashFlowTotals = this.cashFlowPresentValueTotals(certainCashFlowPVs);
 
         this.paramLine("Immediate Liq. Coverage", this.format.percent(
-                portfolio.amount().add(certainCashFlowTotals.positive(), C)
-                        .divide(totalExpensePV.amount().add(cashFlowTotals.negative()), C),
+                portfolio.amount()
+                        .add(certainCashFlowTotals.positive(), C)
+                        .divide(totalExpensePV.amount()
+                                .add(cashFlowTotals.negative()), C),
                 12));
 
         this.paramLine("Net Ess. Coverage", this.format.percent(
-                cashFlowTotals.positive().add(portfolio.amount(), C)
-                        .divide(essentialExpensePV.amount().add(cashFlowTotals.negative(), C), C),
+                cashFlowTotals.positive()
+                        .add(portfolio.amount(), C)
+                        .divide(essentialExpensePV.amount()
+                                .add(cashFlowTotals.negative(), C), C),
                 12));
 
         this.paramLine("Net Tot. Coverage", this.format.percent(
-                cashFlowTotals.positive().add(portfolio.amount(), C)
-                        .divide(totalExpensePV.amount().add(cashFlowTotals.negative(), C), C),
+                cashFlowTotals.positive()
+                        .add(portfolio.amount(), C)
+                        .divide(totalExpensePV.amount()
+                                .add(cashFlowTotals.negative(), C), C),
                 12));
 
         this.console.appendLine(
