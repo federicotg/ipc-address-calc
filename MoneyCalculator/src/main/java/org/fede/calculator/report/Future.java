@@ -29,9 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.fede.calculator.chart.ChartStyle;
-import org.fede.calculator.chart.LabeledXYDataItem;
 import org.fede.calculator.chart.Scale;
-import org.fede.calculator.chart.ScatterXYChart;
 import org.fede.calculator.chart.StackedTimeSeriesChart;
 import org.fede.calculator.chart.ValueFormat;
 import org.fede.calculator.money.Currency;
@@ -43,8 +41,6 @@ import org.fede.calculator.money.series.MoneyAmountItem;
 import org.fede.calculator.money.series.MoneyAmountSeries;
 import org.fede.calculator.money.series.SeriesReader;
 import org.fede.calculator.money.series.SortedMapMoneyAmountSeries;
-import org.jfree.chart.ui.RectangleEdge;
-import org.jfree.data.xy.XYSeries;
 import tools.jackson.core.type.TypeReference;
 
 /**
@@ -87,17 +83,34 @@ public class Future {
                                 USD,
                                 cf.start,
                                 cf.end,
-                                null))
+                                null, 
+                                cf.certain))
                 .toList();
 
     }
 
     public static List<CashFlowPresentValue> expectedWealthDetails(BigDecimal discountRate) {
+        return expectedWealthDetails(discountRate, false);
+    }
+
+    
+    public static List<CashFlowPresentValue> expectedWealthDetails(BigDecimal discountRate, boolean certain) {
         return SeriesReader.read(SeriesReader.readEnvironment().getProperty("flows"), FLOWS_TR)
                 .stream()
+                .filter(cf -> certain ? cf.certain() : true)
                 .sorted(Comparator.comparing(CashFlow::start))
                 .map(flow -> new CashFlowPresentValue(flow.name(), presentValue(flow, discountRate)))
                 .toList();
+    }
+
+    public static MoneyAmount presentValueOfAnnuity(
+            MoneyAmount monthlyAmount,
+            YearMonth start,
+            YearMonth end,
+            BigDecimal discountRate) {
+        return presentValue(
+                new CashFlow("", monthlyAmount.amount(), monthlyAmount.currency(), start, end, null, false),
+                discountRate);
     }
 
     private static MoneyAmount presentValue(CashFlow flow, BigDecimal discountRate) {
@@ -143,7 +156,8 @@ public class Future {
             Currency currency,
             YearMonth start,
             YearMonth end,
-            @JsonProperty("adjustment_strategy") AdjustmentStrategy adjustmentStrategy) {
+            @JsonProperty("adjustment_strategy") AdjustmentStrategy adjustmentStrategy,
+            boolean certain) {
 
         private MoneyAmount adjustedAmount() {
             final var nominal = new MoneyAmount(this.amount, this.currency);
@@ -305,55 +319,5 @@ public class Future {
 
     }
 
-    public void retirementWithdrawalByCapitalGains() {
-
-        final var map = this.retirementSpending();
-        final var now = YearMonth.now();
-
-        final var essential = map.get(ExpenseTier.ESSENTIAL).getAmount(now);
-        final var essentialPlusDiscretionary = essential
-                .add(map.get(ExpenseTier.DISCRETIONARY).getAmount(now));
-        final var all = essentialPlusDiscretionary
-                .add(map.get(ExpenseTier.LUXURY).getAmount(now));
-
-        final var spendingLevels = List.of(
-                Map.entry(ExpenseTier.ESSENTIAL, essential),
-                Map.entry(ExpenseTier.DISCRETIONARY, essentialPlusDiscretionary),
-                Map.entry(ExpenseTier.LUXURY, all));
-        final var taxRates = List.of(
-                BigDecimal.ZERO,
-                BigDecimal.valueOf(15).movePointLeft(2),
-                BigDecimal.valueOf(35).movePointLeft(2));
-
-        final var costBasisPct = SeriesReader.readPercent("costBasisPct");
-        final var format = new Format();
-        final var percentFormat = ValueFormat.PERCENTAGE.format();
-
-        final var ss = spendingLevels.stream()
-                .map(level -> {
-                    final var xySeries = new XYSeries(level.getKey().name());
-                    for (var taxRate : taxRates) {
-                        final var sell = level.getValue();
-                        xySeries.add(new LabeledXYDataItem(
-                                level.getValue().amount(),
-                                taxRate,
-                                format.currencyShort(sell.amount())));
-                    }
-                    return xySeries;
-                })
-                .toList();
-
-        new ScatterXYChart(
-                new ChartStyle(ValueFormat.CURRENCY, Scale.LINEAR),
-                new ChartStyle(ValueFormat.PERCENTAGE, Scale.LINEAR))
-                .create(
-                        "Retirement Withdrawal by Capital Gains",
-                        "Cost basis " + percentFormat.format(costBasisPct),
-                        ss,
-                        "Spending",
-                        "Capital Gains Tax",
-                        RectangleEdge.TOP,
-                        "retirement-withdrawal-capital-gains");
-    }
-
+    
 }

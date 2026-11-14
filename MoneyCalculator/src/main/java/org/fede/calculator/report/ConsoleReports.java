@@ -942,7 +942,6 @@ public class ConsoleReports {
         // spending-retirement
         final var future = new Future(this.series);
         future.retirementSpendingEvolution();
-        future.retirementWithdrawalByCapitalGains();
 
         new Expenses(this.series, this.console, this.bar, this.format)
                 .regularExpensesByYearChart(savings);

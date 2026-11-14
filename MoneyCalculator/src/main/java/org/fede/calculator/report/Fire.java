@@ -162,7 +162,7 @@ public class Fire {
         final var currentSavings = this.series.currentSavingsUSD();
 
         if (detail) {
-            this.withdrawalDetail(calc, currentSavings);
+            this.withdrawalDetail(calc, currentSavings, budgets.essential(), budgets.everything());
         }
 
         this.spendingReport("Preservation", calc.withdrawalRate(), calc.virtualPortfolio());
@@ -287,27 +287,35 @@ public class Fire {
     }
 
     public void fiReport() {
-        this.console.appendLine(this.format.title("F.I.R.E."));
+        this.title();
         this.fi();
 
     }
 
     public void reReport(boolean detail) {
-        this.console.appendLine(this.format.title("F.I.R.E."));
+        this.title();
         this.re(detail);
 
     }
 
+    private void title() {
+        this.console.appendLine(this.format.title("F.I.R.E."));
+    }
+
     public void fire(boolean detail) {
 
-        this.console.appendLine(this.format.title("F.I.R.E."));
+        this.title();
 
         this.fi();
         this.re(detail);
 
     }
 
-    private void withdrawalDetail(CAEYSafeWithdrawalRate.WithdrawalDetail calc, MoneyAmount portfolio) {
+    private void withdrawalDetail(
+            CAEYSafeWithdrawalRate.WithdrawalDetail calc,
+            MoneyAmount portfolio,
+            MoneyAmount essentialMonthly,
+            MoneyAmount totalMonthly) {
         final var green = new AnsiFormat(Attribute.GREEN_TEXT());
         final var yellow = new AnsiFormat(Attribute.BRIGHT_YELLOW_TEXT());
 
@@ -339,15 +347,59 @@ public class Fire {
                 this.format.text("Portfolio", 28, green),
                 Ansi.colorize(this.format.currency(portfolio, 22), green));
         final var cashFlowTotals = this.cashFlowPresentValueTotals(cashFlowPVs);
+
         this.paramLine("Gross CF / Portfolio", this.format.percent(
                 cashFlowTotals.gross().divide(portfolio.amount(), C),
                 12));
+
         this.paramLine("Positive CF / Portfolio", this.format.percent(
                 cashFlowTotals.positive().divide(portfolio.amount(), C),
                 12));
+
         this.paramLine("Negative CF / Portfolio", this.format.percent(
                 cashFlowTotals.negative().divide(portfolio.amount(), C),
                 12));
+
+        final var essentialExpensePV = Future.presentValueOfAnnuity(
+                essentialMonthly,
+                YearMonth.now().plusMonths(1),
+                YearMonth.of(calc.endYear(), 6),
+                calc.discountRate());
+
+        this.paramLine("Curr. Ess. Coverage", this.format.percent(
+                portfolio.amount()
+                        .divide(essentialExpensePV.amount().add(cashFlowTotals.negative(), C), C),
+                12));
+
+        final var totalExpensePV = Future.presentValueOfAnnuity(
+                totalMonthly,
+                YearMonth.now().plusMonths(1),
+                YearMonth.of(calc.endYear(), 6),
+                calc.discountRate());
+
+        this.paramLine("Curr. Tot. Coverage", this.format.percent(
+                portfolio.amount()
+                        .divide(totalExpensePV.amount().add(cashFlowTotals.negative()), C),
+                12));
+
+        final var certainCashFlowPVs = Future.expectedWealthDetails(calc.discountRate(), true);
+        final var certainCashFlowTotals = this.cashFlowPresentValueTotals(certainCashFlowPVs);
+
+        this.paramLine("Immediate Liq. Coverage", this.format.percent(
+                portfolio.amount().add(certainCashFlowTotals.positive(), C)
+                        .divide(totalExpensePV.amount().add(cashFlowTotals.negative()), C),
+                12));
+
+        this.paramLine("Net Ess. Coverage", this.format.percent(
+                cashFlowTotals.positive().add(portfolio.amount(), C)
+                        .divide(essentialExpensePV.amount().add(cashFlowTotals.negative(), C), C),
+                12));
+
+        this.paramLine("Net Tot. Coverage", this.format.percent(
+                cashFlowTotals.positive().add(portfolio.amount(), C)
+                        .divide(totalExpensePV.amount().add(cashFlowTotals.negative(), C), C),
+                12));
+
         this.console.appendLine(
                 this.format.text("Virtual portfolio", 28, yellow),
                 Ansi.colorize(this.format.currency(calc.virtualPortfolio(), 22), yellow));
@@ -376,11 +428,11 @@ public class Fire {
     }
 
     private record CashFlowPresentValueTotals(BigDecimal positive, BigDecimal negative) {
-        
-        public BigDecimal gross(){
+
+        public BigDecimal gross() {
             return this.positive.add(this.negative);
         }
-        
+
     }
 
     private void paramLine(String label, String value) {
@@ -427,9 +479,9 @@ public class Fire {
     }
 
     private List<BigDecimal> percents(BigDecimal withdrawalRate, BigDecimal finiteHorizonRate) {
-        
+
         return List.of(withdrawalRate, finiteHorizonRate);
-        
+
     }
 
     private List<BigDecimal> spendingAmounts(SpendingBudgets budgets) {
