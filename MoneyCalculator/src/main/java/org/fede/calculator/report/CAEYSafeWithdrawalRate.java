@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -78,9 +77,10 @@ public class CAEYSafeWithdrawalRate {
                 cape,
                 capeExUs,
                 capeEmerging,
-                SeriesReader.readPercent("cape.b"),
-                CapeAStrategy.fromConfig());
+                SeriesReader.readPercent("cape.b")
+                );
     }
+
 
     private CAEYSafeWithdrawalRate(
             BigDecimal expectedInflation,
@@ -89,36 +89,18 @@ public class CAEYSafeWithdrawalRate {
             BigDecimal capeExUs,
             BigDecimal capeEmerging,
             BigDecimal capeB) {
-        this(
-                expectedInflation,
-                bondsNominalYield,
-                cape,
-                capeExUs,
-                capeEmerging,
-                capeB,
-                CapeAStrategy.fromConfig());
-    }
-
-    private CAEYSafeWithdrawalRate(
-            BigDecimal expectedInflation,
-            BigDecimal bondsNominalYield,
-            BigDecimal cape,
-            BigDecimal capeExUs,
-            BigDecimal capeEmerging,
-            BigDecimal capeB,
-            CapeAStrategy capeAStrategy) {
         this.cashRealYield = expectedInflation.negate(C);
         this.bondsRealYield = bondsNominalYield.subtract(expectedInflation, C);
         this.cape = cape;
         this.capeExUs = capeExUs;
         this.capeEmerging = capeEmerging;
 
-        final var dob = SeriesReader.readDate("dob");
+        //final var dob = SeriesReader.readDate("dob");
 
-        final var age = BigDecimal.valueOf(ChronoUnit.MONTHS.between(dob, LocalDate.now())).divide(MONTHS_IN_A_YEAR, C);
-        final var yearsLeft = BigDecimal.ONE.movePointRight(2).subtract(age, C);
+        //final var age = BigDecimal.valueOf(ChronoUnit.MONTHS.between(dob, LocalDate.now())).divide(MONTHS_IN_A_YEAR, C);
+        //final var yearsLeft = BigDecimal.ONE.movePointRight(2).subtract(age, C);
 
-        this.capeA = capeAStrategy.baseCapeA(yearsLeft);
+        this.capeA = SeriesReader.readPercent("cape.a");//capeAStrategy.baseCapeA(yearsLeft);
         this.capeB = capeB;
         this.params = new CAEYSWRParams(
                 cashRealYield,

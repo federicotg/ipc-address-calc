@@ -83,7 +83,7 @@ public class Future {
                                 USD,
                                 cf.start,
                                 cf.end,
-                                null, 
+                                null,
                                 cf.certain))
                 .toList();
 
@@ -93,7 +93,6 @@ public class Future {
         return expectedWealthDetails(discountRate, false);
     }
 
-    
     public static List<CashFlowPresentValue> expectedWealthDetails(BigDecimal discountRate, boolean certain) {
         return SeriesReader.read(SeriesReader.readEnvironment().getProperty("flows"), FLOWS_TR)
                 .stream()
@@ -280,7 +279,12 @@ public class Future {
         allSpeding.remove(SpendingSeries.EXTRAORDINARY);
         allSpeding.remove(SpendingSeries.INVESTMENTS);
         allSpeding.remove(SpendingSeries.DEPARTAMENTOS);
-
+        allSpeding.remove(SpendingSeries.BBPP);
+        allSpeding.remove(SpendingSeries.SANTANDER);
+        allSpeding.remove(SpendingSeries.ATLANTICO);
+        allSpeding.remove(SpendingSeries.ITAU_UY);
+        allSpeding.remove(SpendingSeries.VIAJES);
+  
         for (var s : allSpeding.keySet()) {
             allSpeding.put(s, this.ema(allSpeding.get(s), s.getAverageMonths()));
         }
@@ -319,5 +323,4 @@ public class Future {
 
     }
 
-    
 }

@@ -18,6 +18,7 @@ package org.fede.calculator.report;
 
 import java.math.BigDecimal;
 import static java.math.BigDecimal.ONE;
+import org.fede.calculator.money.MathConstants;
 import org.fede.calculator.money.MoneyAmount;
 import org.fede.calculator.money.series.SeriesReader;
 
@@ -30,7 +31,10 @@ public enum AdjustmentStrategy {
     TIMES2PLUSIVA {
         @Override
         public MoneyAmount adjust(MoneyAmount amount) {
-            final var iva = SeriesReader.readPercent("iva").add(ONE);
+            // 10,5%
+            final var iva = SeriesReader.readPercent("iva")
+                    .divide(BigDecimal.TWO, MathConstants.C)
+                    .add(ONE);
             return amount.adjust(ONE, BigDecimal.TWO).adjust(ONE, iva);
         }
     },
